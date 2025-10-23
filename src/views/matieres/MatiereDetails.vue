@@ -132,63 +132,49 @@
       <div class="p-6">
         <!-- Onglet Lessons -->
         <div v-if="activeTab === 'lessons'">
+          <!-- Bouton création (enseignant uniquement) -->
+          <div v-if="isTeacher" class="mb-4 flex justify-end">
+            <button
+              @click="createLesson"
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2"
+            >
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+              </svg>
+              Nouvelle leçon
+            </button>
+          </div>
+
           <div v-if="lessons && lessons.length > 0" class="space-y-4">
-            <div
+            <LessonCard
               v-for="lesson in lessons"
               :key="lesson.id"
-              class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition cursor-pointer"
-              @click="viewLesson(lesson.id)"
-            >
-              <div class="flex justify-between items-start">
-                <div class="flex-1">
-                  <h3 class="text-lg font-semibold text-gray-900">{{ lesson.title }}</h3>
-                  <p class="text-gray-600 mt-1 text-sm">{{ lesson.description }}</p>
-
-                  <div class="flex items-center gap-4 mt-3">
-                    <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
-                      {{ lesson.type }}
-                    </span>
-                    <span class="flex items-center gap-1 text-sm text-gray-600">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      {{ lesson.duration_minutes }} min
-                    </span>
-                    <span
-                      :class="[
-                        'px-2 py-1 text-xs rounded',
-                        lesson.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
-                      ]"
-                    >
-                      {{ lesson.status === 'published' ? 'Publié' : 'Brouillon' }}
-                    </span>
-                  </div>
-
-                  <!-- Progression étudiant -->
-                  <div v-if="lesson.user_progress" class="mt-3">
-                    <div class="flex items-center gap-2">
-                      <div class="flex-1 bg-gray-200 rounded-full h-2">
-                        <div
-                          class="bg-blue-600 h-2 rounded-full transition-all"
-                          :style="{ width: lesson.user_progress.progress_percentage + '%' }"
-                        ></div>
-                      </div>
-                      <span class="text-sm text-gray-600">
-                        {{ lesson.user_progress.progress_percentage }}%
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <button class="text-blue-600 hover:text-blue-800">
-                  →
-                </button>
-              </div>
-            </div>
+              :lesson="lesson"
+              :is-teacher="isTeacher"
+              :show-progress="!isTeacher"
+              :show-stats="isTeacher"
+              :show-status="isTeacher"
+              @view="viewLesson"
+              @edit="editLesson"
+              @delete="confirmDeleteLesson"
+              @publish="publishLesson"
+              @unpublish="unpublishLesson"
+            />
           </div>
 
           <div v-else class="text-center py-12 text-gray-500">
-            <p>Aucun lesson disponible pour cette matière</p>
+            <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            <p class="font-medium text-gray-900 mb-2">Aucune leçon disponible</p>
+            <p class="text-sm">{{ isTeacher ? 'Créez votre première leçon pour cette matière' : 'Aucune leçon n\'a encore été publiée' }}</p>
+            <button
+              v-if="isTeacher"
+              @click="createLesson"
+              class="mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+            >
+              Créer ma première leçon
+            </button>
           </div>
         </div>
 
@@ -384,12 +370,16 @@
 
 <script>
 import lmsService from '@/services/lms'
+import lessonService from '@/services/lesson'
 import VisioManager from '@/components/visio/VisioManager.vue'
+import LessonCard from '@/components/lessons/LessonCard.vue'
+import { auth } from '@/services/api'
 
 export default {
   name: 'MatiereDetails',
   components: {
-    VisioManager
+    VisioManager,
+    LessonCard
   },
 
   data() {
@@ -413,7 +403,7 @@ export default {
 
     tabs() {
       return [
-        { id: 'lessons', label: 'Lessons', count: this.lessons?.length || 0 },
+        { id: 'lessons', label: 'Leçons', count: this.lessons?.length || 0 },
         { id: 'seances', label: 'Séances', count: this.seances?.length || 0 },
         { id: 'evaluations', label: 'Évaluations', count: this.evaluations?.length || 0 },
         { id: 'classes', label: 'Classes', count: this.classes?.length || 0 }
@@ -423,6 +413,11 @@ export default {
     canManageVisio() {
       const user = lmsService.auth?.getUser?.() || {}
       return user && ['coordinateur', 'superAdmin'].includes(user.role)
+    },
+
+    isTeacher() {
+      const user = auth.getUser()
+      return user && ['enseignant', 'teacher', 'coordinateur'].includes(user.role)
     }
   },
 
@@ -478,7 +473,58 @@ export default {
     },
 
     viewLesson(lessonId) {
-      this.$router.push({ name: 'lesson-view', params: { id: lessonId } })
+      this.$router.push({ name: 'LessonView', params: { id: lessonId } })
+    },
+
+    createLesson() {
+      this.$router.push({ name: 'LessonCreate' })
+    },
+
+    editLesson(lessonId) {
+      this.$router.push({ name: 'LessonEdit', params: { id: lessonId } })
+    },
+
+    async confirmDeleteLesson(lessonId) {
+      if (!confirm('Êtes-vous sûr de vouloir supprimer cette leçon ?')) {
+        return
+      }
+
+      try {
+        const response = await lessonService.deleteLesson(lessonId)
+        if (response.success) {
+          alert('Leçon supprimée avec succès')
+          this.loadMatiereDetails()
+        }
+      } catch (error) {
+        console.error('[MatiereDetails] Erreur deleteLesson:', error)
+        alert('Erreur lors de la suppression: ' + (error.response?.data?.message || error.message))
+      }
+    },
+
+    async publishLesson(lessonId) {
+      try {
+        const response = await lessonService.publishLesson(lessonId)
+        if (response.success) {
+          alert('Leçon publiée avec succès')
+          this.loadMatiereDetails()
+        }
+      } catch (error) {
+        console.error('[MatiereDetails] Erreur publishLesson:', error)
+        alert('Erreur lors de la publication: ' + (error.response?.data?.message || error.message))
+      }
+    },
+
+    async unpublishLesson(lessonId) {
+      try {
+        const response = await lessonService.unpublishLesson(lessonId)
+        if (response.success) {
+          alert('Leçon dépubliée avec succès')
+          this.loadMatiereDetails()
+        }
+      } catch (error) {
+        console.error('[MatiereDetails] Erreur unpublishLesson:', error)
+        alert('Erreur lors de la dépublication: ' + (error.response?.data?.message || error.message))
+      }
     },
 
     viewSeance(seanceId) {

@@ -116,6 +116,34 @@ const routes = [
     component: LessonView,
     meta: { requiresAuth: true }
   },
+  // Leçons - Enseignant
+  {
+    path: '/teacher/lessons/create',
+    name: 'LessonCreate',
+    component: () => import('@/views/lessons/LessonEditor.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['enseignant', 'teacher', 'coordinateur']
+    }
+  },
+  {
+    path: '/teacher/lessons/:id/edit',
+    name: 'LessonEdit',
+    component: () => import('@/views/lessons/LessonEditor.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['enseignant', 'teacher', 'coordinateur']
+    }
+  },
+  {
+    path: '/teacher/lessons',
+    name: 'TeacherLessons',
+    component: () => import('@/views/lessons/TeacherLessons.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['enseignant', 'teacher', 'coordinateur']
+    }
+  },
   {
     path: '/quizzes',
     name: 'Quizzes',
