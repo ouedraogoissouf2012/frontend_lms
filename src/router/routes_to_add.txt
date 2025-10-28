@@ -1,0 +1,30 @@
+  // Gestion Séances Admin
+  {
+    path: '/admin/seances',
+    name: 'AdminSeances',
+    component: () => import('@/views/admin/AdminSeances.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['superAdmin', 'coordinateur']
+    }
+  },
+  // Gestion Visioconférences Admin
+  {
+    path: '/admin/visioconferences',
+    name: 'AdminVisio',
+    component: () => import('@/views/admin/AdminVisio.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['superAdmin', 'coordinateur']
+    }
+  },
+  // Statistiques Admin
+  {
+    path: '/admin/stats',
+    name: 'AdminStats',
+    component: () => import('@/views/admin/AdminStats.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['superAdmin', 'coordinateur']
+    }
+  },

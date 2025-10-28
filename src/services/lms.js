@@ -66,12 +66,14 @@ export const lmsService = {
   },
 
   /**
-   * Récupérer tous les enseignants (via proxy KLASSCI)
+   * Récupérer tous les enseignants (via LMS + KLASSCI)
+   * @param {boolean} withDetails - Inclure détails complets (classes, matières, stats)
    * @returns {Promise<Object>} { success, data: [...] }
    */
-  async getEnseignants() {
+  async getEnseignants(withDetails = false) {
     try {
-      return await api.get('/proxy/enseignants')
+      const url = withDetails ? '/lms/enseignants?with_details=true' : '/lms/enseignants'
+      return await api.get(url)
     } catch (error) {
       console.error('Erreur récupération enseignants:', error)
       throw error
@@ -282,6 +284,46 @@ export const lmsService = {
       return await api.post(`/lms/seances/${seanceId}/join`)
     } catch (error) {
       console.error('Erreur rejoindre visio:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Récupérer la liste des participants à une visio (OPTION B)
+   * @param {number} seanceId
+   * @returns {Promise<Object>}
+   */
+  async getVisioParticipants(seanceId) {
+    try {
+      return await api.get(`/lms/seances/${seanceId}/participants`)
+    } catch (error) {
+      console.error('Erreur récupération participants:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Récupérer le dashboard enseignant (matières, classes, stats)
+   * @returns {Promise<Object>} { success, data: { matieres, classes, stats } }
+   */
+  async getTeacherDashboard() {
+    try {
+      return await api.get('/proxy/me/teacher-dashboard')
+    } catch (error) {
+      console.error('Erreur récupération dashboard enseignant:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Récupérer les matières de l'enseignant avec statistiques enrichies
+   * @returns {Promise<Object>} { success, data: [...] }
+   */
+  async getMyMatieres() {
+    try {
+      return await api.get('/lms/teacher/my-matieres')
+    } catch (error) {
+      console.error('Erreur récupération mes matières:', error)
       throw error
     }
   }

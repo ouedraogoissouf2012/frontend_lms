@@ -309,7 +309,7 @@ export default {
     },
 
     /**
-     * Étudiant: Rejoindre la visio
+     * Étudiant: Rejoindre la visio (OPTION B: avec tracking)
      */
     async rejoindreVisio() {
       if (!this.seance.visio_active) {
@@ -321,25 +321,39 @@ export default {
       try {
         console.log('👨‍🎓 Étudiant rejoint la visio...')
 
-        // 1. Récupérer le room_id
-        const roomId = this.seance.visio_room_id || this.seance.visio?.room_id
+        // OPTION B: Appeler /join-visio pour:
+        // 1. Vérifier que l'étudiant est inscrit
+        // 2. Enregistrer sa participation
+        const response = await lmsService.joinVisio(this.seance.id)
+
+        if (!response.success) {
+          alert(response.message || 'Vous n\'êtes pas autorisé à rejoindre cette visio')
+          return
+        }
+
+        // Récupérer le room_id depuis la réponse
+        const roomId = response.data.visio_room_id || this.seance.visio_room_id
 
         if (!roomId) {
           alert('Erreur: Room ID introuvable')
           return
         }
 
-        // 2. Générer lien Jitsi
+        // Générer lien Jitsi
         const link = `https://meet.jit.si/${roomId}#config.prejoinConfig.enabled=false&userInfo.displayName=${encodeURIComponent(this.user.name)}`
 
-        // 3. Ouvrir Jitsi
+        // Ouvrir Jitsi
         window.open(link, '_blank')
 
-        console.log('✅ Étudiant a rejoint la visio')
+        console.log('✅ Étudiant a rejoint la visio et participation enregistrée')
+
+        // Émettre événement pour rafraîchir le compteur de participants
+        this.$emit('participant-joined')
 
       } catch (error) {
         console.error('[VisioManager] Erreur rejoindre visio:', error)
-        alert('Erreur lors de la connexion à la visio: ' + (error.response?.data?.message || error.message))
+        const errorMessage = error.response?.data?.message || error.message
+        alert('Erreur lors de la connexion à la visio: ' + errorMessage)
       } finally {
         this.loading = false
       }

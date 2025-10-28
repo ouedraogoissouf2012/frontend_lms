@@ -1,234 +1,204 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <Navbar />
-
-    <div class="max-w-7xl mx-auto px-4 py-8">
-      <div class="mb-8 flex items-center gap-4">
-        <AcademicCapIcon class="w-10 h-10 text-blue-600" />
+  <DashboardLayout>
+    <div class="dashboard-content">
+      <!-- Header -->
+      <div class="welcome-header">
+        <AcademicCapIcon class="welcome-icon" />
         <div>
-          <h1 class="text-3xl font-bold text-gray-900">
-            Tableau de bord Étudiant
-          </h1>
-          <p class="text-gray-600 mt-1">
-            Bienvenue, <strong>{{ user?.name }}</strong>
+          <h1 class="page-title">Dashboard Étudiant</h1>
+          <p class="page-subtitle">
+            Bienvenue, <strong>{{ user?.name || user?.nom + ' ' + user?.prenom }}</strong>
           </p>
         </div>
       </div>
 
       <!-- Loading state -->
-      <div v-if="loading" class="text-center py-12">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-        <p class="text-gray-600 mt-4">Chargement de vos données...</p>
+      <div v-if="loading">
+        <!-- Skeleton for widgets -->
+        <div class="widget-card mb-6">
+          <div class="widget-header">
+            <SkeletonLoader type="circle" width="1.5rem" height="1.5rem" />
+            <SkeletonLoader type="text" width="120px" />
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <SkeletonLoader type="rect" height="60px" />
+            <SkeletonLoader type="rect" height="60px" />
+            <SkeletonLoader type="rect" height="60px" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <SkeletonLoader type="card" />
+          <SkeletonLoader type="card" />
+        </div>
+
+        <div class="widget-card mb-6">
+          <SkeletonLoader type="text" width="150px" />
+          <div class="space-y-3 mt-4">
+            <SkeletonLoader type="rect" height="60px" />
+            <SkeletonLoader type="rect" height="60px" />
+            <SkeletonLoader type="rect" height="60px" />
+          </div>
+        </div>
       </div>
 
       <!-- Error state -->
-      <div v-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
-        {{ error }}
+      <div v-if="error" class="error-state">
+        <div class="error-icon">⚠</div>
+        <div class="error-content">
+          <h3 class="error-title">Erreur de chargement</h3>
+          <p class="error-message">{{ error }}</p>
+        </div>
+        <button @click="loadDashboard(true)" class="error-retry-btn">
+          Réessayer
+        </button>
       </div>
 
       <!-- Dashboard Content -->
       <div v-if="!loading && dashboardData">
-        <!-- Ma Classe -->
-        <div v-if="dashboardData.classe" class="bg-white rounded-lg shadow p-6 mb-6">
-          <div class="flex items-center gap-2 mb-4">
-            <BuildingLibraryIcon class="w-6 h-6 text-blue-600" />
-            <h2 class="text-xl font-bold">Ma Classe</h2>
+        <!-- Widget Profil (Classe, Filière, Niveau) -->
+        <div class="widget-card mb-6">
+          <div class="widget-header">
+            <BuildingLibraryIcon class="widget-icon text-blue-600" />
+            <h2 class="widget-title">Mon Profil</h2>
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <p class="text-gray-500 text-sm">Classe</p>
-              <p class="font-semibold">{{ dashboardData.classe.name || dashboardData.classe.libelle || 'N/A' }}</p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4" v-if="dashboardData.classe">
+            <div class="info-item">
+              <p class="info-label">Classe</p>
+              <p class="info-value">{{ dashboardData.classe.name || dashboardData.classe.libelle || 'N/A' }}</p>
             </div>
-            <div>
-              <p class="text-gray-500 text-sm">Filière</p>
-              <p class="font-semibold">{{ dashboardData.classe.filiere?.name || dashboardData.classe.filiere?.nom || dashboardData.classe.filiere?.libelle || 'N/A' }}</p>
+            <div class="info-item">
+              <p class="info-label">Filière</p>
+              <p class="info-value">{{ dashboardData.classe.filiere?.name || dashboardData.classe.filiere?.nom || dashboardData.classe.filiere?.libelle || 'N/A' }}</p>
             </div>
-            <div>
-              <p class="text-gray-500 text-sm">Niveau</p>
-              <p class="font-semibold">{{ dashboardData.classe.niveau?.name || dashboardData.classe.niveau?.nom || dashboardData.classe.niveau?.libelle || 'N/A' }}</p>
+            <div class="info-item">
+              <p class="info-label">Niveau</p>
+              <p class="info-value">{{ dashboardData.classe.niveau?.name || dashboardData.classe.niveau?.nom || dashboardData.classe.niveau?.libelle || 'N/A' }}</p>
             </div>
           </div>
+          <p v-else class="text-gray-500">Aucune classe assignée</p>
         </div>
 
-        <!-- Statistiques -->
-        <div v-if="dashboardData.statistiques" class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex items-center gap-2 mb-2">
-              <ChartBarIcon class="w-5 h-5 text-blue-600" />
-              <p class="text-gray-500 text-sm">Moyenne Générale</p>
+        <!-- Widgets Performance et Activité -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <!-- Widget Performance -->
+          <div class="widget-card">
+            <div class="widget-header">
+              <ChartBarIcon class="widget-icon text-green-600" />
+              <h2 class="widget-title">Performance</h2>
             </div>
-            <p class="text-3xl font-bold text-blue-600">
-              {{ dashboardData.statistiques.moyenne_generale || 'N/A' }}
-            </p>
-          </div>
-
-          <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex items-center gap-2 mb-2">
-              <CheckCircleIcon class="w-5 h-5 text-green-600" />
-              <p class="text-gray-500 text-sm">Taux de Présence</p>
-            </div>
-            <p class="text-3xl font-bold text-green-600">
-              {{ dashboardData.statistiques.taux_presence || '0' }}%
-            </p>
-          </div>
-
-          <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex items-center gap-2 mb-2">
-              <BookOpenIcon class="w-5 h-5 text-purple-600" />
-              <p class="text-gray-500 text-sm">Cours Suivis</p>
-            </div>
-            <p class="text-3xl font-bold text-purple-600">
-              {{ dashboardData.cours?.length || 0 }}
-            </p>
-          </div>
-
-          <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex items-center gap-2 mb-2">
-              <DocumentTextIcon class="w-5 h-5 text-orange-600" />
-              <p class="text-gray-500 text-sm">Quiz à Venir</p>
-            </div>
-            <p class="text-3xl font-bold text-orange-600">
-              {{ dashboardData.quiz?.length || 0 }}
-            </p>
-          </div>
-        </div>
-
-        <!-- Mes Cours (Matières) -->
-        <div class="bg-white rounded-lg shadow p-6 mb-6">
-          <div class="flex items-center gap-2 mb-4">
-            <BookOpenIcon class="w-6 h-6 text-purple-600" />
-            <h2 class="text-xl font-bold">Mes Cours</h2>
-          </div>
-          <div v-if="dashboardData.cours && dashboardData.cours.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div
-              v-for="cours in dashboardData.cours"
-              :key="cours.id || cours.matiere_id"
-              class="border rounded-lg p-4 hover:shadow-md transition cursor-pointer"
-              @click="navigateToMatiere(cours)"
-            >
-              <h3 class="font-semibold text-lg mb-2">
-                {{ cours.name || cours.nom || cours.libelle || cours.matiere?.name || cours.matiere?.nom || 'Cours sans nom' }}
-              </h3>
-              <p v-if="cours.coefficient || cours.matiere?.coefficient" class="text-sm text-gray-600 mb-3">
-                Coefficient: {{ cours.coefficient || cours.matiere?.coefficient || 'N/A' }}
-              </p>
-
-              <div class="flex gap-2">
-                <button
-                  @click.stop="navigateToMatiere(cours)"
-                  class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition"
-                >
-                  <BookOpenIcon class="w-5 h-5" />
-                  Voir détails
-                </button>
+            <div class="stats-grid">
+              <div class="stat-item">
+                <p class="stat-label">Moyenne Générale</p>
+                <p class="stat-value text-blue-600">
+                  {{ dashboardData.statistiques?.moyenne_generale || 'N/A' }}
+                </p>
+              </div>
+              <div class="stat-item">
+                <p class="stat-label">Taux de Présence</p>
+                <p class="stat-value text-green-600">
+                  {{ dashboardData.statistiques?.taux_presence || '0' }}%
+                </p>
               </div>
             </div>
           </div>
-          <p v-else class="text-gray-500">Aucun cours disponible</p>
-        </div>
 
-        <!-- Quiz à Venir (Évaluations) -->
-        <div class="bg-white rounded-lg shadow p-6 mb-6">
-          <div class="flex items-center gap-2 mb-4">
-            <DocumentTextIcon class="w-6 h-6 text-orange-600" />
-            <h2 class="text-xl font-bold">Quiz à Venir</h2>
-          </div>
-          <div v-if="dashboardData.quiz && dashboardData.quiz.length > 0" class="space-y-4">
-            <div
-              v-for="quiz in dashboardData.quiz"
-              :key="quiz.id"
-              class="border rounded-lg p-4 hover:shadow-md transition"
-            >
-              <div class="flex justify-between items-start">
-                <div>
-                  <h3 class="font-semibold text-lg">{{ quiz.titre }}</h3>
-                  <p class="text-sm text-gray-600 mt-1">{{ quiz.matiere?.name }}</p>
-                  <p class="text-sm text-gray-500 mt-1">Date: {{ formatDate(quiz.date) }}</p>
-                </div>
-                <span
-                  :class="{
-                    'bg-green-100 text-green-800': quiz.statut === 'planifie',
-                    'bg-blue-100 text-blue-800': quiz.statut === 'en_cours',
-                    'bg-gray-100 text-gray-800': quiz.statut === 'termine'
-                  }"
-                  class="px-3 py-1 rounded-full text-xs font-semibold"
-                >
-                  {{ quiz.statut }}
-                </span>
+          <!-- Widget Activité -->
+          <div class="widget-card">
+            <div class="widget-header">
+              <BookOpenIcon class="widget-icon text-purple-600" />
+              <h2 class="widget-title">Activité</h2>
+            </div>
+            <div class="stats-grid">
+              <div class="stat-item">
+                <p class="stat-label">Cours Suivis</p>
+                <p class="stat-value text-purple-600">
+                  {{ dashboardData.cours?.length || 0 }}
+                </p>
+              </div>
+              <div class="stat-item">
+                <p class="stat-label">Évaluations Effectuées</p>
+                <p class="stat-value text-orange-600">
+                  {{ dashboardData.quiz?.length || 0 }}
+                </p>
               </div>
             </div>
           </div>
-          <p v-else class="text-gray-500">Aucun quiz à venir</p>
         </div>
 
-        <!-- Mes Notes -->
-        <div v-if="dashboardData.notes && dashboardData.notes.length > 0" class="bg-white rounded-lg shadow p-6 mb-6">
-          <div class="flex items-center gap-2 mb-4">
-            <ChartBarIcon class="w-6 h-6 text-blue-600" />
-            <h2 class="text-xl font-bold">Mes Dernières Notes</h2>
+        <!-- Widget Notes Récentes -->
+        <div class="widget-card mb-6" v-if="dashboardData.notes && dashboardData.notes.length > 0">
+          <div class="widget-header">
+            <DocumentTextIcon class="widget-icon text-indigo-600" />
+            <h2 class="widget-title">Notes Récentes</h2>
           </div>
           <div class="space-y-3">
             <div
-              v-for="note in dashboardData.notes"
+              v-for="note in dashboardData.notes.slice(0, 5)"
               :key="note.id"
-              class="flex justify-between items-center border-b pb-3"
+              class="note-item"
             >
-              <div>
-                <p class="font-semibold">{{ note.evaluation?.titre || 'Évaluation' }}</p>
-                <p class="text-sm text-gray-600">{{ note.matiere?.name }}</p>
+              <div class="note-info">
+                <p class="note-title">{{ note.evaluation?.titre || 'Évaluation' }}</p>
+                <p class="note-matiere">{{ note.matiere?.name || 'Matière inconnue' }}</p>
               </div>
-              <div class="text-right">
+              <div class="note-score">
                 <p class="text-2xl font-bold text-blue-600">{{ note.note }}/20</p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Menu actions rapides -->
+        <!-- Actions Rapides -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
           <router-link
-            to="/lessons"
-            class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition transform hover:-translate-y-1"
+            :to="{ name: 'student-courses' }"
+            class="action-card"
+            aria-label="Accéder à la page Mes Cours"
           >
-            <BookOpenIcon class="w-12 h-12 text-blue-600 mb-3" />
-            <h3 class="font-bold text-lg mb-2">Accéder aux Leçons</h3>
-            <p class="text-gray-600 text-sm">Consulter les supports de cours</p>
+            <BookOpenIcon class="action-icon text-blue-600" aria-hidden="true" />
+            <h3 class="action-title">Mes Cours</h3>
+            <p class="action-description">Accéder à tous mes cours</p>
           </router-link>
 
           <router-link
-            to="/student/evaluations"
-            class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition transform hover:-translate-y-1"
+            :to="{ name: 'student-evaluations-list' }"
+            class="action-card"
+            aria-label="Accéder à la page Évaluations"
           >
-            <DocumentTextIcon class="w-12 h-12 text-orange-600 mb-3" />
-            <h3 class="font-bold text-lg mb-2">Mes Évaluations</h3>
-            <p class="text-gray-600 text-sm">Passer les évaluations en ligne</p>
+            <DocumentTextIcon class="action-icon text-orange-600" aria-hidden="true" />
+            <h3 class="action-title">Évaluations</h3>
+            <p class="action-description">Voir toutes mes évaluations</p>
           </router-link>
 
           <router-link
-            to="/quizzes"
-            class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition transform hover:-translate-y-1"
+            :to="{ name: 'student-visio-list' }"
+            class="action-card"
+            aria-label="Accéder à la page Visioconférences"
           >
-            <DocumentTextIcon class="w-12 h-12 text-green-600 mb-3" />
-            <h3 class="font-bold text-lg mb-2">Passer les Quiz</h3>
-            <p class="text-gray-600 text-sm">Quiz interactifs</p>
+            <VideoCameraIcon class="action-icon text-purple-600" aria-hidden="true" />
+            <h3 class="action-title">Visioconférences</h3>
+            <p class="action-description">Mes séances en ligne</p>
           </router-link>
 
           <router-link
             to="/forum"
-            class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition transform hover:-translate-y-1"
+            class="action-card"
+            aria-label="Accéder au Forum"
           >
-            <ChatBubbleLeftRightIcon class="w-12 h-12 text-purple-600 mb-3" />
-            <h3 class="font-bold text-lg mb-2">Poser une Question</h3>
-            <p class="text-gray-600 text-sm">Échanger avec la communauté</p>
+            <ChatBubbleLeftRightIcon class="action-icon text-green-600" aria-hidden="true" />
+            <h3 class="action-title">Forum</h3>
+            <p class="action-description">Poser une question</p>
           </router-link>
         </div>
       </div>
     </div>
-  </div>
+  </DashboardLayout>
 </template>
 
 <script>
-import Navbar from '@/components/Navbar.vue'
+import DashboardLayout from '@/components/layout/DashboardLayout.vue'
+import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
 import { auth } from '@/services/api'
 import { klassciService } from '@/services/klassci'
 import {
@@ -245,7 +215,8 @@ import {
 export default {
   name: 'StudentDashboard',
   components: {
-    Navbar,
+    DashboardLayout,
+    SkeletonLoader,
     AcademicCapIcon,
     BookOpenIcon,
     DocumentTextIcon,
@@ -264,81 +235,331 @@ export default {
     }
   },
   methods: {
-    async loadDashboard() {
+    loadCachedData() {
+      try {
+        const cached = localStorage.getItem('student_dashboard_cache')
+        if (cached) {
+          const { data, timestamp } = JSON.parse(cached)
+          // Cache valide pour 5 minutes
+          const isValid = Date.now() - timestamp < 5 * 60 * 1000
+          if (isValid) {
+            console.log('[CACHE] Données chargées depuis le cache')
+            this.dashboardData = data
+            return true
+          }
+        }
+      } catch (error) {
+        console.warn('[CACHE] Erreur lecture cache:', error)
+      }
+      return false
+    },
+
+    saveCacheData(data) {
+      try {
+        const cacheData = {
+          data,
+          timestamp: Date.now()
+        }
+        localStorage.setItem('student_dashboard_cache', JSON.stringify(cacheData))
+        console.log('[CACHE] Données sauvegardées dans le cache')
+      } catch (error) {
+        console.warn('[CACHE] Erreur sauvegarde cache:', error)
+      }
+    },
+
+    async loadDashboard(forceRefresh = false) {
+      // Charger depuis le cache si disponible et pas de refresh forcé
+      if (!forceRefresh && this.loadCachedData()) {
+        this.loading = false
+        // Charger les nouvelles données en arrière-plan
+        this.refreshInBackground()
+        return
+      }
+
       this.loading = true
       this.error = null
 
       try {
-        console.log('📊 Chargement dashboard étudiant depuis KLASSCI...')
+        console.log('[DASHBOARD] Chargement dashboard étudiant...')
         this.dashboardData = await klassciService.getStudentDashboard()
-        console.log('✅ Dashboard chargé:', this.dashboardData)
+        console.log('[OK] Dashboard chargé:', this.dashboardData)
 
-        // Logs détaillés pour debug
-        if (this.dashboardData) {
-          console.log('📚 Classe:', this.dashboardData.classe)
-          console.log('📖 Cours:', this.dashboardData.cours)
-          console.log('📝 Quiz:', this.dashboardData.quiz)
-          console.log('📊 Stats:', this.dashboardData.statistiques)
-        }
+        // Sauvegarder dans le cache
+        this.saveCacheData(this.dashboardData)
       } catch (err) {
-        console.error('❌ Erreur chargement dashboard:', err)
+        console.error('[ERREUR] Erreur chargement dashboard:', err)
         this.error = 'Impossible de charger vos données. Veuillez réessayer.'
       } finally {
         this.loading = false
       }
     },
 
-    formatDate(dateString) {
-      if (!dateString) return 'N/A'
-      const date = new Date(dateString)
-      return date.toLocaleDateString('fr-FR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
-    },
-
-    navigateToMatiere(cours) {
-      // Naviguer vers la page de détails de la matière
-      const matiereId = cours.id || cours.matiere_id || cours.matiere?.id
-      if (matiereId) {
-        console.log('📚 Navigation vers matière:', matiereId)
-        this.$router.push({
-          name: 'matiere-details',
-          params: { id: matiereId }
-        })
-      } else {
-        console.error('❌ ID matière non trouvé:', cours)
-        alert('Impossible de naviguer vers cette matière')
+    async refreshInBackground() {
+      try {
+        console.log('[BACKGROUND] Rafraîchissement des données...')
+        const freshData = await klassciService.getStudentDashboard()
+        this.dashboardData = freshData
+        this.saveCacheData(freshData)
+        console.log('[BACKGROUND] Données rafraîchies')
+      } catch (error) {
+        console.warn('[BACKGROUND] Erreur rafraîchissement:', error)
       }
-    },
-
-    joinCourse(cours) {
-      // Générer le même nom de salle que l'enseignant
-      const coursName = (cours.name || cours.nom || cours.libelle || 'cours').toLowerCase().replace(/\s+/g, '-')
-      const className = this.dashboardData.classe ?
-        (this.dashboardData.classe.name || this.dashboardData.classe.libelle || 'classe').toLowerCase().replace(/\s+/g, '-')
-        : 'general'
-      const roomName = `${coursName}-${className}-${cours.id || cours.matiere_id}`
-
-      const courseTitle = cours.name || cours.nom || cours.libelle || 'Cours'
-
-      console.log('🎥 Rejoindre cours:', roomName)
-
-      // Rediriger vers la salle de visioconférence
-      this.$router.push({
-        name: 'VideoConference',
-        params: { roomName },
-        query: { title: courseTitle }
-      })
     }
   },
   mounted() {
     this.user = auth.getUser()
-    console.log('👤 Student User:', this.user)
-
-    // Charger le dashboard KLASSCI
+    console.log('[USER] Student User:', this.user)
     this.loadDashboard()
   }
 }
 </script>
+
+<style scoped>
+.dashboard-content {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+/* Welcome Header */
+.welcome-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.welcome-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--blue-600);
+}
+
+.page-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.page-subtitle {
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+/* Widget Card */
+.widget-card {
+  background-color: var(--card-bg);
+  border-radius: 0.75rem;
+  box-shadow: var(--card-shadow);
+  padding: 1.5rem;
+  transition: box-shadow 0.2s;
+}
+
+.widget-card:hover {
+  box-shadow: var(--card-hover-shadow);
+}
+
+.widget-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.widget-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.widget-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* Info Items */
+.info-item {
+  padding: 0.75rem;
+  background: var(--bg-secondary);
+  border-radius: 0.5rem;
+}
+
+.info-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.info-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-radius: 0.5rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+/* Note Items */
+.note-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-radius: 0.5rem;
+  transition: background 0.2s;
+}
+
+.note-item:hover {
+  background: var(--bg-tertiary);
+}
+
+.note-info {
+  flex: 1;
+}
+
+.note-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.note-matiere {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.note-score {
+  text-align: right;
+}
+
+/* Action Cards */
+.action-card {
+  background: var(--card-bg);
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  box-shadow: var(--card-shadow);
+  transition: all 0.2s;
+  text-decoration: none;
+  display: block;
+}
+
+.action-card:hover {
+  box-shadow: var(--card-hover-shadow);
+  transform: translateY(-4px);
+}
+
+.action-icon {
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 0.75rem;
+}
+
+.action-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.action-description {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* Error State */
+.error-state {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.error-icon {
+  font-size: 2rem;
+  color: #DC2626;
+  flex-shrink: 0;
+}
+
+.error-content {
+  flex: 1;
+}
+
+.error-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #991B1B;
+  margin: 0 0 0.5rem 0;
+}
+
+.error-message {
+  color: #B91C1C;
+  margin: 0;
+}
+
+.error-retry-btn {
+  padding: 0.75rem 1.5rem;
+  background: #DC2626;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.error-retry-btn:hover {
+  background: #B91C1C;
+  transform: scale(1.02);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .error-state {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .error-retry-btn {
+    width: 100%;
+  }
+}
+</style>

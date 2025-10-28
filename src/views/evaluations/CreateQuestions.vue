@@ -1,6 +1,7 @@
 <template>
-  <div class="min-h-screen bg-gray-50 py-8">
-    <div class="max-w-5xl mx-auto px-4">
+  <DashboardLayout>
+    <div class="dashboard-content">
+      <div class="max-w-5xl mx-auto">
       <!-- En-tête -->
       <div class="mb-8">
         <button
@@ -311,271 +312,285 @@
           </button>
         </div>
       </div>
+      </div>
     </div>
-  </div>
+  </DashboardLayout>
 </template>
 
-<script>
+<script setup>
+import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import evaluationService from '@/services/evaluation'
 import klassciService from '@/services/klassci'
 
-export default {
-  name: 'CreateQuestions',
-  data() {
-    return {
-      evaluationKlassci: null,
-      evaluationLMS: null, // Évaluation LMS existante (pour édition)
-      configuration: {
-        duree_minutes: 60,
-        max_attempts: 1,
-        shuffle_questions: false,
-        show_results: false
-      },
-      questions: [],
-      loading: false,
-      isEditMode: false
-    }
-  },
-  computed: {
-    isValid() {
-      return this.configuration.duree_minutes > 0 && this.questions.length > 0
-    }
-  },
-  async mounted() {
-    const klassciId = this.$route.query.klassci_id
-    if (!klassciId) {
-      alert('ID évaluation KLASSCI manquant')
-      this.$router.back()
-      return
-    }
+// Router
+const router = useRouter()
+const route = useRoute()
 
-    // Vérifier si mode édition (route avec paramètre :id)
-    const lmsEvaluationId = this.$route.params.id
-    this.isEditMode = !!lmsEvaluationId
+// Reactive state
+const evaluationKlassci = ref(null)
+const evaluationLMS = ref(null) // Évaluation LMS existante (pour édition)
+const configuration = reactive({
+  duree_minutes: 60,
+  max_attempts: 1,
+  shuffle_questions: false,
+  show_results: false
+})
+const questions = ref([])
+const loading = ref(false)
+const isEditMode = ref(false)
 
-    await this.loadEvaluationKlassci(klassciId)
+// Computed
+const isValid = computed(() => {
+  return configuration.duree_minutes > 0 && questions.value.length > 0
+})
 
-    // Si mode édition, charger l'évaluation LMS existante
-    if (this.isEditMode) {
-      await this.loadExistingEvaluation(lmsEvaluationId)
-    }
-  },
-  methods: {
-    async loadEvaluationKlassci(klassciId) {
-      try {
-        const result = await klassciService.getEvaluations()
-        if (result.success && result.data) {
-          this.evaluationKlassci = result.data.find(e => e.id === parseInt(klassciId))
+// Methods
+async function loadEvaluationKlassci(klassciId) {
+  try {
+    const result = await klassciService.getEvaluations()
+    if (result.success && result.data) {
+      evaluationKlassci.value = result.data.find(e => e.id === parseInt(klassciId))
 
-          if (!this.evaluationKlassci) {
-            alert('Évaluation KLASSCI non trouvée')
-            this.$router.back()
-          }
-        }
-      } catch (error) {
-        console.error('Erreur chargement via /lms/evaluations, utilisation du dashboard:', error)
-
-        // Fallback: utiliser les évaluations du dashboard enseignant
-        try {
-          const dashboard = await klassciService.getTeacherDashboard()
-          if (dashboard && dashboard.evaluations) {
-            this.evaluationKlassci = dashboard.evaluations.find(e => e.id === parseInt(klassciId))
-
-            if (!this.evaluationKlassci) {
-              alert('Évaluation KLASSCI non trouvée dans le dashboard')
-              this.$router.back()
-            } else {
-              console.log('✅ Évaluation récupérée depuis le dashboard')
-            }
-          } else {
-            alert('Impossible de charger l\'évaluation')
-            this.$router.back()
-          }
-        } catch (dashboardError) {
-          console.error('Erreur chargement depuis dashboard:', dashboardError)
-          alert('Impossible de charger l\'évaluation')
-          this.$router.back()
-        }
+      if (!evaluationKlassci.value) {
+        alert('Évaluation KLASSCI non trouvée')
+        router.back()
       }
-    },
+    }
+  } catch (error) {
+    console.error('Erreur chargement via /lms/evaluations, utilisation du dashboard:', error)
 
-    async loadExistingEvaluation(lmsEvaluationId) {
-      try {
-        console.log('📖 Chargement évaluation LMS existante:', lmsEvaluationId)
-        const result = await evaluationService.getEvaluation(lmsEvaluationId)
+    // Fallback: utiliser les évaluations du dashboard enseignant
+    try {
+      const dashboard = await klassciService.getTeacherDashboard()
+      if (dashboard && dashboard.evaluations) {
+        evaluationKlassci.value = dashboard.evaluations.find(e => e.id === parseInt(klassciId))
 
-        if (result.success && result.data) {
-          this.evaluationLMS = result.data
-          console.log('✅ Évaluation LMS chargée:', this.evaluationLMS)
-
-          // Charger la configuration
-          this.configuration = {
-            duree_minutes: this.evaluationLMS.duree_minutes || 60,
-            max_attempts: this.evaluationLMS.max_attempts || 1,
-            shuffle_questions: this.evaluationLMS.shuffle_questions || false,
-            show_results: this.evaluationLMS.show_results || false
-          }
-
-          // Charger les questions existantes
-          if (this.evaluationLMS.questions && this.evaluationLMS.questions.length > 0) {
-            this.questions = this.evaluationLMS.questions.map(q => ({
-              question: q.question,
-              type: q.type,
-              points: q.points || 1,
-              options: q.options || [],
-              correct_answers: q.correct_answers || [],
-              correct_answers_text: q.type === 'reponse_courte' && q.correct_answers
-                ? q.correct_answers.join(', ')
-                : ''
-            }))
-            console.log('✅ Questions chargées:', this.questions.length)
-          }
+        if (!evaluationKlassci.value) {
+          alert('Évaluation KLASSCI non trouvée dans le dashboard')
+          router.back()
         } else {
-          console.error('❌ Erreur chargement évaluation LMS')
-          alert('Impossible de charger l\'évaluation existante')
+          console.log('✅ Évaluation récupérée depuis le dashboard')
         }
-      } catch (error) {
-        console.error('❌ Erreur loadExistingEvaluation:', error)
-        alert('Erreur lors du chargement de l\'évaluation')
-      }
-    },
-
-    addQuestion() {
-      this.questions.push({
-        question: '',
-        type: 'qcm',
-        points: 1.00,
-        options: ['', '', '', ''],
-        correct_answers: [],
-        correct_answers_text: ''
-      })
-    },
-
-    removeQuestion(index) {
-      this.questions.splice(index, 1)
-    },
-
-    addOption(questionIndex) {
-      this.questions[questionIndex].options.push('')
-    },
-
-    removeOption(questionIndex, optionIndex) {
-      this.questions[questionIndex].options.splice(optionIndex, 1)
-    },
-
-    setCorrectAnswer(questionIndex, answer) {
-      this.questions[questionIndex].correct_answers = [answer]
-    },
-
-    toggleCorrectAnswer(questionIndex, answer) {
-      const question = this.questions[questionIndex]
-      if (!question.correct_answers) {
-        question.correct_answers = []
-      }
-      const index = question.correct_answers.indexOf(answer)
-      if (index > -1) {
-        question.correct_answers.splice(index, 1)
       } else {
-        question.correct_answers.push(answer)
+        alert('Impossible de charger l\'évaluation')
+        router.back()
       }
-    },
-
-    prepareQuestionsForSubmit() {
-      return this.questions.map(q => {
-        const question = {
-          question: q.question,
-          type: q.type,
-          points: q.points,
-          options: null,
-          correct_answers: null
-        }
-
-        if (q.type === 'qcm' || q.type === 'qcm_multiple' || q.type === 'vrai_faux') {
-          question.options = q.options.filter(o => o.trim() !== '')
-          question.correct_answers = q.correct_answers || []
-        } else if (q.type === 'reponse_courte' && q.correct_answers_text) {
-          question.correct_answers = q.correct_answers_text.split(',').map(a => a.trim())
-        }
-
-        return question
-      })
-    },
-
-    async saveQuestions() {
-      if (!this.isValid) {
-        alert('Veuillez ajouter au moins une question')
-        return
-      }
-
-      this.loading = true
-      try {
-        if (this.isEditMode && this.evaluationLMS) {
-          // Mode édition : mettre à jour l'évaluation existante
-          await this.updateEvaluation()
-        } else {
-          // Mode création : créer une nouvelle évaluation
-          await this.createEvaluation()
-        }
-      } catch (error) {
-        console.error('Erreur saveQuestions:', error)
-        alert('Erreur lors de l\'enregistrement des questions')
-      } finally {
-        this.loading = false
-      }
-    },
-
-    async createEvaluation() {
-      const data = {
-        klassci_evaluation_id: this.evaluationKlassci.id,
-        klassci_matiere_id: this.evaluationKlassci.matiere?.id || this.evaluationKlassci.matiere_id,
-        klassci_classe_id: this.evaluationKlassci.classe?.id || this.evaluationKlassci.classe_id,
-        titre: this.evaluationKlassci.titre,
-        description: this.evaluationKlassci.description || '',
-        type: 'qcm',
-        date_evaluation: this.evaluationKlassci.date_evaluation || this.evaluationKlassci.programmation?.date_evaluation,
-        duree_minutes: this.configuration.duree_minutes,
-        coefficient: this.evaluationKlassci.coefficient || this.evaluationKlassci.programmation?.coefficient || 1,
-        bareme: this.evaluationKlassci.bareme || this.evaluationKlassci.programmation?.bareme || 20,
-        shuffle_questions: this.configuration.shuffle_questions,
-        show_results: this.configuration.show_results,
-        max_attempts: this.configuration.max_attempts,
-        status: 'planifiee',
-        questions: this.prepareQuestionsForSubmit()
-      }
-
-      console.log('📤 Création nouvelle évaluation:', data)
-
-      const result = await evaluationService.createEvaluation(data)
-
-      if (result.success) {
-        // Publier immédiatement
-        await evaluationService.publishEvaluation(result.data.id)
-
-        alert('Questions enregistrées et évaluation activée avec succès !')
-        this.$router.push('/teacher/evaluations')
-      }
-    },
-
-    async updateEvaluation() {
-      // Supprimer les questions existantes et les recréer
-      // (Méthode simple : on met à jour l'évaluation avec les nouvelles questions)
-      const data = {
-        duree_minutes: this.configuration.duree_minutes,
-        max_attempts: this.configuration.max_attempts,
-        shuffle_questions: this.configuration.shuffle_questions,
-        show_results: this.configuration.show_results,
-        questions: this.prepareQuestionsForSubmit()
-      }
-
-      console.log('📤 Mise à jour évaluation:', this.evaluationLMS.id, data)
-
-      const result = await evaluationService.updateEvaluation(this.evaluationLMS.id, data)
-
-      if (result.success) {
-        alert('Évaluation mise à jour avec succès !')
-        this.$router.push('/teacher/evaluations')
-      }
+    } catch (dashboardError) {
+      console.error('Erreur chargement depuis dashboard:', dashboardError)
+      alert('Impossible de charger l\'évaluation')
+      router.back()
     }
   }
 }
+
+async function loadExistingEvaluation(lmsEvaluationId) {
+  try {
+    console.log('📖 Chargement évaluation LMS existante:', lmsEvaluationId)
+    const result = await evaluationService.getEvaluation(lmsEvaluationId)
+
+    if (result.success && result.data) {
+      evaluationLMS.value = result.data
+      console.log('✅ Évaluation LMS chargée:', evaluationLMS.value)
+
+      // Charger la configuration
+      configuration.duree_minutes = evaluationLMS.value.duree_minutes || 60
+      configuration.max_attempts = evaluationLMS.value.max_attempts || 1
+      configuration.shuffle_questions = evaluationLMS.value.shuffle_questions || false
+      configuration.show_results = evaluationLMS.value.show_results || false
+
+      // Charger les questions existantes
+      if (evaluationLMS.value.questions && evaluationLMS.value.questions.length > 0) {
+        questions.value = evaluationLMS.value.questions.map(q => ({
+          question: q.question,
+          type: q.type,
+          points: q.points || 1,
+          options: q.options || [],
+          correct_answers: q.correct_answers || [],
+          correct_answers_text: q.type === 'reponse_courte' && q.correct_answers
+            ? q.correct_answers.join(', ')
+            : ''
+        }))
+        console.log('✅ Questions chargées:', questions.value.length)
+      }
+    } else {
+      console.error('❌ Erreur chargement évaluation LMS')
+      alert('Impossible de charger l\'évaluation existante')
+    }
+  } catch (error) {
+    console.error('❌ Erreur loadExistingEvaluation:', error)
+    alert('Erreur lors du chargement de l\'évaluation')
+  }
+}
+
+function addQuestion() {
+  questions.value.push({
+    question: '',
+    type: 'qcm',
+    points: 1.00,
+    options: ['', '', '', ''],
+    correct_answers: [],
+    correct_answers_text: ''
+  })
+}
+
+function removeQuestion(index) {
+  questions.value.splice(index, 1)
+}
+
+function addOption(questionIndex) {
+  questions.value[questionIndex].options.push('')
+}
+
+function removeOption(questionIndex, optionIndex) {
+  questions.value[questionIndex].options.splice(optionIndex, 1)
+}
+
+function setCorrectAnswer(questionIndex, answer) {
+  questions.value[questionIndex].correct_answers = [answer]
+}
+
+function toggleCorrectAnswer(questionIndex, answer) {
+  const question = questions.value[questionIndex]
+  if (!question.correct_answers) {
+    question.correct_answers = []
+  }
+  const index = question.correct_answers.indexOf(answer)
+  if (index > -1) {
+    question.correct_answers.splice(index, 1)
+  } else {
+    question.correct_answers.push(answer)
+  }
+}
+
+function prepareQuestionsForSubmit() {
+  return questions.value.map(q => {
+    const question = {
+      question: q.question,
+      type: q.type,
+      points: q.points,
+      options: null,
+      correct_answers: null
+    }
+
+    if (q.type === 'qcm' || q.type === 'qcm_multiple' || q.type === 'vrai_faux') {
+      question.options = q.options.filter(o => o.trim() !== '')
+      question.correct_answers = q.correct_answers || []
+    } else if (q.type === 'reponse_courte' && q.correct_answers_text) {
+      question.correct_answers = q.correct_answers_text.split(',').map(a => a.trim())
+    }
+
+    return question
+  })
+}
+
+async function saveQuestions() {
+  if (!isValid.value) {
+    alert('Veuillez ajouter au moins une question')
+    return
+  }
+
+  loading.value = true
+  try {
+    if (isEditMode.value && evaluationLMS.value) {
+      // Mode édition : mettre à jour l'évaluation existante
+      await updateEvaluation()
+    } else {
+      // Mode création : créer une nouvelle évaluation
+      await createEvaluation()
+    }
+  } catch (error) {
+    console.error('Erreur saveQuestions:', error)
+    alert('Erreur lors de l\'enregistrement des questions')
+  } finally {
+    loading.value = false
+  }
+}
+
+async function createEvaluation() {
+  const data = {
+    klassci_evaluation_id: evaluationKlassci.value.id,
+    klassci_matiere_id: evaluationKlassci.value.matiere?.id || evaluationKlassci.value.matiere_id,
+    klassci_classe_id: evaluationKlassci.value.classe?.id || evaluationKlassci.value.classe_id,
+    titre: evaluationKlassci.value.titre,
+    description: evaluationKlassci.value.description || '',
+    type: 'qcm',
+    date_evaluation: evaluationKlassci.value.date_evaluation || evaluationKlassci.value.programmation?.date_evaluation,
+    duree_minutes: configuration.duree_minutes,
+    coefficient: evaluationKlassci.value.coefficient || evaluationKlassci.value.programmation?.coefficient || 1,
+    bareme: evaluationKlassci.value.bareme || evaluationKlassci.value.programmation?.bareme || 20,
+    shuffle_questions: configuration.shuffle_questions,
+    show_results: configuration.show_results,
+    max_attempts: configuration.max_attempts,
+    status: 'planifiee',
+    questions: prepareQuestionsForSubmit()
+  }
+
+  console.log('📤 Création nouvelle évaluation:', data)
+
+  const result = await evaluationService.createEvaluation(data)
+
+  if (result.success) {
+    // Publier immédiatement
+    await evaluationService.publishEvaluation(result.data.id)
+
+    alert('Questions enregistrées et évaluation activée avec succès !')
+    router.push('/teacher/evaluations')
+  }
+}
+
+async function updateEvaluation() {
+  // Supprimer les questions existantes et les recréer
+  // (Méthode simple : on met à jour l'évaluation avec les nouvelles questions)
+  const data = {
+    duree_minutes: configuration.duree_minutes,
+    max_attempts: configuration.max_attempts,
+    shuffle_questions: configuration.shuffle_questions,
+    show_results: configuration.show_results,
+    questions: prepareQuestionsForSubmit()
+  }
+
+  console.log('📤 Mise à jour évaluation:', evaluationLMS.value.id, data)
+
+  const result = await evaluationService.updateEvaluation(evaluationLMS.value.id, data)
+
+  if (result.success) {
+    alert('Évaluation mise à jour avec succès !')
+    router.push('/teacher/evaluations')
+  }
+}
+
+// Lifecycle
+onMounted(async () => {
+  const klassciId = route.query.klassci_id
+  if (!klassciId) {
+    alert('ID évaluation KLASSCI manquant')
+    router.back()
+    return
+  }
+
+  // Vérifier si mode édition (route avec paramètre :id)
+  const lmsEvaluationId = route.params.id
+  isEditMode.value = !!lmsEvaluationId
+
+  await loadEvaluationKlassci(klassciId)
+
+  // Si mode édition, charger l'évaluation LMS existante
+  if (isEditMode.value) {
+    await loadExistingEvaluation(lmsEvaluationId)
+  }
+})
 </script>
+
+<style scoped>
+.dashboard-content {
+  padding: 2rem;
+}
+
+@media (max-width: 768px) {
+  .dashboard-content {
+    padding: 1rem;
+  }
+}
+</style>

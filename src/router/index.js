@@ -4,12 +4,13 @@ import { auth } from '@/services/api'
 // Import des pages
 import Login from '@/views/Login.vue'
 import Dashboard from '@/views/Dashboard.vue'
-import Lessons from '@/views/Lessons.vue'
-import LessonView from '@/views/LessonView.vue'
 import Quizzes from '@/views/Quizzes.vue'
 import QuizTake from '@/views/QuizTake.vue'
 import Forum from '@/views/Forum.vue'
 import ForumTopic from '@/views/ForumTopic.vue'
+
+// Import Lessons
+import StudentLessonView from '@/views/lessons/StudentLessonView.vue'
 
 // Import des dashboards par rôle
 import AdminDashboard from '@/views/dashboards/AdminDashboard.vue'
@@ -25,12 +26,20 @@ import CreateQuestions from '@/views/evaluations/CreateQuestions.vue'
 import StudentEvaluations from '@/views/evaluations/StudentEvaluations.vue'
 import TakeEvaluation from '@/views/evaluations/TakeEvaluation.vue'
 
-// Import Matieres, Classes, Séances et Coordinateur
+// Import Matières, Classes, Séances et Coordinateur
 import MatiereDetails from '@/views/matieres/MatiereDetails.vue'
 import ClasseDetails from '@/views/classes/ClasseDetails.vue'
 import SeanceDetails from '@/views/seances/SeanceDetails.vue'
 import SeanceManagement from '@/views/coordinateur/SeanceManagement.vue'
 import TeacherSeances from '@/views/TeacherSeances.vue'
+
+// Import des nouvelles vues Enseignant et Admin
+import TeacherClasses from '@/views/teacher/TeacherClasses.vue'
+import TeacherStats from '@/views/teacher/TeacherStats.vue'
+import EvaluationCorrections from '@/views/teacher/EvaluationCorrections.vue'
+import AdminUsers from '@/views/admin/AdminUsers.vue'
+import AdminClasses from '@/views/admin/AdminClasses.vue'
+import AdminMatieres from '@/views/admin/AdminMatieres.vue'
 
 const routes = [
   {
@@ -67,7 +76,103 @@ const routes = [
       roles: ['superAdmin', 'coordinateur', 'secretaire']
     }
   },
+  // Gestion Utilisateurs Admin
+  {
+    path: '/admin/users',
+    name: 'AdminUsers',
+    component: AdminUsers,
+    meta: {
+      requiresAuth: true,
+      roles: ['superAdmin', 'coordinateur']
+    }
+  },
+  // Gestion Classes Admin
+  {
+    path: '/admin/classes',
+    name: 'AdminClasses',
+    component: AdminClasses,
+    meta: {
+      requiresAuth: true,
+      roles: ['superAdmin', 'coordinateur']
+    }
+  },
+  // Gestion Matières Admin
+  {
+    path: '/admin/matieres',
+    name: 'AdminMatieres',
+    component: AdminMatieres,
+    meta: {
+      requiresAuth: true,
+      roles: ['superAdmin', 'coordinateur']
+    }
+  },
+  // Gestion Enseignants Admin
+  {
+    path: '/admin/enseignants',
+    name: 'AdminEnseignants',
+    component: () => import('@/views/admin/AdminEnseignants.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['superAdmin', 'coordinateur']
+    }
+  },
+  // Gestion Séances Admin
+  {
+    path: '/admin/seances',
+    name: 'AdminSeances',
+    component: () => import('@/views/admin/AdminSeances.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['superAdmin', 'coordinateur']
+    }
+  },
+  // Gestion Visioconférences Admin
+  {
+    path: '/admin/visioconferences',
+    name: 'AdminVisio',
+    component: () => import('@/views/admin/AdminVisio.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['superAdmin', 'coordinateur']
+    }
+  },
+  // Statistiques Admin
+  {
+    path: '/admin/stats',
+    name: 'AdminStats',
+    component: () => import('@/views/admin/AdminStats.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['superAdmin', 'coordinateur']
+    }
+  },
+  // Profil - Admin
+  {
+    path: '/admin/profile',
+    name: 'admin-profile',
+    component: () => import('@/views/admin/AdminProfile.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['superAdmin', 'coordinateur'],
+      title: 'Mon Profil'
+    }
+  },
+  // Paramètres - Admin
+  {
+    path: '/admin/settings',
+    name: 'admin-settings',
+    component: () => import('@/views/admin/AdminSettings.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['superAdmin', 'coordinateur'],
+      title: 'Paramètres'
+    }
+  },
   // Dashboard Enseignant
+  {
+    path: '/teacher',
+    redirect: '/teacher/dashboard'
+  },
   {
     path: '/teacher/dashboard',
     name: 'TeacherDashboard',
@@ -84,17 +189,136 @@ const routes = [
     component: TeacherSeances,
     meta: {
       requiresAuth: true,
-      roles: ['enseignant', 'teacher']
+      roles: ['enseignant', 'teacher', 'coordinateur']
     }
   },
-  // Dashboard Étudiant
+  // Classes Enseignant
+  {
+    path: '/teacher/classes',
+    name: 'TeacherClasses',
+    component: TeacherClasses,
+    meta: {
+      requiresAuth: true,
+      roles: ['enseignant', 'teacher', 'coordinateur']
+    }
+  },
+  // Statistiques Enseignant
+  {
+    path: '/teacher/stats',
+    name: 'TeacherStats',
+    component: TeacherStats,
+    meta: {
+      requiresAuth: true,
+      roles: ['enseignant', 'teacher', 'coordinateur']
+    }
+  },
+  // Profil - Enseignant
+  {
+    path: '/teacher/profile',
+    name: 'teacher-profile',
+    component: () => import('@/views/teacher/TeacherProfile.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['enseignant', 'teacher', 'coordinateur'],
+      title: 'Mon Profil'
+    }
+  },
+  // Visioconférences - Enseignant
+  {
+    path: '/teacher/visio-list',
+    name: 'teacher-visio-list',
+    component: () => import('@/views/teacher/TeacherVisioList.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['enseignant', 'teacher', 'coordinateur'],
+      title: 'Mes Visioconférences'
+    }
+  },
+  // Paramètres - Enseignant
+  {
+    path: '/teacher/settings',
+    name: 'teacher-settings',
+    component: () => import('@/views/teacher/TeacherSettings.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['enseignant', 'teacher', 'coordinateur'],
+      title: 'Paramètres'
+    }
+  },
+  // Corrections Évaluations
+  {
+    path: '/teacher/evaluations/corrections',
+    name: 'EvaluationCorrections',
+    component: EvaluationCorrections,
+    meta: {
+      requiresAuth: true,
+      roles: ['enseignant', 'teacher', 'coordinateur']
+    }
+  },
+  // Dashboard Étudiant (AVEC LAYOUT MODERNE)
   {
     path: '/student/dashboard',
     name: 'StudentDashboard',
     component: StudentDashboard,
     meta: {
       requiresAuth: true,
-      roles: ['etudiant']
+      roles: ['etudiant'],
+      title: 'Dashboard'
+    }
+  },
+  // Mes Cours - Étudiant
+  {
+    path: '/student/courses',
+    name: 'student-courses',
+    component: () => import('@/views/student/StudentCourses.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['etudiant'],
+      title: 'Mes Cours'
+    }
+  },
+  // Évaluations - Étudiant (liste centralisée)
+  {
+    path: '/student/evaluations-list',
+    name: 'student-evaluations-list',
+    component: () => import('@/views/student/StudentEvaluationsList.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['etudiant'],
+      title: 'Mes Évaluations'
+    }
+  },
+  // Visioconférences - Étudiant (liste centralisée)
+  {
+    path: '/student/visio-list',
+    name: 'student-visio-list',
+    component: () => import('@/views/student/StudentVisioList.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['etudiant'],
+      title: 'Mes Visioconférences'
+    }
+  },
+  // Paramètres - Étudiant
+  {
+    path: '/student/settings',
+    name: 'student-settings',
+    component: () => import('@/views/student/StudentSettings.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['etudiant'],
+      title: 'Paramètres'
+    }
+  },
+  // Séances étudiant - Emploi du temps
+  {
+    path: '/student/seances',
+    name: 'student-seances',
+    component: () => import('@/views/etudiant/SeancesEtudiant.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['etudiant'],
+      title: 'Mon Emploi du Temps'
     }
   },
   // Dashboard générique (fallback)
@@ -104,17 +328,15 @@ const routes = [
     component: Dashboard,
     meta: { requiresAuth: true }
   },
-  {
-    path: '/lessons',
-    name: 'Lessons',
-    component: Lessons,
-    meta: { requiresAuth: true }
-  },
+  // Leçons - Étudiants
   {
     path: '/lessons/:id',
     name: 'LessonView',
-    component: LessonView,
-    meta: { requiresAuth: true }
+    component: StudentLessonView,
+    meta: {
+      requiresAuth: true,
+      roles: ['etudiant', 'enseignant', 'teacher', 'coordinateur', 'superAdmin']
+    }
   },
   // Leçons - Enseignant
   {
@@ -136,12 +358,32 @@ const routes = [
     }
   },
   {
+    path: '/teacher/matieres',
+    name: 'TeacherMatieres',
+    component: () => import('@/views/teacher/TeacherMatieres.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['enseignant', 'teacher'],
+      title: 'Mes Matières'
+    }
+  },
+  {
     path: '/teacher/lessons',
     name: 'TeacherLessons',
     component: () => import('@/views/lessons/TeacherLessons.vue'),
     meta: {
       requiresAuth: true,
       roles: ['enseignant', 'teacher', 'coordinateur']
+    }
+  },
+  {
+    path: '/teacher/lessons/:id/chapters',
+    name: 'LessonChapters',
+    component: () => import('@/views/lessons/LessonChapters.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['enseignant', 'teacher', 'coordinateur'],
+      title: 'Gestion des chapitres'
     }
   },
   {
@@ -186,6 +428,10 @@ const routes = [
     }
   },
   {
+    path: '/teacher/evaluations/create',
+    redirect: '/teacher/evaluations/create-questions'
+  },
+  {
     path: '/teacher/evaluations/create-questions',
     name: 'CreateQuestions',
     component: CreateQuestions,
@@ -222,12 +468,15 @@ const routes = [
       roles: ['etudiant']
     }
   },
-  // Matières - Navigation hiérarchique
+  // Matières - Navigation hiérarchique (AVEC LAYOUT MODERNE)
   {
     path: '/matieres/:id',
     name: 'matiere-details',
     component: MatiereDetails,
-    meta: { requiresAuth: true }
+    meta: {
+      requiresAuth: true,
+      title: 'Détails Matière'
+    }
   },
   // Classes - Détails complets
   {

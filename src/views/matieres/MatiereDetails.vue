@@ -1,82 +1,80 @@
 <template>
-  <div class="matiere-details">
-    <!-- Header avec nom de la matière -->
-    <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg rounded-lg p-6 mb-6">
-      <div class="flex justify-between items-start">
-        <div class="flex-1">
-          <!-- Breadcrumb -->
-          <div class="flex items-center gap-2 text-blue-100 text-sm mb-3">
-            <button @click="$router.back()" class="hover:text-white transition">
-              Dashboard
-            </button>
-            <span>›</span>
-            <span class="text-white font-medium">Gestion de la Matière</span>
-          </div>
-
-          <!-- Nom de la matière -->
-          <h1 class="text-4xl font-bold mb-2">
-            {{ matiere?.nom || 'Chargement...' }}
-          </h1>
-
-          <!-- Infos matière -->
-          <div class="flex items-center gap-6 text-blue-100">
-            <span v-if="matiere?.code" class="flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+  <DashboardLayout>
+  <div class="matiere-details-content">
+    <!-- Notifications Toast -->
+    <div class="notifications-container">
+      <transition-group name="notification">
+        <div
+          v-for="notification in notifications"
+          :key="notification.id"
+          :class="[
+            'notification-toast',
+            `notification-${notification.type}`
+          ]"
+        >
+          <div class="notification-content">
+            <span class="notification-icon">
+              <svg v-if="notification.type === 'success'" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
               </svg>
-              Code: <strong class="text-white">{{ matiere.code }}</strong>
-            </span>
-            <span v-if="matiere?.coefficient" class="flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+              <svg v-else-if="notification.type === 'error'" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
               </svg>
-              Coefficient: <strong class="text-white">{{ matiere.coefficient }}</strong>
-            </span>
-            <span v-if="matiere?.heures?.total" class="flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg v-else-if="notification.type === 'warning'" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
               </svg>
-              Volume horaire: <strong class="text-white">{{ matiere.heures.total }}h</strong>
+              <svg v-else class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+              </svg>
             </span>
+            <span class="notification-message">{{ notification.message }}</span>
           </div>
         </div>
+      </transition-group>
+    </div>
 
-        <button
-          @click="$router.back()"
-          class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition backdrop-blur-sm"
-        >
-          ← Retour
+    <!-- Simple Header -->
+    <div class="page-header">
+      <!-- Breadcrumb -->
+      <div class="breadcrumb">
+        <button @click="$router.back()" class="breadcrumb-link">
+          Mes Cours
         </button>
+        <span class="breadcrumb-separator">›</span>
+        <span class="breadcrumb-current">{{ matiere?.nom || 'Chargement...' }}</span>
       </div>
 
-      <!-- Stats -->
-      <div class="grid grid-cols-3 gap-4 mt-6" v-if="statistiques">
-        <div class="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/20">
-          <div class="flex items-center gap-2 text-sm text-blue-100 font-medium mb-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
-            Lessons
-          </div>
-          <p class="text-2xl font-bold text-white">{{ statistiques.nombre_lessons || 0 }}</p>
+      <!-- Title & Info -->
+      <div class="header-content">
+        <h1 class="page-title">{{ matiere?.nom || 'Chargement...' }}</h1>
+
+        <!-- Info badges -->
+        <div class="info-badges" v-if="matiere">
+          <span v-if="matiere.code" class="info-badge">
+            Code: {{ matiere.code }}
+          </span>
+          <span v-if="matiere.coefficient" class="info-badge">
+            Coeff: {{ matiere.coefficient }}
+          </span>
+          <span v-if="matiere.heures?.total" class="info-badge">
+            {{ matiere.heures.total }}h
+          </span>
         </div>
-        <div class="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/20">
-          <div class="flex items-center gap-2 text-sm text-blue-100 font-medium mb-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            Séances
-          </div>
-          <p class="text-2xl font-bold text-white">{{ statistiques.nombre_seances_programmees || 0 }}</p>
+      </div>
+
+      <!-- Compact Stats -->
+      <div class="compact-stats" v-if="statistiques">
+        <div class="compact-stat">
+          <span class="compact-stat-value">{{ statistiques.nombre_lessons || 0 }}</span>
+          <span class="compact-stat-label">Leçons</span>
         </div>
-        <div class="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/20">
-          <div class="flex items-center gap-2 text-sm text-blue-100 font-medium mb-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Évaluations
-          </div>
-          <p class="text-2xl font-bold text-white">{{ statistiques.nombre_evaluations || 0 }}</p>
+        <div class="compact-stat">
+          <span class="compact-stat-value">{{ statistiques.nombre_seances_programmees || 0 }}</span>
+          <span class="compact-stat-label">Séances</span>
+        </div>
+        <div class="compact-stat">
+          <span class="compact-stat-value">{{ statistiques.nombre_evaluations || 0 }}</span>
+          <span class="compact-stat-label">Évaluations</span>
         </div>
       </div>
     </div>
@@ -132,9 +130,29 @@
       <div class="p-6">
         <!-- Onglet Lessons -->
         <div v-if="activeTab === 'lessons'">
-          <!-- Bouton création (enseignant uniquement) -->
-          <div v-if="isTeacher" class="mb-4 flex justify-end">
+          <!-- Actions header -->
+          <div class="mb-4 flex justify-between items-center">
+            <!-- Toggle view mode -->
+            <div class="view-toggle">
+              <button
+                @click="viewMode = 'grid'"
+                :class="['toggle-btn', viewMode === 'grid' ? 'active' : '']"
+                title="Affichage grille"
+              >
+                ⊞ Grille
+              </button>
+              <button
+                @click="viewMode = 'list'"
+                :class="['toggle-btn', viewMode === 'list' ? 'active' : '']"
+                title="Affichage liste"
+              >
+                ☰ Liste
+              </button>
+            </div>
+
+            <!-- Bouton création (enseignant uniquement) -->
             <button
+              v-if="isTeacher"
               @click="createLesson"
               class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2"
             >
@@ -145,7 +163,8 @@
             </button>
           </div>
 
-          <div v-if="lessons && lessons.length > 0" class="space-y-4">
+          <!-- Grid view -->
+          <div v-if="lessons && lessons.length > 0 && viewMode === 'grid'" class="lessons-grid">
             <LessonCard
               v-for="lesson in lessons"
               :key="lesson.id"
@@ -162,7 +181,26 @@
             />
           </div>
 
-          <div v-else class="text-center py-12 text-gray-500">
+          <!-- List view -->
+          <div v-if="lessons && lessons.length > 0 && viewMode === 'list'" class="lessons-list">
+            <LessonCard
+              v-for="lesson in lessons"
+              :key="lesson.id"
+              :lesson="lesson"
+              :is-teacher="isTeacher"
+              :show-progress="!isTeacher"
+              :show-stats="isTeacher"
+              :show-status="isTeacher"
+              @view="viewLesson"
+              @edit="editLesson"
+              @delete="confirmDeleteLesson"
+              @publish="publishLesson"
+              @unpublish="unpublishLesson"
+            />
+          </div>
+
+          <!-- Empty state - only show when no lessons exist -->
+          <div v-if="!loading && (!lessons || lessons.length === 0)" class="text-center py-12 text-gray-500">
             <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
@@ -365,10 +403,122 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal Création Leçon -->
+    <div
+      v-if="showCreateLessonModal"
+      class="modal-overlay"
+      @click.self="closeCreateLessonModal"
+    >
+      <div class="modal-content">
+        <!-- Header -->
+        <div class="modal-header">
+          <h2 class="modal-title">Créer une nouvelle leçon</h2>
+          <button @click="closeCreateLessonModal" class="modal-close">✖</button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body">
+          <form @submit.prevent="submitCreateLesson" class="lesson-form">
+            <!-- Titre -->
+            <div class="form-group">
+              <label class="form-label required">Titre de la leçon</label>
+              <input
+                v-model="newLesson.title"
+                type="text"
+                class="form-input"
+                placeholder="Ex: Introduction aux boucles"
+                required
+              />
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+              <label class="form-label">Description</label>
+              <textarea
+                v-model="newLesson.description"
+                class="form-textarea"
+                rows="3"
+                placeholder="Décrivez brièvement le contenu de cette leçon..."
+              ></textarea>
+            </div>
+
+            <!-- Prérequis -->
+            <div class="form-group">
+              <label class="form-label">Prérequis</label>
+              <textarea
+                v-model="newLesson.prerequis"
+                class="form-textarea"
+                rows="2"
+                placeholder="Connaissances nécessaires avant de suivre cette leçon..."
+              ></textarea>
+              <p class="form-help">Ex: Comprendre les variables, les types de données</p>
+            </div>
+
+            <!-- Niveau -->
+            <div class="form-group">
+              <label class="form-label required">Niveau de difficulté</label>
+              <select v-model="newLesson.niveau_difficulte" class="form-select">
+                <option value="debutant">Débutant</option>
+                <option value="intermediaire">Intermédiaire</option>
+                <option value="avance">Avancé</option>
+              </select>
+            </div>
+
+            <!-- Objectifs pédagogiques -->
+            <div class="form-group">
+              <label class="form-label">Objectifs pédagogiques</label>
+              <textarea
+                v-model="newLesson.objectifs_pedagogiques"
+                class="form-textarea"
+                rows="3"
+                placeholder="Que devront savoir faire les étudiants après cette leçon ?"
+              ></textarea>
+              <p class="form-help">Ex: Maîtriser les boucles while et for, Résoudre des problèmes d'itération</p>
+            </div>
+
+            <!-- Durée estimée -->
+            <div class="form-group">
+              <label class="form-label">Durée estimée (minutes)</label>
+              <input
+                v-model.number="newLesson.duree_estimee_minutes"
+                type="number"
+                class="form-input"
+                placeholder="60"
+                min="5"
+                max="600"
+              />
+              <p class="form-help">Temps nécessaire pour compléter toute la leçon</p>
+            </div>
+
+            <!-- Actions -->
+            <div class="modal-actions">
+              <button
+                type="button"
+                @click="closeCreateLessonModal"
+                class="btn-secondary"
+                :disabled="creatingLesson"
+              >
+                Annuler
+              </button>
+              <button
+                type="submit"
+                class="btn-primary"
+                :disabled="creatingLesson || !newLesson.title"
+              >
+                {{ creatingLesson ? 'Création...' : 'Créer la leçon' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
+  </DashboardLayout>
 </template>
 
 <script>
+import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import lmsService from '@/services/lms'
 import lessonService from '@/services/lesson'
 import VisioManager from '@/components/visio/VisioManager.vue'
@@ -378,6 +528,7 @@ import { auth } from '@/services/api'
 export default {
   name: 'MatiereDetails',
   components: {
+    DashboardLayout,
     VisioManager,
     LessonCard
   },
@@ -387,12 +538,26 @@ export default {
       loading: false,
       error: null,
       activeTab: 'lessons',
+      viewMode: 'grid', // 'grid' ou 'list'
       matiere: null,
       lessons: [],
       seances: [],
       evaluations: [],
       classes: [],
-      statistiques: null
+      statistiques: null,
+      // Modal création leçon
+      showCreateLessonModal: false,
+      creatingLesson: false,
+      newLesson: {
+        title: '',
+        description: '',
+        prerequis: '',
+        niveau_difficulte: 'debutant',
+        objectifs_pedagogiques: '',
+        duree_estimee_minutes: null
+      },
+      // Système de notifications toast
+      notifications: []
     }
   },
 
@@ -477,11 +642,77 @@ export default {
     },
 
     createLesson() {
-      this.$router.push({ name: 'LessonCreate' })
+      // Ouvrir le modal au lieu de rediriger
+      this.showCreateLessonModal = true
+      // Réinitialiser le formulaire
+      this.newLesson = {
+        title: '',
+        description: '',
+        prerequis: '',
+        niveau_difficulte: 'debutant',
+        objectifs_pedagogiques: '',
+        duree_estimee_minutes: null
+      }
+    },
+
+    closeCreateLessonModal() {
+      this.showCreateLessonModal = false
+      this.newLesson = {
+        title: '',
+        description: '',
+        prerequis: '',
+        niveau_difficulte: 'debutant',
+        objectifs_pedagogiques: '',
+        duree_estimee_minutes: null
+      }
+    },
+
+    async submitCreateLesson() {
+      // Validation
+      if (!this.newLesson.title || this.newLesson.title.trim() === '') {
+        this.showNotification('⚠️ Le titre de la leçon est obligatoire', 'warning')
+        return
+      }
+
+      this.creatingLesson = true
+
+      try {
+        const user = auth.getUser()
+
+        // Préparer les données avec contexte automatique
+        const lessonData = {
+          ...this.newLesson,
+          matiere_id: this.matiereId,
+          classe_id: this.matiere?.classes?.[0]?.id || null, // Prendre première classe si disponible
+          enseignant_id: user?.klassci_id || user?.id,
+          type: 'cours',
+          status: 'draft'
+        }
+
+        console.log('[MatiereDetails] Création leçon contextuelle:', lessonData)
+
+        const response = await lessonService.createLesson(lessonData)
+
+        if (response.success) {
+          this.closeCreateLessonModal()
+
+          // Rediriger vers interface gestion chapitres
+          this.$router.push({
+            name: 'LessonChapters',
+            params: { id: response.data.id }
+          })
+        }
+      } catch (error) {
+        console.error('[MatiereDetails] Erreur création leçon:', error)
+        this.showNotification('Erreur lors de la création: ' + (error.response?.data?.message || error.message), 'error')
+      } finally {
+        this.creatingLesson = false
+      }
     },
 
     editLesson(lessonId) {
-      this.$router.push({ name: 'LessonEdit', params: { id: lessonId } })
+      // Rediriger vers la gestion des chapitres au lieu de l'ancien éditeur
+      this.$router.push({ name: 'LessonChapters', params: { id: lessonId } })
     },
 
     async confirmDeleteLesson(lessonId) {
@@ -492,12 +723,12 @@ export default {
       try {
         const response = await lessonService.deleteLesson(lessonId)
         if (response.success) {
-          alert('Leçon supprimée avec succès')
+          this.showNotification('✓ Leçon supprimée avec succès', 'success')
           this.loadMatiereDetails()
         }
       } catch (error) {
         console.error('[MatiereDetails] Erreur deleteLesson:', error)
-        alert('Erreur lors de la suppression: ' + (error.response?.data?.message || error.message))
+        this.showNotification('Erreur lors de la suppression: ' + (error.response?.data?.message || error.message), 'error')
       }
     },
 
@@ -505,12 +736,12 @@ export default {
       try {
         const response = await lessonService.publishLesson(lessonId)
         if (response.success) {
-          alert('Leçon publiée avec succès')
+          this.showNotification('✓ Leçon publiée avec succès ! Elle est maintenant visible par les étudiants.', 'success')
           this.loadMatiereDetails()
         }
       } catch (error) {
         console.error('[MatiereDetails] Erreur publishLesson:', error)
-        alert('Erreur lors de la publication: ' + (error.response?.data?.message || error.message))
+        this.showNotification('Erreur lors de la publication: ' + (error.response?.data?.message || error.message), 'error')
       }
     },
 
@@ -518,13 +749,28 @@ export default {
       try {
         const response = await lessonService.unpublishLesson(lessonId)
         if (response.success) {
-          alert('Leçon dépubliée avec succès')
+          this.showNotification('✓ Leçon dépubliée avec succès ! Elle est maintenant en mode brouillon.', 'success')
           this.loadMatiereDetails()
         }
       } catch (error) {
         console.error('[MatiereDetails] Erreur unpublishLesson:', error)
-        alert('Erreur lors de la dépublication: ' + (error.response?.data?.message || error.message))
+        this.showNotification('Erreur lors de la dépublication: ' + (error.response?.data?.message || error.message), 'error')
       }
+    },
+
+    // Système de notification toast
+    showNotification(message, type = 'success') {
+      const id = Date.now()
+      this.notifications.push({
+        id,
+        message,
+        type // 'success', 'error', 'warning', 'info'
+      })
+
+      // Auto-suppression après 4 secondes
+      setTimeout(() => {
+        this.notifications = this.notifications.filter(n => n.id !== id)
+      }, 4000)
     },
 
     viewSeance(seanceId) {
@@ -603,9 +849,537 @@ export default {
 </script>
 
 <style scoped>
-.matiere-details {
-  max-width: 1200px;
+/* Matiere Details Content */
+.matiere-details-content {
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0;
+}
+
+/* Override Tailwind classes with theme variables */
+.matiere-details-content :deep(.text-gray-900) {
+  color: var(--text-primary) !important;
+}
+
+.matiere-details-content :deep(.text-gray-600) {
+  color: var(--text-secondary) !important;
+}
+
+.matiere-details-content :deep(.text-gray-500) {
+  color: var(--text-tertiary) !important;
+}
+
+.matiere-details-content :deep(.text-gray-700) {
+  color: var(--text-secondary) !important;
+}
+
+.matiere-details-content :deep(.bg-white) {
+  background-color: var(--card-bg) !important;
+}
+
+.matiere-details-content :deep(.bg-gray-50) {
+  background-color: var(--bg-secondary) !important;
+}
+
+.matiere-details-content :deep(.bg-gray-100) {
+  background-color: var(--bg-secondary) !important;
+}
+
+.matiere-details-content :deep(.border-gray-200) {
+  border-color: var(--border-primary) !important;
+}
+
+.matiere-details-content :deep(.border-gray-300) {
+  border-color: var(--border-secondary) !important;
+}
+
+.matiere-details-content :deep(.shadow),
+.matiere-details-content :deep(.shadow-md),
+.matiere-details-content :deep(.shadow-lg) {
+  box-shadow: var(--card-shadow) !important;
+}
+
+.matiere-details-content :deep(.hover\:shadow-md:hover),
+.matiere-details-content :deep(.hover\:shadow-lg:hover) {
+  box-shadow: var(--card-hover-shadow) !important;
+}
+
+/* Status badges - ensure they remain visible */
+.matiere-details-content :deep(.bg-orange-100) {
+  background-color: rgba(251, 146, 60, 0.2) !important;
+}
+
+.matiere-details-content :deep(.text-orange-700) {
+  color: rgb(234, 88, 12) !important;
+}
+
+.matiere-details-content :deep(.bg-green-100) {
+  background-color: rgba(34, 197, 94, 0.2) !important;
+}
+
+.matiere-details-content :deep(.text-green-700) {
+  color: rgb(21, 128, 61) !important;
+}
+
+.matiere-details-content :deep(.bg-blue-100) {
+  background-color: rgba(59, 130, 246, 0.2) !important;
+}
+
+.matiere-details-content :deep(.text-blue-700) {
+  color: rgb(29, 78, 216) !important;
+}
+
+.matiere-details-content :deep(.bg-red-50) {
+  background-color: rgba(239, 68, 68, 0.1) !important;
+}
+
+.matiere-details-content :deep(.border-red-200) {
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+.matiere-details-content :deep(.text-red-900) {
+  color: rgb(220, 38, 38) !important;
+}
+
+/* Loading spinner */
+.matiere-details-content :deep(.border-blue-600) {
+  border-color: var(--blue-600) !important;
+}
+
+/* Page Header Styles */
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.breadcrumb-link {
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.breadcrumb-link:hover {
+  color: var(--text-primary);
+}
+
+.breadcrumb-separator {
+  color: var(--text-tertiary);
+}
+
+.breadcrumb-current {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.header-content {
+  margin-bottom: 1.5rem;
+}
+
+.page-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 1rem 0;
+}
+
+.info-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.info-badge {
+  display: inline-block;
+  padding: 0.375rem 0.875rem;
+  background: var(--bg-secondary);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.compact-stats {
+  display: flex;
+  gap: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-primary);
+}
+
+.compact-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.compact-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--blue-600);
+}
+
+.compact-stat-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .matiere-details-content {
+    padding: 0.5rem;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .compact-stats {
+    gap: 1rem;
+  }
+
+  .compact-stat-value {
+    font-size: 1.25rem;
+  }
+}
+
+/* View Toggle */
+.view-toggle {
+  display: flex;
+  gap: 0;
+  background: var(--bg-secondary);
+  border-radius: 0.5rem;
+  padding: 0.25rem;
+  border: 1px solid var(--border-primary);
+}
+
+.toggle-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.toggle-btn:hover {
+  color: var(--text-primary);
+}
+
+.toggle-btn.active {
+  background: var(--card-bg);
+  color: #3b82f6;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Lessons Grid */
+.lessons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Lessons List */
+.lessons-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .lessons-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   MODAL STYLES
+   ============================================ */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.lesson-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-weight: 500;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+.form-label.required::after {
+  content: ' *';
+  color: #ef4444;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  background-color: #ffffff;
+  color: #1f2937;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: #9ca3af;
+  opacity: 1;
+}
+
+.form-help {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 8px;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.btn-primary {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #e5e7eb;
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Notifications Toast System */
+.notifications-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.notification-toast {
+  min-width: 320px;
+  max-width: 450px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  pointer-events: auto;
+  backdrop-filter: blur(10px);
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.notification-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.notification-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-message {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* Success notification */
+.notification-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border-left: 4px solid #065f46;
+}
+
+/* Error notification */
+.notification-error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border-left: 4px solid #991b1b;
+}
+
+/* Warning notification */
+.notification-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  border-left: 4px solid #92400e;
+}
+
+/* Info notification */
+.notification-info {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border-left: 4px solid #1e40af;
+}
+
+/* Transitions pour Vue */
+.notification-enter-active,
+.notification-leave-active {
+  transition: all 0.3s ease;
+}
+
+.notification-enter-from {
+  transform: translateX(400px);
+  opacity: 0;
+}
+
+.notification-leave-to {
+  transform: translateX(400px);
+  opacity: 0;
+}
+
+.notification-move {
+  transition: transform 0.3s ease;
 }
 </style>

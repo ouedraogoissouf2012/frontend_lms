@@ -24,7 +24,8 @@ const lessonService = {
       const url = queryString ? `/lessons?${queryString}` : '/lessons'
 
       const response = await api.get(url)
-      return response.data
+      // L'intercepteur API retourne déjà response.data, donc response contient { success, message, data }
+      return response
     } catch (error) {
       console.error('[LessonService] Erreur getLessons:', error)
       throw error
@@ -39,7 +40,8 @@ const lessonService = {
   async getLesson(lessonId) {
     try {
       const response = await api.get(`/lessons/${lessonId}`)
-      return response.data
+      // L'intercepteur API retourne déjà response.data, donc response contient { success, message, data }
+      return response
     } catch (error) {
       console.error('[LessonService] Erreur getLesson:', error)
       throw error
@@ -54,7 +56,8 @@ const lessonService = {
   async createLesson(lessonData) {
     try {
       const response = await api.post('/lessons', lessonData)
-      return response.data
+      // L'intercepteur API retourne déjà response.data, donc response contient { success, message, data }
+      return response
     } catch (error) {
       console.error('[LessonService] Erreur createLesson:', error)
       throw error
@@ -70,7 +73,8 @@ const lessonService = {
   async updateLesson(lessonId, lessonData) {
     try {
       const response = await api.put(`/lessons/${lessonId}`, lessonData)
-      return response.data
+      // L'intercepteur API retourne déjà response.data, donc response contient { success, message, data }
+      return response
     } catch (error) {
       console.error('[LessonService] Erreur updateLesson:', error)
       throw error
@@ -85,7 +89,8 @@ const lessonService = {
   async deleteLesson(lessonId) {
     try {
       const response = await api.delete(`/lessons/${lessonId}`)
-      return response.data
+      // L'intercepteur API retourne déjà response.data, donc response contient { success, message, data }
+      return response
     } catch (error) {
       console.error('[LessonService] Erreur deleteLesson:', error)
       throw error
@@ -100,7 +105,8 @@ const lessonService = {
   async publishLesson(lessonId) {
     try {
       const response = await api.post(`/lessons/${lessonId}/publish`)
-      return response.data
+      // L'intercepteur API retourne déjà response.data, donc response contient { success, message, data }
+      return response
     } catch (error) {
       console.error('[LessonService] Erreur publishLesson:', error)
       throw error
@@ -115,7 +121,8 @@ const lessonService = {
   async unpublishLesson(lessonId) {
     try {
       const response = await api.post(`/lessons/${lessonId}/unpublish`)
-      return response.data
+      // L'intercepteur API retourne déjà response.data, donc response contient { success, message, data }
+      return response
     } catch (error) {
       console.error('[LessonService] Erreur unpublishLesson:', error)
       throw error
@@ -256,6 +263,37 @@ const lessonService = {
       return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`
     }
     return `${mins}min`
+  },
+
+  /**
+   * Obtenir le badge de type de contenu
+   * @param {String} contentType - text, video, pdf, audio, presentation, link, mixed
+   * @returns {Object} - { class, text, icon }
+   */
+  getContentTypeBadge(contentType) {
+    const badges = {
+      text: { class: 'bg-gray-100 text-gray-700', text: 'Texte', icon: '📝' },
+      video: { class: 'bg-red-100 text-red-700', text: 'Vidéo', icon: '🎥' },
+      pdf: { class: 'bg-orange-100 text-orange-700', text: 'PDF', icon: '📄' },
+      audio: { class: 'bg-purple-100 text-purple-700', text: 'Audio', icon: '🎵' },
+      presentation: { class: 'bg-yellow-100 text-yellow-700', text: 'Présentation', icon: '📊' },
+      link: { class: 'bg-blue-100 text-blue-700', text: 'Lien', icon: '🔗' },
+      mixed: { class: 'bg-indigo-100 text-indigo-700', text: 'Mixte', icon: '📚' }
+    }
+    return badges[contentType] || badges.text
+  },
+
+  /**
+   * Obtenir les options de provider vidéo
+   * @returns {Array}
+   */
+  getVideoProviders() {
+    return [
+      { value: 'youtube', label: 'YouTube', icon: '▶️' },
+      { value: 'vimeo', label: 'Vimeo', icon: '🎬' },
+      { value: 'local', label: 'Fichier local', icon: '💾' },
+      { value: 'other', label: 'Autre', icon: '🌐' }
+    ]
   }
 }
 

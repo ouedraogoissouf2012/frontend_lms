@@ -8,11 +8,21 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fullcalendar/core": "^6.1.19",
+    "@fullcalendar/daygrid": "^6.1.19",
+    "@fullcalendar/interaction": "^6.1.19",
+    "@fullcalendar/timegrid": "^6.1.19",
+    "@fullcalendar/vue3": "^6.1.19",
     "@heroicons/vue": "^2.2.0",
+    "apexcharts": "^5.3.5",
     "axios": "^1.6.7",
+    "chart.js": "^4.5.1",
     "pinia": "^2.1.7",
     "vue": "^3.4.21",
-    "vue-router": "^4.3.0"
+    "vue-chartjs": "^5.3.2",
+    "vue-router": "^4.3.0",
+    "vue3-apexcharts": "^1.10.0",
+    "vue3-easy-data-table": "^1.5.47"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.4",

@@ -1,107 +1,108 @@
 <template>
-  <div class="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+  <div class="lesson-card">
     <!-- Header avec badge type -->
-    <div class="p-4 border-b border-gray-100">
-      <div class="flex items-start justify-between">
-        <div class="flex-1">
-          <div class="flex items-center gap-2 mb-2">
-            <span :class="typeBadge.class" class="px-2 py-1 rounded text-xs font-medium">
-              {{ typeBadge.icon }} {{ typeBadge.text }}
-            </span>
-            <span v-if="showStatus" :class="statusBadge.class" class="px-2 py-1 rounded text-xs font-medium">
-              {{ statusBadge.text }}
-            </span>
-          </div>
-          <h3 class="text-lg font-semibold text-gray-900 mb-1">
-            {{ lesson.title }}
-          </h3>
-          <p v-if="lesson.description" class="text-sm text-gray-600 line-clamp-2">
-            {{ lesson.description }}
-          </p>
+    <div class="lesson-card-header">
+      <div class="lesson-card-header-content">
+        <div class="lesson-badges">
+          <span :class="`badge-${lesson.type}`" class="lesson-badge">
+            {{ getTypeIcon(lesson.type) }} {{ typeBadge.text }}
+          </span>
+          <span v-if="showStatus" :class="`badge-status-${lesson.status}`" class="lesson-badge">
+            {{ getStatusIcon(lesson.status) }} {{ statusBadge.text }}
+          </span>
         </div>
+        <h3 class="lesson-title">
+          {{ lesson.title }}
+        </h3>
+        <p v-if="lesson.description" class="lesson-description">
+          {{ lesson.description }}
+        </p>
       </div>
     </div>
 
     <!-- Body avec infos -->
-    <div class="p-4 space-y-3">
-      <!-- Durée -->
-      <div v-if="lesson.duration_minutes" class="flex items-center text-sm text-gray-600">
-        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
-        </svg>
-        Durée: {{ formatDuration(lesson.duration_minutes) }}
+    <div class="lesson-card-body">
+      <!-- Durée et Type de contenu -->
+      <div class="lesson-info-row">
+        <div v-if="lesson.duration_minutes" class="lesson-info-item">
+          <span class="info-icon">⏱</span>
+          <span>{{ formatDuration(lesson.duration_minutes) }}</span>
+        </div>
+        <div v-if="lesson.content_type" class="lesson-info-item">
+          <span class="info-icon">{{ getContentTypeIcon(lesson.content_type) }}</span>
+          <span>{{ getContentTypeLabel(lesson.content_type) }}</span>
+        </div>
       </div>
 
       <!-- Progression (si étudiant) -->
-      <div v-if="showProgress && lesson.user_progress">
+      <div v-if="showProgress && lesson.user_progress" class="lesson-progress-container">
         <LessonProgress :progress="lesson.user_progress" :compact="true" />
       </div>
 
       <!-- Statistiques (si enseignant) -->
-      <div v-if="showStats && lesson.statistics" class="grid grid-cols-3 gap-2 text-center">
-        <div class="bg-blue-50 rounded p-2">
-          <div class="text-lg font-bold text-blue-700">{{ lesson.statistics.students_started }}</div>
-          <div class="text-xs text-gray-600">Débutés</div>
+      <div v-if="showStats && lesson.statistics" class="lesson-stats">
+        <div class="stat-item stat-started">
+          <div class="stat-value">{{ lesson.statistics.students_started }}</div>
+          <div class="stat-label">Débutés</div>
         </div>
-        <div class="bg-green-50 rounded p-2">
-          <div class="text-lg font-bold text-green-700">{{ lesson.statistics.students_completed }}</div>
-          <div class="text-xs text-gray-600">Terminés</div>
+        <div class="stat-item stat-completed">
+          <div class="stat-value">{{ lesson.statistics.students_completed }}</div>
+          <div class="stat-label">Terminés</div>
         </div>
-        <div class="bg-purple-50 rounded p-2">
-          <div class="text-lg font-bold text-purple-700">{{ lesson.statistics.average_completion_rate }}%</div>
-          <div class="text-xs text-gray-600">Moyenne</div>
+        <div class="stat-item stat-average">
+          <div class="stat-value">{{ lesson.statistics.average_completion_rate }}%</div>
+          <div class="stat-label">Moyenne</div>
         </div>
       </div>
     </div>
 
     <!-- Footer avec actions -->
-    <div class="p-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+    <div class="lesson-card-footer">
       <!-- Date de publication -->
-      <span v-if="lesson.published_at" class="text-xs text-gray-500">
-        Publié le {{ formatDate(lesson.published_at) }}
-      </span>
-      <span v-else class="text-xs text-gray-500">
-        Créé le {{ formatDate(lesson.created_at) }}
+      <span class="lesson-date">
+        <span class="date-icon">📅</span>
+        <span v-if="lesson.published_at">{{ formatDate(lesson.published_at) }}</span>
+        <span v-else>{{ formatDate(lesson.created_at) }}</span>
       </span>
 
       <!-- Actions selon le rôle -->
-      <div class="flex items-center gap-2">
+      <div class="lesson-actions">
         <!-- Enseignant: actions CRUD -->
         <template v-if="isTeacher">
           <button
             v-if="lesson.status === 'draft'"
             @click.stop="$emit('publish', lesson.id)"
-            class="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+            class="btn-action btn-publish"
           >
-            Publier
+            ✓ Publier
           </button>
           <button
             v-else-if="lesson.status === 'published'"
             @click.stop="$emit('unpublish', lesson.id)"
-            class="px-3 py-1 text-xs bg-orange-600 text-white rounded hover:bg-orange-700"
+            class="btn-action btn-unpublish"
           >
-            Dépublier
+            ✕ Dépublier
           </button>
           <button
             @click.stop="$emit('edit', lesson.id)"
-            class="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+            class="btn-action btn-edit"
           >
-            Modifier
+            ✎ Modifier
           </button>
           <button
             @click.stop="$emit('delete', lesson.id)"
-            class="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
+            class="btn-action btn-delete"
           >
-            Supprimer
+            🗑 Supprimer
           </button>
         </template>
 
         <!-- Étudiant/Tous: bouton consulter -->
         <button
           @click.stop="$emit('view', lesson.id)"
-          class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+          class="btn-primary"
         >
-          {{ isTeacher ? 'Détails' : 'Consulter' }}
+          {{ isTeacher ? '▶ Détails' : '▶ Consulter' }}
         </button>
       </div>
     </div>
@@ -160,16 +161,357 @@ export default {
         month: 'short',
         year: 'numeric'
       })
+    },
+    getTypeIcon(type) {
+      const icons = {
+        cours: '📖',
+        tp: '💻',
+        td: '✏️',
+        projet: '🚀',
+        autre: '📄'
+      }
+      return icons[type] || '❓'
+    },
+    getStatusIcon(status) {
+      const icons = {
+        draft: '✎',
+        published: '✓',
+        archived: '📦'
+      }
+      return icons[status] || '•'
+    },
+    getContentTypeIcon(type) {
+      const icons = {
+        text: '📝',
+        video: '🎥',
+        pdf: '📄',
+        audio: '🎵',
+        presentation: '📊',
+        link: '🔗',
+        mixed: '📚'
+      }
+      return icons[type] || '📌'
+    },
+    getContentTypeLabel(type) {
+      const labels = {
+        text: 'Texte',
+        video: 'Vidéo',
+        pdf: 'PDF',
+        audio: 'Audio',
+        presentation: 'Présentation',
+        link: 'Lien',
+        mixed: 'Mixte'
+      }
+      return labels[type] || 'Inconnu'
     }
   }
 }
 </script>
 
 <style scoped>
-.line-clamp-2 {
+/* Card Container */
+.lesson-card {
+  background: var(--card-bg);
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-primary);
+  box-shadow: var(--card-shadow);
+  transition: all 0.2s ease;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.lesson-card:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  border-color: #3b82f6;
+}
+
+/* Header */
+.lesson-card-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.lesson-card-header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.lesson-badges {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.lesson-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+/* Badges par type */
+.badge-cours {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.badge-tp {
+  background: #e9d5ff;
+  color: #7c3aed;
+}
+
+.badge-td {
+  background: #ddd6fe;
+  color: #6366f1;
+}
+
+.badge-projet {
+  background: #fce7f3;
+  color: #be123c;
+}
+
+.badge-autre {
+  background: var(--border-primary);
+  color: var(--text-secondary);
+}
+
+/* Badges par status */
+.badge-status-draft {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge-status-published {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badge-status-archived {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.lesson-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.lesson-description {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  line-height: 1.5;
+}
+
+/* Body */
+.lesson-card-body {
+  padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.lesson-info-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.lesson-info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-primary);
+  border-radius: 0.375rem;
+  border: 1px solid var(--border-primary);
+}
+
+.info-icon {
+  font-size: 1rem;
+}
+
+.lesson-progress-container {
+  margin-top: 0.5rem;
+}
+
+/* Stats */
+.lesson-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.stat-item {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.stat-started {
+  background: #dbeafe;
+}
+
+.stat-completed {
+  background: #d1fae5;
+}
+
+.stat-average {
+  background: #e9d5ff;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.stat-started .stat-value {
+  color: #1e40af;
+}
+
+.stat-completed .stat-value {
+  color: #065f46;
+}
+
+.stat-average .stat-value {
+  color: #7c3aed;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+/* Footer */
+.lesson-card-footer {
+  padding: 1rem 1.5rem;
+  background: var(--bg-primary);
+  border-top: 1px solid var(--border-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.lesson-date {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.date-icon {
+  font-size: 0.875rem;
+}
+
+.lesson-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Buttons */
+.btn-action,
+.btn-primary {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-action {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+}
+
+.btn-action:hover {
+  background: var(--border-primary);
+}
+
+.btn-publish {
+  color: #059669;
+  border-color: #059669;
+}
+
+.btn-publish:hover {
+  background: #d1fae5;
+}
+
+.btn-unpublish {
+  color: #d97706;
+  border-color: #d97706;
+}
+
+.btn-unpublish:hover {
+  background: #fef3c7;
+}
+
+.btn-edit {
+  color: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.btn-edit:hover {
+  background: #dbeafe;
+}
+
+.btn-delete {
+  color: #dc2626;
+  border-color: #dc2626;
+}
+
+.btn-delete:hover {
+  background: #fee2e2;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: white;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .lesson-card-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .lesson-actions {
+    flex-direction: column;
+  }
+
+  .lesson-stats {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

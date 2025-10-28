@@ -1,378 +1,1640 @@
 <template>
-  <div class="min-h-screen bg-gray-50 py-8">
-    <div class="max-w-7xl mx-auto px-4">
-      <!-- En-tête -->
-      <div class="mb-8">
-        <button
-          @click="$router.back()"
-          class="text-blue-600 hover:text-blue-700 mb-4 flex items-center gap-2"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-          </svg>
-          Retour
+  <DashboardLayout>
+    <div class="evaluations-container">
+      <!-- Header -->
+      <div class="page-header">
+        <div class="header-content">
+          <DocumentTextIcon class="page-icon text-blue-600" />
+          <div>
+            <h1 class="page-title">Évaluations</h1>
+            <p class="page-subtitle">Gérez les évaluations en ligne de vos classes</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <SkeletonLoader v-if="loading" type="list" :count="3" />
+
+      <!-- Error State -->
+      <div v-else-if="error" class="error-state">
+        <div class="error-content">
+          <span class="error-icon">⚠</span>
+          <div>
+            <h3 class="error-title">Erreur de chargement</h3>
+            <p class="error-message">{{ error }}</p>
+          </div>
+        </div>
+        <button @click="loadData" class="btn-retry">
+          <ArrowPathIcon class="w-5 h-5" />
+          Réessayer
         </button>
-        <h1 class="text-3xl font-bold text-gray-900">Évaluations</h1>
-        <p class="text-gray-600 mt-2">Gérez les évaluations en ligne de vos classes</p>
       </div>
 
-      <!-- Filtres -->
-      <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Classe</label>
-            <select
-              v-model="filters.classe_id"
-              @change="loadEvaluationsKlassci"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Toutes les classes</option>
-              <option
-                v-for="classe in classes"
-                :key="classe.id"
-                :value="classe.id"
-              >
-                {{ classe.name || classe.libelle }}
-              </option>
-            </select>
-          </div>
+      <template v-else>
+        <!-- Filters Card -->
+        <div class="filters-card">
+          <div class="filters-grid">
+            <!-- Filtre Classe -->
+            <div class="filter-item">
+              <label class="filter-label">
+                <UserGroupIcon class="w-4 h-4" />
+                Classe
+              </label>
+              <select v-model="filters.classe_id" @change="applyFilters" class="filter-select">
+                <option value="">Toutes les classes</option>
+                <option v-for="classe in classes" :key="classe.id" :value="classe.id">
+                  {{ classe.name || classe.libelle }}
+                </option>
+              </select>
+            </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Matière</label>
-            <select
-              v-model="filters.matiere_id"
-              @change="loadEvaluationsKlassci"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Toutes les matières</option>
-              <option
-                v-for="matiere in matieres"
-                :key="matiere.id"
-                :value="matiere.id"
-              >
-                {{ matiere.name || matiere.nom }}
-              </option>
-            </select>
-          </div>
+            <!-- Filtre Matière -->
+            <div class="filter-item">
+              <label class="filter-label">
+                <BookOpenIcon class="w-4 h-4" />
+                Matière
+              </label>
+              <select v-model="filters.matiere_id" @change="applyFilters" class="filter-select">
+                <option value="">Toutes les matières</option>
+                <option v-for="matiere in matieres" :key="matiere.id" :value="matiere.id">
+                  {{ matiere.name || matiere.nom }}
+                </option>
+              </select>
+            </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Statut</label>
-            <select
-              v-model="filters.statut"
-              @change="loadEvaluationsKlassci"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Tous les statuts</option>
-              <option value="planifiee">Planifiée</option>
-              <option value="en_cours">En cours</option>
-              <option value="terminee">Terminée</option>
-            </select>
+            <!-- Filtre Statut -->
+            <div class="filter-item">
+              <label class="filter-label">
+                <FlagIcon class="w-4 h-4" />
+                Statut
+              </label>
+              <select v-model="filters.statut" @change="applyFilters" class="filter-select">
+                <option value="">Tous les statuts</option>
+                <option value="planifiee">Planifiée</option>
+                <option value="en_cours">En cours</option>
+                <option value="terminee">Terminée</option>
+              </select>
+            </div>
+
+            <!-- Reset -->
+            <div class="filter-item filter-actions">
+              <button @click="resetFilters" class="btn-reset">
+                <XMarkIcon class="w-4 h-4" />
+                Réinitialiser
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Loading -->
-      <div v-if="loading" class="text-center py-12">
-        <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-500 mx-auto"></div>
-        <p class="text-gray-600 mt-4">Chargement des évaluations...</p>
-      </div>
+        <!-- Statistics -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-header">
+              <DocumentTextIcon class="stat-icon text-blue-600" />
+              <span class="stat-label">Total</span>
+            </div>
+            <p class="stat-value">{{ stats.total }}</p>
+            <p class="stat-change">évaluations</p>
+          </div>
 
-      <!-- Liste des évaluations KLASSCI -->
-      <div v-else>
-        <div v-if="evaluationsKlassci.length === 0" class="text-center py-12">
-          <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-          </svg>
-          <p class="text-gray-600 text-lg">Aucune évaluation trouvée dans KLASSCI</p>
+          <div class="stat-card">
+            <div class="stat-header">
+              <ClockIcon class="stat-icon text-green-600" />
+              <span class="stat-label">En cours</span>
+            </div>
+            <p class="stat-value">{{ stats.enCours }}</p>
+            <p class="stat-change">actives</p>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <CheckCircleIcon class="stat-icon text-gray-600" />
+              <span class="stat-label">Terminées</span>
+            </div>
+            <p class="stat-value">{{ stats.terminees }}</p>
+            <p class="stat-change">ce mois</p>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <ComputerDesktopIcon class="stat-icon text-purple-600" />
+              <span class="stat-label">En ligne</span>
+            </div>
+            <p class="stat-value">{{ stats.avecVersionEnLigne }}</p>
+            <p class="stat-change">configurées</p>
+          </div>
         </div>
 
-        <div v-else class="space-y-4">
+        <!-- Evaluations List -->
+        <div v-if="filteredEvaluations.length > 0" class="evaluations-list">
           <div
-            v-for="evaluation in evaluationsKlassci"
+            v-for="evaluation in filteredEvaluations"
             :key="evaluation.id"
-            class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition"
+            class="evaluation-card"
           >
-            <div class="flex justify-between items-start">
-              <div class="flex-1">
-                <div class="flex items-center gap-3 mb-2">
-                  <h3 class="text-xl font-semibold text-gray-900">{{ evaluation.titre }}</h3>
+            <!-- Header -->
+            <div class="eval-header">
+              <div class="eval-title-section">
+                <h3 class="eval-title">{{ evaluation.titre }}</h3>
+                <div class="eval-badges">
                   <span
-                    :class="getStatusClass(evaluation.status)"
-                    class="px-3 py-1 rounded-full text-xs font-medium"
+                    :class="getStatusBadgeClass(evaluation)"
+                    class="status-badge"
+                    :title="getStatusTooltip(evaluation.status)"
                   >
-                    {{ evaluation.status }}
+                    <component :is="getStatusIcon(evaluation.status)" class="w-4 h-4" />
+                    {{ getStatusLabel(evaluation.status) }}
                   </span>
                   <span
-                    v-if="hasOnlineVersion(evaluation.id)"
-                    class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                    v-if="evaluation.has_online"
+                    class="online-badge"
+                    title="Cette évaluation dispose d'une version interactive en ligne avec QCM"
                   >
-                    ✓ Version en ligne
+                    <CheckCircleIcon class="w-4 h-4" />
+                    Version en ligne
                   </span>
                 </div>
+              </div>
+            </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
-                  <div>
-                    <p class="text-sm text-gray-600">Matière</p>
-                    <p class="font-medium">{{ evaluation.matiere?.nom || evaluation.matiere?.name || 'Non définie' }}</p>
-                  </div>
-                  <div>
-                    <p class="text-sm text-gray-600">Classe</p>
-                    <p class="font-medium">{{ evaluation.classe?.nom || evaluation.classe?.name || evaluation.classe?.libelle || 'Non définie' }}</p>
-                  </div>
-                  <div>
-                    <p class="text-sm text-gray-600">Date</p>
-                    <p class="font-medium">{{ formatDate(evaluation.programmation?.date_evaluation || evaluation.date_evaluation) }}</p>
-                  </div>
-                  <div v-if="evaluation.programmation?.window">
-                    <p class="text-sm text-gray-600">État</p>
-                    <p class="font-medium">
-                      <span v-if="!evaluation.programmation.window.has_started" class="flex items-center gap-1 text-orange-600">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
-                        </svg>
-                        Prévu
-                      </span>
-                      <span v-else-if="evaluation.programmation.window.is_open" class="flex items-center gap-1 text-green-600">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                        </svg>
-                        En cours ({{ evaluation.programmation.window.time_left_minutes }} min)
-                      </span>
-                      <span v-else class="flex items-center gap-1 text-gray-600">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                        </svg>
-                        Terminé
-                      </span>
-                    </p>
-                  </div>
-                  <div v-else>
-                    <p class="text-sm text-gray-600">Coefficient / Barème</p>
-                    <p class="font-medium">{{ evaluation.programmation?.coefficient || evaluation.coefficient || 1 }} - {{ evaluation.programmation?.bareme || evaluation.bareme || 20 }}/20</p>
-                  </div>
-                </div>
-
-                <!-- Infos version en ligne si existe -->
-                <div v-if="hasOnlineVersion(evaluation.id)" class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p class="text-sm text-blue-900 mb-2">
-                    <strong>Version en ligne configurée</strong>
+            <!-- Info Grid -->
+            <div class="eval-info-grid">
+              <div class="info-item">
+                <BookOpenIcon class="info-icon" />
+                <div>
+                  <p class="info-label">Matière</p>
+                  <p class="info-value">
+                    {{ evaluation.matiere?.nom || evaluation.matiere?.name || 'Non définie' }}
                   </p>
-                  <div class="grid grid-cols-3 gap-4 text-sm">
-                    <div>
-                      <span class="text-blue-700">Questions: </span>
-                      <span class="font-medium">{{ getOnlineVersion(evaluation.id)?.questions_count || 0 }}</span>
-                    </div>
-                    <div>
-                      <span class="text-blue-700">Durée: </span>
-                      <span class="font-medium">{{ getOnlineVersion(evaluation.id)?.duree_minutes }} min</span>
-                    </div>
-                    <div>
-                      <span class="text-blue-700">Soumissions: </span>
-                      <span class="font-medium">{{ getOnlineVersion(evaluation.id)?.submissions_count || 0 }}</span>
-                    </div>
-                  </div>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <UserGroupIcon class="info-icon" />
+                <div>
+                  <p class="info-label">Classe</p>
+                  <p class="info-value">
+                    {{ evaluation.classe?.nom || evaluation.classe?.name || evaluation.classe?.libelle || 'Non définie' }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <CalendarIcon class="info-icon" />
+                <div>
+                  <p class="info-label">Date</p>
+                  <p class="info-value">
+                    {{ formatDate(evaluation.programmation?.date_evaluation || evaluation.date_evaluation) }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <ClockIcon class="info-icon" />
+                <div>
+                  <p class="info-label">Coefficient / Barème</p>
+                  <p class="info-value">
+                    {{ evaluation.programmation?.coefficient || evaluation.coefficient || 1 }} -
+                    {{ evaluation.programmation?.bareme || evaluation.bareme || 20 }}/20
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Window Status -->
+            <div v-if="evaluation.programmation?.window" class="window-status">
+              <div v-if="!evaluation.programmation.window.has_started" class="status-item status-pending">
+                <ClockIcon class="status-icon" />
+                <div>
+                  <p class="status-text">Prévue</p>
+                  <p class="status-detail">L'évaluation n'a pas encore commencé</p>
+                </div>
+              </div>
+              <div v-else-if="evaluation.programmation.window.is_open" class="status-item status-active">
+                <span class="pulse-dot"></span>
+                <div>
+                  <p class="status-text">En cours</p>
+                  <p class="status-detail">{{ evaluation.programmation.window.time_left_minutes }} minutes restantes</p>
+                </div>
+              </div>
+              <div v-else class="status-item status-finished">
+                <CheckCircleIcon class="status-icon" />
+                <div>
+                  <p class="status-text">Terminée</p>
+                  <p class="status-detail">La fenêtre de composition est fermée</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Online Version Info -->
+            <div v-if="evaluation.has_online && evaluation.online_version" class="online-info">
+              <ComputerDesktopIcon class="online-icon" />
+              <div class="online-details">
+                <p class="online-title">Version en ligne configurée</p>
+                <div class="online-stats">
+                  <span class="online-stat">
+                    <DocumentTextIcon class="w-4 h-4" />
+                    {{ evaluation.online_version.questions_count || 0 }} questions
+                  </span>
+                  <span class="online-stat">
+                    <ClockIcon class="w-4 h-4" />
+                    {{ evaluation.online_version.duree_minutes }} min
+                  </span>
+                  <span class="online-stat">
+                    <UserGroupIcon class="w-4 h-4" />
+                    {{ evaluation.online_version.submissions_count || 0 }} soumissions
+                  </span>
                 </div>
               </div>
             </div>
 
             <!-- Actions -->
-            <div class="flex gap-2 mt-4">
+            <div class="eval-actions">
               <button
-                v-if="!hasOnlineVersion(evaluation.id)"
+                v-if="!evaluation.has_online"
                 @click="createOnlineVersion(evaluation)"
-                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition"
+                class="btn-action btn-create"
+                title="Créer une version interactive avec QCM pour cette évaluation KLASSCI"
               >
+                <PlusIcon class="w-5 h-5" />
                 Créer version en ligne
               </button>
               <button
                 v-else
                 @click="editOnlineVersion(evaluation)"
-                class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition"
+                class="btn-action btn-edit"
+                title="Modifier les questions de la version en ligne"
               >
+                <PencilIcon class="w-5 h-5" />
                 Modifier les questions
               </button>
               <button
-                v-if="hasOnlineVersion(evaluation.id) && getOnlineVersion(evaluation.id)?.submissions_count > 0"
+                v-if="evaluation.has_online && evaluation.online_version?.submissions_count > 0"
                 @click="syncToKlassci(evaluation)"
                 :disabled="syncing === evaluation.id"
-                class="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-4 py-2 rounded-lg font-medium transition"
+                class="btn-action btn-sync"
+                title="Synchroniser les notes vers KLASSCI"
               >
+                <ArrowPathIcon class="w-5 h-5" :class="{ 'animate-spin': syncing === evaluation.id }" />
                 {{ syncing === evaluation.id ? 'Synchronisation...' : 'Synchroniser les notes' }}
               </button>
             </div>
           </div>
         </div>
+
+        <!-- Empty State -->
+        <div v-else class="empty-state">
+          <DocumentTextIcon class="empty-icon" />
+          <h3 class="empty-title">Aucune évaluation trouvée</h3>
+          <p class="empty-message">
+            {{ filters.classe_id || filters.matiere_id || filters.statut
+              ? 'Aucune évaluation ne correspond à vos filtres'
+              : 'Vos évaluations apparaîtront ici' }}
+          </p>
+          <button
+            v-if="filters.classe_id || filters.matiere_id || filters.statut"
+            @click="resetFilters"
+            class="btn-empty"
+          >
+            Réinitialiser les filtres
+          </button>
+        </div>
+      <!-- Modal: Create Online Version -->
+      <div v-if="showCreateModal" class="modal-overlay" @click="closeCreateModal">
+        <div class="modal-content" @click.stop>
+          <div class="modal-header">
+            <h2 class="modal-title">Créer version en ligne</h2>
+            <button @click="closeCreateModal" class="modal-close">
+              <XMarkIcon class="w-6 h-6" />
+            </button>
+          </div>
+
+          <div class="modal-body">
+            <div class="modal-info">
+              <p class="info-text">
+                <strong>Évaluation KLASSCI:</strong> {{ selectedEvaluation?.titre }}
+              </p>
+              <p class="info-text">
+                <strong>Matière:</strong> {{ selectedEvaluation?.matiere?.nom || selectedEvaluation?.matiere?.name }}
+              </p>
+              <p class="info-text">
+                <strong>Classe:</strong> {{ selectedEvaluation?.classe?.nom || selectedEvaluation?.classe?.libelle }}
+              </p>
+            </div>
+
+            <form @submit.prevent="submitCreateOnlineVersion" class="modal-form">
+              <div class="form-group">
+                <label class="form-label required">Type d'évaluation</label>
+                <select v-model="onlineForm.type" required class="form-select">
+                  <option value="qcm">QCM uniquement</option>
+                  <option value="qcm_multiple">QCM à choix multiples</option>
+                  <option value="mixte">Mixte (QCM + réponses courtes)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label required">Durée (en minutes)</label>
+                <input
+                  v-model.number="onlineForm.duree_minutes"
+                  type="number"
+                  min="5"
+                  max="240"
+                  required
+                  class="form-input"
+                  placeholder="60"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Description / Consignes</label>
+                <textarea
+                  v-model="onlineForm.description"
+                  rows="3"
+                  class="form-textarea"
+                  placeholder="Instructions pour les étudiants..."
+                ></textarea>
+              </div>
+
+              <div class="modal-actions">
+                <button type="button" @click="closeCreateModal" class="btn-cancel">
+                  Annuler
+                </button>
+                <button type="submit" :disabled="creating" class="btn-submit">
+                  <ArrowPathIcon v-if="creating" class="w-5 h-5 animate-spin" />
+                  <PlusIcon v-else class="w-5 h-5" />
+                  {{ creating ? 'Création...' : 'Créer et ajouter des questions' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
+      </template>
+
     </div>
-  </div>
+  </DashboardLayout>
 </template>
 
-<script>
+<script setup>
+import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import DashboardLayout from '@/components/layout/DashboardLayout.vue'
+import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
 import klassciService from '@/services/klassci'
 import evaluationService from '@/services/evaluation'
+import {
+  DocumentTextIcon,
+  BookOpenIcon,
+  UserGroupIcon,
+  CalendarIcon,
+  ClockIcon,
+  CheckCircleIcon,
+  ComputerDesktopIcon,
+  FlagIcon,
+  XMarkIcon,
+  PlusIcon,
+  PencilIcon,
+  ArrowPathIcon
+} from '@heroicons/vue/24/outline'
 
-export default {
-  name: 'TeacherEvaluations',
-  data() {
-    return {
-      evaluationsKlassci: [],
-      evaluationsLMS: [],
-      classes: [],
-      matieres: [],
-      filters: {
-        classe_id: '',
-        matiere_id: '',
-        statut: ''
-      },
-      loading: true,
-      syncing: null
-    }
-  },
-  async mounted() {
-    await this.loadData()
-  },
-  methods: {
-    async loadData() {
-      this.loading = true
-      try {
-        // Charger les classes et matières
-        const [classes, matieres] = await Promise.all([
-          klassciService.getClasses(),
-          klassciService.getMatieres()
-        ])
+const router = useRouter()
 
-        // klassciService retourne directement les données, pas un objet {success, data}
-        this.classes = Array.isArray(classes) ? classes : []
-        this.matieres = Array.isArray(matieres) ? matieres : []
+const evaluationsKlassci = ref([])
+const evaluationsLMS = ref([])
+const classes = ref([])
+const matieres = ref([])
+const loading = ref(true)
+const error = ref(null)
+const syncing = ref(null)
+const showCreateModal = ref(false)
+const selectedEvaluation = ref(null)
+const creating = ref(false)
+const onlineForm = reactive({
+  type: 'qcm',
+  duree_minutes: 60,
+  description: ''
+})
 
-        // Charger les évaluations
-        await this.loadEvaluationsKlassci()
-        await this.loadEvaluationsLMS()
-      } catch (error) {
-        console.error('Erreur chargement données:', error)
-      } finally {
-        this.loading = false
-      }
-    },
+// Filters
+const filters = reactive({
+  classe_id: '',
+  matiere_id: '',
+  statut: ''
+})
 
-    async loadEvaluationsKlassci() {
-      try {
-        const result = await klassciService.getEvaluations(this.filters)
-        if (result.success) {
-          this.evaluationsKlassci = result.data
-          console.log('✅ Évaluations KLASSCI récupérées:', this.evaluationsKlassci)
-        }
-      } catch (error) {
-        console.error('Erreur chargement via /lms/evaluations, utilisation du dashboard:', error)
+// Cache
+const CACHE_KEY_EVALUATIONS = 'teacher_evaluations_cache'
+const CACHE_KEY_CLASSES = 'teacher_classes_cache'
+const CACHE_KEY_MATIERES = 'teacher_matieres_cache'
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
-        // Fallback: utiliser les évaluations du dashboard enseignant
-        try {
-          const dashboard = await klassciService.getTeacherDashboard()
-          if (dashboard && dashboard.evaluations) {
-            this.evaluationsKlassci = dashboard.evaluations
-            console.log('✅ Évaluations récupérées depuis le dashboard:', this.evaluationsKlassci)
-            console.log('📋 Structure première évaluation:', this.evaluationsKlassci[0])
-          }
-        } catch (dashboardError) {
-          console.error('Erreur chargement depuis dashboard:', dashboardError)
-        }
-      }
-    },
+// Merge KLASSCI evaluations with LMS online versions
+const evaluationsWithOnline = computed(() => {
+  return evaluationsKlassci.value.map(evaluation => ({
+    ...evaluation,
+    online_version: evaluationsLMS.value.find(e => e.klassci_evaluation_id === evaluation.id),
+    has_online: evaluationsLMS.value.some(e => e.klassci_evaluation_id === evaluation.id)
+  }))
+})
 
-    async loadEvaluationsLMS() {
-      try {
-        const result = await evaluationService.getEvaluations()
-        if (result.success) {
-          this.evaluationsLMS = result.data
-          console.log('✅ Évaluations LMS récupérées:', this.evaluationsLMS.length)
-        }
-      } catch (error) {
-        console.error('⚠️ Erreur chargement évaluations LMS (normal si aucune créée):', error.message)
-        // C'est normal si aucune évaluation n'a encore été créée dans le LMS
-        this.evaluationsLMS = []
-      }
-    },
+// Filtered evaluations
+const filteredEvaluations = computed(() => {
+  let filtered = evaluationsWithOnline.value
 
-    hasOnlineVersion(klassciEvaluationId) {
-      return this.evaluationsLMS.some(e => e.klassci_evaluation_id === klassciEvaluationId)
-    },
+  // Filter by classe
+  if (filters.classe_id) {
+    filtered = filtered.filter(e => e.classe?.id == filters.classe_id)
+  }
 
-    getOnlineVersion(klassciEvaluationId) {
-      const lmsEval = this.evaluationsLMS.find(e => e.klassci_evaluation_id === klassciEvaluationId)
-      if (lmsEval) {
-        return {
-          ...lmsEval,
-          questions_count: lmsEval.questions?.length || 0,
-          submissions_count: lmsEval.submissions?.length || 0
-        }
-      }
-      return null
-    },
+  // Filter by matiere
+  if (filters.matiere_id) {
+    filtered = filtered.filter(e => e.matiere?.id == filters.matiere_id)
+  }
 
-    getStatusClass(status) {
-      const classes = {
-        'planifiee': 'bg-blue-100 text-blue-800',
-        'en_cours': 'bg-green-100 text-green-800',
-        'terminee': 'bg-gray-100 text-gray-800',
-        'brouillon': 'bg-yellow-100 text-yellow-800'
-      }
-      return classes[status] || 'bg-gray-100 text-gray-800'
-    },
+  // Filter by statut
+  if (filters.statut) {
+    filtered = filtered.filter(e => e.status === filters.statut)
+  }
 
-    formatDate(date) {
-      if (!date) return 'Non définie'
-      return new Date(date).toLocaleDateString('fr-FR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    },
+  return filtered
+})
 
-    createOnlineVersion(evaluationKlassci) {
-      // Rediriger vers la page de création de questions uniquement
-      this.$router.push({
-        name: 'CreateQuestions',
-        query: {
-          klassci_id: evaluationKlassci.id
-        }
-      })
-    },
+// Statistics
+const stats = computed(() => {
+  const all = evaluationsWithOnline.value
+  return {
+    total: all.length,
+    enCours: all.filter(e => e.programmation?.window?.is_open).length,
+    terminees: all.filter(e => e.status === 'terminee').length,
+    avecVersionEnLigne: all.filter(e => e.has_online).length
+  }
+})
 
-    editOnlineVersion(evaluationKlassci) {
-      const lmsEval = this.getOnlineVersion(evaluationKlassci.id)
-      this.$router.push({
-        name: 'EditQuestions',
-        params: { id: lmsEval.id },
-        query: {
-          klassci_id: evaluationKlassci.id
-        }
-      })
-    },
+// Load all data with cache
+async function loadData() {
+  loading.value = true
+  error.value = null
 
-    async syncToKlassci(evaluationKlassci) {
-      const lmsEval = this.getOnlineVersion(evaluationKlassci.id)
-      if (!lmsEval) return
+  try {
+    // Load classes and matieres in parallel
+    await Promise.all([
+      loadClasses(),
+      loadMatieres()
+    ])
 
-      if (!confirm(`Synchroniser ${lmsEval.submissions_count} note(s) vers KLASSCI ?`)) {
+    // Load evaluations
+    await Promise.all([
+      loadEvaluationsKlassci(),
+      loadEvaluationsLMS()
+    ])
+
+    console.log('[SUCCESS] Données chargées')
+  } catch (err) {
+    console.error('[ERREUR] Chargement données:', err)
+    error.value = 'Impossible de charger les évaluations. Veuillez réessayer.'
+  } finally {
+    loading.value = false
+  }
+}
+
+// Load classes with cache
+async function loadClasses() {
+  const cached = localStorage.getItem(CACHE_KEY_CLASSES)
+  if (cached) {
+    try {
+      const { data, timestamp } = JSON.parse(cached)
+      if (Date.now() - timestamp < CACHE_TTL) {
+        classes.value = data
         return
       }
+    } catch (err) {
+      console.warn('[CACHE] Cache classes invalide')
+    }
+  }
 
-      this.syncing = evaluationKlassci.id
-      try {
-        const result = await evaluationService.syncToKlassci(lmsEval.id)
-        if (result.success) {
-          alert('Notes synchronisées avec succès vers KLASSCI !')
-          await this.loadEvaluationsLMS()
-        }
-      } catch (error) {
-        console.error('Erreur synchronisation:', error)
-        alert('Erreur lors de la synchronisation')
-      } finally {
-        this.syncing = null
+  try {
+    const classesData = await klassciService.getClasses()
+    classes.value = Array.isArray(classesData) ? classesData : []
+
+    localStorage.setItem(CACHE_KEY_CLASSES, JSON.stringify({
+      data: classes.value,
+      timestamp: Date.now()
+    }))
+  } catch (err) {
+    console.error('[ERREUR] Chargement classes:', err)
+  }
+}
+
+// Load matieres with cache
+async function loadMatieres() {
+  const cached = localStorage.getItem(CACHE_KEY_MATIERES)
+  if (cached) {
+    try {
+      const { data, timestamp } = JSON.parse(cached)
+      if (Date.now() - timestamp < CACHE_TTL) {
+        matieres.value = data
+        return
       }
+    } catch (err) {
+      console.warn('[CACHE] Cache matières invalide')
+    }
+  }
+
+  try {
+    const matieresData = await klassciService.getMatieres()
+    matieres.value = Array.isArray(matieresData) ? matieresData : []
+
+    localStorage.setItem(CACHE_KEY_MATIERES, JSON.stringify({
+      data: matieres.value,
+      timestamp: Date.now()
+    }))
+  } catch (err) {
+    console.error('[ERREUR] Chargement matières:', err)
+  }
+}
+
+// Load KLASSCI evaluations
+async function loadEvaluationsKlassci() {
+  try {
+    const result = await klassciService.getEvaluations(filters)
+    if (result.success) {
+      evaluationsKlassci.value = result.data
+      console.log('[SUCCESS] Évaluations KLASSCI:', evaluationsKlassci.value.length)
+    }
+  } catch (err) {
+    console.error('[ERREUR] Chargement évaluations KLASSCI, utilisation du dashboard:', err)
+
+    // Fallback: use dashboard
+    try {
+      const dashboard = await klassciService.getTeacherDashboard()
+      if (dashboard && dashboard.evaluations) {
+        evaluationsKlassci.value = dashboard.evaluations
+        console.log('[SUCCESS] Évaluations depuis dashboard:', evaluationsKlassci.value.length)
+      }
+    } catch (dashboardError) {
+      console.error('[ERREUR] Fallback dashboard:', dashboardError)
     }
   }
 }
+
+// Load LMS evaluations
+async function loadEvaluationsLMS() {
+  try {
+    const result = await evaluationService.getEvaluations()
+    if (result.success) {
+      evaluationsLMS.value = result.data.map(e => ({
+        ...e,
+        questions_count: e.questions?.length || 0,
+        submissions_count: e.submissions?.length || 0
+      }))
+      console.log('[SUCCESS] Évaluations LMS:', evaluationsLMS.value.length)
+    }
+  } catch (err) {
+    console.warn('[INFO] Aucune évaluation LMS (normal si aucune créée):', err.message)
+    evaluationsLMS.value = []
+  }
+}
+
+// Apply filters
+function applyFilters() {
+  console.log('[FILTERS] Filtres appliqués:', filters)
+}
+
+// Reset filters
+function resetFilters() {
+  filters.classe_id = ''
+  filters.matiere_id = ''
+  filters.statut = ''
+  console.log('[FILTERS] Filtres réinitialisés')
+}
+
+// Get status badge class
+function getStatusBadgeClass(evaluation) {
+  const baseClass = 'status-badge'
+
+  if (evaluation.programmation?.window?.is_open) {
+    return `${baseClass} status-badge-active`
+  }
+
+  const statusClasses = {
+    'planifiee': `${baseClass} status-badge-planned`,
+    'en_cours': `${baseClass} status-badge-active`,
+    'terminee': `${baseClass} status-badge-finished`,
+    'brouillon': `${baseClass} status-badge-draft`
+  }
+
+  return statusClasses[evaluation.status] || `${baseClass} status-badge-default`
+}
+
+// Get status label
+function getStatusLabel(status) {
+  const labels = {
+    'planifiee': 'Planifiée',
+    'en_cours': 'En cours',
+    'terminee': 'Terminée',
+    'brouillon': 'Brouillon',
+    'draft': 'Brouillon',
+    'in_progress': 'En cours',
+    'completed': 'Terminée'
+  }
+  return labels[status] || status
+}
+
+// Get status icon
+function getStatusIcon(status) {
+  const icons = {
+    'planifiee': CalendarIcon,
+    'en_cours': ClockIcon,
+    'terminee': CheckCircleIcon,
+    'brouillon': DocumentTextIcon,
+    'draft': DocumentTextIcon,
+    'in_progress': ClockIcon,
+    'completed': CheckCircleIcon
+  }
+  return icons[status] || DocumentTextIcon
+}
+
+// Get status tooltip
+function getStatusTooltip(status) {
+  const tooltips = {
+    'planifiee': 'Évaluation programmée dans le calendrier KLASSCI',
+    'en_cours': 'Fenêtre temporelle ouverte - Les étudiants peuvent composer',
+    'terminee': 'Fenêtre fermée - Composition terminée',
+    'brouillon': 'Évaluation en préparation, non encore programmée',
+    'draft': 'Évaluation en préparation, non encore programmée',
+    'in_progress': 'Fenêtre temporelle ouverte - Les étudiants peuvent composer',
+    'completed': 'Fenêtre fermée - Composition terminée'
+  }
+  return tooltips[status] || 'Statut de l\'évaluation'
+}
+
+// Format date
+function formatDate(date) {
+  if (!date) return 'Non définie'
+  return new Date(date).toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+// Create online version
+function createOnlineVersion(evaluation) {
+  selectedEvaluation.value = evaluation
+  onlineForm.type = 'qcm'
+  onlineForm.duree_minutes = 60
+  onlineForm.description = ''
+  showCreateModal.value = true
+}
+
+// Close modal
+function closeCreateModal() {
+  showCreateModal.value = false
+  selectedEvaluation.value = null
+  onlineForm.type = 'qcm'
+  onlineForm.duree_minutes = 60
+  onlineForm.description = ''
+}
+
+// Submit create online version
+async function submitCreateOnlineVersion() {
+  if (!selectedEvaluation.value) return
+
+  creating.value = true
+  try {
+    const newEvaluation = {
+      klassci_evaluation_id: selectedEvaluation.value.id,
+      klassci_matiere_id: selectedEvaluation.value.matiere?.id,
+      klassci_classe_id: selectedEvaluation.value.classe?.id,
+      titre: selectedEvaluation.value.titre,
+      description: onlineForm.description || selectedEvaluation.value.description || '',
+      type: onlineForm.type,
+      date_evaluation: selectedEvaluation.value.programmation?.date_evaluation || selectedEvaluation.value.date_evaluation,
+      duree_minutes: onlineForm.duree_minutes,
+      coefficient: selectedEvaluation.value.programmation?.coefficient || selectedEvaluation.value.coefficient || 1,
+      bareme: selectedEvaluation.value.programmation?.bareme || selectedEvaluation.value.bareme || 20,
+      questions: []
+    }
+
+    console.log('[CREATE] Création évaluation LMS:', newEvaluation)
+    const result = await evaluationService.createEvaluation(newEvaluation)
+
+    if (result.success) {
+      console.log('[SUCCESS] Évaluation créée:', result.data)
+      alert('✓ Version en ligne créée! Vous pouvez maintenant ajouter des questions.')
+      
+      // Reload evaluations
+      await loadEvaluationsLMS()
+      
+      // Close modal
+      closeCreateModal()
+      
+      // TODO: Rediriger vers page d'édition des questions
+      // router.push({ name: 'EditQuestions', params: { id: result.data.id } })
+    }
+  } catch (err) {
+    console.error('[ERREUR] Création évaluation:', err)
+    alert('⚠ Erreur lors de la création de la version en ligne')
+  } finally {
+    creating.value = false
+  }
+}
+
+// Edit online version
+function editOnlineVersion(evaluation) {
+  if (!evaluation.online_version) return
+
+  router.push({
+    name: 'EditQuestions',
+    params: { id: evaluation.online_version.id },
+    query: {
+      klassci_id: evaluation.id
+    }
+  })
+}
+
+// Sync to KLASSCI
+async function syncToKlassci(evaluation) {
+  if (!evaluation.online_version) return
+
+  const submissionsCount = evaluation.online_version.submissions_count || 0
+  if (submissionsCount === 0) {
+    alert('Aucune soumission à synchroniser')
+    return
+  }
+
+  if (!confirm(`Synchroniser ${submissionsCount} note(s) vers KLASSCI ?`)) {
+    return
+  }
+
+  syncing.value = evaluation.id
+  try {
+    const result = await evaluationService.syncToKlassci(evaluation.online_version.id)
+    if (result.success) {
+      alert('✓ Notes synchronisées avec succès vers KLASSCI !')
+      await loadEvaluationsLMS()
+    }
+  } catch (err) {
+    console.error('[ERREUR] Synchronisation:', err)
+    alert('⚠ Erreur lors de la synchronisation')
+  } finally {
+    syncing.value = null
+  }
+}
+
+onMounted(() => {
+  loadData()
+})
 </script>
+
+<style scoped>
+.evaluations-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+/* Header */
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.page-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+}
+
+.page-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.page-subtitle {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 0.25rem 0 0 0;
+}
+
+/* Error State */
+.error-state {
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.error-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.error-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.error-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #c00;
+  margin: 0 0 0.25rem 0;
+}
+
+.error-message {
+  font-size: 0.875rem;
+  color: #900;
+  margin: 0;
+}
+
+.btn-retry {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-retry:hover {
+  background: #b91c1c;
+}
+
+/* Filters Card */
+.filters-card {
+  background: var(--card-bg);
+  border-radius: 0.75rem;
+  box-shadow: var(--card-shadow);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  align-items: end;
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.filter-select {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-select:hover {
+  border-color: var(--primary-color);
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filter-actions {
+  display: flex;
+  align-items: flex-end;
+}
+
+.btn-reset {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  justify-content: center;
+}
+
+.btn-reset:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* Statistics */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: var(--card-bg);
+  border-radius: 0.75rem;
+  box-shadow: var(--card-shadow);
+  padding: 1.5rem;
+  transition: all 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--card-shadow-hover);
+}
+
+.stat-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.stat-icon {
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem 0;
+}
+
+.stat-change {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Evaluations List */
+.evaluations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.evaluation-card {
+  background: var(--card-bg);
+  border-radius: 0.75rem;
+  box-shadow: var(--card-shadow);
+  padding: 1.5rem;
+  transition: all 0.2s;
+}
+
+.evaluation-card:hover {
+  box-shadow: var(--card-shadow-hover);
+}
+
+.eval-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.eval-title-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.eval-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.eval-badges {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: help;
+  transition: all 0.2s;
+}
+
+.status-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.status-badge-planned {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+.status-badge-active {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+  animation: pulse-badge 2s ease-in-out infinite;
+}
+
+@keyframes pulse-badge {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0);
+  }
+}
+
+.status-badge-finished {
+  background: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #e5e7eb;
+}
+
+.status-badge-draft {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.status-badge-default {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.online-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+  cursor: help;
+  transition: all 0.2s;
+}
+
+.online-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+/* Info Grid */
+.eval-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.info-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.info-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0 0 0.25rem 0;
+}
+
+.info-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* Window Status */
+.window-status {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border-left: 3px solid;
+  background: var(--card-bg);
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.status-pending {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.status-pending .status-icon {
+  color: #f59e0b;
+}
+
+.status-pending .status-text {
+  color: #d97706;
+}
+
+.status-pending .status-detail {
+  color: var(--text-secondary);
+}
+
+.status-active {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.status-active .status-text {
+  color: #059669;
+}
+
+.status-active .status-detail {
+  color: var(--text-secondary);
+}
+
+.status-finished {
+  border-color: #6b7280;
+  background: rgba(107, 114, 128, 0.05);
+}
+
+.status-finished .status-icon {
+  color: #6b7280;
+}
+
+.status-finished .status-text {
+  color: #4b5563;
+}
+
+.status-finished .status-detail {
+  color: var(--text-secondary);
+}
+
+.status-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.pulse-dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  background: #22c55e;
+  border-radius: 50%;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.status-text {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin: 0 0 0.125rem 0;
+}
+
+.status-detail {
+  font-size: 0.8125rem;
+  opacity: 0.8;
+  margin: 0;
+}
+
+/* Online Info */
+.online-info {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.online-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: #2563eb;
+  flex-shrink: 0;
+}
+
+.online-details {
+  flex: 1;
+}
+
+.online-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #1e40af;
+  margin: 0 0 0.5rem 0;
+}
+
+.online-stats {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.online-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  color: #1e40af;
+}
+
+/* Actions */
+.eval-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.btn-action {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-create {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.btn-create:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.btn-edit {
+  background: #f59e0b;
+  color: white;
+}
+
+.btn-edit:hover:not(:disabled) {
+  background: #d97706;
+}
+
+.btn-sync {
+  background: #22c55e;
+  color: white;
+}
+
+.btn-sync:hover:not(:disabled) {
+  background: #16a34a;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: var(--card-bg);
+  border-radius: 0.75rem;
+  box-shadow: var(--card-shadow);
+}
+
+.empty-icon {
+  width: 6rem;
+  height: 6rem;
+  color: var(--text-tertiary);
+  margin: 0 auto 1.5rem;
+}
+
+.empty-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+}
+
+.empty-message {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 0 0 1.5rem 0;
+  line-height: 1.6;
+}
+
+.btn-empty {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-empty:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .evaluations-container {
+    padding: 0;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .filters-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .eval-info-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .eval-actions {
+    flex-direction: column;
+  }
+
+  .btn-action {
+    width: 100%;
+  }
+
+  .online-stats {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-content {
+  background: var(--card-bg);
+  border-radius: 0.75rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 0.375rem;
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-info {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.info-text {
+  font-size: 0.875rem;
+  color: #1e40af;
+  margin: 0.25rem 0;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.form-label.required::after {
+  content: ' *';
+  color: #dc2626;
+}
+
+.form-select,
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.form-select:focus,
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.btn-cancel,
+.btn-submit {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-cancel:hover {
+  background: var(--bg-hover);
+}
+
+.btn-submit {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.btn-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+</style>

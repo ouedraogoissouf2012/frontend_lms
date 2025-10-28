@@ -86,7 +86,9 @@ export const auth = {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     localStorage.removeItem('meta')
-    console.log('✅ localStorage nettoyé')
+    // Vider le cache du dashboard pour éviter qu'il soit accessible après déconnexion
+    localStorage.removeItem('student_dashboard_cache')
+    console.log('✅ localStorage et cache nettoyés')
   },
 
   async me() {
@@ -219,12 +221,17 @@ export const notifications = {
 
 // Fonctions pour le forum
 export const forum = {
-  async getCategories() {
-    return await api.get('/forum/categories')
-  },
+  async getTopics(params = {}) {
+    const queryParams = new URLSearchParams()
+    if (params.lesson_id) queryParams.append('lesson_id', params.lesson_id)
+    if (params.matiere_id) queryParams.append('matiere_id', params.matiere_id)
+    if (params.classe_id) queryParams.append('classe_id', params.classe_id)
+    if (params.status) queryParams.append('status', params.status)
+    if (params.sort) queryParams.append('sort', params.sort)
 
-  async getTopics(categoryId) {
-    return await api.get(`/forum/categories/${categoryId}/topics`)
+    const queryString = queryParams.toString()
+    const url = queryString ? `/forum/topics?${queryString}` : '/forum/topics'
+    return await api.get(url)
   },
 
   async getTopic(topicId) {
@@ -237,6 +244,34 @@ export const forum = {
 
   async replyToTopic(topicId, content) {
     return await api.post(`/forum/topics/${topicId}/posts`, { content })
+  },
+
+  async updateTopic(topicId, data) {
+    return await api.put(`/forum/topics/${topicId}`, data)
+  },
+
+  async deleteTopic(topicId) {
+    return await api.delete(`/forum/topics/${topicId}`)
+  },
+
+  async updatePost(postId, content) {
+    return await api.put(`/forum/posts/${postId}`, { content })
+  },
+
+  async deletePost(postId) {
+    return await api.delete(`/forum/posts/${postId}`)
+  },
+
+  async markAsSolution(postId) {
+    return await api.post(`/forum/posts/${postId}/solution`)
+  },
+
+  async closeTopic(topicId) {
+    return await api.post(`/forum/topics/${topicId}/close`)
+  },
+
+  async pinTopic(topicId) {
+    return await api.post(`/forum/topics/${topicId}/pin`)
   }
 }
 

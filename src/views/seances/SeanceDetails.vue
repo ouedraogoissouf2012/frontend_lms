@@ -69,7 +69,7 @@
       <!-- Visioconférence Section -->
       <div v-if="visio && visio.enabled" class="bg-white shadow rounded-lg p-6 mb-6">
         <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-          📹 Visioconférence {{ visio.type }}
+          <span class="visio-header-icon">◉</span> Visioconférence {{ visio.type }}
         </h2>
 
         <!-- Fenêtre temporelle info -->
@@ -84,13 +84,13 @@
         >
           <p class="font-medium">
             <span v-if="!visio.window.has_started">
-              ⏳ La visio ouvrira 15 minutes avant le cours
+              <span class="status-icon">⏰</span> La visio ouvrira 15 minutes avant le cours
             </span>
             <span v-else-if="visio.window.is_in_window">
-              ✅ Fenêtre visio active
+              <span class="status-icon">✓</span> Fenêtre visio active
             </span>
             <span v-else>
-              ⏹️ Fenêtre visio fermée
+              <span class="status-icon">■</span> Fenêtre visio fermée
             </span>
           </p>
         </div>
@@ -102,7 +102,7 @@
             @click="startVisio"
             class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition flex items-center justify-center gap-2"
           >
-            🎥 Démarrer le cours
+            <span class="btn-icon">▶</span> Démarrer le cours
           </button>
           <div v-else class="text-center py-4 text-gray-600">
             <p v-if="!visio.window?.has_started">
@@ -118,7 +118,7 @@
         <div v-else-if="isStudent">
           <div v-if="!visio.window?.has_started" class="text-center py-6">
             <div class="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 text-orange-700 rounded-lg">
-              ⏳ En attente de l'enseignant
+              <span class="waiting-icon">⏰</span> En attente de l'enseignant
             </div>
             <p class="mt-2 text-sm text-gray-600">
               Le cours commencera à {{ seance.heure_debut }}
@@ -131,14 +131,14 @@
               :disabled="joiningVisio"
               class="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              <span v-if="!joiningVisio">🎥 Rejoindre le cours</span>
-              <span v-else>⏳ Validation en cours...</span>
+              <span v-if="!joiningVisio"><span class="btn-icon">◉</span> Rejoindre le cours</span>
+              <span v-else><span class="waiting-icon">⏰</span> Validation en cours...</span>
             </button>
           </div>
 
           <div v-else-if="visio.window?.has_ended" class="text-center py-6">
             <div class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg">
-              ✅ Cours terminé
+              <span class="finished-icon">✓</span> Cours terminé
             </div>
             <p v-if="visio.recording_url" class="mt-4">
               <a
@@ -146,7 +146,7 @@
                 target="_blank"
                 class="text-blue-600 hover:underline"
               >
-                📼 Voir l'enregistrement
+                <span class="recording-icon">▶</span> Voir l'enregistrement
               </a>
             </p>
           </div>
@@ -165,9 +165,7 @@
       <!-- Présentiel -->
       <div v-else class="bg-white shadow rounded-lg p-6 mb-6">
         <div class="flex items-center gap-3 text-blue-600">
-          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
-          </svg>
+          <span class="presentiel-icon">◈</span>
           <div>
             <p class="font-semibold">Cours en présentiel</p>
             <p class="text-sm text-gray-600">Salle: {{ seance.salle || 'À définir' }}</p>
@@ -399,5 +397,41 @@ export default {
   max-width: 1000px;
   margin: 0 auto;
   padding: 2rem;
+}
+
+/* Emoticons styles */
+.visio-header-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.status-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.btn-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.waiting-icon {
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.finished-icon {
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.recording-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.presentiel-icon {
+  font-size: 2rem;
+  line-height: 1;
 }
 </style>
