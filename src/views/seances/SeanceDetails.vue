@@ -260,11 +260,12 @@ export default {
     },
 
     isTeacher() {
-      return this.user && ['enseignant', 'coordinateur'].includes(this.user.role)
+      return this.user && ['enseignant', 'coordinateur', 'teacher'].includes(this.user.role)
     },
 
     isStudent() {
-      return this.user && this.user.role === 'étudiant'
+      // Accepter à la fois 'etudiant' (sans accent) et 'étudiant' (avec accent)
+      return this.user && ['etudiant', 'étudiant', 'student'].includes(this.user.role)
     }
   },
 
