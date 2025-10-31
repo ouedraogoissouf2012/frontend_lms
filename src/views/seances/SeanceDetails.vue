@@ -117,16 +117,12 @@
 
         <!-- Bouton Étudiant -->
         <div v-else-if="isStudent">
-          <div v-if="!visio.window?.has_started" class="text-center py-6">
-            <div class="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 text-orange-700 rounded-lg">
-              <span class="waiting-icon">⏰</span> En attente de l'enseignant
+          <!-- Cours EN DIRECT: Accessible si status = 'active' OU dans la fenêtre temporelle -->
+          <div v-if="visio.status === 'active' || (visio.window?.is_accessible && roomActive)">
+            <div v-if="visio.status === 'active'" class="mb-3 p-3 bg-red-50 border-2 border-red-400 rounded-lg text-center">
+              <span class="text-red-600 font-bold text-lg">🔴 COURS EN DIRECT</span>
             </div>
-            <p class="mt-2 text-sm text-gray-600">
-              Le cours commencera à {{ seance.heure_debut }}
-            </p>
-          </div>
 
-          <div v-else-if="roomActive && visio.window?.is_in_window">
             <button
               @click="joinVisio"
               :disabled="joiningVisio"
@@ -137,6 +133,17 @@
             </button>
           </div>
 
+          <!-- Cours pas encore démarré -->
+          <div v-else-if="!visio.window?.has_started" class="text-center py-6">
+            <div class="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 text-orange-700 rounded-lg">
+              <span class="waiting-icon">⏰</span> En attente de l'enseignant
+            </div>
+            <p class="mt-2 text-sm text-gray-600">
+              Le cours commencera à {{ seance.heure_debut }}
+            </p>
+          </div>
+
+          <!-- Cours terminé -->
           <div v-else-if="visio.window?.has_ended" class="text-center py-6">
             <div class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg">
               <span class="finished-icon">✓</span> Cours terminé
@@ -152,6 +159,7 @@
             </p>
           </div>
 
+          <!-- Fallback: en attente -->
           <div v-else class="text-center py-6 text-gray-600">
             <p>En attente du démarrage par l'enseignant...</p>
           </div>
