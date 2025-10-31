@@ -291,11 +291,12 @@ export default {
           this.visio = data.data.visio
           this.participants = data.data.participants
 
-          // Vérifier si la room est active via le statut fenêtre
-          this.roomActive = this.visio?.window?.is_in_window || false
+          // Vérifier si la room est accessible (nouveau champ is_accessible)
+          this.roomActive = this.visio?.window?.is_accessible || false
 
           console.log('📹 Visio:', this.visio?.enabled ? 'Activée' : 'Désactivée')
-          console.log('⏰ Fenêtre active:', this.roomActive)
+          console.log('📹 Status:', this.visio?.status || 'null')
+          console.log('⏰ Fenêtre accessible:', this.roomActive)
         } else {
           this.error = 'Séance non trouvée'
         }
