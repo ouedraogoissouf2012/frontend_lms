@@ -204,31 +204,62 @@ export default {
 </script>
 
 <style scoped>
-/* Force text colors for both light and dark mode */
-h1 {
-  color: #2563eb !important; /* Bleu en mode blanc */
+/* Force text colors for both light and dark mode - Using data-theme */
+html[data-theme="light"] h1,
+html:not([data-theme="dark"]) h1 {
+  color: #2563eb !important;
 }
 
-:deep(.dark) h1 {
-  color: #ffffff !important; /* Blanc en mode sombre */
+html[data-theme="dark"] h1 {
+  color: #ffffff !important;
 }
 
-/* Dark mode fixes for modal inputs */
-input[type="text"],
-textarea {
-  background-color: #ffffff;
-  color: #1f2937;
+/* Modal inputs - BOTH modes support */
+html[data-theme="light"] input[type="text"],
+html:not([data-theme="dark"]) input[type="text"],
+html[data-theme="light"] textarea,
+html:not([data-theme="dark"]) textarea {
+  background-color: #ffffff !important;
+  color: #1f2937 !important;
 }
 
-input[type="text"]::placeholder,
-textarea::placeholder {
-  color: #9ca3af;
+html[data-theme="dark"] input[type="text"],
+html[data-theme="dark"] textarea {
+  background-color: #374151 !important;
+  color: #f3f4f6 !important;
+}
+
+html[data-theme="light"] input[type="text"]::placeholder,
+html:not([data-theme="dark"]) input[type="text"]::placeholder,
+html[data-theme="light"] textarea::placeholder,
+html:not([data-theme="dark"]) textarea::placeholder {
+  color: #9ca3af !important;
   opacity: 1;
 }
 
-input[type="text"]:focus,
-textarea:focus {
-  background-color: #ffffff;
-  color: #1f2937;
+html[data-theme="dark"] input[type="text"]::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+  color: #9ca3af !important;
+  opacity: 1;
+}
+
+/* Modal background */
+html[data-theme="light"] .bg-white,
+html:not([data-theme="dark"]) .bg-white {
+  background-color: #ffffff !important;
+}
+
+html[data-theme="dark"] .bg-white {
+  background-color: #1f2937 !important;
+}
+
+/* Modal text */
+html[data-theme="light"] .text-gray-700,
+html:not([data-theme="dark"]) .text-gray-700 {
+  color: #374151 !important;
+}
+
+html[data-theme="dark"] .text-gray-700 {
+  color: #e5e7eb !important;
 }
 </style>

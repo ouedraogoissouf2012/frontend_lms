@@ -275,4 +275,12 @@ export const forum = {
   }
 }
 
+// Teacher Stats
+export const teacherStats = {
+  async getStats() {
+    const response = await api.get('/teacher/stats')
+    return response.data
+  }
+}
+
 export default api

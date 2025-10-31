@@ -70,14 +70,14 @@
           <div
             v-for="notification in notifications"
             :key="notification.id"
-            :class="['notification-item', { unread: !notification.read }]"
-            @click="markAsRead(notification.id)"
+            :class="['notification-item', { unread: notification.is_unread }]"
+            @click="handleNotificationClick(notification, $event)"
           >
-            <span class="notif-icon">{{ notification.icon }}</span>
+            <span class="notif-icon">{{ getIconEmoji(notification.icon) }}</span>
             <div class="notif-content">
               <p class="notif-title">{{ notification.title }}</p>
               <p class="notif-message">{{ notification.message }}</p>
-              <span class="notif-time">{{ formatTime(notification.created_at) }}</span>
+              <span class="notif-time">{{ notification.time_ago || formatTime(notification.created_at) }}</span>
             </div>
           </div>
         </div>
@@ -91,6 +91,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { auth } from '@/services/api'
 import ThemeToggle from '@/components/ui/ThemeToggle.vue'
+import { useNotifications } from '@/composables/useNotifications'
 
 export default {
   name: 'ModernNavbar',
@@ -107,25 +108,14 @@ export default {
     const showNotifications = ref(false)
     const userMenuRef = ref(null)
 
-    // Mock notifications (replace with real data later)
-    const notifications = ref([
-      {
-        id: 1,
-        icon: '📝',
-        title: 'Nouvelle évaluation',
-        message: 'Une nouvelle évaluation est disponible en Mathématiques',
-        created_at: new Date(Date.now() - 3600000),
-        read: false
-      },
-      {
-        id: 2,
-        icon: '📹',
-        title: 'Séance de visio',
-        message: 'La séance de Physique commence dans 30 minutes',
-        created_at: new Date(Date.now() - 7200000),
-        read: false
-      }
-    ])
+    // Real notifications from API
+    const {
+      notifications,
+      unreadCount: notificationUnreadCount,
+      markAsRead: markNotificationAsRead,
+      markAllAsRead: markAllNotificationsAsRead,
+      loadNotifications
+    } = useNotifications(false)
 
     // User info
     const userInitials = computed(() => {
@@ -173,10 +163,8 @@ export default {
       return '/dashboard'
     })
 
-    // Unread count
-    const unreadCount = computed(() => {
-      return notifications.value.filter(n => !n.read).length
-    })
+    // Unread count from composable
+    const unreadCount = computed(() => notificationUnreadCount.value)
 
     // Page title from route meta or default
     const pageTitle = computed(() => {
@@ -262,6 +250,23 @@ export default {
       return `Il y a ${days}j`
     }
 
+    // Convert Material Design icon codes to emojis
+    const getIconEmoji = (iconCode) => {
+      const iconMap = {
+        'mdi-message-reply': '💭',
+        'mdi-check-circle': '✔️',
+        'mdi-book-open': '📚',
+        'mdi-clipboard-list': '📝',
+        'mdi-star': '⭐',
+        'mdi-book-edit': '✏️',
+        'mdi-clock-alert': '⏰',
+        'mdi-video-outline': '📹',
+        'mdi-video-check': '🎬',
+        'mdi-bell': '🔔'
+      }
+      return iconMap[iconCode] || '🔔'
+    }
+
     // Toggle user menu
     const toggleUserMenu = () => {
       showUserMenu.value = !showUserMenu.value
@@ -274,17 +279,27 @@ export default {
       showUserMenu.value = false
     }
 
-    // Mark notification as read
-    const markAsRead = (id) => {
-      const notification = notifications.value.find(n => n.id === id)
-      if (notification) {
-        notification.read = true
+    // Handle notification click with navigation (Option 3 - Pro)
+    const handleNotificationClick = async (notification, event) => {
+      // Mark as read
+      await markNotificationAsRead(notification.id)
+
+      // Navigate if action_url exists
+      if (notification.action_url) {
+        if (event.ctrlKey || event.metaKey) {
+          // Ctrl+Click (Windows) or Cmd+Click (Mac) = Open in new tab
+          window.open(notification.action_url, '_blank')
+        } else {
+          // Normal click = Navigate in same tab
+          router.push(notification.action_url)
+          showNotifications.value = false
+        }
       }
     }
 
     // Mark all as read
-    const markAllAsRead = () => {
-      notifications.value.forEach(n => n.read = true)
+    const markAllAsRead = async () => {
+      await markAllNotificationsAsRead()
     }
 
     // Logout
@@ -306,6 +321,7 @@ export default {
 
     onMounted(() => {
       document.addEventListener('click', handleClickOutside)
+      loadNotifications()
     })
 
     onUnmounted(() => {
@@ -325,10 +341,11 @@ export default {
       unreadCount,
       toggleUserMenu,
       toggleNotifications,
-      markAsRead,
+      handleNotificationClick,
       markAllAsRead,
       handleLogout,
-      formatTime
+      formatTime,
+      getIconEmoji
     }
   }
 }
@@ -566,11 +583,30 @@ export default {
   padding: var(--spacing-lg);
   border-bottom: 1px solid var(--border-primary);
   cursor: pointer;
-  transition: background-color var(--transition-fast);
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.notification-item::after {
+  content: '→';
+  position: absolute;
+  right: var(--spacing-lg);
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: all var(--transition-fast);
+  color: var(--blue-600);
+  font-size: 1.2rem;
 }
 
 .notification-item:hover {
   background: var(--bg-hover);
+  padding-right: calc(var(--spacing-lg) + 30px);
+}
+
+.notification-item:hover::after {
+  opacity: 1;
+  transform: translateY(-50%) translateX(-5px);
 }
 
 .notification-item.unread {

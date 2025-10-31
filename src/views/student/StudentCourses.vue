@@ -50,21 +50,21 @@
 
           <div class="course-stats">
             <div class="stat">
-              <BookOpenIcon class="stat-icon" />
+              <span class="stat-icon-emoji">📖</span>
               <div class="stat-info">
                 <span class="stat-value">{{ course.stats?.lessons || 0 }}</span>
                 <span class="stat-label">Leçons</span>
               </div>
             </div>
             <div class="stat">
-              <VideoCameraIcon class="stat-icon" />
+              <span class="stat-icon-emoji">🎥</span>
               <div class="stat-info">
                 <span class="stat-value">{{ course.stats?.seances || 0 }}</span>
                 <span class="stat-label">Séances</span>
               </div>
             </div>
             <div class="stat">
-              <DocumentTextIcon class="stat-icon" />
+              <span class="stat-icon-emoji">📄</span>
               <div class="stat-info">
                 <span class="stat-value">{{ course.stats?.evaluations || 0 }}</span>
                 <span class="stat-label">Éval.</span>
@@ -74,7 +74,7 @@
 
           <button class="course-button" aria-label="Voir les détails du cours">
             <span>Voir détails</span>
-            <ChevronRightIcon class="w-5 h-5" aria-hidden="true" />
+            <span class="button-arrow" aria-hidden="true">→</span>
           </button>
         </div>
       </div>
@@ -82,7 +82,7 @@
       <!-- Empty state -->
       <div v-else-if="!loading" class="empty-state">
         <div class="empty-icon-wrapper">
-          <BookOpenIcon class="empty-icon" />
+          <span class="empty-icon-emoji">📚</span>
         </div>
         <h3 class="empty-title">Aucun cours disponible</h3>
         <p class="empty-description">
@@ -107,22 +107,12 @@ import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
 import { klassciService } from '@/services/klassci'
 import { toast } from '@/services/toast'
-import {
-  BookOpenIcon,
-  VideoCameraIcon,
-  DocumentTextIcon,
-  ChevronRightIcon
-} from '@heroicons/vue/24/outline'
 
 export default {
   name: 'StudentCourses',
   components: {
     DashboardLayout,
-    SkeletonLoader,
-    BookOpenIcon,
-    VideoCameraIcon,
-    DocumentTextIcon,
-    ChevronRightIcon
+    SkeletonLoader
   },
   data() {
     return {
@@ -164,8 +154,8 @@ export default {
 
                 // Compter directement les lessons si présentes
                 const lessonsCount = data.lessons?.length || stats.nombre_lessons || 0
-                const seancesCount = data.seances?.length || stats.nombre_seances_programmees || 0
-                const evaluationsCount = data.evaluations?.length || stats.nombre_evaluations || 0
+                const seancesCount = data.seances_programmees?.length || stats.nombre_seances_programmees || 0
+                const evaluationsCount = data.evaluations_programmees?.length || stats.nombre_evaluations || 0
 
                 console.log(`[INFO] Stats calculées - Lessons: ${lessonsCount}, Séances: ${seancesCount}, Éval: ${evaluationsCount}`)
 
@@ -307,12 +297,11 @@ export default {
   transform: translateY(-2px);
 }
 
-.stat-icon {
-  width: 1.5rem;
-  height: 1.5rem;
-  color: var(--blue-600);
+.stat-icon-emoji {
+  font-size: 1.5rem;
+  line-height: 1;
+  display: block;
   margin-bottom: 0.5rem;
-  flex-shrink: 0;
 }
 
 .stat-info {
@@ -358,6 +347,12 @@ export default {
   transform: scale(1.02);
 }
 
+.button-arrow {
+  font-size: 1.25rem;
+  line-height: 1;
+  font-weight: bold;
+}
+
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;
@@ -373,10 +368,10 @@ export default {
   margin-bottom: 1.5rem;
 }
 
-.empty-icon {
-  width: 3rem;
-  height: 3rem;
-  color: var(--text-tertiary);
+.empty-icon-emoji {
+  font-size: 3rem;
+  line-height: 1;
+  display: block;
 }
 
 .empty-title {

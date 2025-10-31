@@ -257,6 +257,10 @@ const routes = [
   },
   // Dashboard Étudiant (AVEC LAYOUT MODERNE)
   {
+    path: '/student',
+    redirect: '/student/dashboard'
+  },
+  {
     path: '/student/dashboard',
     name: 'StudentDashboard',
     component: StudentDashboard,
@@ -288,15 +292,11 @@ const routes = [
       title: 'Mes Évaluations'
     }
   },
-  // Visioconférences - Étudiant (liste centralisée)
+  // Visioconférences - Étudiant (ANCIEN - redirige vers /student/schedule?filter=visio)
   {
     path: '/student/visio-list',
-    name: 'student-visio-list',
-    component: () => import('@/views/student/StudentVisioList.vue'),
-    meta: {
-      requiresAuth: true,
-      roles: ['etudiant'],
-      title: 'Mes Visioconférences'
+    redirect: to => {
+      return { path: '/student/schedule', query: { filter: 'visio' } }
     }
   },
   // Paramètres - Étudiant
@@ -310,15 +310,22 @@ const routes = [
       title: 'Paramètres'
     }
   },
-  // Séances étudiant - Emploi du temps
+  // Emploi du temps unifié - NOUVEAU (remplace séances + visio-list)
   {
-    path: '/student/seances',
-    name: 'student-seances',
-    component: () => import('@/views/etudiant/SeancesEtudiant.vue'),
+    path: '/student/schedule',
+    name: 'student-schedule',
+    component: () => import('@/views/student/StudentSchedule.vue'),
     meta: {
       requiresAuth: true,
       roles: ['etudiant'],
       title: 'Mon Emploi du Temps'
+    }
+  },
+  // Séances étudiant - Emploi du temps (ANCIEN - redirige vers /student/schedule)
+  {
+    path: '/student/seances',
+    redirect: to => {
+      return { path: '/student/schedule', query: { filter: 'all' } }
     }
   },
   // Dashboard générique (fallback)
@@ -486,6 +493,10 @@ const routes = [
     meta: { requiresAuth: true }
   },
   // Séances - Détails avec visioconférence
+  {
+    path: '/seances',
+    redirect: '/student/visio-list'
+  },
   {
     path: '/seances/:id',
     name: 'seance-details',

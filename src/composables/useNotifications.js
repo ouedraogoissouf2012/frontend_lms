@@ -4,6 +4,7 @@ import { notificationsService } from '@/services/notifications'
 let lastCheckTime = null
 let checkInterval = null
 const previousNotificationIds = new Set()
+let sessionStartTime = null // Timestamp du démarrage de la session
 
 export function useNotifications(options = {}) {
   const {
@@ -43,7 +44,14 @@ export function useNotifications(options = {}) {
       const newNotifications = data.filter(notif => {
         const isNew = !previousNotificationIds.has(notif.id)
         previousNotificationIds.add(notif.id)
-        return isNew && notif.is_unread
+
+        // Ne considérer comme "nouvelle" que si créée après le début de la session
+        if (isNew && notif.is_unread && sessionStartTime) {
+          const notifTime = new Date(notif.created_at).getTime()
+          return notifTime > sessionStartTime
+        }
+
+        return false
       })
 
       // Afficher un toast pour chaque nouvelle notification
@@ -145,6 +153,9 @@ export function useNotifications(options = {}) {
   }
 
   onMounted(() => {
+    // Enregistrer le moment où la session commence
+    sessionStartTime = Date.now()
+
     if (autoCheck) {
       startAutoCheck()
     } else {

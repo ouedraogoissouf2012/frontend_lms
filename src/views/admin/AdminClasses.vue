@@ -2,45 +2,43 @@
   <DashboardLayout>
     <div class="classes-container">
       <!-- Header -->
-      <div class="page-header">
-        <div class="header-content">
-          <BuildingLibraryIcon class="page-icon text-blue-600" />
-          <div>
-            <h1 class="page-title">Gestion des Classes</h1>
-            <p class="page-subtitle">Gérez toutes les classes de l'établissement</p>
-          </div>
+      <div class="welcome-header">
+        <span class="welcome-icon">⌂</span>
+        <div>
+          <h1 class="page-title">Gestion des Classes</h1>
+          <p class="page-subtitle">Gérez toutes les classes de l'établissement</p>
         </div>
       </div>
 
       <!-- Statistics -->
       <div v-if="!loading && !error" class="stats-grid">
-        <div class="stat-card">
+        <div class="stat-card border-l-blue">
           <div class="stat-header">
-            <BuildingLibraryIcon class="stat-icon text-blue-600" />
+            <span class="stat-icon">⌂</span>
             <span class="stat-label">Total Classes</span>
           </div>
           <p class="stat-value">{{ stats.total }}</p>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card border-l-green">
           <div class="stat-header">
-            <UserGroupIcon class="stat-icon text-green-600" />
+            <span class="stat-icon">☺</span>
             <span class="stat-label">Total Étudiants</span>
           </div>
           <p class="stat-value">{{ stats.totalEtudiants }}</p>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card border-l-orange">
           <div class="stat-header">
-            <BookOpenIcon class="stat-icon text-orange-600" />
+            <span class="stat-icon">☷</span>
             <span class="stat-label">Total Matières</span>
           </div>
           <p class="stat-value">{{ stats.totalMatieres }}</p>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card border-l-purple">
           <div class="stat-header">
-            <AcademicCapIcon class="stat-icon text-purple-600" />
+            <span class="stat-icon">☀</span>
             <span class="stat-label">Classes Actives</span>
           </div>
           <p class="stat-value">{{ stats.actives }}</p>
@@ -52,7 +50,7 @@
         <div class="filters-grid">
           <div class="filter-item">
             <label class="filter-label">
-              <AcademicCapIcon class="w-4 h-4" />
+              <span class="filter-icon">⌂</span>
               Filière
             </label>
             <select v-model="filters.filiere_id" @change="applyFilters" class="filter-select">
@@ -65,7 +63,7 @@
 
           <div class="filter-item">
             <label class="filter-label">
-              <BuildingLibraryIcon class="w-4 h-4" />
+              <span class="filter-icon">☰</span>
               Niveau
             </label>
             <select v-model="filters.niveau_id" @change="applyFilters" class="filter-select">
@@ -78,7 +76,7 @@
 
           <div class="filter-item">
             <label class="filter-label">
-              <span class="w-4 h-4 inline-block text-center">✓</span>
+              <span class="filter-icon">✓</span>
               Statut
             </label>
             <select v-model="filters.statut" @change="applyFilters" class="filter-select">
@@ -107,13 +105,13 @@
 
       <!-- Error state -->
       <div v-else-if="error" class="error-state">
-        <div class="error-icon">⚠</div>
+        <div class="error-icon">⚠️</div>
         <div class="error-content">
           <h3 class="error-title">Erreur de chargement</h3>
           <p class="error-message">{{ error }}</p>
         </div>
         <button @click="loadClasses" class="error-retry-btn">
-          <ArrowPathIcon class="w-5 h-5" />
+          <span class="btn-icon">🔄</span>
           Réessayer
         </button>
       </div>
@@ -146,7 +144,7 @@
 
           <!-- Filiere Section -->
           <div v-if="classe.filiere" class="class-section">
-            <AcademicCapIcon class="section-icon" />
+            <span class="section-icon">⌂</span>
             <div>
               <p class="section-label">Filière</p>
               <p class="section-value">{{ classe.filiere.name || classe.filiere.nom }}</p>
@@ -156,7 +154,7 @@
           <!-- Stats -->
           <div class="class-stats">
             <div class="stat-item">
-              <UserGroupIcon class="stat-icon text-blue-600" />
+              <span class="stat-icon">☺</span>
               <div>
                 <p class="stat-label">Étudiants</p>
                 <p class="stat-value">{{ classe.places_occupees || 0 }}/{{ classe.places_totales || 0 }}</p>
@@ -164,7 +162,7 @@
             </div>
 
             <div class="stat-item">
-              <BookOpenIcon class="stat-icon text-orange-600" />
+              <span class="stat-icon">☷</span>
               <div>
                 <p class="stat-label">Matières</p>
                 <p class="stat-value">{{ classe.nb_matieres || 0 }}</p>
@@ -179,7 +177,7 @@
               class="btn-action btn-primary"
               title="Voir les détails de la classe"
             >
-              <EyeIcon class="w-5 h-5" />
+              <span class="btn-icon">→</span>
               Détails
             </button>
           </div>
@@ -188,7 +186,7 @@
 
       <!-- Empty state -->
       <div v-else class="empty-state">
-        <BuildingLibraryIcon class="empty-icon" />
+        <span class="empty-icon">☹</span>
         <h3 class="empty-title">Aucune classe trouvée</h3>
         <p class="empty-message">
           {{ filters.filiere_id || filters.niveau_id || filters.statut
@@ -213,14 +211,6 @@ import { useRouter } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
 import { klassciService } from '@/services/klassci'
-import {
-  BuildingLibraryIcon,
-  UserGroupIcon,
-  BookOpenIcon,
-  AcademicCapIcon,
-  ArrowPathIcon,
-  EyeIcon
-} from '@heroicons/vue/24/outline'
 
 const router = useRouter()
 
@@ -442,7 +432,7 @@ function resetFilters() {
 // View class details
 function viewClasseDetails(classe) {
   router.push({
-    name: 'ClasseDetails',
+    name: 'classe-details',
     params: { id: classe.id }
   })
 }
@@ -454,41 +444,35 @@ onMounted(() => {
 
 <style scoped>
 .classes-container {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0;
+  padding: 2rem;
 }
 
-.page-header {
-  margin-bottom: 2rem;
-}
-
-.header-content {
+.welcome-header {
   display: flex;
   align-items: center;
   gap: 1rem;
+  margin-bottom: 2rem;
 }
 
-.page-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  flex-shrink: 0;
+.welcome-icon {
+  font-size: 2.5rem;
+  line-height: 1;
 }
 
 .page-title {
-  font-size: 1.875rem;
+  font-size: 2rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin: 0 0 0.5rem 0;
-}
-
-.page-subtitle {
-  color: var(--text-secondary);
-  font-size: 1rem;
   margin: 0;
 }
 
-/* Statistics */
+.page-subtitle {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+/* Stat cards */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -497,35 +481,50 @@ onMounted(() => {
 }
 
 .stat-card {
-  background: var(--card-bg);
-  border-radius: 0.75rem;
-  box-shadow: var(--card-shadow);
+  background: var(--bg-primary);
+  border-radius: 1rem;
   padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid transparent;
   transition: all 0.2s;
 }
 
 .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: var(--card-shadow-hover);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.border-l-blue {
+  border-left-color: #3b82f6;
+}
+
+.border-l-green {
+  border-left-color: #10b981;
+}
+
+.border-l-purple {
+  border-left-color: #8b5cf6;
+}
+
+.border-l-orange {
+  border-left-color: #f59e0b;
 }
 
 .stat-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .stat-icon {
-  width: 1.5rem;
-  height: 1.5rem;
-  flex-shrink: 0;
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .stat-label {
   font-size: 0.875rem;
   color: var(--text-secondary);
-  font-weight: 500;
 }
 
 .stat-value {
@@ -535,12 +534,12 @@ onMounted(() => {
   margin: 0;
 }
 
-/* Filters */
+/* Widget card (Filters) */
 .filters-card {
-  background: var(--card-bg);
-  border-radius: 0.75rem;
-  box-shadow: var(--card-shadow);
+  background: var(--bg-primary);
+  border-radius: 1rem;
   padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
 }
 
@@ -564,6 +563,11 @@ onMounted(() => {
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--text-secondary);
+}
+
+.filter-icon {
+  font-size: 1rem;
+  line-height: 1;
 }
 
 .filter-select {
@@ -616,7 +620,7 @@ onMounted(() => {
   transform: translateY(-1px);
 }
 
-/* Classes Grid */
+/* Class cards */
 .classes-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -624,15 +628,15 @@ onMounted(() => {
 }
 
 .class-card {
-  background: var(--card-bg);
-  border-radius: 0.75rem;
-  box-shadow: var(--card-shadow);
+  background: var(--bg-primary);
+  border-radius: 1rem;
   padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.2s;
 }
 
 .class-card:hover {
-  box-shadow: var(--card-shadow-hover);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transform: translateY(-2px);
 }
 
@@ -721,9 +725,8 @@ onMounted(() => {
 }
 
 .section-icon {
-  width: 2rem;
-  height: 2rem;
-  color: var(--text-secondary);
+  font-size: 2rem;
+  line-height: 1;
   flex-shrink: 0;
 }
 
@@ -757,8 +760,8 @@ onMounted(() => {
 }
 
 .stat-item .stat-icon {
-  width: 1.5rem;
-  height: 1.5rem;
+  font-size: 1.5rem;
+  line-height: 1;
   flex-shrink: 0;
 }
 
@@ -792,6 +795,11 @@ onMounted(() => {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+}
+
+.btn-icon {
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .btn-primary {
@@ -863,16 +871,14 @@ onMounted(() => {
 /* Empty State */
 .empty-state {
   text-align: center;
-  padding: 4rem 2rem;
-  max-width: 600px;
-  margin: 0 auto;
+  padding: 3rem 2rem;
 }
 
 .empty-icon {
-  width: 4rem;
-  height: 4rem;
+  font-size: 3rem;
+  line-height: 1;
+  margin: 0 auto 1rem;
   color: var(--text-tertiary);
-  margin: 0 auto 1.5rem;
 }
 
 .empty-title {
@@ -904,7 +910,20 @@ onMounted(() => {
   transform: translateY(-2px);
 }
 
+/* Responsive */
 @media (max-width: 768px) {
+  .classes-container {
+    padding: 1rem;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .stat-value {
+    font-size: 1.75rem;
+  }
+
   .classes-grid {
     grid-template-columns: 1fr;
   }

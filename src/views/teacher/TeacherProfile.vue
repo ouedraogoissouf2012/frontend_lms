@@ -156,7 +156,7 @@
 
 <script>
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-import { auth } from '@/services/api'
+import { auth, teacherStats } from '@/services/api'
 import {
   UserIcon,
   EnvelopeIcon,
@@ -197,7 +197,8 @@ export default {
         classes: 0,
         evaluations: 0,
         lessons: 0
-      }
+      },
+      isLoadingStats: false
     }
   },
   computed: {
@@ -232,13 +233,15 @@ export default {
     },
 
     async loadStats() {
-      // TODO: Charger les statistiques depuis l'API
-      // Pour l'instant, valeurs fictives
-      this.stats = {
-        matieres: 5,
-        classes: 8,
-        evaluations: 12,
-        lessons: 24
+      try {
+        this.isLoadingStats = true
+        const data = await teacherStats.getStats()
+        this.stats = data
+      } catch (error) {
+        console.error('Erreur chargement statistiques:', error)
+        // Garder les valeurs par défaut (0) en cas d'erreur
+      } finally {
+        this.isLoadingStats = false
       }
     }
   },

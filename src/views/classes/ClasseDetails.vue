@@ -1,82 +1,68 @@
 <template>
-  <div class="classe-details">
-    <!-- Header avec nom de la classe -->
-    <div class="bg-gradient-to-r from-green-600 to-green-800 text-white shadow-lg rounded-lg p-6 mb-6">
+  <DashboardLayout>
+    <div class="classe-details">
+      <!-- Header avec nom de la classe -->
+      <div class="header-card">
       <div class="flex justify-between items-start">
         <div class="flex-1">
           <!-- Breadcrumb -->
-          <div class="flex items-center gap-2 text-green-100 text-sm mb-3">
-            <button @click="$router.back()" class="hover:text-white transition">
+          <div class="breadcrumb">
+            <button @click="$router.back()" class="breadcrumb-link">
               Dashboard
             </button>
             <span>›</span>
-            <span class="text-white font-medium">Gestion de la Classe</span>
+            <span class="breadcrumb-current">Gestion de la Classe</span>
           </div>
 
           <!-- Nom de la classe -->
-          <h1 class="text-4xl font-bold mb-2">
+          <h1 class="page-title">
             {{ classe?.nom || 'Chargement...' }}
           </h1>
 
           <!-- Infos classe -->
-          <div class="flex items-center gap-6 text-green-100">
-            <span v-if="classe?.filiere" class="flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-              Filière: <strong class="text-white">{{ classe.filiere.nom }}</strong>
+          <div class="classe-info-line">
+            <span v-if="classe?.filiere" class="info-item">
+              <span class="info-icon">⌂</span>
+              Filière: <strong>{{ classe.filiere.nom }}</strong>
             </span>
-            <span v-if="classe?.niveau" class="flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-              Niveau: <strong class="text-white">{{ classe.niveau.nom }}</strong>
+            <span v-if="classe?.niveau" class="info-item">
+              <span class="info-icon">☰</span>
+              Niveau: <strong>{{ classe.niveau.nom }}</strong>
             </span>
-            <span v-if="classe?.code" class="flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-              </svg>
-              Code: <strong class="text-white">{{ classe.code }}</strong>
+            <span v-if="classe?.code" class="info-item">
+              <span class="info-icon">#</span>
+              Code: <strong>{{ classe.code }}</strong>
             </span>
           </div>
         </div>
 
-        <button
-          @click="$router.back()"
-          class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition backdrop-blur-sm"
-        >
+        <button @click="$router.back()" class="btn-retour">
           ← Retour
         </button>
       </div>
 
       <!-- Stats -->
-      <div class="grid grid-cols-3 gap-4 mt-6" v-if="statistiques">
-        <div class="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/20">
-          <div class="flex items-center gap-2 text-sm text-green-100 font-medium mb-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            Étudiants
+      <div class="stats-grid-header" v-if="!loading">
+        <div class="stat-card-header">
+          <div class="stat-header-inner">
+            <span class="stat-icon-header">☺</span>
+            <span class="stat-label-header">Étudiants</span>
           </div>
-          <p class="text-2xl font-bold text-white">{{ statistiques.nombre_etudiants || 0 }}</p>
+          <p class="stat-value-header">{{ etudiants?.length || 0 }}</p>
         </div>
-        <div class="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/20">
-          <div class="flex items-center gap-2 text-sm text-green-100 font-medium mb-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
-            Matières
+        <div class="stat-card-header">
+          <div class="stat-header-inner">
+            <span class="stat-icon-header">☷</span>
+            <span class="stat-label-header">Matières</span>
           </div>
-          <p class="text-2xl font-bold text-white">{{ statistiques.nombre_matieres || 0 }}</p>
+          <p class="stat-value-header">{{ matieres?.length || 0 }}</p>
         </div>
-        <div class="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/20">
-          <div class="flex items-center gap-2 text-sm text-green-100 font-medium mb-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Évaluations
+        <div class="stat-card-header">
+          <div class="stat-header-inner">
+            <span class="stat-icon-header">✓</span>
+            <span class="stat-label-header">Évaluations</span>
           </div>
-          <p class="text-2xl font-bold text-white">{{ statistiques.nombre_evaluations || 0 }}</p>
+          <p class="stat-value-header">{{ evaluations?.length || 0 }}</p>
         </div>
       </div>
     </div>
@@ -99,10 +85,10 @@
     </div>
 
     <!-- Tabs -->
-    <div v-else class="bg-white shadow rounded-lg mb-6">
+    <div v-else class="tabs-container">
       <!-- Tab Headers -->
-      <div class="border-b border-gray-200">
-        <nav class="flex -mb-px">
+      <div class="tabs-header">
+        <nav class="tabs-nav">
           <button
             v-for="tab in tabs"
             :key="tab.id"
@@ -390,17 +376,21 @@
         <p>Aucune séance programmée pour les 30 prochains jours</p>
       </div>
     </div>
-  </div>
+    </div>
+  </DashboardLayout>
 </template>
 
 <script>
 import lmsService from '@/services/lms'
+import klassciService from '@/services/klassci'
 import { auth } from '@/services/api'
+import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import VisioManager from '@/components/visio/VisioManager.vue'
 
 export default {
   name: 'ClasseDetails',
   components: {
+    DashboardLayout,
     VisioManager
   },
 
@@ -458,14 +448,15 @@ export default {
 
         if (data && data.success) {
           this.classe = data.data.classe
-          this.matieres = data.data.matieres_disponibles || []
           this.evaluations = data.data.evaluations_programmees || []
           this.emploiTemps = data.data.emploi_temps_semaine || []
           this.statistiques = data.data.statistiques
 
           console.log('[ClasseDetails] Classe:', this.classe)
-          console.log('[ClasseDetails] Matières:', this.matieres.length)
           console.log('[ClasseDetails] Évaluations:', this.evaluations.length)
+
+          // Charger les matières directement depuis KLASSCI (comme AdminDashboard)
+          await this.loadMatieres()
 
           // Charger les étudiants
           await this.loadEtudiants()
@@ -492,6 +483,18 @@ export default {
         }
       } catch (error) {
         console.error('[ClasseDetails] Erreur chargement étudiants:', error)
+      }
+    },
+
+    async loadMatieres() {
+      try {
+        // Charger toutes les matières depuis KLASSCI (comme AdminDashboard)
+        const matieresData = await klassciService.getMatieres()
+        this.matieres = matieresData || []
+        console.log('[ClasseDetails] Matières chargées depuis KLASSCI:', this.matieres.length)
+      } catch (error) {
+        console.error('[ClasseDetails] Erreur chargement matières:', error)
+        this.matieres = []
       }
     },
 
@@ -560,9 +563,413 @@ export default {
 </script>
 
 <style scoped>
+/* Container */
 .classe-details {
-  max-width: 1400px;
-  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Header Card */
+.header-card {
+  background: var(--card-bg);
+  color: var(--text-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 1rem;
   padding: 1.5rem;
+  margin-bottom: 2rem;
+  border-left: 4px solid var(--color-primary, #10b981);
+}
+
+/* Breadcrumb */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+}
+
+.breadcrumb-link {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.breadcrumb-link:hover {
+  color: var(--text-primary);
+}
+
+.breadcrumb-current {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* Page Title */
+.page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 1rem 0;
+  color: var(--text-primary);
+}
+
+/* Classe Info Line */
+.classe-info-line {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  color: var(--text-secondary);
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.info-item strong {
+  color: var(--text-primary);
+}
+
+.info-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* Button Retour */
+.btn-retour {
+  padding: 0.625rem 1.25rem;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-retour:hover {
+  background: var(--bg-hover);
+  transform: translateY(-1px);
+}
+
+/* Stats Grid Header */
+.stats-grid-header {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.stat-card-header {
+  background: var(--bg-secondary);
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-color);
+  transition: all 0.2s;
+}
+
+.stat-card-header:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.stat-header-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+}
+
+.stat-icon-header {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.stat-label-header {
+  font-size: 0.875rem;
+}
+
+.stat-value-header {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+/* Tabs Container */
+.tabs-container {
+  background: var(--bg-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 1rem;
+  margin-bottom: 2rem;
+}
+
+.tabs-header {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tabs-nav {
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+.tab-button,
+button[class*="px-6 py-4"] {
+  padding: 1rem 1.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--text-secondary) !important;
+  cursor: pointer;
+  transition: none;
+}
+
+/* Active tab - VERY specific to override Tailwind */
+.tab-button-active,
+button[class*="px-6"][class*="py-4"][class*="border-green-600"],
+button.px-6.py-4.font-medium.text-sm.border-b-2.transition.border-green-600.text-green-600 {
+  border-bottom-color: #10b981 !important;
+  color: #10b981 !important;
+}
+
+/* Disable hover effect */
+button[class*="px-6 py-4"]:hover {
+  /* No hover effect */
+}
+
+/* Badge in tabs */
+button[class*="px-6 py-4"] span[class*="bg-green-100"] {
+  background: #10b981 !important;
+  color: white !important;
+}
+
+button[class*="px-6 py-4"] span[class*="bg-gray-100"] {
+  background: var(--bg-secondary) !important;
+  color: var(--text-secondary) !important;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-primary) !important;
+}
+
+thead {
+  background: var(--bg-secondary) !important;
+}
+
+thead tr {
+  background: var(--bg-secondary) !important;
+}
+
+th {
+  padding: 0.75rem 1.5rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--bg-secondary) !important;
+}
+
+tbody {
+  background: var(--bg-primary) !important;
+}
+
+tbody tr {
+  background: var(--bg-primary) !important;
+}
+
+td {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+  background: var(--bg-primary) !important;
+}
+
+/* Force all table text to respect theme */
+table td,
+table td *:not(.active-badge):not([class*="bg-"]) {
+  color: var(--text-primary) !important;
+}
+
+table th,
+table th * {
+  color: var(--text-secondary) !important;
+}
+
+/* Override any Tailwind bg classes in table */
+table thead[class*="bg-gray"] {
+  background: var(--bg-secondary) !important;
+}
+
+table tbody[class*="bg-white"] {
+  background: var(--bg-primary) !important;
+}
+
+table tr[class*="bg-white"] {
+  background: var(--bg-primary) !important;
+}
+
+tbody tr:hover {
+  /* Hover disabled */
+}
+
+/* Badge styles */
+span[class*="bg-blue-100"] {
+  background: #dbeafe !important;
+  color: #1e40af !important;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+span[class*="bg-green-100"] {
+  background: #dcfce7 !important;
+  color: #166534 !important;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+span[class*="bg-purple-100"] {
+  background: #f3e8ff !important;
+  color: #6b21a8 !important;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+}
+
+span[class*="bg-gray-100"] {
+  background: var(--bg-secondary) !important;
+  color: var(--text-secondary) !important;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+span[class*="bg-yellow-100"] {
+  background: #fef3c7 !important;
+  color: #92400e !important;
+}
+
+/* Cards & Borders */
+div[class*="border-gray-200"] {
+  border: 1px solid var(--border-color) !important;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  transition: all 0.2s;
+}
+
+div[class*="border-gray-200"]:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Text Colors */
+.text-gray-900,
+div[class*="text-gray-900"] {
+  color: var(--text-primary) !important;
+}
+
+.text-gray-600,
+div[class*="text-gray-600"] {
+  color: var(--text-secondary) !important;
+}
+
+.text-gray-500,
+div[class*="text-gray-500"] {
+  color: var(--text-secondary) !important;
+}
+
+.text-gray-400,
+span[class*="text-gray-400"] {
+  color: var(--text-tertiary) !important;
+}
+
+/* Force green color for active tabs (override Tailwind text-green-600) */
+button[class*="text-green-600"],
+.text-green-600 {
+  color: #10b981 !important;
+}
+
+/* Buttons */
+button[class*="text-green-600"] {
+  color: #10b981 !important;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+button[class*="text-green-600"]:hover {
+  color: #059669 !important;
+}
+
+/* Loading & Error States */
+div[class*="bg-red-50"] {
+  background: #fef2f2 !important;
+  border: 1px solid #fca5a5;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+button[class*="bg-red-600"] {
+  background: #dc2626 !important;
+  color: white !important;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+button[class*="bg-red-600"]:hover {
+  background: #b91c1c !important;
+}
+
+/* Séances Card */
+div[class*="bg-white shadow rounded-lg"] {
+  background: var(--bg-primary) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .classe-details {
+    padding: 1rem;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .stats-grid-header {
+    grid-template-columns: 1fr;
+  }
+
+  .classe-info-line {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
 }
 </style>

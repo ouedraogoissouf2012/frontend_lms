@@ -1,10 +1,10 @@
 <template>
   <DashboardLayout>
-    <div class="seances-etudiant-container">
+    <div class="schedule-container">
       <!-- Header -->
       <div class="page-header">
         <div class="header-content">
-          <span class="page-icon">◷</span>
+          <span class="page-icon">📅</span>
           <div>
             <h1 class="page-title">Mon Emploi du Temps</h1>
             <p class="page-subtitle">Consultez vos cours et rejoignez les visioconférences</p>
@@ -31,11 +31,26 @@
       </div>
 
       <template v-else>
-        <!-- Filters -->
-        <div class="filters-card">
+        <!-- Tabs Navigation -->
+        <div class="tabs-container">
+          <button
+            v-for="tab in tabs"
+            :key="tab.value"
+            @click="activeTab = tab.value"
+            class="tab-button"
+            :class="{ 'tab-active': activeTab === tab.value }"
+          >
+            <span class="tab-icon">{{ tab.icon }}</span>
+            <span class="tab-label">{{ tab.label }}</span>
+            <span v-if="tab.count !== undefined" class="tab-badge">{{ tab.count }}</span>
+          </button>
+        </div>
+
+        <!-- Filters (only visible on "all" tab) -->
+        <div v-if="activeTab === 'all'" class="filters-card">
           <div class="filter-item">
             <label class="filter-label">
-              <span class="filter-icon">◷</span>
+              <span class="filter-icon">📅</span>
               Période
             </label>
             <select v-model="filters.period" @change="applyFilters" class="filter-select">
@@ -43,19 +58,6 @@
               <option value="week">Cette semaine</option>
               <option value="month">Ce mois</option>
               <option value="all">Toutes</option>
-            </select>
-          </div>
-
-          <div class="filter-item">
-            <label class="filter-label">
-              <span class="filter-icon">◉</span>
-              Statut visio
-            </label>
-            <select v-model="filters.visio_status" @change="applyFilters" class="filter-select">
-              <option value="">Tous les statuts</option>
-              <option value="active">En direct</option>
-              <option value="programmee">Programmée</option>
-              <option value="none">Sans visio</option>
             </select>
           </div>
 
@@ -71,7 +73,7 @@
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-header">
-              <span class="stat-icon">◉</span>
+              <span class="stat-icon">📚</span>
               <span class="stat-label">Total</span>
             </div>
             <p class="stat-value">{{ stats.total }}</p>
@@ -80,7 +82,7 @@
 
           <div class="stat-card">
             <div class="stat-header">
-              <span class="stat-icon stat-icon-active">☼</span>
+              <span class="stat-icon stat-icon-active">🟢</span>
               <span class="stat-label">En direct</span>
             </div>
             <p class="stat-value">{{ stats.active }}</p>
@@ -89,7 +91,7 @@
 
           <div class="stat-card">
             <div class="stat-header">
-              <span class="stat-icon stat-icon-scheduled">◑</span>
+              <span class="stat-icon stat-icon-scheduled">🔵</span>
               <span class="stat-label">À venir</span>
             </div>
             <p class="stat-value">{{ stats.upcoming }}</p>
@@ -98,9 +100,9 @@
         </div>
 
         <!-- Séances List -->
-        <div v-if="filteredSeances.length > 0" class="seances-list">
+        <div v-if="displayedSeances.length > 0" class="seances-list">
           <div
-            v-for="seance in filteredSeances"
+            v-for="seance in displayedSeances"
             :key="seance.id"
             class="seance-card"
             :class="{
@@ -111,7 +113,7 @@
             <!-- Header -->
             <div class="seance-header">
               <div class="seance-title-section">
-                <span class="seance-icon">◘</span>
+                <span class="seance-icon">📖</span>
                 <div>
                   <h3 class="seance-title">
                     {{ seance.matiere?.nom || 'Matière' }}
@@ -135,7 +137,7 @@
                   v-else-if="seance.visio.status === 'programmee'"
                   class="status-badge status-scheduled"
                 >
-                  <span class="badge-icon">◑</span>
+                  <span class="badge-icon">🔵</span>
                   Visio programmée
                 </span>
               </div>
@@ -144,7 +146,7 @@
             <!-- Info Grid -->
             <div class="seance-info-grid">
               <div class="info-item">
-                <span class="info-icon">◷</span>
+                <span class="info-icon">📅</span>
                 <div>
                   <p class="info-label">Date</p>
                   <p class="info-value">{{ formatDate(seance.programmation?.date) }}</p>
@@ -152,7 +154,7 @@
               </div>
 
               <div class="info-item">
-                <span class="info-icon">⏰</span>
+                <span class="info-icon">🕐</span>
                 <div>
                   <p class="info-label">Horaire</p>
                   <p class="info-value">
@@ -162,7 +164,7 @@
               </div>
 
               <div class="info-item">
-                <span class="info-icon">▓</span>
+                <span class="info-icon">👥</span>
                 <div>
                   <p class="info-label">Classe</p>
                   <p class="info-value">{{ seance.classe?.nom || 'N/A' }}</p>
@@ -170,7 +172,7 @@
               </div>
 
               <div class="info-item">
-                <span class="info-icon">◈</span>
+                <span class="info-icon">📍</span>
                 <div>
                   <p class="info-label">Salle</p>
                   <p class="info-value">{{ seance.salle || 'N/A' }}</p>
@@ -193,7 +195,7 @@
                   :to="`/seances/${seance.id}`"
                   class="btn-action btn-success"
                 >
-                  <span class="btn-icon">◉</span>
+                  <span class="btn-icon">▶</span>
                   Rejoindre
                 </router-link>
               </div>
@@ -201,7 +203,7 @@
               <!-- Visio programmée mais pas encore commencée -->
               <div v-else-if="seance.visio?.status === 'programmee'" class="action-section action-scheduled">
                 <div class="action-details">
-                  <span class="action-icon">◑</span>
+                  <span class="action-icon">🔵</span>
                   <div>
                     <p class="action-title">Visioconférence programmée</p>
                     <p class="action-subtitle">En attente du démarrage</p>
@@ -219,7 +221,7 @@
               <!-- Pas de visio -->
               <div v-else class="action-section action-none">
                 <p class="action-message">
-                  <span class="message-icon">◈</span>
+                  <span class="message-icon">📍</span>
                   Cours en présentiel - {{ seance.salle || 'Salle à confirmer' }}
                 </p>
               </div>
@@ -229,15 +231,13 @@
 
         <!-- Empty State -->
         <div v-else class="empty-state">
-          <span class="empty-icon">◷</span>
+          <span class="empty-icon">📅</span>
           <h3 class="empty-title">Aucun cours trouvé</h3>
           <p class="empty-message">
-            {{ filters.period !== 'all' || filters.visio_status
-              ? 'Aucun cours ne correspond à vos filtres'
-              : 'Vos prochains cours apparaîtront ici' }}
+            {{ getEmptyMessage() }}
           </p>
-          <button v-if="filters.period !== 'today' || filters.visio_status"
-                  @click="resetFilters"
+          <button v-if="activeTab !== 'all' || filters.period !== 'today'"
+                  @click="resetAllFilters"
                   class="btn-empty">
             Voir tous les cours
           </button>
@@ -248,40 +248,64 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
 import { lmsService } from '@/services/lms'
 
+const route = useRoute()
+const router = useRouter()
+
 const seances = ref([])
 const loading = ref(true)
 const error = ref(null)
+const activeTab = ref('all')
 
 // Filters
 const filters = reactive({
-  period: 'today',
-  visio_status: ''
+  period: 'today'
 })
 
 // Cache
-const CACHE_KEY = 'student_seances_cache'
+const CACHE_KEY = 'student_schedule_cache'
 const CACHE_TTL = 3 * 60 * 1000 // 3 minutes
 
-// Computed - Filtered seances
-const filteredSeances = computed(() => {
+// Tabs configuration
+const tabs = computed(() => [
+  {
+    value: 'all',
+    label: 'Toutes',
+    icon: '📚',
+    count: stats.value.total
+  },
+  {
+    value: 'live',
+    label: 'En direct',
+    icon: '🟢',
+    count: stats.value.active
+  },
+  {
+    value: 'visio',
+    label: 'Avec visio',
+    icon: '🎥',
+    count: stats.value.withVisio
+  }
+])
+
+// Computed - Filtered seances based on active tab
+const displayedSeances = computed(() => {
   let filtered = seances.value
 
-  // Filter by visio status
-  if (filters.visio_status) {
-    if (filters.visio_status === 'none') {
-      filtered = filtered.filter(s => !s.visio || !s.visio.enabled)
-    } else {
-      filtered = filtered.filter(s => s.visio?.status === filters.visio_status)
-    }
+  // Filter by tab
+  if (activeTab.value === 'live') {
+    filtered = filtered.filter(s => s.visio?.status === 'active')
+  } else if (activeTab.value === 'visio') {
+    filtered = filtered.filter(s => s.visio && s.visio.enabled)
   }
 
-  // Filter by period
-  if (filters.period !== 'all') {
+  // Filter by period (only on "all" tab)
+  if (activeTab.value === 'all' && filters.period !== 'all') {
     const now = new Date()
     filtered = filtered.filter(s => {
       if (!s.programmation?.date) return false
@@ -311,7 +335,8 @@ const stats = computed(() => {
   return {
     total: seances.value.length,
     active: seances.value.filter(s => s.visio?.status === 'active').length,
-    upcoming: seances.value.filter(s => isUpcoming(s)).length
+    upcoming: seances.value.filter(s => isUpcoming(s)).length,
+    withVisio: seances.value.filter(s => s.visio && s.visio.enabled).length
   }
 })
 
@@ -333,7 +358,7 @@ async function loadSeances() {
     try {
       const { data, timestamp } = JSON.parse(cached)
       if (Date.now() - timestamp < CACHE_TTL) {
-        console.log('[CACHE] Utilisation du cache séances étudiant')
+        console.log('[CACHE] Utilisation du cache emploi du temps')
         seances.value = data
         loading.value = false
         refreshInBackground()
@@ -349,10 +374,10 @@ async function loadSeances() {
   error.value = null
 
   try {
-    console.log('[API] Chargement séances étudiant...')
+    console.log('[API] Chargement emploi du temps...')
     const response = await lmsService.getMyClassesSeances()
 
-    console.log('[API] Réponse séances:', response)
+    console.log('[API] Réponse:', response)
     seances.value = response.data || []
 
     // Save to cache
@@ -363,8 +388,8 @@ async function loadSeances() {
 
     console.log(`[SUCCESS] ${seances.value.length} séance(s) chargée(s)`)
   } catch (err) {
-    console.error('[ERREUR] Chargement séances:', err)
-    error.value = 'Impossible de charger vos cours. Veuillez réessayer.'
+    console.error('[ERREUR] Chargement emploi du temps:', err)
+    error.value = 'Impossible de charger votre emploi du temps. Veuillez réessayer.'
   } finally {
     loading.value = false
   }
@@ -373,7 +398,7 @@ async function loadSeances() {
 // Refresh in background
 async function refreshInBackground() {
   try {
-    console.log('[BACKGROUND] Rafraîchissement des séances...')
+    console.log('[BACKGROUND] Rafraîchissement emploi du temps...')
     const response = await lmsService.getMyClassesSeances()
     seances.value = response.data || []
 
@@ -382,7 +407,7 @@ async function refreshInBackground() {
       timestamp: Date.now()
     }))
 
-    console.log('[BACKGROUND] Séances rafraîchies')
+    console.log('[BACKGROUND] Emploi du temps rafraîchi')
   } catch (err) {
     console.warn('[BACKGROUND] Erreur rafraîchissement:', err)
   }
@@ -396,8 +421,27 @@ function applyFilters() {
 // Reset filters
 function resetFilters() {
   filters.period = 'today'
-  filters.visio_status = ''
   console.log('[FILTERS] Filtres réinitialisés')
+}
+
+// Reset all filters and switch to "all" tab
+function resetAllFilters() {
+  activeTab.value = 'all'
+  filters.period = 'all'
+  console.log('[FILTERS] Tous les filtres réinitialisés')
+}
+
+// Get empty message based on current filters
+function getEmptyMessage() {
+  if (activeTab.value === 'live') {
+    return 'Aucun cours en direct pour le moment'
+  } else if (activeTab.value === 'visio') {
+    return 'Aucune visioconférence programmée'
+  } else if (filters.period === 'today') {
+    return 'Aucun cours aujourd\'hui'
+  } else {
+    return 'Vos prochains cours apparaîtront ici'
+  }
 }
 
 // Format date
@@ -421,13 +465,24 @@ function formatTime(dateTimeStr) {
   })
 }
 
+// Watch for query params to set initial tab
+watch(() => route.query.filter, (newFilter) => {
+  if (newFilter === 'visio') {
+    activeTab.value = 'visio'
+  } else if (newFilter === 'live') {
+    activeTab.value = 'live'
+  } else {
+    activeTab.value = 'all'
+  }
+}, { immediate: true })
+
 onMounted(() => {
   loadSeances()
 })
 </script>
 
 <style scoped>
-.seances-etudiant-container {
+.schedule-container {
   max-width: 1280px;
   margin: 0 auto;
   padding: 0;
@@ -448,7 +503,6 @@ onMounted(() => {
   font-size: 2.5rem;
   line-height: 1;
   flex-shrink: 0;
-  color: #3b82f6;
 }
 
 .page-title {
@@ -466,8 +520,8 @@ onMounted(() => {
 
 /* Error State */
 .error-state {
-  background: #fee;
-  border: 1px solid #fcc;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: 0.75rem;
   padding: 1.5rem;
   display: flex;
@@ -491,13 +545,13 @@ onMounted(() => {
 .error-title {
   font-size: 1rem;
   font-weight: 600;
-  color: #c00;
+  color: var(--text-primary);
   margin: 0 0 0.25rem 0;
 }
 
 .error-message {
   font-size: 0.875rem;
-  color: #900;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -517,6 +571,66 @@ onMounted(() => {
 
 .btn-retry:hover {
   background: #b91c1c;
+}
+
+/* Tabs */
+.tabs-container {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  background: var(--card-bg);
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  box-shadow: var(--card-shadow);
+}
+
+.tab-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.tab-button:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.tab-active {
+  background: var(--primary-color) !important;
+  color: white !important;
+}
+
+.tab-icon {
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.tab-label {
+  font-weight: 500;
+}
+
+.tab-badge {
+  background: rgba(255, 255, 255, 0.2);
+  color: inherit;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.tab-active .tab-badge {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 /* Filters */
@@ -632,11 +746,11 @@ onMounted(() => {
 }
 
 .stat-icon-active {
-  color: #22c55e;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 .stat-icon-scheduled {
-  color: #f59e0b;
+  opacity: 0.8;
 }
 
 .stat-label {
@@ -680,7 +794,7 @@ onMounted(() => {
 
 .seance-active {
   border-color: #22c55e;
-  background: #f0fdf4;
+  background: rgba(34, 197, 94, 0.1);
 }
 
 .seance-upcoming {
@@ -708,7 +822,6 @@ onMounted(() => {
   font-size: 2rem;
   line-height: 1;
   flex-shrink: 0;
-  color: #3b82f6;
 }
 
 .seance-title {
@@ -741,13 +854,15 @@ onMounted(() => {
 }
 
 .status-active {
-  background: #dcfce7;
-  color: #166534;
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
 }
 
 .status-scheduled {
-  background: #dbeafe;
-  color: #1e40af;
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
 .pulse-dot {
@@ -784,7 +899,6 @@ onMounted(() => {
 .info-icon {
   font-size: 1.25rem;
   line-height: 1;
-  color: var(--text-secondary);
   flex-shrink: 0;
   margin-top: 0.125rem;
 }
@@ -822,13 +936,13 @@ onMounted(() => {
 }
 
 .action-scheduled {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 .action-active {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.2);
 }
 
 .action-details {
@@ -841,7 +955,6 @@ onMounted(() => {
 .action-icon {
   font-size: 1.5rem;
   line-height: 1;
-  color: #3b82f6;
   flex-shrink: 0;
 }
 
@@ -933,7 +1046,6 @@ onMounted(() => {
 .empty-icon {
   font-size: 6rem;
   line-height: 1;
-  color: var(--text-tertiary);
   margin: 0 auto 1.5rem;
   display: block;
 }
@@ -973,12 +1085,20 @@ onMounted(() => {
 
 /* Responsive */
 @media (max-width: 768px) {
-  .seances-etudiant-container {
+  .schedule-container {
     padding: 0;
   }
 
   .page-title {
     font-size: 1.5rem;
+  }
+
+  .tabs-container {
+    flex-direction: column;
+  }
+
+  .tab-button {
+    justify-content: flex-start;
   }
 
   .filters-card {

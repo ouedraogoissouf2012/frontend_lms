@@ -123,7 +123,8 @@ export default {
         'enseignant': 'Enseignant',
         'teacher': 'Enseignant',
         'coordinateur': 'Coordinateur',
-        'admin': 'Administrateur'
+        'admin': 'Administrateur',
+        'superAdmin': 'Super Administrateur'
       }
 
       return roleLabels[user.role] || user.role
@@ -145,8 +146,8 @@ export default {
       if (!user) return []
 
       const isStudent = ['etudiant', 'student'].includes(user.role)
-      const isTeacher = ['enseignant', 'teacher', 'coordinateur'].includes(user.role)
-      const isAdmin = ['admin', 'coordinateur'].includes(user.role)
+      const isTeacher = ['enseignant', 'teacher', 'coordinateur', 'superAdmin'].includes(user.role)
+      const isAdmin = ['admin', 'coordinateur', 'superAdmin'].includes(user.role)
 
       const menu = []
 
@@ -163,19 +164,14 @@ export default {
           to: '/student/courses'
         })
         menu.push({
-          icon: '◷',
-          label: 'Séances',
-          to: '/student/seances'
+          icon: '📅',
+          label: 'Emploi du Temps',
+          to: '/student/schedule'
         })
         menu.push({
           icon: '✎',
           label: 'Évaluations',
           to: '/student/evaluations-list'
-        })
-        menu.push({
-          icon: '▶',
-          label: 'Visioconférences',
-          to: '/student/visio-list'
         })
         menu.push({
           icon: '◘',

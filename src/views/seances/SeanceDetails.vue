@@ -1,4 +1,5 @@
 <template>
+  <DashboardLayout>
   <div class="seance-details">
     <!-- Loading -->
     <div v-if="loading" class="text-center py-12">
@@ -50,7 +51,7 @@
               <div>
                 <p class="text-gray-600">Enseignant</p>
                 <p class="font-semibold text-gray-900">
-                  {{ seance.enseignant?.nom || 'Non assigné' }}
+                  {{ participants.teacher ? `${participants.teacher.prenom || ''} ${participants.teacher.nom || ''}`.trim() || participants.teacher.nom || 'Non assigné' : 'Non assigné' }}
                 </p>
               </div>
               <div>
@@ -209,14 +210,21 @@
       </div>
     </div>
   </div>
+  </DashboardLayout>
 </template>
 
 <script>
 import lmsService from '@/services/lms'
+import klassciService from '@/services/klassci'
 import { auth } from '@/services/api'
+import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 
 export default {
   name: 'SeanceDetails',
+
+  components: {
+    DashboardLayout
+  },
 
   data() {
     return {
@@ -394,9 +402,155 @@ export default {
 
 <style scoped>
 .seance-details {
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+  background: var(--bg-primary);
+}
+
+/* Cards - Style cohérent avec le reste de l'app */
+.seance-details > div {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: var(--card-shadow, 0 1px 3px rgba(0, 0, 0, 0.1));
+  margin-bottom: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.seance-details > div:hover {
+  box-shadow: var(--card-shadow-hover, 0 4px 6px rgba(0, 0, 0, 0.15));
+}
+
+/* Header card styling */
+.bg-white {
+  background: var(--card-bg) !important;
+}
+
+.shadow {
+  box-shadow: var(--card-shadow, 0 1px 3px rgba(0, 0, 0, 0.1)) !important;
+}
+
+/* Text colors */
+.text-gray-600,
+.text-gray-500 {
+  color: var(--text-secondary) !important;
+}
+
+.text-gray-900 {
+  color: var(--text-primary) !important;
+}
+
+.text-gray-800 {
+  color: var(--text-primary) !important;
+}
+
+/* Buttons */
+button {
+  background: var(--color-primary, #10b981);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+button:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Status badges */
+.bg-green-100,
+.bg-green-50 {
+  background: rgba(16, 185, 129, 0.1) !important;
+  color: var(--color-primary, #10b981) !important;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.bg-blue-100,
+.bg-blue-50 {
+  background: rgba(59, 130, 246, 0.1) !important;
+  color: #3b82f6 !important;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.bg-yellow-100,
+.bg-orange-100,
+.bg-orange-50 {
+  background: rgba(245, 158, 11, 0.1) !important;
+  color: #f59e0b !important;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.bg-gray-100,
+.bg-gray-50 {
+  background: var(--bg-secondary) !important;
+  color: var(--text-secondary) !important;
+  border: 1px solid var(--border-color);
+}
+
+/* Border colors */
+.border-green-300 {
+  border-color: rgba(16, 185, 129, 0.5) !important;
+}
+
+.border-orange-300 {
+  border-color: rgba(245, 158, 11, 0.5) !important;
+}
+
+.border-gray-300 {
+  border-color: var(--border-color) !important;
+}
+
+/* Text colors orange */
+.text-orange-700 {
+  color: #c2410c !important;
+}
+
+/* Borders */
+.border {
+  border-color: var(--border-color) !important;
+}
+
+.border-gray-200 {
+  border-color: var(--border-color) !important;
+}
+
+/* Red/Error states */
+.bg-red-50 {
+  background: rgba(239, 68, 68, 0.1) !important;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.border-red-200 {
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+.text-red-900 {
+  color: #dc2626 !important;
+}
+
+.bg-red-600 {
+  background: #dc2626 !important;
+}
+
+.bg-red-600:hover {
+  background: #b91c1c !important;
+}
+
+/* Loading spinner */
+.border-blue-600 {
+  border-color: var(--color-primary, #10b981) !important;
 }
 
 /* Emoticons styles */
@@ -433,5 +587,36 @@ export default {
 .presentiel-icon {
   font-size: 2rem;
   line-height: 1;
+}
+
+/* Animation pour le loading */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Rounded corners */
+.rounded-lg {
+  border-radius: 1rem;
+}
+
+.rounded-full {
+  border-radius: 9999px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .seance-details {
+    padding: 1rem;
+  }
+
+  .seance-details > div {
+    padding: 1rem;
+  }
 }
 </style>
