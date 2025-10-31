@@ -4,7 +4,7 @@
       <!-- Header -->
       <div class="page-header">
         <div class="header-content">
-          <span class="page-icon">📅</span>
+          <span class="page-icon">◷</span>
           <div>
             <h1 class="page-title">Mon Emploi du Temps</h1>
             <p class="page-subtitle">Consultez vos cours et rejoignez les visioconférences</p>
@@ -50,7 +50,7 @@
         <div v-if="activeTab === 'all'" class="filters-card">
           <div class="filter-item">
             <label class="filter-label">
-              <span class="filter-icon">📅</span>
+              <span class="filter-icon">◷</span>
               Période
             </label>
             <select v-model="filters.period" @change="applyFilters" class="filter-select">
@@ -73,7 +73,7 @@
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-header">
-              <span class="stat-icon">📚</span>
+              <span class="stat-icon">▣</span>
               <span class="stat-label">Total</span>
             </div>
             <p class="stat-value">{{ stats.total }}</p>
@@ -82,7 +82,7 @@
 
           <div class="stat-card">
             <div class="stat-header">
-              <span class="stat-icon stat-icon-active">🟢</span>
+              <span class="stat-icon stat-icon-active">◉</span>
               <span class="stat-label">En direct</span>
             </div>
             <p class="stat-value">{{ stats.active }}</p>
@@ -91,7 +91,7 @@
 
           <div class="stat-card">
             <div class="stat-header">
-              <span class="stat-icon stat-icon-scheduled">🔵</span>
+              <span class="stat-icon stat-icon-scheduled">◑</span>
               <span class="stat-label">À venir</span>
             </div>
             <p class="stat-value">{{ stats.upcoming }}</p>
@@ -113,7 +113,7 @@
             <!-- Header -->
             <div class="seance-header">
               <div class="seance-title-section">
-                <span class="seance-icon">📖</span>
+                <span class="seance-icon">◘</span>
                 <div>
                   <h3 class="seance-title">
                     {{ seance.matiere?.nom || 'Matière' }}
@@ -137,7 +137,7 @@
                   v-else-if="seance.visio.status === 'programmee'"
                   class="status-badge status-scheduled"
                 >
-                  <span class="badge-icon">🔵</span>
+                  <span class="badge-icon">◑</span>
                   Visio programmée
                 </span>
               </div>
@@ -146,7 +146,7 @@
             <!-- Info Grid -->
             <div class="seance-info-grid">
               <div class="info-item">
-                <span class="info-icon">📅</span>
+                <span class="info-icon">◷</span>
                 <div>
                   <p class="info-label">Date</p>
                   <p class="info-value">{{ formatDate(seance.programmation?.date) }}</p>
@@ -154,7 +154,7 @@
               </div>
 
               <div class="info-item">
-                <span class="info-icon">🕐</span>
+                <span class="info-icon">⏰</span>
                 <div>
                   <p class="info-label">Horaire</p>
                   <p class="info-value">
@@ -164,7 +164,7 @@
               </div>
 
               <div class="info-item">
-                <span class="info-icon">👥</span>
+                <span class="info-icon">▓</span>
                 <div>
                   <p class="info-label">Classe</p>
                   <p class="info-value">{{ seance.classe?.nom || 'N/A' }}</p>
@@ -172,7 +172,7 @@
               </div>
 
               <div class="info-item">
-                <span class="info-icon">📍</span>
+                <span class="info-icon">◈</span>
                 <div>
                   <p class="info-label">Salle</p>
                   <p class="info-value">{{ seance.salle || 'N/A' }}</p>
@@ -203,7 +203,7 @@
               <!-- Visio programmée mais pas encore commencée -->
               <div v-else-if="seance.visio?.status === 'programmee'" class="action-section action-scheduled">
                 <div class="action-details">
-                  <span class="action-icon">🔵</span>
+                  <span class="action-icon">◑</span>
                   <div>
                     <p class="action-title">Visioconférence programmée</p>
                     <p class="action-subtitle">En attente du démarrage</p>
@@ -221,7 +221,7 @@
               <!-- Pas de visio -->
               <div v-else class="action-section action-none">
                 <p class="action-message">
-                  <span class="message-icon">📍</span>
+                  <span class="message-icon">◈</span>
                   Cours en présentiel - {{ seance.salle || 'Salle à confirmer' }}
                 </p>
               </div>
@@ -231,12 +231,12 @@
 
         <!-- Empty State -->
         <div v-else class="empty-state">
-          <span class="empty-icon">📅</span>
+          <span class="empty-icon">◷</span>
           <h3 class="empty-title">Aucun cours trouvé</h3>
           <p class="empty-message">
             {{ getEmptyMessage() }}
           </p>
-          <button v-if="activeTab !== 'all' || filters.period !== 'today'"
+          <button v-if="activeTab !== 'all' || filters.period !== 'all'"
                   @click="resetAllFilters"
                   class="btn-empty">
             Voir tous les cours
@@ -264,7 +264,7 @@ const activeTab = ref('all')
 
 // Filters
 const filters = reactive({
-  period: 'today'
+  period: 'all'
 })
 
 // Cache
@@ -276,19 +276,19 @@ const tabs = computed(() => [
   {
     value: 'all',
     label: 'Toutes',
-    icon: '📚',
+    icon: '▣',
     count: stats.value.total
   },
   {
     value: 'live',
     label: 'En direct',
-    icon: '🟢',
+    icon: '◉',
     count: stats.value.active
   },
   {
     value: 'visio',
     label: 'Avec visio',
-    icon: '🎥',
+    icon: '▶',
     count: stats.value.withVisio
   }
 ])
@@ -420,7 +420,7 @@ function applyFilters() {
 
 // Reset filters
 function resetFilters() {
-  filters.period = 'today'
+  filters.period = 'all'
   console.log('[FILTERS] Filtres réinitialisés')
 }
 
@@ -437,8 +437,6 @@ function getEmptyMessage() {
     return 'Aucun cours en direct pour le moment'
   } else if (activeTab.value === 'visio') {
     return 'Aucune visioconférence programmée'
-  } else if (filters.period === 'today') {
-    return 'Aucun cours aujourd\'hui'
   } else {
     return 'Vos prochains cours apparaîtront ici'
   }

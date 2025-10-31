@@ -164,7 +164,7 @@ export default {
           to: '/student/courses'
         })
         menu.push({
-          icon: '📅',
+          icon: '◷',
           label: 'Emploi du Temps',
           to: '/student/schedule'
         })
