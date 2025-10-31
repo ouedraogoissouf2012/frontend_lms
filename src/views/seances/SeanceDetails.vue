@@ -223,7 +223,6 @@
 
 <script>
 import lmsService from '@/services/lms'
-import klassciService from '@/services/klassci'
 import { auth } from '@/services/api'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 
@@ -367,8 +366,23 @@ export default {
 
         console.log('✅ Validation:', validation)
 
-        if (!validation.authorized) {
-          alert(`Accès refusé: ${validation.reason}`)
+        if (!validation.success || !validation.authorized) {
+          // Messages d'erreur personnalisés selon la raison
+          const errorMessages = {
+            'visio_not_enabled': 'La visioconférence n\'est pas activée pour cette séance.',
+            'visio_not_started': 'La visioconférence n\'a pas encore démarré. Veuillez attendre que l\'enseignant démarre le cours.',
+            'invalid_seance_data': 'Données de séance incomplètes. Veuillez contacter l\'administrateur.',
+            'seance_not_found': 'Cette séance n\'existe pas dans le système. Veuillez contacter l\'administrateur.',
+            'not_enrolled': 'Vous n\'êtes pas inscrit dans la classe de cette séance. Seuls les étudiants inscrits peuvent rejoindre le cours.',
+            'no_classe_id': 'Classe non définie pour cette séance. Veuillez contacter l\'administrateur.',
+            'klassci_api_error': 'Erreur de communication avec le système. Veuillez réessayer dans quelques instants.',
+            'verification_error': 'Erreur lors de la vérification de votre inscription. Veuillez réessayer.'
+          }
+
+          const reason = validation.reason || 'unknown'
+          const message = validation.message || errorMessages[reason] || 'Accès refusé'
+
+          alert(`❌ Accès refusé\n\n${message}`)
           return
         }
 
@@ -383,7 +397,26 @@ export default {
         window.open(link, '_blank')
       } catch (error) {
         console.error('❌ Erreur rejoindre visio:', error)
-        alert('Erreur lors de la connexion à la visioconférence')
+
+        // Afficher un message d'erreur plus détaillé
+        let errorMessage = 'Erreur lors de la connexion à la visioconférence.'
+
+        if (error.response && error.response.data) {
+          const data = error.response.data
+          if (data.message) {
+            errorMessage = data.message
+          } else if (data.reason) {
+            const errorMessages = {
+              'visio_not_enabled': 'La visioconférence n\'est pas activée.',
+              'visio_not_started': 'La visioconférence n\'a pas encore démarré.',
+              'not_enrolled': 'Vous n\'êtes pas inscrit dans cette classe.',
+              'seance_not_found': 'Séance non trouvée dans le système.'
+            }
+            errorMessage = errorMessages[data.reason] || data.reason
+          }
+        }
+
+        alert(`❌ ${errorMessage}`)
       } finally {
         this.joiningVisio = false
       }
