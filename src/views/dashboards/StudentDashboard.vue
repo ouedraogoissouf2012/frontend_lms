@@ -172,7 +172,7 @@
           </router-link>
 
           <router-link
-            :to="{ name: 'student-visio-list' }"
+            :to="{ name: 'student-schedule', query: { filter: 'visio' } }"
             class="action-card"
             aria-label="Accéder à la page Visioconférences"
           >
