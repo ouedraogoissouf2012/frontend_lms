@@ -332,24 +332,11 @@ const displayedSeances = computed(() => {
 
 // Computed - Statistics
 const stats = computed(() => {
-  console.log('DEBUG STATS - Total seances:', seances.value.length)
-  console.log('DEBUG STATS - Seances data:', JSON.stringify(seances.value.map(s => ({
-    id: s.id,
-    matiere: s.matiere,
-    visio: s.visio
-  })), null, 2))
-
-  const activeCount = seances.value.filter(s => s.visio?.status === 'active').length
-  const withVisioCount = seances.value.filter(s => s.visio && s.visio.enabled).length
-
-  console.log('DEBUG STATS - Active:', activeCount)
-  console.log('DEBUG STATS - WithVisio:', withVisioCount)
-
   return {
     total: seances.value.length,
-    active: activeCount,
+    active: seances.value.filter(s => s.visio?.status === 'active').length,
     upcoming: seances.value.filter(s => isUpcoming(s)).length,
-    withVisio: withVisioCount
+    withVisio: seances.value.filter(s => s.visio && s.visio.enabled).length
   }
 })
 
