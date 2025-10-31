@@ -380,6 +380,19 @@ async function loadSeances() {
     console.log('[API] Réponse:', response)
     seances.value = response.data || []
 
+    // DEBUG: Logger les détails de chaque séance
+    seances.value.forEach((seance, index) => {
+      console.log(`[DEBUG] Séance ${index + 1}:`, {
+        id: seance.id,
+        matiere: seance.matiere?.nom,
+        date: seance.programmation?.date,
+        heure_debut: seance.programmation?.heure_debut,
+        visio: seance.visio,
+        visio_enabled: seance.visio?.enabled,
+        visio_status: seance.visio?.status
+      })
+    })
+
     // Save to cache
     localStorage.setItem(CACHE_KEY, JSON.stringify({
       data: seances.value,
@@ -387,6 +400,8 @@ async function loadSeances() {
     }))
 
     console.log(`[SUCCESS] ${seances.value.length} séance(s) chargée(s)`)
+    console.log('[STATS] Active:', seances.value.filter(s => s.visio?.status === 'active').length)
+    console.log('[STATS] Upcoming:', seances.value.filter(s => isUpcoming(s)).length)
   } catch (err) {
     console.error('[ERREUR] Chargement emploi du temps:', err)
     error.value = 'Impossible de charger votre emploi du temps. Veuillez réessayer.'
