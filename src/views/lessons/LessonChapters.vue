@@ -201,6 +201,7 @@ export default {
   max-width: 1200px;
   margin: 0 auto;
   padding: 24px;
+  background: var(--bg-primary);
 }
 
 .page-header {
@@ -214,7 +215,7 @@ export default {
 .breadcrumb-link {
   background: none;
   border: none;
-  color: #3b82f6;
+  color: var(--color-primary, #3b82f6);
   font-size: 0.875rem;
   cursor: pointer;
   padding: 4px 0;
@@ -222,16 +223,17 @@ export default {
 }
 
 .breadcrumb-link:hover {
-  color: #2563eb;
+  color: var(--color-primary-dark, #2563eb);
   text-decoration: underline;
 }
 
 /* Lesson info card */
 .lesson-info-card {
-  background: white;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--card-shadow, 0 1px 3px rgba(0, 0, 0, 0.1));
   margin-bottom: 24px;
 }
 
@@ -242,19 +244,19 @@ export default {
   gap: 24px;
   margin-bottom: 24px;
   padding-bottom: 24px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .lesson-title {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--text-primary);
   margin: 0 0 8px 0;
 }
 
 .lesson-description {
   font-size: 1rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   margin: 0 0 12px 0;
 }
 
@@ -273,23 +275,26 @@ export default {
 }
 
 .badge-debutant {
-  background-color: #dbeafe;
-  color: #1e40af;
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
 .badge-intermediaire {
-  background-color: #fef3c7;
-  color: #b45309;
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 .badge-avance {
-  background-color: #fecaca;
-  color: #b91c1c;
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 .meta-info {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .lesson-actions {
@@ -300,9 +305,9 @@ export default {
 
 .btn-preview {
   padding: 10px 20px;
-  background-color: #f3f4f6;
-  color: #374151;
-  border: 1px solid #d1d5db;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
@@ -311,13 +316,13 @@ export default {
 }
 
 .btn-preview:hover {
-  background-color: #e5e7eb;
-  border-color: #9ca3af;
+  background-color: var(--hover-bg);
+  border-color: var(--border-hover);
 }
 
 .btn-publish {
   padding: 10px 20px;
-  background-color: #10b981;
+  background-color: var(--color-primary, #10b981);
   color: white;
   border: none;
   border-radius: 8px;
@@ -328,7 +333,7 @@ export default {
 }
 
 .btn-publish:hover:not(:disabled) {
-  background-color: #059669;
+  opacity: 0.9;
 }
 
 .btn-publish:disabled {
@@ -344,13 +349,13 @@ export default {
 .section-title {
   font-size: 1rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-primary);
   margin: 0 0 8px 0;
 }
 
 .section-content {
   font-size: 0.875rem;
-  color: #4b5563;
+  color: var(--text-secondary);
   margin: 0;
   line-height: 1.6;
   white-space: pre-wrap;
@@ -358,18 +363,19 @@ export default {
 
 /* Loading */
 .loading-card {
-  background: white;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 48px;
   text-align: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--card-shadow, 0 1px 3px rgba(0, 0, 0, 0.1));
 }
 
 .spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid #e5e7eb;
-  border-top-color: #3b82f6;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--color-primary, #3b82f6);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 16px;
@@ -380,14 +386,14 @@ export default {
 }
 
 .loading-card p {
-  color: #6b7280;
+  color: var(--text-secondary);
   margin: 0;
 }
 
 /* Error */
 .error-card {
-  background: white;
-  border: 1px solid #fca5a5;
+  background: var(--card-bg);
+  border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: 12px;
   padding: 24px;
   text-align: center;
@@ -401,7 +407,7 @@ export default {
 
 .btn-retry {
   padding: 8px 16px;
-  background-color: #3b82f6;
+  background-color: var(--color-primary, #3b82f6);
   color: white;
   border: none;
   border-radius: 6px;
@@ -411,7 +417,7 @@ export default {
 }
 
 .btn-retry:hover {
-  background-color: #2563eb;
+  opacity: 0.9;
 }
 
 /* Responsive */

@@ -387,7 +387,8 @@ export default {
 
 <style scoped>
 .chapter-manager-professional {
-  background: #ffffff;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 0;
 }
@@ -395,19 +396,19 @@ export default {
 /* Header */
 .chapters-header {
   padding: 24px 24px 16px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .chapters-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-primary);
   margin: 0 0 8px 0;
 }
 
 .chapters-subtitle {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -415,14 +416,14 @@ export default {
 .loading-state {
   text-align: center;
   padding: 48px 24px;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid #e5e7eb;
-  border-top-color: #10b981;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--color-primary, #10b981);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 16px;
@@ -438,8 +439,8 @@ export default {
 }
 
 .chapter-block {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   margin-bottom: 24px;
   overflow: hidden;
@@ -450,14 +451,14 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .chapter-number-badge {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #3b82f6;
+  color: var(--color-primary, #3b82f6);
 }
 
 .chapter-actions-inline {
@@ -469,20 +470,20 @@ export default {
 .btn-delete {
   padding: 6px 12px;
   font-size: 0.8125rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  background: white;
+  background: var(--card-bg);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn-edit {
-  color: #3b82f6;
+  color: var(--color-primary, #3b82f6);
 }
 
 .btn-edit:hover {
-  background: #eff6ff;
-  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+  border-color: var(--color-primary, #3b82f6);
 }
 
 .btn-delete {
@@ -490,7 +491,7 @@ export default {
 }
 
 .btn-delete:hover {
-  background: #fef2f2;
+  background: rgba(220, 38, 38, 0.1);
   border-color: #dc2626;
 }
 
@@ -507,7 +508,7 @@ export default {
   display: block;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #374151;
+  color: var(--text-primary);
   margin-bottom: 8px;
 }
 
@@ -515,21 +516,21 @@ export default {
   width: 100%;
   padding: 12px 16px;
   font-size: 1rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   transition: all 0.2s;
-  background-color: #ffffff;
-  color: #1f2937;
+  background-color: var(--input-bg, var(--card-bg));
+  color: var(--text-primary);
 }
 
 .title-input:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--color-primary, #3b82f6);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .title-input::placeholder {
-  color: #9ca3af;
+  color: var(--text-muted, #9ca3af);
   opacity: 1;
 }
 
@@ -537,16 +538,16 @@ export default {
   width: 100%;
   padding: 10px 12px;
   font-size: 0.875rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
-  background-color: #ffffff;
-  color: #1f2937;
+  background-color: var(--input-bg, var(--card-bg));
+  color: var(--text-primary);
   cursor: pointer;
 }
 
 /* Editor Container */
 .editor-container {
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   overflow: hidden;
 }
@@ -555,25 +556,25 @@ export default {
   display: flex;
   gap: 4px;
   padding: 8px;
-  background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .toolbar-btn {
   padding: 6px 12px;
   font-size: 0.875rem;
   font-weight: 600;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  background-color: #ffffff;
-  color: #1f2937;
+  background-color: var(--card-bg);
+  color: var(--text-primary);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .toolbar-btn:hover {
-  background-color: #e5e7eb;
-  color: #111827;
+  background-color: var(--hover-bg);
+  color: var(--text-primary);
 }
 
 .content-textarea {
@@ -584,8 +585,8 @@ export default {
   border: none;
   resize: vertical;
   font-family: inherit;
-  background-color: #ffffff;
-  color: #1f2937;
+  background-color: var(--input-bg, var(--card-bg));
+  color: var(--text-primary);
 }
 
 .content-textarea:focus {
@@ -593,14 +594,14 @@ export default {
 }
 
 .content-textarea::placeholder {
-  color: #9ca3af;
+  color: var(--text-muted, #9ca3af);
   opacity: 1;
 }
 
 .editor-footer {
   padding: 8px 16px;
-  background: #f9fafb;
-  border-top: 1px solid #e5e7eb;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -608,7 +609,7 @@ export default {
 
 .word-count {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 /* URL Input */
@@ -616,15 +617,15 @@ export default {
   width: 100%;
   padding: 10px 12px;
   font-size: 0.875rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   margin-bottom: 12px;
-  background-color: #ffffff;
-  color: #1f2937;
+  background-color: var(--input-bg, var(--card-bg));
+  color: var(--text-primary);
 }
 
 .url-input::placeholder {
-  color: #9ca3af;
+  color: var(--text-muted, #9ca3af);
   opacity: 1;
 }
 
@@ -633,7 +634,7 @@ export default {
   align-items: center;
   gap: 8px;
   font-size: 0.875rem;
-  color: #374151;
+  color: var(--text-primary);
   cursor: pointer;
 }
 
@@ -678,23 +679,23 @@ export default {
   gap: 12px;
   margin-top: 24px;
   padding-top: 20px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border-color);
 }
 
 .btn-cancel {
   padding: 10px 24px;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #374151;
-  background: #f3f4f6;
-  border: 1px solid #d1d5db;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn-cancel:hover {
-  background: #e5e7eb;
+  background: var(--hover-bg);
 }
 
 .btn-save {
@@ -702,7 +703,7 @@ export default {
   font-size: 0.875rem;
   font-weight: 500;
   color: white;
-  background: #10b981;
+  background: var(--color-primary, #10b981);
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -710,7 +711,7 @@ export default {
 }
 
 .btn-save:hover:not(:disabled) {
-  background: #059669;
+  opacity: 0.9;
 }
 
 .btn-save:disabled {
@@ -726,7 +727,7 @@ export default {
 .chapter-view-title {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-primary);
   margin: 0 0 12px 0;
 }
 
@@ -738,21 +739,22 @@ export default {
 
 .meta-type {
   padding: 4px 12px;
-  background: #dbeafe;
-  color: #1e40af;
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--color-primary, #3b82f6);
   font-size: 0.75rem;
   font-weight: 500;
   border-radius: 12px;
+  border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
 .meta-info {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .chapter-preview {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin: 0;
 }
@@ -767,16 +769,16 @@ export default {
   padding: 12px 32px;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #3b82f6;
-  background: white;
-  border: 2px dashed #3b82f6;
+  color: var(--color-primary, #3b82f6);
+  background: var(--card-bg);
+  border: 2px dashed var(--color-primary, #3b82f6);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn-add-chapter-professional:hover {
-  background: #eff6ff;
+  background: rgba(59, 130, 246, 0.1);
 }
 
 /* Upload Modal */
@@ -794,25 +796,26 @@ export default {
 }
 
 .upload-modal-card {
-  background: white;
+  background: var(--card-bg);
   padding: 32px;
   border-radius: 12px;
   text-align: center;
   max-width: 400px;
   width: 90%;
+  border: 1px solid var(--border-color);
 }
 
 .upload-title {
   margin: 0 0 24px 0;
   font-size: 1.125rem;
-  color: #111827;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
 .progress-bar-container {
   width: 100%;
   height: 8px;
-  background: #e5e7eb;
+  background: var(--bg-secondary);
   border-radius: 4px;
   overflow: hidden;
   margin-bottom: 12px;
@@ -820,20 +823,20 @@ export default {
 
 .progress-bar-fill {
   height: 100%;
-  background: #10b981;
+  background: var(--color-primary, #10b981);
   transition: width 0.3s;
 }
 
 .upload-percentage {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-primary);
   margin: 12px 0 8px;
 }
 
 .upload-message {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   margin: 0;
 }
 
