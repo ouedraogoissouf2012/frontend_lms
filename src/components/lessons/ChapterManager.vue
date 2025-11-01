@@ -388,9 +388,10 @@ export default {
 <style scoped>
 .chapter-manager-professional {
   background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border: 3px solid var(--border-color);
+  border-radius: 12px;
   padding: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* Header */
@@ -440,18 +441,19 @@ export default {
 
 .chapter-block {
   background: var(--card-bg);
-  border: 2px solid var(--border-color);
-  border-left: 4px solid var(--color-primary, #10b981);
-  border-radius: 8px;
+  border: 3px solid var(--border-color);
+  border-left: 6px solid var(--color-primary, #10b981);
+  border-radius: 12px;
   margin-bottom: 24px;
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   transition: all 0.3s ease;
 }
 
 .chapter-block:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  transform: translateY(-3px);
+  border-color: var(--color-primary, #10b981);
 }
 
 .chapter-header-bar {
@@ -460,8 +462,9 @@ export default {
   align-items: center;
   padding: 16px 20px;
   background: var(--bg-secondary);
-  border-bottom: 2px solid var(--color-primary, #10b981);
+  border-bottom: 3px solid var(--color-primary, #10b981);
   position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .chapter-number-badge {
@@ -479,22 +482,23 @@ export default {
 .btn-delete {
   padding: 6px 12px;
   font-size: 0.8125rem;
-  border: 2px solid var(--border-color);
-  border-radius: 4px;
+  border: 3px solid var(--border-color);
+  border-radius: 6px;
   background: var(--card-bg);
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 .btn-edit {
-  color: var(--color-primary, #3b82f6);
+  color: var(--color-primary, #10b981);
 }
 
 .btn-edit:hover {
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(16, 185, 129, 0.15);
   border-color: var(--color-primary, #10b981);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .btn-delete {
@@ -502,10 +506,10 @@ export default {
 }
 
 .btn-delete:hover {
-  background: rgba(220, 38, 38, 0.1);
+  background: rgba(220, 38, 38, 0.15);
   border-color: #dc2626;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
 }
 
 /* Form Professional */
@@ -529,18 +533,19 @@ export default {
   width: 100%;
   padding: 12px 16px;
   font-size: 1rem;
-  border: 2px solid var(--border-color);
-  border-radius: 6px;
+  border: 3px solid var(--border-color);
+  border-radius: 8px;
   transition: all 0.3s ease;
   background-color: var(--input-bg, var(--card-bg));
   color: var(--text-primary);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
 .title-input:focus {
   outline: none;
   border-color: var(--color-primary, #10b981);
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
-  transform: translateY(-1px);
+  box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
 .title-input::placeholder {
@@ -552,31 +557,33 @@ export default {
   width: 100%;
   padding: 10px 12px;
   font-size: 0.875rem;
-  border: 2px solid var(--border-color);
-  border-radius: 6px;
+  border: 3px solid var(--border-color);
+  border-radius: 8px;
   background-color: var(--input-bg, var(--card-bg));
   color: var(--text-primary);
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
 .content-type-select:focus {
   outline: none;
   border-color: var(--color-primary, #10b981);
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+  box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* Editor Container */
 .editor-container {
-  border: 2px solid var(--border-color);
-  border-radius: 6px;
+  border: 3px solid var(--border-color);
+  border-radius: 8px;
   overflow: hidden;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .editor-container:focus-within {
   border-color: var(--color-primary, #10b981);
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+  box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .editor-toolbar {
@@ -644,19 +651,20 @@ export default {
   width: 100%;
   padding: 10px 12px;
   font-size: 0.875rem;
-  border: 2px solid var(--border-color);
-  border-radius: 6px;
+  border: 3px solid var(--border-color);
+  border-radius: 8px;
   margin-bottom: 12px;
   background-color: var(--input-bg, var(--card-bg));
   color: var(--text-primary);
   transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
 .url-input:focus {
   outline: none;
   border-color: var(--color-primary, #10b981);
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
-  transform: translateY(-1px);
+  box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
 .url-input::placeholder {
@@ -801,22 +809,24 @@ export default {
 }
 
 .btn-add-chapter-professional {
-  padding: 12px 32px;
+  padding: 14px 36px;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-primary, #10b981);
   background: var(--card-bg);
-  border: 3px dashed var(--color-primary, #10b981);
-  border-radius: 8px;
+  border: 4px dashed var(--color-primary, #10b981);
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .btn-add-chapter-professional:hover {
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(16, 185, 129, 0.15);
   border-style: solid;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.2);
+  border-width: 4px;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
 }
 
 /* Upload Modal */
