@@ -536,15 +536,24 @@ export default {
   border: 3px solid var(--border-color);
   border-radius: 8px;
   transition: all 0.3s ease;
-  background-color: var(--input-bg, var(--card-bg));
+  background-color: rgba(0, 0, 0, 0.03);
   color: var(--text-primary);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Mode sombre: fond plus clair que la carte */
+@media (prefers-color-scheme: dark) {
+  .title-input {
+    background-color: rgba(255, 255, 255, 0.05);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
 }
 
 .title-input:focus {
   outline: none;
   border-color: var(--color-primary, #10b981);
-  box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: rgba(16, 185, 129, 0.05);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 0 5px rgba(16, 185, 129, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
 }
 
@@ -559,17 +568,25 @@ export default {
   font-size: 0.875rem;
   border: 3px solid var(--border-color);
   border-radius: 8px;
-  background-color: var(--input-bg, var(--card-bg));
+  background-color: rgba(0, 0, 0, 0.03);
   color: var(--text-primary);
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+  .content-type-select {
+    background-color: rgba(255, 255, 255, 0.05);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
 }
 
 .content-type-select:focus {
   outline: none;
   border-color: var(--color-primary, #10b981);
-  box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: rgba(16, 185, 129, 0.05);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 0 5px rgba(16, 185, 129, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* Editor Container */
@@ -619,12 +636,21 @@ export default {
   border: none;
   resize: vertical;
   font-family: inherit;
-  background-color: var(--input-bg, var(--card-bg));
+  background-color: rgba(0, 0, 0, 0.03);
   color: var(--text-primary);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  .content-textarea {
+    background-color: rgba(255, 255, 255, 0.05);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
 }
 
 .content-textarea:focus {
   outline: none;
+  background-color: rgba(16, 185, 129, 0.05);
 }
 
 .content-textarea::placeholder {
@@ -654,16 +680,24 @@ export default {
   border: 3px solid var(--border-color);
   border-radius: 8px;
   margin-bottom: 12px;
-  background-color: var(--input-bg, var(--card-bg));
+  background-color: rgba(0, 0, 0, 0.03);
   color: var(--text-primary);
   transition: all 0.3s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+  .url-input {
+    background-color: rgba(255, 255, 255, 0.05);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
 }
 
 .url-input:focus {
   outline: none;
   border-color: var(--color-primary, #10b981);
-  box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: rgba(16, 185, 129, 0.05);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 0 5px rgba(16, 185, 129, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
 }
 
