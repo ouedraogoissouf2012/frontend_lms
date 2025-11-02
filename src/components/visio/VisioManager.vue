@@ -86,9 +86,9 @@
       </p>
     </div>
 
-    <!-- Bouton: Voir les participants -->
+    <!-- Bouton: Voir les participants (Teachers and Coordinators only) -->
     <button
-      v-if="seance.visio_enabled"
+      v-if="seance.visio_enabled && (isTeacher || canManageVisio)"
       @click="showParticipants"
       class="ml-3 inline-flex items-center px-3 py-2 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-lg transition-colors duration-200"
     >
@@ -130,7 +130,10 @@ export default {
       showParticipantsModal: false,
       participantCount: 0,
       currentTime: new Date(),
-      timeCheckInterval: null
+      timeCheckInterval: null,
+      heartbeatInterval: null,
+      isInVisio: false,
+      visioWindow: null
     }
   },
   computed: {
@@ -209,6 +212,11 @@ export default {
   beforeUnmount() {
     if (this.timeCheckInterval) {
       clearInterval(this.timeCheckInterval)
+    }
+    // Arrêter le heartbeat et appeler /leave si nécessaire
+    this.stopHeartbeat()
+    if (this.isInVisio) {
+      this.leaveVisio()
     }
   },
   methods: {
@@ -343,9 +351,18 @@ export default {
         const link = `https://meet.jit.si/${roomId}#config.prejoinConfig.enabled=false&userInfo.displayName=${encodeURIComponent(this.user.name)}`
 
         // Ouvrir Jitsi
-        window.open(link, '_blank')
+        this.visioWindow = window.open(link, '_blank')
 
         console.log('✅ Étudiant a rejoint la visio et participation enregistrée')
+
+        // Marquer comme présent dans la visio
+        this.isInVisio = true
+
+        // Démarrer le heartbeat (ping toutes les 30s)
+        this.startHeartbeat()
+
+        // Surveiller la fermeture de la fenêtre Jitsi
+        this.watchVisioWindow()
 
         // Émettre événement pour rafraîchir le compteur de participants
         this.$emit('participant-joined')
@@ -378,6 +395,83 @@ export default {
       } catch (error) {
         console.error('[VisioManager] Erreur chargement participants:', error)
       }
+    },
+
+    /**
+     * Démarrer le système de heartbeat (ping toutes les 30 secondes)
+     */
+    startHeartbeat() {
+      // Arrêter tout heartbeat existant
+      this.stopHeartbeat()
+
+      // Premier heartbeat immédiat
+      this.sendHeartbeat()
+
+      // Heartbeat toutes les 30 secondes
+      this.heartbeatInterval = setInterval(() => {
+        this.sendHeartbeat()
+      }, 30000) // 30 secondes
+
+      console.log('💓 Heartbeat démarré (ping toutes les 30s)')
+    },
+
+    /**
+     * Arrêter le heartbeat
+     */
+    stopHeartbeat() {
+      if (this.heartbeatInterval) {
+        clearInterval(this.heartbeatInterval)
+        this.heartbeatInterval = null
+        console.log('💔 Heartbeat arrêté')
+      }
+    },
+
+    /**
+     * Envoyer un ping d'activité au serveur
+     */
+    async sendHeartbeat() {
+      try {
+        await lmsService.heartbeatVisio(this.seance.id)
+        console.log('💓 Heartbeat envoyé')
+      } catch (error) {
+        console.error('[VisioManager] Erreur heartbeat:', error)
+        // Si erreur 404 (participation non trouvée), arrêter le heartbeat
+        if (error.response?.status === 404) {
+          console.warn('⚠️ Participation non trouvée, arrêt du heartbeat')
+          this.stopHeartbeat()
+          this.isInVisio = false
+        }
+      }
+    },
+
+    /**
+     * Enregistrer la sortie de la visio
+     */
+    async leaveVisio() {
+      try {
+        const response = await lmsService.leaveVisio(this.seance.id)
+        console.log('👋 Sortie de visio enregistrée:', response)
+        this.isInVisio = false
+      } catch (error) {
+        console.error('[VisioManager] Erreur leave visio:', error)
+      }
+    },
+
+    /**
+     * Surveiller la fermeture de la fenêtre Jitsi
+     */
+    watchVisioWindow() {
+      if (!this.visioWindow) return
+
+      const checkClosed = setInterval(() => {
+        if (this.visioWindow.closed) {
+          clearInterval(checkClosed)
+          console.log('🚪 Fenêtre Jitsi fermée, arrêt heartbeat et enregistrement sortie')
+          this.stopHeartbeat()
+          this.leaveVisio()
+          this.visioWindow = null
+        }
+      }, 1000) // Vérifier toutes les secondes
     }
   }
 }

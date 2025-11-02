@@ -284,6 +284,14 @@ export default {
           label: 'Enseignants',
           to: '/admin/enseignants'
         })
+        // Gestion Séances & Visio - pour coordinateur uniquement
+        if (user.role === 'coordinateur') {
+        menu.push({
+          icon: '◉',
+          label: 'Séances & Visio',
+          to: '/coordinateur/seances'
+        })
+        }
         // Séances - Masqué pour coordinateur (endpoint /seances retourne 404 dans KLASSCI)
         if (user.role !== 'coordinateur') {
         menu.push({
@@ -300,6 +308,12 @@ export default {
           to: '/admin/visioconferences'
         })
         }
+        // Résultats Évaluations - Accessible pour coordinateur et admin
+        menu.push({
+          icon: '📊',
+          label: 'Résultats Évaluations',
+          to: '/admin/evaluations/results'
+        })
         // Statistiques - Masqué pour coordinateur (données admin_data limitées)
         if (user.role !== 'coordinateur') {
         menu.push({

@@ -289,6 +289,34 @@ export const lmsService = {
   },
 
   /**
+   * Enregistrer la sortie d'un participant de la visio
+   * @param {number} seanceId
+   * @returns {Promise<Object>}
+   */
+  async leaveVisio(seanceId) {
+    try {
+      return await api.post(`/lms/seances/${seanceId}/leave`)
+    } catch (error) {
+      console.error('Erreur leave visio:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Envoyer un heartbeat (ping d'activité) pour le participant
+   * @param {number} seanceId
+   * @returns {Promise<Object>}
+   */
+  async heartbeatVisio(seanceId) {
+    try {
+      return await api.post(`/lms/seances/${seanceId}/heartbeat`)
+    } catch (error) {
+      console.error('Erreur heartbeat visio:', error)
+      throw error
+    }
+  },
+
+  /**
    * Récupérer la liste des participants à une visio (OPTION B)
    * @param {number} seanceId
    * @returns {Promise<Object>}

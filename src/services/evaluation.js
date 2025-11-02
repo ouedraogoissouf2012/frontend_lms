@@ -151,5 +151,19 @@ export default {
       console.error('Erreur récupération état temporel:', error)
       throw error
     }
+  },
+
+  /**
+   * Récupère les résultats détaillés d'une évaluation avec tous les étudiants de la classe
+   * (Coordinateur/Admin uniquement)
+   */
+  async getEvaluationResultsByClass(id) {
+    try {
+      const response = await api.get(`/evaluations/${id}/results-by-class`)
+      return response
+    } catch (error) {
+      console.error('Erreur récupération résultats évaluation:', error)
+      throw error
+    }
   }
 }

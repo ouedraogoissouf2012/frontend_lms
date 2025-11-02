@@ -464,8 +464,8 @@ onMounted(() => {
 
 <style scoped>
 .lesson-view-container {
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
   padding: 2rem;
 }
 

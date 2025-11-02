@@ -146,6 +146,16 @@ const routes = [
       roles: ['superAdmin', 'coordinateur']
     }
   },
+  // Résultats Évaluations Admin/Coordinateur
+  {
+    path: '/admin/evaluations/results',
+    name: 'AdminEvaluationResults',
+    component: () => import('@/views/admin/AdminEvaluationResults.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['superAdmin', 'coordinateur']
+    }
+  },
   // Profil - Admin
   {
     path: '/admin/profile',

@@ -145,13 +145,9 @@
             </div>
 
             <div class="lesson-actions">
-              <button @click="editLesson(lesson)" class="btn-action btn-edit">
-                <PencilIcon class="w-4 h-4" />
-                Modifier
-              </button>
-              <button @click="deleteLesson(lesson)" class="btn-action btn-delete">
-                <TrashIcon class="w-4 h-4" />
-                Supprimer
+              <button @click="viewChapters(lesson)" class="btn-action btn-view">
+                <BookOpenIcon class="w-4 h-4" />
+                Voir les chapitres
               </button>
             </div>
           </div>
@@ -168,10 +164,6 @@
               ? 'Aucune leçon ne correspond à vos filtres.'
               : 'Vous n\'avez pas encore créé de leçon.' }}
           </p>
-          <button @click="router.push('/teacher/lessons/create')" class="btn-create-empty">
-            <PlusIcon class="w-5 h-5" />
-            Créer ma première leçon
-          </button>
         </div>
       </div>
     </div>
@@ -485,32 +477,38 @@ function formatDate(dateString) {
   })
 }
 
-function editLesson(lesson) {
-  router.push(`/teacher/lessons/${lesson.id}/edit`)
+function viewChapters(lesson) {
+  router.push(`/teacher/lessons/${lesson.id}/chapters`)
 }
 
-async function deleteLesson(lesson) {
-  if (!confirm(`Êtes-vous sûr de vouloir supprimer la leçon "${lesson.title || lesson.titre}" ?`)) {
-    return
-  }
+// Fonction edit désactivée - Modification uniquement depuis Matières
+// function editLesson(lesson) {
+//   router.push(`/teacher/lessons/${lesson.id}/edit`)
+// }
 
-  try {
-    const response = await lessonService.deleteLesson(lesson.id)
-    if (response && response.success) {
-      lessons.value = lessons.value.filter(l => l.id !== lesson.id)
-      console.log('[OK] Leçon supprimée')
-
-      // Mettre à jour le cache
-      localStorage.setItem(CACHE_KEY_LESSONS, JSON.stringify({
-        data: lessons.value,
-        timestamp: Date.now()
-      }))
-    }
-  } catch (err) {
-    console.error('[ERREUR] Suppression leçon:', err)
-    alert('Erreur lors de la suppression: ' + (err.response?.data?.message || err.message))
-  }
-}
+// Fonction delete désactivée - Suppression uniquement depuis Matières
+// async function deleteLesson(lesson) {
+//   if (!confirm(`Êtes-vous sûr de vouloir supprimer la leçon "${lesson.title || lesson.titre}" ?`)) {
+//     return
+//   }
+// 
+//   try {
+//     const response = await lessonService.deleteLesson(lesson.id)
+//     if (response && response.success) {
+//       lessons.value = lessons.value.filter(l => l.id !== lesson.id)
+//       console.log('[OK] Leçon supprimée')
+// 
+//       // Mettre à jour le cache
+//       localStorage.setItem(CACHE_KEY_LESSONS, JSON.stringify({
+//         data: lessons.value,
+//         timestamp: Date.now()
+//       }))
+//     }
+//   } catch (err) {
+//     console.error('[ERREUR] Suppression leçon:', err)
+//     alert('Erreur lors de la suppression: ' + (err.response?.data?.message || err.message))
+//   }
+// }
 
 async function saveLesson() {
   if (!lessonForm.matiere_id || !lessonForm.title) {
@@ -840,25 +838,13 @@ onMounted(() => {
   border: none;
 }
 
-.btn-edit {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-primary);
-}
+.btn-view {  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);  color: white;  border: none;}.btn-view:hover {  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);  transform: translateY(-2px);  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);}
 
 .btn-edit:hover {
   background: var(--bg-tertiary);
 }
 
-.btn-delete {
-  background: #fee2e2;
-  color: #dc2626;
-  border: 1px solid #fca5a5;
-}
 
-.btn-delete:hover {
-  background: #fecaca;
-}
 
 /* Modal */
 .modal-overlay {

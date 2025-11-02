@@ -9,6 +9,15 @@
           </button>
         </div>
 
+        <!-- Message mode lecture seule -->
+        <div v-if="isReadOnly" class="readonly-notice">
+          <div class="notice-icon">ℹ️</div>
+          <div class="notice-content">
+            <strong>Mode consultation</strong>
+            <p>Vous consultez cette leçon. Pour la modifier, allez dans <strong>Matières</strong> → Sélectionnez la matière → Modifier la leçon.</p>
+          </div>
+        </div>
+
         <!-- Lesson info -->
         <div v-if="lesson" class="lesson-info-card">
           <div class="lesson-info-header">
@@ -27,7 +36,7 @@
                 </span>
               </div>
             </div>
-            <div v-if="lesson.status === 'draft'" class="lesson-actions">
+            <div v-if="lesson.status === 'draft' && !isReadOnly" class="lesson-actions">
               <button
                 @click="previewLesson"
                 class="btn-preview"
@@ -74,6 +83,7 @@
       <ChapterManager
         v-if="lesson"
         :lesson-id="lessonId"
+        :readonly="isReadOnly"
         @chapters-updated="onChaptersUpdated"
       />
     </div>
@@ -104,6 +114,11 @@ export default {
   computed: {
     lessonId() {
       return parseInt(this.$route.params.id)
+    },
+    // Mode lecture seule si on vient de l'onglet Leçons (pas de contexte matière)
+    isReadOnly() {
+      // Si pas de query param matiere_id ou edit=true, c'est en mode lecture seule
+      return !this.$route.query.edit
     }
   },
 
@@ -195,6 +210,45 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+
+/* Readonly Notice */
+.readonly-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+  border: 2px solid #3b82f6;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+}
+
+.notice-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.notice-content {
+  flex: 1;
+}
+
+.notice-content strong {
+  display: block;
+  color: #1e40af;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.notice-content p {
+  margin: 0;
+  color: #1e3a8a;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
 
 <style scoped>
 .lesson-chapters-page {

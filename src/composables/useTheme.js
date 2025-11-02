@@ -34,6 +34,14 @@ export function useTheme() {
    * Apply theme to document
    */
   const applyTheme = (theme) => {
+    // Ajouter/retirer la classe 'dark' pour Tailwind CSS
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+
+    // Garder aussi l'attribut data-theme pour compatibilité
     document.documentElement.setAttribute('data-theme', theme)
   }
 

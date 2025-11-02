@@ -172,6 +172,15 @@
               </div>
 
               <div class="visio-action">
+                <button
+                  @click="showParticipants(seance)"
+                  class="participants-btn"
+                  title="Voir la liste des participants avec heures d'entrée/sortie"
+                >
+                  <span class="btn-icon">👥</span>
+                  Voir participants
+                </button>
+
                 <a
                   :href="`https://meet.jit.si/${seance.visio_room_id}`"
                   target="_blank"
@@ -213,6 +222,13 @@
         </div>
       </div>
     </div>
+
+    <!-- Participants Modal -->
+    <ParticipantsModal
+      v-if="showParticipantsModal"
+      :seance-id="selectedSeanceId"
+      @close="showParticipantsModal = false"
+    />
   </DashboardLayout>
 </template>
 
@@ -220,6 +236,7 @@
 import { ref, reactive, onMounted, getCurrentInstance } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import ParticipantsModal from '@/components/visio/ParticipantsModal.vue'
 import lmsService from '@/services/lms'
 
 // Instance pour accéder à $toast
@@ -232,6 +249,8 @@ const error = ref(null)
 const seances = ref([])
 const classes = ref([])
 const enseignants = ref([])
+const showParticipantsModal = ref(false)
+const selectedSeanceId = ref(null)
 const filters = reactive({
   days: 30,
   teacher_id: null,
@@ -407,6 +426,12 @@ const toggleSeanceVisio = async (seance) => {
     console.error('[ERREUR] Toggle visio:', err)
     $toast?.error('Erreur lors de l\'activation/désactivation de la visio')
   }
+}
+
+const showParticipants = (seance) => {
+  console.log('[PARTICIPANTS] Ouverture modal pour séance:', seance.id)
+  selectedSeanceId.value = seance.id
+  showParticipantsModal.value = true
 }
 
 // Lifecycle hooks
@@ -757,6 +782,28 @@ onMounted(() => {
 
 .visio-action {
   flex-shrink: 0;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.participants-btn {
+  padding: 0.75rem 1.25rem;
+  background: #3b82f6;
+  border: none;
+  border-radius: 0.5rem;
+  color: white;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.participants-btn:hover {
+  background: #2563eb;
 }
 
 .open-jitsi-btn {

@@ -229,7 +229,7 @@
                 <div class="flex-1">
                   <div class="flex items-center gap-3">
                     <h3 class="text-lg font-semibold text-gray-900">
-                      {{ formatDate(seance.programmation?.date) }}
+                      {{ formatDate(seance.programmation?.date) }} • Séance #{{ seance.id }}
                     </h3>
                     <span
                       v-if="seance.visio_enabled"
@@ -255,7 +255,7 @@
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
-                      {{ seance.enseignant?.nom || 'Non assigné' }}
+                      👤 {{ seance.enseignant?.nom || 'Enseignant non assigné' }}
                     </span>
                     <span class="flex items-center gap-1">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -712,7 +712,7 @@ export default {
 
     editLesson(lessonId) {
       // Rediriger vers la gestion des chapitres au lieu de l'ancien éditeur
-      this.$router.push({ name: 'LessonChapters', params: { id: lessonId } })
+      this.$router.push({ name: 'LessonChapters', params: { id: lessonId }, query: { edit: 'true' } })
     },
 
     async confirmDeleteLesson(lessonId) {
@@ -787,7 +787,9 @@ export default {
 
     formatDate(date) {
       if (!date) return 'Non défini'
-      return new Date(date).toLocaleDateString('fr-FR', {
+      const dateObj = new Date(date)
+      if (isNaN(dateObj.getTime())) return 'Date invalide'
+      return dateObj.toLocaleDateString('fr-FR', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
@@ -800,12 +802,15 @@ export default {
       if (!seance.programmation?.heure_debut || !seance.programmation?.heure_fin) return 0
       const debut = new Date(seance.programmation.heure_debut)
       const fin = new Date(seance.programmation.heure_fin)
+      if (isNaN(debut.getTime()) || isNaN(fin.getTime())) return 0
       return Math.round((fin - debut) / 60000) // millisecondes → minutes
     },
 
     formatTime(isoTimestamp) {
       if (!isoTimestamp) return 'N/A'
-      return new Date(isoTimestamp).toLocaleTimeString('fr-FR', {
+      const dateObj = new Date(isoTimestamp)
+      if (isNaN(dateObj.getTime())) return '--:--'
+      return dateObj.toLocaleTimeString('fr-FR', {
         hour: '2-digit',
         minute: '2-digit'
       })
@@ -1124,7 +1129,7 @@ export default {
 }
 
 .modal-content {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   max-width: 600px;
@@ -1138,13 +1143,13 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 24px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .modal-title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -1152,7 +1157,7 @@ export default {
   background: none;
   border: none;
   font-size: 1.5rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   cursor: pointer;
   padding: 0;
   width: 32px;
@@ -1165,8 +1170,8 @@ export default {
 }
 
 .modal-close:hover {
-  background-color: #f3f4f6;
-  color: #111827;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .modal-body {
@@ -1187,7 +1192,7 @@ export default {
 
 .form-label {
   font-weight: 500;
-  color: #374151;
+  color: var(--text-primary);
   font-size: 0.875rem;
 }
 
@@ -1201,12 +1206,12 @@ export default {
 .form-select {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
   font-size: 0.875rem;
   transition: all 0.2s;
-  background-color: #ffffff;
-  color: #1f2937;
+  background-color: var(--input-bg, var(--card-bg));
+  color: var(--text-primary);
 }
 
 .form-input:focus,
@@ -1224,13 +1229,13 @@ export default {
 
 .form-input::placeholder,
 .form-textarea::placeholder {
-  color: #9ca3af;
+  color: var(--text-muted, #9ca3af);
   opacity: 1;
 }
 
 .form-help {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -1267,13 +1272,13 @@ export default {
 }
 
 .btn-secondary {
-  background-color: #f3f4f6;
-  color: #374151;
-  border: 1px solid #d1d5db;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: #e5e7eb;
+  background-color: var(--bg-tertiary, var(--hover-bg));
 }
 
 .btn-secondary:disabled {

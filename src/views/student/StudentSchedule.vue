@@ -119,7 +119,7 @@
                     {{ seance.matiere?.nom || 'Matière' }}
                   </h3>
                   <p class="seance-subtitle">
-                    {{ seance.enseignant?.nom || 'Enseignant' }}
+                    👤 {{ seance.enseignant?.nom || 'Enseignant non assigné' }}
                   </p>
                 </div>
               </div>
@@ -146,10 +146,18 @@
             <!-- Info Grid -->
             <div class="seance-info-grid">
               <div class="info-item">
+                <span class="info-icon">📋</span>
+                <div>
+                  <p class="info-label">Séance</p>
+                  <p class="info-value">#{{ seance.id }}</p>
+                </div>
+              </div>
+
+              <div class="info-item">
                 <span class="info-icon">◷</span>
                 <div>
                   <p class="info-label">Date</p>
-                  <p class="info-value">{{ formatDate(seance.programmation?.date) }}</p>
+                  <p class="info-value">{{ formatDateFull(seance.programmation?.date) }}</p>
                 </div>
               </div>
 
@@ -164,18 +172,18 @@
               </div>
 
               <div class="info-item">
-                <span class="info-icon">▓</span>
+                <span class="info-icon">🏛️</span>
                 <div>
                   <p class="info-label">Classe</p>
                   <p class="info-value">{{ seance.classe?.nom || 'N/A' }}</p>
                 </div>
               </div>
 
-              <div class="info-item">
+              <div class="info-item" v-if="seance.salle">
                 <span class="info-icon">◈</span>
                 <div>
                   <p class="info-label">Salle</p>
-                  <p class="info-value">{{ seance.salle || 'N/A' }}</p>
+                  <p class="info-value">{{ seance.salle }}</p>
                 </div>
               </div>
             </div>
@@ -457,10 +465,11 @@ function getEmptyMessage() {
   }
 }
 
-// Format date
+// Format date (short version for tabs)
 function formatDate(dateStr) {
   if (!dateStr) return 'N/A'
   const date = new Date(dateStr)
+  if (isNaN(date.getTime())) return 'Date invalide'
   return date.toLocaleDateString('fr-FR', {
     weekday: 'short',
     day: 'numeric',
@@ -468,10 +477,24 @@ function formatDate(dateStr) {
   })
 }
 
+// Format date (full version for detail view)
+function formatDateFull(dateStr) {
+  if (!dateStr) return 'N/A'
+  const date = new Date(dateStr)
+  if (isNaN(date.getTime())) return 'Date invalide'
+  return date.toLocaleDateString('fr-FR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })
+}
+
 // Format time
 function formatTime(dateTimeStr) {
   if (!dateTimeStr) return 'N/A'
   const date = new Date(dateTimeStr)
+  if (isNaN(date.getTime())) return '--:--'
   return date.toLocaleTimeString('fr-FR', {
     hour: '2-digit',
     minute: '2-digit'

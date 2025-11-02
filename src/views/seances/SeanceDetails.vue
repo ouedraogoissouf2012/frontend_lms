@@ -51,7 +51,7 @@
               <div>
                 <p class="text-gray-600">Enseignant</p>
                 <p class="font-semibold text-gray-900">
-                  {{ participants.teacher ? `${participants.teacher.prenom || ''} ${participants.teacher.nom || ''}`.trim() || participants.teacher.nom || 'Non assigné' : 'Non assigné' }}
+                  {{ seance.enseignant?.nom || (participants?.teacher ? `${participants.teacher.prenom || ''} ${participants.teacher.nom || ''}`.trim() || participants.teacher.nom : 'Non assigné') }}
                 </p>
               </div>
               <div>
@@ -182,8 +182,8 @@
         </div>
       </div>
 
-      <!-- Participants -->
-      <div class="bg-white shadow rounded-lg p-6">
+      <!-- Participants (Teachers and Coordinators only) -->
+      <div v-if="isTeacher" class="bg-white shadow rounded-lg p-6">
         <h2 class="text-xl font-bold text-gray-900 mb-4">
           Participants ({{ participants.total }})
         </h2>
@@ -289,7 +289,19 @@ export default {
         if (data.success) {
           this.seance = data.data.seance
           this.visio = data.data.visio
-          this.participants = data.data.participants
+
+          // Les participants ne sont retournés QUE pour les enseignants/coordinateurs
+          // Pour les étudiants, participants sera undefined
+          if (data.data.participants) {
+            this.participants = data.data.participants
+          } else {
+            // Garder les valeurs par défaut pour les étudiants
+            this.participants = {
+              teacher: null,
+              students: [],
+              total: 0
+            }
+          }
 
           // Vérifier si la room est accessible (nouveau champ is_accessible)
           this.roomActive = this.visio?.window?.is_accessible || false
@@ -297,6 +309,7 @@ export default {
           console.log('📹 Visio:', this.visio?.enabled ? 'Activée' : 'Désactivée')
           console.log('📹 Status:', this.visio?.status || 'null')
           console.log('⏰ Fenêtre accessible:', this.roomActive)
+          console.log('👥 Participants inclus:', data.data.participants ? 'Oui (enseignant)' : 'Non (étudiant)')
         } else {
           this.error = 'Séance non trouvée'
         }
@@ -353,48 +366,45 @@ export default {
         return
       }
 
+      // Vérifier si la visio est activée ET active (status = 'active')
+      if (!this.visio || !this.visio.enabled) {
+        alert('La visioconférence n\'est pas activée pour cette séance.')
+        return
+      }
+
+      if (this.visio.status !== 'active') {
+        alert('La visioconférence n\'est pas encore active. Veuillez attendre que l\'enseignant démarre le cours.')
+        return
+      }
+
       this.joiningVisio = true
 
       try {
         console.log('👨‍🎓 Étudiant rejoint la visio...')
 
-        // 1. Valider l'accès
-        const validation = await lmsService.validateParticipant(
-          this.seanceId,
-          this.user.id
-        )
+        // Appeler l'endpoint /join qui enregistre la participation et vérifie l'accès
+        const response = await lmsService.joinVisio(this.seanceId)
 
-        console.log('✅ Validation:', validation)
+        console.log('✅ Réponse join:', response)
 
-        if (!validation.success || !validation.authorized) {
-          // Messages d'erreur personnalisés selon la raison
-          const errorMessages = {
-            'visio_not_enabled': 'La visioconférence n\'est pas activée pour cette séance.',
-            'visio_not_started': 'La visioconférence n\'a pas encore démarré. Veuillez attendre que l\'enseignant démarre le cours.',
-            'invalid_seance_data': 'Données de séance incomplètes. Veuillez contacter l\'administrateur.',
-            'seance_not_found': 'Cette séance n\'existe pas dans le système. Veuillez contacter l\'administrateur.',
-            'not_enrolled': 'Vous n\'êtes pas inscrit dans la classe de cette séance. Seuls les étudiants inscrits peuvent rejoindre le cours.',
-            'no_classe_id': 'Classe non définie pour cette séance. Veuillez contacter l\'administrateur.',
-            'klassci_api_error': 'Erreur de communication avec le système. Veuillez réessayer dans quelques instants.',
-            'verification_error': 'Erreur lors de la vérification de votre inscription. Veuillez réessayer.'
-          }
-
-          const reason = validation.reason || 'unknown'
-          const message = validation.message || errorMessages[reason] || 'Accès refusé'
-
-          alert(`❌ Accès refusé\n\n${message}`)
+        if (!response.success) {
+          alert(response.message || 'Vous n\'êtes pas autorisé à rejoindre cette visio')
           return
         }
 
-        // 2. Générer lien Jitsi participant (sans modération)
-        const roomName = this.visio.room_id || `seance_${this.seanceId}`
+        // Récupérer le room_id depuis la réponse
+        const roomId = response.data.visio_room_id || this.visio.room_id || `seance_${this.seanceId}`
+
+        // Générer lien Jitsi
         const displayName = encodeURIComponent(this.user.name)
-        const link = `https://meet.jit.si/${roomName}#userInfo.displayName=${displayName}`
+        const link = `https://meet.jit.si/${roomId}#config.prejoinConfig.enabled=false&userInfo.displayName=${displayName}`
 
         console.log('🔗 Lien Jitsi:', link)
 
-        // 3. Ouvrir Jitsi
+        // Ouvrir Jitsi
         window.open(link, '_blank')
+
+        console.log('✅ Étudiant a rejoint la visio et participation enregistrée')
       } catch (error) {
         console.error('❌ Erreur rejoindre visio:', error)
 

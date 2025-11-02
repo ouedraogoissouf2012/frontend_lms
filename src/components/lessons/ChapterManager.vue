@@ -22,7 +22,7 @@
       >
         <div class="chapter-header-bar">
           <div class="chapter-number-badge">Chapitre {{ index + 1 }}</div>
-          <div v-if="!chapter.isEditing" class="chapter-actions-inline">
+          <div v-if="!chapter.isEditing && !readonly" class="chapter-actions-inline">
             <button @click="editChapter(chapter)" class="btn-edit" title="Modifier">
               Modifier
             </button>
@@ -60,22 +60,11 @@
           <!-- Content Editor based on type -->
           <div class="form-field">
             <!-- Text Editor -->
-            <div v-if="chapter.content_type === 'text'" class="editor-container">
-              <div class="editor-toolbar">
-                <button type="button" class="toolbar-btn" title="Gras">B</button>
-                <button type="button" class="toolbar-btn" title="Italique">I</button>
-                <button type="button" class="toolbar-btn" title="Liste">≡</button>
-                <button type="button" class="toolbar-btn" title="Lien">🔗</button>
-              </div>
-              <textarea
+            <div v-if="chapter.content_type === 'text'">
+              <TipTapEditor
                 v-model="chapter.content"
-                class="content-textarea"
-                rows="10"
-                placeholder="Rédigez votre contenu ici..."
-              ></textarea>
-              <div class="editor-footer">
-                <span class="word-count">Nombre de mots : {{ getWordCount(chapter.content) }}</span>
-              </div>
+                placeholder="Rédigez votre contenu ici... (Markdown supporté)"
+              />
             </div>
 
             <!-- Video URL -->
@@ -137,14 +126,19 @@
             <span class="meta-type">{{ getContentTypeLabel(chapter.content_type) }}</span>
             <span v-if="chapter.slides_count" class="meta-info">{{ chapter.slides_count }} slides</span>
           </div>
+          
+          <!-- Affichage du contenu texte -->
           <p v-if="chapter.content && chapter.content_type === 'text'" class="chapter-preview">
             {{ getContentPreview(chapter.content) }}
           </p>
+          
+          <!-- Affichage du contenu Word (HTML) -->
+          <div v-if="chapter.content && chapter.content_type === 'word'" class="chapter-word-content" v-html="chapter.content"></div>
         </div>
       </div>
 
       <!-- Add Chapter Button (at the end) -->
-      <div class="add-chapter-section">
+      <div v-if="!readonly" class="add-chapter-section">
         <button @click="addChapter" class="btn-add-chapter-professional">
           + Ajouter un chapitre
         </button>
@@ -167,13 +161,21 @@
 
 <script>
 import api from '@/services/api'
+import TipTapEditor from '@/components/common/TipTapEditor.vue'
 
 export default {
   name: 'ChapterManager',
+  components: {
+    TipTapEditor
+  },
   props: {
     lessonId: {
       type: Number,
       required: true
+    },
+    readonly: {
+      type: Boolean,
+      default: false
     }
   },
 
@@ -372,11 +374,6 @@ export default {
       return labels[type] || type
     },
 
-    getWordCount(text) {
-      if (!text) return 0
-      return text.trim().split(/\s+/).length
-    },
-
     getContentPreview(content) {
       if (!content) return ''
       return content.length > 150 ? content.substring(0, 150) + '...' : content
@@ -514,7 +511,7 @@ export default {
 
 /* Form Professional */
 .chapter-form-professional {
-  padding: 24px;
+  padding: 2px;
 }
 
 .form-field {
@@ -575,10 +572,34 @@ export default {
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
+/* Options styling - Mode clair par défaut */
+.content-type-select option {
+  background-color: #ffffff;
+  color: #111827;
+  padding: 10px;
+}
+
+/* Mode sombre avec data-theme */
+[data-theme="dark"] .content-type-select {
+  background-color: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .content-type-select option {
+  background-color: #1f2937;
+  color: #f9fafb;
+}
+
+/* Mode sombre avec prefers-color-scheme (fallback) */
 @media (prefers-color-scheme: dark) {
   .content-type-select {
     background-color: rgba(255, 255, 255, 0.05);
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .content-type-select option {
+    background-color: #1f2937;
+    color: #f9fafb;
   }
 }
 
@@ -589,88 +610,6 @@ export default {
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 0 5px rgba(16, 185, 129, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* Editor Container */
-.editor-container {
-  border: 3px solid var(--border-color);
-  border-radius: 8px;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.editor-container:focus-within {
-  border-color: var(--color-primary, #10b981);
-  box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.editor-toolbar {
-  display: flex;
-  gap: 4px;
-  padding: 8px;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.toolbar-btn {
-  padding: 6px 12px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background-color: var(--card-bg);
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.toolbar-btn:hover {
-  background-color: var(--hover-bg);
-  color: var(--text-primary);
-}
-
-.content-textarea {
-  width: 100%;
-  padding: 16px;
-  font-size: 0.875rem;
-  line-height: 1.6;
-  border: none;
-  resize: vertical;
-  font-family: inherit;
-  background-color: rgba(0, 0, 0, 0.03);
-  color: var(--text-primary);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
-}
-
-@media (prefers-color-scheme: dark) {
-  .content-textarea {
-    background-color: rgba(255, 255, 255, 0.05);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
-  }
-}
-
-.content-textarea:focus {
-  outline: none;
-  background-color: rgba(16, 185, 129, 0.05);
-}
-
-.content-textarea::placeholder {
-  color: var(--text-muted, #9ca3af);
-  opacity: 1;
-}
-
-.editor-footer {
-  padding: 8px 16px;
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border-color);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.word-count {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-}
 
 /* URL Input */
 .url-input {
@@ -834,6 +773,29 @@ export default {
   color: var(--text-secondary);
   line-height: 1.6;
   margin: 0;
+}
+
+/* Word Content Display */
+.chapter-word-content {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  line-height: 1.6;
+  margin: 12px 0;
+  padding: 16px;
+  background: var(--bg-secondary, #f9fafb);
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.chapter-word-content p {
+  margin: 0.5em 0;
+}
+
+.chapter-word-content h1, .chapter-word-content h2, .chapter-word-content h3 {
+  margin-top: 1em;
+  margin-bottom: 0.5em;
 }
 
 /* Add Chapter Section */
