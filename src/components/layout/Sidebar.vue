@@ -174,6 +174,11 @@ export default {
           to: '/student/evaluations-list'
         })
         menu.push({
+          icon: '★',
+          label: 'Mes Notes',
+          to: '/student/grades'
+        })
+        menu.push({
           icon: '◘',
           label: 'Forum',
           to: '/forum'
@@ -243,8 +248,7 @@ export default {
           label: 'Évaluations',
           children: [
             { icon: '✚', label: 'Créer', to: '/teacher/evaluations/create' },
-            { icon: '▤', label: 'Mes Évaluations', to: '/teacher/evaluations' },
-            { icon: '✓', label: 'Corrections', to: '/teacher/evaluations/corrections' }
+            { icon: '▤', label: 'Mes Évaluations', to: '/teacher/evaluations' }
           ]
         })
         }

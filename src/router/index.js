@@ -25,12 +25,15 @@ import TeacherEvaluations from '@/views/evaluations/TeacherEvaluations.vue'
 import CreateQuestions from '@/views/evaluations/CreateQuestions.vue'
 import StudentEvaluations from '@/views/evaluations/StudentEvaluations.vue'
 import TakeEvaluation from '@/views/evaluations/TakeEvaluation.vue'
+import PreviewEvaluation from '@/views/evaluations/PreviewEvaluation.vue'
+import EvaluationResults from '@/views/evaluations/EvaluationResults.vue'
 
 // Import Matières, Classes, Séances et Coordinateur
 import MatiereDetails from '@/views/matieres/MatiereDetails.vue'
 import ClasseDetails from '@/views/classes/ClasseDetails.vue'
 import SeanceDetails from '@/views/seances/SeanceDetails.vue'
 import SeanceManagement from '@/views/coordinateur/SeanceManagement.vue'
+import CoordinatorEvaluations from '@/views/coordinateur/CoordinatorEvaluations.vue'
 import TeacherSeances from '@/views/TeacherSeances.vue'
 
 // Import des nouvelles vues Enseignant et Admin
@@ -257,7 +260,7 @@ const routes = [
   },
   // Corrections Évaluations
   {
-    path: '/teacher/evaluations/corrections',
+    path: '/teacher/evaluations/:id/corrections',
     name: 'EvaluationCorrections',
     component: EvaluationCorrections,
     meta: {
@@ -300,6 +303,17 @@ const routes = [
       requiresAuth: true,
       roles: ['etudiant'],
       title: 'Mes Évaluations'
+    }
+  },
+  // Notes - Étudiant (toutes les notes groupées par matière)
+  {
+    path: '/student/grades',
+    name: 'student-grades',
+    component: () => import('@/views/student/StudentGrades.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['etudiant'],
+      title: 'Mes Notes'
     }
   },
   // Visioconférences - Étudiant (ANCIEN - redirige vers /student/schedule?filter=visio)
@@ -485,6 +499,24 @@ const routes = [
       roles: ['etudiant']
     }
   },
+  {
+    path: '/student/evaluations/:id/results',
+    name: 'EvaluationResults',
+    component: EvaluationResults,
+    meta: {
+      requiresAuth: true,
+      roles: ['etudiant']
+    }
+  },
+  {
+    path: '/teacher/evaluations/:id/preview',
+    name: 'PreviewEvaluation',
+    component: PreviewEvaluation,
+    meta: {
+      requiresAuth: true,
+      roles: ['enseignant', 'coordinateur']
+    }
+  },
   // Matières - Navigation hiérarchique (AVEC LAYOUT MODERNE)
   {
     path: '/matieres/:id',
@@ -513,6 +545,17 @@ const routes = [
     component: SeanceDetails,
     meta: { requiresAuth: true }
   },
+  // Coordinateur - Gestion des évaluations
+  {
+    path: '/coordinateur/evaluations',
+    name: 'coordinator-evaluations',
+    component: CoordinatorEvaluations,
+    meta: {
+      requiresAuth: true,
+      roles: ['coordinateur', 'superAdmin']
+    }
+  },
+
   // Coordinateur - Gestion des séances et visio
   {
     path: '/coordinateur/seances',

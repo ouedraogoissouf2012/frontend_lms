@@ -26,59 +26,103 @@
         </button>
       </div>
 
-      <!-- Evaluations List -->
-      <div v-if="!loading && evaluations.length > 0" class="evaluations-list">
-        <div
-          v-for="evaluation in evaluations"
-          :key="evaluation.id"
-          class="evaluation-card"
-          @click="navigateToEvaluation(evaluation)"
-        >
-          <div class="evaluation-header">
-            <div class="evaluation-info">
-              <h3 class="evaluation-title">{{ evaluation.titre || 'Évaluation' }}</h3>
-              <p class="evaluation-matiere">
-                {{ evaluation.matiere?.name || evaluation.matiere?.nom || 'Matière inconnue' }}
-              </p>
+      <!-- Section: Évaluations en cours -->
+      <div v-if="!loading && evaluationsEnCours.length > 0" class="section">
+        <h2 class="section-title">📝 Évaluations à faire</h2>
+        <div class="evaluations-list">
+          <div
+            v-for="evaluation in evaluationsEnCours"
+            :key="evaluation.id"
+            class="evaluation-card"
+            @click="navigateToEvaluation(evaluation)"
+          >
+            <div class="evaluation-header">
+              <div class="evaluation-info">
+                <h3 class="evaluation-title">{{ evaluation.titre || 'Évaluation' }}</h3>
+                <p class="evaluation-matiere">
+                  {{ evaluation.matiere_nom || 'Matière inconnue' }} - {{ evaluation.classe_nom || 'Classe' }}
+                </p>
+              </div>
+              <span
+                :class="[
+                  'evaluation-status',
+                  isEvaluationAvailable(evaluation) ? 'status-active' : 'status-planned'
+                ]"
+              >
+                {{ isEvaluationAvailable(evaluation) ? 'En cours' : 'Programmée' }}
+              </span>
             </div>
-            <span
-              :class="getStatusClass(evaluation.statut)"
-              class="evaluation-status"
-            >
-              {{ getStatusLabel(evaluation.statut) }}
-            </span>
-          </div>
 
-          <div class="evaluation-details">
-            <div class="detail-item">
-              <CalendarIcon class="detail-icon" />
-              <span>{{ formatDate(evaluation.date_debut) }}</span>
+            <div class="evaluation-details">
+              <div class="detail-item">
+                <CalendarIcon class="detail-icon" />
+                <span>{{ formatDate(evaluation.date_evaluation) }}</span>
+              </div>
+              <div class="detail-item" v-if="evaluation.duree_minutes">
+                <ClockIcon class="detail-icon" />
+                <span>{{ evaluation.duree_minutes }} min</span>
+              </div>
+              <div class="detail-item">
+                <DocumentTextIcon class="detail-icon" />
+                <span>Coef. {{ evaluation.coefficient }}</span>
+              </div>
             </div>
-            <div class="detail-item" v-if="evaluation.duree_minutes">
-              <ClockIcon class="detail-icon" />
-              <span>{{ evaluation.duree_minutes }} min</span>
-            </div>
-            <div class="detail-item" v-if="evaluation.note_totale">
-              <DocumentTextIcon class="detail-icon" />
-              <span>{{ evaluation.note_totale }} points</span>
+
+            <div class="evaluation-actions">
+              <button
+                :class="[
+                  isEvaluationAvailable(evaluation) ? 'btn-primary' : 'btn-disabled'
+                ]"
+                :disabled="!isEvaluationAvailable(evaluation)"
+              >
+                <PlayIcon class="w-5 h-5" />
+                <span>{{ isEvaluationAvailable(evaluation) ? 'Commencer l\'évaluation' : 'Pas encore disponible' }}</span>
+              </button>
             </div>
           </div>
+        </div>
+      </div>
 
-          <div class="evaluation-actions">
-            <button
-              v-if="evaluation.statut === 'en_cours' || evaluation.statut === 'planifie'"
-              class="btn-primary"
-            >
-              <PlayIcon class="w-5 h-5" />
-              <span>Commencer</span>
-            </button>
-            <button
-              v-else-if="evaluation.statut === 'termine'"
-              class="btn-secondary"
-            >
-              <EyeIcon class="w-5 h-5" />
-              <span>Voir résultat</span>
-            </button>
+      <!-- Section: Évaluations terminées -->
+      <div v-if="!loading && evaluationsTerminees.length > 0" class="section">
+        <h2 class="section-title">✅ Évaluations terminées</h2>
+        <div class="evaluations-list">
+          <div
+            v-for="evaluation in evaluationsTerminees"
+            :key="evaluation.id"
+            class="evaluation-card"
+            @click="navigateToEvaluation(evaluation)"
+          >
+            <div class="evaluation-header">
+              <div class="evaluation-info">
+                <h3 class="evaluation-title">{{ evaluation.titre || 'Évaluation' }}</h3>
+                <p class="evaluation-matiere">
+                  {{ evaluation.matiere_nom || 'Matière inconnue' }} - {{ evaluation.classe_nom || 'Classe' }}
+                </p>
+              </div>
+              <span class="evaluation-status status-completed">
+                Terminée
+              </span>
+            </div>
+
+            <div class="evaluation-details">
+              <div class="detail-item">
+                <CalendarIcon class="detail-icon" />
+                <span>{{ formatDate(evaluation.date_evaluation) }}</span>
+              </div>
+              <div class="detail-item" v-if="evaluation.student_submission">
+                <span class="note-badge">
+                  {{ evaluation.student_submission.note_sur_20 }}/20
+                </span>
+              </div>
+            </div>
+
+            <div class="evaluation-actions">
+              <button class="btn-secondary">
+                <EyeIcon class="w-5 h-5" />
+                <span>Voir mes résultats</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -109,7 +153,7 @@
 <script>
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
-import { klassciService } from '@/services/klassci'
+import api from '@/services/api'
 import {
   DocumentTextIcon,
   CalendarIcon,
@@ -136,6 +180,14 @@ export default {
       error: null
     }
   },
+  computed: {
+    evaluationsEnCours() {
+      return this.evaluations.filter(e => !e.student_submission || (e.student_submission.status !== 'soumis' && e.student_submission.status !== 'corrige'))
+    },
+    evaluationsTerminees() {
+      return this.evaluations.filter(e => e.student_submission && (e.student_submission.status === 'soumis' || e.student_submission.status === 'corrige'))
+    }
+  },
   methods: {
     async loadEvaluations() {
       this.loading = true
@@ -143,7 +195,8 @@ export default {
 
       try {
         console.log('[EVALUATIONS] Chargement des évaluations...')
-        this.evaluations = await klassciService.getMyEvaluations()
+        const response = await api.get('/evaluations')
+        this.evaluations = response.data || []
         console.log('[OK] Évaluations chargées:', this.evaluations)
       } catch (err) {
         console.error('[ERREUR] Erreur chargement évaluations:', err)
@@ -154,14 +207,18 @@ export default {
     },
 
     navigateToEvaluation(evaluation) {
-      if (evaluation.statut === 'en_cours' || evaluation.statut === 'planifie') {
+      // Si l'évaluation est terminée (soumise), aller vers les résultats
+      if (evaluation.student_submission && (evaluation.student_submission.status === 'soumis' || evaluation.student_submission.status === 'corrige')) {
+        this.$router.push({
+          name: 'EvaluationResults',
+          params: { id: evaluation.id }
+        })
+      }
+      // Sinon, vérifier si l'évaluation peut être démarrée
+      else if (this.isEvaluationAvailable(evaluation) && evaluation.is_published && evaluation.status !== 'terminee') {
         this.$router.push({
           name: 'TakeEvaluation',
           params: { id: evaluation.id }
-        })
-      } else if (evaluation.statut === 'termine') {
-        this.$router.push({
-          name: 'StudentEvaluations'
         })
       }
     },
@@ -178,22 +235,11 @@ export default {
       })
     },
 
-    getStatusLabel(statut) {
-      const labels = {
-        'planifie': 'Planifiée',
-        'en_cours': 'En cours',
-        'termine': 'Terminée'
-      }
-      return labels[statut] || statut
-    },
-
-    getStatusClass(statut) {
-      const classes = {
-        'planifie': 'status-planned',
-        'en_cours': 'status-active',
-        'termine': 'status-completed'
-      }
-      return classes[statut] || ''
+    isEvaluationAvailable(evaluation) {
+      if (!evaluation.date_evaluation) return true
+      const now = new Date()
+      const evaluationDate = new Date(evaluation.date_evaluation)
+      return now >= evaluationDate
     }
   },
   mounted() {
@@ -223,6 +269,17 @@ export default {
 .page-subtitle {
   color: var(--text-secondary);
   font-size: 1rem;
+}
+
+.section {
+  margin-bottom: 3rem;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 1.5rem 0;
 }
 
 .evaluations-list {
@@ -310,6 +367,15 @@ export default {
   height: 1.25rem;
 }
 
+.note-badge {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
 .evaluation-actions {
   display: flex;
   gap: 1rem;
@@ -344,6 +410,25 @@ export default {
 
 .btn-secondary:hover {
   background: var(--bg-tertiary);
+}
+
+.btn-disabled {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: not-allowed;
+  transition: all 0.2s;
+  border: none;
+  background: var(--bg-secondary);
+  color: var(--text-tertiary);
+  opacity: 0.6;
+}
+
+.btn-disabled:hover {
+  transform: none;
 }
 
 .empty-state {
