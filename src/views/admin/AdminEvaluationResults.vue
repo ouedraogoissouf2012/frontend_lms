@@ -1,898 +1,808 @@
 <template>
   <DashboardLayout>
-    <div class="results-container">
-      <!-- En-tête -->
-      <div class="results-header">
-        <div class="header-title-wrapper">
-          <h1 class="header-title">
-            <span class="title-icon">📊</span>
-            Résultats des Évaluations
-          </h1>
-          <p class="header-subtitle">Consultez les résultats détaillés par classe et évaluation</p>
-        </div>
-      </div>
-
-      <!-- Filtres de sélection -->
-      <div class="filters-section">
-        <div class="filters-row">
-          <!-- Sélection Classe -->
-          <div class="filter-group">
-            <label class="filter-label">
-              <span class="label-icon">🏫</span>
-              Classe
-            </label>
-            <select v-model="selectedClasseId" @change="onClasseChange" class="filter-select-input">
-              <option value="">Sélectionner une classe</option>
-              <option v-for="classe in classes" :key="classe.id" :value="classe.id">
-                {{ classe.name || classe.libelle }}
-              </option>
-            </select>
-          </div>
-
-          <!-- Sélection Évaluation -->
-          <div class="filter-group">
-            <label class="filter-label">
-              <span class="label-icon">📝</span>
-              Évaluation
-            </label>
-            <select
-              v-model="selectedEvaluationId"
-              @change="loadResults"
-              :disabled="!selectedClasseId || loadingEvaluations"
-              class="filter-select-input"
-            >
-              <option value="">{{ loadingEvaluations ? 'Chargement...' : 'Sélectionner une évaluation' }}</option>
-              <option v-for="evaluation in evaluations" :key="evaluation.id" :value="evaluation.id">
-                {{ evaluation.titre }}
-              </option>
-            </select>
-          </div>
-
-          <!-- Actions de réinitialisation -->
-          <div class="filter-group-action">
-            <button
-              v-if="selectedClasseId || selectedEvaluationId"
-              @click="resetFilters"
-              class="btn-reset-filters"
-              title="Réinitialiser les filtres"
-            >
-              <span>🔄</span>
-              Réinitialiser
-            </button>
+    <div class="evaluations-container">
+      <!-- Header -->
+      <div class="page-header">
+        <div class="header-content">
+          <DocumentTextIcon class="page-icon text-blue-600" />
+          <div>
+            <h1 class="page-title">Résultats des Évaluations</h1>
+            <p class="page-subtitle">Consultez les résultats détaillés par classe et évaluation</p>
           </div>
         </div>
       </div>
 
-      <!-- Loading -->
+      <!-- Loading State -->
       <div v-if="loading" class="loading-state">
-        <div class="loading-spinner">⏳</div>
-        <p class="loading-text">Chargement des résultats...</p>
+        <SkeletonLoader type="card" height="100px" />
+        <SkeletonLoader type="card" height="100px" />
+        <SkeletonLoader type="card" height="100px" />
       </div>
 
-      <!-- Erreur -->
+      <!-- Error State -->
       <div v-else-if="error" class="error-state">
-        <div class="error-icon">⚠️</div>
-        <h3 class="error-title">Erreur de Chargement</h3>
-        <p class="error-message">{{ error }}</p>
-        <button @click="loadResults" class="error-retry-btn">
-          <span class="filter-icon">🔄</span>
+        <div class="error-content">
+          <span class="error-icon">⚠</span>
+          <div>
+            <h3 class="error-title">Erreur de chargement</h3>
+            <p class="error-message">{{ error }}</p>
+          </div>
+        </div>
+        <button @click="loadData" class="btn-retry">
+          <ArrowPathIcon class="w-5 h-5" />
           Réessayer
         </button>
       </div>
 
-      <!-- Résultats -->
-      <div v-else-if="results">
-        <!-- Statistiques -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <div class="stat-card border-l-blue">
-            <div class="stat-header">
-              <span class="stat-icon">👥</span>
-              <p class="stat-label">Total Étudiants</p>
+      <template v-else>
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon-wrapper bg-blue-100">
+              <DocumentTextIcon class="stat-icon text-blue-600" />
             </div>
-            <p class="stat-value text-blue-400">{{ statistics.total_etudiants }}</p>
+            <div class="stat-content">
+              <p class="stat-label">Total</p>
+              <p class="stat-value">{{ stats.total }}</p>
+            </div>
           </div>
 
-          <div class="stat-card border-l-green">
-            <div class="stat-header">
-              <span class="stat-icon">✅</span>
-              <p class="stat-label">Ont Soumis</p>
+          <div class="stat-card">
+            <div class="stat-icon-wrapper bg-green-100">
+              <PlayIcon class="stat-icon text-green-600" />
             </div>
-            <p class="stat-value text-green-400">{{ statistics.etudiants_soumis }}</p>
-            <p class="text-xs text-gray-500 mt-1">{{ statistics.taux_participation }}% de participation</p>
+            <div class="stat-content">
+              <p class="stat-label">En cours</p>
+              <p class="stat-value">{{ stats.enCours }}</p>
+            </div>
           </div>
 
-          <div class="stat-card border-l-orange">
-            <div class="stat-header">
-              <span class="stat-icon">📈</span>
-              <p class="stat-label">Moyenne Classe</p>
+          <div class="stat-card">
+            <div class="stat-icon-wrapper bg-purple-100">
+              <CheckCircleIcon class="stat-icon text-purple-600" />
             </div>
-            <p class="stat-value text-orange-400">
-              {{ statistics.moyenne_classe !== null ? statistics.moyenne_classe + '/20' : 'N/A' }}
-            </p>
+            <div class="stat-content">
+              <p class="stat-label">Terminées</p>
+              <p class="stat-value">{{ stats.terminees }}</p>
+            </div>
           </div>
 
-          <div class="stat-card border-l-purple">
-            <div class="stat-header">
-              <span class="stat-icon">🎯</span>
-              <p class="stat-label">Notes Min/Max</p>
+          <div class="stat-card">
+            <div class="stat-icon-wrapper bg-indigo-100">
+              <ComputerDesktopIcon class="stat-icon text-indigo-600" />
             </div>
-            <p class="text-xl font-bold text-purple-400">
-              {{ statistics.note_min !== null ? statistics.note_min : 'N/A' }} -
-              {{ statistics.note_max !== null ? statistics.note_max : 'N/A' }}
-            </p>
-          </div>
-        </div>
-
-        <!-- Info Évaluation -->
-        <div class="widget-card mb-6 border-l-4 border-blue-500">
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <p class="text-xs text-gray-500 flex items-center gap-1">
-                <span>📝</span> Évaluation
-              </p>
-              <p class="font-medium text-gray-200">{{ evaluation.titre }}</p>
-            </div>
-            <div>
-              <p class="text-xs text-gray-500 flex items-center gap-1">
-                <span>📚</span> Matière
-              </p>
-              <p class="font-medium text-gray-200">{{ evaluation.matiere?.name || 'N/A' }}</p>
-            </div>
-            <div>
-              <p class="text-xs text-gray-500 flex items-center gap-1">
-                <span>🏫</span> Classe
-              </p>
-              <p class="font-medium text-gray-200">{{ evaluation.classe?.name || evaluation.classe?.libelle || 'N/A' }}</p>
-            </div>
-            <div>
-              <p class="text-xs text-gray-500 flex items-center gap-1">
-                <span>💯</span> Barème
-              </p>
-              <p class="font-medium text-gray-200">{{ evaluation.bareme || 20 }}/20</p>
+            <div class="stat-content">
+              <p class="stat-label">En ligne</p>
+              <p class="stat-value">{{ stats.avecVersionEnLigne }}</p>
             </div>
           </div>
         </div>
 
-        <!-- Filtres de recherche et Export -->
+        <!-- Filters Card -->
         <div class="filters-card">
-          <div class="filters-grid">
-            <!-- Recherche -->
-            <div class="filter-item-large">
-              <label class="filter-label">
-                <span class="filter-icon">🔍</span>
-                Recherche
-              </label>
-              <input
-                v-model="searchQuery"
-                type="text"
-                placeholder="Nom de l'étudiant..."
-                class="filter-input"
-              />
-            </div>
-
-            <!-- Filtre par statut -->
+          <div class="filters-grid-coordinator">
+            <!-- Filtre Enseignant (NOUVEAU pour coordinateur) -->
             <div class="filter-item">
               <label class="filter-label">
-                <span class="filter-icon">🎯</span>
-                Statut
+                <UserIcon class="w-4 h-4" />
+                Enseignant
               </label>
-              <select v-model="filterStatus" class="filter-select">
-                <option value="">Tous les statuts</option>
-                <option value="soumis">✅ Soumis</option>
-                <option value="en_cours">⏳ En cours</option>
-                <option value="non_passee">❌ Non passée</option>
+              <select v-model="filters.enseignant_id" @change="applyFilters" class="filter-select">
+                <option value="">Tous les enseignants</option>
+                <option v-for="enseignant in enseignants" :key="enseignant.klassci_id" :value="enseignant.klassci_id">
+                  {{ enseignant.name }}
+                </option>
               </select>
             </div>
 
-            <!-- Boutons Export -->
-            <div class="filter-actions" style="gap: 0.5rem;">
-              <button @click="exportToExcel" class="btn-success flex items-center gap-2">
-                <span>📥</span>
-                Excel
-              </button>
-              <button @click="exportToPDF" class="btn-danger flex items-center gap-2">
-                <span>📄</span>
-                PDF
+            <!-- Filtre Classe -->
+            <div class="filter-item">
+              <label class="filter-label">
+                <UserGroupIcon class="w-4 h-4" />
+                Classe
+              </label>
+              <select v-model="filters.classe_id" @change="applyFilters" class="filter-select">
+                <option value="">Toutes les classes</option>
+                <option v-for="classe in classes" :key="classe.id" :value="classe.id">
+                  {{ classe.name || classe.libelle }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Filtre Matière -->
+            <div class="filter-item">
+              <label class="filter-label">
+                <BookOpenIcon class="w-4 h-4" />
+                Matière
+              </label>
+              <select v-model="filters.matiere_id" @change="applyFilters" class="filter-select">
+                <option value="">Toutes les matières</option>
+                <option v-for="matiere in matieres" :key="matiere.id" :value="matiere.id">
+                  {{ matiere.name || matiere.nom }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Filtre Statut -->
+            <div class="filter-item">
+              <label class="filter-label">
+                <FlagIcon class="w-4 h-4" />
+                Statut
+              </label>
+              <select v-model="filters.statut" @change="applyFilters" class="filter-select">
+                <option value="">Tous les statuts</option>
+                <option value="brouillon">Brouillon</option>
+                <option value="planifiee">Planifiée</option>
+                <option value="en_cours">En cours</option>
+                <option value="terminee">Terminée</option>
+              </select>
+            </div>
+
+            <!-- Reset -->
+            <div class="filter-item">
+              <label class="filter-label">&nbsp;</label>
+              <button @click="resetFilters" class="filter-reset-btn">
+                <XMarkIcon class="w-4 h-4" />
+                Réinitialiser
               </button>
             </div>
           </div>
         </div>
 
-        <!-- Tableau des résultats -->
-        <div class="widget-card overflow-hidden">
-          <div class="overflow-x-auto">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th @click="sortBy('etudiant_nom_complet')" class="cursor-pointer">
-                    Étudiant
-                    <span v-if="sortColumn === 'etudiant_nom_complet'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
-                  </th>
-                  <th @click="sortBy('note')" class="cursor-pointer">
-                    Note /20
-                    <span v-if="sortColumn === 'note'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
-                  </th>
-                  <th @click="sortBy('score')" class="cursor-pointer">
-                    Score
-                    <span v-if="sortColumn === 'score'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
-                  </th>
-                  <th @click="sortBy('status')" class="cursor-pointer">
-                    Statut
-                    <span v-if="sortColumn === 'status'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
-                  </th>
-                  <th @click="sortBy('submitted_at')" class="cursor-pointer">
-                    Date Soumission
-                    <span v-if="sortColumn === 'submitted_at'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
-                  </th>
-                  <th>Tentative</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="resultat in filteredResults" :key="resultat.etudiant_id">
-                  <td>
-                    <div class="font-medium text-gray-200">{{ resultat.etudiant_nom_complet }}</div>
-                  </td>
-                  <td>
-                    <div class="font-bold" :class="getNoteColor(resultat.note)">
-                      {{ resultat.note !== null ? resultat.note + '/20' : '-' }}
-                    </div>
-                  </td>
-                  <td>
-                    <div class="text-gray-300">
-                      {{ resultat.score !== null ? resultat.score + ' pts' : '-' }}
-                    </div>
-                  </td>
-                  <td>
-                    <span class="badge" :class="getStatusClass(resultat.status)">
-                      {{ getStatusText(resultat.status) }}
-                    </span>
-                  </td>
-                  <td class="text-gray-400">
-                    {{ resultat.submitted_at ? formatDate(resultat.submitted_at) : '-' }}
-                  </td>
-                  <td class="text-gray-400">
-                    {{ resultat.attempt || '-' }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+        <!-- Evaluations List -->
+        <div class="evaluations-list">
+          <div v-if="filteredEvaluations.length === 0" class="empty-state">
+            <DocumentTextIcon class="empty-icon" />
+            <p class="empty-text">Aucune évaluation trouvée</p>
           </div>
 
-          <!-- Message si pas de résultats -->
-          <div v-if="filteredResults.length === 0" class="empty-state-small">
-            <div class="empty-icon-small">🔍</div>
-            <p class="empty-message-small">Aucun résultat ne correspond à vos critères de recherche</p>
+          <div v-for="evaluation in filteredEvaluations" :key="evaluation.id" class="evaluation-card">
+            <div class="evaluation-header">
+              <div class="evaluation-title-section">
+                <h3 class="evaluation-title">{{ evaluation.titre }}</h3>
+                <div class="evaluation-meta">
+                  <span class="meta-badge meta-enseignant">
+                    <UserIcon class="w-3 h-3" />
+                    {{ evaluation.enseignant_nom || 'Ens. inconnu' }}
+                  </span>
+                  <span class="meta-badge meta-matiere">
+                    <BookOpenIcon class="w-3 h-3" />
+                    {{ evaluation.matiere?.nom || 'Matière inconnue' }}
+                  </span>
+                  <span class="meta-badge meta-classe">
+                    <UserGroupIcon class="w-3 h-3" />
+                    {{ evaluation.classe?.nom || evaluation.classe?.libelle || 'Classe inconnue' }}
+                  </span>
+                </div>
+              </div>
+              <span :class="getStatusClass(evaluation.status)" class="status-badge">
+                {{ getStatusLabel(evaluation.status) }}
+              </span>
+            </div>
+
+            <div class="evaluation-stats">
+              <div class="stat-item">
+                <CalendarIcon class="stat-item-icon" />
+                <span>{{ formatDate(evaluation.date_evaluation) }}</span>
+              </div>
+              <div class="stat-item">
+                <ClockIcon class="stat-item-icon" />
+                <span>{{ evaluation.duree_minutes }} min</span>
+              </div>
+              <div class="stat-item">
+                <DocumentTextIcon class="stat-item-icon" />
+                <span>{{ evaluation.questions_count || 0 }} questions</span>
+              </div>
+              <div class="stat-item">
+                <UserGroupIcon class="stat-item-icon" />
+                <span>{{ evaluation.submissions_count || 0 }} soumissions</span>
+              </div>
+            </div>
+
+            <div class="evaluation-actions">
+              <button @click="viewResults(evaluation.id)" class="btn-primary">
+                <ChartBarIcon class="w-4 h-4" />
+                Voir résultats détaillés
+              </button>
+              <button
+                @click="viewDetails(evaluation.id)"
+                class="btn-secondary"
+                :disabled="isCoordinateur && !isEvaluationTerminee(evaluation)"
+                :class="{ 'btn-disabled': isCoordinateur && !isEvaluationTerminee(evaluation) }"
+                :title="isCoordinateur && !isEvaluationTerminee(evaluation) ? 'Accessible uniquement pour les évaluations terminées' : ''"
+              >
+                <EyeIcon class="w-4 h-4" />
+                Prévisualiser
+                <svg v-if="isCoordinateur && !isEvaluationTerminee(evaluation)" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 ml-1">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-
-      <!-- Message si pas de sélection -->
-      <div v-else class="empty-state">
-        <div class="empty-icon">📊</div>
-        <h3 class="empty-title">Aucune sélection</h3>
-        <p class="empty-message">Veuillez sélectionner une classe et une évaluation pour afficher les résultats</p>
-      </div>
+      </template>
     </div>
   </DashboardLayout>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-import evaluationService from '@/services/evaluation'
-import klassciService from '@/services/klassci'
-import * as XLSX from 'xlsx'
-import jsPDF from 'jspdf'
-import 'jspdf-autotable'
+import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import {
+  DocumentTextIcon,
+  UserIcon,
+  UserGroupIcon,
+  BookOpenIcon,
+  FlagIcon,
+  XMarkIcon,
+  ArrowPathIcon,
+  CalendarIcon,
+  ClockIcon,
+  PlayIcon,
+  CheckCircleIcon,
+  ComputerDesktopIcon,
+  ChartBarIcon,
+  EyeIcon
+} from '@heroicons/vue/24/outline'
+import api, { auth } from '@/services/api'
+
+const router = useRouter()
+
+// User role check
+const currentUser = computed(() => auth.getUser())
+const isCoordinateur = computed(() => currentUser.value?.role === 'coordinateur')
 
 // State
-const classes = ref([])
-const evaluations = ref([])
-const selectedClasseId = ref('')
-const selectedEvaluationId = ref('')
-const loadingEvaluations = ref(false)
-const loading = ref(false)
+const loading = ref(true)
 const error = ref(null)
-const results = ref(null)
-const evaluation = ref(null)
-const statistics = ref(null)
+const evaluations = ref([])
+const enseignants = ref([])
+const classes = ref([])
+const matieres = ref([])
 
-// Filtres et tri
-const searchQuery = ref('')
-const filterStatus = ref('')
-const sortColumn = ref('etudiant_nom_complet')
-const sortDirection = ref('asc')
+// Filters
+const filters = ref({
+  enseignant_id: '',
+  classe_id: '',
+  matiere_id: '',
+  statut: ''
+})
 
 // Computed
-const filteredResults = computed(() => {
-  if (!results.value) return []
+const filteredEvaluations = computed(() => {
+  let filtered = evaluations.value
 
-  let filtered = results.value
-
-  // Filtre par recherche
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(r =>
-      r.etudiant_nom_complet.toLowerCase().includes(query)
-    )
+  if (filters.value.enseignant_id) {
+    filtered = filtered.filter(e => e.klassci_enseignant_id == filters.value.enseignant_id)
   }
 
-  // Filtre par statut
-  if (filterStatus.value) {
-    filtered = filtered.filter(r => r.status === filterStatus.value)
+  if (filters.value.classe_id) {
+    filtered = filtered.filter(e => e.klassci_classe_id == filters.value.classe_id)
   }
 
-  // Tri
-  filtered = [...filtered].sort((a, b) => {
-    let aVal = a[sortColumn.value]
-    let bVal = b[sortColumn.value]
+  if (filters.value.matiere_id) {
+    filtered = filtered.filter(e => e.klassci_matiere_id == filters.value.matiere_id)
+  }
 
-    // Gérer les valeurs null
-    if (aVal === null || aVal === undefined) return 1
-    if (bVal === null || bVal === undefined) return -1
-
-    if (sortColumn.value === 'submitted_at') {
-      aVal = new Date(aVal)
-      bVal = new Date(bVal)
-    }
-
-    if (aVal < bVal) return sortDirection.value === 'asc' ? -1 : 1
-    if (aVal > bVal) return sortDirection.value === 'asc' ? 1 : -1
-    return 0
-  })
+  if (filters.value.statut) {
+    filtered = filtered.filter(e => e.status === filters.value.statut)
+  }
 
   return filtered
 })
 
+const stats = computed(() => {
+  const all = filteredEvaluations.value
+  return {
+    total: all.length,
+    enCours: all.filter(e => e.status === 'planifiee').length,
+    terminees: all.filter(e => e.submissions_count > 0 || e.status === 'terminee').length,
+    avecVersionEnLigne: all.filter(e => e.is_online).length
+  }
+})
+
 // Methods
-async function loadClasses() {
-  try {
-    const response = await klassciService.getClasses()
-    if (response.success) {
-      classes.value = response.data
-    }
-  } catch (err) {
-    console.error('Erreur chargement classes:', err)
-  }
-}
-
-async function onClasseChange() {
-  selectedEvaluationId.value = ''
-  results.value = null
-  evaluation.value = null
-  statistics.value = null
-
-  if (!selectedClasseId.value) {
-    evaluations.value = []
-    return
-  }
-
-  await loadEvaluations()
-}
-
-async function loadEvaluations() {
-  loadingEvaluations.value = true
-  try {
-    const response = await evaluationService.getEvaluations({
-      classe_id: selectedClasseId.value,
-      is_published: true
-    })
-    if (response.success) {
-      evaluations.value = response.data
-    }
-  } catch (err) {
-    console.error('Erreur chargement évaluations:', err)
-  } finally {
-    loadingEvaluations.value = false
-  }
-}
-
-async function loadResults() {
-  if (!selectedEvaluationId.value) {
-    results.value = null
-    return
-  }
-
+const loadData = async () => {
   loading.value = true
   error.value = null
 
   try {
-    const response = await evaluationService.getEvaluationResultsByClass(selectedEvaluationId.value)
+    // Charger les évaluations
+    const evalsResponse = await api.get('/evaluations')
+    evaluations.value = evalsResponse.data || []
 
-    if (response.success) {
-      evaluation.value = response.data.evaluation
-      results.value = response.data.resultats
-      statistics.value = response.data.statistiques
-    } else {
-      error.value = 'Erreur lors du chargement des résultats'
-    }
+    // Extraire la liste unique des enseignants
+    const enseignantsMap = new Map()
+    evaluations.value.forEach(evaluation => {
+      if (evaluation.klassci_enseignant_id && evaluation.enseignant_nom) {
+        enseignantsMap.set(evaluation.klassci_enseignant_id, {
+          klassci_id: evaluation.klassci_enseignant_id,
+          name: evaluation.enseignant_nom,
+          email: evaluation.enseignant?.email || ''
+        })
+      }
+    })
+    enseignants.value = Array.from(enseignantsMap.values()).sort((a, b) => a.name.localeCompare(b.name))
+
+    // Charger classes et matières
+    const [classesResponse, matieresResponse] = await Promise.all([
+      api.get('/proxy/classes'),
+      api.get('/proxy/matieres')
+    ])
+
+    classes.value = classesResponse.data.data || []
+    matieres.value = matieresResponse.data.data || []
+
   } catch (err) {
-    console.error('Erreur chargement résultats:', err)
-    error.value = 'Impossible de charger les résultats'
+    console.error('Erreur chargement données:', err)
+    error.value = err.response?.data?.message || 'Erreur lors du chargement des données'
   } finally {
     loading.value = false
   }
 }
 
-function resetFilters() {
-  selectedClasseId.value = ''
-  selectedEvaluationId.value = ''
-  evaluations.value = []
-  results.value = null
-  evaluation.value = null
-  statistics.value = null
-  searchQuery.value = ''
-  filterStatus.value = ''
+const applyFilters = () => {
+  // Les filtres sont automatiquement appliqués via computed
 }
 
-function sortBy(column) {
-  if (sortColumn.value === column) {
-    sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
-  } else {
-    sortColumn.value = column
-    sortDirection.value = 'asc'
+const resetFilters = () => {
+  filters.value = {
+    enseignant_id: '',
+    classe_id: '',
+    matiere_id: '',
+    statut: ''
   }
 }
 
-function getStatusClass(status) {
-  switch (status) {
-    case 'soumis':
-      return 'badge-success'
-    case 'en_cours':
-      return 'badge-warning'
-    case 'non_passee':
-      return 'badge-secondary'
-    default:
-      return 'badge-secondary'
+const viewResults = (id) => {
+  // Rediriger vers la page de détails avec classe/évaluation
+  router.push(`/admin/evaluations/${id}/details`)
+}
+
+const viewDetails = (id) => {
+  router.push(`/teacher/evaluations/${id}/preview`)
+}
+
+const getStatusClass = (status) => {
+  const classes = {
+    'brouillon': 'status-draft',
+    'planifiee': 'status-planned',
+    'en_cours': 'status-active',
+    'terminee': 'status-completed'
   }
+  return classes[status] || 'status-draft'
 }
 
-function getStatusText(status) {
-  switch (status) {
-    case 'soumis':
-      return 'Soumis'
-    case 'en_cours':
-      return 'En cours'
-    case 'non_passee':
-      return 'Non passée'
-    default:
-      return status
+const getStatusLabel = (status) => {
+  const labels = {
+    'brouillon': 'Brouillon',
+    'planifiee': 'Planifiée',
+    'en_cours': 'En cours',
+    'terminee': 'Terminée'
   }
+  return labels[status] || status
 }
 
-function getNoteColor(note) {
-  if (note === null || note === undefined) return 'text-gray-500'
-  if (note >= 16) return 'text-green-400'
-  if (note >= 12) return 'text-blue-400'
-  if (note >= 10) return 'text-yellow-400'
-  return 'text-red-400'
+const isEvaluationTerminee = (evaluation) => {
+  // Une évaluation est terminée si:
+  // 1. Son statut est 'terminee' OU
+  // 2. Elle a des soumissions (au moins un étudiant a rendu)
+  return evaluation.status === 'terminee' || (evaluation.submissions_count && evaluation.submissions_count > 0)
 }
 
-function formatDate(dateString) {
-  if (!dateString) return '-'
-  const date = new Date(dateString)
-  return date.toLocaleString('fr-FR', {
+const formatDate = (date) => {
+  if (!date) return '-'
+  return new Date(date).toLocaleDateString('fr-FR', {
     day: '2-digit',
     month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
+    year: 'numeric'
   })
 }
 
-function exportToExcel() {
-  if (!results.value || results.value.length === 0) {
-    alert('Aucun résultat à exporter')
-    return
-  }
-
-  // Préparer les données
-  const data = filteredResults.value.map(r => ({
-    'Nom Complet': r.etudiant_nom_complet,
-    'Note /20': r.note !== null ? r.note : '-',
-    'Score': r.score !== null ? r.score : '-',
-    'Statut': getStatusText(r.status),
-    'Date Soumission': r.submitted_at ? formatDate(r.submitted_at) : '-',
-    'Tentative': r.attempt || '-'
-  }))
-
-  // Créer le workbook
-  const ws = XLSX.utils.json_to_sheet(data)
-  const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, ws, 'Résultats')
-
-  // Télécharger
-  const filename = `resultats_${evaluation.value.titre}_${new Date().toISOString().split('T')[0]}.xlsx`
-  XLSX.writeFile(wb, filename)
-}
-
-function exportToPDF() {
-  if (!results.value || results.value.length === 0) {
-    alert('Aucun résultat à exporter')
-    return
-  }
-
-  const doc = new jsPDF()
-
-  // Titre
-  doc.setFontSize(18)
-  doc.text('Résultats d\'Évaluation', 14, 20)
-
-  // Infos évaluation
-  doc.setFontSize(10)
-  doc.text(`Évaluation: ${evaluation.value.titre}`, 14, 30)
-  doc.text(`Matière: ${evaluation.value.matiere?.name || 'N/A'}`, 14, 36)
-  doc.text(`Classe: ${evaluation.value.classe?.name || evaluation.value.classe?.libelle || 'N/A'}`, 14, 42)
-  doc.text(`Date: ${new Date().toLocaleDateString('fr-FR')}`, 14, 48)
-
-  // Statistiques
-  doc.text(`Total étudiants: ${statistics.value.total_etudiants}`, 14, 56)
-  doc.text(`Ont soumis: ${statistics.value.etudiants_soumis} (${statistics.value.taux_participation}%)`, 14, 62)
-  doc.text(`Moyenne: ${statistics.value.moyenne_classe !== null ? statistics.value.moyenne_classe + '/20' : 'N/A'}`, 14, 68)
-
-  // Tableau
-  const tableData = filteredResults.value.map(r => [
-    r.etudiant_nom_complet,
-    r.note !== null ? r.note + '/20' : '-',
-    r.score !== null ? r.score : '-',
-    getStatusText(r.status),
-    r.submitted_at ? formatDate(r.submitted_at) : '-'
-  ])
-
-  doc.autoTable({
-    startY: 75,
-    head: [['Étudiant', 'Note /20', 'Score', 'Statut', 'Date Soumission']],
-    body: tableData,
-    styles: { fontSize: 8 },
-    headStyles: { fillColor: [59, 130, 246] }
-  })
-
-  // Télécharger
-  const filename = `resultats_${evaluation.value.titre}_${new Date().toISOString().split('T')[0]}.pdf`
-  doc.save(filename)
-}
-
-// Lifecycle
 onMounted(() => {
-  loadClasses()
+  loadData()
 })
 </script>
 
 <style scoped>
-/* =========================
-   CONTAINER
-   ========================= */
-.results-container {
-  padding: var(--spacing-xl);
-  max-width: 100%;
-  background: var(--bg-secondary);
-  min-height: calc(100vh - 4rem);
+.evaluations-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
 }
 
-/* =========================
-   HEADER
-   ========================= */
-.results-header {
-  margin-bottom: var(--spacing-xl);
-  padding: var(--spacing-lg);
-  background: var(--card-bg);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--card-border);
-  box-shadow: var(--card-shadow);
+.page-header {
+  margin-bottom: 2rem;
 }
 
-.header-title-wrapper {
+.header-content {
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
+  align-items: center;
+  gap: 1rem;
 }
 
-.header-title {
-  font-size: var(--font-size-3xl);
+.page-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.page-title {
+  font-size: 2rem;
   font-weight: 700;
   color: var(--text-primary);
+  margin: 0;
+}
+
+.page-subtitle {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 0.25rem 0 0;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  margin: 0;
+  gap: 1rem;
+  box-shadow: var(--card-shadow);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.title-icon {
-  font-size: 2.5rem;
-  display: inline-flex;
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--card-shadow-hover);
+}
+
+.stat-icon-wrapper {
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-md);
+  display: flex;
   align-items: center;
+  justify-content: center;
 }
 
-.header-subtitle {
-  font-size: var(--font-size-base);
+.stat-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-label {
+  font-size: 0.875rem;
   color: var(--text-secondary);
-  margin: 0;
-  padding-left: 3.5rem;
+  margin: 0 0 0.25rem;
 }
 
-/* =========================
-   FILTERS SECTION
-   ========================= */
-.filters-section {
-  margin-bottom: var(--spacing-xl);
-  padding: var(--spacing-lg);
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* Filters */
+.filters-card {
   background: var(--card-bg);
-  border-radius: var(--radius-lg);
   border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
   box-shadow: var(--card-shadow);
 }
 
-.filters-row {
+.filters-grid-coordinator {
   display: grid;
-  grid-template-columns: 1fr 1fr auto;
-  gap: var(--spacing-lg);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
   align-items: end;
 }
 
-.filter-group {
+.filter-item {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.filter-group-action {
-  display: flex;
-  align-items: flex-end;
+  gap: 0.5rem;
 }
 
 .filter-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  color: var(--text-primary);
+  gap: 0.5rem;
 }
 
-.label-icon {
-  font-size: 1.25rem;
-}
-
-.filter-select-input {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  font-size: var(--font-size-base);
-  color: var(--input-text);
-  background: var(--input-bg);
+.filter-select {
+  padding: 0.625rem 0.875rem;
   border: 1px solid var(--input-border);
   border-radius: var(--radius-md);
-  outline: none;
-  transition: all var(--transition-fast);
-  cursor: pointer;
-}
-
-.filter-select-input:hover {
-  border-color: var(--input-border-focus);
-}
-
-.filter-select-input:focus {
-  border-color: var(--input-border-focus);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.filter-select-input:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  background: var(--bg-tertiary);
-}
-
-.btn-reset-filters {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: 0.75rem 1.5rem;
-  font-size: var(--font-size-sm);
-  font-weight: 600;
+  background: var(--input-bg);
   color: var(--text-primary);
-  background: var(--btn-secondary-bg);
-  border: 1px solid var(--border-primary);
+  font-size: 0.875rem;
+  transition: border-color var(--transition-fast);
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.filter-reset-btn {
+  padding: 0.625rem 1rem;
+  background: var(--danger);
+  color: white;
+  border: none;
   border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.btn-reset-filters:hover {
-  background: var(--btn-secondary-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
-}
-
-/* =========================
-   LOADING STATE
-   ========================= */
-.loading-state {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
-  text-align: center;
+  gap: 0.5rem;
+  transition: background var(--transition-fast);
+}
+
+.filter-reset-btn:hover {
+  background: var(--danger-hover);
+}
+
+/* Evaluations List */
+.evaluations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.evaluation-card {
   background: var(--card-bg);
-  border-radius: var(--radius-lg);
   border: 1px solid var(--card-border);
-  margin-top: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--card-shadow);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.loading-spinner {
-  font-size: 4rem;
-  animation: pulse 1.5s ease-in-out infinite;
+.evaluation-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--card-shadow-hover);
 }
 
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.5;
-    transform: scale(1.1);
-  }
+.evaluation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  gap: 1rem;
 }
 
-.loading-text {
-  margin-top: var(--spacing-lg);
-  font-size: var(--font-size-base);
+.evaluation-title-section {
+  flex: 1;
+}
+
+.evaluation-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.75rem;
+}
+
+.evaluation-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.meta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.meta-enseignant {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.meta-matiere {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.meta-classe {
+  background: var(--warning-light);
+  color: var(--warning);
+}
+
+.status-badge {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-full);
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.status-draft {
+  background: var(--neutral-light);
   color: var(--text-secondary);
 }
 
-/* =========================
-   EMPTY STATE
-   ========================= */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  text-align: center;
-  background: var(--card-bg);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--card-border);
-  margin-top: var(--spacing-xl);
+.status-planned {
+  background: var(--info-light);
+  color: var(--info);
 }
 
-.empty-icon {
-  font-size: 4rem;
-  margin-bottom: var(--spacing-lg);
+.status-active {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.status-completed {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.evaluation-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.stat-item-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.evaluation-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all var(--transition-fast);
+  border: none;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+}
+
+.btn-secondary {
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+}
+
+.btn-secondary:hover {
+  background: var(--hover-bg);
+}
+
+/* Empty/Error States */
+.empty-state,
+.error-state {
+  text-align: center;
+  padding: 3rem;
+}
+
+.empty-icon,
+.error-icon {
+  width: 4rem;
+  height: 4rem;
+  color: var(--text-secondary);
+  margin: 0 auto 1rem;
   opacity: 0.5;
 }
 
-.empty-title {
-  font-size: var(--font-size-xl);
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-sm);
-}
-
-.empty-message {
+.empty-text {
   color: var(--text-secondary);
-  font-size: var(--font-size-base);
+  font-size: 1rem;
 }
 
-.empty-state-small {
+.loading-state {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 1.5rem;
-  text-align: center;
+  gap: 1rem;
+  padding: 1rem;
 }
 
-.empty-icon-small {
-  font-size: 2.5rem;
-  margin-bottom: var(--spacing-md);
-  opacity: 0.4;
-}
-
-.empty-message-small {
-  color: var(--text-secondary);
-  font-size: var(--font-size-sm);
-}
-
-/* =========================
-   ERROR STATE
-   ========================= */
-.error-state {
+.error-content {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3rem 2rem;
-  text-align: center;
-  background: var(--card-bg);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--error-border);
-  margin-top: var(--spacing-xl);
-}
-
-.error-icon {
-  font-size: 3rem;
-  margin-bottom: var(--spacing-lg);
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .error-title {
-  font-size: var(--font-size-xl);
+  font-size: 1.25rem;
   font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-sm);
+  color: var(--danger);
+  margin: 0 0 0.5rem;
 }
 
 .error-message {
   color: var(--text-secondary);
-  margin-bottom: var(--spacing-lg);
+  margin: 0;
 }
 
-.error-retry-btn {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
+.btn-retry {
   padding: 0.75rem 1.5rem;
-  background: var(--btn-primary-bg);
-  color: var(--btn-primary-text);
+  background: var(--primary);
+  color: white;
   border: none;
   border-radius: var(--radius-md);
+  font-weight: 500;
   cursor: pointer;
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background var(--transition-fast);
 }
 
-.error-retry-btn:hover {
-  background: var(--btn-primary-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+.btn-retry:hover {
+  background: var(--primary-hover);
 }
 
-/* =========================
-   RESPONSIVE
-   ========================= */
-@media (max-width: 1024px) {
-  .filters-row {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .filter-group-action {
-    grid-column: 1 / -1;
-    justify-content: flex-start;
-  }
+.btn-disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+  pointer-events: none;
+  background: var(--neutral-light) !important;
+  color: var(--text-secondary) !important;
+  border-color: var(--border-light) !important;
 }
 
-@media (max-width: 768px) {
-  .results-container {
-    padding: var(--spacing-md);
-  }
-
-  .results-header,
-  .filters-section {
-    padding: var(--spacing-md);
-  }
-
-  .header-title {
-    font-size: var(--font-size-2xl);
-  }
-
-  .header-subtitle {
-    padding-left: 0;
-    margin-top: var(--spacing-xs);
-  }
-
-  .filters-row {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-md);
-  }
-
-  .empty-state,
-  .error-state {
-    padding: 2rem 1rem;
-  }
-
-  .empty-icon {
-    font-size: 3rem;
-  }
+.btn-disabled:hover {
+  transform: none !important;
+  box-shadow: none !important;
 }
+
 </style>
