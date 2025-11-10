@@ -5,33 +5,100 @@
       <div class="grades-header">
         <h1 class="page-title">
           <i class="mdi mdi-certificate title-icon"></i>
-          Mes Notes
+          Mes Notes 📚
         </h1>
 
+        <!-- Statistiques améliorées -->
         <div class="stats-cards">
           <div class="stat-card moyenne-card">
-            <div class="stat-label">Moyenne Générale</div>
+            <div class="stat-label">📊 Moyenne Générale</div>
             <div class="stat-value" :class="getMoyenneClass(moyenneGenerale)">
               {{ moyenneGenerale }}/20
+            </div>
+            <div class="progress-bar">
+              <div
+                class="progress-fill"
+                :class="getMoyenneClass(moyenneGenerale)"
+                :style="{ width: `${(moyenneGenerale / 20) * 100}%` }"
+              ></div>
             </div>
           </div>
 
           <div class="stat-card">
-            <div class="stat-label">Matières</div>
+            <div class="stat-label">📚 Matières</div>
             <div class="stat-value">{{ totalMatieres }}</div>
+            <div class="stat-detail">{{ totalEvaluations }} évaluations</div>
           </div>
 
           <div class="stat-card">
-            <div class="stat-label">Évaluations</div>
-            <div class="stat-value">{{ totalEvaluations }}</div>
+            <div class="stat-label">✅ Réussite</div>
+            <div class="stat-value">{{ statsReussite.taux }}%</div>
+            <div class="stat-detail">{{ statsReussite.reussies }}/{{ statsReussite.total }} éval.</div>
           </div>
+
+          <div class="stat-card">
+            <div class="stat-label">🏆 Meilleure Note</div>
+            <div class="stat-value note-excellent">{{ statsMeilleureNote }}/20</div>
+            <div class="stat-detail" v-if="meilleureMatiere">{{ meilleureMatiere }}</div>
+          </div>
+        </div>
+
+        <!-- Filtres et tri -->
+        <div class="filters-section">
+          <div class="filter-group">
+            <label class="filter-label">🔍 Recherche:</label>
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Rechercher une matière ou évaluation..."
+              class="filter-input"
+            />
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-label">📂 Type:</label>
+            <select v-model="filterType" class="filter-select">
+              <option value="">Tous les types</option>
+              <option value="qcm">QCM</option>
+              <option value="devoir">Devoir</option>
+              <option value="composition">Composition</option>
+              <option value="examen">Examen</option>
+              <option value="tp">TP</option>
+              <option value="td">TD</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-label">🎓 Matière:</label>
+            <select v-model="filterMatiere" class="filter-select">
+              <option value="">Toutes les matières</option>
+              <option v-for="matiere in matieres" :key="matiere.matiere_id" :value="matiere.matiere_id">
+                {{ matiere.matiere_nom }}
+              </option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-label">📊 Trier par:</label>
+            <select v-model="sortBy" class="filter-select">
+              <option value="date-desc">📅 Date (plus récent)</option>
+              <option value="date-asc">📅 Date (plus ancien)</option>
+              <option value="note-desc">⬆️ Note (meilleure)</option>
+              <option value="note-asc">⬇️ Note (moins bonne)</option>
+              <option value="matiere">📚 Matière (A-Z)</option>
+            </select>
+          </div>
+
+          <button class="btn-export" @click="exportToPDF" title="Télécharger mes notes en PDF">
+            📄 Exporter PDF
+          </button>
         </div>
       </div>
 
       <!-- Chargement -->
       <div v-if="loading" class="loading-container">
         <div class="spinner"></div>
-        <p class="loading-text">Chargement de vos notes...</p>
+        <p class="loading-text">⏳ Chargement de vos notes...</p>
       </div>
 
       <!-- Erreur -->
@@ -45,93 +112,167 @@
       </div>
 
       <!-- Pas de notes -->
-      <div v-else-if="allEvaluations.length === 0" class="empty-state">
+      <div v-else-if="filteredEvaluations.length === 0 && !searchQuery && !filterType && !filterMatiere" class="empty-state">
         <i class="mdi mdi-file-document-outline empty-icon"></i>
         <h3>Aucune note disponible</h3>
         <p>Vous n'avez pas encore de notes enregistrées.</p>
       </div>
 
-      <!-- Tableau des notes -->
-      <div v-else class="grades-table-container">
-        <table class="grades-table">
-          <thead>
-            <tr>
-              <th>Matière</th>
-              <th>Titre de l'évaluation</th>
-              <th>Type</th>
-              <th>Note</th>
-              <th>Coefficient</th>
-              <th>Date</th>
-              <th>Temps passé</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="(evaluation, index) in allEvaluations"
-              :key="index"
-              class="evaluation-row"
-            >
-              <!-- Matière -->
-              <td class="matiere-cell">
-                <div class="matiere-info">
-                  <i class="mdi mdi-book-open-variant matiere-icon"></i>
-                  <span class="matiere-name">{{ evaluation.matiere_nom }}</span>
-                </div>
-              </td>
+      <!-- Aucun résultat de recherche -->
+      <div v-else-if="filteredEvaluations.length === 0" class="empty-state">
+        <i class="mdi mdi-filter-remove-outline empty-icon"></i>
+        <h3>Aucun résultat</h3>
+        <p>Aucune note ne correspond à vos critères de recherche.</p>
+        <button class="btn-refresh" @click="resetFilters">
+          🔄 Réinitialiser les filtres
+        </button>
+      </div>
 
-              <!-- Titre -->
-              <td class="titre-cell">
-                <div class="titre-info">
-                  <i class="mdi mdi-file-document eval-icon"></i>
-                  {{ evaluation.titre }}
-                </div>
-              </td>
+      <!-- Résumé par matière (repliable) -->
+      <div v-else class="content-wrapper">
+        <div class="summary-section">
+          <div class="section-header" @click="toggleSummary">
+            <h2 class="section-title">
+              <i :class="showSummary ? 'mdi mdi-chevron-down' : 'mdi mdi-chevron-right'"></i>
+              📊 Résumé par Matière
+            </h2>
+            <span class="toggle-hint">{{ showSummary ? 'Masquer' : 'Afficher' }}</span>
+          </div>
 
-              <!-- Type -->
-              <td>
-                <span class="type-badge" :class="`type-${evaluation.type}`">
-                  {{ formatType(evaluation.type) }}
-                </span>
-              </td>
-
-              <!-- Note -->
-              <td>
-                <span class="note-value" :class="getNoteClass(parseFloat(evaluation.note))">
-                  {{ evaluation.note }}/20
-                </span>
-              </td>
-
-              <!-- Coefficient -->
-              <td class="coef-cell">
-                <span class="coefficient-badge">
-                  × {{ evaluation.coefficient }}
-                </span>
-              </td>
-
-              <!-- Date -->
-              <td class="date-cell">
-                {{ formatDate(evaluation.date_evaluation) }}
-              </td>
-
-              <!-- Temps passé -->
-              <td class="temps-cell">
-                {{ formatTemps(evaluation.temps_passe) }}
-              </td>
-
-              <!-- Actions -->
-              <td class="actions-cell">
-                <button
-                  class="btn-view"
-                  @click="viewResults(evaluation.evaluation_id)"
+          <transition name="slide">
+            <div v-show="showSummary" class="summary-content">
+              <div class="summary-cards">
+                <div
+                  v-for="matiere in matieres"
+                  :key="matiere.matiere_id"
+                  class="summary-card"
                 >
-                  <i class="mdi mdi-eye btn-icon"></i>
-                  Voir
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                  <div class="summary-card-header">
+                    <h3 class="summary-matiere-name">📚 {{ matiere.matiere_nom }}</h3>
+                    <span class="summary-count">{{ matiere.total_evaluations }} éval.</span>
+                  </div>
+
+                  <div class="summary-moyenne" :class="getMoyenneClass(matiere.moyenne)">
+                    <span class="moyenne-label">Moyenne:</span>
+                    <span class="moyenne-value">{{ matiere.moyenne }}/20</span>
+                  </div>
+
+                  <div class="progress-bar">
+                    <div
+                      class="progress-fill"
+                      :class="getMoyenneClass(matiere.moyenne)"
+                      :style="{ width: `${(matiere.moyenne / 20) * 100}%` }"
+                    ></div>
+                  </div>
+
+                  <div class="summary-stats">
+                    <div class="stat-item">
+                      <span class="stat-emoji">🏆</span>
+                      <span class="stat-text">{{ getMaxNote(matiere) }}/20</span>
+                    </div>
+                    <div class="stat-item">
+                      <span class="stat-emoji">📉</span>
+                      <span class="stat-text">{{ getMinNote(matiere) }}/20</span>
+                    </div>
+                    <div class="stat-item">
+                      <span class="stat-emoji">{{ getTrend(matiere) }}</span>
+                      <span class="stat-text">{{ getTrendText(matiere) }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </transition>
+        </div>
+
+        <!-- Tableau des notes -->
+        <div class="grades-table-container">
+          <div class="table-header">
+            <h2 class="table-title">📝 Toutes mes notes ({{ filteredEvaluations.length }})</h2>
+          </div>
+
+          <table class="grades-table">
+            <thead>
+              <tr>
+                <th>Matière</th>
+                <th>Titre de l'évaluation</th>
+                <th>Type</th>
+                <th>Note</th>
+                <th>Coefficient</th>
+                <th>Date</th>
+                <th>Temps passé</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(evaluation, index) in filteredEvaluations"
+                :key="index"
+                class="evaluation-row"
+                :class="{ 'row-new': isNew(evaluation) }"
+              >
+                <!-- Matière -->
+                <td class="matiere-cell">
+                  <div class="matiere-info">
+                    <i class="mdi mdi-book-open-variant matiere-icon"></i>
+                    <span class="matiere-name">{{ evaluation.matiere_nom }}</span>
+                  </div>
+                </td>
+
+                <!-- Titre -->
+                <td class="titre-cell">
+                  <div class="titre-info">
+                    <i class="mdi mdi-file-document eval-icon"></i>
+                    {{ evaluation.titre }}
+                    <span v-if="isNew(evaluation)" class="badge-new">🆕 Nouveau</span>
+                  </div>
+                </td>
+
+                <!-- Type -->
+                <td>
+                  <span class="type-badge" :class="`type-${evaluation.type}`">
+                    {{ formatType(evaluation.type) }}
+                  </span>
+                </td>
+
+                <!-- Note -->
+                <td>
+                  <span class="note-value" :class="getNoteClass(parseFloat(evaluation.note))">
+                    {{ evaluation.note }}/20
+                  </span>
+                </td>
+
+                <!-- Coefficient -->
+                <td class="coef-cell">
+                  <span class="coefficient-badge">
+                    × {{ evaluation.coefficient }}
+                  </span>
+                </td>
+
+                <!-- Date -->
+                <td class="date-cell">
+                  {{ formatDate(evaluation.date_evaluation) }}
+                </td>
+
+                <!-- Temps passé -->
+                <td class="temps-cell">
+                  {{ formatTemps(evaluation.temps_passe) }}
+                </td>
+
+                <!-- Actions -->
+                <td class="actions-cell">
+                  <button
+                    class="btn-view"
+                    @click="viewResults(evaluation.evaluation_id)"
+                  >
+                    <i class="mdi mdi-eye btn-icon"></i>
+                    Voir
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </DashboardLayout>
@@ -157,6 +298,13 @@ export default {
     const totalMatieres = ref(0)
     const totalEvaluations = ref(0)
 
+    // Filtres et tri
+    const searchQuery = ref('')
+    const filterType = ref('')
+    const filterMatiere = ref('')
+    const sortBy = ref('date-desc')
+    const showSummary = ref(true)
+
     // Aplatir toutes les évaluations dans un seul tableau
     const allEvaluations = computed(() => {
       const evaluations = []
@@ -169,10 +317,74 @@ export default {
           })
         })
       })
-      // Trier par date décroissante (plus récent en premier)
-      return evaluations.sort((a, b) => {
-        return new Date(b.date_evaluation) - new Date(a.date_evaluation)
-      })
+      return evaluations
+    })
+
+    // Évaluations filtrées et triées
+    const filteredEvaluations = computed(() => {
+      let result = [...allEvaluations.value]
+
+      // Filtrer par recherche
+      if (searchQuery.value) {
+        const query = searchQuery.value.toLowerCase()
+        result = result.filter(e =>
+          e.matiere_nom.toLowerCase().includes(query) ||
+          e.titre.toLowerCase().includes(query)
+        )
+      }
+
+      // Filtrer par type
+      if (filterType.value) {
+        result = result.filter(e => e.type === filterType.value)
+      }
+
+      // Filtrer par matière
+      if (filterMatiere.value) {
+        result = result.filter(e => e.matiere_id === filterMatiere.value)
+      }
+
+      // Trier
+      switch (sortBy.value) {
+        case 'date-desc':
+          result.sort((a, b) => new Date(b.date_evaluation) - new Date(a.date_evaluation))
+          break
+        case 'date-asc':
+          result.sort((a, b) => new Date(a.date_evaluation) - new Date(b.date_evaluation))
+          break
+        case 'note-desc':
+          result.sort((a, b) => parseFloat(b.note) - parseFloat(a.note))
+          break
+        case 'note-asc':
+          result.sort((a, b) => parseFloat(a.note) - parseFloat(b.note))
+          break
+        case 'matiere':
+          result.sort((a, b) => a.matiere_nom.localeCompare(b.matiere_nom))
+          break
+      }
+
+      return result
+    })
+
+    // Statistiques de réussite
+    const statsReussite = computed(() => {
+      const total = allEvaluations.value.length
+      const reussies = allEvaluations.value.filter(e => parseFloat(e.note) >= 10).length
+      const taux = total > 0 ? Math.round((reussies / total) * 100) : 0
+      return { total, reussies, taux }
+    })
+
+    // Meilleure note
+    const statsMeilleureNote = computed(() => {
+      if (allEvaluations.value.length === 0) return 0
+      return Math.max(...allEvaluations.value.map(e => parseFloat(e.note)))
+    })
+
+    // Matière avec la meilleure note
+    const meilleureMatiere = computed(() => {
+      const meilleureEval = allEvaluations.value.find(
+        e => parseFloat(e.note) === statsMeilleureNote.value
+      )
+      return meilleureEval?.matiere_nom || ''
     })
 
     // Récupérer les notes
@@ -182,7 +394,6 @@ export default {
 
       try {
         const response = await api.get('/my-grades')
-        console.log('API /my-grades response:', response)
 
         if (response.success) {
           const data = response.data
@@ -258,6 +469,77 @@ export default {
       return 'note-fail'
     }
 
+    // Note maximale d'une matière
+    const getMaxNote = (matiere) => {
+      if (!matiere.evaluations || matiere.evaluations.length === 0) return 0
+      return Math.max(...matiere.evaluations.map(e => parseFloat(e.note)))
+    }
+
+    // Note minimale d'une matière
+    const getMinNote = (matiere) => {
+      if (!matiere.evaluations || matiere.evaluations.length === 0) return 0
+      return Math.min(...matiere.evaluations.map(e => parseFloat(e.note)))
+    }
+
+    // Tendance (progression ou régression)
+    const getTrend = (matiere) => {
+      if (!matiere.evaluations || matiere.evaluations.length < 2) return '➡️'
+
+      const sorted = [...matiere.evaluations].sort((a, b) =>
+        new Date(a.date_evaluation) - new Date(b.date_evaluation)
+      )
+
+      const firstNote = parseFloat(sorted[0].note)
+      const lastNote = parseFloat(sorted[sorted.length - 1].note)
+
+      if (lastNote > firstNote) return '📈'
+      if (lastNote < firstNote) return '📉'
+      return '➡️'
+    }
+
+    // Texte de la tendance
+    const getTrendText = (matiere) => {
+      if (!matiere.evaluations || matiere.evaluations.length < 2) return 'Stable'
+
+      const sorted = [...matiere.evaluations].sort((a, b) =>
+        new Date(a.date_evaluation) - new Date(b.date_evaluation)
+      )
+
+      const firstNote = parseFloat(sorted[0].note)
+      const lastNote = parseFloat(sorted[sorted.length - 1].note)
+
+      if (lastNote > firstNote) return 'En hausse'
+      if (lastNote < firstNote) return 'En baisse'
+      return 'Stable'
+    }
+
+    // Vérifier si une note est nouvelle (< 48h)
+    const isNew = (evaluation) => {
+      if (!evaluation.date_soumission) return false
+      const soumissionDate = new Date(evaluation.date_soumission)
+      const now = new Date()
+      const diffHours = (now - soumissionDate) / (1000 * 60 * 60)
+      return diffHours < 48
+    }
+
+    // Réinitialiser les filtres
+    const resetFilters = () => {
+      searchQuery.value = ''
+      filterType.value = ''
+      filterMatiere.value = ''
+      sortBy.value = 'date-desc'
+    }
+
+    // Toggle résumé
+    const toggleSummary = () => {
+      showSummary.value = !showSummary.value
+    }
+
+    // Export PDF (basique pour l'instant)
+    const exportToPDF = () => {
+      window.print()
+    }
+
     onMounted(() => {
       fetchGrades()
     })
@@ -270,13 +552,30 @@ export default {
       totalMatieres,
       totalEvaluations,
       allEvaluations,
+      filteredEvaluations,
+      statsReussite,
+      statsMeilleureNote,
+      meilleureMatiere,
+      searchQuery,
+      filterType,
+      filterMatiere,
+      sortBy,
+      showSummary,
       fetchGrades,
       viewResults,
       formatType,
       formatDate,
       formatTemps,
       getMoyenneClass,
-      getNoteClass
+      getNoteClass,
+      getMaxNote,
+      getMinNote,
+      getTrend,
+      getTrendText,
+      isNew,
+      resetFilters,
+      toggleSummary,
+      exportToPDF
     }
   }
 }
@@ -312,7 +611,7 @@ export default {
 /* Stats Cards */
 .stats-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
@@ -323,6 +622,12 @@ export default {
   padding: 1.5rem;
   text-align: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .stat-card.moyenne-card {
@@ -342,6 +647,233 @@ export default {
   font-size: 2rem;
   font-weight: 700;
   line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.stat-detail {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  margin-top: 0.5rem;
+}
+
+/* Progress Bar */
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 0.75rem;
+}
+
+.moyenne-card .progress-bar {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.progress-fill.note-excellent { background: #4caf50; }
+.progress-fill.note-good { background: #8bc34a; }
+.progress-fill.note-average { background: #ff9800; }
+.progress-fill.note-below-average { background: #ff5722; }
+.progress-fill.note-fail { background: #f44336; }
+
+/* Filters Section */
+.filters-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+  padding: 1.5rem;
+  background: var(--card-bg);
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 180px;
+}
+
+.filter-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.filter-input,
+.filter-select {
+  padding: 0.75rem;
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+}
+
+.btn-export {
+  padding: 0.75rem 1.5rem;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-export:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* Summary Section */
+.summary-section {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  padding-bottom: 1rem;
+}
+
+.section-header:hover .section-title {
+  color: var(--primary-color);
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  transition: color 0.2s;
+}
+
+.toggle-hint {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.3s ease;
+  max-height: 1000px;
+  overflow: hidden;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  max-height: 0;
+  opacity: 0;
+}
+
+.summary-content {
+  padding-top: 1rem;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.summary-card {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid var(--border-primary);
+  transition: all 0.2s;
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.summary-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.summary-matiere-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.summary-count {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+}
+
+.summary-moyenne {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.moyenne-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.summary-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-primary);
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.stat-emoji {
+  font-size: 1.2rem;
 }
 
 /* Loading & Error */
@@ -426,6 +958,17 @@ export default {
   overflow-x: auto;
 }
 
+.table-header {
+  margin-bottom: 1rem;
+}
+
+.table-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
 /* Grades Table */
 .grades-table {
   width: 100%;
@@ -461,6 +1004,10 @@ export default {
   background-color: var(--bg-hover);
 }
 
+.grades-table tbody tr.row-new {
+  background: linear-gradient(90deg, rgba(76, 175, 80, 0.05), transparent);
+}
+
 .grades-table td {
   padding: 1rem;
   color: var(--text-primary);
@@ -492,6 +1039,23 @@ export default {
 .matiere-name {
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.badge-new {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background: linear-gradient(135deg, #4caf50, #8bc34a);
+  color: white;
+  border-radius: 12px;
+  font-weight: 700;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
 }
 
 .type-badge {
@@ -591,6 +1155,32 @@ export default {
   font-size: 1rem;
 }
 
+/* Print styles */
+@media print {
+  .filters-section,
+  .btn-export,
+  .actions-cell,
+  .section-header {
+    display: none !important;
+  }
+
+  .summary-content {
+    display: block !important;
+    max-height: none !important;
+  }
+
+  .grades-container {
+    padding: 0;
+  }
+
+  .stat-card,
+  .summary-card,
+  .grades-table-container {
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
   .grades-table {
@@ -616,6 +1206,14 @@ export default {
     grid-template-columns: 1fr;
   }
 
+  .filters-section {
+    flex-direction: column;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+
   .grades-table-container {
     padding: 1rem;
     overflow-x: auto;
@@ -623,6 +1221,10 @@ export default {
 
   .grades-table {
     min-width: 900px;
+  }
+
+  .summary-cards {
+    grid-template-columns: 1fr;
   }
 }
 </style>
