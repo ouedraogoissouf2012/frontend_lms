@@ -357,10 +357,9 @@ const viewDetails = (id) => {
 }
 
 const isEvaluationTerminee = (evaluation) => {
-  // Une évaluation est considérée comme terminée si:
-  // 1. Son statut est 'terminee' OU
-  // 2. Elle a des soumissions (au moins un étudiant a rendu)
-  return evaluation.status === 'terminee' || (evaluation.submissions_count && evaluation.submissions_count > 0)
+  // Une évaluation est terminée UNIQUEMENT si son statut est 'terminee'
+  // Pas si elle a des soumissions - un étudiant peut rendre en avance
+  return evaluation.status === 'terminee'
 }
 
 const getStatusClass = (status) => {
