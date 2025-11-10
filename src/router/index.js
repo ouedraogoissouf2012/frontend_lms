@@ -202,7 +202,7 @@ const routes = [
     component: TeacherSeances,
     meta: {
       requiresAuth: true,
-      roles: ['enseignant', 'teacher', 'coordinateur']
+      roles: ['enseignant', 'teacher']
     }
   },
   // Classes Enseignant
@@ -212,7 +212,7 @@ const routes = [
     component: TeacherClasses,
     meta: {
       requiresAuth: true,
-      roles: ['enseignant', 'teacher', 'coordinateur']
+      roles: ['enseignant', 'teacher']
     }
   },
   // Statistiques Enseignant
@@ -222,7 +222,7 @@ const routes = [
     component: TeacherStats,
     meta: {
       requiresAuth: true,
-      roles: ['enseignant', 'teacher', 'coordinateur']
+      roles: ['enseignant', 'teacher']
     }
   },
   // Profil - Enseignant
@@ -232,7 +232,7 @@ const routes = [
     component: () => import('@/views/teacher/TeacherProfile.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['enseignant', 'teacher', 'coordinateur'],
+      roles: ['enseignant', 'teacher'],
       title: 'Mon Profil'
     }
   },
@@ -243,7 +243,7 @@ const routes = [
     component: () => import('@/views/teacher/TeacherVisioList.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['enseignant', 'teacher', 'coordinateur'],
+      roles: ['enseignant', 'teacher'],
       title: 'Mes Visioconférences'
     }
   },
@@ -254,7 +254,7 @@ const routes = [
     component: () => import('@/views/teacher/TeacherSettings.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['enseignant', 'teacher', 'coordinateur'],
+      roles: ['enseignant', 'teacher'],
       title: 'Paramètres'
     }
   },
@@ -265,7 +265,7 @@ const routes = [
     component: EvaluationCorrections,
     meta: {
       requiresAuth: true,
-      roles: ['enseignant', 'teacher', 'coordinateur']
+      roles: ['enseignant', 'teacher']
     }
   },
   // Dashboard Étudiant (AVEC LAYOUT MODERNE)
@@ -376,7 +376,7 @@ const routes = [
     component: () => import('@/views/lessons/LessonEditor.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['enseignant', 'teacher', 'coordinateur']
+      roles: ['enseignant', 'teacher']
     }
   },
   {
@@ -385,7 +385,7 @@ const routes = [
     component: () => import('@/views/lessons/LessonEditor.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['enseignant', 'teacher', 'coordinateur']
+      roles: ['enseignant', 'teacher']
     }
   },
   {
@@ -404,7 +404,7 @@ const routes = [
     component: () => import('@/views/lessons/TeacherLessons.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['enseignant', 'teacher', 'coordinateur']
+      roles: ['enseignant', 'teacher']
     }
   },
   {
@@ -413,7 +413,7 @@ const routes = [
     component: () => import('@/views/lessons/LessonChapters.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['enseignant', 'teacher', 'coordinateur'],
+      roles: ['enseignant', 'teacher'],
       title: 'Gestion des chapitres'
     }
   },
@@ -455,7 +455,7 @@ const routes = [
     component: TeacherEvaluations,
     meta: {
       requiresAuth: true,
-      roles: ['enseignant', 'teacher', 'coordinateur']
+      roles: ['enseignant', 'teacher']
     }
   },
   {
@@ -468,7 +468,7 @@ const routes = [
     component: CreateQuestions,
     meta: {
       requiresAuth: true,
-      roles: ['enseignant', 'teacher', 'coordinateur']
+      roles: ['enseignant', 'teacher']
     }
   },
   {
@@ -477,7 +477,7 @@ const routes = [
     component: CreateQuestions,
     meta: {
       requiresAuth: true,
-      roles: ['enseignant', 'teacher', 'coordinateur']
+      roles: ['enseignant', 'teacher']
     }
   },
   // Évaluations - Étudiant
