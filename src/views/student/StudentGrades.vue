@@ -4,7 +4,7 @@
       <!-- En-tête avec statistiques -->
       <div class="grades-header">
         <h1 class="page-title">
-          <v-icon class="title-icon">mdi-certificate</v-icon>
+          <i class="mdi mdi-certificate title-icon"></i>
           Mes Notes
         </h1>
 
@@ -30,23 +30,23 @@
 
       <!-- Chargement -->
       <div v-if="loading" class="loading-container">
-        <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+        <div class="spinner"></div>
         <p class="loading-text">Chargement de vos notes...</p>
       </div>
 
       <!-- Erreur -->
       <div v-else-if="error" class="error-container">
-        <v-icon color="error" size="48">mdi-alert-circle</v-icon>
+        <i class="mdi mdi-alert-circle error-icon"></i>
         <p class="error-text">{{ error }}</p>
-        <v-btn color="primary" @click="fetchGrades">
-          <v-icon left>mdi-refresh</v-icon>
+        <button class="btn-refresh" @click="fetchGrades">
+          <i class="mdi mdi-refresh refresh-icon"></i>
           Réessayer
-        </v-btn>
+        </button>
       </div>
 
       <!-- Pas de notes -->
       <div v-else-if="allEvaluations.length === 0" class="empty-state">
-        <v-icon size="80" color="grey">mdi-file-document-outline</v-icon>
+        <i class="mdi mdi-file-document-outline empty-icon"></i>
         <h3>Aucune note disponible</h3>
         <p>Vous n'avez pas encore de notes enregistrées.</p>
       </div>
@@ -75,7 +75,7 @@
               <!-- Matière -->
               <td class="matiere-cell">
                 <div class="matiere-info">
-                  <v-icon small class="matiere-icon">mdi-book-open-variant</v-icon>
+                  <i class="mdi mdi-book-open-variant matiere-icon"></i>
                   <span class="matiere-name">{{ evaluation.matiere_nom }}</span>
                 </div>
               </td>
@@ -83,7 +83,7 @@
               <!-- Titre -->
               <td class="titre-cell">
                 <div class="titre-info">
-                  <v-icon small class="eval-icon">mdi-file-document</v-icon>
+                  <i class="mdi mdi-file-document eval-icon"></i>
                   {{ evaluation.titre }}
                 </div>
               </td>
@@ -121,42 +121,17 @@
 
               <!-- Actions -->
               <td class="actions-cell">
-                <v-btn
-                  small
-                  color="primary"
-                  outlined
+                <button
+                  class="btn-view"
                   @click="viewResults(evaluation.evaluation_id)"
                 >
-                  <v-icon small left>mdi-eye</v-icon>
+                  <i class="mdi mdi-eye btn-icon"></i>
                   Voir
-                </v-btn>
+                </button>
               </td>
             </tr>
           </tbody>
         </table>
-
-        <!-- Résumé par matière -->
-        <div class="summary-section">
-          <h3 class="summary-title">
-            <v-icon class="summary-icon">mdi-chart-box</v-icon>
-            Moyennes par matière
-          </h3>
-          <div class="summary-cards">
-            <div
-              v-for="matiere in matieres"
-              :key="matiere.matiere_id"
-              class="summary-card"
-            >
-              <div class="summary-header">
-                <span class="summary-matiere">{{ matiere.matiere_nom }}</span>
-                <span class="summary-count">{{ matiere.total_evaluations }} éval.</span>
-              </div>
-              <div class="summary-moyenne" :class="getMoyenneClass(matiere.moyenne)">
-                {{ matiere.moyenne }}/20
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </DashboardLayout>
@@ -207,15 +182,16 @@ export default {
 
       try {
         const response = await api.get('/my-grades')
+        console.log('API /my-grades response:', response)
 
-        if (response.data.success) {
-          const data = response.data.data
+        if (response.success) {
+          const data = response.data
           matieres.value = data.matieres || []
           moyenneGenerale.value = data.moyenne_generale || 0
           totalMatieres.value = data.total_matieres || 0
           totalEvaluations.value = data.total_evaluations || 0
         } else {
-          error.value = response.data.message || 'Erreur lors du chargement des notes'
+          error.value = response.message || 'Erreur lors du chargement des notes'
         }
       } catch (err) {
         console.error('Erreur récupération notes:', err)
@@ -329,8 +305,8 @@ export default {
 }
 
 .title-icon {
+  font-size: 2rem;
   color: var(--primary-color);
-  font-size: 2rem !important;
 }
 
 /* Stats Cards */
@@ -377,6 +353,20 @@ export default {
   color: var(--text-secondary);
 }
 
+.spinner {
+  width: 64px;
+  height: 64px;
+  border: 4px solid var(--border-primary);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .loading-text,
 .error-text {
   margin: 1rem 0;
@@ -384,9 +374,47 @@ export default {
   color: var(--text-secondary);
 }
 
+.error-icon {
+  font-size: 48px;
+  display: block;
+  margin: 0 auto 1rem;
+  color: #f44336;
+}
+
+.btn-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-refresh:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.refresh-icon {
+  font-size: 1.2rem;
+}
+
 .empty-state h3 {
   color: var(--text-primary);
   margin: 1rem 0 0.5rem;
+}
+
+.empty-icon {
+  font-size: 80px;
+  display: block;
+  margin: 0 auto 1rem;
+  color: var(--text-secondary);
 }
 
 /* Table Container */
@@ -402,7 +430,6 @@ export default {
 .grades-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 2rem;
 }
 
 .grades-table thead {
@@ -454,10 +481,12 @@ export default {
 
 .matiere-icon {
   color: var(--primary-color);
+  font-size: 1.2rem;
 }
 
 .eval-icon {
   color: var(--text-secondary);
+  font-size: 1.1rem;
 }
 
 .matiere-name {
@@ -538,60 +567,28 @@ export default {
   text-align: center;
 }
 
-/* Summary Section */
-.summary-section {
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 2px solid var(--border-primary);
-}
-
-.summary-title {
-  display: flex;
+.btn-view {
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 1rem;
-}
-
-.summary-icon {
+  padding: 0.5rem 1rem;
+  background: transparent;
   color: var(--primary-color);
-}
-
-.summary-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.summary-card {
-  background: var(--bg-secondary);
-  border-radius: 8px;
-  padding: 1rem;
-}
-
-.summary-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.summary-matiere {
+  border: 1px solid var(--primary-color);
+  border-radius: 6px;
+  font-size: 0.875rem;
   font-weight: 600;
-  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.summary-count {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
+.btn-view:hover {
+  background: var(--primary-color);
+  color: white;
 }
 
-.summary-moyenne {
-  font-size: 1.5rem;
-  font-weight: 700;
-  text-align: center;
+.btn-icon {
+  font-size: 1rem;
 }
 
 /* Responsive */
