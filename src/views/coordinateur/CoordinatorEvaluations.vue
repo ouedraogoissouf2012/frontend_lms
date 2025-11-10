@@ -10,12 +10,6 @@
             <p class="page-subtitle">Vue globale de toutes les évaluations (tous enseignants)</p>
           </div>
         </div>
-        <button @click="createEvaluation" class="btn-create">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          Créer une évaluation
-        </button>
       </div>
 
       <!-- Loading State -->
@@ -206,9 +200,18 @@
                 <ChartBarIcon class="w-4 h-4" />
                 Voir résultats
               </button>
-              <button @click="viewDetails(evaluation.id)" class="btn-secondary">
+              <button
+                @click="viewDetails(evaluation.id)"
+                class="btn-secondary"
+                :disabled="!isEvaluationTerminee(evaluation)"
+                :class="{ 'btn-disabled': !isEvaluationTerminee(evaluation) }"
+                :title="!isEvaluationTerminee(evaluation) ? 'Accessible uniquement pour les évaluations terminées' : ''"
+              >
                 <EyeIcon class="w-4 h-4" />
                 Détails
+                <svg v-if="!isEvaluationTerminee(evaluation)" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                </svg>
               </button>
             </div>
           </div>
@@ -353,8 +356,11 @@ const viewDetails = (id) => {
   router.push(`/teacher/evaluations/${id}/preview`)
 }
 
-const createEvaluation = () => {
-  router.push('/teacher/evaluations/create-questions')
+const isEvaluationTerminee = (evaluation) => {
+  // Une évaluation est considérée comme terminée si:
+  // 1. Son statut est 'terminee' OU
+  // 2. Elle a des soumissions (au moins un étudiant a rendu)
+  return evaluation.status === 'terminee' || (evaluation.submissions_count && evaluation.submissions_count > 0)
 }
 
 const getStatusClass = (status) => {
@@ -400,37 +406,12 @@ onMounted(() => {
 
 .page-header {
   margin-bottom: 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 2rem;
 }
 
 .header-content {
   display: flex;
   align-items: center;
   gap: 1rem;
-}
-
-.btn-create {
-  padding: 0.75rem 1.5rem;
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  font-weight: 500;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: all var(--transition-fast);
-  white-space: nowrap;
-}
-
-.btn-create:hover {
-  background: var(--primary-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .page-icon {
@@ -733,6 +714,20 @@ onMounted(() => {
 
 .btn-secondary:hover {
   background: var(--hover-bg);
+}
+
+.btn-disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+  pointer-events: none;
+  background: var(--neutral-light) !important;
+  color: var(--text-secondary) !important;
+  border-color: var(--border-light) !important;
+}
+
+.btn-disabled:hover {
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 /* Empty/Error States */
