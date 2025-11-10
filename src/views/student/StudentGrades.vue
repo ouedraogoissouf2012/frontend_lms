@@ -203,7 +203,7 @@ export default {
 
     // Voir les résultats d'une évaluation
     const viewResults = (evaluationId) => {
-      router.push(`/evaluations/${evaluationId}/results`)
+      router.push(`/student/evaluations/${evaluationId}/results`)
     }
 
     // Formater le type d'évaluation
