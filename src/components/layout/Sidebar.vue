@@ -241,7 +241,7 @@ export default {
           to: '/teacher/visio-list'
         })
         }
-        // Ne pas afficher Évaluations pour coordinateur (pas enseignant selon KLASSCI)
+        // Évaluations - Enseignant avec sous-menu création
         if (user.role !== 'coordinateur') {
         menu.push({
           icon: '☰',
@@ -250,6 +250,14 @@ export default {
             { icon: '✚', label: 'Créer', to: '/teacher/evaluations/create' },
             { icon: '▤', label: 'Mes Évaluations', to: '/teacher/evaluations' }
           ]
+        })
+        }
+        // Évaluations - Coordinateur (vue globale sans création)
+        if (user.role === 'coordinateur') {
+        menu.push({
+          icon: '☰',
+          label: 'Évaluations',
+          to: '/coordinateur/evaluations'
         })
         }
         // Ne pas afficher Statistiques pour coordinateur (il a la version admin)
