@@ -175,8 +175,8 @@
                   </span>
                 </div>
               </div>
-              <span :class="getStatusClass(evaluation.status)" class="status-badge">
-                {{ getStatusLabel(evaluation.status) }}
+              <span :class="getStatusClass(evaluation.effective_status || evaluation.status)" class="status-badge">
+                {{ getStatusLabel(evaluation.effective_status || evaluation.status) }}
               </span>
             </div>
 
@@ -391,9 +391,10 @@ const getStatusLabel = (status) => {
 }
 
 const isEvaluationTerminee = (evaluation) => {
-  // Une évaluation est terminée UNIQUEMENT si son statut est 'terminee'
-  // Pas si elle a des soumissions - un étudiant peut rendre en avance
-  return evaluation.status === 'terminee'
+  // Utilise le statut effectif calculé par le backend (date + durée)
+  // Si pas de effective_status, fallback sur status
+  const effectiveStatus = evaluation.effective_status || evaluation.status
+  return effectiveStatus === 'terminee'
 }
 
 const formatDate = (date) => {
