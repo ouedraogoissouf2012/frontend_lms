@@ -5,13 +5,13 @@
       <div class="grades-header">
         <h1 class="page-title">
           <i class="mdi mdi-certificate title-icon"></i>
-          Mes Notes 📚
+          Mes Notes
         </h1>
 
         <!-- Statistiques améliorées -->
         <div class="stats-cards">
           <div class="stat-card moyenne-card">
-            <div class="stat-label">📊 Moyenne Générale</div>
+            <div class="stat-label">Moyenne Générale</div>
             <div class="stat-value" :class="getMoyenneClass(moyenneGenerale)">
               {{ moyenneGenerale }}/20
             </div>
@@ -25,19 +25,19 @@
           </div>
 
           <div class="stat-card">
-            <div class="stat-label">📚 Matières</div>
+            <div class="stat-label">Matières</div>
             <div class="stat-value">{{ totalMatieres }}</div>
             <div class="stat-detail">{{ totalEvaluations }} évaluations</div>
           </div>
 
           <div class="stat-card">
-            <div class="stat-label">✅ Réussite</div>
+            <div class="stat-label">Taux de Réussite</div>
             <div class="stat-value">{{ statsReussite.taux }}%</div>
             <div class="stat-detail">{{ statsReussite.reussies }}/{{ statsReussite.total }} éval.</div>
           </div>
 
           <div class="stat-card">
-            <div class="stat-label">🏆 Meilleure Note</div>
+            <div class="stat-label">Meilleure Note</div>
             <div class="stat-value note-excellent">{{ statsMeilleureNote }}/20</div>
             <div class="stat-detail" v-if="meilleureMatiere">{{ meilleureMatiere }}</div>
           </div>
@@ -46,7 +46,7 @@
         <!-- Filtres et tri -->
         <div class="filters-section">
           <div class="filter-group">
-            <label class="filter-label">🔍 Recherche:</label>
+            <label class="filter-label"><i class="mdi mdi-magnify"></i> Recherche:</label>
             <input
               v-model="searchQuery"
               type="text"
@@ -56,7 +56,7 @@
           </div>
 
           <div class="filter-group">
-            <label class="filter-label">📂 Type:</label>
+            <label class="filter-label"><i class="mdi mdi-folder-outline"></i> Type:</label>
             <select v-model="filterType" class="filter-select">
               <option value="">Tous les types</option>
               <option value="qcm">QCM</option>
@@ -69,7 +69,7 @@
           </div>
 
           <div class="filter-group">
-            <label class="filter-label">🎓 Matière:</label>
+            <label class="filter-label"><i class="mdi mdi-school-outline"></i> Matière:</label>
             <select v-model="filterMatiere" class="filter-select">
               <option value="">Toutes les matières</option>
               <option v-for="matiere in matieres" :key="matiere.matiere_id" :value="matiere.matiere_id">
@@ -79,18 +79,18 @@
           </div>
 
           <div class="filter-group">
-            <label class="filter-label">📊 Trier par:</label>
+            <label class="filter-label"><i class="mdi mdi-sort"></i> Trier par:</label>
             <select v-model="sortBy" class="filter-select">
-              <option value="date-desc">📅 Date (plus récent)</option>
-              <option value="date-asc">📅 Date (plus ancien)</option>
-              <option value="note-desc">⬆️ Note (meilleure)</option>
-              <option value="note-asc">⬇️ Note (moins bonne)</option>
-              <option value="matiere">📚 Matière (A-Z)</option>
+              <option value="date-desc">Date (plus récent)</option>
+              <option value="date-asc">Date (plus ancien)</option>
+              <option value="note-desc">Note (meilleure)</option>
+              <option value="note-asc">Note (moins bonne)</option>
+              <option value="matiere">Matière (A-Z)</option>
             </select>
           </div>
 
           <button class="btn-export" @click="exportToPDF" title="Télécharger mes notes en PDF">
-            📄 Exporter PDF
+            <i class="mdi mdi-file-pdf-box"></i> Exporter PDF
           </button>
         </div>
       </div>
@@ -98,7 +98,7 @@
       <!-- Chargement -->
       <div v-if="loading" class="loading-container">
         <div class="spinner"></div>
-        <p class="loading-text">⏳ Chargement de vos notes...</p>
+        <p class="loading-text">Chargement de vos notes...</p>
       </div>
 
       <!-- Erreur -->
@@ -124,7 +124,7 @@
         <h3>Aucun résultat</h3>
         <p>Aucune note ne correspond à vos critères de recherche.</p>
         <button class="btn-refresh" @click="resetFilters">
-          🔄 Réinitialiser les filtres
+          <i class="mdi mdi-reload"></i> Réinitialiser les filtres
         </button>
       </div>
 
@@ -134,7 +134,7 @@
           <div class="section-header" @click="toggleSummary">
             <h2 class="section-title">
               <i :class="showSummary ? 'mdi mdi-chevron-down' : 'mdi mdi-chevron-right'"></i>
-              📊 Résumé par Matière
+              Résumé par Matière
             </h2>
             <span class="toggle-hint">{{ showSummary ? 'Masquer' : 'Afficher' }}</span>
           </div>
@@ -148,7 +148,7 @@
                   class="summary-card"
                 >
                   <div class="summary-card-header">
-                    <h3 class="summary-matiere-name">📚 {{ matiere.matiere_nom }}</h3>
+                    <h3 class="summary-matiere-name">{{ matiere.matiere_nom }}</h3>
                     <span class="summary-count">{{ matiere.total_evaluations }} éval.</span>
                   </div>
 
@@ -167,15 +167,15 @@
 
                   <div class="summary-stats">
                     <div class="stat-item">
-                      <span class="stat-emoji">🏆</span>
+                      <i class="mdi mdi-trophy stat-icon"></i>
                       <span class="stat-text">{{ getMaxNote(matiere) }}/20</span>
                     </div>
                     <div class="stat-item">
-                      <span class="stat-emoji">📉</span>
+                      <i class="mdi mdi-arrow-down stat-icon"></i>
                       <span class="stat-text">{{ getMinNote(matiere) }}/20</span>
                     </div>
                     <div class="stat-item">
-                      <span class="stat-emoji">{{ getTrend(matiere) }}</span>
+                      <i class="mdi" :class="getTrendIcon(matiere)"></i>
                       <span class="stat-text">{{ getTrendText(matiere) }}</span>
                     </div>
                   </div>
@@ -188,7 +188,7 @@
         <!-- Tableau des notes -->
         <div class="grades-table-container">
           <div class="table-header">
-            <h2 class="table-title">📝 Toutes mes notes ({{ filteredEvaluations.length }})</h2>
+            <h2 class="table-title">Toutes mes notes ({{ filteredEvaluations.length }})</h2>
           </div>
 
           <table class="grades-table">
@@ -224,7 +224,7 @@
                   <div class="titre-info">
                     <i class="mdi mdi-file-document eval-icon"></i>
                     {{ evaluation.titre }}
-                    <span v-if="isNew(evaluation)" class="badge-new">🆕 Nouveau</span>
+                    <span v-if="isNew(evaluation)" class="badge-new">Nouveau</span>
                   </div>
                 </td>
 
@@ -481,9 +481,9 @@ export default {
       return Math.min(...matiere.evaluations.map(e => parseFloat(e.note)))
     }
 
-    // Tendance (progression ou régression)
-    const getTrend = (matiere) => {
-      if (!matiere.evaluations || matiere.evaluations.length < 2) return '➡️'
+    // Icône de tendance (progression ou régression)
+    const getTrendIcon = (matiere) => {
+      if (!matiere.evaluations || matiere.evaluations.length < 2) return 'mdi-arrow-right'
 
       const sorted = [...matiere.evaluations].sort((a, b) =>
         new Date(a.date_evaluation) - new Date(b.date_evaluation)
@@ -492,9 +492,9 @@ export default {
       const firstNote = parseFloat(sorted[0].note)
       const lastNote = parseFloat(sorted[sorted.length - 1].note)
 
-      if (lastNote > firstNote) return '📈'
-      if (lastNote < firstNote) return '📉'
-      return '➡️'
+      if (lastNote > firstNote) return 'mdi-trending-up'
+      if (lastNote < firstNote) return 'mdi-trending-down'
+      return 'mdi-arrow-right'
     }
 
     // Texte de la tendance
@@ -570,7 +570,7 @@ export default {
       getNoteClass,
       getMaxNote,
       getMinNote,
-      getTrend,
+      getTrendIcon,
       getTrendText,
       isNew,
       resetFilters,
@@ -872,8 +872,9 @@ export default {
   color: var(--text-secondary);
 }
 
-.stat-emoji {
+.stat-icon {
   font-size: 1.2rem;
+  color: var(--primary-color);
 }
 
 /* Loading & Error */
