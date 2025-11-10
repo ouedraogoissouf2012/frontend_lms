@@ -353,7 +353,7 @@ const viewResults = (id) => {
 }
 
 const viewDetails = (id) => {
-  router.push(`/teacher/evaluations/${id}/preview`)
+  router.push(`/coordinateur/evaluations/${id}/preview`)
 }
 
 const isEvaluationTerminee = (evaluation) => {

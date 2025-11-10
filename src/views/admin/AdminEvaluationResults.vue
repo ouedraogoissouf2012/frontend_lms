@@ -362,7 +362,12 @@ const viewResults = (id) => {
 }
 
 const viewDetails = (id) => {
-  router.push(`/teacher/evaluations/${id}/preview`)
+  // Utiliser la route appropriée selon le rôle
+  if (isCoordinateur.value) {
+    router.push(`/coordinateur/evaluations/${id}/preview`)
+  } else {
+    router.push(`/teacher/evaluations/${id}/preview`)
+  }
 }
 
 const getStatusClass = (status) => {

@@ -514,7 +514,17 @@ const routes = [
     component: PreviewEvaluation,
     meta: {
       requiresAuth: true,
-      roles: ['enseignant', 'coordinateur']
+      roles: ['enseignant']
+    }
+  },
+  // Coordinateur - Prévisualisation évaluation (seulement si terminée - contrôlé par le backend)
+  {
+    path: '/coordinateur/evaluations/:id/preview',
+    name: 'CoordinatorPreviewEvaluation',
+    component: PreviewEvaluation,
+    meta: {
+      requiresAuth: true,
+      roles: ['coordinateur', 'superAdmin']
     }
   },
   // Matières - Navigation hiérarchique (AVEC LAYOUT MODERNE)
