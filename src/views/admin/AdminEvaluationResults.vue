@@ -87,7 +87,7 @@
                 <UserIcon class="w-4 h-4" />
                 Enseignant
               </label>
-              <select v-model="filters.enseignant_id" @change="applyFilters" class="filter-select">
+              <select v-model="filters.enseignant_id" class="filter-select">
                 <option value="">Tous les enseignants</option>
                 <option v-for="enseignant in enseignants" :key="enseignant.klassci_id" :value="enseignant.klassci_id">
                   {{ enseignant.name }}
@@ -101,7 +101,7 @@
                 <UserGroupIcon class="w-4 h-4" />
                 Classe
               </label>
-              <select v-model="filters.classe_id" @change="applyFilters" class="filter-select">
+              <select v-model="filters.classe_id" class="filter-select">
                 <option value="">Toutes les classes</option>
                 <option v-for="classe in classes" :key="classe.id" :value="classe.id">
                   {{ classe.name || classe.libelle }}
@@ -115,7 +115,7 @@
                 <BookOpenIcon class="w-4 h-4" />
                 Matière
               </label>
-              <select v-model="filters.matiere_id" @change="applyFilters" class="filter-select">
+              <select v-model="filters.matiere_id" class="filter-select">
                 <option value="">Toutes les matières</option>
                 <option v-for="matiere in matieres" :key="matiere.id" :value="matiere.id">
                   {{ matiere.name || matiere.nom }}
@@ -129,7 +129,7 @@
                 <FlagIcon class="w-4 h-4" />
                 Statut
               </label>
-              <select v-model="filters.statut" @change="applyFilters" class="filter-select">
+              <select v-model="filters.statut" class="filter-select">
                 <option value="">Tous les statuts</option>
                 <option value="brouillon">Brouillon</option>
                 <option value="planifiee">Planifiée</option>
@@ -272,22 +272,47 @@ const filters = ref({
 
 // Computed
 const filteredEvaluations = computed(() => {
+  console.log('🔄 filteredEvaluations computed EXÉCUTÉ')
+  console.log('   evaluations.value:', evaluations.value.length, 'évaluations')
+  console.log('   filters.value:', filters.value)
+
   let filtered = evaluations.value
 
   if (filters.value.enseignant_id) {
-    filtered = filtered.filter(e => e.klassci_enseignant_id == filters.value.enseignant_id)
+    const enseignantId = Number(filters.value.enseignant_id) || filters.value.enseignant_id
+    console.log('🔍 Filtre enseignant:', enseignantId, '(converti)')
+    filtered = filtered.filter(e => e.klassci_enseignant_id == enseignantId)
+    console.log(`  ✅ Résultats: ${filtered.length} évaluations`)
   }
 
   if (filters.value.classe_id) {
-    filtered = filtered.filter(e => e.klassci_classe_id == filters.value.classe_id)
+    const classeId = Number(filters.value.classe_id) || filters.value.classe_id
+    console.log('🔍 Filtre classe:', classeId, '(type:', typeof classeId, ')')
+    filtered = filtered.filter(e => {
+      const match = e.klassci_classe_id == classeId
+      console.log(`  Eval ${e.id}: klassci_classe_id=${e.klassci_classe_id} == ${classeId} => ${match}`)
+      return match
+    })
+    console.log(`  ✅ Résultats: ${filtered.length} évaluations`)
   }
 
   if (filters.value.matiere_id) {
-    filtered = filtered.filter(e => e.klassci_matiere_id == filters.value.matiere_id)
+    const matiereId = Number(filters.value.matiere_id) || filters.value.matiere_id
+    console.log('🔍 Filtre matière:', matiereId, '(type:', typeof matiereId, ')')
+    filtered = filtered.filter(e => {
+      const match = e.klassci_matiere_id == matiereId
+      console.log(`  Eval ${e.id}: klassci_matiere_id=${e.klassci_matiere_id} == ${matiereId} => ${match}`)
+      return match
+    })
+    console.log(`  ✅ Résultats: ${filtered.length} évaluations`)
   }
 
   if (filters.value.statut) {
-    filtered = filtered.filter(e => e.status === filters.value.statut)
+    // Utiliser effective_status au lieu de status pour respecter les dates passées
+    filtered = filtered.filter(e => {
+      const effectiveStatus = e.effective_status || e.status
+      return effectiveStatus === filters.value.statut
+    })
   }
 
   return filtered
@@ -297,8 +322,14 @@ const stats = computed(() => {
   const all = filteredEvaluations.value
   return {
     total: all.length,
-    enCours: all.filter(e => e.status === 'planifiee').length,
-    terminees: all.filter(e => e.submissions_count > 0 || e.status === 'terminee').length,
+    enCours: all.filter(e => {
+      const effectiveStatus = e.effective_status || e.status
+      return effectiveStatus === 'planifiee' || effectiveStatus === 'en_cours'
+    }).length,
+    terminees: all.filter(e => {
+      const effectiveStatus = e.effective_status || e.status
+      return effectiveStatus === 'terminee'
+    }).length,
     avecVersionEnLigne: all.filter(e => e.is_online).length
   }
 })
@@ -311,7 +342,19 @@ const loadData = async () => {
   try {
     // Charger les évaluations
     const evalsResponse = await api.get('/evaluations')
+    console.log('📦 evalsResponse:', evalsResponse)
+    console.log('📦 evalsResponse.data:', evalsResponse.data)
+    console.log('📦 Type:', typeof evalsResponse.data, Array.isArray(evalsResponse.data) ? '(array)' : '')
+
     evaluations.value = evalsResponse.data || []
+
+    console.log('✅ evaluations.value:', evaluations.value.length, 'évaluations')
+    if (evaluations.value.length > 0) {
+      console.log('   Première:', evaluations.value[0].id, evaluations.value[0].titre)
+      console.log('   klassci_classe_id:', evaluations.value[0].klassci_classe_id)
+      console.log('   klassci_matiere_id:', evaluations.value[0].klassci_matiere_id)
+      console.log('   effective_status:', evaluations.value[0].effective_status)
+    }
 
     // Extraire la liste unique des enseignants
     const enseignantsMap = new Map()
@@ -343,17 +386,14 @@ const loadData = async () => {
   }
 }
 
-const applyFilters = () => {
-  // Les filtres sont automatiquement appliqués via computed
-}
 
 const resetFilters = () => {
-  filters.value = {
-    enseignant_id: '',
-    classe_id: '',
-    matiere_id: '',
-    statut: ''
-  }
+  // ⚠️ NE PAS réassigner filters.value car ça casse la réactivité!
+  // Au lieu de ça, modifier les propriétés individuellement:
+  filters.value.enseignant_id = ''
+  filters.value.classe_id = ''
+  filters.value.matiere_id = ''
+  filters.value.statut = ''
 }
 
 const viewResults = (id) => {
