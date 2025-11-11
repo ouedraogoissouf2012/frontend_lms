@@ -171,8 +171,8 @@
                   </span>
                 </div>
               </div>
-              <span :class="getStatusClass(evaluation.status)" class="status-badge">
-                {{ getStatusLabel(evaluation.status) }}
+              <span :class="getStatusClass(evaluation.effective_status || evaluation.status)" class="status-badge">
+                {{ getStatusLabel(evaluation.effective_status || evaluation.status) }}
               </span>
             </div>
 
@@ -279,7 +279,10 @@ const filteredEvaluations = computed(() => {
   }
 
   if (filters.value.statut) {
-    filtered = filtered.filter(e => e.status === filters.value.statut)
+    filtered = filtered.filter(e => {
+      const effectiveStatus = e.effective_status || e.status
+      return effectiveStatus === filters.value.statut
+    })
   }
 
   return filtered
@@ -289,8 +292,14 @@ const stats = computed(() => {
   const all = filteredEvaluations.value
   return {
     total: all.length,
-    enCours: all.filter(e => e.status === 'planifiee').length,
-    terminees: all.filter(e => e.submissions_count > 0 || e.status === 'terminee').length,
+    enCours: all.filter(e => {
+      const effectiveStatus = e.effective_status || e.status
+      return effectiveStatus === 'planifiee' || effectiveStatus === 'en_cours'
+    }).length,
+    terminees: all.filter(e => {
+      const effectiveStatus = e.effective_status || e.status
+      return effectiveStatus === 'terminee'
+    }).length,
     avecVersionEnLigne: all.filter(e => e.is_online).length
   }
 })
