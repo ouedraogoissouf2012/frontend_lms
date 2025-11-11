@@ -22,7 +22,7 @@
       <!-- Loading State -->
       <div v-if="loading" class="loading-state">
         <SkeletonLoader type="card" height="150px" />
-        <SkeletonLoader type="table" :rows="5" />
+        <SkeletonLoader type="card" :rows="5" />
       </div>
 
       <!-- Error State -->
