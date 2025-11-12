@@ -87,7 +87,7 @@
                 <UserIcon class="w-4 h-4" />
                 Enseignant
               </label>
-              <select v-model="filters.enseignant_id" class="filter-select">
+              <select :value="filters.enseignant_id" @change="e => updateFilter('enseignant_id', e.target.value)" class="filter-select">
                 <option value="">Tous les enseignants</option>
                 <option v-for="enseignant in enseignants" :key="enseignant.klassci_id" :value="enseignant.klassci_id">
                   {{ enseignant.name }}
@@ -101,7 +101,7 @@
                 <UserGroupIcon class="w-4 h-4" />
                 Classe
               </label>
-              <select v-model="filters.classe_id" class="filter-select">
+              <select :value="filters.classe_id" @change="e => updateFilter('classe_id', e.target.value)" class="filter-select">
                 <option value="">Toutes les classes</option>
                 <option v-for="classe in classes" :key="classe.id" :value="classe.id">
                   {{ classe.name || classe.libelle }}
@@ -115,7 +115,7 @@
                 <BookOpenIcon class="w-4 h-4" />
                 Matière
               </label>
-              <select v-model="filters.matiere_id" class="filter-select">
+              <select :value="filters.matiere_id" @change="e => updateFilter('matiere_id', e.target.value)" class="filter-select">
                 <option value="">Toutes les matières</option>
                 <option v-for="matiere in matieres" :key="matiere.id" :value="matiere.id">
                   {{ matiere.name || matiere.nom }}
@@ -129,7 +129,7 @@
                 <FlagIcon class="w-4 h-4" />
                 Statut
               </label>
-              <select v-model="filters.statut" class="filter-select">
+              <select :value="filters.statut" @change="e => updateFilter('statut', e.target.value)" class="filter-select">
                 <option value="">Tous les statuts</option>
                 <option value="brouillon">Brouillon</option>
                 <option value="planifiee">Planifiée</option>
@@ -145,6 +145,7 @@
                 <XMarkIcon class="w-4 h-4" />
                 Réinitialiser
               </button>
+
             </div>
           </div>
         </div>
@@ -271,40 +272,31 @@ const filters = ref({
 })
 
 // Computed
+
 const filteredEvaluations = computed(() => {
-  console.log('🔄 filteredEvaluations computed EXÉCUTÉ')
-  console.log('   evaluations.value:', evaluations.value.length, 'évaluations')
-  console.log('   filters.value:', filters.value)
 
   let filtered = evaluations.value
 
   if (filters.value.enseignant_id) {
     const enseignantId = Number(filters.value.enseignant_id) || filters.value.enseignant_id
-    console.log('🔍 Filtre enseignant:', enseignantId, '(converti)')
     filtered = filtered.filter(e => e.klassci_enseignant_id == enseignantId)
-    console.log(`  ✅ Résultats: ${filtered.length} évaluations`)
   }
 
   if (filters.value.classe_id) {
     const classeId = Number(filters.value.classe_id) || filters.value.classe_id
-    console.log('🔍 Filtre classe:', classeId, '(type:', typeof classeId, ')')
     filtered = filtered.filter(e => {
       const match = e.klassci_classe_id == classeId
-      console.log(`  Eval ${e.id}: klassci_classe_id=${e.klassci_classe_id} == ${classeId} => ${match}`)
       return match
     })
-    console.log(`  ✅ Résultats: ${filtered.length} évaluations`)
   }
 
   if (filters.value.matiere_id) {
     const matiereId = Number(filters.value.matiere_id) || filters.value.matiere_id
-    console.log('🔍 Filtre matière:', matiereId, '(type:', typeof matiereId, ')')
     filtered = filtered.filter(e => {
       const match = e.klassci_matiere_id == matiereId
       console.log(`  Eval ${e.id}: klassci_matiere_id=${e.klassci_matiere_id} == ${matiereId} => ${match}`)
       return match
     })
-    console.log(`  ✅ Résultats: ${filtered.length} évaluations`)
   }
 
   if (filters.value.statut) {
@@ -342,19 +334,9 @@ const loadData = async () => {
   try {
     // Charger les évaluations
     const evalsResponse = await api.get('/evaluations')
-    console.log('📦 evalsResponse:', evalsResponse)
-    console.log('📦 evalsResponse.data:', evalsResponse.data)
-    console.log('📦 Type:', typeof evalsResponse.data, Array.isArray(evalsResponse.data) ? '(array)' : '')
 
     evaluations.value = evalsResponse.data || []
 
-    console.log('✅ evaluations.value:', evaluations.value.length, 'évaluations')
-    if (evaluations.value.length > 0) {
-      console.log('   Première:', evaluations.value[0].id, evaluations.value[0].titre)
-      console.log('   klassci_classe_id:', evaluations.value[0].klassci_classe_id)
-      console.log('   klassci_matiere_id:', evaluations.value[0].klassci_matiere_id)
-      console.log('   effective_status:', evaluations.value[0].effective_status)
-    }
 
     // Extraire la liste unique des enseignants
     const enseignantsMap = new Map()
@@ -375,8 +357,8 @@ const loadData = async () => {
       api.get('/proxy/matieres')
     ])
 
-    classes.value = classesResponse.data.data || []
-    matieres.value = matieresResponse.data.data || []
+    classes.value = classesResponse.data || []
+    matieres.value = matieresResponse.data || []
 
   } catch (err) {
     console.error('Erreur chargement données:', err)
@@ -384,6 +366,11 @@ const loadData = async () => {
   } finally {
     loading.value = false
   }
+}
+
+
+const updateFilter = (filterName, value) => {
+  filters.value[filterName] = value
 }
 
 
