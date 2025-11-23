@@ -229,22 +229,34 @@
               <div v-else-if="seance.visio.status === 'programmee'" class="action-section action-scheduled">
                 <div class="action-info">
                   <div class="action-details">
-                    <span class="action-icon">◉</span>
-                    <div>
-                      <p class="action-title">Visioconférence Jitsi programmée</p>
-                      <p class="action-subtitle">
+                    <div class="action-content">
+                      <span class="action-icon-programmed">◉</span>
+                      <p class="action-subtitle-room">
                         Salle: <span class="room-id">{{ seance.visio.room_id }}</span>
+                      </p>
+                      <p v-if="!isEnseignant" class="action-subtitle text-blue-700 font-medium mt-1">
+                        ⏳ En attente que l'enseignant démarre la séance
                       </p>
                     </div>
                   </div>
-                  <button
-                    @click="handleStartVisio(seance)"
-                    :disabled="actionLoading === seance.id"
-                    class="btn-action btn-success"
-                  >
-                    <span class="btn-icon">▶</span>
-                    {{ actionLoading === seance.id ? 'Démarrage...' : 'Démarrer maintenant' }}
-                  </button>
+                  <div v-if="isEnseignant" class="action-buttons">
+                    <button
+                      @click="handleStartVisio(seance)"
+                      :disabled="actionLoading === seance.id"
+                      class="btn-action btn-primary"
+                    >
+                      <span class="btn-icon">▶</span>
+                      {{ actionLoading === seance.id ? 'Démarrage...' : 'Démarrer maintenant' }}
+                    </button>
+                    <button
+                      @click="handleDeactivateVisio(seance)"
+                      :disabled="actionLoading === seance.id"
+                      class="btn-action btn-secondary"
+                    >
+                      <span class="btn-icon">✕</span>
+                      Désactiver
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -255,26 +267,25 @@
                     <div class="flex items-center gap-3 flex-1">
                       <span class="pulse-indicator"></span>
                       <div>
-                        <p class="action-title text-green-900">Cours EN DIRECT</p>
-                        <p class="action-subtitle">
+                        <p class="action-title-active">Cours EN DIRECT</p>
+                        <p class="action-subtitle-active">
                           Démarré à {{ formatTime(seance.visio.started_at) }}
                         </p>
                         <p v-if="seance.visio.participants_count > 0" class="participants-count">
-                          <span class="count-icon">☺</span>
+                          <span class="count-icon">◉</span>
                           {{ seance.visio.participants_count }} participant(s) connecté(s)
                         </p>
                       </div>
                     </div>
                   </div>
                   <div class="action-buttons">
-                    <a
-                      :href="`https://meet.jit.si/${seance.visio.room_id}`"
-                      target="_blank"
+                    <button
+                      @click="handleJoinVisio(seance)"
                       class="btn-action btn-success"
                     >
                       <span class="btn-icon">◉</span>
                       Rejoindre
-                    </a>
+                    </button>
                     <button
                       @click="handleEndVisio(seance)"
                       :disabled="actionLoading === seance.id"
@@ -318,6 +329,8 @@
         </div>
       </template>
     </div>
+
+
   </DashboardLayout>
 </template>
 
@@ -325,6 +338,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import { useVisioParticipation } from '@/composables/useVisioParticipation'
 import { lmsService } from '@/services/lms'
 import { klassciService } from '@/services/klassci'
 
@@ -333,6 +347,14 @@ const matieres = ref([])
 const loading = ref(true)
 const error = ref(null)
 const actionLoading = ref(null)
+
+// État de la modal Jitsi
+// visioParticipation sera créé dynamiquement pour chaque séance
+const visioParticipations = reactive({})
+
+// Get current user
+const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
+const isEnseignant = currentUser.role === 'enseignant'
 
 // Filters
 const filters = reactive({
@@ -532,6 +554,32 @@ async function handleActivateVisio(seance) {
   }
 }
 
+async function handleDeactivateVisio(seance) {
+  if (actionLoading.value) return
+
+  if (!confirm('Voulez-vous vraiment désactiver la visioconférence ?')) {
+    return
+  }
+
+  actionLoading.value = seance.id
+
+  try {
+    console.log('[VISIO] Désactivation visio pour séance:', seance.id)
+    const response = await lmsService.deactivateVisio(seance.id)
+
+    console.log('[VISIO] Visio désactivée:', response)
+
+    // Invalidate cache and reload
+    localStorage.removeItem(CACHE_KEY_SEANCES)
+    await loadSeances()
+  } catch (err) {
+    console.error('[ERREUR] Désactivation visio:', err)
+    error.value = 'Erreur lors de la désactivation de la visio'
+  } finally {
+    actionLoading.value = null
+  }
+}
+
 async function handleStartVisio(seance) {
   if (actionLoading.value) return
 
@@ -551,6 +599,33 @@ async function handleStartVisio(seance) {
     error.value = 'Erreur lors du démarrage de la visio'
   } finally {
     actionLoading.value = null
+  }
+}
+
+
+async function handleJoinVisio(seance) {
+  try {
+    console.log('[VISIO] Rejoindre visio:', seance.id)
+
+    // Créer le composable pour cette séance si pas déjà créé
+    if (!visioParticipations[seance.id]) {
+      visioParticipations[seance.id] = useVisioParticipation(seance.id)
+    }
+
+    // Ouvrir window.open avec tracking
+    const roomId = seance.visio.room_id
+    const jitsiLink = `https://meet.jit.si/${roomId}`
+
+    await visioParticipations[seance.id].joinVisio(jitsiLink)
+
+    console.log('[VISIO] Visio rejointe avec window.open + tracking Web Worker')
+
+    // Rafraîchir les séances pour mettre à jour le compteur de participants
+    localStorage.removeItem(CACHE_KEY_SEANCES)
+    loadSeances()
+  } catch (error) {
+    console.error('[ERREUR] Join visio:', error)
+    alert('Erreur lors de la connexion à la visio: ' + error.message)
   }
 }
 
@@ -1016,13 +1091,26 @@ onMounted(() => {
 }
 
 .action-scheduled {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  background: var(--card-bg-dark, #1f2937);
+  border: 1px solid var(--border-color);
 }
 
 .action-active {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
+  background: var(--card-bg-dark, #1f2937);
+  border: 1px solid var(--border-color);
+}
+
+.action-title-active {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 0.25rem 0;
+}
+
+.action-subtitle-active {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
 }
 
 .action-finished {
@@ -1054,6 +1142,20 @@ onMounted(() => {
   color: #3b82f6;
 }
 
+.action-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.action-icon-programmed {
+  font-size: 1.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+  color: white;
+}
+
 .action-title {
   font-size: 0.9375rem;
   font-weight: 600;
@@ -1067,12 +1169,24 @@ onMounted(() => {
   margin: 0;
 }
 
+.action-subtitle-room {
+  font-size: 0.875rem;
+  color: white;
+  font-weight: 500;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .room-id {
   font-family: monospace;
-  background: rgba(255, 255, 255, 0.5);
-  padding: 0.125rem 0.5rem;
-  border-radius: 0.25rem;
+  background: var(--card-bg-dark, #1f2937);
+  color: white;
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.375rem;
   font-weight: 600;
+  font-size: 0.8125rem;
 }
 
 .pulse-indicator {
@@ -1089,7 +1203,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.7);
   margin-top: 0.5rem;
 }
 
@@ -1155,6 +1269,17 @@ onMounted(() => {
 
 .btn-danger:hover:not(:disabled) {
   background: #dc2626;
+}
+
+.btn-secondary {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 /* Empty State */

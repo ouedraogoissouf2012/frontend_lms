@@ -345,6 +345,13 @@ export default {
         })
       }
 
+      // Historique des présences - accessible pour tous les rôles authentifiés
+      menu.push({
+        icon: '📊',
+        label: 'Historique Présences',
+        to: '/attendance/history'
+      })
+
       // Paramètres - dernière entrée pour tous
       if (isTeacher || isAdmin) {
         menu.push({

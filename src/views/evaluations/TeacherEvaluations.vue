@@ -270,6 +270,15 @@
               </button>
               <button
                 v-if="evaluation.has_online && evaluation.online_version?.submissions_count > 0"
+                @click="viewResults(evaluation)"
+                class="btn-action btn-view-results"
+                title="Voir les notes et résultats des étudiants"
+              >
+                <ChartBarIcon class="w-5 h-5" />
+                Voir les notes
+              </button>
+              <button
+                v-if="evaluation.has_online && evaluation.online_version?.submissions_count > 0"
                 @click="syncToKlassci(evaluation)"
                 :disabled="syncing === evaluation.id"
                 class="btn-action btn-sync"
@@ -394,7 +403,8 @@ import {
   XMarkIcon,
   PlusIcon,
   PencilIcon,
-  ArrowPathIcon
+  ArrowPathIcon,
+  ChartBarIcon
 } from '@heroicons/vue/24/outline'
 
 const router = useRouter()
@@ -752,6 +762,16 @@ function editOnlineVersion(evaluation) {
     query: {
       klassci_id: evaluation.id
     }
+  })
+}
+
+// View results
+function viewResults(evaluation) {
+  if (!evaluation.online_version) return
+
+  router.push({
+    name: 'EvaluationCorrections',
+    params: { id: evaluation.online_version.id }
   })
 }
 
@@ -1355,6 +1375,15 @@ onMounted(() => {
 
 .btn-edit:hover:not(:disabled) {
   background: #d97706;
+}
+
+.btn-view-results {
+  background: #8b5cf6;
+  color: white;
+}
+
+.btn-view-results:hover:not(:disabled) {
+  background: #7c3aed;
 }
 
 .btn-sync {

@@ -3,12 +3,18 @@
     <div class="bg-white rounded-lg shadow-xl max-w-6xl w-full mx-4 max-h-[90vh] overflow-hidden">
       <!-- Header -->
       <div class="bg-gradient-to-r from-purple-600 to-purple-800 text-white px-6 py-4 flex items-center justify-between">
+         <div> 
         <h3 class="text-xl font-bold flex items-center">
+              
           <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
           </svg>
           📋 Liste de Présence - Séance #{{ seanceId }}
         </h3>
+        <p v-if="teacher && teacher.nom" class="text-sm font-normal opacity-90 mt-1">
+        Enseignant: {{ teacher.prenom ? teacher.prenom + ' ' : '' }}{{ teacher.nom }}
+      </p>
+       </div>
         <button @click="close" class="text-white hover:text-gray-200">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -52,7 +58,8 @@
                 <div>
                   <p class="text-xs text-green-600 font-medium">Présents</p>
                   <p class="text-2xl font-bold text-green-900">{{ stats.present_count }}</p>
-                  <p class="text-xs text-green-600 mt-1">{{ stats.presence_rate }}%</p>
+                  <p v-if="stats.visio_status === 'terminee'" class="text-xs text-green-600 mt-1">{{ stats.presence_rate }}%</p>
+                  <p v-else class="text-xs text-green-500 mt-1 italic">En cours...</p>
                 </div>
                 <svg class="w-10 h-10 text-green-300" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
@@ -92,7 +99,8 @@
                 <div>
                   <p class="text-xs text-purple-600 font-medium">Durée moy.</p>
                   <p class="text-2xl font-bold text-purple-900">{{ formatDuration(stats.average_duration_minutes) }}</p>
-                  <p class="text-xs text-purple-600 mt-1">{{ stats.average_percentage }}%</p>
+                  <p v-if="stats.visio_status === 'terminee'" class="text-xs text-purple-600 mt-1">{{ stats.average_percentage }}%</p>
+                  <p v-else class="text-xs text-purple-500 mt-1 italic">En cours...</p>
                 </div>
                 <svg class="w-10 h-10 text-purple-300" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
@@ -158,7 +166,7 @@
                         <span class="text-lg mr-2">{{ student.status_icon }}</span>
                         <div>
                           <div class="font-medium text-gray-900">{{ student.status }}</div>
-                          <div v-if="student.percentage > 0" class="text-xs text-gray-500">
+                          <div v-if="stats.visio_status === 'terminee' && student.percentage > 0" class="text-xs text-gray-500">
                             {{ student.percentage }}% de présence
                           </div>
                         </div>
@@ -233,6 +241,7 @@ export default {
       loading: true,
       error: null,
       students: [],
+      teacher: null,
       stats: {
         total_students: 0,
         present_count: 0,
@@ -279,9 +288,11 @@ export default {
         if (response && response.success) {
           this.students = response.data.students || []
           this.stats = response.data.statistics || this.stats
+          this.teacher = response.data.teacher || null
           console.log('[ParticipantsModal] Liste de présence chargée:', {
             students: this.students.length,
-            stats: this.stats
+            stats: this.stats,
+            teacher: this.teacher
           })
         } else {
           throw new Error(response?.message || 'Erreur lors du chargement de la liste de présence')

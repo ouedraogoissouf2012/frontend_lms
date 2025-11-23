@@ -181,15 +181,21 @@
                   Voir participants
                 </button>
 
-                <a
-                  :href="`https://meet.jit.si/${seance.visio_room_id}`"
-                  target="_blank"
-                  class="open-jitsi-btn"
-                  title="Ouvrir la salle Jitsi dans un nouvel onglet"
-                >
-                  <span class="btn-icon">↗</span>
-                  Ouvrir Jitsi
-                </a>
+                <!-- Coordinateur ne peut que rejoindre si active, pas démarrer -->
+                <div v-if="seance.visio_status === 'active' || seance.visio_active" class="visio-status-group">
+                  <button
+                    @click="handleJoinVisio(seance)"
+                    class="open-jitsi-btn"
+                    title="Rejoindre la visioconférence en cours"
+                  >
+                    <span class="btn-icon">↗</span>
+                    Rejoindre
+                  </button>
+                </div>
+                <div v-else class="waiting-message">
+                  <span class="waiting-icon">⏳</span>
+                  <span class="waiting-text">En attente que l'enseignant démarre</span>
+                </div>
               </div>
             </div>
           </div>
@@ -229,6 +235,9 @@
       :seance-id="selectedSeanceId"
       @close="showParticipantsModal = false"
     />
+
+    <!-- Jitsi Modal -->
+
   </DashboardLayout>
 </template>
 
@@ -236,7 +245,9 @@
 import { ref, reactive, onMounted, getCurrentInstance } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import { useVisioParticipation } from '@/composables/useVisioParticipation'
 import ParticipantsModal from '@/components/visio/ParticipantsModal.vue'
+
 import lmsService from '@/services/lms'
 
 // Instance pour accéder à $toast
@@ -256,6 +267,13 @@ const filters = reactive({
   teacher_id: null,
   classe_id: null
 })
+
+// Get current user for Jitsi
+const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
+
+// État de la modal Jitsi
+// visioParticipation sera créé dynamiquement pour chaque séance
+const visioParticipations = reactive({})
 
 // Cache
 const CACHE_KEY = 'seances_management_cache'
@@ -433,6 +451,40 @@ const showParticipants = (seance) => {
   selectedSeanceId.value = seance.id
   showParticipantsModal.value = true
 }
+
+const handleJoinVisio = async (seance) => {
+  try {
+    console.log('[VISIO] Rejoindre visio coordinateur:', seance.id)
+
+    // Créer le composable pour cette séance si pas déjà créé
+    if (!visioParticipations[seance.id]) {
+      visioParticipations[seance.id] = useVisioParticipation(seance.id)
+    }
+
+    // Ouvrir window.open avec tracking
+    const roomId = seance.visio_room_id
+    const jitsiLink = `https://meet.jit.si/${roomId}`
+
+    await visioParticipations[seance.id].joinVisio(jitsiLink)
+
+    console.log('[VISIO] Coordinateur a rejoint avec window.open + tracking Web Worker')
+
+    // Rafraîchir les séances
+    await loadSeances()
+  } catch (error) {
+    console.error('[ERREUR] Join visio coordinateur:', error)
+    alert('Erreur lors de la connexion à la visio: ' + error.message)
+  }
+}
+
+// Gestion des événements de la modal Jitsi
+
+
+
+
+
+
+
 
 // Lifecycle hooks
 onMounted(() => {
@@ -701,8 +753,8 @@ onMounted(() => {
 .visio-panel {
   margin-top: 1rem;
   padding: 1rem;
-  background: #f0fdf4;
-  border: 1px solid #86efac;
+  background: var(--card-bg-dark, #1f2937);
+  border: 1px solid var(--border-color);
   border-radius: 0.5rem;
 }
 
@@ -723,7 +775,7 @@ onMounted(() => {
 .visio-icon-wrapper {
   width: 2.5rem;
   height: 2.5rem;
-  background: #22c55e;
+  background: var(--primary-color);
   border-radius: 0.5rem;
   display: flex;
   align-items: center;
@@ -739,7 +791,7 @@ onMounted(() => {
 
 .visio-title {
   font-weight: 600;
-  color: #166534;
+  color: white;
   margin: 0 0 0.5rem 0;
   font-size: 0.9375rem;
 }
@@ -749,7 +801,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.375rem;
   font-size: 0.875rem;
-  color: #15803d;
+  color: white;
   margin: 0 0 0.5rem 0;
 }
 
@@ -760,10 +812,11 @@ onMounted(() => {
 
 .room-id {
   font-family: monospace;
-  background: #dcfce7;
-  padding: 0.125rem 0.5rem;
+  background: var(--card-bg-dark, #1f2937);
+  color: white;
+  padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .visio-access {
@@ -771,7 +824,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.375rem;
   font-size: 0.75rem;
-  color: #16a34a;
+  color: rgba(255, 255, 255, 0.7);
   margin: 0;
 }
 
@@ -824,6 +877,27 @@ onMounted(() => {
 
 .open-jitsi-btn:hover {
   background: #15803d;
+}
+
+.waiting-message {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: #fef3c7;
+  border-radius: 0.5rem;
+  border: 1px solid #fcd34d;
+}
+
+.waiting-icon {
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.waiting-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #92400e;
 }
 
 /* Empty State */

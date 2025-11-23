@@ -44,8 +44,20 @@
             </option>
           </select>
         </div>
+        <div class="filter-item">
+          <label class="filter-label">
+            <AcademicCapIcon class="w-4 h-4" />
+            Niveau
+          </label>
+          <select v-model="filters.niveau_id" @change="applyFilters" class="filter-select">
+            <option value="">Tous les niveaux</option>
+            <option v-for="niveau in niveaux" :key="niveau.id" :value="niveau.id">
+              {{ niveau.nom || niveau.code }}
+            </option>
+          </select>
+        </div>
         <button
-          v-if="filters.filiere_id || filters.search"
+          v-if="filters.filiere_id || filters.niveau_id || filters.search"
           @click="resetFilters"
           class="btn-reset"
           title="Réinitialiser les filtres"
@@ -71,48 +83,49 @@
         </button>
       </div>
 
-      <!-- Niveaux Cards Grid -->
-      <div v-else-if="filteredNiveauxWithMatieres.length > 0" class="niveaux-grid">
-        <div
-          v-for="niveauGroup in filteredNiveauxWithMatieres"
-          :key="niveauGroup.niveau.id"
-          class="niveau-card"
-        >
-          <!-- Niveau Icon -->
-          <div class="niveau-card-icon">
-            <AcademicCapIcon class="w-10 h-10" />
-          </div>
-
-          <!-- Niveau Content -->
-          <div class="niveau-card-content">
-            <h3 class="niveau-card-title">
-              {{ niveauGroup.niveau.nom || niveauGroup.niveau.code }}
-            </h3>
-            <div class="niveau-card-stats">
-              <div class="stat-item">
-                <BookOpenIcon class="w-4 h-4" />
-                <span>{{ niveauGroup.matieres.length }} matière(s)</span>
-              </div>
-              <div class="stat-item">
-                <ClockIcon class="w-4 h-4" />
-                <span>{{ niveauGroup.totalHeures }}h</span>
-              </div>
-              <div class="stat-item">
-                <CalendarIcon class="w-4 h-4" />
-                <span>{{ niveauGroup.totalSeances }} séance(s)</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Action Button -->
-          <button
-            @click="viewNiveauDetails(niveauGroup)"
-            class="niveau-card-action"
-            title="Voir les détails"
-          >
-            <EyeIcon class="w-6 h-6" />
-          </button>
-        </div>
+      <!-- Matieres Table -->
+      <div v-else-if="filteredMatieres.length > 0" class="modern-table-container">
+        <table class="modern-table">
+          <thead>
+            <tr>
+              <th>MATIÈRE</th>
+              <th>FILIÈRE(S)</th>
+              <th>NIVEAUX D'ÉTUDE</th>
+              <th>COEF.</th>
+              <th>ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="matiere in filteredMatieres" :key="matiere.id">
+              <td class="matiere-cell">
+                <div class="matiere-indicator" :style="{ backgroundColor: matiere.couleur || '#6366f1' }"></div>
+                <span class="matiere-text">{{ matiere.nom }}</span>
+              </td>
+              <td>
+                <div class="text-content">
+                  <span v-for="(filiere, idx) in getMatiereFilieres(matiere)" :key="idx" class="list-item">
+                    {{ filiere }}
+                  </span>
+                  <span v-if="getMatiereFilieres(matiere).length === 0" class="empty-value">-</span>
+                </div>
+              </td>
+              <td>
+                <div class="text-content">
+                  <span v-for="(niveau, idx) in getMatiereNiveaux(matiere)" :key="idx" class="list-item">
+                    {{ niveau }}
+                  </span>
+                  <span v-if="getMatiereNiveaux(matiere).length === 0" class="empty-value">-</span>
+                </div>
+              </td>
+              <td class="centered-cell">{{ matiere.coefficient || '-' }}</td>
+              <td class="actions-cell">
+                <button @click="viewMatiereDetails(matiere)" class="icon-btn" title="Voir détails">
+                  <EyeIcon class="icon" />
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <!-- Empty state -->
@@ -334,7 +347,8 @@ const error = ref(null)
 
 const filters = ref({
   search: '',
-  filiere_id: ''
+  filiere_id: '',
+  niveau_id: ''
 })
 
 const showNiveauModal = ref(false)
@@ -365,6 +379,14 @@ const filteredMatieres = computed(() => {
     result = result.filter(m => {
       if (!m.combinaisons || m.combinaisons.length === 0) return false
       return m.combinaisons.some(c => c.filiere?.id == filters.value.filiere_id)
+    })
+  }
+
+  // Filter by niveau
+  if (filters.value.niveau_id) {
+    result = result.filter(m => {
+      if (!m.combinaisons || m.combinaisons.length === 0) return false
+      return m.combinaisons.some(c => c.niveau?.id == filters.value.niveau_id)
     })
   }
 
@@ -478,14 +500,32 @@ function getMatiereFilieres(matiere) {
 
   const uniqueFilieres = new Set()
   matiere.combinaisons.forEach(combi => {
-    if (combi.filiere?.code) {
-      uniqueFilieres.add(combi.filiere.code)
-    } else if (combi.filiere?.nom) {
+    // Priorité: nom > code
+    if (combi.filiere?.nom) {
       uniqueFilieres.add(combi.filiere.nom)
+    } else if (combi.filiere?.code) {
+      uniqueFilieres.add(combi.filiere.code)
     }
   })
 
   return Array.from(uniqueFilieres)
+}
+
+// Get matiere niveaux (unique)
+function getMatiereNiveaux(matiere) {
+  if (!matiere.combinaisons || matiere.combinaisons.length === 0) return []
+
+  const uniqueNiveaux = new Set()
+  matiere.combinaisons.forEach(combi => {
+    // Priorité: nom > code
+    if (combi.niveau?.nom) {
+      uniqueNiveaux.add(combi.niveau.nom)
+    } else if (combi.niveau?.code) {
+      uniqueNiveaux.add(combi.niveau.code)
+    }
+  })
+
+  return Array.from(uniqueNiveaux)
 }
 
 // View niveau details (open modal)
@@ -622,6 +662,7 @@ function applyFilters() {
 function resetFilters() {
   filters.value.search = ''
   filters.value.filiere_id = ''
+  filters.value.niveau_id = ''
 }
 
 // Lifecycle
@@ -760,96 +801,157 @@ onMounted(() => {
   background: var(--hover-bg);
 }
 
-/* Niveaux Grid */
-.niveaux-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1.5rem;
+/* Modern Table Container */
+.modern-table-container {
+  width: 100%;
+  overflow-x: auto;
+  margin-bottom: 2rem;
 }
 
-/* Niveau Card */
-.niveau-card {
-  position: relative;
+/* Modern Table */
+.modern-table {
+  width: 100%;
+  border-collapse: collapse;
   background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  transition: all 0.3s ease;
-  cursor: default;
+  border-radius: 0.5rem;
   overflow: hidden;
 }
 
-.niveau-card:hover {
-  border-color: var(--primary-color);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
-  transform: translateY(-2px);
+/* Table Header - Style bleu vif comme l'exemple */
+.modern-table thead {
+  background: linear-gradient(135deg, #4a90e2 0%, #5a9df2 100%);
 }
 
-.niveau-card-icon {
-  width: 3.5rem;
-  height: 3.5rem;
-  background: linear-gradient(135deg, var(--primary-color) 0%, #8b5cf6 100%);
-  border-radius: 0.75rem;
+.modern-table thead tr {
+  background: transparent;
+}
+
+.modern-table th {
+  padding: 1rem 1.25rem;
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.modern-table th:last-child {
+  border-right: none;
+}
+
+/* Table Body */
+.modern-table tbody tr {
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.15s ease;
+}
+
+.modern-table tbody tr:hover {
+  background: var(--hover-bg);
+}
+
+.modern-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.modern-table td {
+  padding: 1.125rem 1.25rem;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  vertical-align: middle;
+  border-right: 1px solid var(--border-color);
+}
+
+.modern-table td:last-child {
+  border-right: none;
+}
+
+/* Matiere Cell avec indicateur de couleur */
+.matiere-cell {
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: white;
-  margin-bottom: 1rem;
+  gap: 0.75rem;
 }
 
-.niveau-card-content {
-  margin-bottom: 1rem;
+.matiere-indicator {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
-.niveau-card-title {
-  font-size: 1.25rem;
-  font-weight: 700;
+.matiere-text {
+  font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 0.75rem 0;
 }
 
-.niveau-card-stats {
+/* Text Content - pour les listes (filières, niveaux) */
+.text-content {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.375rem;
 }
 
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.list-item {
+  display: block;
+  color: var(--text-primary);
   font-size: 0.875rem;
-  color: var(--text-secondary);
+  line-height: 1.4;
 }
 
-.stat-item svg {
-  flex-shrink: 0;
+.empty-value {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Centered Cell - pour les valeurs numériques */
+.centered-cell {
+  text-align: center;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* Actions Cell */
+.actions-cell {
+  text-align: center;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  background: transparent;
+  border: none;
+  border-radius: 0.375rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.icon-btn:hover {
+  background: var(--hover-bg);
   color: var(--primary-color);
 }
 
-.niveau-card-action {
-  position: absolute;
-  top: 1.5rem;
-  right: 1.5rem;
-  width: 2.5rem;
-  height: 2.5rem;
-  background: var(--primary-color);
-  border: none;
-  border-radius: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  cursor: pointer;
-  transition: all 0.2s;
+.icon-btn .icon {
+  width: 1.125rem;
+  height: 1.125rem;
 }
 
-.niveau-card-action:hover {
-  background: #4f46e5;
-  transform: scale(1.1);
+/* Responsive */
+@media (max-width: 1024px) {
+  .modern-table th,
+  .modern-table td {
+    padding: 0.875rem 1rem;
+    font-size: 0.8125rem;
+  }
 }
 
-/* Empty State */
+
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;
@@ -1051,36 +1153,79 @@ onMounted(() => {
 
 /* Matiere Color */
 .matiere-color {
-  width: 32px;
-  height: 32px;
-  border-radius: 0.375rem;
-  border: 2px solid var(--border-color);
+  width: 40px;
+  height: 40px;
+  border-radius: 0.5rem;
+  border: 3px solid var(--border-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
 }
 
-/* Matiere Info */
+.matieres-table-main tbody tr:hover .matiere-color {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Numero Column */
+.col-numero {
+  width: 60px;
+  text-align: center;
+}
+
+.numero-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background: var(--primary-color);
+  color: white;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+/* Matiere Column */
 .col-matiere {
   min-width: 200px;
 }
 
-.matiere-info {
+.matiere-name-wrapper {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.matiere-color-small {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  flex-shrink: 0;
+  border: 2px solid var(--border-color);
 }
 
 .matiere-name {
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 0.9375rem;
   color: var(--text-primary);
+  line-height: 1.3;
 }
 
-.matiere-desc {
-  font-size: 0.75rem;
-  color: var(--text-tertiary);
+/* Description Column */
+.col-description {
+  min-width: 300px;
+  max-width: 400px;
+}
+
+.matiere-description {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
 }
 
 /* Filières Badges */
 .col-filieres {
-  min-width: 150px;
+  min-width: 180px;
 }
 
 .filieres-badges {
@@ -1092,22 +1237,25 @@ onMounted(() => {
 .filiere-badge {
   display: inline-block;
   padding: 0.25rem 0.625rem;
-  background: var(--primary-color);
-  color: white;
-  border-radius: 0.375rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-/* Code Badge */
-.code-badge {
-  display: inline-block;
-  padding: 0.25rem 0.625rem;
   background: var(--hover-bg);
   color: var(--text-primary);
   border-radius: 0.375rem;
   font-size: 0.75rem;
   font-weight: 500;
+  border: 1px solid var(--border-color);
+}
+
+/* Code Badge */
+.code-badge {
+  display: inline-block;
+  padding: 0.375rem 0.875rem;
+  background: var(--hover-bg);
+  color: var(--text-primary);
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: 2px solid var(--border-color);
+  font-family: 'Courier New', monospace;
 }
 
 /* Centered Columns */
@@ -1116,27 +1264,39 @@ onMounted(() => {
 }
 
 .coef-value {
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .hours-badge {
-  display: inline-block;
-  padding: 0.25rem 0.625rem;
-  background: #3b82f6;
-  color: white;
-  border-radius: 0.375rem;
+  font-size: 0.875rem;
   font-weight: 600;
+  color: var(--text-secondary);
 }
 
 .seances-badge {
-  display: inline-block;
-  padding: 0.25rem 0.625rem;
-  background: #10b981;
-  color: white;
-  border-radius: 0.375rem;
+  font-size: 0.875rem;
   font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.lecons-badge {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.evaluations-badge {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.data-value {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 /* Actions */
@@ -1145,19 +1305,24 @@ onMounted(() => {
 }
 
 .action-btn {
-  padding: 0.5rem;
-  background: transparent;
-  border: 1px solid var(--border-color);
-  border-radius: 0.375rem;
+  padding: 0.625rem;
+  background: var(--card-bg);
+  border: 2px solid var(--border-color);
+  border-radius: 0.5rem;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .action-btn:hover {
   background: var(--primary-color);
   border-color: var(--primary-color);
   color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
 }
 
 /* No Data */

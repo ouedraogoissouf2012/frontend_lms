@@ -104,6 +104,8 @@
       :seance-id="seance.id"
       @close="showParticipantsModal = false"
     />
+
+
   </div>
 </template>
 
@@ -112,6 +114,7 @@ import { auth } from '@/services/api'
 import lmsService from '@/services/lms'
 import jitsiService from '@/services/jitsi'
 import ParticipantsModal from './ParticipantsModal.vue'
+import { useVisioParticipation } from '@/composables/useVisioParticipation'
 
 export default {
   name: 'VisioManager',
@@ -124,16 +127,22 @@ export default {
       required: true
     }
   },
+  setup(props) {
+    // Utiliser le composable pour gérer la participation
+    const visioParticipation = useVisioParticipation(props.seance.id)
+
+    return {
+      // Exposer les méthodes et états du composable
+      ...visioParticipation
+    }
+  },
   data() {
     return {
       loading: false,
       showParticipantsModal: false,
       participantCount: 0,
       currentTime: new Date(),
-      timeCheckInterval: null,
-      heartbeatInterval: null,
-      isInVisio: false,
-      visioWindow: null
+      timeCheckInterval: null
     }
   },
   computed: {
@@ -213,11 +222,7 @@ export default {
     if (this.timeCheckInterval) {
       clearInterval(this.timeCheckInterval)
     }
-    // Arrêter le heartbeat et appeler /leave si nécessaire
-    this.stopHeartbeat()
-    if (this.isInVisio) {
-      this.leaveVisio()
-    }
+    // Le cleanup du composable est automatique via onBeforeUnmount
   },
   methods: {
     formatTime(isoTimestamp) {
@@ -281,7 +286,7 @@ export default {
     },
 
     /**
-     * Enseignant: Démarrer la visio
+     * Enseignant: Démarrer la visio (window.open avec tracking)
      */
     async demarrerVisio() {
       this.loading = true
@@ -296,17 +301,17 @@ export default {
           return
         }
 
-        // 2. Générer lien Jitsi avec modération enseignant
+        // 2. Récupérer le lien Jitsi
         const roomId = result.data.visio_room_id || this.seance.visio?.room_id
-        const link = `https://meet.jit.si/${roomId}#config.prejoinConfig.enabled=false&userInfo.displayName=${encodeURIComponent(this.user.name)}`
+        const jitsiLink = `https://meet.jit.si/${roomId}`
 
-        // 3. Ouvrir Jitsi
-        window.open(link, '_blank')
+        // 3. Utiliser le composable pour ouvrir et tracker
+        await this.joinVisio(jitsiLink)
+
+        console.log('✅ Visio démarrée avec window.open + tracking')
 
         // 4. Rafraîchir les données
         this.$emit('visio-updated', result.data)
-
-        alert('Visioconférence démarrée ! Les étudiants peuvent maintenant rejoindre.')
 
       } catch (error) {
         console.error('[VisioManager] Erreur démarrage visio:', error)
@@ -317,7 +322,7 @@ export default {
     },
 
     /**
-     * Étudiant: Rejoindre la visio (OPTION B: avec tracking)
+     * Étudiant: Rejoindre la visio (window.open avec tracking)
      */
     async rejoindreVisio() {
       if (!this.seance.visio_active) {
@@ -329,40 +334,19 @@ export default {
       try {
         console.log('👨‍🎓 Étudiant rejoint la visio...')
 
-        // OPTION B: Appeler /join-visio pour:
-        // 1. Vérifier que l'étudiant est inscrit
-        // 2. Enregistrer sa participation
-        const response = await lmsService.joinVisio(this.seance.id)
-
-        if (!response.success) {
-          alert(response.message || 'Vous n\'êtes pas autorisé à rejoindre cette visio')
-          return
-        }
-
-        // Récupérer le room_id depuis la réponse
-        const roomId = response.data.visio_room_id || this.seance.visio_room_id
+        // Room ID depuis la séance
+        const roomId = this.seance.visio_room_id || this.seance.visio?.room_id
 
         if (!roomId) {
           alert('Erreur: Room ID introuvable')
           return
         }
 
-        // Générer lien Jitsi
-        const link = `https://meet.jit.si/${roomId}#config.prejoinConfig.enabled=false&userInfo.displayName=${encodeURIComponent(this.user.name)}`
+        // Utiliser le composable pour ouvrir et tracker
+        const jitsiLink = `https://meet.jit.si/${roomId}`
+        await this.joinVisio(jitsiLink)
 
-        // Ouvrir Jitsi
-        this.visioWindow = window.open(link, '_blank')
-
-        console.log('✅ Étudiant a rejoint la visio et participation enregistrée')
-
-        // Marquer comme présent dans la visio
-        this.isInVisio = true
-
-        // Démarrer le heartbeat (ping toutes les 30s)
-        this.startHeartbeat()
-
-        // Surveiller la fermeture de la fenêtre Jitsi
-        this.watchVisioWindow()
+        console.log('✅ Étudiant a rejoint avec window.open + tracking')
 
         // Émettre événement pour rafraîchir le compteur de participants
         this.$emit('participant-joined')
@@ -397,82 +381,6 @@ export default {
       }
     },
 
-    /**
-     * Démarrer le système de heartbeat (ping toutes les 30 secondes)
-     */
-    startHeartbeat() {
-      // Arrêter tout heartbeat existant
-      this.stopHeartbeat()
-
-      // Premier heartbeat immédiat
-      this.sendHeartbeat()
-
-      // Heartbeat toutes les 30 secondes
-      this.heartbeatInterval = setInterval(() => {
-        this.sendHeartbeat()
-      }, 30000) // 30 secondes
-
-      console.log('💓 Heartbeat démarré (ping toutes les 30s)')
-    },
-
-    /**
-     * Arrêter le heartbeat
-     */
-    stopHeartbeat() {
-      if (this.heartbeatInterval) {
-        clearInterval(this.heartbeatInterval)
-        this.heartbeatInterval = null
-        console.log('💔 Heartbeat arrêté')
-      }
-    },
-
-    /**
-     * Envoyer un ping d'activité au serveur
-     */
-    async sendHeartbeat() {
-      try {
-        await lmsService.heartbeatVisio(this.seance.id)
-        console.log('💓 Heartbeat envoyé')
-      } catch (error) {
-        console.error('[VisioManager] Erreur heartbeat:', error)
-        // Si erreur 404 (participation non trouvée), arrêter le heartbeat
-        if (error.response?.status === 404) {
-          console.warn('⚠️ Participation non trouvée, arrêt du heartbeat')
-          this.stopHeartbeat()
-          this.isInVisio = false
-        }
-      }
-    },
-
-    /**
-     * Enregistrer la sortie de la visio
-     */
-    async leaveVisio() {
-      try {
-        const response = await lmsService.leaveVisio(this.seance.id)
-        console.log('👋 Sortie de visio enregistrée:', response)
-        this.isInVisio = false
-      } catch (error) {
-        console.error('[VisioManager] Erreur leave visio:', error)
-      }
-    },
-
-    /**
-     * Surveiller la fermeture de la fenêtre Jitsi
-     */
-    watchVisioWindow() {
-      if (!this.visioWindow) return
-
-      const checkClosed = setInterval(() => {
-        if (this.visioWindow.closed) {
-          clearInterval(checkClosed)
-          console.log('🚪 Fenêtre Jitsi fermée, arrêt heartbeat et enregistrement sortie')
-          this.stopHeartbeat()
-          this.leaveVisio()
-          this.visioWindow = null
-        }
-      }, 1000) // Vérifier toutes les secondes
-    }
   }
 }
 </script>

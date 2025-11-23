@@ -247,6 +247,20 @@ export const lmsService = {
   },
 
   /**
+   * Désactiver la visio pour une séance (enseignant)
+   * @param {number} seanceId
+   * @returns {Promise<Object>}
+   */
+  async deactivateVisio(seanceId) {
+    try {
+      return await api.post(`/lms/seances/${seanceId}/deactivate-visio`)
+    } catch (error) {
+      console.error('Erreur désactivation visio:', error)
+      throw error
+    }
+  },
+
+  /**
    * Démarrer la visio (enseignant)
    * @param {number} seanceId
    * @returns {Promise<Object>}
@@ -354,7 +368,51 @@ export const lmsService = {
       console.error('Erreur récupération mes matières:', error)
       throw error
     }
+  },
+
+  /**
+   * Masquer une séance (étudiant uniquement)
+   * @param {number} seanceId
+   * @returns {Promise<Object>} { success, message }
+   */
+  async hideSeance(seanceId) {
+    try {
+      return await api.post(`/lms/seances/${seanceId}/hide`)
+    } catch (error) {
+      console.error('Erreur masquage séance:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Réafficher une séance (étudiant uniquement)
+   * @param {number} seanceId
+   * @returns {Promise<Object>} { success, message }
+   */
+  async unhideSeance(seanceId) {
+    try {
+      return await api.post(`/lms/seances/${seanceId}/unhide`)
+    } catch (error) {
+      console.error('Erreur réaffichage séance:', error)
+      throw error
+    }
   }
+,
+
+  /**
+   * Récupérer l'historique des présences (accessible même si séances archivées)
+   * @param {Object} params - Paramètres de filtrage { page, per_page, date_from, date_to, seance_id }
+   * @returns {Promise<Object>} { success, data: [...], pagination: {...} }
+   */
+  async getAttendanceHistory(params = {}) {
+    try {
+      return await api.get('/lms/attendance/history', { params })
+    } catch (error) {
+      console.error('Erreur récupération historique présences:', error)
+      throw error
+    }
+  }
+
 }
 
 export default lmsService

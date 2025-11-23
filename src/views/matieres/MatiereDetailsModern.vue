@@ -253,6 +253,7 @@ import LessonCard from '@/components/lessons/LessonCard.vue'
 import { auth } from '@/services/api'
 import { klassciService } from '@/services/klassci'
 import lessonService from '@/services/lesson'
+import lmsService from '@/services/lms'
 
 export default {
   name: 'MatiereDetailsModern',
@@ -315,7 +316,16 @@ export default {
         this.lessons = lessonsResponse.data || []
 
         // Charger séances
-        this.seances = await klassciService.getSeancesByMatiere(matiereId)
+        // Charger TOUTES les seances de l'etudiant via LMS (avec filtres backend)
+        const allSeancesResponse = await lmsService.getMyClassesSeances()
+
+        // Filtrer par matiere cote client
+        this.seances = (allSeancesResponse.data || allSeancesResponse || []).filter(s => {
+          // Comparer par ID de matiere
+          return s.matiere?.id == matiereId || s.klassci_matiere_id == matiereId
+        })
+
+        console.log('[OK] Seances filtrees pour matiere', matiereId, ':', this.seances.length)
 
         // Charger évaluations
         this.evaluations = await klassciService.getEvaluationsByMatiere(matiereId)

@@ -64,6 +64,19 @@
               </div>
             </div>
           </div>
+
+          <!-- Bouton Masquer (étudiants uniquement) -->
+          <button
+            v-if="!isTeacher"
+            @click="hideSeance"
+            class="px-4 py-2 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition flex items-center gap-2"
+            title="Masquer cette séance de ma liste"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+            </svg>
+            Masquer cette séance
+          </button>
         </div>
       </div>
 
@@ -96,22 +109,37 @@
           </p>
         </div>
 
-        <!-- Bouton Enseignant -->
+        <!-- Bouton Enseignant / Coordinateur -->
         <div v-if="isTeacher">
-          <button
-            v-if="visio.window?.can_start"
-            @click="startVisio"
-            class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition flex items-center justify-center gap-2"
-          >
-            <span class="btn-icon">▶</span> Démarrer le cours
-          </button>
-          <div v-else class="text-center py-4 text-gray-600">
-            <p v-if="!visio.window?.has_started">
-              Vous pourrez démarrer le cours 15 minutes avant l'heure prévue
-            </p>
-            <p v-else>
-              La fenêtre pour démarrer le cours est fermée
-            </p>
+          <!-- Si le cours est déjà actif, permettre de rejoindre (pour coordinateur aussi) -->
+          <div v-if="visio.status === 'active'">
+            <div class="mb-3 p-3 bg-red-50 border-2 border-red-400 rounded-lg text-center">
+              <span class="text-red-600 font-bold text-lg">🔴 COURS EN DIRECT</span>
+            </div>
+            <button
+              @click="joinVisio"
+              class="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition flex items-center justify-center gap-2"
+            >
+              <span class="btn-icon">◉</span> Rejoindre le cours
+            </button>
+          </div>
+          <!-- Sinon, afficher le bouton de démarrage (enseignant seulement) -->
+          <div v-else>
+            <button
+              v-if="visio.window?.can_start"
+              @click="startVisio"
+              class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition flex items-center justify-center gap-2"
+            >
+              <span class="btn-icon">▶</span> Démarrer le cours
+            </button>
+            <div v-else class="text-center py-4 text-gray-600">
+              <p v-if="!visio.window?.has_started">
+                Vous pourrez démarrer le cours 15 minutes avant l'heure prévue
+              </p>
+              <p v-else>
+                La fenêtre pour démarrer le cours est fermée
+              </p>
+            </div>
           </div>
         </div>
 
@@ -225,12 +253,18 @@
 import lmsService from '@/services/lms'
 import { auth } from '@/services/api'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
+import { useVisioParticipation } from '@/composables/useVisioParticipation'
 
 export default {
   name: 'SeanceDetails',
 
   components: {
     DashboardLayout
+  },
+
+  setup() {
+    // Le composable sera initialisé dans mounted() quand on aura le seanceId
+    return {}
   },
 
   data() {
@@ -245,7 +279,8 @@ export default {
         total: 0
       },
       roomActive: false, // Géré par le LMS (statut room)
-      joiningVisio: false
+      joiningVisio: false,
+      visioParticipation: null  // Composable pour le tracking
     }
   },
 
@@ -382,18 +417,13 @@ export default {
       try {
         console.log('👨‍🎓 Étudiant rejoint la visio...')
 
-        // Appeler l'endpoint /join qui enregistre la participation et vérifie l'accès
-        const response = await lmsService.joinVisio(this.seanceId)
-
-        console.log('✅ Réponse join:', response)
-
-        if (!response.success) {
-          alert(response.message || 'Vous n\'êtes pas autorisé à rejoindre cette visio')
-          return
+        // Initialiser le composable si pas déjà fait
+        if (!this.visioParticipation) {
+          this.visioParticipation = useVisioParticipation(this.seanceId)
         }
 
-        // Récupérer le room_id depuis la réponse
-        const roomId = response.data.visio_room_id || this.visio.room_id || `seance_${this.seanceId}`
+        // Récupérer le room_id depuis la visio
+        const roomId = this.visio?.room_id || `seance_${this.seanceId}`
 
         // Générer lien Jitsi
         const displayName = encodeURIComponent(this.user.name)
@@ -401,10 +431,10 @@ export default {
 
         console.log('🔗 Lien Jitsi:', link)
 
-        // Ouvrir Jitsi
-        window.open(link, '_blank')
+        // Utiliser le composable pour ouvrir et tracker
+        await this.visioParticipation.joinVisio(link)
 
-        console.log('✅ Étudiant a rejoint la visio et participation enregistrée')
+        console.log('✅ Étudiant a rejoint la visio avec Web Worker heartbeat')
       } catch (error) {
         console.error('❌ Erreur rejoindre visio:', error)
 
@@ -431,6 +461,33 @@ export default {
         this.joiningVisio = false
       }
     },
+/**
+     * Surveiller la fermeture de la fenêtre Jitsi
+     */
+    watchVisioWindow() {
+      if (!this.visioWindow) return
+
+      const checkClosed = setInterval(() => {
+        if (this.visioWindow.closed) {
+          clearInterval(checkClosed)
+          console.log('🚪 Fenêtre Jitsi fermée, enregistrement sortie')
+          this.leaveVisio()
+          this.visioWindow = null
+        }
+      }, 1000) // Vérifier toutes les secondes
+    },
+
+    /**
+     * Enregistrer la sortie de la visio
+     */
+    async leaveVisio() {
+      try {
+        const response = await lmsService.leaveVisio(this.seanceId)
+        console.log('👋 Sortie de visio enregistrée:', response)
+      } catch (error) {
+        console.error('❌ Erreur leave visio:', error)
+      }
+    },
 
     formatDate(date) {
       if (!date) return 'Non défini'
@@ -440,6 +497,26 @@ export default {
         month: 'long',
         day: 'numeric'
       })
+    },
+
+    async hideSeance() {
+      if (!confirm('Voulez-vous vraiment masquer cette séance de votre liste ?')) {
+        return
+      }
+
+      try {
+        const seanceId = this.seance.id || this.seance.klassci_seance_id
+        const response = await lmsService.hideSeance(seanceId)
+
+        if (response.success) {
+          alert('✓ Séance masquée avec succès')
+          // Retourner à la page précédente
+          this.$router.back()
+        }
+      } catch (error) {
+        console.error('[SeanceDetails] Erreur masquage séance:', error)
+        alert('Erreur lors du masquage: ' + (error.response?.data?.message || error.message))
+      }
     },
 
     formatTime(isoTimestamp) {

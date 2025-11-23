@@ -155,7 +155,7 @@ export default {
 
   /**
    * Récupère les résultats détaillés d'une évaluation avec tous les étudiants de la classe
-   * (Coordinateur/Admin uniquement)
+   * (Coordinateur/Admin/Enseignant uniquement)
    */
   async getEvaluationResultsByClass(id) {
     try {
@@ -165,5 +165,12 @@ export default {
       console.error('Erreur récupération résultats évaluation:', error)
       throw error
     }
+  },
+
+  /**
+   * Alias pour getEvaluationResultsByClass (pour compatibilité)
+   */
+  async getResultsByClass(id) {
+    return this.getEvaluationResultsByClass(id)
   }
 }

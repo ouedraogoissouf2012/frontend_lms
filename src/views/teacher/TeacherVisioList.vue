@@ -180,20 +180,31 @@
 
               <div class="card-actions">
                 <button
-                  v-if="seance.visio?.status === 'programmee'"
+                  v-if="seance.visio_enabled && !seance.visio_active"
                   @click="handleStartVisio(seance)"
                   class="btn-action btn-start"
+                  :disabled="actionLoading === seance.id"
                 >
                   <PlayIcon class="w-5 h-5" />
-                  Démarrer la visio
+                  {{ actionLoading === seance.id ? 'Démarrage...' : 'Démarrer la visio' }}
                 </button>
                 <button
-                  v-else
+                  v-else-if="seance.visio_active"
+                  @click="handleEndVisio(seance)"
+                  class="btn-action btn-end"
+                  :disabled="actionLoading === seance.id"
+                >
+                  <StopIcon class="w-5 h-5" />
+                  {{ actionLoading === seance.id ? 'Arrêt...' : 'Terminer' }}
+                </button>
+                <button
+                  v-else-if="!seance.visio_enabled"
                   @click="handleActivateVisio(seance)"
                   class="btn-action btn-activate"
+                  :disabled="actionLoading === seance.id"
                 >
                   <VideoCameraIcon class="w-5 h-5" />
-                  Activer la visio
+                  {{ actionLoading === seance.id ? 'Activation...' : 'Activer la visio' }}
                 </button>
               </div>
             </div>
@@ -249,7 +260,8 @@ const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 // Visio en cours
 const visioEnCours = computed(() => {
   return seances.value.filter(s => {
-    if (!s.visio || s.visio.status !== 'active') return false
+    // Utiliser les champs plats au lieu de l'objet imbriqué
+    if (!s.visio_enabled || !s.visio_active) return false
 
     const now = new Date()
     const dateStr = s.programmation?.date
@@ -268,7 +280,9 @@ const visioEnCours = computed(() => {
 // Visio à venir
 const visioAVenir = computed(() => {
   return seances.value.filter(s => {
-    if (!s.visio || s.visio.status === 'terminee') return false
+    // Utiliser les champs plats : afficher si visio_enabled est true
+    // Exclure si terminée (visio_status === 'terminee')
+    if (!s.visio_enabled || s.visio_status === 'terminee') return false
     if (visioEnCours.value.includes(s)) return false
 
     const now = new Date()
@@ -284,12 +298,12 @@ const visioAVenir = computed(() => {
 
 // Statistics
 const stats = computed(() => {
-  const allVisio = seances.value.filter(s => s.visio && s.visio.enabled)
+  const allVisio = seances.value.filter(s => s.visio_enabled)
   return {
     total: allVisio.length,
     enCours: visioEnCours.value.length,
     aVenir: visioAVenir.value.length,
-    terminees: allVisio.filter(s => s.visio?.status === 'terminee').length
+    terminees: allVisio.filter(s => s.visio_status === 'terminee').length
   }
 })
 

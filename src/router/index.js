@@ -36,6 +36,9 @@ import SeanceManagement from '@/views/coordinateur/SeanceManagement.vue'
 import CoordinatorEvaluations from '@/views/coordinateur/CoordinatorEvaluations.vue'
 import TeacherSeances from '@/views/TeacherSeances.vue'
 
+// Import Historique des présences
+import AttendanceHistoryV2 from '@/views/attendance/AttendanceHistoryV2.vue'
+
 // Import des nouvelles vues Enseignant et Admin
 import TeacherClasses from '@/views/teacher/TeacherClasses.vue'
 import TeacherStats from '@/views/teacher/TeacherStats.vue'
@@ -563,6 +566,13 @@ const routes = [
     path: '/seances/:id',
     name: 'seance-details',
     component: SeanceDetails,
+    meta: { requiresAuth: true }
+  },
+  // Historique des présences (accessible par tous les rôles authentifiés)
+  {
+    path: '/attendance/history',
+    name: 'attendance-history',
+    component: AttendanceHistoryV2,
     meta: { requiresAuth: true }
   },
   // Coordinateur - Gestion des évaluations

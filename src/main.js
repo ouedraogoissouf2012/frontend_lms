@@ -4,6 +4,7 @@ import App from './App.vue'
 import router from './router'
 import './style.css'
 import './assets/styles/themes.css'
+import './assets/styles/mobile-responsive.css'
 
 // Initialiser le thème AVANT de monter l'application
 const THEME_KEY = 'lms-theme-preference'

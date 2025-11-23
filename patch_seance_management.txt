@@ -1,0 +1,34 @@
+MODIFICATION DE SeanceManagement.vue
+
+1. Ajouter import du composable (après ligne 246):
+   import { useVisioParticipation } from '@/composables/useVisioParticipation'
+   import { auth } from '@/services/api'
+
+2. Ajouter état pour visio (après ligne 264):
+   const currentSeanceId = ref(null)
+   const visioParticipation = ref(null)
+
+3. Remplacer handleJoinVisio (lignes 443-458) par:
+
+const handleJoinVisio = async (seance) => {
+  try {
+    console.log('[VISIO] Rejoindre visio:', seance.id)
+
+    // Créer une instance du composable pour cette séance
+    currentSeanceId.value = seance.id
+    visioParticipation.value = useVisioParticipation(seance.id)
+
+    // Générer le lien Jitsi
+    const user = auth.getUser()
+    const link = `https://meet.jit.si/${seance.visio_room_id}#config.prejoinConfig.enabled=false&userInfo.displayName=${encodeURIComponent(user.name)}`
+
+    // Utiliser le composable pour rejoindre (enregistrement + heartbeat automatique)
+    await visioParticipation.value.joinVisio(link)
+
+    console.log('[VISIO] ✅ Participation enregistrée, heartbeat démarré')
+    $toast?.success('Vous avez rejoint la visioconférence')
+  } catch (error) {
+    console.error('[ERREUR] Join visio:', error)
+    $toast?.error('Impossible de rejoindre la visioconférence')
+  }
+}
