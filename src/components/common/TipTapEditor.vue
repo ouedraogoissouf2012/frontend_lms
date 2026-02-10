@@ -108,7 +108,7 @@
             type="button"
             title="Aligner à gauche"
           >
-            ☰
+            fa-bars
           </button>
           <button
             @click="editor.chain().focus().setTextAlign('center').run()"
@@ -305,7 +305,7 @@
             type="button"
             title="Insérer vidéo YouTube"
           >
-            ▶
+            fa-play
           </button>
         </div>
 
@@ -515,7 +515,7 @@
                   type="button"
                   title="Aligner à gauche"
                 >
-                  ☰
+                  fa-bars
                 </button>
                 <button
                   @click="editor.chain().focus().setTextAlign('center').run()"
@@ -712,7 +712,7 @@
                   type="button"
                   title="Insérer vidéo YouTube"
                 >
-                  ▶
+                  fa-play
                 </button>
               </div>
 

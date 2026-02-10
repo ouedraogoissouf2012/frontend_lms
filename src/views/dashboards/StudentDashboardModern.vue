@@ -18,7 +18,7 @@
 
     <!-- Error state -->
     <div v-if="error" class="alert alert-error">
-      <span class="alert-icon">⚠️</span>
+      <span class="alert-icon"><i class="fa fa-exclamation-triangle"></i></span>
       <span>{{ error }}</span>
     </div>
 
@@ -41,14 +41,14 @@
       <!-- Statistics Cards -->
       <div v-if="dashboardData.statistiques" class="stats-grid">
         <StatCard
-          icon="📊"
+          icon="fa-bar-chart"
           iconBg="linear-gradient(135deg, #0052cc 0%, #0747a6 100%)"
           label="Moyenne Générale"
           :value="dashboardData.statistiques.moyenne_generale || 'N/A'"
         />
 
         <StatCard
-          icon="✅"
+          icon="fa-check-circle"
           iconBg="linear-gradient(135deg, #22c55e 0%, #16a34a 100%)"
           label="Taux de Présence"
           :value="`${dashboardData.statistiques.taux_presence || 0}%`"
@@ -57,7 +57,7 @@
         />
 
         <StatCard
-          icon="📚"
+          icon="fa-book"
           iconBg="linear-gradient(135deg, #a855f7 0%, #9333ea 100%)"
           label="Cours Suivis"
           :value="dashboardData.cours?.length || 0"
@@ -65,7 +65,7 @@
         />
 
         <StatCard
-          icon="📝"
+          icon="fa-pencil-square-o"
           iconBg="linear-gradient(135deg, #f97316 0%, #ea580c 100%)"
           label="Quiz à Venir"
           :value="dashboardData.quiz?.length || 0"
@@ -77,7 +77,7 @@
       <section class="section">
         <div class="section-header">
           <h2 class="section-title">
-            <span class="section-icon">📖</span>
+            <i class="fa fa-book section-icon"></i>
             Mes Cours
           </h2>
         </div>
@@ -90,7 +90,7 @@
             @click="navigateToMatiere(cours)"
           >
             <div class="cours-header">
-              <div class="cours-icon">📚</div>
+              <i class="fa fa-book cours-icon"></i>
               <div class="cours-badge">
                 Coef. {{ cours.coefficient || cours.matiere?.coefficient || 'N/A' }}
               </div>
@@ -106,7 +106,7 @@
         </div>
 
         <div v-else class="empty-state">
-          <span class="empty-icon">📚</span>
+          <i class="fa fa-book empty-icon"></i>
           <p>Aucun cours disponible</p>
         </div>
       </section>
@@ -115,7 +115,7 @@
       <section class="section">
         <div class="section-header">
           <h2 class="section-title">
-            <span class="section-icon">📝</span>
+            <i class="fa fa-pencil section-icon"></i>
             Quiz à Venir
           </h2>
         </div>
@@ -130,7 +130,7 @@
               <div>
                 <h3 class="quiz-title">{{ quiz.titre }}</h3>
                 <p class="quiz-matiere">{{ quiz.matiere?.name }}</p>
-                <p class="quiz-date">📅 {{ formatDate(quiz.date) }}</p>
+                <p class="quiz-date"><i class="fa fa-calendar"></i> {{ formatDate(quiz.date) }}</p>
               </div>
               <span
                 :class="{
@@ -147,7 +147,7 @@
         </div>
 
         <div v-else class="empty-state">
-          <span class="empty-icon">📝</span>
+          <i class="fa fa-pencil empty-icon"></i>
           <p>Aucun quiz à venir</p>
         </div>
       </section>
@@ -156,7 +156,7 @@
       <section v-if="dashboardData.notes && dashboardData.notes.length > 0" class="section">
         <div class="section-header">
           <h2 class="section-title">
-            <span class="section-icon">📊</span>
+            <i class="fa fa-bar-chart section-icon"></i>
             Mes Dernières Notes
           </h2>
         </div>
@@ -180,7 +180,7 @@
       <section class="section">
         <div class="section-header">
           <h2 class="section-title">
-            <span class="section-icon">⚡</span>
+            <i class="fa fa-bolt section-icon"></i>
             Actions Rapides
           </h2>
         </div>
@@ -188,7 +188,7 @@
         <div class="actions-grid">
           <router-link to="/lessons" class="action-card">
             <div class="action-icon" style="background: linear-gradient(135deg, #0052cc 0%, #0747a6 100%)">
-              📚
+              fa-book
             </div>
             <h3>Accéder aux Leçons</h3>
             <p>Consulter les supports de cours</p>
@@ -196,7 +196,7 @@
 
           <router-link to="/student/evaluations" class="action-card">
             <div class="action-icon" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%)">
-              📝
+              fa-pencil
             </div>
             <h3>Mes Évaluations</h3>
             <p>Passer les évaluations en ligne</p>
@@ -204,7 +204,7 @@
 
           <router-link to="/quizzes" class="action-card">
             <div class="action-icon" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%)">
-              ✅
+              fa-check-circle
             </div>
             <h3>Passer les Quiz</h3>
             <p>Quiz interactifs</p>
@@ -252,18 +252,18 @@ export default {
       this.error = null
 
       try {
-        console.log('📊 Chargement dashboard étudiant depuis KLASSCI...')
+        console.log('fa-bar-chart Chargement dashboard étudiant depuis KLASSCI...')
         this.dashboardData = await klassciService.getStudentDashboard()
-        console.log('✅ Dashboard chargé:', this.dashboardData)
+        console.log('fa-check-circle Dashboard chargé:', this.dashboardData)
 
         if (this.dashboardData) {
-          console.log('📚 Classe:', this.dashboardData.classe)
+          console.log('fa-book Classe:', this.dashboardData.classe)
           console.log('📖 Cours:', this.dashboardData.cours)
-          console.log('📝 Quiz:', this.dashboardData.quiz)
-          console.log('📊 Stats:', this.dashboardData.statistiques)
+          console.log('fa-pencil Quiz:', this.dashboardData.quiz)
+          console.log('fa-bar-chart Stats:', this.dashboardData.statistiques)
         }
       } catch (err) {
-        console.error('❌ Erreur chargement dashboard:', err)
+        console.error('fa-times-circle Erreur chargement dashboard:', err)
         this.error = 'Impossible de charger vos données. Veuillez réessayer.'
       } finally {
         this.loading = false
@@ -283,13 +283,13 @@ export default {
     navigateToMatiere(cours) {
       const matiereId = cours.id || cours.matiere_id || cours.matiere?.id
       if (matiereId) {
-        console.log('📚 Navigation vers matière:', matiereId)
+        console.log('fa-book Navigation vers matière:', matiereId)
         this.$router.push({
           name: 'matiere-details',
           params: { id: matiereId }
         })
       } else {
-        console.error('❌ ID matière non trouvé:', cours)
+        console.error('fa-times-circle ID matière non trouvé:', cours)
         alert('Impossible de naviguer vers cette matière')
       }
     }
@@ -297,7 +297,7 @@ export default {
 
   mounted() {
     this.user = auth.getUser()
-    console.log('👤 Student User:', this.user)
+    console.log('fa-user Student User:', this.user)
     this.loadDashboard()
   }
 }

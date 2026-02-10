@@ -27,21 +27,21 @@
               <h3 class="text-2xl font-bold text-gray-900">{{ quiz.title }}</h3>
               <p class="text-gray-600 mt-2">{{ quiz.description }}</p>
             </div>
-            <span class="text-4xl">📝</span>
+            <i class="fa fa-pencil-square-o text-4xl"></i>
           </div>
 
           <!-- Informations -->
           <div class="space-y-2 mb-6 text-sm text-gray-600">
             <div class="flex items-center gap-2">
-              <span>⏱️</span>
+              <i class="fa fa-clock-o"></i>
               <span>Durée: {{ quiz.duration_minutes }} minutes</span>
             </div>
             <div class="flex items-center gap-2">
-              <span>🎯</span>
+              <i class="fa fa-bullseye"></i>
               <span>Score minimum: {{ quiz.passing_score }}%</span>
             </div>
             <div class="flex items-center gap-2">
-              <span>🔄</span>
+              <i class="fa fa-refresh"></i>
               <span>Tentatives max: {{ quiz.max_attempts || '∞' }}</span>
             </div>
           </div>

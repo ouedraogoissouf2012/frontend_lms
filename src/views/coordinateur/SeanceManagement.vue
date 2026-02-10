@@ -4,7 +4,7 @@
       <!-- Header -->
       <div class="page-header">
         <div class="header-content">
-          <span class="page-icon">◉</span>
+          <i class="fa fa-dot-circle-o page-icon"></i>
           <div>
             <h1 class="page-title">Gestion des Séances & Visioconférence</h1>
             <p class="page-subtitle">Activez ou désactivez la visioconférence pour chaque séance</p>
@@ -12,6 +12,35 @@
         </div>
       </div>
 
+      <!-- View Toggle -->
+      <div class="view-toggle">
+        <button
+          :class="['toggle-btn', viewMode === 'list' ? 'active' : '']"
+          @click="viewMode = 'list'"
+        >
+          <i class="fa fa-list"></i>
+          Liste
+        </button>
+        <button
+          :class="['toggle-btn', viewMode === 'calendar' ? 'active' : '']"
+          @click="viewMode = 'calendar'"
+        >
+          <i class="fa fa-calendar"></i>
+          Calendrier
+        </button>
+      </div>
+
+      <!-- Calendar View -->
+      <div v-if="viewMode === 'calendar'" class="calendar-section">
+        <UniversalCalendar
+          ref="calendarRef"
+          user-role="coordinator"
+          @event-action="handleCalendarAction"
+        />
+      </div>
+
+      <!-- List View -->
+      <template v-else>
       <!-- Filters -->
       <div class="filters-card">
         <div class="filter-item">
@@ -33,7 +62,7 @@
 
         <div class="filter-item">
           <label class="filter-label">
-            <span class="filter-icon">☺</span>
+            <i class="fa fa-user filter-icon"></i>
             Enseignant
           </label>
           <select
@@ -50,7 +79,7 @@
 
         <div class="filter-item">
           <label class="filter-label">
-            <span class="filter-icon">▓</span>
+            <i class="fa fa-building filter-icon"></i>
             Classe
           </label>
           <select
@@ -66,18 +95,18 @@
         </div>
       </div>
 
-      <!-- Loading with SkeletonLoader -->
-      <SkeletonLoader v-if="loading" type="card" :count="5" height="120px" />
+      <!-- Loading -->
+      <ContentLoader v-if="loading" text="Chargement des séances..." />
 
       <!-- Error -->
       <div v-else-if="error" class="error-state">
-        <div class="error-icon">⚠</div>
+        <div class="error-icon"><i class="fa fa-exclamation-triangle"></i></div>
         <div class="error-content">
           <h3 class="error-title">Erreur de chargement</h3>
           <p class="error-message">{{ error }}</p>
         </div>
         <button @click="loadSeances" class="error-retry-btn">
-          <span class="icon">↻</span>
+          <i class="fa fa-refresh icon"></i>
           Réessayer
         </button>
       </div>
@@ -106,7 +135,7 @@
                 </div>
 
                 <div class="detail-item" :title="`Horaire: ${formatTime(seance.programmation?.heure_debut)} - ${formatTime(seance.programmation?.heure_fin)}`">
-                  <span class="detail-icon">⏰</span>
+                  <i class="fa fa-clock-o detail-icon"></i>
                   <div>
                     <p class="detail-label">Horaire</p>
                     <p class="detail-value">{{ formatTime(seance.programmation?.heure_debut) }} - {{ formatTime(seance.programmation?.heure_fin) }}</p>
@@ -114,7 +143,7 @@
                 </div>
 
                 <div class="detail-item" :title="`Classe: ${seance.classe?.libelle || seance.classe?.nom || 'Non assignée'}`">
-                  <span class="detail-icon">▓</span>
+                  <i class="fa fa-building detail-icon"></i>
                   <div>
                     <p class="detail-label">Classe</p>
                     <p class="detail-value">{{ seance.classe?.libelle || seance.classe?.nom || 'Non assignée' }}</p>
@@ -122,7 +151,7 @@
                 </div>
 
                 <div class="detail-item" :title="`Salle: ${seance.salle || 'Non spécifiée'}`">
-                  <span class="detail-icon">◈</span>
+                  <i class="fa fa-diamond detail-icon"></i>
                   <div>
                     <p class="detail-label">Salle</p>
                     <p class="detail-value">{{ seance.salle || 'Non spécifiée' }}</p>
@@ -141,7 +170,7 @@
                 ]"
                 :title="seance.visio_enabled ? 'Désactiver la visioconférence' : 'Activer la visioconférence'"
               >
-                <span class="btn-icon">◉</span>
+                <i class="fa fa-dot-circle-o btn-icon"></i>
                 <span v-if="seance.visio_enabled">Visio activée</span>
                 <span v-else>Activer visio</span>
               </button>
@@ -156,16 +185,16 @@
             <div class="visio-panel-content">
               <div class="visio-info">
                 <div class="visio-icon-wrapper">
-                  <span class="visio-icon">◉</span>
+                  <i class="fa fa-dot-circle-o visio-icon"></i>
                 </div>
                 <div>
                   <p class="visio-title">Visioconférence Jitsi programmée</p>
                   <p class="visio-room">
-                    <span class="room-icon">◈</span>
+                    <i class="fa fa-diamond room-icon"></i>
                     Salle: <span class="room-id">{{ seance.visio_room_id }}</span>
                   </p>
                   <p class="visio-access">
-                    <span class="access-icon">⏰</span>
+                    <i class="fa fa-clock-o access-icon"></i>
                     Accès possible 15 minutes avant le cours
                   </p>
                 </div>
@@ -177,7 +206,7 @@
                   class="participants-btn"
                   title="Voir la liste des participants avec heures d'entrée/sortie"
                 >
-                  <span class="btn-icon">👥</span>
+                  <i class="fa fa-users btn-icon"></i>
                   Voir participants
                 </button>
 
@@ -227,6 +256,7 @@
           </p>
         </div>
       </div>
+      </template>
     </div>
 
     <!-- Participants Modal -->
@@ -243,12 +273,16 @@
 
 <script setup>
 import { ref, reactive, onMounted, getCurrentInstance } from 'vue'
+import { useRouter } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
+import UniversalCalendar from '@/components/calendar/UniversalCalendar.vue'
 import { useVisioParticipation } from '@/composables/useVisioParticipation'
 import ParticipantsModal from '@/components/visio/ParticipantsModal.vue'
 
 import lmsService from '@/services/lms'
+
+const router = useRouter()
 
 // Instance pour accéder à $toast
 const instance = getCurrentInstance()
@@ -262,6 +296,8 @@ const classes = ref([])
 const enseignants = ref([])
 const showParticipantsModal = ref(false)
 const selectedSeanceId = ref(null)
+const viewMode = ref('list')
+const calendarRef = ref(null)
 const filters = reactive({
   days: 30,
   teacher_id: null,
@@ -477,10 +513,81 @@ const handleJoinVisio = async (seance) => {
   }
 }
 
-// Gestion des événements de la modal Jitsi
+// Gestion des actions du calendrier
+async function handleCalendarAction({ type, data }) {
+  console.log('[CoordinatorSeances] Calendar action:', type, data)
 
+  switch (type) {
+    case 'toggleVisio':
+      // Activer/desactiver la visio
+      try {
+        const newState = !(data.visio?.enabled || data.visio_enabled)
+        await lmsService.toggleVisio(data.id, newState, 'jitsi')
+        console.log('[CoordinatorSeances] Visio toggled:', data.id, newState)
+        if (calendarRef.value?.refreshEvents) {
+          await calendarRef.value.refreshEvents()
+        }
+        $toast?.success(newState ? 'Visio activee' : 'Visio desactivee')
+      } catch (error) {
+        console.error('[CoordinatorSeances] Erreur toggle visio:', error)
+        $toast?.error('Erreur lors de la modification')
+      }
+      break
 
+    case 'joinVisio':
+      // Coordinateur rejoint la visio
+      {
+        const roomId = data.visio?.room_id || data.visio_room_id || `seance_${data.id}`
+        const userName = encodeURIComponent(currentUser.name || 'Coordinateur')
+        const jitsiLink = `https://meet.jit.si/${roomId}#config.prejoinConfig.enabled=false&userInfo.displayName=${userName}`
+        window.open(jitsiLink, '_blank')
+      }
+      break
 
+    case 'viewParticipants':
+      // Voir les participants
+      selectedSeanceId.value = data.id
+      showParticipantsModal.value = true
+      break
+
+    case 'exportAttendance':
+      // Exporter les presences
+      router.push(`/attendance/seances/${data.id}?export=true`)
+      break
+
+    case 'viewDetails':
+      // Voir les details
+      router.push(`/seances/${data.id}`)
+      break
+
+    case 'delete':
+      // Supprimer la seance
+      if (confirm('Voulez-vous vraiment supprimer cette seance ?')) {
+        try {
+          await lmsService.deleteSeance(data.id)
+          if (calendarRef.value?.refreshEvents) {
+            await calendarRef.value.refreshEvents()
+          }
+          $toast?.success('Seance supprimee')
+        } catch (error) {
+          console.error('[CoordinatorSeances] Erreur suppression:', error)
+          $toast?.error('Erreur lors de la suppression')
+        }
+      }
+      break
+
+    case 'viewEvaluationResults':
+      router.push(`/coordinateur/evaluations/${data.id}/results`)
+      break
+
+    case 'editEvaluation':
+      router.push(`/coordinateur/evaluations/${data.id}/edit`)
+      break
+
+    default:
+      console.warn('[CoordinatorSeances] Action non geree:', type)
+  }
+}
 
 
 
@@ -534,6 +641,55 @@ onMounted(() => {
   font-size: 0.875rem;
   color: var(--text-secondary);
   margin: 0.25rem 0 0 0;
+}
+
+/* View Toggle */
+.view-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  background: var(--card-bg);
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  width: fit-content;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: transparent;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toggle-btn:hover {
+  background: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+.toggle-btn.active {
+  background: var(--primary-color, #6366f1);
+  color: white;
+}
+
+.toggle-btn i {
+  font-size: 1rem;
+}
+
+/* Calendar Section */
+.calendar-section {
+  background: var(--card-bg);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* Filters */

@@ -208,11 +208,13 @@ export const lmsService = {
 
   /**
    * Récupérer les séances de l'enseignant connecté
+   * @param {boolean} forceRefresh - Si true, bypass le cache KLASSCI
    * @returns {Promise<Object>} { success, data: [...] }
    */
-  async getMyTeachingSeances() {
+  async getMyTeachingSeances(forceRefresh = false) {
     try {
-      return await api.get('/lms/seances/my-teaching')
+      const params = forceRefresh ? { refresh: true } : {}
+      return await api.get('/lms/seances/my-teaching', { params })
     } catch (error) {
       console.error('Erreur récupération mes séances enseignant:', error)
       throw error
@@ -221,11 +223,13 @@ export const lmsService = {
 
   /**
    * Récupérer les séances/cours de l'étudiant connecté
+   * @param {boolean} forceRefresh - Si true, bypass le cache KLASSCI
    * @returns {Promise<Object>} { success, data: [...] }
    */
-  async getMyClassesSeances() {
+  async getMyClassesSeances(forceRefresh = false) {
     try {
-      return await api.get('/lms/seances/my-classes')
+      const params = forceRefresh ? { refresh: true } : {}
+      return await api.get('/lms/seances/my-classes', { params })
     } catch (error) {
       console.error('Erreur récupération mes cours étudiant:', error)
       throw error
@@ -409,6 +413,48 @@ export const lmsService = {
       return await api.get('/lms/attendance/history', { params })
     } catch (error) {
       console.error('Erreur récupération historique présences:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Récupère l'historique des séances avec statistiques de présences
+   * @param {Object} params - Paramètres de requête (page, per_page, date_from, date_to, search)
+   * @returns {Promise<Object>} { success, data: [...], pagination: {...} }
+   */
+  async getSeancesHistory(params = {}) {
+    try {
+      return await api.get('/lms/seances/history', { params })
+    } catch (error) {
+      console.error('Erreur récupération historique séances:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Récupère les détails des présences pour une séance spécifique
+   * @param {Number} seanceId - ID de la séance
+   * @returns {Promise<Object>} { success, seance: {...}, statistics: {...}, attendances: [...] }
+   */
+  async getSeanceAttendances(seanceId) {
+    try {
+      return await api.get(`/lms/seances/${seanceId}/attendances`)
+    } catch (error) {
+      console.error('Erreur récupération présences séance:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Supprime une séance
+   * @param {Number} seanceId - ID de la séance
+   * @returns {Promise<Object>}
+   */
+  async deleteSeance(seanceId) {
+    try {
+      return await api.delete(`/lms/seances/${seanceId}`)
+    } catch (error) {
+      console.error('Erreur suppression séance:', error)
       throw error
     }
   }

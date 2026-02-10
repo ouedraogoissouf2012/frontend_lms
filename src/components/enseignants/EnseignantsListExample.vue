@@ -41,7 +41,7 @@
 
         <!-- Détails enrichis (si with_details=true) -->
         <div v-if="enseignant.statistiques" class="enseignant-stats">
-          <h4>📊 Statistiques</h4>
+          <h4><i class="fa fa-bar-chart"></i> Statistiques</h4>
           <div class="stats-grid">
             <div class="stat-item">
               <span class="stat-label">Classes</span>
@@ -71,7 +71,7 @@
 
           <!-- Classes -->
           <div v-if="enseignant.classes && enseignant.classes.length > 0" class="classes-list">
-            <h5>📚 Classes enseignées</h5>
+            <h5><i class="fa fa-book"></i> Classes enseignées</h5>
             <ul>
               <li v-for="classe in enseignant.classes" :key="classe.id">
                 {{ classe.nom }} - {{ classe.filiere.nom }} {{ classe.niveau.nom }}
@@ -81,7 +81,7 @@
 
           <!-- Matières -->
           <div v-if="enseignant.matieres && enseignant.matieres.length > 0" class="matieres-list">
-            <h5>📖 Matières enseignées</h5>
+            <h5><i class="fa fa-book"></i> Matières enseignées</h5>
             <div v-for="matiere in enseignant.matieres" :key="matiere.id" class="matiere-item">
               <strong>{{ matiere.nom }}</strong> ({{ matiere.code }})
               <span class="matiere-progress">

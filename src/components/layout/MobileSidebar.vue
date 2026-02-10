@@ -35,7 +35,7 @@
             class="nav-link"
             :class="{ active: isActive(item.path) }"
           >
-            <span class="nav-icon" v-html="item.icon"></span>
+            <i :class="`fa ${item.icon} nav-icon`"></i>
             <span class="nav-text">{{ item.label }}</span>
             <span v-if="item.badge" class="nav-badge">{{ item.badge }}</span>
           </router-link>
@@ -52,7 +52,7 @@
             class="nav-link"
             :class="{ active: isActive(item.path) }"
           >
-            <span class="nav-icon" v-html="item.icon"></span>
+            <i :class="`fa ${item.icon} nav-icon`"></i>
             <span class="nav-text">{{ item.label }}</span>
           </router-link>
         </div>
@@ -125,16 +125,21 @@ const secondaryNavItems = computed(() => {
       // À ajouter: Mes Notes, Ma Progression, etc.
     ]
   } else if (role === 'enseignant' || role === 'teacher') {
+    // Items supplémentaires (pas dans BottomNavigation)
     return [
       ...commonItems,
-      { path: '/teacher/seances', icon: '▶', label: 'Mes Séances', badge: null },
-      { path: '/teacher/evaluations', icon: '✎', label: 'Mes Évaluations', badge: null }
+      { path: '/teacher/seances', icon: 'fa-video-camera', label: 'Mes Séances Visio', badge: null },
+      { path: '/forum', icon: 'fa-comments', label: 'Forum', badge: null },
+      { path: '/attendance/seances', icon: 'fa-history', label: 'Historique', badge: null },
+      { path: '/teacher/settings', icon: 'fa-cog', label: 'Paramètres', badge: null }
     ]
   } else if (role === 'coordinateur') {
+    // Items supplémentaires (pas dans BottomNavigation)
     return [
       ...commonItems,
-      { path: '/coordinateur/seances', icon: '▶', label: 'Gestion Séances', badge: null },
-      { path: '/coordinateur/evaluations', icon: '✎', label: 'Gestion Évaluations', badge: null }
+      { path: '/forum', icon: 'fa-comments', label: 'Forum', badge: null },
+      { path: '/attendance/seances', icon: 'fa-history', label: 'Historique', badge: null },
+      { path: '/admin/settings', icon: 'fa-cog', label: 'Paramètres', badge: null }
     ]
   }
 
@@ -144,10 +149,12 @@ const secondaryNavItems = computed(() => {
 const adminNavItems = computed(() => {
   const role = user.value?.role
 
-  if (role === 'coordinateur' || role === 'superAdmin') {
+  // Pour superAdmin uniquement (coordinateur a tout dans secondaryNavItems)
+  if (role === 'superAdmin') {
     return [
-      { path: '/admin/classes', icon: '🏫', label: 'Classes', badge: null },
-      { path: '/admin/matieres', icon: '📖', label: 'Matières', badge: null }
+      { path: '/admin/classes', icon: 'fa-building', label: 'Classes', badge: null },
+      { path: '/admin/matieres', icon: 'fa-book', label: 'Matières', badge: null },
+      { path: '/admin/enseignants', icon: 'fa-user', label: 'Enseignants', badge: null }
     ]
   }
 

@@ -7,10 +7,7 @@
     </div>
 
     <!-- Loading state -->
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
-      <p>Chargement...</p>
-    </div>
+    <ContentLoader v-if="loading" text="Chargement des chapitres..." />
 
     <!-- Chapters List -->
     <div v-else class="chapters-container">
@@ -54,6 +51,7 @@
               <option value="word">Document Word (upload .docx)</option>
               <option value="pdf">PDF (upload .pdf)</option>
               <option value="link">Lien externe</option>
+              <option value="quiz">Quiz / Testez vos connaissances</option>
             </select>
           </div>
 
@@ -101,10 +99,41 @@
                 :id="`file-${chapter.tempId || chapter.id}`"
               />
               <label :for="`file-${chapter.tempId || chapter.id}`" class="file-upload-label">
-                <span v-if="!chapter.selectedFile">◈ Ajouter un média</span>
+                <span v-if="!chapter.selectedFile"><i class="fa fa-cloud-upload"></i> Ajouter un media</span>
                 <span v-else class="file-selected-name">{{ chapter.selectedFile.name }}</span>
               </label>
               <p class="file-help-text">Taille max: 30 MB</p>
+            </div>
+
+            <!-- Quiz Editor Inline -->
+            <div v-if="chapter.content_type === 'quiz'" class="quiz-editor-inline">
+              <div v-if="chapter.id" class="quiz-editor-wrapper">
+                <!-- Quiz existant ou creation -->
+                <div v-if="getChapterQuiz(chapter.id)" class="quiz-exists-info">
+                  <div class="quiz-summary">
+                    <i class="material-icons">quiz</i>
+                    <div class="quiz-summary-text">
+                      <span class="quiz-title">{{ getChapterQuiz(chapter.id).title }}</span>
+                      <span class="quiz-meta">{{ getChapterQuiz(chapter.id).questions?.length || 0 }} questions</span>
+                    </div>
+                  </div>
+                  <button @click="openQuizEditor(chapter.id, getChapterQuiz(chapter.id))" class="btn-edit-inline-quiz">
+                    <i class="material-icons">edit</i>
+                    Modifier le quiz
+                  </button>
+                </div>
+                <div v-else class="quiz-create-prompt">
+                  <p class="quiz-prompt-text">Aucun quiz cree pour ce chapitre.</p>
+                  <button @click="openQuizEditor(chapter.id)" class="btn-create-quiz">
+                    <i class="material-icons">add</i>
+                    Creer un quiz
+                  </button>
+                </div>
+              </div>
+              <div v-else class="quiz-save-first">
+                <i class="material-icons">info</i>
+                <span>Enregistrez d'abord le chapitre pour creer un quiz.</span>
+              </div>
             </div>
           </div>
 
@@ -126,14 +155,57 @@
             <span class="meta-type">{{ getContentTypeLabel(chapter.content_type) }}</span>
             <span v-if="chapter.slides_count" class="meta-info">{{ chapter.slides_count }} slides</span>
           </div>
-          
+
           <!-- Affichage du contenu texte -->
           <p v-if="chapter.content && chapter.content_type === 'text'" class="chapter-preview">
             {{ getContentPreview(chapter.content) }}
           </p>
-          
+
           <!-- Affichage du contenu Word (HTML) -->
           <div v-if="chapter.content && chapter.content_type === 'word'" class="chapter-word-content" v-html="chapter.content"></div>
+
+          <!-- Affichage du Quiz -->
+          <div v-if="chapter.content_type === 'quiz' && chapter.id" class="chapter-quiz-view">
+            <div v-if="getChapterQuiz(chapter.id)" class="quiz-view-content">
+              <div class="quiz-view-header">
+                <div class="quiz-view-info">
+                  <i class="material-icons quiz-icon">quiz</i>
+                  <div class="quiz-view-details">
+                    <span class="quiz-view-title">{{ getChapterQuiz(chapter.id).title }}</span>
+                    <span class="quiz-view-meta">
+                      {{ getChapterQuiz(chapter.id).questions?.length || 0 }} questions
+                      <template v-if="getChapterQuiz(chapter.id).time_limit_minutes">
+                        - {{ getChapterQuiz(chapter.id).time_limit_minutes }} min
+                      </template>
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Score utilisateur -->
+                <div v-if="getChapterQuiz(chapter.id).user_best_score !== null"
+                     class="quiz-view-score"
+                     :class="getQuizScoreBadge(getChapterQuiz(chapter.id)).class">
+                  <i class="material-icons">{{ getChapterQuiz(chapter.id).user_passed ? 'check_circle' : 'trending_up' }}</i>
+                  {{ getChapterQuiz(chapter.id).user_best_score }}%
+                </div>
+              </div>
+
+              <div class="quiz-view-actions">
+                <button @click="openQuizPlayer(getChapterQuiz(chapter.id))" class="btn-start-quiz">
+                  <i class="material-icons">play_arrow</i>
+                  {{ getChapterQuiz(chapter.id).user_best_score !== null ? 'Retenter le quiz' : 'Commencer le quiz' }}
+                </button>
+              </div>
+            </div>
+            <div v-else class="quiz-view-empty">
+              <i class="material-icons">quiz</i>
+              <p>Aucun quiz configure pour ce chapitre.</p>
+              <button v-if="!readonly" @click="openQuizEditor(chapter.id)" class="btn-create-quiz-view">
+                <i class="material-icons">add</i>
+                Creer un quiz
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -156,17 +228,47 @@
         <p class="upload-message">{{ uploadStatus }}</p>
       </div>
     </div>
+
+    <!-- Knowledge Check Editor Modal -->
+    <div v-if="showQuizEditor" class="quiz-modal-overlay" @click.self="closeQuizEditor">
+      <div class="quiz-modal-content">
+        <KnowledgeCheckEditor
+          :chapter-id="selectedChapterId"
+          :existing-quiz="editingQuiz"
+          @close="closeQuizEditor"
+          @saved="onQuizSaved"
+        />
+      </div>
+    </div>
+
+    <!-- Knowledge Check Player Modal -->
+    <div v-if="showQuizPlayer" class="quiz-modal-overlay" @click.self="closeQuizPlayer">
+      <div class="quiz-modal-content quiz-player-modal">
+        <KnowledgeCheckPlayer
+          :quiz="selectedQuiz"
+          @close="closeQuizPlayer"
+          @completed="onQuizCompleted"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import api from '@/services/api'
 import TipTapEditor from '@/components/common/TipTapEditor.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
+import KnowledgeCheckEditor from '@/components/lessons/KnowledgeCheckEditor.vue'
+import KnowledgeCheckPlayer from '@/components/lessons/KnowledgeCheckPlayer.vue'
+import knowledgeCheckService from '@/services/knowledgeCheck'
 
 export default {
   name: 'ChapterManager',
   components: {
-    TipTapEditor
+    TipTapEditor,
+    ContentLoader,
+    KnowledgeCheckEditor,
+    KnowledgeCheckPlayer
   },
   props: {
     lessonId: {
@@ -187,12 +289,33 @@ export default {
       uploadingFile: false,
       uploadProgress: 0,
       uploadStatus: '',
-      nextTempId: 1
+      nextTempId: 1,
+      // Knowledge Checks
+      knowledgeChecks: {},
+      showQuizEditor: false,
+      showQuizPlayer: false,
+      selectedChapterId: null,
+      selectedQuiz: null,
+      editingQuiz: null
     }
   },
 
   mounted() {
     this.loadChapters()
+  },
+
+  watch: {
+    chapters: {
+      handler(newChapters) {
+        // Charger les quiz pour tous les chapitres
+        newChapters.forEach(ch => {
+          if (ch.id && !this.knowledgeChecks[ch.id]) {
+            this.loadKnowledgeChecks(ch.id)
+          }
+        })
+      },
+      deep: true
+    }
   },
 
   methods: {
@@ -369,7 +492,8 @@ export default {
         powerpoint: 'PowerPoint',
         word: 'Document Word',
         pdf: 'PDF',
-        link: 'Lien externe'
+        link: 'Lien externe',
+        quiz: 'Quiz / Testez vos connaissances'
       }
       return labels[type] || type
     },
@@ -377,6 +501,93 @@ export default {
     getContentPreview(content) {
       if (!content) return ''
       return content.length > 150 ? content.substring(0, 150) + '...' : content
+    },
+
+    // =====================
+    // Knowledge Checks
+    // =====================
+    async loadKnowledgeChecks(chapterId) {
+      try {
+        const response = await knowledgeCheckService.getByChapter(chapterId)
+        if (response.success) {
+          this.knowledgeChecks[chapterId] = response.data
+        }
+      } catch (error) {
+        console.error('[ChapterManager] Erreur chargement quiz:', error)
+      }
+    },
+
+    async loadAllKnowledgeChecks() {
+      for (const chapter of this.chapters) {
+        if (chapter.id) {
+          await this.loadKnowledgeChecks(chapter.id)
+        }
+      }
+    },
+
+    openQuizEditor(chapterId, quiz = null) {
+      this.selectedChapterId = chapterId
+      this.editingQuiz = quiz
+      this.showQuizEditor = true
+    },
+
+    closeQuizEditor() {
+      this.showQuizEditor = false
+      this.selectedChapterId = null
+      this.editingQuiz = null
+    },
+
+    async onQuizSaved(quiz) {
+      // Recharger les quiz AVANT de fermer (pour garder selectedChapterId)
+      if (quiz && quiz.chapter_id) {
+        await this.loadKnowledgeChecks(quiz.chapter_id)
+      }
+      this.closeQuizEditor()
+    },
+
+    openQuizPlayer(quiz) {
+      this.selectedQuiz = quiz
+      this.showQuizPlayer = true
+    },
+
+    closeQuizPlayer() {
+      this.showQuizPlayer = false
+      this.selectedQuiz = null
+    },
+
+    async onQuizCompleted(result) {
+      console.log('[ChapterManager] Quiz complete:', result)
+      // Recharger les quiz pour mettre a jour les scores
+      if (this.selectedQuiz) {
+        await this.loadKnowledgeChecks(this.selectedQuiz.chapter_id)
+      }
+    },
+
+    async deleteKnowledgeCheck(quiz) {
+      if (!confirm(`Supprimer le quiz "${quiz.title}" ?`)) {
+        return
+      }
+
+      try {
+        const response = await knowledgeCheckService.delete(quiz.id)
+        if (response.success) {
+          await this.loadKnowledgeChecks(quiz.chapter_id)
+          alert('Quiz supprime!')
+        }
+      } catch (error) {
+        console.error('[ChapterManager] Erreur suppression quiz:', error)
+        alert('Erreur: ' + (error.response?.data?.message || error.message))
+      }
+    },
+
+    getQuizScoreBadge(quiz) {
+      return knowledgeCheckService.getScoreBadge(quiz.user_best_score || 0, quiz.passing_score)
+    },
+
+    // Retourne le premier quiz du chapitre (pour type quiz)
+    getChapterQuiz(chapterId) {
+      const quizzes = this.knowledgeChecks[chapterId]
+      return quizzes && quizzes.length > 0 ? quizzes[0] : null
     }
   }
 }
@@ -884,6 +1095,292 @@ export default {
   margin: 0;
 }
 
+/* Quiz Modal */
+.quiz-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+}
+
+.quiz-modal-content {
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow: hidden;
+}
+
+.quiz-player-modal {
+  max-width: 700px;
+}
+
+/* ===================== */
+/* Quiz Inline Editor */
+/* ===================== */
+.quiz-editor-inline {
+  margin-top: 16px;
+}
+
+.quiz-editor-wrapper {
+  padding: 16px;
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 8px;
+}
+
+.quiz-exists-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.quiz-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.quiz-summary i {
+  font-size: 1.5rem;
+  color: #6366f1;
+}
+
+.quiz-summary-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.quiz-summary .quiz-title {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.quiz-summary .quiz-meta {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.btn-edit-inline-quiz {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-edit-inline-quiz:hover {
+  background: #4f46e5;
+}
+
+.btn-edit-inline-quiz i {
+  font-size: 1rem;
+}
+
+.quiz-create-prompt {
+  text-align: center;
+  padding: 16px;
+}
+
+.quiz-prompt-text {
+  margin: 0 0 12px 0;
+  color: var(--text-secondary);
+}
+
+.btn-create-quiz {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-create-quiz:hover {
+  background: #4f46e5;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.btn-create-quiz i {
+  font-size: 1.125rem;
+}
+
+.quiz-save-first {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 8px;
+  color: #b45309;
+}
+
+.quiz-save-first i {
+  font-size: 1.25rem;
+}
+
+/* ===================== */
+/* Quiz View Mode */
+/* ===================== */
+.chapter-quiz-view {
+  margin-top: 16px;
+}
+
+.quiz-view-content {
+  padding: 20px;
+  background: rgba(99, 102, 241, 0.08);
+  border: 2px solid rgba(99, 102, 241, 0.3);
+  border-radius: 12px;
+}
+
+.quiz-view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.quiz-view-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.quiz-view-info .quiz-icon {
+  font-size: 2rem;
+  color: #6366f1;
+}
+
+.quiz-view-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.quiz-view-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.quiz-view-meta {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.quiz-view-score {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.quiz-view-score i {
+  font-size: 1.125rem;
+}
+
+.quiz-view-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.btn-start-quiz {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-start-quiz:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.btn-start-quiz i {
+  font-size: 1.25rem;
+}
+
+.quiz-view-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.quiz-view-empty i {
+  font-size: 3rem;
+  color: var(--text-tertiary);
+  margin-bottom: 12px;
+}
+
+.quiz-view-empty p {
+  margin: 0 0 16px 0;
+  color: var(--text-secondary);
+}
+
+.btn-create-quiz-view {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.btn-create-quiz-view:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+.btn-create-quiz-view i {
+  font-size: 1.25rem;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .chapters-header,
@@ -904,6 +1401,22 @@ export default {
   .btn-cancel,
   .btn-save {
     width: 100%;
+  }
+
+  .quiz-exists-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .quiz-view-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .quiz-modal-content {
+    max-height: 95vh;
   }
 }
 </style>

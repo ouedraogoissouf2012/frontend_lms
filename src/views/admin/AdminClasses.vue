@@ -3,7 +3,7 @@
     <div class="classes-container">
       <!-- Header -->
       <div class="welcome-header">
-        <span class="welcome-icon">⌂</span>
+        <i class="fa fa-home welcome-icon"></i>
         <div>
           <h1 class="page-title">Gestion des Classes</h1>
           <p class="page-subtitle">Gérez toutes les classes de l'établissement</p>
@@ -14,7 +14,7 @@
       <div v-if="!loading && !error" class="stats-grid">
         <div class="stat-card border-l-blue">
           <div class="stat-header">
-            <span class="stat-icon">⌂</span>
+            <i class="fa fa-home stat-icon"></i>
             <span class="stat-label">Total Classes</span>
           </div>
           <p class="stat-value">{{ stats.total }}</p>
@@ -22,7 +22,7 @@
 
         <div class="stat-card border-l-green">
           <div class="stat-header">
-            <span class="stat-icon">☺</span>
+            <i class="fa fa-user stat-icon"></i>
             <span class="stat-label">Total Étudiants</span>
           </div>
           <p class="stat-value">{{ stats.totalEtudiants }}</p>
@@ -50,7 +50,7 @@
         <div class="filters-grid">
           <div class="filter-item">
             <label class="filter-label">
-              <span class="filter-icon">⌂</span>
+              <i class="fa fa-home filter-icon"></i>
               Filière
             </label>
             <select v-model="filters.filiere_id" @change="applyFilters" class="filter-select">
@@ -63,7 +63,7 @@
 
           <div class="filter-item">
             <label class="filter-label">
-              <span class="filter-icon">☰</span>
+              <i class="fa fa-bars filter-icon"></i>
               Niveau
             </label>
             <select v-model="filters.niveau_id" @change="applyFilters" class="filter-select">
@@ -76,7 +76,7 @@
 
           <div class="filter-item">
             <label class="filter-label">
-              <span class="filter-icon">✓</span>
+              <i class="fa fa-check filter-icon"></i>
               Statut
             </label>
             <select v-model="filters.statut" @change="applyFilters" class="filter-select">
@@ -101,11 +101,11 @@
       </div>
 
       <!-- Loading state -->
-      <SkeletonLoader v-if="loading" type="card" :count="6" height="220px" />
+      <ContentLoader v-if="loading" text="Chargement des classes..." />
 
       <!-- Error state -->
       <div v-else-if="error" class="error-state">
-        <div class="error-icon">⚠️</div>
+        <div class="error-icon"><i class="fa fa-exclamation-triangle"></i></div>
         <div class="error-content">
           <h3 class="error-title">Erreur de chargement</h3>
           <p class="error-message">{{ error }}</p>
@@ -144,7 +144,7 @@
 
           <!-- Filiere Section -->
           <div v-if="classe.filiere" class="class-section">
-            <span class="section-icon">⌂</span>
+            <i class="fa fa-home section-icon"></i>
             <div>
               <p class="section-label">Filière</p>
               <p class="section-value">{{ classe.filiere.name || classe.filiere.nom }}</p>
@@ -154,7 +154,7 @@
           <!-- Stats -->
           <div class="class-stats">
             <div class="stat-item">
-              <span class="stat-icon">☺</span>
+              <i class="fa fa-user stat-icon"></i>
               <div>
                 <p class="stat-label">Étudiants</p>
                 <p class="stat-value">{{ classe.places_occupees || 0 }}/{{ classe.places_totales || 0 }}</p>
@@ -209,7 +209,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import { klassciService } from '@/services/klassci'
 
 const router = useRouter()

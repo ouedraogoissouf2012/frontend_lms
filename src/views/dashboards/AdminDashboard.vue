@@ -13,36 +13,7 @@
       </div>
 
       <!-- Loading state -->
-      <div v-if="loading.stats || loading.classes || loading.matieres">
-        <!-- Skeleton for stats -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <SkeletonLoader type="card" />
-          <SkeletonLoader type="card" />
-          <SkeletonLoader type="card" />
-          <SkeletonLoader type="card" />
-        </div>
-
-        <!-- Skeleton for classes -->
-        <div class="widget-card mb-6">
-          <SkeletonLoader type="text" width="150px" />
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-            <SkeletonLoader type="card" />
-            <SkeletonLoader type="card" />
-            <SkeletonLoader type="card" />
-          </div>
-        </div>
-
-        <!-- Skeleton for matières -->
-        <div class="widget-card mb-6">
-          <SkeletonLoader type="text" width="150px" />
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-            <SkeletonLoader type="card" />
-            <SkeletonLoader type="card" />
-            <SkeletonLoader type="card" />
-            <SkeletonLoader type="card" />
-          </div>
-        </div>
-      </div>
+      <ContentLoader v-if="loading.stats || loading.classes || loading.matieres" text="Chargement du tableau de bord..." />
 
       <!-- Dashboard Content -->
       <div v-if="!loading.stats && !loading.classes && !loading.matieres">
@@ -409,7 +380,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import ActivityChart from '@/components/charts/ActivityChart.vue'
 import QuickActionButton from '@/components/ui/QuickActionButton.vue'
 import GenerateReportModal from '@/components/modals/GenerateReportModal.vue'

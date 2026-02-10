@@ -5,18 +5,20 @@
       <div class="page-header">
         <div>
           <h1 class="page-title">Mes Classes</h1>
-          <p class="page-subtitle">Gérez vos classes et consultez les listes d'étudiants</p>
+          <p class="page-subtitle">Consultez vos classes et leurs etudiants</p>
         </div>
+        <router-link to="/teacher/hub" class="btn-back">
+          <i class="fa fa-arrow-left"></i>
+          Retour a Mon Espace
+        </router-link>
       </div>
 
       <!-- Loading state -->
-      <div v-if="loading" class="classes-grid">
-        <SkeletonLoader type="card" v-for="i in 6" :key="i" height="200px" />
-      </div>
+      <ContentLoader v-if="loading" text="Chargement des classes..." />
 
       <!-- Error state -->
       <div v-if="error" class="error-state">
-        <div class="error-icon">⚠</div>
+        <div class="error-icon"><i class="fa fa-exclamation-triangle"></i></div>
         <div class="error-content">
           <h3 class="error-title">Erreur de chargement</h3>
           <p class="error-message">{{ error }}</p>
@@ -123,7 +125,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import { klassciService } from '@/services/klassci'
 import {
   BuildingLibraryIcon,
@@ -305,7 +307,12 @@ onMounted(() => {
 }
 
 .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .page-title {
@@ -318,6 +325,27 @@ onMounted(() => {
 .page-subtitle {
   color: var(--text-secondary);
   font-size: 1rem;
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: all 0.2s;
+  border: 1px solid var(--border-primary);
+}
+
+.btn-back:hover {
+  background: var(--bg-hover);
+  border-color: var(--primary-color, #3b82f6);
+  color: var(--primary-color, #3b82f6);
 }
 
 .classes-grid {

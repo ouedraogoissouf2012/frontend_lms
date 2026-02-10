@@ -17,16 +17,13 @@
       </div>
 
       <!-- Loading -->
-      <div v-if="loading" class="loading-state">
-        <div class="spinner"></div>
-        <p>Chargement...</p>
-      </div>
+      <ContentLoader v-if="loading" text="Chargement de la leçon..." />
 
       <!-- Formulaire -->
       <form v-else @submit.prevent="saveLesson" class="editor-form">
         <!-- Informations de base -->
         <div class="form-section">
-          <h2 class="section-title">Informations de base</h2>
+          <h2 class="section-title"><i class="fa fa-info-circle"></i> Informations de base</h2>
 
           <div class="form-row">
             <div class="form-group full-width">
@@ -117,7 +114,7 @@
 
         <!-- Type de contenu principal -->
         <div class="form-section">
-          <h2 class="section-title">Type de contenu principal</h2>
+          <h2 class="section-title"><i class="fa fa-th-large"></i> Type de contenu principal</h2>
 
           <div class="content-type-grid">
             <label
@@ -139,7 +136,7 @@
 
         <!-- Contenu principal selon le type -->
         <div class="form-section">
-          <h2 class="section-title">Contenu principal</h2>
+          <h2 class="section-title"><i class="fa fa-file-text"></i> Contenu principal</h2>
 
           <!-- Contenu VIDÉO -->
           <div v-if="form.content_type === 'video'" class="content-fields">
@@ -288,7 +285,7 @@ Exemples:
         <!-- Ressources supplémentaires -->
         <div class="form-section">
           <div class="section-header">
-            <h2 class="section-title">Ressources supplémentaires</h2>
+            <h2 class="section-title"><i class="fa fa-paperclip"></i> Ressources supplémentaires</h2>
             <button type="button" @click="addResource" class="btn-add">
               + Ajouter une ressource
             </button>
@@ -374,7 +371,7 @@ Exemples:
 
         <!-- Statut de publication -->
         <div class="form-section">
-          <h2 class="section-title">Statut de publication</h2>
+          <h2 class="section-title"><i class="fa fa-toggle-on"></i> Statut de publication</h2>
 
           <div class="status-grid">
             <label :class="['status-card', { 'active': form.status === 'draft' }]">
@@ -439,6 +436,7 @@ Exemples:
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import lessonService from '@/services/lesson'
 import chapterService from '@/services/chapter'
 import { klassciService } from '@/services/klassci'

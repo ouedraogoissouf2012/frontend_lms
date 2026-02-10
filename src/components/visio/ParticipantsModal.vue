@@ -2,24 +2,43 @@
   <div class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50" @click.self="close">
     <div class="bg-white rounded-lg shadow-xl max-w-6xl w-full mx-4 max-h-[90vh] overflow-hidden">
       <!-- Header -->
-      <div class="bg-gradient-to-r from-purple-600 to-purple-800 text-white px-6 py-4 flex items-center justify-between">
-         <div> 
-        <h3 class="text-xl font-bold flex items-center">
-              
-          <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-          </svg>
-          📋 Liste de Présence - Séance #{{ seanceId }}
-        </h3>
-        <p v-if="teacher && teacher.nom" class="text-sm font-normal opacity-90 mt-1">
-        Enseignant: {{ teacher.prenom ? teacher.prenom + ' ' : '' }}{{ teacher.nom }}
-      </p>
-       </div>
-        <button @click="close" class="text-white hover:text-gray-200">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+      <div class="bg-gradient-to-r from-purple-600 to-purple-800 text-white px-6 py-4">
+        <div class="flex items-center justify-between">
+          <!-- Left: Titre et enseignant -->
+          <div>
+            <h3 class="text-xl font-bold flex items-center">
+              <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              </svg>
+              Liste de Présence
+            </h3>
+            <p v-if="teacher && teacher.nom" class="text-sm font-normal opacity-90 mt-1">
+              Enseignant: {{ teacher.prenom ? teacher.prenom + ' ' : '' }}{{ teacher.nom }}
+            </p>
+          </div>
+
+          <!-- Center: Durée de la séance -->
+          <div class="text-center flex-1">
+            <p class="text-sm opacity-90">Séance</p>
+            <p class="text-lg font-semibold mt-1">
+              <i class="fa fa-clock-o mr-2"></i>{{ seanceTime }}
+            </p>
+            <p class="text-2xl font-bold mt-1">({{ seanceDuration }})</p>
+          </div>
+
+          <!-- Right: Coordinateur et bouton fermer -->
+          <div class="text-right flex items-start gap-4">
+            <div v-if="coordinator && coordinator.nom">
+              <p class="text-sm font-normal opacity-90">Coordinateur:</p>
+              <p class="text-sm font-semibold">{{ coordinator.prenom ? coordinator.prenom + ' ' : '' }}{{ coordinator.nom }}</p>
+            </div>
+            <button @click="close" class="text-white hover:text-gray-200">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Content -->
@@ -37,6 +56,30 @@
 
         <!-- Liste de présence chargée -->
         <div v-else>
+          <!-- Boutons d'export -->
+          <div class="flex justify-end gap-3 mb-6">
+            <button
+              @click="exportPDF"
+              :disabled="exporting"
+              class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+              {{ exporting ? 'Export...' : 'Exporter PDF' }}
+            </button>
+            <button
+              @click="exportExcel"
+              :disabled="exporting"
+              class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              {{ exporting ? 'Export...' : 'Exporter Excel' }}
+            </button>
+          </div>
+
           <!-- Statistiques -->
           <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
             <!-- Total étudiants -->
@@ -191,7 +234,14 @@
 
                     <!-- QUITTÉ -->
                     <td class="whitespace-nowrap px-3 py-4 text-sm text-center">
-                      <div v-if="student.left_at" class="font-medium text-gray-900">
+                      <div v-if="student.left_at === 'En cours'" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                        <span class="relative flex h-2 w-2 mr-1.5">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                        </span>
+                        En cours
+                      </div>
+                      <div v-else-if="student.left_at" class="font-medium text-gray-900">
                         {{ student.left_at }}
                       </div>
                       <div v-else class="text-gray-400">-</div>
@@ -242,6 +292,9 @@ export default {
       error: null,
       students: [],
       teacher: null,
+      coordinator: null,
+      seanceStartTime: null,
+      seanceEndTime: null,
       stats: {
         total_students: 0,
         present_count: 0,
@@ -254,7 +307,25 @@ export default {
         average_duration_minutes: 0,
         seance_duration_minutes: 120
       },
-      refreshInterval: null
+      refreshInterval: null,
+      exporting: false
+    }
+  },
+  computed: {
+    seanceDuration() {
+      const minutes = Math.round(this.stats.seance_duration_minutes) // Arrondir les minutes
+      if (minutes >= 60) {
+        const hours = Math.floor(minutes / 60)
+        const mins = minutes % 60
+        return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`
+      }
+      return `${minutes} min`
+    },
+    seanceTime() {
+      if (this.seanceStartTime && this.seanceEndTime) {
+        return `${this.seanceStartTime} - ${this.seanceEndTime}`
+      }
+      return null
     }
   },
   mounted() {
@@ -289,10 +360,20 @@ export default {
           this.students = response.data.students || []
           this.stats = response.data.statistics || this.stats
           this.teacher = response.data.teacher || null
+          this.coordinator = response.data.coordinator || null
+
+          // Extraire les horaires de la séance si disponibles
+          if (response.data.seance_info) {
+            this.seanceStartTime = response.data.seance_info.heure_debut
+            this.seanceEndTime = response.data.seance_info.heure_fin
+          }
+
           console.log('[ParticipantsModal] Liste de présence chargée:', {
             students: this.students.length,
             stats: this.stats,
-            teacher: this.teacher
+            teacher: this.teacher,
+            coordinator: this.coordinator,
+            seanceTime: this.seanceTime
           })
         } else {
           throw new Error(response?.message || 'Erreur lors du chargement de la liste de présence')
@@ -332,6 +413,104 @@ export default {
         return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
       }
       return name.substring(0, 2).toUpperCase()
+    },
+
+    /**
+     * Exporter la liste de présence en PDF
+     */
+    async exportPDF() {
+      if (this.exporting) return
+
+      this.exporting = true
+      try {
+        console.log('[ParticipantsModal] Export PDF de la séance', this.seanceId)
+
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+        const token = localStorage.getItem('token')
+
+        // Créer l'URL de téléchargement
+        const url = `${API_URL}/lms/seances/${this.seanceId}/export/presences/pdf`
+
+        // Télécharger le fichier
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/pdf'
+          }
+        })
+
+        if (!response.ok) {
+          throw new Error('Erreur lors du téléchargement du PDF')
+        }
+
+        // Créer un blob et télécharger
+        const blob = await response.blob()
+        const downloadUrl = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = downloadUrl
+        a.download = `presences_seance_${this.seanceId}_${new Date().toISOString().split('T')[0]}.pdf`
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(downloadUrl)
+        document.body.removeChild(a)
+
+        console.log('[ParticipantsModal] ✅ PDF téléchargé avec succès')
+      } catch (error) {
+        console.error('[ParticipantsModal] Erreur export PDF:', error)
+        alert('Erreur lors de l\'export PDF : ' + error.message)
+      } finally {
+        this.exporting = false
+      }
+    },
+
+    /**
+     * Exporter la liste de présence en Excel
+     */
+    async exportExcel() {
+      if (this.exporting) return
+
+      this.exporting = true
+      try {
+        console.log('[ParticipantsModal] Export Excel de la séance', this.seanceId)
+
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+        const token = localStorage.getItem('token')
+
+        // Créer l'URL de téléchargement
+        const url = `${API_URL}/lms/seances/${this.seanceId}/export/presences/excel`
+
+        // Télécharger le fichier
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          }
+        })
+
+        if (!response.ok) {
+          throw new Error('Erreur lors du téléchargement du fichier Excel')
+        }
+
+        // Créer un blob et télécharger
+        const blob = await response.blob()
+        const downloadUrl = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = downloadUrl
+        a.download = `presences_seance_${this.seanceId}_${new Date().toISOString().split('T')[0]}.xlsx`
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(downloadUrl)
+        document.body.removeChild(a)
+
+        console.log('[ParticipantsModal] ✅ Excel téléchargé avec succès')
+      } catch (error) {
+        console.error('[ParticipantsModal] Erreur export Excel:', error)
+        alert('Erreur lors de l\'export Excel : ' + error.message)
+      } finally {
+        this.exporting = false
+      }
     },
 
     close() {

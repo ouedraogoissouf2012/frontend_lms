@@ -95,11 +95,7 @@
       </div>
 
       <!-- Loading State -->
-      <div v-if="loading" class="visio-grid">
-        <SkeletonLoader type="card" />
-        <SkeletonLoader type="card" />
-        <SkeletonLoader type="card" />
-      </div>
+      <ContentLoader v-if="loading" text="Chargement des visioconferences..." />
 
       <!-- Error State -->
       <div v-else-if="error" class="error-state">
@@ -197,7 +193,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import { klassciService } from '@/services/klassci'
 import {
   VideoCameraIcon,

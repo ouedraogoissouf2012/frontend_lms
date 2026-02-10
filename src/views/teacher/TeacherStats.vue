@@ -10,19 +10,11 @@
       </div>
 
       <!-- Loading state -->
-      <div v-if="loading">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <SkeletonLoader type="card" v-for="i in 4" :key="i" />
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <SkeletonLoader type="card" height="300px" />
-          <SkeletonLoader type="card" height="300px" />
-        </div>
-      </div>
+      <ContentLoader v-if="loading" text="Chargement des statistiques..." />
 
       <!-- Error state -->
       <div v-if="error" class="error-state">
-        <div class="error-icon">⚠</div>
+        <div class="error-icon"><i class="fa fa-exclamation-triangle"></i></div>
         <div class="error-content">
           <h3 class="error-title">Erreur de chargement</h3>
           <p class="error-message">{{ error }}</p>
@@ -223,7 +215,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import { klassciService } from '@/services/klassci'
 import {
   ChartBarIcon,

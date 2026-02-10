@@ -4,7 +4,7 @@
       <!-- Header -->
       <div class="page-header">
         <div class="header-content">
-          <span class="page-icon">◉</span>
+          <i class="fa fa-dot-circle-o page-icon"></i>
           <div>
             <h1 class="page-title">Mes Séances</h1>
             <p class="page-subtitle">Gérez vos cours et visioconférences</p>
@@ -13,19 +13,19 @@
       </div>
 
       <!-- Loading State -->
-      <SkeletonLoader v-if="loading" type="list" :count="3" />
+      <ContentLoader v-if="loading" text="Chargement des séances..." />
 
       <!-- Error State -->
       <div v-else-if="error" class="error-state">
         <div class="error-content">
-          <span class="error-icon">⚠</span>
+          <i class="fa fa-exclamation-triangle error-icon"></i>
           <div>
             <h3 class="error-title">Erreur de chargement</h3>
             <p class="error-message">{{ error }}</p>
           </div>
         </div>
         <button @click="loadSeances" class="btn-retry">
-          <span class="icon">↻</span>
+          <i class="fa fa-refresh icon"></i>
           Réessayer
         </button>
       </div>
@@ -37,7 +37,7 @@
             <!-- Filtre Matière -->
             <div class="filter-item">
               <label class="filter-label">
-                <span class="filter-icon">◘</span>
+                <i class="fa fa-circle filter-icon"></i>
                 Matière
               </label>
               <select v-model="filters.matiere_id" @change="applyFilters" class="filter-select">
@@ -51,7 +51,7 @@
             <!-- Filtre Statut Visio -->
             <div class="filter-item">
               <label class="filter-label">
-                <span class="filter-icon">◉</span>
+                <i class="fa fa-dot-circle-o filter-icon"></i>
                 Statut visio
               </label>
               <select v-model="filters.visio_status" @change="applyFilters" class="filter-select">
@@ -91,7 +91,7 @@
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-header">
-              <span class="stat-icon">◉</span>
+              <i class="fa fa-dot-circle-o stat-icon"></i>
               <span class="stat-label">Total</span>
             </div>
             <p class="stat-value">{{ stats.total }}</p>
@@ -100,7 +100,7 @@
 
           <div class="stat-card">
             <div class="stat-header">
-              <span class="stat-icon stat-icon-active">☼</span>
+              <i class="fa fa-sun-o stat-icon stat-icon-active"></i>
               <span class="stat-label">En direct</span>
             </div>
             <p class="stat-value">{{ stats.active }}</p>
@@ -118,7 +118,7 @@
 
           <div class="stat-card">
             <div class="stat-header">
-              <span class="stat-icon stat-icon-finished">✓</span>
+              <i class="fa fa-check stat-icon stat-icon-finished"></i>
               <span class="stat-label">Terminées</span>
             </div>
             <p class="stat-value">{{ stats.finished }}</p>
@@ -136,7 +136,7 @@
             <!-- Header Séance -->
             <div class="seance-header">
               <div class="seance-title-section">
-                <span class="seance-icon">◘</span>
+                <i class="fa fa-circle seance-icon"></i>
                 <div>
                   <h3 class="seance-title">
                     {{ seance.matiere?.nom || 'Matière non définie' }}
@@ -167,7 +167,7 @@
                   v-else-if="seance.visio.status === 'terminee'"
                   class="status-badge status-finished"
                 >
-                  <span class="badge-icon">✓</span>
+                  <i class="fa fa-check badge-icon"></i>
                   Terminée
                 </span>
               </div>
@@ -184,7 +184,7 @@
               </div>
 
               <div class="info-item">
-                <span class="info-icon">⏰</span>
+                <i class="fa fa-clock-o info-icon"></i>
                 <div>
                   <p class="info-label">Horaire</p>
                   <p class="info-value">
@@ -194,7 +194,7 @@
               </div>
 
               <div class="info-item">
-                <span class="info-icon">▓</span>
+                <i class="fa fa-building info-icon"></i>
                 <div>
                   <p class="info-label">Classe</p>
                   <p class="info-value">{{ seance.classe?.nom || 'N/A' }}</p>
@@ -202,7 +202,7 @@
               </div>
 
               <div class="info-item">
-                <span class="info-icon">◈</span>
+                <i class="fa fa-diamond info-icon"></i>
                 <div>
                   <p class="info-label">Salle</p>
                   <p class="info-value">{{ seance.salle || 'N/A' }}</p>
@@ -220,7 +220,7 @@
                   :disabled="actionLoading === seance.id"
                   class="btn-action btn-primary"
                 >
-                  <span class="btn-icon">▶</span>
+                  <i class="fa fa-play btn-icon"></i>
                   {{ actionLoading === seance.id ? 'Activation...' : 'Activer la visio' }}
                 </button>
               </div>
@@ -230,7 +230,7 @@
                 <div class="action-info">
                   <div class="action-details">
                     <div class="action-content">
-                      <span class="action-icon-programmed">◉</span>
+                      <i class="fa fa-dot-circle-o action-icon-programmed"></i>
                       <p class="action-subtitle-room">
                         Salle: <span class="room-id">{{ seance.visio.room_id }}</span>
                       </p>
@@ -245,7 +245,7 @@
                       :disabled="actionLoading === seance.id"
                       class="btn-action btn-primary"
                     >
-                      <span class="btn-icon">▶</span>
+                      <i class="fa fa-play btn-icon"></i>
                       {{ actionLoading === seance.id ? 'Démarrage...' : 'Démarrer maintenant' }}
                     </button>
                     <button
@@ -272,7 +272,7 @@
                           Démarré à {{ formatTime(seance.visio.started_at) }}
                         </p>
                         <p v-if="seance.visio.participants_count > 0" class="participants-count">
-                          <span class="count-icon">◉</span>
+                          <i class="fa fa-dot-circle-o count-icon"></i>
                           {{ seance.visio.participants_count }} participant(s) connecté(s)
                         </p>
                       </div>
@@ -283,7 +283,7 @@
                       @click="handleJoinVisio(seance)"
                       class="btn-action btn-success"
                     >
-                      <span class="btn-icon">◉</span>
+                      <i class="fa fa-dot-circle-o btn-icon"></i>
                       Rejoindre
                     </button>
                     <button
@@ -300,7 +300,7 @@
 
               <!-- Visio terminée -->
               <div v-else-if="seance.visio.status === 'terminee'" class="action-section action-finished">
-                <span class="action-icon">✓</span>
+                <i class="fa fa-check action-icon"></i>
                 <div>
                   <p class="action-title text-gray-900">Visioconférence terminée</p>
                   <p class="action-subtitle">
@@ -337,7 +337,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import { useVisioParticipation } from '@/composables/useVisioParticipation'
 import { lmsService } from '@/services/lms'
 import { klassciService } from '@/services/klassci'

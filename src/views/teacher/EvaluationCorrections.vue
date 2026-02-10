@@ -19,12 +19,12 @@
       </div>
 
       <!-- Loading State -->
-      <SkeletonLoader v-if="loading" type="list" :count="5" />
+      <ContentLoader v-if="loading" text="Chargement des résultats..." />
 
       <!-- Error State -->
       <div v-else-if="error" class="error-state">
         <div class="error-content">
-          <span class="error-icon">⚠</span>
+          <i class="fa fa-exclamation-triangle error-icon"></i>
           <div>
             <h3 class="error-title">Erreur de chargement</h3>
             <p class="error-message">{{ error }}</p>
@@ -182,7 +182,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import evaluationService from '@/services/evaluation'
 import {
   ArrowLeftIcon,

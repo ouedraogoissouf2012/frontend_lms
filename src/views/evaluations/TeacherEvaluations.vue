@@ -13,12 +13,12 @@
       </div>
 
       <!-- Loading State -->
-      <SkeletonLoader v-if="loading" type="list" :count="3" />
+      <ContentLoader v-if="loading" text="Chargement des évaluations..." />
 
       <!-- Error State -->
       <div v-else-if="error" class="error-state">
         <div class="error-content">
-          <span class="error-icon">⚠</span>
+          <i class="fa fa-exclamation-triangle error-icon"></i>
           <div>
             <h3 class="error-title">Erreur de chargement</h3>
             <p class="error-message">{{ error }}</p>
@@ -278,6 +278,24 @@
                 Voir les notes
               </button>
               <button
+                v-if="evaluation.has_online && !evaluation.online_version?.is_published"
+                @click="publishEvaluation(evaluation)"
+                class="btn-action btn-publish"
+                title="Publier l'évaluation pour la rendre visible aux étudiants"
+              >
+                <MegaphoneIcon class="w-5 h-5" />
+                Publier
+              </button>
+              <button
+                v-if="evaluation.has_online"
+                @click="previewEvaluation(evaluation)"
+                class="btn-action btn-preview"
+                title="Prévisualiser l'évaluation"
+              >
+                <EyeIcon class="w-5 h-5" />
+                Prévisualiser
+              </button>
+              <button
                 v-if="evaluation.has_online && evaluation.online_version?.submissions_count > 0"
                 @click="syncToKlassci(evaluation)"
                 :disabled="syncing === evaluation.id"
@@ -286,6 +304,15 @@
               >
                 <ArrowPathIcon class="w-5 h-5" :class="{ 'animate-spin': syncing === evaluation.id }" />
                 {{ syncing === evaluation.id ? 'Synchronisation...' : 'Synchroniser les notes' }}
+              </button>
+              <button
+                v-if="evaluation.has_online && !evaluation.online_version?.is_locked && !(evaluation.online_version?.submissions_count > 0)"
+                @click="deleteEvaluation(evaluation)"
+                class="btn-action btn-delete"
+                title="Supprimer la version en ligne"
+              >
+                <TrashIcon class="w-5 h-5" />
+                Supprimer
               </button>
             </div>
           </div>
@@ -388,7 +415,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import klassciService from '@/services/klassci'
 import evaluationService from '@/services/evaluation'
 import {
@@ -404,7 +431,10 @@ import {
   PlusIcon,
   PencilIcon,
   ArrowPathIcon,
-  ChartBarIcon
+  ChartBarIcon,
+  EyeIcon,
+  MegaphoneIcon,
+  TrashIcon
 } from '@heroicons/vue/24/outline'
 
 const router = useRouter()
@@ -712,6 +742,16 @@ function closeCreateModal() {
 async function submitCreateOnlineVersion() {
   if (!selectedEvaluation.value) return
 
+  // Vérifier côté frontend qu'une version en ligne n'existe pas déjà
+  const alreadyExists = evaluationsLMS.value.some(
+    e => e.klassci_evaluation_id === selectedEvaluation.value.id
+  )
+  if (alreadyExists) {
+    alert('⚠ Une version en ligne existe déjà pour cette évaluation.')
+    closeCreateModal()
+    return
+  }
+
   creating.value = true
   try {
     const newEvaluation = {
@@ -746,7 +786,13 @@ async function submitCreateOnlineVersion() {
     }
   } catch (err) {
     console.error('[ERREUR] Création évaluation:', err)
-    alert('⚠ Erreur lors de la création de la version en ligne')
+    if (err.response?.status === 409) {
+      alert('⚠ Une version en ligne existe déjà pour cette évaluation.')
+      await loadEvaluationsLMS()
+      closeCreateModal()
+    } else {
+      alert('⚠ Erreur lors de la création de la version en ligne')
+    }
   } finally {
     creating.value = false
   }
@@ -801,6 +847,64 @@ async function syncToKlassci(evaluation) {
     alert('⚠ Erreur lors de la synchronisation')
   } finally {
     syncing.value = null
+  }
+}
+
+// Publish evaluation
+async function publishEvaluation(evaluation) {
+  if (!evaluation.online_version) return
+
+  const questionsCount = evaluation.online_version.questions_count || 0
+  if (questionsCount === 0) {
+    alert('Impossible de publier : ajoutez d\'abord des questions à cette évaluation.')
+    return
+  }
+
+  if (!confirm(`Publier "${evaluation.titre}" ? Les étudiants pourront la voir.`)) {
+    return
+  }
+
+  try {
+    const result = await evaluationService.publishEvaluation(evaluation.online_version.id)
+    if (result.success) {
+      alert('Évaluation publiée avec succès !')
+      await loadEvaluationsLMS()
+    }
+  } catch (err) {
+    console.error('[ERREUR] Publication:', err)
+    const message = err.response?.data?.message || 'Erreur lors de la publication'
+    alert(message)
+  }
+}
+
+// Preview evaluation
+function previewEvaluation(evaluation) {
+  if (!evaluation.online_version) return
+
+  router.push({
+    name: 'PreviewEvaluation',
+    params: { id: evaluation.online_version.id }
+  })
+}
+
+// Delete evaluation
+async function deleteEvaluation(evaluation) {
+  if (!evaluation.online_version) return
+
+  if (!confirm(`Supprimer la version en ligne de "${evaluation.titre}" ? Cette action est irréversible.`)) {
+    return
+  }
+
+  try {
+    const result = await evaluationService.deleteEvaluation(evaluation.online_version.id)
+    if (result.success) {
+      alert('Version en ligne supprimée.')
+      await loadEvaluationsLMS()
+    }
+  } catch (err) {
+    console.error('[ERREUR] Suppression:', err)
+    const message = err.response?.data?.message || 'Erreur lors de la suppression'
+    alert(message)
   }
 }
 
@@ -1393,6 +1497,33 @@ onMounted(() => {
 
 .btn-sync:hover:not(:disabled) {
   background: #16a34a;
+}
+
+.btn-publish {
+  background: #8b5cf6;
+  color: white;
+}
+
+.btn-publish:hover:not(:disabled) {
+  background: #7c3aed;
+}
+
+.btn-preview {
+  background: #6366f1;
+  color: white;
+}
+
+.btn-preview:hover:not(:disabled) {
+  background: #4f46e5;
+}
+
+.btn-delete {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-delete:hover:not(:disabled) {
+  background: #dc2626;
 }
 
 .animate-spin {

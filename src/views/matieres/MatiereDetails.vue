@@ -80,10 +80,7 @@
     </div>
 
     <!-- Loading -->
-    <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      <p class="mt-4 text-gray-600">Chargement...</p>
-    </div>
+    <ContentLoader v-if="loading" text="Chargement de la matière..." />
 
     <!-- Error -->
     <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
@@ -139,14 +136,14 @@
                 :class="['toggle-btn', viewMode === 'grid' ? 'active' : '']"
                 title="Affichage grille"
               >
-                ⊞ Grille
+                <i class="fa fa-th"></i> Grille
               </button>
               <button
                 @click="viewMode = 'list'"
                 :class="['toggle-btn', viewMode === 'list' ? 'active' : '']"
                 title="Affichage liste"
               >
-                ☰ Liste
+                <i class="fa fa-bars"></i> Liste
               </button>
             </div>
 
@@ -255,7 +252,7 @@
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
-                      👤 {{ seance.enseignant?.nom || 'Enseignant non assigné' }}
+                      fa-user {{ seance.enseignant?.nom || 'Enseignant non assigné' }}
                     </span>
                     <span class="flex items-center gap-1">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -318,7 +315,7 @@
               v-for="evaluation in evaluations"
               :key="evaluation.id"
               class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition cursor-pointer"
-              @click="viewEvaluation(evaluation.id)"
+              @click="viewEvaluation(evaluation)"
             >
               <div class="flex justify-between items-start">
                 <div class="flex-1">
@@ -534,6 +531,7 @@
 
 <script>
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import lmsService from '@/services/lms'
 import lessonService from '@/services/lesson'
 import VisioManager from '@/components/visio/VisioManager.vue'
@@ -544,6 +542,7 @@ export default {
   name: 'MatiereDetails',
   components: {
     DashboardLayout,
+    ContentLoader,
     VisioManager,
     LessonCard
   },
@@ -685,7 +684,7 @@ export default {
     async submitCreateLesson() {
       // Validation
       if (!this.newLesson.title || this.newLesson.title.trim() === '') {
-        this.showNotification('⚠️ Le titre de la leçon est obligatoire', 'warning')
+        this.showNotification('fa-exclamation-triangle️ Le titre de la leçon est obligatoire', 'warning')
         return
       }
 
@@ -738,7 +737,7 @@ export default {
       try {
         const response = await lessonService.deleteLesson(lessonId)
         if (response.success) {
-          this.showNotification('✓ Leçon supprimée avec succès', 'success')
+          this.showNotification('fa-check Leçon supprimée avec succès', 'success')
           this.loadMatiereDetails()
         }
       } catch (error) {
@@ -751,7 +750,7 @@ export default {
       try {
         const response = await lessonService.publishLesson(lessonId)
         if (response.success) {
-          this.showNotification('✓ Leçon publiée avec succès ! Elle est maintenant visible par les étudiants.', 'success')
+          this.showNotification('fa-check Leçon publiée avec succès ! Elle est maintenant visible par les étudiants.', 'success')
           this.loadMatiereDetails()
         }
       } catch (error) {
@@ -764,7 +763,7 @@ export default {
       try {
         const response = await lessonService.unpublishLesson(lessonId)
         if (response.success) {
-          this.showNotification('✓ Leçon dépubliée avec succès ! Elle est maintenant en mode brouillon.', 'success')
+          this.showNotification('fa-check Leçon dépubliée avec succès ! Elle est maintenant en mode brouillon.', 'success')
           this.loadMatiereDetails()
         }
       } catch (error) {
@@ -798,7 +797,7 @@ export default {
         const response = await lmsService.hideSeance(seanceId)
 
         if (response.success) {
-          this.showNotification('✓ Séance masquée avec succès', 'success')
+          this.showNotification('fa-check Séance masquée avec succès', 'success')
           // Recharger les données pour voir la séance disparaître
           await this.loadMatiereDetails()
         }
@@ -808,8 +807,42 @@ export default {
       }
     },
 
-    viewEvaluation(evaluationId) {
-      this.$router.push({ name: 'evaluation-view', params: { id: evaluationId } })
+    viewEvaluation(evaluation) {
+      const user = auth.getUser()
+      const role = user?.role
+
+      // Si l'évaluation a une version en ligne (quiz LMS)
+      if (evaluation.online_version || evaluation.has_online) {
+        const lmsId = evaluation.online_version?.id || evaluation.lms_id
+
+        if (role === 'etudiant') {
+          // Étudiant : passer ou voir résultats
+          if (evaluation.student_submission) {
+            this.$router.push({ name: 'EvaluationResults', params: { id: lmsId } })
+          } else {
+            this.$router.push({ name: 'TakeEvaluation', params: { id: lmsId } })
+          }
+        } else if (['coordinateur', 'superAdmin'].includes(role)) {
+          this.$router.push({ name: 'CoordinatorPreviewEvaluation', params: { id: lmsId } })
+        } else {
+          // Enseignant
+          this.$router.push({ name: 'PreviewEvaluation', params: { id: lmsId } })
+        }
+      } else {
+        // Pas de version en ligne - enseignant peut créer les questions
+        if (['enseignant', 'teacher'].includes(role)) {
+          this.$router.push({
+            name: 'CreateQuestions',
+            query: {
+              klassci_evaluation_id: evaluation.id,
+              klassci_matiere_id: this.matiereId,
+              titre: evaluation.titre
+            }
+          })
+        } else {
+          this.showNotification('Cette évaluation n\'a pas encore de version en ligne', 'info')
+        }
+      }
     },
 
     viewClasse(classeId) {

@@ -220,11 +220,11 @@ const lessonService = {
    */
   getTypeBadge(type) {
     const badges = {
-      cours: { class: 'bg-blue-100 text-blue-700', text: 'Cours', icon: '📖' },
-      tp: { class: 'bg-purple-100 text-purple-700', text: 'TP', icon: '💻' },
-      td: { class: 'bg-indigo-100 text-indigo-700', text: 'TD', icon: '✏️' },
-      projet: { class: 'bg-pink-100 text-pink-700', text: 'Projet', icon: '🚀' },
-      autre: { class: 'bg-gray-100 text-gray-700', text: 'Autre', icon: '📄' }
+      cours: { class: 'bg-blue-100 text-blue-700', text: 'Cours', icon: 'fa-book' },
+      tp: { class: 'bg-purple-100 text-purple-700', text: 'TP', icon: 'fa-laptop' },
+      td: { class: 'bg-indigo-100 text-indigo-700', text: 'TD', icon: 'fa-pencil' },
+      projet: { class: 'bg-pink-100 text-pink-700', text: 'Projet', icon: 'fa-rocket' },
+      autre: { class: 'bg-gray-100 text-gray-700', text: 'Autre', icon: 'fa-file-text-o' }
     }
     return badges[type] || badges.cours
   },

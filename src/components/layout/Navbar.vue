@@ -23,7 +23,7 @@
 
       <!-- Notifications -->
       <button class="icon-btn" @click="toggleNotifications" title="Notifications">
-        <span class="icon">◉</span>
+        <i class="fa fa-bell icon"></i>
         <span v-if="unreadCount > 0" class="badge">{{ unreadCount }}</span>
       </button>
 
@@ -38,16 +38,16 @@
         <transition name="dropdown">
           <div v-if="showUserMenu" class="dropdown-menu">
             <router-link :to="profileUrl" class="dropdown-item">
-              <span class="icon">◉</span>
+              <i class="fa fa-user icon"></i>
               <span>Mon Profil</span>
             </router-link>
             <router-link :to="settingsUrl" class="dropdown-item">
-              <span class="icon">⚙</span>
+              <i class="fa fa-cog icon"></i>
               <span>Paramètres</span>
             </router-link>
             <hr class="dropdown-divider" />
             <button @click="handleLogout" class="dropdown-item">
-              <span class="icon">↪</span>
+              <i class="fa fa-sign-out icon"></i>
               <span>Déconnexion</span>
             </button>
           </div>
@@ -64,7 +64,7 @@
         </div>
         <div class="notifications-list">
           <div v-if="notifications.length === 0" class="empty-state">
-            <span class="icon">○</span>
+            <i class="fa fa-bell-o icon"></i>
             <p>Aucune notification</p>
           </div>
           <div
@@ -73,7 +73,7 @@
             :class="['notification-item', { unread: notification.is_unread }]"
             @click="handleNotificationClick(notification, $event)"
           >
-            <span class="notif-icon">{{ getIconEmoji(notification.icon) }}</span>
+            <i :class="`fa ${getIconEmoji(notification.icon)} notif-icon`"></i>
             <div class="notif-content">
               <p class="notif-title">{{ notification.title }}</p>
               <p class="notif-message">{{ notification.message }}</p>
@@ -250,21 +250,21 @@ export default {
       return `Il y a ${days}j`
     }
 
-    // Convert Material Design icon codes to emojis
+    // Convert Material Design icon codes to Font Awesome
     const getIconEmoji = (iconCode) => {
       const iconMap = {
-        'mdi-message-reply': '💭',
-        'mdi-check-circle': '✔️',
-        'mdi-book-open': '📚',
-        'mdi-clipboard-list': '📝',
-        'mdi-star': '⭐',
-        'mdi-book-edit': '✏️',
-        'mdi-clock-alert': '⏰',
-        'mdi-video-outline': '📹',
-        'mdi-video-check': '🎬',
-        'mdi-bell': '🔔'
+        'mdi-message-reply': 'fa-comment',
+        'mdi-check-circle': 'fa-check-circle',
+        'mdi-book-open': 'fa-book',
+        'mdi-clipboard-list': 'fa-pencil-square-o',
+        'mdi-star': 'fa-star',
+        'mdi-book-edit': 'fa-pencil',
+        'mdi-clock-alert': 'fa-clock-o',
+        'mdi-video-outline': 'fa-video-camera',
+        'mdi-video-check': 'fa-video-camera',
+        'mdi-bell': 'fa-bell'
       }
-      return iconMap[iconCode] || '🔔'
+      return iconMap[iconCode] || 'fa-bell'
     }
 
     // Toggle user menu

@@ -13,16 +13,12 @@
       </div>
 
       <!-- Loading State -->
-      <div v-if="loading" class="loading-state">
-        <SkeletonLoader type="card" height="100px" />
-        <SkeletonLoader type="card" height="100px" />
-        <SkeletonLoader type="card" height="100px" />
-      </div>
+      <ContentLoader v-if="loading" text="Chargement des evaluations..." />
 
       <!-- Error State -->
       <div v-else-if="error" class="error-state">
         <div class="error-content">
-          <span class="error-icon">⚠</span>
+          <i class="fa fa-exclamation-triangle error-icon"></i>
           <div>
             <h3 class="error-title">Erreur de chargement</h3>
             <p class="error-message">{{ error }}</p>
@@ -230,7 +226,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import {
   DocumentTextIcon,
   UserIcon,

@@ -7,7 +7,7 @@
       class="nav-item"
       :class="{ active: isActive(item.path) }"
     >
-      <span class="nav-icon" v-html="item.icon"></span>
+      <i :class="`fa ${item.icon} nav-icon`"></i>
       <span class="nav-label">{{ item.label }}</span>
     </router-link>
   </nav>
@@ -42,27 +42,27 @@ const navItems = computed(() => {
 
   if (role === 'etudiant') {
     return [
-      { name: 'dashboard', path: '/student/dashboard', icon: '⌂', label: 'Accueil' },
-      { name: 'courses', path: '/student/courses', icon: '◉', label: 'Cours' },
-      { name: 'evaluations', path: '/student/evaluations', icon: '✎', label: 'Évaluations' },
-      { name: 'seances', path: '/student/seances', icon: '▶', label: 'Visio' },
-      { name: 'profile', path: '/student/profile', icon: '●', label: 'Profil' }
+      { name: 'dashboard', path: '/student/dashboard', icon: 'fa-home', label: 'Accueil' },
+      { name: 'courses', path: '/student/courses', icon: 'fa-book', label: 'Cours' },
+      { name: 'evaluations', path: '/student/evaluations-list', icon: 'fa-edit', label: 'Évaluations' },
+      { name: 'schedule', path: '/student/schedule', icon: 'fa-calendar', label: 'Emploi' },
+      { name: 'settings', path: '/student/settings', icon: 'fa-cog', label: 'Paramètres' }
     ]
   } else if (role === 'enseignant' || role === 'teacher') {
     return [
-      { name: 'dashboard', path: '/teacher/dashboard', icon: '⌂', label: 'Accueil' },
-      { name: 'seances', path: '/teacher/seances', icon: '▶', label: 'Séances' },
-      { name: 'evaluations', path: '/teacher/evaluations', icon: '✎', label: 'Évaluations' },
-      { name: 'classes', path: '/teacher/classes', icon: '◉', label: 'Classes' },
-      { name: 'profile', path: '/teacher/profile', icon: '●', label: 'Profil' }
+      { name: 'dashboard', path: '/teacher/dashboard', icon: 'fa-home', label: 'Accueil' },
+      { name: 'hub', path: '/teacher/hub', icon: 'fa-th-large', label: 'Espace' },
+      { name: 'evaluations', path: '/teacher/evaluations', icon: 'fa-edit', label: 'Évaluations' },
+      { name: 'schedule', path: '/teacher/schedule', icon: 'fa-calendar', label: 'Emploi' },
+      { name: 'profile', path: '/teacher/profile', icon: 'fa-user', label: 'Profil' }
     ]
   } else if (role === 'coordinateur') {
     return [
-      { name: 'dashboard', path: '/coordinateur/dashboard', icon: '⌂', label: 'Accueil' },
-      { name: 'seances', path: '/coordinateur/seances', icon: '▶', label: 'Séances' },
-      { name: 'evaluations', path: '/coordinateur/evaluations', icon: '✎', label: 'Évaluations' },
-      { name: 'matieres', path: '/admin/matieres', icon: '◉', label: 'Matières' },
-      { name: 'profile', path: '/coordinateur/profile', icon: '●', label: 'Profil' }
+      { name: 'dashboard', path: '/admin/dashboard', icon: 'fa-home', label: 'Accueil' },
+      { name: 'hub', path: '/admin/hub', icon: 'fa-building', label: 'Admin' },
+      { name: 'evaluations', path: '/coordinateur/evaluations', icon: 'fa-edit', label: 'Évaluations' },
+      { name: 'seances', path: '/coordinateur/seances', icon: 'fa-calendar', label: 'Séances' },
+      { name: 'resultats', path: '/admin/evaluations/results', icon: 'fa-trophy', label: 'Résultats' }
     ]
   }
 

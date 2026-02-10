@@ -1,7 +1,7 @@
 <template>
   <header class="mobile-header" v-if="isMobile">
     <button @click="toggleSidebar" class="hamburger-btn" aria-label="Menu">
-      <span class="hamburger-icon">☰</span>
+      <i class="fa fa-bars hamburger-icon"></i>
     </button>
 
     <div class="header-logo">
@@ -10,7 +10,7 @@
 
     <div class="header-actions">
       <button @click="toggleNotifications" class="action-btn" aria-label="Notifications">
-        <span class="action-icon">🔔</span>
+        <i class="fa fa-bell action-icon"></i>
         <span v-if="hasUnreadNotifications" class="notification-badge"></span>
       </button>
 
@@ -49,11 +49,11 @@
         </div>
         <div class="panel-content">
           <router-link :to="profilePath" @click="toggleUserMenu" class="menu-item">
-            <span class="menu-icon">●</span>
+            <i class="fa fa-circle menu-icon"></i>
             <span>Mon Profil</span>
           </router-link>
           <router-link to="/settings" @click="toggleUserMenu" class="menu-item">
-            <span class="menu-icon">⚙</span>
+            <i class="fa fa-cog menu-icon"></i>
             <span>Paramètres</span>
           </router-link>
           <button @click="handleLogout" class="menu-item logout-item">

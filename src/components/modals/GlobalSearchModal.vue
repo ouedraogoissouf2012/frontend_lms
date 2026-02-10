@@ -22,10 +22,7 @@
           </div>
 
           <!-- Loading -->
-          <div v-if="searching" class="search-loading">
-            <div class="spinner"></div>
-            <p>Recherche en cours...</p>
-          </div>
+          <ContentLoader v-if="searching" text="Recherche en cours..." />
 
           <!-- Results -->
           <div v-else-if="hasResults" class="search-results">
@@ -132,6 +129,7 @@ import {
   BuildingLibraryIcon,
   AcademicCapIcon
 } from '@heroicons/vue/24/outline'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 
 const router = useRouter()
 

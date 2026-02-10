@@ -44,7 +44,7 @@
 
       <!-- Error state -->
       <div v-if="error" class="error-state">
-        <div class="error-icon">⚠</div>
+        <div class="error-icon"><i class="fa fa-exclamation-triangle"></i></div>
         <div class="error-content">
           <h3 class="error-title">Erreur de chargement</h3>
           <p class="error-message">{{ error }}</p>

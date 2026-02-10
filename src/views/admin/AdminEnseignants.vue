@@ -8,7 +8,7 @@
           <p class="page-subtitle">Liste complète des enseignants et leurs affectations</p>
         </div>
         <button @click="loadEnseignants(true)" class="refresh-btn" :disabled="loading">
-          <span class="btn-icon">↻</span>
+          <i class="fa fa-refresh btn-icon"></i>
           <span class="btn-text">Actualiser</span>
         </button>
       </div>
@@ -16,28 +16,28 @@
       <!-- Stats Cards -->
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-icon">☺</div>
+          <i class="fa fa-user stat-icon"></i>
           <div class="stat-details">
             <span class="stat-value">{{ enseignants.length }}</span>
             <span class="stat-label">Enseignants</span>
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon">◙</div>
+          <i class="fa fa-book stat-icon"></i>
           <div class="stat-details">
             <span class="stat-value">{{ totalMatieres }}</span>
             <span class="stat-label">Matières Assignées</span>
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon">▓</div>
+          <i class="fa fa-building stat-icon"></i>
           <div class="stat-details">
             <span class="stat-value">{{ totalClasses }}</span>
             <span class="stat-label">Classes Assignées</span>
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon">☼</div>
+          <i class="fa fa-sun-o stat-icon"></i>
           <div class="stat-details">
             <span class="stat-value">{{ enseignantsActifs }}</span>
             <span class="stat-label">Actifs</span>
@@ -46,11 +46,11 @@
       </div>
 
       <!-- Loading State -->
-      <SkeletonLoader v-if="loading" :cards="6" />
+      <ContentLoader v-if="loading" text="Chargement des enseignants..." />
 
       <!-- Error State -->
       <div v-else-if="error" class="error-state">
-        <div class="error-icon">⚠</div>
+        <div class="error-icon"><i class="fa fa-exclamation-triangle"></i></div>
         <h3 class="error-title">Erreur de Chargement</h3>
         <p class="error-message">{{ error }}</p>
         <button @click="loadEnseignants" class="retry-btn">Réessayer</button>
@@ -58,7 +58,7 @@
 
       <!-- Empty State -->
       <div v-else-if="enseignants.length === 0" class="empty-state">
-        <div class="empty-icon">👤</div>
+        <i class="fa fa-user empty-icon"></i>
         <h3 class="empty-title">Aucun Enseignant</h3>
         <p class="empty-message">Aucun enseignant n'a été trouvé dans le système.</p>
       </div>
@@ -86,14 +86,14 @@
           <div class="enseignant-details">
             <!-- Matières -->
             <div class="detail-row">
-              <span class="detail-icon">≡</span>
+              <i class="fa fa-bars detail-icon"></i>
               <span class="detail-label">Matières:</span>
               <span class="detail-value">{{ (enseignant.matieres?.length || 0) }}</span>
             </div>
 
             <!-- Classes -->
             <div class="detail-row">
-              <span class="detail-icon">▦</span>
+              <i class="fa fa-th-large detail-icon"></i>
               <span class="detail-label">Classes:</span>
               <span class="detail-value">{{ getEnseignantClassesCount(enseignant) }}</span>
             </div>
@@ -153,7 +153,7 @@
             <div class="modal-body">
               <!-- Informations Personnelles -->
               <div class="info-section">
-                <h3 class="section-title">☰ Informations Personnelles</h3>
+                <h3 class="section-title"><i class="fa fa-user"></i> Informations Personnelles</h3>
                 <div class="info-grid">
                   <div class="info-item">
                     <span class="info-label">Email:</span>
@@ -184,45 +184,45 @@
 
               <!-- Statistiques globales (si disponibles) -->
               <div v-if="selectedEnseignant.statistiques" class="info-section">
-                <h3 class="section-title">◈ Statistiques Globales</h3>
+                <h3 class="section-title"><i class="fa fa-bar-chart"></i> Statistiques Globales</h3>
                 <div class="stats-detail-grid">
                   <div class="stat-detail-card">
-                    <div class="stat-detail-icon">▓</div>
+                    <i class="fa fa-building stat-detail-icon"></i>
                     <div class="stat-detail-content">
                       <span class="stat-detail-value">{{ selectedEnseignant.statistiques.total_classes }}</span>
                       <span class="stat-detail-label">Classes</span>
                     </div>
                   </div>
                   <div class="stat-detail-card">
-                    <div class="stat-detail-icon">◙</div>
+                    <i class="fa fa-book stat-detail-icon"></i>
                     <div class="stat-detail-content">
                       <span class="stat-detail-value">{{ selectedEnseignant.statistiques.total_matieres }}</span>
                       <span class="stat-detail-label">Matières</span>
                     </div>
                   </div>
                   <div class="stat-detail-card">
-                    <div class="stat-detail-icon">►</div>
+                    <i class="fa fa-check-circle stat-detail-icon"></i>
                     <div class="stat-detail-content">
                       <span class="stat-detail-value">{{ selectedEnseignant.statistiques.total_heures_effectuees }}h</span>
                       <span class="stat-detail-label">Heures effectuées</span>
                     </div>
                   </div>
                   <div class="stat-detail-card">
-                    <div class="stat-detail-icon">▬</div>
+                    <i class="fa fa-clock-o stat-detail-icon"></i>
                     <div class="stat-detail-content">
                       <span class="stat-detail-value">{{ selectedEnseignant.statistiques.total_heures_prevues }}h</span>
                       <span class="stat-detail-label">Heures prévues</span>
                     </div>
                   </div>
                   <div class="stat-detail-card">
-                    <div class="stat-detail-icon">◕</div>
+                    <i class="fa fa-pie-chart stat-detail-icon"></i>
                     <div class="stat-detail-content">
                       <span class="stat-detail-value">{{ selectedEnseignant.statistiques.taux_realisation_global.toFixed(1) }}%</span>
                       <span class="stat-detail-label">Taux réalisation</span>
                     </div>
                   </div>
                   <div class="stat-detail-card">
-                    <div class="stat-detail-icon">◑</div>
+                    <i class="fa fa-calendar-check-o stat-detail-icon"></i>
                     <div class="stat-detail-content">
                       <span class="stat-detail-value">{{ selectedEnseignant.statistiques.nb_seances_effectuees }}/{{ selectedEnseignant.statistiques.nb_seances_total }}</span>
                       <span class="stat-detail-label">Séances</span>
@@ -233,7 +233,7 @@
 
               <!-- Classes Assignées -->
               <div class="info-section">
-                <h3 class="section-title">▨ Classes Assignées ({{ getEnseignantUniqueClasses(selectedEnseignant).length }})</h3>
+                <h3 class="section-title"><i class="fa fa-users"></i> Classes Assignées ({{ getEnseignantUniqueClasses(selectedEnseignant).length }})</h3>
                 <div v-if="getEnseignantUniqueClasses(selectedEnseignant).length > 0" class="classes-detail-list">
                   <div
                     v-for="classe in getEnseignantUniqueClasses(selectedEnseignant)"
@@ -252,7 +252,7 @@
 
               <!-- Matières Enseignées -->
               <div class="info-section">
-                <h3 class="section-title">◘ Matières Enseignées ({{ selectedEnseignant.matieres?.length || 0 }})</h3>
+                <h3 class="section-title"><i class="fa fa-book"></i> Matières Enseignées ({{ selectedEnseignant.matieres?.length || 0 }})</h3>
                 <div v-if="selectedEnseignant.matieres?.length > 0" class="matieres-detail-list">
                   <div
                     v-for="matiere in selectedEnseignant.matieres"
@@ -309,7 +309,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import klassciService from '@/services/klassci'
 
 const CACHE_KEY = 'admin_enseignants_cache'
@@ -403,20 +403,20 @@ async function loadEnseignants(forceReload = false) {
         const cacheHasDetails = cacheHasData && (data.some(e => e.matieres?.length > 0 || e.classes?.length > 0))
 
         if (cacheIsRecent && cacheHasData) {
-          console.log('✅ Loaded enseignants from cache')
+          console.log('fa-check-circle Loaded enseignants from cache')
           enseignants.value = data
           loading.value = false
 
           // Si le cache n'a pas de détails, forcer un refresh en background
           if (!cacheHasDetails) {
-            console.log('⚠️ Cache sans détails, refresh en background forcé')
+            console.log('fa-exclamation-triangle️ Cache sans détails, refresh en background forcé')
           }
 
           // Refresh in background
           refreshInBackground()
           return
         } else if (!cacheIsRecent) {
-          console.log('⏰ Cache expiré, rechargement...')
+          console.log('fa-clock-o Cache expiré, rechargement...')
         } else if (!cacheHasData) {
           console.log('📭 Cache vide, rechargement...')
         }
@@ -431,26 +431,26 @@ async function loadEnseignants(forceReload = false) {
         with_details: true
       })
 
-      console.log('📊 API Response:', response)
+      console.log('fa-bar-chart API Response:', response)
 
       // Process data
       if (response.success) {
         enseignants.value = Array.isArray(response.data) ? response.data : []
-        console.log(`✅ Loaded ${enseignants.value.length} enseignants with full details`)
-        console.log('📋 Sample enseignant:', enseignants.value[0])
+        console.log(`fa-check-circle Loaded ${enseignants.value.length} enseignants with full details`)
+        console.log('fa-clipboard Sample enseignant:', enseignants.value[0])
       } else {
         // Fallback vers l'endpoint simple si l'enrichi retourne success=false
-        console.warn('⚠️ Endpoint enrichi retourne success=false, utilisation endpoint simple')
+        console.warn('fa-exclamation-triangle️ Endpoint enrichi retourne success=false, utilisation endpoint simple')
         const fallbackData = await klassciService.getEnseignants()
         enseignants.value = Array.isArray(fallbackData) ? fallbackData : []
-        console.log(`✅ Loaded ${enseignants.value.length} enseignants (format simple)`)
+        console.log(`fa-check-circle Loaded ${enseignants.value.length} enseignants (format simple)`)
       }
     } catch (apiErr) {
       // Si erreur API (503, etc.), utiliser endpoint simple
-      console.warn('⚠️ Endpoint enrichi en erreur, fallback vers endpoint simple:', apiErr.message)
+      console.warn('fa-exclamation-triangle️ Endpoint enrichi en erreur, fallback vers endpoint simple:', apiErr.message)
       const fallbackData = await klassciService.getEnseignants()
       enseignants.value = Array.isArray(fallbackData) ? fallbackData : []
-      console.log(`✅ Loaded ${enseignants.value.length} enseignants via fallback (format simple)`)
+      console.log(`fa-check-circle Loaded ${enseignants.value.length} enseignants via fallback (format simple)`)
     }
 
     // Update cache
@@ -461,7 +461,7 @@ async function loadEnseignants(forceReload = false) {
 
     loading.value = false
   } catch (err) {
-    console.error('❌ Error loading enseignants (all methods failed):', err)
+    console.error('fa-times-circle Error loading enseignants (all methods failed):', err)
     error.value = err.message || 'Erreur lors du chargement des enseignants'
     loading.value = false
   }
@@ -475,21 +475,21 @@ async function refreshInBackground() {
       with_details: true
     })
 
-    console.log('📊 Background refresh - API response received:', response)
-    console.log('📊 response.success:', response.success)
-    console.log('📊 response.data:', response.data)
+    console.log('fa-bar-chart Background refresh - API response received:', response)
+    console.log('fa-bar-chart response.success:', response.success)
+    console.log('fa-bar-chart response.data:', response.data)
 
     if (response.success && response.data && Array.isArray(response.data)) {
       enseignants.value = response.data
-      console.log(`✅ Background refresh completed (enriched data) - ${enseignants.value.length} enseignants`)
+      console.log(`fa-check-circle Background refresh completed (enriched data) - ${enseignants.value.length} enseignants`)
     } else {
       // Fallback si réponse sans succès
-      console.warn('⚠️ Endpoint enrichi retourne success=false ou pas de données, fallback vers endpoint simple')
+      console.warn('fa-exclamation-triangle️ Endpoint enrichi retourne success=false ou pas de données, fallback vers endpoint simple')
       console.log('🔄 Calling fallback endpoint...')
       const fallbackData = await klassciService.getEnseignants()
-      console.log('📊 Fallback data received:', fallbackData)
+      console.log('fa-bar-chart Fallback data received:', fallbackData)
       enseignants.value = Array.isArray(fallbackData) ? fallbackData : []
-      console.log(`✅ Background refresh completed (simple data) - ${enseignants.value.length} enseignants`)
+      console.log(`fa-check-circle Background refresh completed (simple data) - ${enseignants.value.length} enseignants`)
     }
 
     // Update cache
@@ -497,15 +497,15 @@ async function refreshInBackground() {
       data: enseignants.value,
       timestamp: Date.now()
     }))
-    console.log('💾 Cache updated with', enseignants.value.length, 'enseignants')
+    console.log('fa-save Cache updated with', enseignants.value.length, 'enseignants')
   } catch (err) {
     // Si erreur (503, etc.), utiliser endpoint simple
-    console.warn('⚠️ Endpoint enrichi en erreur, fallback vers endpoint simple:', err.message)
-    console.error('❌ Full error:', err)
+    console.warn('fa-exclamation-triangle️ Endpoint enrichi en erreur, fallback vers endpoint simple:', err.message)
+    console.error('fa-times-circle Full error:', err)
     try {
       console.log('🔄 Calling fallback endpoint after error...')
       const fallbackData = await klassciService.getEnseignants()
-      console.log('📊 Fallback data after error:', fallbackData)
+      console.log('fa-bar-chart Fallback data after error:', fallbackData)
       enseignants.value = Array.isArray(fallbackData) ? fallbackData : []
 
       // Update cache avec données simple
@@ -514,9 +514,9 @@ async function refreshInBackground() {
         timestamp: Date.now()
       }))
 
-      console.log(`✅ Background refresh completed with fallback (simple data) - ${enseignants.value.length} enseignants`)
+      console.log(`fa-check-circle Background refresh completed with fallback (simple data) - ${enseignants.value.length} enseignants`)
     } catch (fallbackErr) {
-      console.error('❌ Fallback failed:', fallbackErr)
+      console.error('fa-times-circle Fallback failed:', fallbackErr)
     }
   }
 }

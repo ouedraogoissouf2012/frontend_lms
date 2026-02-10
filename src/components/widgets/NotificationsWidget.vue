@@ -28,10 +28,7 @@
     </div>
 
     <!-- Loading -->
-    <div v-if="loading && notifications.length === 0" class="loading-state">
-      <div class="spinner"></div>
-      <p>Chargement des notifications...</p>
-    </div>
+    <ContentLoader v-if="loading && notifications.length === 0" text="Chargement des notifications..." />
 
     <!-- Notifications List -->
     <div v-else-if="notifications.length > 0" class="notifications-list">
@@ -105,6 +102,7 @@ import {
   ExclamationCircleIcon,
   XCircleIcon
 } from '@heroicons/vue/24/outline'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 
 const router = useRouter()
 

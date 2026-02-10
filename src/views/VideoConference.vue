@@ -18,20 +18,21 @@
     <div id="jitsi-container" class="w-full" style="height: calc(100vh - 60px);"></div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="fixed inset-0 bg-gray-900 bg-opacity-90 flex items-center justify-center">
-      <div class="text-center">
-        <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-500 mx-auto mb-4"></div>
-        <p class="text-white text-lg">Chargement de la salle de cours...</p>
-      </div>
+    <div v-if="loading" class="fixed inset-0 bg-gray-900 bg-opacity-90 flex items-center justify-center z-50">
+      <ContentLoader text="Chargement de la salle de cours..." />
     </div>
   </div>
 </template>
 
 <script>
 import { auth } from '@/services/api'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 
 export default {
   name: 'VideoConference',
+  components: {
+    ContentLoader
+  },
   data() {
     return {
       jitsiApi: null,
@@ -43,11 +44,11 @@ export default {
   },
   mounted() {
     this.user = auth.getUser()
-    console.log('👤 User joining video conference:', this.user)
+    console.log('fa-user User joining video conference:', this.user)
     console.log('🎥 Room name:', this.roomName)
 
     if (!this.user) {
-      console.error('❌ Utilisateur non connecté')
+      console.error('fa-times-circle Utilisateur non connecté')
       this.$router.push('/login')
       return
     }
@@ -72,11 +73,11 @@ export default {
       script.src = 'https://meet.jit.si/external_api.js'
       script.async = true
       script.onload = () => {
-        console.log('✅ Script Jitsi chargé')
+        console.log('fa-check-circle Script Jitsi chargé')
         this.initJitsi()
       }
       script.onerror = () => {
-        console.error('❌ Erreur chargement script Jitsi')
+        console.error('fa-times-circle Erreur chargement script Jitsi')
         this.loading = false
         alert('Impossible de charger la visioconférence. Veuillez réessayer.')
       }
@@ -120,7 +121,7 @@ export default {
 
         // Événements
         this.jitsiApi.addListener('videoConferenceJoined', () => {
-          console.log('✅ Vous avez rejoint la salle')
+          console.log('fa-check-circle Vous avez rejoint la salle')
           this.loading = false
         })
 
@@ -140,17 +141,35 @@ export default {
         }, 3000)
 
       } catch (error) {
-        console.error('❌ Erreur initialisation Jitsi:', error)
+        console.error('fa-times-circle Erreur initialisation Jitsi:', error)
         this.loading = false
         alert('Erreur lors de l\'initialisation de la visioconférence')
       }
     },
 
-    leaveMeeting() {
+    async leaveMeeting() {
+      try {
+        // Enregistrer la déconnexion dans le backend
+        const seanceId = this.$route.params.seanceId || this.$route.query.seanceId
+        if (seanceId) {
+          console.log('Enregistrement de la déconnexion pour la séance:', seanceId)
+          const lmsService = await import('@/services/lms')
+          await lmsService.default.leaveVisio(seanceId)
+          console.log('Déconnexion enregistrée avec succès')
+        } else {
+          console.warn('Aucun seanceId trouvé pour enregistrer la déconnexion')
+        }
+      } catch (error) {
+        console.error('Erreur lors de l\'enregistrement de la déconnexion:', error)
+        // Continue quand même pour quitter la visio
+      }
+
+      // Fermer l'interface Jitsi
       if (this.jitsiApi) {
         this.jitsiApi.dispose()
         this.jitsiApi = null
       }
+
       // Retourner au dashboard selon le rôle
       const role = this.user?.role
       if (role === 'enseignant') {

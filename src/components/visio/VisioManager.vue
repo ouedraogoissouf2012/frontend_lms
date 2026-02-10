@@ -39,7 +39,7 @@
 
       <!-- Bouton Démarrer (toujours actif pour l'enseignant) -->
       <button
-        v-if="seance.visio_enabled"
+        v-if="seance.visio_enabled && !seance.visio_active"
         @click="demarrerVisio"
         :disabled="loading"
         class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
@@ -49,6 +49,32 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         {{ loading ? 'Démarrage...' : 'Démarrer la visio' }}
+      </button>
+
+      <!-- Bouton Terminer pour tous (visible quand visio active) -->
+      <button
+        v-if="seance.visio_enabled && seance.visio_active"
+        @click="terminerPourTous"
+        :disabled="loading"
+        class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+      >
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        {{ loading ? 'Fermeture...' : 'Terminer pour tous' }}
+      </button>
+
+      <!-- Bouton Télécharger présences (visible après démarrage) -->
+      <button
+        v-if="seance.visio_enabled && seance.visio_started_at"
+        @click="telechargerPresences"
+        :disabled="loading"
+        class="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+      >
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        {{ loading ? 'Téléchargement...' : 'Télécharger présences (PDF)' }}
       </button>
     </div>
 
@@ -114,7 +140,7 @@ import { auth } from '@/services/api'
 import lmsService from '@/services/lms'
 import jitsiService from '@/services/jitsi'
 import ParticipantsModal from './ParticipantsModal.vue'
-import { useVisioParticipation } from '@/composables/useVisioParticipation'
+import { useVisioStore } from '@/stores/visio'
 
 export default {
   name: 'VisioManager',
@@ -127,13 +153,14 @@ export default {
       required: true
     }
   },
-  setup(props) {
-    // Utiliser le composable pour gérer la participation
-    const visioParticipation = useVisioParticipation(props.seance.id)
+  setup() {
+    // Utiliser le store Pinia global pour gérer la participation
+    // ✅ AVANTAGE: Le store persiste lors de la navigation entre pages
+    const visioStore = useVisioStore()
 
     return {
-      // Exposer les méthodes et états du composable
-      ...visioParticipation
+      // Exposer le store
+      visioStore
     }
   },
   data() {
@@ -222,7 +249,8 @@ export default {
     if (this.timeCheckInterval) {
       clearInterval(this.timeCheckInterval)
     }
-    // Le cleanup du composable est automatique via onBeforeUnmount
+    // NOTE: Le cleanup de la visio est géré par le store global
+    // Le store persiste lors de la navigation, évitant les déconnexions intempestives
   },
   methods: {
     formatTime(isoTimestamp) {
@@ -305,8 +333,8 @@ export default {
         const roomId = result.data.visio_room_id || this.seance.visio?.room_id
         const jitsiLink = `https://meet.jit.si/${roomId}`
 
-        // 3. Utiliser le composable pour ouvrir et tracker
-        await this.joinVisio(jitsiLink)
+        // 3. Utiliser le store pour ouvrir et tracker
+        await this.visioStore.joinVisio(this.seance.id, jitsiLink)
 
         console.log('✅ Visio démarrée avec window.open + tracking')
 
@@ -316,6 +344,91 @@ export default {
       } catch (error) {
         console.error('[VisioManager] Erreur démarrage visio:', error)
         alert('Erreur lors du démarrage de la visio: ' + (error.response?.data?.message || error.message))
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Enseignant: Terminer la séance pour tous les participants
+     * Ferme immédiatement tous les participants avec leurs heures réelles
+     */
+    async terminerPourTous() {
+      const confirmer = confirm(
+        '🔚 Voulez-vous vraiment terminer cette séance pour TOUS les participants ?\n\n' +
+        '✅ Chaque participant sera déconnecté avec son heure réelle de départ.\n' +
+        '❌ Cette action est irréversible.'
+      )
+
+      if (!confirmer) return
+
+      this.loading = true
+      try {
+        console.log('🔚 Fermeture de la séance pour tous...')
+
+        // Appeler endVisio() qui ferme tous les participants
+        const response = await lmsService.endVisio(this.seance.id)
+
+        if (response.success) {
+          console.log('✅ Séance fermée avec succès')
+          alert(`✅ Séance terminée !\n\n${response.data.participants_disconnected} participant(s) déconnecté(s) avec leurs heures réelles.`)
+
+          // Rafraîchir les données
+          this.$emit('visio-updated', { ...this.seance, visio_active: false })
+        } else {
+          throw new Error(response.message || 'Erreur lors de la fermeture')
+        }
+      } catch (error) {
+        console.error('[VisioManager] Erreur fermeture séance:', error)
+        alert('Erreur lors de la fermeture: ' + (error.response?.data?.message || error.message))
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Télécharger la liste de présence en PDF
+     */
+    async telechargerPresences() {
+      this.loading = true
+      try {
+        console.log('[VisioManager] Téléchargement liste de présence PDF...')
+
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+        const token = localStorage.getItem('token')
+
+        // Créer l'URL de téléchargement
+        const url = `${API_URL}/lms/seances/${this.seance.id}/export/presences/pdf`
+
+        // Télécharger le fichier
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/pdf'
+          }
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Erreur lors du téléchargement du PDF')
+        }
+
+        // Créer un blob et télécharger
+        const blob = await response.blob()
+        const downloadUrl = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = downloadUrl
+        a.download = `presences_seance_${this.seance.id}_${new Date().toISOString().split('T')[0]}.pdf`
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(downloadUrl)
+        document.body.removeChild(a)
+
+        console.log('[VisioManager] ✅ PDF téléchargé avec succès')
+      } catch (error) {
+        console.error('[VisioManager] Erreur téléchargement PDF:', error)
+        alert('Erreur lors du téléchargement : ' + error.message)
       } finally {
         this.loading = false
       }
@@ -342,9 +455,9 @@ export default {
           return
         }
 
-        // Utiliser le composable pour ouvrir et tracker
+        // Utiliser le store pour ouvrir et tracker
         const jitsiLink = `https://meet.jit.si/${roomId}`
-        await this.joinVisio(jitsiLink)
+        await this.visioStore.joinVisio(this.seance.id, jitsiLink)
 
         console.log('✅ Étudiant a rejoint avec window.open + tracking')
 

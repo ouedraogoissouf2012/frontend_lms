@@ -10,13 +10,11 @@
       </div>
 
       <!-- Loading state -->
-      <div v-if="loading" class="evaluations-list">
-        <SkeletonLoader type="card" v-for="i in 4" :key="i" height="150px" />
-      </div>
+      <ContentLoader v-if="loading" text="Chargement des evaluations..." />
 
       <!-- Error state -->
       <div v-if="error" class="error-state">
-        <div class="error-icon">⚠</div>
+        <div class="error-icon"><i class="fa fa-exclamation-triangle"></i></div>
         <div class="error-content">
           <h3 class="error-title">Erreur de chargement</h3>
           <p class="error-message">{{ error }}</p>
@@ -28,7 +26,7 @@
 
       <!-- Section: Évaluations en cours -->
       <div v-if="!loading && evaluationsEnCours.length > 0" class="section">
-        <h2 class="section-title">📝 Évaluations à faire</h2>
+        <h2 class="section-title"><i class="fa fa-pencil-square-o"></i> Évaluations à faire</h2>
         <div class="evaluations-list">
           <div
             v-for="evaluation in evaluationsEnCours"
@@ -85,7 +83,7 @@
 
       <!-- Section: Évaluations terminées -->
       <div v-if="!loading && evaluationsTerminees.length > 0" class="section">
-        <h2 class="section-title">✅ Évaluations terminées</h2>
+        <h2 class="section-title"><i class="fa fa-check-circle"></i> Évaluations terminées</h2>
         <div class="evaluations-list">
           <div
             v-for="evaluation in evaluationsTerminees"
@@ -152,7 +150,7 @@
 
 <script>
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import api from '@/services/api'
 import {
   DocumentTextIcon,
@@ -166,7 +164,7 @@ export default {
   name: 'StudentEvaluationsList',
   components: {
     DashboardLayout,
-    SkeletonLoader,
+    ContentLoader,
     DocumentTextIcon,
     CalendarIcon,
     ClockIcon,
@@ -194,13 +192,29 @@ export default {
       this.error = null
 
       try {
-        console.log('[EVALUATIONS] Chargement des évaluations...')
-        const response = await api.get('/evaluations')
-        this.evaluations = response.data || []
-        console.log('[OK] Évaluations chargées:', this.evaluations)
+        console.log('[EVALUATIONS] Chargement des évaluations étudiant...')
+        // Utiliser l'endpoint correct qui filtre par classe de l'étudiant
+        const response = await api.get('/evaluations/student')
+
+        // La réponse peut être {success: true, data: [...]} ou directement [...]
+        if (response.success && response.data) {
+          this.evaluations = response.data
+        } else if (Array.isArray(response.data)) {
+          this.evaluations = response.data
+        } else if (Array.isArray(response)) {
+          this.evaluations = response
+        } else {
+          this.evaluations = []
+        }
+        console.log('[OK] Évaluations étudiant chargées:', this.evaluations.length)
       } catch (err) {
         console.error('[ERREUR] Erreur chargement évaluations:', err)
-        this.error = 'Impossible de charger vos évaluations. Veuillez réessayer.'
+        // Message d'erreur plus explicite
+        if (err.response?.status === 401) {
+          this.error = 'Session expirée. Veuillez vous reconnecter.'
+        } else {
+          this.error = err.response?.data?.message || 'Impossible de charger vos évaluations. Veuillez réessayer.'
+        }
       } finally {
         this.loading = false
       }
@@ -236,10 +250,21 @@ export default {
     },
 
     isEvaluationAvailable(evaluation) {
-      if (!evaluation.date_evaluation) return true
+      // Si pas de date, l'evaluation n'est pas encore programmee
+      if (!evaluation.date_evaluation) return false
+
       const now = new Date()
-      const evaluationDate = new Date(evaluation.date_evaluation)
-      return now >= evaluationDate
+      const startDate = new Date(evaluation.date_evaluation)
+
+      // Verification que la date est valide
+      if (isNaN(startDate.getTime())) return false
+
+      // Calcul de la date de fin (debut + duree)
+      const durationMs = (evaluation.duree_minutes || 60) * 60000
+      const endDate = new Date(startDate.getTime() + durationMs)
+
+      // L'evaluation est disponible seulement pendant la fenetre de temps
+      return now >= startDate && now <= endDate
     }
   },
   mounted() {

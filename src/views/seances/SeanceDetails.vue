@@ -2,10 +2,7 @@
   <DashboardLayout>
   <div class="seance-details">
     <!-- Loading -->
-    <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      <p class="mt-4 text-gray-600">Chargement...</p>
-    </div>
+    <ContentLoader v-if="loading" text="Chargement de la séance..." />
 
     <!-- Error -->
     <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
@@ -83,7 +80,7 @@
       <!-- Visioconférence Section -->
       <div v-if="visio && visio.enabled" class="bg-white shadow rounded-lg p-6 mb-6">
         <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <span class="visio-header-icon">◉</span> Visioconférence {{ visio.type }}
+          <i class="fa fa-dot-circle-o visio-header-icon"></i> Visioconférence {{ visio.type }}
         </h2>
 
         <!-- Fenêtre temporelle info -->
@@ -98,10 +95,10 @@
         >
           <p class="font-medium">
             <span v-if="!visio.window.has_started">
-              <span class="status-icon">⏰</span> La visio ouvrira 15 minutes avant le cours
+              <i class="fa fa-clock-o status-icon"></i> La visio ouvrira 15 minutes avant le cours
             </span>
             <span v-else-if="visio.window.is_in_window">
-              <span class="status-icon">✓</span> Fenêtre visio active
+              <i class="fa fa-check status-icon"></i> Fenêtre visio active
             </span>
             <span v-else>
               <span class="status-icon">■</span> Fenêtre visio fermée
@@ -114,13 +111,13 @@
           <!-- Si le cours est déjà actif, permettre de rejoindre (pour coordinateur aussi) -->
           <div v-if="visio.status === 'active'">
             <div class="mb-3 p-3 bg-red-50 border-2 border-red-400 rounded-lg text-center">
-              <span class="text-red-600 font-bold text-lg">🔴 COURS EN DIRECT</span>
+              <span class="text-red-600 font-bold text-lg"><i class="fa fa-circle text-red"></i> COURS EN DIRECT</span>
             </div>
             <button
               @click="joinVisio"
               class="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition flex items-center justify-center gap-2"
             >
-              <span class="btn-icon">◉</span> Rejoindre le cours
+              <i class="fa fa-dot-circle-o btn-icon"></i> Rejoindre le cours
             </button>
           </div>
           <!-- Sinon, afficher le bouton de démarrage (enseignant seulement) -->
@@ -130,7 +127,7 @@
               @click="startVisio"
               class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition flex items-center justify-center gap-2"
             >
-              <span class="btn-icon">▶</span> Démarrer le cours
+              <i class="fa fa-play btn-icon"></i> Démarrer le cours
             </button>
             <div v-else class="text-center py-4 text-gray-600">
               <p v-if="!visio.window?.has_started">
@@ -148,7 +145,7 @@
           <!-- Cours EN DIRECT: Accessible si status = 'active' OU dans la fenêtre temporelle -->
           <div v-if="visio.status === 'active' || (visio.window?.is_accessible && roomActive)">
             <div v-if="visio.status === 'active'" class="mb-3 p-3 bg-red-50 border-2 border-red-400 rounded-lg text-center">
-              <span class="text-red-600 font-bold text-lg">🔴 COURS EN DIRECT</span>
+              <span class="text-red-600 font-bold text-lg"><i class="fa fa-circle text-red"></i> COURS EN DIRECT</span>
             </div>
 
             <button
@@ -156,15 +153,15 @@
               :disabled="joiningVisio"
               class="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              <span v-if="!joiningVisio"><span class="btn-icon">◉</span> Rejoindre le cours</span>
-              <span v-else><span class="waiting-icon">⏰</span> Validation en cours...</span>
+              <span v-if="!joiningVisio"><i class="fa fa-dot-circle-o btn-icon"></i> Rejoindre le cours</span>
+              <span v-else><i class="fa fa-clock-o waiting-icon"></i> Validation en cours...</span>
             </button>
           </div>
 
           <!-- Cours pas encore démarré -->
           <div v-else-if="!visio.window?.has_started" class="text-center py-6">
             <div class="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 text-orange-700 rounded-lg">
-              <span class="waiting-icon">⏰</span> En attente de l'enseignant
+              <i class="fa fa-clock-o waiting-icon"></i> En attente de l'enseignant
             </div>
             <p class="mt-2 text-sm text-gray-600">
               Le cours commencera à {{ seance.heure_debut }}
@@ -174,7 +171,7 @@
           <!-- Cours terminé -->
           <div v-else-if="visio.window?.has_ended" class="text-center py-6">
             <div class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg">
-              <span class="finished-icon">✓</span> Cours terminé
+              <i class="fa fa-check finished-icon"></i> Cours terminé
             </div>
             <p v-if="visio.recording_url" class="mt-4">
               <a
@@ -182,7 +179,7 @@
                 target="_blank"
                 class="text-blue-600 hover:underline"
               >
-                <span class="recording-icon">▶</span> Voir l'enregistrement
+                <i class="fa fa-play recording-icon"></i> Voir l'enregistrement
               </a>
             </p>
           </div>
@@ -202,7 +199,7 @@
       <!-- Présentiel -->
       <div v-else class="bg-white shadow rounded-lg p-6 mb-6">
         <div class="flex items-center gap-3 text-blue-600">
-          <span class="presentiel-icon">◈</span>
+          <i class="fa fa-diamond presentiel-icon"></i>
           <div>
             <p class="font-semibold">Cours en présentiel</p>
             <p class="text-sm text-gray-600">Salle: {{ seance.salle || 'À définir' }}</p>
@@ -253,13 +250,15 @@
 import lmsService from '@/services/lms'
 import { auth } from '@/services/api'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import { useVisioParticipation } from '@/composables/useVisioParticipation'
 
 export default {
   name: 'SeanceDetails',
 
   components: {
-    DashboardLayout
+    DashboardLayout,
+    ContentLoader
   },
 
   setup() {
@@ -315,11 +314,11 @@ export default {
       this.error = null
 
       try {
-        console.log('📅 Chargement détails séance:', this.seanceId)
+        console.log('fa-calendar Chargement détails séance:', this.seanceId)
 
         const data = await lmsService.getSeanceDetails(this.seanceId)
 
-        console.log('✅ Données séance reçues:', data)
+        console.log('fa-check-circle Données séance reçues:', data)
 
         if (data.success) {
           this.seance = data.data.seance
@@ -343,13 +342,13 @@ export default {
 
           console.log('📹 Visio:', this.visio?.enabled ? 'Activée' : 'Désactivée')
           console.log('📹 Status:', this.visio?.status || 'null')
-          console.log('⏰ Fenêtre accessible:', this.roomActive)
-          console.log('👥 Participants inclus:', data.data.participants ? 'Oui (enseignant)' : 'Non (étudiant)')
+          console.log('fa-clock-o Fenêtre accessible:', this.roomActive)
+          console.log('fa-users Participants inclus:', data.data.participants ? 'Oui (enseignant)' : 'Non (étudiant)')
         } else {
           this.error = 'Séance non trouvée'
         }
       } catch (error) {
-        console.error('❌ Erreur chargement séance:', error)
+        console.error('fa-times-circle Erreur chargement séance:', error)
         this.error = 'Erreur lors du chargement de la séance'
       } finally {
         this.loading = false
@@ -368,7 +367,7 @@ export default {
         // 1. Démarrer la visio (change status à 'active')
         const result = await lmsService.startVisio(this.seanceId)
 
-        console.log('✅ Visio démarrée:', result)
+        console.log('fa-check-circle Visio démarrée:', result)
 
         if (!result.success) {
           alert(`Erreur: ${result.message}`)
@@ -415,7 +414,7 @@ export default {
       this.joiningVisio = true
 
       try {
-        console.log('👨‍🎓 Étudiant rejoint la visio...')
+        console.log('👨‍fa-graduation-cap Étudiant rejoint la visio...')
 
         // Initialiser le composable si pas déjà fait
         if (!this.visioParticipation) {
@@ -434,9 +433,9 @@ export default {
         // Utiliser le composable pour ouvrir et tracker
         await this.visioParticipation.joinVisio(link)
 
-        console.log('✅ Étudiant a rejoint la visio avec Web Worker heartbeat')
+        console.log('fa-check-circle Étudiant a rejoint la visio avec Web Worker heartbeat')
       } catch (error) {
-        console.error('❌ Erreur rejoindre visio:', error)
+        console.error('fa-times-circle Erreur rejoindre visio:', error)
 
         // Afficher un message d'erreur plus détaillé
         let errorMessage = 'Erreur lors de la connexion à la visioconférence.'
@@ -456,7 +455,7 @@ export default {
           }
         }
 
-        alert(`❌ ${errorMessage}`)
+        alert(`fa-times-circle ${errorMessage}`)
       } finally {
         this.joiningVisio = false
       }
@@ -485,7 +484,7 @@ export default {
         const response = await lmsService.leaveVisio(this.seanceId)
         console.log('👋 Sortie de visio enregistrée:', response)
       } catch (error) {
-        console.error('❌ Erreur leave visio:', error)
+        console.error('fa-times-circle Erreur leave visio:', error)
       }
     },
 
@@ -509,7 +508,7 @@ export default {
         const response = await lmsService.hideSeance(seanceId)
 
         if (response.success) {
-          alert('✓ Séance masquée avec succès')
+          alert('fa-check Séance masquée avec succès')
           // Retourner à la page précédente
           this.$router.back()
         }

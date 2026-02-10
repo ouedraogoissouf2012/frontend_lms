@@ -5,10 +5,7 @@
 
     <!-- Overlay de chargement -->
     <div v-if="isLoading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p class="mt-4 text-white">Connexion à la visioconférence...</p>
-      </div>
+      <ContentLoader text="Connexion à la visioconférence..." />
     </div>
 
     <!-- Erreur -->
@@ -26,6 +23,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import lmsService from '@/services/lms'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 
 const props = defineProps({
   seanceId: {

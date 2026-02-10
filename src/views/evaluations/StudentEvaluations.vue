@@ -8,10 +8,7 @@
       </div>
 
       <!-- Loading -->
-      <div v-if="loading" class="text-center py-12">
-        <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-500 mx-auto"></div>
-        <p class="text-gray-600 mt-4">Chargement des évaluations...</p>
-      </div>
+      <ContentLoader v-if="loading" text="Chargement des évaluations..." />
 
       <!-- Erreur -->
       <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
@@ -182,9 +179,13 @@
 <script>
 import evaluationService from '@/services/evaluation'
 import { auth } from '@/services/api'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 
 export default {
   name: 'StudentEvaluations',
+  components: {
+    ContentLoader
+  },
   data() {
     return {
       evaluations: [],

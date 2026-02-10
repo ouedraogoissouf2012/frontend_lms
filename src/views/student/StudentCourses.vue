@@ -5,18 +5,48 @@
       <div class="page-header">
         <div>
           <h1 class="page-title">Mes Cours</h1>
-          <p class="page-subtitle">Tous vos cours et matières</p>
+          <p class="page-subtitle">Tous vos cours disponibles</p>
+        </div>
+      </div>
+
+      <!-- Filtres -->
+      <div class="filters-section" v-if="availableFilters.matieres.length > 0 || availableFilters.enseignants.length > 0">
+        <div class="filters-row">
+          <!-- Filtre par matière -->
+          <div class="filter-group" v-if="availableFilters.matieres.length > 0">
+            <label class="filter-label">Matière</label>
+            <select v-model="selectedMatiere" @change="applyFilters" class="filter-select">
+              <option value="">Toutes les matières</option>
+              <option v-for="matiere in availableFilters.matieres" :key="matiere.id" :value="matiere.id">
+                {{ matiere.name }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Filtre par enseignant -->
+          <div class="filter-group" v-if="availableFilters.enseignants.length > 0">
+            <label class="filter-label">Enseignant</label>
+            <select v-model="selectedEnseignant" @change="applyFilters" class="filter-select">
+              <option value="">Tous les enseignants</option>
+              <option v-for="enseignant in availableFilters.enseignants" :key="enseignant.id" :value="enseignant.id">
+                {{ enseignant.name }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Bouton reset filtres -->
+          <button v-if="selectedMatiere || selectedEnseignant" @click="resetFilters" class="reset-filters-btn">
+            <i class="fa fa-times"></i> Effacer filtres
+          </button>
         </div>
       </div>
 
       <!-- Loading state -->
-      <div v-if="loading" class="courses-grid">
-        <SkeletonLoader type="card" v-for="i in 6" :key="i" />
-      </div>
+      <ContentLoader v-if="loading" text="Chargement des cours..." />
 
       <!-- Error state -->
       <div v-if="error" class="error-state">
-        <div class="error-icon">⚠</div>
+        <div class="error-icon"><i class="fa fa-exclamation-triangle"></i></div>
         <div class="error-content">
           <h3 class="error-title">Erreur de chargement</h3>
           <p class="error-message">{{ error }}</p>
@@ -27,69 +57,81 @@
       </div>
 
       <!-- Courses Grid -->
-      <div v-if="!loading && courses.length > 0" class="courses-grid">
+      <div v-if="!loading && !error && courses.length > 0" class="courses-grid">
         <div
           v-for="course in courses"
-          :key="course.id || course.matiere_id"
+          :key="course.id"
           class="course-card"
           @click="navigateToCourse(course)"
           @keydown.enter="navigateToCourse(course)"
           @keydown.space.prevent="navigateToCourse(course)"
           role="button"
           tabindex="0"
-          :aria-label="`Accéder au cours ${course.name || course.nom || 'sans nom'}`"
+          :aria-label="`Accéder au cours ${course.title}`"
         >
-          <div class="course-header">
-            <h3 class="course-title">
-              {{ course.name || course.nom || course.libelle || course.matiere?.name || 'Cours sans nom' }}
-            </h3>
-            <span v-if="course.coefficient || course.matiere?.coefficient" class="course-coefficient">
-              Coeff: {{ course.coefficient || course.matiere?.coefficient }}
-            </span>
+          <!-- Badge type -->
+          <div class="course-type-badge" :class="course.type">
+            {{ getTypeLabel(course.type) }}
           </div>
 
-          <div class="course-stats">
-            <div class="stat">
-              <span class="stat-icon-emoji">📖</span>
-              <div class="stat-info">
-                <span class="stat-value">{{ course.stats?.lessons || 0 }}</span>
-                <span class="stat-label">Leçons</span>
-              </div>
+          <div class="course-header">
+            <h3 class="course-title">{{ course.title }}</h3>
+            <p class="course-description" v-if="course.description">
+              {{ truncateText(course.description, 80) }}
+            </p>
+          </div>
+
+          <!-- Info enseignant et matière -->
+          <div class="course-meta">
+            <div class="meta-item" v-if="course.enseignant">
+              <i class="fa fa-user"></i>
+              <span>{{ course.enseignant.name }}</span>
             </div>
-            <div class="stat">
-              <span class="stat-icon-emoji">🎥</span>
-              <div class="stat-info">
-                <span class="stat-value">{{ course.stats?.seances || 0 }}</span>
-                <span class="stat-label">Séances</span>
-              </div>
+            <div class="meta-item" v-if="course.matiere">
+              <i class="fa fa-book"></i>
+              <span>{{ course.matiere.name }}</span>
             </div>
-            <div class="stat">
-              <span class="stat-icon-emoji">📄</span>
-              <div class="stat-info">
-                <span class="stat-value">{{ course.stats?.evaluations || 0 }}</span>
-                <span class="stat-label">Éval.</span>
-              </div>
+            <div class="meta-item" v-if="course.duree_estimee">
+              <i class="fa fa-clock-o"></i>
+              <span>{{ course.duree_estimee }} min</span>
             </div>
+          </div>
+
+          <!-- Progression -->
+          <div class="course-progress" v-if="course.progress">
+            <div class="progress-bar-container">
+              <div class="progress-bar" :style="{ width: course.progress.percentage + '%' }"></div>
+            </div>
+            <span class="progress-text">{{ course.progress.percentage }}% complété</span>
           </div>
 
           <button class="course-button" aria-label="Voir les détails du cours">
-            <span>Voir détails</span>
+            <span>Voir le cours</span>
             <span class="button-arrow" aria-hidden="true">→</span>
           </button>
         </div>
       </div>
 
       <!-- Empty state -->
-      <div v-else-if="!loading" class="empty-state">
+      <div v-else-if="!loading && !error" class="empty-state">
         <div class="empty-icon-wrapper">
-          <span class="empty-icon-emoji">📚</span>
+          <i class="fa fa-book empty-icon"></i>
         </div>
         <h3 class="empty-title">Aucun cours disponible</h3>
         <p class="empty-description">
-          Vous n'avez pas encore de cours assignés.<br>
-          Vos cours apparaîtront ici dès qu'ils seront disponibles.
+          <template v-if="selectedMatiere || selectedEnseignant">
+            Aucun cours ne correspond à vos filtres.<br>
+            Essayez de modifier vos critères de recherche.
+          </template>
+          <template v-else>
+            Vos enseignants n'ont pas encore publié de cours.<br>
+            Revenez plus tard pour consulter les nouveaux cours.
+          </template>
         </p>
         <div class="empty-actions">
+          <button v-if="selectedMatiere || selectedEnseignant" @click="resetFilters" class="btn-reload">
+            Effacer les filtres
+          </button>
           <button @click="loadCourses" class="btn-reload" aria-label="Actualiser la liste des cours">
             Actualiser
           </button>
@@ -104,7 +146,7 @@
 
 <script>
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import { klassciService } from '@/services/klassci'
 import { toast } from '@/services/toast'
 
@@ -112,13 +154,19 @@ export default {
   name: 'StudentCourses',
   components: {
     DashboardLayout,
-    SkeletonLoader
+    ContentLoader
   },
   data() {
     return {
       courses: [],
       loading: false,
-      error: null
+      error: null,
+      selectedMatiere: '',
+      selectedEnseignant: '',
+      availableFilters: {
+        matieres: [],
+        enseignants: []
+      }
     }
   },
   methods: {
@@ -127,58 +175,21 @@ export default {
       this.error = null
 
       try {
-        console.log('[COURSES] Chargement des cours...')
-        const courses = await klassciService.getMyCourses()
-        console.log('[OK] Cours chargés:', courses)
+        const filters = {}
+        if (this.selectedMatiere) filters.matiere_id = this.selectedMatiere
+        if (this.selectedEnseignant) filters.enseignant_id = this.selectedEnseignant
 
-        // Enrichir chaque cours avec ses statistiques
-        const enrichedCourses = await Promise.all(
-          courses.map(async (course) => {
-            const matiereId = course.id || course.matiere_id || course.matiere?.id
+        console.log('[COURSES] Chargement des cours avec filtres:', filters)
+        const response = await klassciService.getMyCourses(filters)
+        console.log('[OK] Cours chargés:', response)
 
-            if (!matiereId) {
-              return { ...course, stats: { lessons: 0, seances: 0, evaluations: 0 } }
-            }
+        this.courses = response.data || []
 
-            try {
-              // Utiliser l'endpoint LMS pour avoir les leçons
-              const details = await klassciService.getLmsMatiereDetails(matiereId)
-              console.log(`[DEBUG] Details matière LMS ${matiereId}:`, details)
+        // Sauvegarder les filtres disponibles (seulement si pas de filtre actif)
+        if (!this.selectedMatiere && !this.selectedEnseignant && response.filters) {
+          this.availableFilters = response.filters
+        }
 
-              if (details && details.success && details.data) {
-                const data = details.data
-                const stats = data.statistiques || {}
-
-                console.log(`[DEBUG] Statistiques matière ${matiereId}:`, stats)
-                console.log(`[DEBUG] Lessons array:`, data.lessons)
-
-                // Compter directement les lessons si présentes
-                const lessonsCount = data.lessons?.length || stats.nombre_lessons || 0
-                const seancesCount = data.seances_programmees?.length || stats.nombre_seances_programmees || 0
-                const evaluationsCount = data.evaluations_programmees?.length || stats.nombre_evaluations || 0
-
-                console.log(`[INFO] Stats calculées - Lessons: ${lessonsCount}, Séances: ${seancesCount}, Éval: ${evaluationsCount}`)
-
-                return {
-                  ...course,
-                  stats: {
-                    lessons: lessonsCount,
-                    seances: seancesCount,
-                    evaluations: evaluationsCount
-                  }
-                }
-              }
-            } catch (error) {
-              console.warn(`[WARN] Impossible de charger stats pour matière ${matiereId}:`, error)
-              console.error(`[ERROR] Détails:`, error.response?.data)
-            }
-
-            return { ...course, stats: { lessons: 0, seances: 0, evaluations: 0 } }
-          })
-        )
-
-        this.courses = enrichedCourses
-        console.log('[OK] Cours enrichis avec stats:', this.courses)
       } catch (err) {
         console.error('[ERREUR] Erreur chargement cours:', err)
         this.error = 'Impossible de charger vos cours. Veuillez réessayer.'
@@ -187,18 +198,44 @@ export default {
       }
     },
 
+    applyFilters() {
+      this.loadCourses()
+    },
+
+    resetFilters() {
+      this.selectedMatiere = ''
+      this.selectedEnseignant = ''
+      this.loadCourses()
+    },
+
     navigateToCourse(course) {
-      const matiereId = course.id || course.matiere_id || course.matiere?.id
-      if (matiereId) {
-        console.log('[NAV] Navigation vers cours:', matiereId)
+      if (course.id) {
+        console.log('[NAV] Navigation vers cours:', course.id)
         this.$router.push({
-          name: 'matiere-details',
-          params: { id: matiereId }
+          name: 'lesson-details',
+          params: { id: course.id }
         })
       } else {
-        console.error('[ERREUR] ID matière non trouvé:', course)
+        console.error('[ERREUR] ID cours non trouvé:', course)
         toast.error('Impossible de naviguer vers ce cours')
       }
+    },
+
+    getTypeLabel(type) {
+      const types = {
+        cours: 'Cours',
+        tp: 'TP',
+        td: 'TD',
+        projet: 'Projet',
+        autre: 'Autre'
+      }
+      return types[type] || 'Cours'
+    },
+
+    truncateText(text, maxLength) {
+      if (!text) return ''
+      if (text.length <= maxLength) return text
+      return text.substring(0, maxLength) + '...'
     }
   },
   mounted() {
@@ -215,7 +252,7 @@ export default {
 }
 
 .page-header {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .page-title {
@@ -230,6 +267,77 @@ export default {
   font-size: 1rem;
 }
 
+/* Filtres */
+.filters-section {
+  background: var(--card-bg);
+  border-radius: 0.75rem;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--card-shadow);
+}
+
+.filters-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 200px;
+}
+
+.filter-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.filter-select {
+  padding: 0.625rem 1rem;
+  border: 1px solid var(--border-primary);
+  border-radius: 0.5rem;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-select:hover {
+  border-color: var(--primary);
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.reset-filters-btn {
+  padding: 0.625rem 1rem;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.reset-filters-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #dc2626;
+}
+
+/* Courses Grid */
 .courses-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -243,6 +351,9 @@ export default {
   padding: 1.5rem;
   cursor: pointer;
   transition: all 0.2s;
+  position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .course-card:hover {
@@ -250,80 +361,111 @@ export default {
   transform: translateY(-4px);
 }
 
+/* Badge type */
+.course-type-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.course-type-badge.cours {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.course-type-badge.tp {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.course-type-badge.td {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.course-type-badge.projet {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+
+.course-type-badge.autre {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+}
+
 .course-header {
   margin-bottom: 1rem;
+  padding-right: 4rem;
 }
 
 .course-title {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 700;
   color: var(--text-primary);
   margin: 0 0 0.5rem 0;
+  line-height: 1.4;
 }
 
-.course-coefficient {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  background: var(--bg-secondary);
-  border-radius: 0.5rem;
+.course-description {
   font-size: 0.875rem;
   color: var(--text-secondary);
-  font-weight: 600;
+  margin: 0;
+  line-height: 1.5;
 }
 
-.course-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-primary);
-}
-
-.stat {
+/* Meta infos */
+.course-meta {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 0.75rem 0.5rem;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
   background: var(--bg-secondary);
   border-radius: 0.5rem;
-  transition: all 0.2s;
 }
 
-.stat:hover {
-  background: var(--bg-tertiary);
-  transform: translateY(-2px);
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
 }
 
-.stat-icon-emoji {
-  font-size: 1.5rem;
-  line-height: 1;
-  display: block;
+.meta-item i {
+  width: 1rem;
+  text-align: center;
+  color: var(--primary);
+}
+
+/* Progress */
+.course-progress {
+  margin-bottom: 1rem;
+}
+
+.progress-bar-container {
+  height: 6px;
+  background: var(--bg-secondary);
+  border-radius: 3px;
+  overflow: hidden;
   margin-bottom: 0.5rem;
 }
 
-.stat-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  align-items: center;
-  width: 100%;
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+  border-radius: 3px;
+  transition: width 0.3s ease;
 }
 
-.stat-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1;
-}
-
-.stat-label {
+.progress-text {
   font-size: 0.75rem;
   color: var(--text-secondary);
-  line-height: 1;
-  font-weight: 500;
 }
 
 .course-button {
@@ -340,6 +482,7 @@ export default {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  margin-top: auto;
 }
 
 .course-button:hover {
@@ -353,6 +496,7 @@ export default {
   font-weight: bold;
 }
 
+/* Empty state */
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;
@@ -368,10 +512,9 @@ export default {
   margin-bottom: 1.5rem;
 }
 
-.empty-icon-emoji {
+.empty-icon {
   font-size: 3rem;
-  line-height: 1;
-  display: block;
+  color: var(--text-secondary);
 }
 
 .empty-title {
@@ -480,6 +623,15 @@ export default {
 @media (max-width: 768px) {
   .courses-grid {
     grid-template-columns: 1fr;
+  }
+
+  .filters-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-group {
+    min-width: auto;
   }
 
   .error-state {

@@ -3,7 +3,7 @@
     <div class="attendance-history-container">
       <!-- Header -->
       <div class="welcome-header">
-        <span class="welcome-icon">▤</span>
+        <i class="fa fa-list-alt welcome-icon"></i>
         <div>
           <h1 class="page-title">Historique des Présences</h1>
           <p class="page-subtitle">Consultez l'historique complet des participations aux visioconférences</p>
@@ -67,9 +67,7 @@
       </div>
 
       <!-- Loading -->
-      <div v-if="loading" class="loading-container">
-        <SkeletonLoader :rows="5" />
-      </div>
+      <ContentLoader v-if="loading" text="Chargement de l'historique..." />
 
       <!-- Error -->
       <div v-else-if="error" class="error-container">
@@ -83,7 +81,7 @@
         <div class="stats-grid">
           <div class="stat-card border-l-blue">
             <div class="stat-header">
-              <span class="stat-icon">▤</span>
+              <i class="fa fa-list-alt stat-icon"></i>
               <span class="stat-label">Total Participations</span>
             </div>
             <p class="stat-value">{{ pagination.total }}</p>
@@ -99,7 +97,7 @@
 
           <div class="stat-card border-l-orange">
             <div class="stat-header">
-              <span class="stat-icon">✓</span>
+              <i class="fa fa-check stat-icon"></i>
               <span class="stat-label">Présents</span>
             </div>
             <p class="stat-value">{{ connectedCount }}</p>
@@ -173,7 +171,7 @@
                     <span
                       :class="['status-badge', attendance.status === 'connected' ? 'status-connected' : 'status-disconnected']"
                     >
-                      {{ attendance.status === 'connected' ? '● Connecté' : '● Déconnecté' }}
+                      {{ attendance.status === 'connected' ? 'fa-circle Connecté' : 'fa-circle Déconnecté' }}
                     </span>
                   </td>
                   <td>
@@ -283,7 +281,7 @@
               <div class="detail-item">
                 <span class="detail-label">Statut</span>
                 <span :class="['detail-value', selectedAttendance.status === 'connected' ? 'text-green' : 'text-red']">
-                  {{ selectedAttendance.status === 'connected' ? '● Connecté' : '● Déconnecté' }}
+                  {{ selectedAttendance.status === 'connected' ? 'fa-circle Connecté' : 'fa-circle Déconnecté' }}
                 </span>
               </div>
             </div>
@@ -300,7 +298,7 @@
 
 <script>
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import lmsService from '@/services/lms'
 import { auth } from '@/services/api'
 
@@ -308,7 +306,7 @@ export default {
   name: 'AttendanceHistory',
   components: {
     DashboardLayout,
-    SkeletonLoader
+    ContentLoader
   },
   data() {
     return {

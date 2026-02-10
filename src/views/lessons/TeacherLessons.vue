@@ -53,13 +53,11 @@
       </div>
 
       <!-- Loading state -->
-      <div v-if="loading" class="lessons-grid">
-        <SkeletonLoader type="card" v-for="i in 6" :key="i" height="250px" />
-      </div>
+      <ContentLoader v-if="loading" text="Chargement des leçons..." />
 
       <!-- Error state -->
       <div v-if="error" class="error-state">
-        <div class="error-icon">⚠</div>
+        <div class="error-icon"><i class="fa fa-exclamation-triangle"></i></div>
         <div class="error-content">
           <h3 class="error-title">Erreur de chargement</h3>
           <p class="error-message">{{ error }}</p>
@@ -253,7 +251,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import { klassciService } from '@/services/klassci'
 import lessonService from '@/services/lesson'
 import {

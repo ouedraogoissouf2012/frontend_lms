@@ -31,7 +31,7 @@
             @click="toggleSubmenu(index)"
             :class="{ 'submenu-open': openSubmenus[index] }"
           >
-            <span class="nav-icon">{{ section.icon }}</span>
+            <i :class="`fa ${section.icon} nav-icon`"></i>
             <transition name="fade">
               <span v-if="!isCollapsed" class="nav-text">{{ section.label }}</span>
             </transition>
@@ -52,7 +52,7 @@
                 class="nav-sub-item"
                 exact-active-class="active"
               >
-                <span class="nav-icon">{{ item.icon }}</span>
+                <i :class="`fa ${item.icon} nav-icon`"></i>
                 <span class="nav-text">{{ item.label }}</span>
               </router-link>
             </div>
@@ -67,7 +67,7 @@
           exact-active-class="active"
           :title="isCollapsed ? section.label : ''"
         >
-          <span class="nav-icon">{{ section.icon }}</span>
+          <i :class="`fa ${section.icon} nav-icon`"></i>
           <transition name="fade">
             <span v-if="!isCollapsed" class="nav-text">{{ section.label }}</span>
           </transition>
@@ -147,44 +147,44 @@ export default {
 
       const isStudent = ['etudiant', 'student'].includes(user.role)
       const isTeacher = ['enseignant', 'teacher', 'coordinateur', 'superAdmin'].includes(user.role)
-      const isAdmin = ['admin', 'coordinateur', 'superAdmin'].includes(user.role)
+      const isAdmin = ['admin', 'coordinateur', 'superAdmin', 'secretaire'].includes(user.role)
 
       const menu = []
 
       // Student Menu
       if (isStudent) {
         menu.push({
-          icon: '▣',
+          icon: 'fa-home',
           label: 'Dashboard',
           to: '/student/dashboard'
         })
         menu.push({
-          icon: '◈',
+          icon: 'fa-book',
           label: 'Mes Cours',
           to: '/student/courses'
         })
         menu.push({
-          icon: '◷',
+          icon: 'fa-clock-o',
           label: 'Emploi du Temps',
           to: '/student/schedule'
         })
         menu.push({
-          icon: '✎',
+          icon: 'fa-edit',
           label: 'Évaluations',
           to: '/student/evaluations-list'
         })
         menu.push({
-          icon: '★',
+          icon: 'fa-star',
           label: 'Mes Notes',
           to: '/student/grades'
         })
         menu.push({
-          icon: '◘',
+          icon: 'fa-comments',
           label: 'Forum',
           to: '/forum'
         })
         menu.push({
-          icon: '⚙',
+          icon: 'fa-cog',
           label: 'Paramètres',
           to: '/student/settings'
         })
@@ -193,79 +193,46 @@ export default {
       // Dashboard - Admin pour coordinateur/admin, Teacher pour enseignant
       if (isTeacher || isAdmin) {
         menu.push({
-          icon: '▣',
+          icon: 'fa-home',
           label: 'Dashboard',
           to: isAdmin ? '/admin/dashboard' : '/teacher/dashboard'
         })
       }
 
-      // Teacher Menu
+      // Teacher Menu - OPTIMISE (5 items principaux)
       if (isTeacher) {
-        // Ne pas afficher "Mes Classes" pour coordinateur (il a la vue admin)
+        // Emploi du Temps - Vue principale quotidienne (calendrier unifie)
         if (user.role !== 'coordinateur') {
         menu.push({
-          icon: '⌂',
-          label: 'Mes Classes',
-          to: '/teacher/classes'
+          icon: 'fa-calendar',
+          label: 'Emploi du Temps',
+          to: '/teacher/schedule'
         })
         }
-        // Matières - NOUVEAU
+        // Mon Espace - Hub enseignant (Classes + Matieres + Lecons)
         if (user.role !== 'coordinateur') {
         menu.push({
-          icon: '◈',
-          label: 'Matières',
-          to: '/teacher/matieres'
+          icon: 'fa-th-large',
+          label: 'Mon Espace',
+          to: '/teacher/hub'
         })
         }
-        // Ne pas afficher Leçons pour coordinateur (pas enseignant selon KLASSCI)
+        // Évaluations - Enseignant avec sous-menu creation
         if (user.role !== 'coordinateur') {
         menu.push({
-          icon: '◐',
-          label: 'Leçons',
-          to: '/teacher/lessons'
-        })
-        }
-        // Ne pas afficher Séances pour coordinateur (il a la version admin)
-        if (user.role !== 'coordinateur') {
-        menu.push({
-          icon: '◎',
-          label: 'Séances',
-          to: '/teacher/seances'
-        })
-        }
-        // Ne pas afficher Visioconférences pour coordinateur (il a la version admin)
-        if (user.role !== 'coordinateur') {
-        menu.push({
-          icon: '▶',
-          label: 'Visioconférences',
-          to: '/teacher/visio-list'
-        })
-        }
-        // Évaluations - Enseignant avec sous-menu création
-        if (user.role !== 'coordinateur') {
-        menu.push({
-          icon: '☰',
+          icon: 'fa-edit',
           label: 'Évaluations',
           children: [
-            { icon: '✚', label: 'Créer', to: '/teacher/evaluations/create' },
-            { icon: '▤', label: 'Mes Évaluations', to: '/teacher/evaluations' }
+            { icon: 'fa-list-alt', label: 'Mes Évaluations', to: '/teacher/evaluations' }
           ]
         })
         }
-        // Évaluations - Coordinateur (vue globale sans création)
+        // Évaluations - Coordinateur (vue globale sans creation)
         if (user.role === 'coordinateur') {
         menu.push({
-          icon: '☰',
+          icon: 'fa-edit',
           label: 'Évaluations',
           to: '/coordinateur/evaluations'
-        })
-        }
-        // Ne pas afficher Statistiques pour coordinateur (il a la version admin)
-        if (user.role !== 'coordinateur') {
-        menu.push({
-          icon: '▲',
-          label: 'Statistiques',
-          to: '/teacher/stats'
         })
         }
       }
@@ -274,88 +241,96 @@ export default {
       if (isAdmin) {
         // Utilisateurs - seulement pour admin complet (pas coordinateur)
         if (user.role !== 'coordinateur') {
-        menu.push({
-          icon: '◉',
-          label: 'Utilisateurs',
-          to: '/admin/users'
-        })
+          menu.push({
+            icon: 'fa-users',
+            label: 'Utilisateurs',
+            to: '/admin/users'
+          })
         }
-        menu.push({
-          icon: '▦',
-          label: 'Classes',
-          to: '/admin/classes'
-        })
-        menu.push({
-          icon: '≡',
-          label: 'Matières',
-          to: '/admin/matieres'
-        })
-        // Enseignants - accessible pour coordinateur (endpoint KLASSCI disponible)
-        menu.push({
-          icon: '👤',
-          label: 'Enseignants',
-          to: '/admin/enseignants'
-        })
-        // Gestion Séances & Visio - pour coordinateur uniquement
+
+        // Espace Admin (Hub) - Classes, Matières, Enseignants - pour coordinateur
         if (user.role === 'coordinateur') {
-        menu.push({
-          icon: '◉',
-          label: 'Séances & Visio',
-          to: '/coordinateur/seances'
-        })
+          menu.push({
+            icon: 'fa-building',
+            label: 'Espace Admin',
+            to: '/admin/hub'
+          })
+          // Résultats Évaluations - séparé pour coordinateur
+          menu.push({
+            icon: 'fa-trophy',
+            label: 'Résultats',
+            to: '/admin/evaluations/results'
+          })
+          // Séances & Visio
+          menu.push({
+            icon: 'fa-calendar',
+            label: 'Séances & Visio',
+            to: '/coordinateur/seances'
+          })
         }
-        // Séances - Masqué pour coordinateur (endpoint /seances retourne 404 dans KLASSCI)
+
+        // Menu étendu pour admin/superAdmin (pas coordinateur)
         if (user.role !== 'coordinateur') {
-        menu.push({
-          icon: '◎',
-          label: 'Séances',
-          to: '/admin/seances'
-        })
-        }
-        // Visioconférences - Masqué pour coordinateur (dépend de /seances)
-        if (user.role !== 'coordinateur') {
-        menu.push({
-          icon: '▶',
-          label: 'Visioconférences',
-          to: '/admin/visioconferences'
-        })
-        }
-        // Résultats Évaluations - Accessible pour coordinateur et admin
-        menu.push({
-          icon: '📊',
-          label: 'Résultats Évaluations',
-          to: '/admin/evaluations/results'
-        })
-        // Statistiques - Masqué pour coordinateur (données admin_data limitées)
-        if (user.role !== 'coordinateur') {
-        menu.push({
-          icon: '▲',
-          label: 'Statistiques',
-          to: '/admin/stats'
-        })
+          menu.push({
+            icon: 'fa-building',
+            label: 'Classes',
+            to: '/admin/classes'
+          })
+          menu.push({
+            icon: 'fa-book',
+            label: 'Matières',
+            to: '/admin/matieres'
+          })
+          menu.push({
+            icon: 'fa-user',
+            label: 'Enseignants',
+            to: '/admin/enseignants'
+          })
+          menu.push({
+            icon: 'fa-calendar',
+            label: 'Séances',
+            to: '/admin/seances'
+          })
+          menu.push({
+            icon: 'fa-video-camera',
+            label: 'Visioconférences',
+            to: '/admin/visioconferences'
+          })
+          menu.push({
+            icon: 'fa-trophy',
+            label: 'Résultats Évaluations',
+            to: '/admin/evaluations/results'
+          })
+          menu.push({
+            icon: 'fa-line-chart',
+            label: 'Statistiques',
+            to: '/admin/stats'
+          })
         }
       }
 
       // Forum - accessible pour tous (enseignants et admins)
       if (isTeacher || isAdmin) {
         menu.push({
-          icon: '◘',
+          icon: 'fa-comments',
           label: 'Forum',
           to: '/forum'
         })
       }
 
-      // Historique des présences - accessible pour tous les rôles authentifiés
-      menu.push({
-        icon: '📊',
-        label: 'Historique Présences',
-        to: '/attendance/history'
-      })
+      // Historique (seances passees + presences) - uniquement pour enseignants et admins
+      if (isTeacher || isAdmin) {
+        menu.push({
+          icon: 'fa-history',
+          label: 'Historique',
+          to: '/attendance/seances'
+        })
+      }
 
       // Paramètres - dernière entrée pour tous
       if (isTeacher || isAdmin) {
         menu.push({
-          icon: '⚙',
+          icon: 'fa-cog',
           label: 'Paramètres',
           to: isAdmin ? '/admin/settings' : '/teacher/settings'
         })
@@ -382,9 +357,24 @@ export default {
       openSubmenus.value[index] = !openSubmenus.value[index]
     }
 
-    // Go to profile (dashboard pour l'instant)
+    // Go to profile - redirige selon le rôle de l'utilisateur
     const goToProfile = () => {
-      router.push('/student/dashboard')
+      const user = auth.getUser()
+      if (!user) {
+        router.push('/login')
+        return
+      }
+
+      const role = user.role
+      if (['etudiant', 'student'].includes(role)) {
+        router.push('/student/settings')
+      } else if (['enseignant', 'teacher'].includes(role)) {
+        router.push('/teacher/profile')
+      } else if (['admin', 'coordinateur', 'superAdmin', 'secretaire'].includes(role)) {
+        router.push('/admin/profile')
+      } else {
+        router.push('/student/settings')
+      }
     }
 
     // Auto-open submenu if current route matches

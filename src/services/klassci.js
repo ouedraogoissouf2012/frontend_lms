@@ -280,13 +280,35 @@ export const klassciService = {
   },
 
   /**
-   * Récupérer tous les cours de l'étudiant connecté
-   * @returns {Promise<Array>} Liste des cours/matières
+   * Récupérer les matières de l'étudiant (depuis dashboard KLASSCI)
+   * @returns {Promise<Array>} Liste des matières
    */
-  async getMyCourses() {
+  async getMyMatieres() {
     try {
       const dashboard = await this.getStudentDashboard()
       return dashboard?.cours || []
+    } catch (error) {
+      console.error('Erreur récupération mes matières:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Récupérer les vrais cours (leçons) de l'étudiant avec enseignant et matière
+   * @param {Object} filters - Filtres optionnels { matiere_id, enseignant_id }
+   * @returns {Promise<Object>} { data: cours[], filters: { matieres, enseignants }, total }
+   */
+  async getMyCourses(filters = {}) {
+    try {
+      const params = new URLSearchParams()
+      if (filters.matiere_id) params.append('matiere_id', filters.matiere_id)
+      if (filters.enseignant_id) params.append('enseignant_id', filters.enseignant_id)
+
+      const queryString = params.toString()
+      const url = queryString ? `/lessons/my-courses?${queryString}` : '/lessons/my-courses'
+
+      const response = await api.get(url)
+      return response.success ? response : { data: [], filters: { matieres: [], enseignants: [] }, total: 0 }
     } catch (error) {
       console.error('Erreur récupération mes cours:', error)
       throw error

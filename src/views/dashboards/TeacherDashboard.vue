@@ -13,38 +13,11 @@
       </div>
 
       <!-- Loading state -->
-      <div v-if="loading">
-        <!-- Skeleton for stats -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <SkeletonLoader type="card" />
-          <SkeletonLoader type="card" />
-          <SkeletonLoader type="card" />
-          <SkeletonLoader type="card" />
-        </div>
-
-        <!-- Skeleton for matières -->
-        <div class="widget-card mb-6">
-          <SkeletonLoader type="text" width="150px" />
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-            <SkeletonLoader type="card" />
-            <SkeletonLoader type="card" />
-            <SkeletonLoader type="card" />
-          </div>
-        </div>
-
-        <!-- Skeleton for classes -->
-        <div class="widget-card mb-6">
-          <SkeletonLoader type="text" width="150px" />
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-            <SkeletonLoader type="card" />
-            <SkeletonLoader type="card" />
-          </div>
-        </div>
-      </div>
+      <ContentLoader v-if="loading" text="Chargement du tableau de bord..." />
 
       <!-- Error state -->
       <div v-if="error" class="error-state">
-        <div class="error-icon">⚠</div>
+        <div class="error-icon"><i class="fa fa-exclamation-triangle"></i></div>
         <div class="error-content">
           <h3 class="error-title">Erreur de chargement</h3>
           <p class="error-message">{{ error }}</p>
@@ -288,7 +261,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import { auth } from '@/services/api'
 import { klassciService } from '@/services/klassci'
 import {
@@ -323,7 +296,7 @@ async function loadDashboard(forceRefresh = false) {
           return
         }
       } catch (err) {
-        console.warn('⚠ Cache invalide, rechargement...')
+        console.warn('fa-exclamation-triangle Cache invalide, rechargement...')
       }
     }
   }
@@ -332,7 +305,7 @@ async function loadDashboard(forceRefresh = false) {
   error.value = null
 
   try {
-    console.log('📊 Chargement dashboard enseignant depuis KLASSCI...')
+    console.log('fa-bar-chart Chargement dashboard enseignant depuis KLASSCI...')
     const data = await klassciService.getTeacherDashboard()
     dashboardData.value = data
 
@@ -342,17 +315,17 @@ async function loadDashboard(forceRefresh = false) {
       timestamp: Date.now()
     }))
 
-    console.log('✅ Dashboard chargé:', data)
+    console.log('fa-check-circle Dashboard chargé:', data)
 
     // Logs détaillés pour debug
     if (data) {
-      console.log('📚 Matières:', data.matieres)
+      console.log('fa-book Matières:', data.matieres)
       console.log('🏫 Classes:', data.classes)
-      console.log('📝 Évaluations:', data.evaluations)
-      console.log('📊 Stats:', data.statistiques)
+      console.log('fa-pencil Évaluations:', data.evaluations)
+      console.log('fa-bar-chart Stats:', data.statistiques)
     }
   } catch (err) {
-    console.error('❌ Erreur chargement dashboard:', err)
+    console.error('fa-times-circle Erreur chargement dashboard:', err)
     error.value = 'Impossible de charger vos données. Veuillez réessayer.'
   } finally {
     loading.value = false
@@ -370,26 +343,26 @@ function formatDate(dateString) {
 }
 
 function navigateToMatiere(matiere) {
-  console.log('🔍 Structure matière reçue:', matiere)
+  console.log('fa-search Structure matière reçue:', matiere)
 
   // Essayer différentes propriétés
   const matiereId = matiere.matiere_id || matiere.id || matiere.matiere?.id
 
   if (matiereId) {
-    console.log('📚 Navigation vers matière:', matiereId)
+    console.log('fa-book Navigation vers matière:', matiereId)
     router.push({
       name: 'matiere-details',
       params: { id: matiereId }
     })
   } else {
-    console.error('❌ ID matière non trouvé:', matiere)
+    console.error('fa-times-circle ID matière non trouvé:', matiere)
     error.value = 'Impossible de naviguer vers cette matière'
   }
 }
 
 onMounted(() => {
   user.value = auth.getUser()
-  console.log('👤 Teacher User:', user.value)
+  console.log('fa-user Teacher User:', user.value)
 
   // Charger le dashboard KLASSCI
   loadDashboard()

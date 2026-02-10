@@ -10,9 +10,7 @@
       </div>
 
       <!-- Chargement -->
-      <div v-if="loading" class="text-center py-12">
-        <p class="text-gray-600">Chargement...</p>
-      </div>
+      <ContentLoader v-if="loading" text="Chargement du tableau de bord..." />
 
       <!-- Statistiques -->
       <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -24,7 +22,7 @@
               <p class="text-3xl font-bold text-primary-600">{{ stats.lessons_in_progress || 0 }}</p>
             </div>
             <div class="bg-primary-100 p-3 rounded-full">
-              📚
+              fa-book
             </div>
           </div>
         </div>
@@ -37,7 +35,7 @@
               <p class="text-3xl font-bold text-green-600">{{ stats.quizzes_completed || 0 }}</p>
             </div>
             <div class="bg-green-100 p-3 rounded-full">
-              ✅
+              fa-check-circle
             </div>
           </div>
         </div>
@@ -50,7 +48,7 @@
               <p class="text-3xl font-bold text-purple-600">{{ stats.overall_progress || 0 }}%</p>
             </div>
             <div class="bg-purple-100 p-3 rounded-full">
-              📊
+              fa-bar-chart
             </div>
           </div>
         </div>
@@ -112,12 +110,14 @@
 
 <script>
 import Navbar from '@/components/Navbar.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import { dashboard, lessons as lessonsApi, notifications as notificationsApi, auth } from '@/services/api'
 
 export default {
   name: 'Dashboard',
   components: {
-    Navbar
+    Navbar,
+    ContentLoader
   },
   data() {
     return {

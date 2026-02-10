@@ -2,10 +2,7 @@
   <DashboardLayout>
     <div class="max-w-4xl mx-auto">
       <!-- Loading -->
-      <div v-if="loading" class="text-center py-12">
-        <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-500 mx-auto"></div>
-        <p class="text-secondary mt-4">Chargement de vos résultats...</p>
-      </div>
+      <ContentLoader v-if="loading" text="Chargement des résultats..." />
 
       <!-- Résultats chargés -->
       <div v-else-if="submission">
@@ -46,7 +43,7 @@
 
           <!-- Feedback enseignant -->
           <div v-if="submission.feedback" class="feedback-card">
-            <p class="feedback-title">📝 Commentaire de l'enseignant</p>
+            <p class="feedback-title"><i class="fa fa-pencil-square-o"></i> Commentaire de l'enseignant</p>
             <p class="feedback-text">{{ submission.feedback }}</p>
           </div>
         </div>
@@ -84,7 +81,7 @@
               </div>
 
               <p class="countdown-info">
-                ● Les bonnes réponses seront affichées <strong>{{ formatCorrectionDate }}</strong> (7 jours après la soumission) pour préserver l'intégrité des futures sessions.
+                fa-circle Les bonnes réponses seront affichées <strong>{{ formatCorrectionDate }}</strong> (7 jours après la soumission) pour préserver l'intégrité des futures sessions.
               </p>
               <p class="countdown-note">
                 Vous pouvez consulter vos réponses et votre note, mais les corrections détaillées ne sont pas encore visibles.
@@ -117,13 +114,13 @@
                       isCorrect(question) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                     ]"
                   >
-                    {{ isCorrect(question) ? '✓ Correct' : '✗ Incorrect' }}
+                    {{ isCorrect(question) ? 'fa-check Correct' : '✗ Incorrect' }}
                   </span>
                   <span
                     v-else
                     class="px-3 py-1 rounded-full text-xs font-medium bg-secondary text-secondary"
                   >
-                    ● En attente de correction
+                    fa-circle En attente de correction
                   </span>
                 </div>
                 <p class="text-lg text-primary">{{ question.question }}</p>
@@ -158,7 +155,7 @@
                   <span class="flex-1 option-text">{{ option }}</span>
                   <template v-if="isCorrectionAvailable">
                     <span v-if="isOptionCorrect(question, optIndex)" class="text-green-600 text-sm font-medium">
-                      ✓ Bonne réponse
+                      fa-check Bonne réponse
                     </span>
                     <span v-else-if="isOptionSelected(question, optIndex)" class="text-red-600 text-sm font-medium">
                       ✗ Votre réponse
@@ -205,7 +202,7 @@
                   <span class="flex-1 option-text">{{ option }}</span>
                   <template v-if="isCorrectionAvailable">
                     <span v-if="isOptionCorrect(question, optIndex)" class="text-green-600 text-sm font-medium">
-                      ✓ Bonne réponse
+                      fa-check Bonne réponse
                     </span>
                     <span v-else-if="isOptionSelected(question, optIndex)" class="text-red-600 text-sm font-medium">
                       ✗ Votre réponse
@@ -248,7 +245,7 @@
                   <span class="flex-1 font-medium option-text">{{ option }}</span>
                   <template v-if="isCorrectionAvailable">
                     <span v-if="isVraiFauxCorrect(question, option)" class="text-green-600 text-sm font-medium">
-                      ✓ Bonne réponse
+                      fa-check Bonne réponse
                     </span>
                     <span v-else-if="isVraiFauxSelected(question, option)" class="text-red-600 text-sm font-medium">
                       ✗ Votre réponse
@@ -278,7 +275,7 @@
                 </div>
                 <div v-else-if="!isCorrectionAvailable" class="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
                   <p class="text-sm text-yellow-800">
-                    ● La correction sera disponible dans {{ daysUntilCorrection }} jour(s)
+                    fa-circle La correction sera disponible dans {{ daysUntilCorrection }} jour(s)
                   </p>
                 </div>
               </div>
@@ -332,12 +329,14 @@
 
 <script>
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import api from '@/services/api'
 
 export default {
   name: 'EvaluationResults',
   components: {
-    DashboardLayout
+    DashboardLayout,
+    ContentLoader
   },
   data() {
     return {
@@ -349,8 +348,14 @@ export default {
   },
 
   computed: {
-    // Calculer si la correction complète est disponible (7 jours après soumission)
+    // Utiliser la valeur de l'API (sécurisée côté backend) ou fallback calcul local
     isCorrectionAvailable() {
+      // Priorité à la valeur de l'API (source de vérité)
+      if (this.submission && typeof this.submission.correction_available === 'boolean') {
+        return this.submission.correction_available
+      }
+
+      // Fallback: calcul local (pour compatibilité)
       if (!this.submission || !this.submission.submitted_at) return false
 
       const submittedDate = new Date(this.submission.submitted_at)
@@ -362,6 +367,15 @@ export default {
 
     // Nombre de jours restants avant correction
     daysUntilCorrection() {
+      // Si l'API fournit correction_available_at, l'utiliser
+      if (this.submission && this.submission.correction_available_at) {
+        const correctionDate = new Date(this.submission.correction_available_at)
+        const now = new Date()
+        const daysRemaining = Math.ceil((correctionDate - now) / (1000 * 60 * 60 * 24))
+        return Math.max(0, daysRemaining)
+      }
+
+      // Fallback: calcul local
       if (!this.submission || !this.submission.submitted_at) return 0
 
       const submittedDate = new Date(this.submission.submitted_at)
@@ -375,21 +389,37 @@ export default {
     correctionProgressPercent() {
       if (!this.submission || !this.submission.submitted_at) return 0
 
+      const delayDays = this.submission.correction_delay_days || this.CORRECTION_DELAY_DAYS
       const submittedDate = new Date(this.submission.submitted_at)
       const now = new Date()
       const daysSinceSubmission = Math.floor((now - submittedDate) / (1000 * 60 * 60 * 24))
 
-      const percent = Math.min(100, Math.floor((daysSinceSubmission / this.CORRECTION_DELAY_DAYS) * 100))
+      const percent = Math.min(100, Math.floor((daysSinceSubmission / delayDays) * 100))
       return percent
     },
 
     // Date à laquelle la correction sera disponible
     formatCorrectionDate() {
+      // Utiliser la date de l'API si disponible
+      if (this.submission && this.submission.correction_available_at) {
+        const correctionDate = new Date(this.submission.correction_available_at)
+        return correctionDate.toLocaleDateString('fr-FR', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      }
+
+      // Fallback: calcul local
       if (!this.submission || !this.submission.submitted_at) return ''
 
+      const delayDays = this.submission.correction_delay_days || this.CORRECTION_DELAY_DAYS
       const submittedDate = new Date(this.submission.submitted_at)
       const correctionDate = new Date(submittedDate)
-      correctionDate.setDate(correctionDate.getDate() + this.CORRECTION_DELAY_DAYS)
+      correctionDate.setDate(correctionDate.getDate() + delayDays)
 
       return correctionDate.toLocaleDateString('fr-FR', {
         weekday: 'long',

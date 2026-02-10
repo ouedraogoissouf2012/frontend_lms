@@ -24,7 +24,7 @@ export default {
   props: {
     icon: {
       type: String,
-      default: '📊'
+      default: 'fa-bar-chart'
     },
     iconBg: {
       type: String,

@@ -5,10 +5,10 @@
       <div class="lesson-card-header-content">
         <div class="lesson-badges">
           <span :class="`badge-${lesson.type}`" class="lesson-badge">
-            {{ getTypeIcon(lesson.type) }} {{ typeBadge.text }}
+            <i :class="`fa ${getTypeIcon(lesson.type)}`"></i> {{ typeBadge.text }}
           </span>
           <span v-if="showStatus" :class="`badge-status-${lesson.status}`" class="lesson-badge">
-            {{ getStatusIcon(lesson.status) }} {{ statusBadge.text }}
+            <i :class="`fa ${getStatusIcon(lesson.status)}`"></i> {{ statusBadge.text }}
           </span>
         </div>
         <h3 class="lesson-title">
@@ -25,11 +25,11 @@
       <!-- Durée et Type de contenu -->
       <div class="lesson-info-row">
         <div v-if="lesson.duration_minutes" class="lesson-info-item">
-          <span class="info-icon">⏱</span>
+          <i class="fa fa-clock-o info-icon"></i>
           <span>{{ formatDuration(lesson.duration_minutes) }}</span>
         </div>
         <div v-if="lesson.content_type" class="lesson-info-item">
-          <span class="info-icon">{{ getContentTypeIcon(lesson.content_type) }}</span>
+          <i :class="`fa ${getContentTypeIcon(lesson.content_type)} info-icon`"></i>
           <span>{{ getContentTypeLabel(lesson.content_type) }}</span>
         </div>
       </div>
@@ -60,7 +60,7 @@
     <div class="lesson-card-footer">
       <!-- Date de publication -->
       <span class="lesson-date">
-        <span class="date-icon">📅</span>
+        <i class="fa fa-calendar date-icon"></i>
         <span v-if="lesson.published_at">{{ formatDate(lesson.published_at) }}</span>
         <span v-else>{{ formatDate(lesson.created_at) }}</span>
       </span>
@@ -74,26 +74,26 @@
             @click.stop="$emit('publish', lesson.id)"
             class="btn-action btn-publish"
           >
-            ✓ Publier
+            <i class="fa fa-check"></i> Publier
           </button>
           <button
             v-else-if="lesson.status === 'published'"
             @click.stop="$emit('unpublish', lesson.id)"
             class="btn-action btn-unpublish"
           >
-            ✕ Dépublier
+            <i class="fa fa-times"></i> Dépublier
           </button>
           <button
             @click.stop="$emit('edit', lesson.id)"
             class="btn-action btn-edit"
           >
-            ✎ Modifier
+            <i class="fa fa-pencil"></i> Modifier
           </button>
           <button
             @click.stop="$emit('delete', lesson.id)"
             class="btn-action btn-delete"
           >
-            🗑 Supprimer
+            <i class="fa fa-trash-o"></i> Supprimer
           </button>
         </template>
 
@@ -164,33 +164,33 @@ export default {
     },
     getTypeIcon(type) {
       const icons = {
-        cours: '📖',
-        tp: '💻',
-        td: '✏️',
-        projet: '🚀',
-        autre: '📄'
+        cours: 'fa-book',
+        tp: 'fa-laptop',
+        td: 'fa-pencil',
+        projet: 'fa-rocket',
+        autre: 'fa-file-text-o'
       }
-      return icons[type] || '❓'
+      return icons[type] || 'fa-question-circle'
     },
     getStatusIcon(status) {
       const icons = {
-        draft: '✎',
-        published: '✓',
-        archived: '📦'
+        draft: 'fa-pencil',
+        published: 'fa-check',
+        archived: 'fa-archive'
       }
-      return icons[status] || '•'
+      return icons[status] || 'fa-circle'
     },
     getContentTypeIcon(type) {
       const icons = {
-        text: '📝',
-        video: '🎥',
-        pdf: '📄',
-        audio: '🎵',
-        presentation: '📊',
-        link: '🔗',
-        mixed: '📚'
+        text: 'fa-pencil-square-o',
+        video: 'fa-video-camera',
+        pdf: 'fa-file-pdf-o',
+        audio: 'fa-music',
+        presentation: 'fa-bar-chart',
+        link: 'fa-link',
+        mixed: 'fa-book'
       }
-      return icons[type] || '📌'
+      return icons[type] || 'fa-file-o'
     },
     getContentTypeLabel(type) {
       const labels = {

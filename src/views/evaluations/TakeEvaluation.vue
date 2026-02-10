@@ -2,10 +2,7 @@
   <div class="min-h-screen bg-gray-50 py-8">
     <div class="max-w-4xl mx-auto px-4">
       <!-- Loading -->
-      <div v-if="loading" class="text-center py-12">
-        <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-500 mx-auto"></div>
-        <p class="text-gray-600 mt-4">Chargement de l'évaluation...</p>
-      </div>
+      <ContentLoader v-if="loading" text="Chargement de l'évaluation..." />
 
       <!-- Évaluation chargée -->
       <div v-else-if="evaluation">
@@ -282,9 +279,13 @@
 <script>
 import evaluationService from '@/services/evaluation'
 import { auth } from '@/services/api'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 
 export default {
   name: 'TakeEvaluation',
+  components: {
+    ContentLoader
+  },
   data() {
     return {
       evaluation: null,

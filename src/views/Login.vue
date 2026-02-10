@@ -24,7 +24,7 @@
             v-model="username"
             type="text"
             required
-            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
             placeholder="superadmin ou votre email"
           />
         </div>
@@ -39,7 +39,7 @@
             v-model="password"
             type="password"
             required
-            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
             placeholder="••••••••"
           />
         </div>

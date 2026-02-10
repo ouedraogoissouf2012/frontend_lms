@@ -22,11 +22,11 @@
           <!-- Infos classe -->
           <div class="classe-info-line">
             <span v-if="classe?.filiere" class="info-item">
-              <span class="info-icon">⌂</span>
+              <i class="fa fa-home info-icon"></i>
               Filière: <strong>{{ classe.filiere.nom }}</strong>
             </span>
             <span v-if="classe?.niveau" class="info-item">
-              <span class="info-icon">☰</span>
+              <i class="fa fa-bars info-icon"></i>
               Niveau: <strong>{{ classe.niveau.nom }}</strong>
             </span>
             <span v-if="classe?.code" class="info-item">
@@ -45,7 +45,7 @@
       <div class="stats-grid-header" v-if="!loading">
         <div class="stat-card-header">
           <div class="stat-header-inner">
-            <span class="stat-icon-header">☺</span>
+            <i class="fa fa-user stat-icon-header"></i>
             <span class="stat-label-header">Étudiants</span>
           </div>
           <p class="stat-value-header">{{ etudiants?.length || 0 }}</p>
@@ -59,7 +59,7 @@
         </div>
         <div class="stat-card-header">
           <div class="stat-header-inner">
-            <span class="stat-icon-header">✓</span>
+            <i class="fa fa-check stat-icon-header"></i>
             <span class="stat-label-header">Évaluations</span>
           </div>
           <p class="stat-value-header">{{ evaluations?.length || 0 }}</p>
@@ -68,10 +68,7 @@
     </div>
 
     <!-- Loading -->
-    <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-      <p class="mt-4 text-gray-600">Chargement...</p>
-    </div>
+    <ContentLoader v-if="loading" text="Chargement de la classe..." />
 
     <!-- Error -->
     <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
@@ -385,12 +382,14 @@ import lmsService from '@/services/lms'
 import klassciService from '@/services/klassci'
 import { auth } from '@/services/api'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import VisioManager from '@/components/visio/VisioManager.vue'
 
 export default {
   name: 'ClasseDetails',
   components: {
     DashboardLayout,
+    ContentLoader,
     VisioManager
   },
 

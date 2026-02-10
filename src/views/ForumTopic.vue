@@ -23,13 +23,13 @@
               <h1 class="text-3xl font-bold forum-title mb-2">{{ topic.title }}</h1>
               <div class="flex gap-2 mt-2">
                 <span v-if="topic.is_pinned" class="inline-flex items-center px-3 py-1 text-sm font-medium text-yellow-800 bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-200 rounded-full">
-                  📌 Épinglé
+                  <i class="fa fa-thumb-tack"></i> Épinglé
                 </span>
                 <span v-if="topic.status === 'closed'" class="inline-flex items-center px-3 py-1 text-sm font-medium text-red-800 bg-red-100 dark:bg-red-900 dark:text-red-200 rounded-full">
-                  🔒 Fermé
+                  <i class="fa fa-lock"></i> Fermé
                 </span>
                 <span v-if="topic.is_resolved" class="inline-flex items-center px-3 py-1 text-sm font-medium text-green-800 bg-green-100 dark:bg-green-900 dark:text-green-200 rounded-full">
-                  ✔️ Résolu
+                  <i class="fa fa-check"></i> Résolu
                 </span>
               </div>
             </div>
@@ -79,7 +79,7 @@
             <!-- Badge solution -->
             <div v-if="post.is_solution" class="flex items-center gap-2 mb-4">
               <span class="inline-flex items-center px-3 py-1 text-sm font-semibold text-green-800 bg-green-100 dark:bg-green-800 dark:text-green-100 rounded-full">
-                ✔️ Solution acceptée
+                <i class="fa fa-check-circle"></i> Solution acceptée
               </span>
             </div>
 
@@ -88,7 +88,7 @@
 
             <!-- Badge édité -->
             <div v-if="post.is_edited" class="text-xs text-gray-500 dark:text-gray-400 mb-3 italic">
-              ✏️ Modifié {{ post.edited_at ? 'le ' + formatDate(post.edited_at) : '' }}
+              <i class="fa fa-pencil"></i> Modifié {{ post.edited_at ? 'le ' + formatDate(post.edited_at) : '' }}
             </div>
 
             <!-- Footer avec auteur et actions -->

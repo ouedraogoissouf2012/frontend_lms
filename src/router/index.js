@@ -23,7 +23,6 @@ import VideoConference from '@/views/VideoConference.vue'
 // Import Évaluations
 import TeacherEvaluations from '@/views/evaluations/TeacherEvaluations.vue'
 import CreateQuestions from '@/views/evaluations/CreateQuestions.vue'
-import StudentEvaluations from '@/views/evaluations/StudentEvaluations.vue'
 import TakeEvaluation from '@/views/evaluations/TakeEvaluation.vue'
 import PreviewEvaluation from '@/views/evaluations/PreviewEvaluation.vue'
 import EvaluationResults from '@/views/evaluations/EvaluationResults.vue'
@@ -37,15 +36,17 @@ import CoordinatorEvaluations from '@/views/coordinateur/CoordinatorEvaluations.
 import TeacherSeances from '@/views/TeacherSeances.vue'
 
 // Import Historique des présences
-import AttendanceHistoryV2 from '@/views/attendance/AttendanceHistoryV2.vue'
+import SeanceAttendanceHistory from '@/views/attendance/SeanceAttendanceHistory.vue'
 
 // Import des nouvelles vues Enseignant et Admin
+import TeacherHub from '@/views/teacher/TeacherHub.vue'
 import TeacherClasses from '@/views/teacher/TeacherClasses.vue'
 import TeacherStats from '@/views/teacher/TeacherStats.vue'
 import EvaluationCorrections from '@/views/teacher/EvaluationCorrections.vue'
 import AdminUsers from '@/views/admin/AdminUsers.vue'
 import AdminClasses from '@/views/admin/AdminClasses.vue'
 import AdminMatieres from '@/views/admin/AdminMatieres.vue'
+import AdminHub from '@/views/admin/AdminHub.vue'
 
 const routes = [
   {
@@ -90,6 +91,16 @@ const routes = [
     meta: {
       requiresAuth: true,
       roles: ['superAdmin', 'coordinateur']
+    }
+  },
+  // Espace Admin (Hub) - Classes, Matières, Enseignants
+  {
+    path: '/admin/hub',
+    name: 'AdminHub',
+    component: AdminHub,
+    meta: {
+      requiresAuth: true,
+      roles: ['superAdmin', 'coordinateur', 'secretaire']
     }
   },
   // Gestion Classes Admin
@@ -218,6 +229,28 @@ const routes = [
       roles: ['enseignant', 'teacher']
     }
   },
+  // Emploi du Temps Enseignant - NOUVEAU (calendrier unifie seances + evaluations)
+  {
+    path: '/teacher/schedule',
+    name: 'TeacherSchedule',
+    component: () => import('@/views/teacher/TeacherSchedule.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['enseignant', 'teacher'],
+      title: 'Emploi du Temps'
+    }
+  },
+  // Hub Enseignant - Mon Espace
+  {
+    path: '/teacher/hub',
+    name: 'TeacherHub',
+    component: TeacherHub,
+    meta: {
+      requiresAuth: true,
+      roles: ['enseignant', 'teacher'],
+      title: 'Mon Espace'
+    }
+  },
   // Classes Enseignant
   {
     path: '/teacher/classes',
@@ -305,6 +338,22 @@ const routes = [
       requiresAuth: true,
       roles: ['etudiant'],
       title: 'Mes Cours'
+    }
+  },
+  // Détails d'un cours (leçon) - Étudiant
+  {
+    path: '/student/lessons/:id',
+    name: 'lesson-details',
+    component: () => import('@/views/lessons/LessonChapters.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['etudiant'],
+      title: 'Contenu du cours'
+    },
+    // Forcer le mode lecture seule pour les étudiants
+    beforeEnter: (to, from, next) => {
+      to.query.readonly = 'true'
+      next()
     }
   },
   // Évaluations - Étudiant (liste centralisée)
@@ -473,7 +522,7 @@ const routes = [
   },
   {
     path: '/teacher/evaluations/create',
-    redirect: '/teacher/evaluations/create-questions'
+    redirect: '/teacher/evaluations'
   },
   {
     path: '/teacher/evaluations/create-questions',
@@ -493,15 +542,10 @@ const routes = [
       roles: ['enseignant', 'teacher']
     }
   },
-  // Évaluations - Étudiant
+  // Évaluations - Étudiant (redirige vers la liste avec layout)
   {
     path: '/student/evaluations',
-    name: 'StudentEvaluations',
-    component: StudentEvaluations,
-    meta: {
-      requiresAuth: true,
-      roles: ['etudiant']
-    }
+    redirect: '/student/evaluations-list'
   },
   {
     path: '/student/evaluations/:id/take',
@@ -568,11 +612,11 @@ const routes = [
     component: SeanceDetails,
     meta: { requiresAuth: true }
   },
-  // Historique des présences (accessible par tous les rôles authentifiés)
+  // Historique des séances avec présences
   {
-    path: '/attendance/history',
-    name: 'attendance-history',
-    component: AttendanceHistoryV2,
+    path: '/attendance/seances',
+    name: 'seance-attendance-history',
+    component: SeanceAttendanceHistory,
     meta: { requiresAuth: true }
   },
   // Coordinateur - Gestion des évaluations
@@ -594,6 +638,16 @@ const routes = [
     meta: {
       requiresAuth: true,
       roles: ['coordinateur', 'superAdmin']
+    }
+  },
+
+  // 🧪 TEST - Visio Store (Tests de la correction heartbeat)
+  {
+    path: '/test-visio',
+    name: 'TestVisio',
+    component: () => import('@/components/test/VisioStoreTest.vue'),
+    meta: {
+      requiresAuth: true
     }
   }
 ]

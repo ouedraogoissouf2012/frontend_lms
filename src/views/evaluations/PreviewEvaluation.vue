@@ -31,15 +31,12 @@
       </div>
 
       <!-- Loading State -->
-      <div v-if="loading" class="loading-state">
-        <div class="spinner"></div>
-        <p>Chargement de la prévisualisation...</p>
-      </div>
+      <ContentLoader v-if="loading" text="Chargement de la prévisualisation..." />
 
       <!-- Error State -->
       <div v-else-if="error" class="error-state">
         <div class="error-content">
-          <span class="error-icon">⚠</span>
+          <i class="fa fa-exclamation-triangle error-icon"></i>
           <div>
             <h3 class="error-title">Erreur de chargement</h3>
             <p class="error-message">{{ error }}</p>
@@ -196,6 +193,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import {
   ArrowLeftIcon,
   ArrowPathIcon,
@@ -391,30 +389,7 @@ onMounted(() => {
   color: var(--text-secondary);
 }
 
-/* Loading and Error States */
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  gap: 1rem;
-  color: var(--text-secondary);
-}
-
-.spinner {
-  width: 3rem;
-  height: 3rem;
-  border: 4px solid var(--border-primary);
-  border-top-color: var(--blue-500);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
+/* Error State */
 .error-state {
   padding: 2rem;
   text-align: center;

@@ -96,10 +96,7 @@
       </div>
 
       <!-- Chargement -->
-      <div v-if="loading" class="loading-container">
-        <div class="spinner"></div>
-        <p class="loading-text">Chargement de vos notes...</p>
-      </div>
+      <ContentLoader v-if="loading" text="Chargement de vos notes..." />
 
       <!-- Erreur -->
       <div v-else-if="error" class="error-container">
@@ -283,11 +280,13 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/services/api'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 
 export default {
   name: 'StudentGrades',
   components: {
-    DashboardLayout
+    DashboardLayout,
+    ContentLoader
   },
   setup() {
     const router = useRouter()
@@ -877,8 +876,7 @@ export default {
   color: var(--primary-color);
 }
 
-/* Loading & Error */
-.loading-container,
+/* Error & Empty */
 .error-container,
 .empty-state {
   text-align: center;
@@ -886,21 +884,6 @@ export default {
   color: var(--text-secondary);
 }
 
-.spinner {
-  width: 64px;
-  height: 64px;
-  border: 4px solid var(--border-primary);
-  border-top-color: var(--primary-color);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.loading-text,
 .error-text {
   margin: 1rem 0;
   font-size: 1rem;

@@ -20,15 +20,12 @@
       </div>
 
       <!-- Loading State -->
-      <div v-if="loading" class="loading-state">
-        <SkeletonLoader type="card" height="150px" />
-        <SkeletonLoader type="card" :rows="5" />
-      </div>
+      <ContentLoader v-if="loading" text="Chargement des resultats..." />
 
       <!-- Error State -->
       <div v-else-if="error" class="error-state">
         <div class="error-content">
-          <span class="error-icon">⚠</span>
+          <i class="fa fa-exclamation-triangle error-icon"></i>
           <div>
             <h3 class="error-title">Erreur de chargement</h3>
             <p class="error-message">{{ error }}</p>
@@ -69,7 +66,7 @@
             </div>
             <div class="stat-content">
               <p class="stat-label">Moyenne classe</p>
-              <p class="stat-value">{{ statistiques?.moyenne_classe ? statistiques.moyenne_classe.toFixed(2) : '-' }}/20</p>
+              <p class="stat-value">{{ (statistiques?.moyenne_classe !== null && statistiques?.moyenne_classe !== undefined) ? statistiques.moyenne_classe.toFixed(2) : '-' }}/20</p>
             </div>
           </div>
 
@@ -151,7 +148,7 @@
                   </td>
                   <td>
                     <span :class="getNoteClass(resultat.note)" class="note-value">
-                      {{ resultat.note !== null && resultat.note !== undefined ? resultat.note.toFixed(2) : '-' }}
+                      {{ resultat.note !== null && resultat.note !== undefined ? parseFloat(resultat.note).toFixed(2) : '-' }}
                     </span>
                   </td>
                   <td>{{ resultat.score !== null ? resultat.score : '-' }}</td>
@@ -175,15 +172,15 @@
             <div class="distribution-list">
               <div class="distribution-item">
                 <span class="distribution-label">Note min:</span>
-                <span class="distribution-value">{{ statistiques?.note_min !== null ? statistiques.note_min.toFixed(2) : '-' }}</span>
+                <span class="distribution-value">{{ (statistiques?.note_min !== null && statistiques?.note_min !== undefined) ? statistiques.note_min.toFixed(2) : '-' }}</span>
               </div>
               <div class="distribution-item">
                 <span class="distribution-label">Note max:</span>
-                <span class="distribution-value">{{ statistiques?.note_max !== null ? statistiques.note_max.toFixed(2) : '-' }}</span>
+                <span class="distribution-value">{{ (statistiques?.note_max !== null && statistiques?.note_max !== undefined) ? statistiques.note_max.toFixed(2) : '-' }}</span>
               </div>
               <div class="distribution-item">
                 <span class="distribution-label">Médiane:</span>
-                <span class="distribution-value">{{ statistiques?.mediane !== null ? statistiques.mediane.toFixed(2) : '-' }}</span>
+                <span class="distribution-value">{{ (statistiques?.mediane !== null && statistiques?.mediane !== undefined) ? statistiques.mediane.toFixed(2) : '-' }}</span>
               </div>
             </div>
           </div>
@@ -215,7 +212,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import {
   DocumentTextIcon,
   UserGroupIcon,
@@ -247,12 +244,13 @@ const loadData = async () => {
     const evaluationId = route.params.id
     const response = await api.get(`/evaluations/${evaluationId}/results-by-class`)
 
-    if (response.data.success) {
-      evaluation.value = response.data.data.evaluation
-      resultats.value = response.data.data.resultats
-      statistiques.value = response.data.data.statistiques
+    // L'intercepteur retourne déjà response.data, donc response = { success: true, data: {...} }
+    if (response.success) {
+      evaluation.value = response.data.evaluation
+      resultats.value = response.data.resultats
+      statistiques.value = response.data.statistiques
     } else {
-      error.value = response.data.message || 'Erreur lors du chargement des résultats'
+      error.value = response.message || 'Erreur lors du chargement des résultats'
     }
   } catch (err) {
     console.error('Erreur chargement résultats:', err)

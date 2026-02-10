@@ -13,12 +13,12 @@
       </div>
 
       <!-- Loading State -->
-      <SkeletonLoader v-if="loading" type="list" :count="3" />
+      <ContentLoader v-if="loading" text="Chargement des évaluations..." />
 
       <!-- Error State -->
       <div v-else-if="error" class="error-state">
         <div class="error-content">
-          <span class="error-icon">⚠</span>
+          <i class="fa fa-exclamation-triangle error-icon"></i>
           <div>
             <h3 class="error-title">Erreur de chargement</h3>
             <p class="error-message">{{ error }}</p>
@@ -225,7 +225,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import {
   DocumentTextIcon,
   UserIcon,
@@ -312,7 +312,8 @@ const loadData = async () => {
   try {
     // Charger les évaluations
     const evalsResponse = await api.get('/evaluations')
-    evaluations.value = evalsResponse.data.data || []
+    // L'intercepteur retourne déjà response.data, donc evalsResponse = { success: true, data: [...] }
+    evaluations.value = evalsResponse.data || []
 
     // Extraire la liste unique des enseignants
     const enseignantsMap = new Map()
@@ -333,8 +334,8 @@ const loadData = async () => {
       api.get('/proxy/matieres')
     ])
 
-    classes.value = classesResponse.data.data || []
-    matieres.value = matieresResponse.data.data || []
+    classes.value = classesResponse.data || []
+    matieres.value = matieresResponse.data || []
 
   } catch (err) {
     console.error('Erreur chargement données:', err)

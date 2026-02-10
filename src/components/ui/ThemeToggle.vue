@@ -5,8 +5,8 @@
     :title="theme === 'light' ? 'Passer en mode sombre' : 'Passer en mode clair'"
   >
     <transition name="rotate" mode="out-in">
-      <span v-if="theme === 'light'" key="light" class="icon">☼</span>
-      <span v-else key="dark" class="icon">◐</span>
+      <i v-if="theme === 'light'" key="light" class="fa fa-sun-o icon"></i>
+      <i v-else key="dark" class="fa fa-moon-o icon"></i>
     </transition>
   </button>
 </template>

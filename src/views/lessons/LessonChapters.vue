@@ -31,8 +31,9 @@
                 <span v-if="lesson.duree_estimee_minutes" class="meta-info">
                   ⏱ {{ lesson.duree_estimee_minutes }} min
                 </span>
-                <span class="meta-info">
-                  {{ lesson.status === 'published' ? '✓ Publiée' : '📝 Brouillon' }}
+                <span class="meta-info status-badge" :class="lesson.status === 'published' ? 'status-published' : 'status-draft'">
+                  <i :class="lesson.status === 'published' ? 'fa fa-check' : 'fa fa-pencil'"></i>
+                  {{ lesson.status === 'published' ? 'Publiee' : 'Brouillon' }}
                 </span>
               </div>
             </div>
@@ -41,7 +42,7 @@
                 @click="previewLesson"
                 class="btn-preview"
               >
-                ◈ Prévisualiser
+                <i class="fa fa-eye"></i> Previsualiser
               </button>
               <button
                 @click="publishLesson"
@@ -55,13 +56,13 @@
 
           <!-- Prerequisites -->
           <div v-if="lesson.prerequis" class="lesson-section">
-            <h3 class="section-title">Prérequis</h3>
+            <h3 class="section-title"><i class="fa fa-list-ul"></i> Prérequis</h3>
             <p class="section-content">{{ lesson.prerequis }}</p>
           </div>
 
           <!-- Objectifs -->
           <div v-if="lesson.objectifs_pedagogiques" class="lesson-section">
-            <h3 class="section-title">Objectifs pédagogiques</h3>
+            <h3 class="section-title"><i class="fa fa-bullseye"></i> Objectifs pédagogiques</h3>
             <p class="section-content">{{ lesson.objectifs_pedagogiques }}</p>
           </div>
         </div>
@@ -115,10 +116,10 @@ export default {
     lessonId() {
       return parseInt(this.$route.params.id)
     },
-    // Mode lecture seule si on vient de l'onglet Leçons (pas de contexte matière)
+    // Mode edition par defaut pour les enseignants
     isReadOnly() {
-      // Si pas de query param matiere_id ou edit=true, c'est en mode lecture seule
-      return !this.$route.query.edit
+      // Mode lecture seule uniquement si explicitement demande avec ?readonly=true
+      return this.$route.query.readonly === 'true'
     }
   },
 
@@ -191,7 +192,7 @@ export default {
       // Retourner à la page de la matière si possible
       if (this.lesson?.matiere_id) {
         this.$router.push({
-          name: 'MatiereDetails',
+          name: 'matiere-details',
           params: { id: this.lesson.matiere_id }
         })
       } else {
@@ -349,6 +350,32 @@ export default {
 .meta-info {
   font-size: 0.875rem;
   color: var(--text-secondary);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status-badge i {
+  font-size: 0.7rem;
+}
+
+.status-published {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-draft {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 .lesson-actions {

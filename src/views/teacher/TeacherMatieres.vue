@@ -10,17 +10,11 @@
       </div>
 
       <!-- Loading state -->
-      <div v-if="loading" class="loading-container">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <SkeletonLoader type="card" />
-          <SkeletonLoader type="card" />
-          <SkeletonLoader type="card" />
-        </div>
-      </div>
+      <ContentLoader v-if="loading" text="Chargement des matières..." />
 
       <!-- Error state -->
       <div v-else-if="error" class="error-state">
-        <div class="error-icon">⚠</div>
+        <div class="error-icon"><i class="fa fa-exclamation-triangle"></i></div>
         <div class="error-content">
           <h3 class="error-title">Erreur de chargement</h3>
           <p class="error-message">{{ error }}</p>
@@ -55,7 +49,7 @@
           <!-- Statistiques enrichies -->
           <div class="course-stats">
             <div class="stat-item">
-              <span class="stat-icon">◈</span>
+              <i class="fa fa-diamond stat-icon"></i>
               <span class="stat-text">{{ matiere.statistiques?.nombre_lessons_publiees || 0 }} Leçon{{ (matiere.statistiques?.nombre_lessons_publiees || 0) > 1 ? 's' : '' }} publiée{{ (matiere.statistiques?.nombre_lessons_publiees || 0) > 1 ? 's' : '' }}</span>
             </div>
             <div v-if="matiere.statistiques?.nombre_lessons_brouillons > 0" class="stat-item">
@@ -63,11 +57,11 @@
               <span class="stat-text">{{ matiere.statistiques.nombre_lessons_brouillons }} Brouillon{{ matiere.statistiques.nombre_lessons_brouillons > 1 ? 's' : '' }}</span>
             </div>
             <div class="stat-item">
-              <span class="stat-icon">◐</span>
+              <i class="fa fa-adjust stat-icon"></i>
               <span class="stat-text">{{ matiere.statistiques?.nombre_seances || 0 }} Séance{{ (matiere.statistiques?.nombre_seances || 0) > 1 ? 's' : '' }}</span>
             </div>
             <div class="stat-item">
-              <span class="stat-icon">☰</span>
+              <i class="fa fa-bars stat-icon"></i>
               <span class="stat-text">{{ matiere.statistiques?.nombre_evaluations || 0 }} Éval.</span>
             </div>
           </div>
@@ -103,7 +97,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import lmsService from '@/services/lms'
 import { BookOpenIcon } from '@heroicons/vue/24/outline'
 

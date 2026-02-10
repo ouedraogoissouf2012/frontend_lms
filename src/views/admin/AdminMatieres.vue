@@ -68,11 +68,11 @@
       </div>
 
       <!-- Loading state -->
-      <SkeletonLoader v-if="loading" type="card" :count="6" height="180px" />
+      <ContentLoader v-if="loading" text="Chargement des matieres..." />
 
       <!-- Error state -->
       <div v-else-if="error" class="error-state">
-        <div class="error-icon">⚠</div>
+        <div class="error-icon"><i class="fa fa-exclamation-triangle"></i></div>
         <div class="error-content">
           <h3 class="error-title">Erreur de chargement</h3>
           <p class="error-message">{{ error }}</p>
@@ -325,7 +325,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
 import { klassciService } from '@/services/klassci'
 import {
   BookOpenIcon,

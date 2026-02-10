@@ -2,10 +2,7 @@
   <DashboardLayout>
     <div class="lesson-view-container">
       <!-- Loading State -->
-      <div v-if="loading" class="loading-state">
-        <div class="spinner"></div>
-        <p>Chargement de la leçon...</p>
-      </div>
+      <ContentLoader v-if="loading" text="Chargement de la leçon..." />
 
       <!-- Error State -->
       <div v-else-if="error" class="error-state">
@@ -44,12 +41,32 @@
               {{ lesson.description }}
             </p>
 
-            <!-- Progress Bar -->
-            <div v-if="userProgress" class="progress-section">
-              <div class="progress-bar-container">
-                <div class="progress-bar" :style="{ width: userProgress.progress_percentage + '%' }"></div>
+            <!-- Chapter Progress Bar -->
+            <div v-if="chapterProgress && chapters.length > 0" class="chapter-progress-section">
+              <div class="chapter-progress-header">
+                <span class="chapter-progress-label">Progression des chapitres</span>
+                <span class="chapter-progress-count">{{ chapterProgress.completed_chapters }} / {{ chapterProgress.total_chapters }}</span>
               </div>
-              <span class="progress-text">{{ userProgress.progress_percentage }}% complété</span>
+              <div class="chapter-progress-bar-container">
+                <div class="chapter-progress-bar" :style="{ width: chapterProgress.percentage + '%' }"></div>
+              </div>
+              <div class="chapter-progress-dots">
+                <div
+                  v-for="(ch, idx) in chapterProgress.chapters"
+                  :key="ch.chapter_id"
+                  class="chapter-dot"
+                  :class="{
+                    completed: ch.is_completed,
+                    current: !ch.is_completed && (idx === 0 || chapterProgress.chapters[idx - 1]?.is_completed),
+                    locked: !ch.is_completed && idx > 0 && !chapterProgress.chapters[idx - 1]?.is_completed
+                  }"
+                  :title="ch.title"
+                >
+                  <i v-if="ch.is_completed" class="material-icons">check</i>
+                  <i v-else-if="ch.content_type === 'quiz'" class="material-icons">quiz</i>
+                  <span v-else>{{ idx + 1 }}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -64,10 +81,15 @@
               class="chapter-block-view"
             >
               <!-- Chapter Header -->
-              <div class="chapter-header-view">
+              <div class="chapter-header-view" :class="{ completed: isChapterCompleted(chapter.id) }">
                 <h2 class="chapter-title-view">
-                  Chapitre {{ index + 1 }}: {{ chapter.title }}
+                  <span class="chapter-number">Chapitre {{ index + 1 }}:</span>
+                  {{ chapter.title }}
                 </h2>
+                <div v-if="isChapterCompleted(chapter.id)" class="chapter-completed-badge">
+                  <i class="material-icons">check_circle</i>
+                  Termine
+                </div>
               </div>
 
               <!-- Chapter Content based on type -->
@@ -126,6 +148,42 @@
                   <a :href="chapter.content" target="_blank" class="btn-external-large">
                     Accéder au lien externe →
                   </a>
+                </div>
+
+                <!-- Quiz (Testez vos connaissances) -->
+                <div v-if="chapter.content_type === 'quiz'" class="quiz-content">
+                  <KnowledgeCheckPlayer
+                    v-if="chapterQuizzes[chapter.id]"
+                    :quiz="chapterQuizzes[chapter.id]"
+                    @completed="onQuizCompleted(chapter.id, $event)"
+                  />
+                  <div v-else-if="loadingQuizzes[chapter.id]" class="quiz-loading">
+                    <div class="spinner"></div>
+                    <p>Chargement du quiz...</p>
+                  </div>
+                  <div v-else class="quiz-empty">
+                    <i class="material-icons">quiz</i>
+                    <p>Aucun quiz disponible pour ce chapitre.</p>
+                  </div>
+                </div>
+
+                <!-- Bouton Marquer comme lu (pour tous sauf quiz) -->
+                <div v-if="chapter.content_type !== 'quiz'" class="chapter-actions">
+                  <button
+                    v-if="!isChapterCompleted(chapter.id)"
+                    @click="markChapterAsCompleted(chapter.id)"
+                    :disabled="markingChapter === chapter.id"
+                    class="btn-mark-complete"
+                  >
+                    <i class="material-icons" :class="{ spinning: markingChapter === chapter.id }">
+                      {{ markingChapter === chapter.id ? 'sync' : 'check_circle' }}
+                    </i>
+                    {{ markingChapter === chapter.id ? 'Enregistrement...' : 'Marquer comme lu' }}
+                  </button>
+                  <div v-else class="chapter-completed-message">
+                    <i class="material-icons">check_circle</i>
+                    Chapitre termine
+                  </div>
                 </div>
               </div>
             </div>
@@ -252,7 +310,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
+import ContentLoader from '@/components/common/ContentLoader.vue'
+import KnowledgeCheckPlayer from '@/components/lessons/KnowledgeCheckPlayer.vue'
 import lessonService from '@/services/lesson'
+import knowledgeCheckService from '@/services/knowledgeCheck'
+import chapterProgressService from '@/services/chapterProgress'
 import api from '@/services/api'
 
 const route = useRoute()
@@ -264,6 +326,10 @@ const loading = ref(true)
 const error = ref(null)
 const marking = ref(false)
 const updating = ref(false)
+const chapterQuizzes = ref({})
+const loadingQuizzes = ref({})
+const chapterProgress = ref(null)
+const markingChapter = ref(null)
 
 const userProgress = computed(() => lesson.value?.user_progress || null)
 const isCompleted = computed(() => userProgress.value?.progress_percentage === 100)
@@ -350,6 +416,12 @@ const loadLesson = async () => {
         if (chaptersResponse.success) {
           chapters.value = chaptersResponse.data
           console.log('[StudentLessonView] Chapitres chargés:', chapters.value)
+
+          // Charger les quiz pour les chapitres de type 'quiz'
+          await loadQuizzesForChapters()
+
+          // Charger la progression des chapitres
+          await loadChapterProgress()
         }
       } catch (chapErr) {
         console.warn('[StudentLessonView] Pas de chapitres pour cette leçon:', chapErr)
@@ -370,6 +442,67 @@ const loadLesson = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const loadQuizzesForChapters = async () => {
+  const quizChapters = chapters.value.filter(ch => ch.content_type === 'quiz')
+  console.log('[StudentLessonView] Chapitres quiz à charger:', quizChapters.length)
+
+  for (const chapter of quizChapters) {
+    loadingQuizzes.value[chapter.id] = true
+    try {
+      const response = await knowledgeCheckService.getByChapter(chapter.id)
+      const quizzes = response.success ? response.data : response
+      if (quizzes && quizzes.length > 0) {
+        chapterQuizzes.value[chapter.id] = quizzes[0]
+        console.log('[StudentLessonView] Quiz chargé pour chapitre', chapter.id, ':', quizzes[0])
+      }
+    } catch (err) {
+      console.error('[StudentLessonView] Erreur chargement quiz chapitre', chapter.id, ':', err)
+    } finally {
+      loadingQuizzes.value[chapter.id] = false
+    }
+  }
+}
+
+const loadChapterProgress = async () => {
+  try {
+    const response = await chapterProgressService.getLessonProgress(route.params.id)
+    if (response.success) {
+      chapterProgress.value = response.data
+      console.log('[StudentLessonView] Progression chargée:', chapterProgress.value)
+    }
+  } catch (err) {
+    console.warn('[StudentLessonView] Erreur chargement progression:', err)
+  }
+}
+
+const isChapterCompleted = (chapterId) => {
+  if (!chapterProgress.value?.chapters) return false
+  const ch = chapterProgress.value.chapters.find(c => c.chapter_id === chapterId)
+  return ch?.is_completed || false
+}
+
+const markChapterAsCompleted = async (chapterId) => {
+  markingChapter.value = chapterId
+  try {
+    const response = await chapterProgressService.markAsCompleted(chapterId)
+    if (response.success) {
+      // Recharger la progression
+      await loadChapterProgress()
+    }
+  } catch (err) {
+    console.error('[StudentLessonView] Erreur marquage chapitre:', err)
+    alert(err.response?.data?.message || 'Erreur lors du marquage du chapitre')
+  } finally {
+    markingChapter.value = null
+  }
+}
+
+const onQuizCompleted = async (chapterId, result) => {
+  console.log('[StudentLessonView] Quiz complete:', chapterId, result)
+  // Recharger la progression après un quiz
+  await loadChapterProgress()
 }
 
 const markAsComplete = async () => {
@@ -949,6 +1082,213 @@ onMounted(() => {
 
 .link-content {
   padding: 1rem 0;
+}
+
+/* Quiz Content */
+.quiz-content {
+  min-height: 200px;
+}
+
+.quiz-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: var(--text-secondary);
+}
+
+.quiz-loading .spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 3px solid var(--border-primary);
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+.quiz-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.quiz-empty i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+/* Chapter Progress Section */
+.chapter-progress-section {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: var(--bg-secondary, #f9fafb);
+  border-radius: 0.75rem;
+}
+
+.chapter-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.chapter-progress-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.chapter-progress-count {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #3b82f6;
+}
+
+.chapter-progress-bar-container {
+  height: 0.5rem;
+  background: var(--border-primary, #e5e7eb);
+  border-radius: 9999px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.chapter-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #3b82f6);
+  border-radius: 9999px;
+  transition: width 0.5s ease;
+}
+
+.chapter-progress-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.chapter-dot {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  border: 2px solid var(--border-primary, #e5e7eb);
+  background: var(--card-bg, white);
+  color: var(--text-secondary);
+}
+
+.chapter-dot.completed {
+  background: #10b981;
+  border-color: #10b981;
+  color: white;
+}
+
+.chapter-dot.completed i {
+  font-size: 1rem;
+}
+
+.chapter-dot.current {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.chapter-dot.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.chapter-dot i {
+  font-size: 0.875rem;
+}
+
+/* Chapter Header Completed */
+.chapter-header-view.completed {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.chapter-completed-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.chapter-completed-badge i {
+  font-size: 1rem;
+}
+
+.chapter-number {
+  opacity: 0.9;
+}
+
+/* Chapter Actions */
+.chapter-actions {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-primary, #e5e7eb);
+  display: flex;
+  justify-content: center;
+}
+
+.btn-mark-complete {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-mark-complete:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.btn-mark-complete:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-mark-complete i.spinning {
+  animation: spin 1s linear infinite;
+}
+
+.chapter-completed-message {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #d1fae5;
+  color: #065f46;
+  border-radius: 0.5rem;
+  font-weight: 600;
+}
+
+.chapter-completed-message i {
+  color: #10b981;
 }
 
 /* Word Content */
