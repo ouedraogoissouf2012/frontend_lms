@@ -363,8 +363,14 @@ export default {
       exporting: false
     }
   },
-  mounted() {
-    this.loadSeances()
+  async mounted() {
+    await this.loadSeances()
+
+    // Si un seanceId est passé en paramètre, ouvrir directement le modal de présences
+    const seanceId = this.$route.params.seanceId
+    if (seanceId) {
+      this.openSeanceById(parseInt(seanceId))
+    }
   },
   methods: {
     async loadSeances(page = 1) {
@@ -453,6 +459,43 @@ export default {
     changePage(page) {
       if (page >= 1 && page <= this.pagination.last_page) {
         this.loadSeances(page)
+      }
+    },
+
+    async openSeanceById(seanceId) {
+      // Chercher la séance dans la liste déjà chargée
+      let seance = this.seances.find(s => s.id === seanceId)
+
+      if (seance) {
+        // Séance trouvée dans la liste, ouvrir le modal
+        await this.viewAttendances(seance)
+      } else {
+        // Séance pas dans la liste (autre période), charger directement les présences
+        this.selectedSeance = { id: seanceId, klassci_seance_id: seanceId, matiere_nom: '', date: '' }
+        this.loadingAttendances = true
+        this.attendances = null
+        this.attendancesError = null
+
+        try {
+          const response = await lmsService.getSeanceAttendances(seanceId)
+          if (response.success) {
+            this.attendances = response
+            // Mettre à jour les infos de la séance depuis la réponse
+            if (response.seance) {
+              this.selectedSeance = {
+                ...this.selectedSeance,
+                matiere_nom: response.seance.matiere_nom || '',
+                date: response.seance.date || '',
+                enseignant_nom: response.seance.enseignant_nom || '',
+                klassci_seance_id: response.seance.klassci_seance_id || seanceId
+              }
+            }
+          }
+        } catch (err) {
+          this.attendancesError = err.message || 'Erreur lors du chargement des présences'
+        } finally {
+          this.loadingAttendances = false
+        }
       }
     },
 

@@ -217,14 +217,12 @@ export default {
           to: '/teacher/hub'
         })
         }
-        // Évaluations - Enseignant avec sous-menu creation
+        // Évaluations - Enseignant
         if (user.role !== 'coordinateur') {
         menu.push({
           icon: 'fa-edit',
           label: 'Évaluations',
-          children: [
-            { icon: 'fa-list-alt', label: 'Mes Évaluations', to: '/teacher/evaluations' }
-          ]
+          to: '/teacher/evaluations'
         })
         }
         // Évaluations - Coordinateur (vue globale sans creation)

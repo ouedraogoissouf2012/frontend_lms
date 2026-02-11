@@ -1,0 +1,1513 @@
+<template>
+  <div class="student-lesson-view" :class="{ 'sidebar-collapsed': sidebarCollapsed }">
+    <!-- Top Progress Bar -->
+    <div class="top-bar">
+      <button @click="goBack" class="btn-back">
+        <i class="fa fa-arrow-left"></i>
+        <span class="back-text">Mes Cours</span>
+      </button>
+
+      <div class="lesson-title-bar" v-if="lesson">
+        <h1 class="top-lesson-title">{{ lesson.title }}</h1>
+      </div>
+
+      <div class="progress-section" v-if="lesson">
+        <div class="progress-bar-top">
+          <div class="progress-fill-top" :style="{ width: overallProgress + '%' }"></div>
+        </div>
+        <span class="progress-label">{{ overallProgress }}%</span>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="lesson-body">
+      <!-- Sidebar: Chapter Navigation -->
+      <aside class="chapter-sidebar" :class="{ collapsed: sidebarCollapsed }">
+        <div class="sidebar-header">
+          <h2 class="sidebar-title">Sommaire</h2>
+          <button @click="sidebarCollapsed = !sidebarCollapsed" class="btn-toggle-sidebar">
+            <i :class="sidebarCollapsed ? 'fa fa-chevron-right' : 'fa fa-chevron-left'"></i>
+          </button>
+        </div>
+
+        <!-- Lesson Meta -->
+        <div class="sidebar-meta" v-if="lesson">
+          <div class="meta-row" v-if="lesson.enseignant">
+            <i class="fa fa-user"></i>
+            <span>{{ lesson.enseignant.name || lesson.enseignant }}</span>
+          </div>
+          <div class="meta-row" v-if="lesson.matiere">
+            <i class="fa fa-book"></i>
+            <span>{{ lesson.matiere.name || lesson.matiere.libelle || lesson.matiere }}</span>
+          </div>
+          <div class="meta-row" v-if="lesson.duree_estimee_minutes">
+            <i class="fa fa-clock-o"></i>
+            <span>{{ lesson.duree_estimee_minutes }} min</span>
+          </div>
+        </div>
+
+        <!-- Chapter List -->
+        <nav class="chapter-list">
+          <button
+            v-for="(chapter, index) in chapters"
+            :key="chapter.id"
+            class="chapter-nav-item"
+            :class="{
+              active: activeChapterIndex === index,
+              completed: isChapterCompleted(chapter.id)
+            }"
+            @click="setActiveChapter(index)"
+          >
+            <div class="chapter-status-icon">
+              <i v-if="isChapterCompleted(chapter.id)" class="fa fa-check-circle"></i>
+              <span v-else class="chapter-number">{{ index + 1 }}</span>
+            </div>
+            <div class="chapter-nav-info">
+              <span class="chapter-nav-title">{{ chapter.title }}</span>
+              <span class="chapter-nav-type">{{ getContentTypeLabel(chapter.content_type) }}</span>
+            </div>
+          </button>
+        </nav>
+      </aside>
+
+      <!-- Mobile sidebar toggle -->
+      <button v-if="sidebarCollapsed" @click="sidebarCollapsed = false" class="btn-open-sidebar-mobile">
+        <i class="fa fa-list"></i>
+      </button>
+
+      <!-- Main Content -->
+      <main class="content-area">
+        <!-- Loading -->
+        <div v-if="loading" class="content-loading">
+          <div class="spinner"></div>
+          <p>Chargement du cours...</p>
+        </div>
+
+        <!-- Error -->
+        <div v-else-if="error" class="content-error">
+          <i class="fa fa-exclamation-triangle"></i>
+          <p>{{ error }}</p>
+          <button @click="loadAll" class="btn-retry">Réessayer</button>
+        </div>
+
+        <!-- No chapters -->
+        <div v-else-if="chapters.length === 0" class="content-empty">
+          <i class="fa fa-book"></i>
+          <h3>Aucun contenu disponible</h3>
+          <p>L'enseignant n'a pas encore ajouté de contenu à ce cours.</p>
+        </div>
+
+        <!-- Active Chapter Content -->
+        <div v-else-if="activeChapter" class="chapter-content-wrapper">
+          <!-- Chapter Header -->
+          <div class="chapter-header">
+            <div class="chapter-breadcrumb">
+              Chapitre {{ activeChapterIndex + 1 }} sur {{ chapters.length }}
+            </div>
+            <h2 class="chapter-title">{{ activeChapter.title }}</h2>
+            <div class="chapter-type-badge" :class="activeChapter.content_type">
+              <i :class="getContentTypeIcon(activeChapter.content_type)"></i>
+              {{ getContentTypeLabel(activeChapter.content_type) }}
+            </div>
+          </div>
+
+          <!-- ==================== CONTENT RENDERERS ==================== -->
+
+          <!-- TEXT / MARKDOWN -->
+          <div v-if="activeChapter.content_type === 'text' && activeChapter.content" class="content-block content-text">
+            <div class="rendered-html" v-html="activeChapter.content"></div>
+          </div>
+
+          <!-- VIDEO -->
+          <div v-if="activeChapter.content_type === 'video' && activeChapter.video_url" class="content-block content-video">
+            <div class="video-container">
+              <iframe
+                v-if="getEmbedUrl(activeChapter.video_url)"
+                :src="getEmbedUrl(activeChapter.video_url)"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+                class="video-iframe"
+              ></iframe>
+              <div v-else class="video-fallback">
+                <i class="fa fa-play-circle"></i>
+                <p>Vidéo non intégrable</p>
+                <a :href="activeChapter.video_url" target="_blank" class="btn-external-video">
+                  <i class="fa fa-external-link"></i> Ouvrir la vidéo
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- POWERPOINT (slides images) -->
+          <div v-if="activeChapter.content_type === 'powerpoint'" class="content-block content-slides">
+            <div v-if="activeChapter.slides_images && activeChapter.slides_images.length > 0" class="slides-viewer">
+              <div class="slide-display">
+                <img
+                  :src="getSlideUrl(activeChapter.slides_images[currentSlide])"
+                  :alt="`Slide ${currentSlide + 1}`"
+                  class="slide-image"
+                  @click="nextSlide"
+                />
+              </div>
+              <div class="slides-controls">
+                <button @click="prevSlide" :disabled="currentSlide === 0" class="btn-slide">
+                  <i class="fa fa-chevron-left"></i>
+                </button>
+                <span class="slide-counter">
+                  {{ currentSlide + 1 }} / {{ activeChapter.slides_images.length }}
+                </span>
+                <button @click="nextSlide" :disabled="currentSlide >= activeChapter.slides_images.length - 1" class="btn-slide">
+                  <i class="fa fa-chevron-right"></i>
+                </button>
+              </div>
+              <!-- Slide thumbnails -->
+              <div class="slides-thumbnails">
+                <button
+                  v-for="(slide, idx) in activeChapter.slides_images"
+                  :key="idx"
+                  @click="currentSlide = idx"
+                  class="slide-thumb"
+                  :class="{ active: currentSlide === idx }"
+                >
+                  <img :src="getSlideUrl(slide)" :alt="`Miniature ${idx + 1}`" />
+                  <span class="thumb-number">{{ idx + 1 }}</span>
+                </button>
+              </div>
+            </div>
+            <div v-else class="slides-empty">
+              <i class="fa fa-file-powerpoint-o"></i>
+              <p>Présentation en cours de conversion...</p>
+            </div>
+          </div>
+
+          <!-- WORD (HTML content) -->
+          <div v-if="activeChapter.content_type === 'word' && activeChapter.content" class="content-block content-word">
+            <div class="rendered-html word-document" v-html="activeChapter.content"></div>
+          </div>
+
+          <!-- PDF -->
+          <div v-if="activeChapter.content_type === 'pdf'" class="content-block content-pdf">
+            <div v-if="activeChapter.pdf_url || activeChapter.file_converted_path" class="pdf-viewer">
+              <iframe
+                :src="getPdfUrl(activeChapter)"
+                class="pdf-iframe"
+                frameborder="0"
+              ></iframe>
+              <a :href="getPdfUrl(activeChapter)" target="_blank" class="btn-open-pdf">
+                <i class="fa fa-external-link"></i> Ouvrir le PDF en plein écran
+              </a>
+            </div>
+            <div v-else class="pdf-empty">
+              <i class="fa fa-file-pdf-o"></i>
+              <p>Le document PDF n'est pas encore disponible.</p>
+            </div>
+          </div>
+
+          <!-- LINK -->
+          <div v-if="activeChapter.content_type === 'link' && activeChapter.external_link" class="content-block content-link">
+            <div class="link-card">
+              <i class="fa fa-external-link-square"></i>
+              <div class="link-info">
+                <h3>Ressource externe</h3>
+                <p class="link-url">{{ activeChapter.external_link }}</p>
+              </div>
+              <a :href="activeChapter.external_link" target="_blank" rel="noopener" class="btn-open-link">
+                Ouvrir <i class="fa fa-arrow-right"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- QUIZ -->
+          <div v-if="activeChapter.content_type === 'quiz'" class="content-block content-quiz">
+            <div v-if="chapterQuiz">
+              <KnowledgeCheckPlayer
+                :quiz="chapterQuiz"
+                @completed="onQuizCompleted"
+                @close="onQuizClose"
+              />
+            </div>
+            <div v-else class="quiz-empty">
+              <i class="fa fa-question-circle"></i>
+              <p>Le quiz n'est pas encore disponible.</p>
+            </div>
+          </div>
+
+          <!-- No content fallback (exclude types that have their own empty state) -->
+          <div v-if="isContentEmpty(activeChapter) && !['quiz', 'powerpoint', 'pdf'].includes(activeChapter.content_type)" class="content-block content-empty-chapter">
+            <i class="fa fa-info-circle"></i>
+            <p>Le contenu de ce chapitre n'est pas encore disponible.</p>
+          </div>
+
+          <!-- ==================== BOTTOM ACTIONS ==================== -->
+          <div class="chapter-bottom-actions">
+            <button
+              v-if="!isChapterCompleted(activeChapter.id)"
+              @click="markChapterComplete"
+              class="btn-mark-complete"
+              :disabled="markingComplete"
+            >
+              <i class="fa fa-check"></i>
+              {{ markingComplete ? 'En cours...' : 'Marquer comme terminé' }}
+            </button>
+            <div v-else class="completed-badge">
+              <i class="fa fa-check-circle"></i> Chapitre terminé
+            </div>
+
+            <div class="nav-buttons">
+              <button
+                @click="prevChapter"
+                :disabled="activeChapterIndex === 0"
+                class="btn-nav prev"
+              >
+                <i class="fa fa-arrow-left"></i> Précédent
+              </button>
+              <button
+                @click="nextChapter"
+                :disabled="activeChapterIndex >= chapters.length - 1"
+                class="btn-nav next"
+              >
+                Suivant <i class="fa fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</template>
+
+<script>
+import lessonService from '@/services/lesson'
+import chapterProgressService from '@/services/chapterProgress'
+import api from '@/services/api'
+import KnowledgeCheckPlayer from '@/components/lessons/KnowledgeCheckPlayer.vue'
+
+export default {
+  name: 'StudentLessonView',
+  components: { KnowledgeCheckPlayer },
+
+  data() {
+    return {
+      lesson: null,
+      chapters: [],
+      completedChapters: new Set(),
+      activeChapterIndex: 0,
+      currentSlide: 0,
+      sidebarCollapsed: false,
+      loading: true,
+      error: null,
+      markingComplete: false,
+      quizzes: {},
+      chapterStartTime: null,
+      showQuizPlayer: false
+    }
+  },
+
+  computed: {
+    lessonId() {
+      return parseInt(this.$route.params.id)
+    },
+    activeChapter() {
+      return this.chapters[this.activeChapterIndex] || null
+    },
+    chapterQuiz() {
+      if (!this.activeChapter) return null
+      return this.quizzes[this.activeChapter.id] || null
+    },
+    overallProgress() {
+      if (this.chapters.length === 0) return 0
+      return Math.round((this.completedChapters.size / this.chapters.length) * 100)
+    }
+  },
+
+  watch: {
+    activeChapterIndex() {
+      this.currentSlide = 0
+      this.showQuizPlayer = false
+      this.trackTimeSpent()
+      this.chapterStartTime = Date.now()
+      // Scroll to top of content
+      this.$nextTick(() => {
+        const content = this.$el?.querySelector('.content-area')
+        if (content) content.scrollTop = 0
+      })
+    }
+  },
+
+  mounted() {
+    this.loadAll()
+    this.chapterStartTime = Date.now()
+    // Collapse sidebar on mobile
+    if (window.innerWidth < 768) {
+      this.sidebarCollapsed = true
+    }
+  },
+
+  beforeUnmount() {
+    this.trackTimeSpent()
+  },
+
+  methods: {
+    async loadAll() {
+      this.loading = true
+      this.error = null
+      try {
+        // Load lesson details
+        const lessonRes = await lessonService.getLesson(this.lessonId)
+        if (lessonRes.success) {
+          this.lesson = lessonRes.data
+        }
+
+        // Load chapters
+        const chaptersRes = await api.get(`/lessons/${this.lessonId}/chapters`)
+        if (chaptersRes.success) {
+          this.chapters = chaptersRes.data || []
+        }
+
+        // Load chapter progress
+        try {
+          const progressRes = await api.get(`/lessons/${this.lessonId}/chapter-progress`)
+          if (progressRes.success && progressRes.data) {
+            const chapters = progressRes.data.chapters || []
+            const completedIds = chapters
+              .filter(c => c.is_completed)
+              .map(c => c.chapter_id)
+            this.completedChapters = new Set(completedIds)
+          }
+        } catch (e) {
+          // Progress endpoint might not exist yet — graceful fallback
+          console.warn('[StudentLesson] Progress endpoint not available:', e.message)
+        }
+
+        // Load quizzes for quiz-type chapters
+        const quizPromises = this.chapters
+          .filter(ch => ch.content_type === 'quiz')
+          .map(async (chapter) => {
+            try {
+              const quizRes = await api.get(`/knowledge-checks/chapter/${chapter.id}`)
+              if (quizRes.success && quizRes.data) {
+                this.quizzes[chapter.id] = quizRes.data
+              }
+            } catch (e) {
+              // Quiz may not exist yet for this chapter — silent
+            }
+          })
+        await Promise.all(quizPromises)
+      } catch (err) {
+        console.error('[StudentLesson] Load error:', err)
+        this.error = 'Impossible de charger le cours. Veuillez réessayer.'
+      } finally {
+        this.loading = false
+      }
+    },
+
+    setActiveChapter(index) {
+      this.activeChapterIndex = index
+      // On mobile, collapse sidebar after selection
+      if (window.innerWidth < 768) {
+        this.sidebarCollapsed = true
+      }
+    },
+
+    prevChapter() {
+      if (this.activeChapterIndex > 0) {
+        this.activeChapterIndex--
+      }
+    },
+
+    nextChapter() {
+      if (this.activeChapterIndex < this.chapters.length - 1) {
+        this.activeChapterIndex++
+      }
+    },
+
+    prevSlide() {
+      if (this.currentSlide > 0) this.currentSlide--
+    },
+
+    nextSlide() {
+      if (this.activeChapter?.slides_images && this.currentSlide < this.activeChapter.slides_images.length - 1) {
+        this.currentSlide++
+      }
+    },
+
+    isChapterCompleted(chapterId) {
+      return this.completedChapters.has(chapterId)
+    },
+
+    async markChapterComplete() {
+      if (!this.activeChapter) return
+      this.markingComplete = true
+      try {
+        const timeSpent = Math.round((Date.now() - (this.chapterStartTime || Date.now())) / 1000)
+        await chapterProgressService.markAsCompleted(this.activeChapter.id, timeSpent)
+        this.completedChapters.add(this.activeChapter.id)
+        // Force reactivity
+        this.completedChapters = new Set(this.completedChapters)
+        this.chapterStartTime = Date.now()
+
+        // Auto-advance to next chapter
+        if (this.activeChapterIndex < this.chapters.length - 1) {
+          setTimeout(() => {
+            this.activeChapterIndex++
+          }, 600)
+        }
+      } catch (err) {
+        console.error('[StudentLesson] Mark complete error:', err)
+        // Still mark locally even if API fails
+        this.completedChapters.add(this.activeChapter.id)
+        this.completedChapters = new Set(this.completedChapters)
+      } finally {
+        this.markingComplete = false
+      }
+    },
+
+    async trackTimeSpent() {
+      if (!this.activeChapter || !this.chapterStartTime) return
+      const seconds = Math.round((Date.now() - this.chapterStartTime) / 1000)
+      if (seconds > 5) {
+        try {
+          await chapterProgressService.updateTimeSpent(this.activeChapter.id, seconds)
+        } catch (e) {
+          // silent
+        }
+      }
+    },
+
+    // ==================== CONTENT HELPERS ====================
+
+    getEmbedUrl(url) {
+      if (!url) return null
+      // YouTube
+      const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+      if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}?rel=0`
+      // Vimeo
+      const vimeoMatch = url.match(/vimeo\.com\/(\d+)/)
+      if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`
+      return null
+    },
+
+    getSlideUrl(slide) {
+      if (!slide) return ''
+      if (slide.startsWith('http')) return slide
+      // Relative path — prepend API base URL
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+      return `${baseUrl}/storage/${slide}`
+    },
+
+    getPdfUrl(chapter) {
+      const path = chapter.pdf_url || chapter.file_converted_path
+      if (!path) return ''
+      if (path.startsWith('http')) return path
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+      return `${baseUrl}/storage/${path}`
+    },
+
+    getContentTypeLabel(type) {
+      const labels = {
+        text: 'Texte',
+        video: 'Vidéo',
+        powerpoint: 'Présentation',
+        word: 'Document',
+        pdf: 'PDF',
+        link: 'Lien externe',
+        quiz: 'Quiz'
+      }
+      return labels[type] || type
+    },
+
+    getContentTypeIcon(type) {
+      const icons = {
+        text: 'fa fa-file-text-o',
+        video: 'fa fa-play-circle',
+        powerpoint: 'fa fa-file-powerpoint-o',
+        word: 'fa fa-file-word-o',
+        pdf: 'fa fa-file-pdf-o',
+        link: 'fa fa-link',
+        quiz: 'fa fa-question-circle'
+      }
+      return icons[type] || 'fa fa-file-o'
+    },
+
+    isContentEmpty(chapter) {
+      if (!chapter) return true
+      switch (chapter.content_type) {
+        case 'text': return !chapter.content
+        case 'video': return !chapter.video_url
+        case 'powerpoint': return !chapter.slides_images || chapter.slides_images.length === 0
+        case 'word': return !chapter.content
+        case 'pdf': return !chapter.pdf_url && !chapter.file_converted_path
+        case 'link': return !chapter.external_link
+        case 'quiz': return !this.chapterQuiz
+        default: return true
+      }
+    },
+
+    async onQuizCompleted(resultData) {
+      // Mark the chapter as completed if the quiz was passed
+      if (resultData && resultData.passed) {
+        this.completedChapters.add(this.activeChapter.id)
+        this.completedChapters = new Set(this.completedChapters)
+      }
+      // Refresh quiz data to get updated scores
+      if (this.activeChapter) {
+        try {
+          const quizRes = await api.get(`/knowledge-checks/chapter/${this.activeChapter.id}`)
+          if (quizRes.success && quizRes.data) {
+            this.quizzes[this.activeChapter.id] = quizRes.data
+            // Force reactivity
+            this.quizzes = { ...this.quizzes }
+          }
+        } catch (e) {
+          // silent
+        }
+      }
+    },
+
+    onQuizClose() {
+      // Nothing special needed — player resets to intro state internally
+    },
+
+    goBack() {
+      this.$router.push({ name: 'student-courses' })
+    }
+  }
+}
+</script>
+
+<style scoped>
+/* ==================== LAYOUT ==================== */
+.student-lesson-view {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--bg-primary, #0f172a);
+  color: var(--text-primary, #e2e8f0);
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--card-bg, #1e293b);
+  border-bottom: 1px solid var(--border-primary, #334155);
+  z-index: 20;
+  flex-shrink: 0;
+}
+
+.btn-back {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid var(--border-primary, #334155);
+  border-radius: 0.5rem;
+  color: var(--text-secondary, #94a3b8);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-back:hover {
+  background: var(--bg-secondary, #1e293b);
+  color: var(--text-primary, #e2e8f0);
+}
+
+.lesson-title-bar {
+  flex: 1;
+  min-width: 0;
+}
+
+.top-lesson-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.progress-section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.progress-bar-top {
+  width: 120px;
+  height: 6px;
+  background: var(--bg-secondary, #334155);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill-top {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #10b981);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.progress-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #10b981;
+  min-width: 2.5rem;
+  text-align: right;
+}
+
+/* ==================== BODY LAYOUT ==================== */
+.lesson-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ==================== SIDEBAR ==================== */
+.chapter-sidebar {
+  width: 300px;
+  background: var(--card-bg, #1e293b);
+  border-right: 1px solid var(--border-primary, #334155);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+  transition: width 0.3s ease, transform 0.3s ease;
+}
+
+.chapter-sidebar.collapsed {
+  width: 0;
+  overflow: hidden;
+  border-right: none;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-primary, #334155);
+}
+
+.sidebar-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary, #e2e8f0);
+}
+
+.btn-toggle-sidebar {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary, #94a3b8);
+  cursor: pointer;
+  padding: 0.25rem;
+  font-size: 1rem;
+}
+
+.sidebar-meta {
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--border-primary, #334155);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.meta-row i {
+  width: 1rem;
+  text-align: center;
+  color: #3b82f6;
+}
+
+/* Chapter navigation items */
+.chapter-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem 0;
+}
+
+.chapter-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  background: transparent;
+  border: none;
+  border-left: 3px solid transparent;
+  color: var(--text-secondary, #94a3b8);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+}
+
+.chapter-nav-item:hover {
+  background: rgba(59, 130, 246, 0.05);
+  color: var(--text-primary, #e2e8f0);
+}
+
+.chapter-nav-item.active {
+  background: rgba(59, 130, 246, 0.1);
+  border-left-color: #3b82f6;
+  color: var(--text-primary, #e2e8f0);
+}
+
+.chapter-nav-item.completed .chapter-status-icon {
+  color: #10b981;
+}
+
+.chapter-status-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--bg-secondary, #334155);
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.chapter-nav-item.active .chapter-status-icon {
+  background: #3b82f6;
+  color: white;
+}
+
+.chapter-nav-item.completed .chapter-status-icon {
+  background: rgba(16, 185, 129, 0.15);
+}
+
+.chapter-nav-item.completed .chapter-status-icon i {
+  font-size: 1rem;
+}
+
+.chapter-number {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.chapter-nav-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.chapter-nav-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chapter-nav-type {
+  font-size: 0.7rem;
+  opacity: 0.6;
+  margin-top: 2px;
+}
+
+/* ==================== MAIN CONTENT ==================== */
+.content-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
+  min-width: 0;
+}
+
+/* Loading / Error / Empty states */
+.content-loading, .content-error, .content-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  text-align: center;
+  gap: 1rem;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.content-loading .spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-primary, #334155);
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.content-error i, .content-empty i {
+  font-size: 3rem;
+  opacity: 0.5;
+}
+
+.btn-retry {
+  padding: 0.5rem 1.5rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+/* ==================== CHAPTER CONTENT ==================== */
+.chapter-content-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.chapter-header {
+  margin-bottom: 2rem;
+}
+
+.chapter-breadcrumb {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #94a3b8);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.chapter-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin: 0 0 0.75rem 0;
+  line-height: 1.3;
+}
+
+.chapter-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(59, 130, 246, 0.1);
+  color: #60a5fa;
+}
+
+.chapter-type-badge.video { background: rgba(239, 68, 68, 0.1); color: #f87171; }
+.chapter-type-badge.powerpoint { background: rgba(249, 115, 22, 0.1); color: #fb923c; }
+.chapter-type-badge.word { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
+.chapter-type-badge.pdf { background: rgba(220, 38, 38, 0.1); color: #f87171; }
+.chapter-type-badge.link { background: rgba(139, 92, 246, 0.1); color: #a78bfa; }
+.chapter-type-badge.quiz { background: rgba(16, 185, 129, 0.1); color: #34d399; }
+
+/* Content blocks */
+.content-block {
+  margin-bottom: 2rem;
+}
+
+/* TEXT CONTENT */
+.rendered-html {
+  line-height: 1.8;
+  font-size: 1.05rem;
+  color: var(--text-primary, #e2e8f0);
+}
+
+.rendered-html :deep(h1),
+.rendered-html :deep(h2),
+.rendered-html :deep(h3) {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary, #e2e8f0);
+}
+
+.rendered-html :deep(p) {
+  margin-bottom: 1rem;
+}
+
+.rendered-html :deep(ul),
+.rendered-html :deep(ol) {
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.rendered-html :deep(li) {
+  margin-bottom: 0.5rem;
+}
+
+.rendered-html :deep(blockquote) {
+  border-left: 4px solid #3b82f6;
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+  background: rgba(59, 130, 246, 0.05);
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.rendered-html :deep(code) {
+  background: var(--bg-secondary, #334155);
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.9em;
+}
+
+.rendered-html :deep(pre) {
+  background: var(--bg-secondary, #334155);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.rendered-html :deep(img) {
+  max-width: 100%;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+}
+
+.rendered-html :deep(table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.rendered-html :deep(th),
+.rendered-html :deep(td) {
+  padding: 0.75rem;
+  border: 1px solid var(--border-primary, #334155);
+  text-align: left;
+}
+
+.rendered-html :deep(th) {
+  background: var(--bg-secondary, #334155);
+  font-weight: 700;
+}
+
+/* Word documents specific */
+.word-document {
+  background: var(--card-bg, #1e293b);
+  padding: 2rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-primary, #334155);
+}
+
+/* VIDEO CONTENT */
+.video-container {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%;
+  background: #000;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.video-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.video-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: #94a3b8;
+}
+
+.video-fallback i {
+  font-size: 4rem;
+  opacity: 0.5;
+}
+
+.btn-external-video {
+  padding: 0.75rem 1.5rem;
+  background: #3b82f6;
+  color: white;
+  text-decoration: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+}
+
+/* SLIDES CONTENT */
+.slides-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.slide-display {
+  background: #000;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  cursor: pointer;
+}
+
+.slide-image {
+  max-width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+}
+
+.slides-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.btn-slide {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--card-bg, #1e293b);
+  border: 1px solid var(--border-primary, #334155);
+  color: var(--text-primary, #e2e8f0);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-slide:hover:not(:disabled) {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+.btn-slide:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.slide-counter {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.slides-thumbnails {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.5rem 0;
+}
+
+.slide-thumb {
+  flex-shrink: 0;
+  width: 80px;
+  height: 50px;
+  border-radius: 0.375rem;
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: pointer;
+  position: relative;
+  background: var(--bg-secondary, #334155);
+  padding: 0;
+}
+
+.slide-thumb.active {
+  border-color: #3b82f6;
+}
+
+.slide-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumb-number {
+  position: absolute;
+  bottom: 2px;
+  right: 4px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.slides-empty {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.slides-empty i {
+  font-size: 3rem;
+  opacity: 0.5;
+  margin-bottom: 1rem;
+}
+
+/* PDF CONTENT */
+.pdf-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pdf-iframe {
+  width: 100%;
+  height: 75vh;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-primary, #334155);
+}
+
+.btn-open-pdf {
+  align-self: flex-end;
+  padding: 0.5rem 1rem;
+  color: #60a5fa;
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+
+.btn-open-pdf:hover {
+  text-decoration: underline;
+}
+
+.pdf-empty {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.pdf-empty i {
+  font-size: 3rem;
+  opacity: 0.5;
+}
+
+/* LINK CONTENT */
+.link-card {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  background: var(--card-bg, #1e293b);
+  border: 1px solid var(--border-primary, #334155);
+  border-radius: 0.75rem;
+}
+
+.link-card > i {
+  font-size: 2rem;
+  color: #a78bfa;
+}
+
+.link-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.link-info h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+}
+
+.link-url {
+  font-size: 0.85rem;
+  color: var(--text-secondary, #94a3b8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+}
+
+.btn-open-link {
+  padding: 0.625rem 1.25rem;
+  background: #7c3aed;
+  color: white;
+  text-decoration: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.2s;
+}
+
+.btn-open-link:hover {
+  background: #6d28d9;
+}
+
+/* QUIZ CONTENT */
+.quiz-card {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: var(--card-bg, #1e293b);
+  border: 1px solid var(--border-primary, #334155);
+  border-radius: 0.75rem;
+}
+
+.quiz-icon {
+  font-size: 3rem;
+  color: #34d399;
+  margin-bottom: 1rem;
+}
+
+.quiz-card h3 {
+  font-size: 1.25rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.quiz-meta {
+  color: var(--text-secondary, #94a3b8);
+  margin-bottom: 1.5rem;
+}
+
+.quiz-score {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.score-circle {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.score-circle.passed {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 2px solid #10b981;
+}
+
+.score-circle.failed {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 2px solid #ef4444;
+}
+
+.btn-start-quiz {
+  padding: 0.75rem 2rem;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: transform 0.2s;
+}
+
+.btn-start-quiz:hover {
+  transform: translateY(-2px);
+}
+
+.quiz-empty {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.quiz-empty i {
+  font-size: 3rem;
+  opacity: 0.5;
+}
+
+/* Empty chapter content */
+.content-empty-chapter {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.content-empty-chapter i {
+  font-size: 2.5rem;
+  opacity: 0.5;
+  margin-bottom: 0.5rem;
+}
+
+/* ==================== BOTTOM ACTIONS ==================== */
+.chapter-bottom-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--border-primary, #334155);
+  margin-top: 2rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.btn-mark-complete {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.btn-mark-complete:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-mark-complete:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.completed-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border-radius: 0.5rem;
+  font-weight: 700;
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn-nav {
+  padding: 0.625rem 1.25rem;
+  background: var(--card-bg, #1e293b);
+  border: 1px solid var(--border-primary, #334155);
+  color: var(--text-primary, #e2e8f0);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.btn-nav:hover:not(:disabled) {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+.btn-nav:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.btn-nav.next {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+.btn-nav.next:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+/* Mobile sidebar open button */
+.btn-open-sidebar-mobile {
+  display: none;
+  position: fixed;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  cursor: pointer;
+  z-index: 30;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  font-size: 1.25rem;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+  .top-bar {
+    padding: 0.5rem 1rem;
+  }
+
+  .back-text {
+    display: none;
+  }
+
+  .top-lesson-title {
+    font-size: 0.95rem;
+  }
+
+  .progress-bar-top {
+    width: 60px;
+  }
+
+  .chapter-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 50;
+    width: 280px;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .chapter-sidebar.collapsed {
+    transform: translateX(-100%);
+    width: 280px;
+  }
+
+  .btn-open-sidebar-mobile {
+    display: flex;
+  }
+
+  .content-area {
+    padding: 1rem;
+  }
+
+  .chapter-title {
+    font-size: 1.35rem;
+  }
+
+  .chapter-bottom-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .nav-buttons {
+    justify-content: space-between;
+  }
+
+  .slide-display {
+    min-height: 250px;
+  }
+}
+</style>

@@ -340,20 +340,16 @@ const routes = [
       title: 'Mes Cours'
     }
   },
-  // Détails d'un cours (leçon) - Étudiant
+  // Détails d'un cours (leçon) - Étudiant (vue apprenant dédiée)
   {
     path: '/student/lessons/:id',
     name: 'lesson-details',
-    component: () => import('@/views/lessons/LessonChapters.vue'),
+    component: () => import('@/views/student/StudentLessonView.vue'),
     meta: {
       requiresAuth: true,
       roles: ['etudiant'],
-      title: 'Contenu du cours'
-    },
-    // Forcer le mode lecture seule pour les étudiants
-    beforeEnter: (to, from, next) => {
-      to.query.readonly = 'true'
-      next()
+      title: 'Contenu du cours',
+      hideLayout: true
     }
   },
   // Évaluations - Étudiant (liste centralisée)
@@ -616,6 +612,12 @@ const routes = [
   {
     path: '/attendance/seances',
     name: 'seance-attendance-history',
+    component: SeanceAttendanceHistory,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/attendance/seances/:seanceId',
+    name: 'seance-attendance-detail',
     component: SeanceAttendanceHistory,
     meta: { requiresAuth: true }
   },

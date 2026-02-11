@@ -698,7 +698,7 @@ export default {
           ...this.newLesson,
           matiere_id: this.matiereId,
           classe_id: this.matiere?.classes?.[0]?.id || null, // Prendre première classe si disponible
-          enseignant_id: user?.klassci_id || user?.id,
+          enseignant_id: user?.id,
           type: 'cours',
           status: 'draft'
         }

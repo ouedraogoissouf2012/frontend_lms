@@ -1,282 +1,221 @@
 <template>
-  <div class="min-h-screen bg-gray-50 py-8">
-    <div class="max-w-4xl mx-auto px-4">
+  <DashboardLayout>
+    <div class="take-evaluation-container">
       <!-- Loading -->
       <ContentLoader v-if="loading" text="Chargement de l'évaluation..." />
 
       <!-- Évaluation chargée -->
-      <div v-else-if="evaluation">
+      <template v-else-if="evaluation">
+        <!-- Bandeau mode entraînement -->
+        <div v-if="isPractice" class="practice-banner">
+          <i class="fa fa-graduation-cap"></i>
+          <div>
+            <p class="practice-title">Mode Entraînement</p>
+            <p class="practice-subtitle">Cette note ne sera pas comptabilisée dans votre moyenne.</p>
+          </div>
+        </div>
+
         <!-- Alerte fermeture imminente fenêtre -->
-        <div
-          v-if="windowTimeLeft !== null && windowTimeLeft <= 5"
-          class="mb-4 p-4 bg-red-100 border-2 border-red-500 rounded-lg animate-pulse"
-        >
-          <p class="text-red-900 font-bold text-lg">
-            ⚠️ ATTENTION: La fenêtre d'évaluation va se fermer dans {{ windowTimeLeft }} minutes!
-          </p>
-          <p class="text-red-800 text-sm mt-1">
-            Votre évaluation sera automatiquement soumise à la fermeture.
-          </p>
+        <div v-if="windowTimeLeft !== null && windowTimeLeft <= 5" class="alert-urgent">
+          <i class="fa fa-exclamation-triangle"></i>
+          <div>
+            <p class="alert-title">ATTENTION: La fenêtre d'évaluation va se fermer dans {{ windowTimeLeft }} minutes!</p>
+            <p class="alert-subtitle">Votre évaluation sera automatiquement soumise à la fermeture.</p>
+          </div>
         </div>
 
         <!-- Compte à rebours fenêtre temporelle -->
-        <div
-          v-else-if="windowTimeLeft !== null && windowTimeLeft > 0"
-          class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg"
-        >
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <svg class="w-5 h-5 text-blue-700" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
-              </svg>
-              <p class="text-blue-900 font-medium">
-                Temps restant avant fermeture de la fenêtre
-              </p>
+        <div v-else-if="windowTimeLeft !== null && windowTimeLeft > 0" class="alert-info">
+          <div class="alert-info-row">
+            <div class="alert-info-left">
+              <i class="fa fa-clock-o"></i>
+              <span>Temps restant avant fermeture de la fenêtre</span>
             </div>
-            <p class="text-2xl font-bold text-blue-700">
-              {{ formatTimeLeft(windowTimeLeft) }}
-            </p>
+            <span class="alert-info-time">{{ formatTimeLeft(windowTimeLeft) }}</span>
           </div>
         </div>
 
-        <!-- En-tête fixe -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6 sticky top-4 z-10">
-          <div class="flex justify-between items-center">
-            <div>
-              <h1 class="text-2xl font-bold text-gray-900">{{ evaluation.titre }}</h1>
-              <p class="text-gray-600 text-sm mt-1">{{ evaluation.description }}</p>
-            </div>
-            <div class="text-right">
-              <div class="text-3xl font-bold text-blue-600">{{ formatTime(timeRemaining) }}</div>
-              <p class="text-sm text-gray-600">Temps restant</p>
-            </div>
+        <!-- En-tête sticky -->
+        <div class="eval-header">
+          <div class="eval-header-left">
+            <h1 class="eval-title">{{ evaluation.titre }}</h1>
+            <p v-if="evaluation.description" class="eval-description">{{ evaluation.description }}</p>
           </div>
+          <div class="eval-timer" :class="{ 'timer-warning': timeRemaining <= 300, 'timer-danger': timeRemaining <= 60 }">
+            <span class="timer-value">{{ formatTime(timeRemaining) }}</span>
+            <span class="timer-label">Temps restant</span>
+          </div>
+        </div>
 
-          <!-- Progress bar -->
-          <div class="mt-4">
-            <div class="flex justify-between text-sm text-gray-600 mb-2">
-              <span>Progression</span>
-              <span>{{ answeredCount }}/{{ evaluation.questions.length }} réponses</span>
-            </div>
-            <div class="w-full bg-gray-200 rounded-full h-2">
-              <div
-                class="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                :style="{ width: progressPercentage + '%' }"
-              ></div>
-            </div>
+        <!-- Progress bar -->
+        <div class="eval-progress">
+          <div class="progress-info">
+            <span>Progression</span>
+            <span>{{ answeredCount }}/{{ evaluation.questions.length }} réponses</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" :style="{ width: progressPercentage + '%' }"></div>
           </div>
         </div>
 
         <!-- Questions -->
-        <div class="space-y-6">
+        <div class="questions-list">
           <div
             v-for="(question, index) in evaluation.questions"
             :key="question.id"
-            class="bg-white rounded-lg shadow-md p-6"
+            class="question-card"
+            :class="{ 'question-answered': isAnswered(question.id) }"
           >
             <!-- En-tête de question -->
-            <div class="flex justify-between items-start mb-4">
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                    Question {{ index + 1 }}
-                  </span>
-                  <span class="text-gray-600 text-sm">{{ question.points }} point(s)</span>
-                </div>
-                <p class="text-lg text-gray-900">{{ question.question }}</p>
+            <div class="question-header">
+              <div class="question-meta">
+                <span class="question-number">Question {{ index + 1 }}</span>
+                <span class="question-points">{{ question.points }} point(s)</span>
               </div>
-              <span
-                v-if="answers[question.id] !== undefined && answers[question.id] !== null && answers[question.id] !== ''"
-                class="text-green-600"
-              >
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                </svg>
-              </span>
+              <i v-if="isAnswered(question.id)" class="fa fa-check-circle question-check"></i>
             </div>
 
+            <p class="question-text">{{ question.question }}</p>
+
             <!-- QCM Simple -->
-            <div v-if="question.type === 'qcm'" class="space-y-2">
+            <div v-if="question.type === 'qcm'" class="options-list">
               <label
                 v-for="(option, optIndex) in question.options"
                 :key="optIndex"
-                class="flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition hover:bg-gray-50"
-                :class="answers[question.id] === option ? 'border-blue-500 bg-blue-50' : 'border-gray-200'"
+                class="option-item"
+                :class="{ 'option-selected': answers[question.id] === option }"
               >
                 <input
                   type="radio"
                   :name="'question-' + question.id"
                   :value="option"
                   v-model="answers[question.id]"
-                  class="text-blue-600 focus:ring-blue-500"
+                  class="option-input"
                 />
-                <span class="text-gray-900">{{ option }}</span>
+                <span class="option-label">{{ option }}</span>
               </label>
             </div>
 
             <!-- QCM Multiple -->
-            <div v-else-if="question.type === 'qcm_multiple'" class="space-y-2">
+            <div v-else-if="question.type === 'qcm_multiple'" class="options-list">
               <label
                 v-for="(option, optIndex) in question.options"
                 :key="optIndex"
-                class="flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition hover:bg-gray-50"
-                :class="isOptionSelected(question.id, option) ? 'border-blue-500 bg-blue-50' : 'border-gray-200'"
+                class="option-item"
+                :class="{ 'option-selected': isOptionSelected(question.id, option) }"
               >
                 <input
                   type="checkbox"
                   :value="option"
                   @change="toggleMultipleChoice(question.id, option)"
                   :checked="isOptionSelected(question.id, option)"
-                  class="rounded text-blue-600 focus:ring-blue-500"
+                  class="option-input option-checkbox"
                 />
-                <span class="text-gray-900">{{ option }}</span>
+                <span class="option-label">{{ option }}</span>
               </label>
             </div>
 
             <!-- Vrai/Faux -->
-            <div v-else-if="question.type === 'vrai_faux'" class="space-y-2">
+            <div v-else-if="question.type === 'vrai_faux'" class="options-list">
               <label
-                class="flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition hover:bg-gray-50"
-                :class="answers[question.id] === 'Vrai' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'"
+                class="option-item"
+                :class="{ 'option-selected': answers[question.id] === 'Vrai' }"
               >
-                <input
-                  type="radio"
-                  :name="'question-' + question.id"
-                  value="Vrai"
-                  v-model="answers[question.id]"
-                  class="text-blue-600 focus:ring-blue-500"
-                />
-                <span class="text-gray-900">Vrai</span>
+                <input type="radio" :name="'question-' + question.id" value="Vrai" v-model="answers[question.id]" class="option-input" />
+                <span class="option-label">Vrai</span>
               </label>
               <label
-                class="flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition hover:bg-gray-50"
-                :class="answers[question.id] === 'Faux' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'"
+                class="option-item"
+                :class="{ 'option-selected': answers[question.id] === 'Faux' }"
               >
-                <input
-                  type="radio"
-                  :name="'question-' + question.id"
-                  value="Faux"
-                  v-model="answers[question.id]"
-                  class="text-blue-600 focus:ring-blue-500"
-                />
-                <span class="text-gray-900">Faux</span>
+                <input type="radio" :name="'question-' + question.id" value="Faux" v-model="answers[question.id]" class="option-input" />
+                <span class="option-label">Faux</span>
               </label>
             </div>
 
             <!-- Réponse courte -->
             <div v-else-if="question.type === 'reponse_courte'">
-              <input
-                v-model="answers[question.id]"
-                type="text"
-                class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Votre réponse..."
-              />
+              <input v-model="answers[question.id]" type="text" class="text-input" placeholder="Votre réponse..." />
             </div>
 
             <!-- Dissertation -->
             <div v-else-if="question.type === 'dissertation'">
-              <textarea
-                v-model="answers[question.id]"
-                rows="5"
-                class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Votre réponse..."
-              ></textarea>
+              <textarea v-model="answers[question.id]" rows="5" class="text-input textarea-input" placeholder="Votre réponse..."></textarea>
             </div>
           </div>
         </div>
 
-        <!-- Actions -->
-        <div class="bg-white rounded-lg shadow-md p-6 mt-6 sticky bottom-4">
-          <div class="flex gap-4">
-            <button
-              @click="confirmCancel"
-              class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition"
-            >
-              Annuler
-            </button>
-            <button
-              @click="confirmSubmit"
-              :disabled="submitting"
-              class="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-6 py-3 rounded-lg font-medium transition"
-            >
-              {{ submitting ? 'Soumission en cours...' : 'Soumettre l\'évaluation' }}
-            </button>
-          </div>
-          <p class="text-sm text-gray-600 text-center mt-2">
-            Assurez-vous d'avoir répondu à toutes les questions avant de soumettre
-          </p>
+        <!-- Actions sticky -->
+        <div class="eval-actions">
+          <button @click="confirmCancel" class="btn-cancel">
+            <i class="fa fa-times"></i>
+            Annuler
+          </button>
+          <button @click="confirmSubmit" :disabled="submitting" class="btn-submit">
+            <i :class="submitting ? 'fa fa-spinner fa-spin' : 'fa fa-paper-plane'"></i>
+            {{ submitting ? 'Soumission en cours...' : (isPractice ? 'Terminer l\'entraînement' : 'Soumettre l\'évaluation') }}
+          </button>
         </div>
-      </div>
+        <p class="actions-hint">Assurez-vous d'avoir répondu à toutes les questions avant de soumettre</p>
+      </template>
 
       <!-- Erreur -->
-      <div v-else class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-        <p class="text-red-700 text-lg">{{ error || 'Impossible de charger l\'évaluation' }}</p>
-        <button
-          @click="$router.back()"
-          class="mt-4 bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg"
-        >
+      <div v-else class="error-state">
+        <i class="fa fa-exclamation-circle error-icon"></i>
+        <p class="error-text">{{ error || 'Impossible de charger l\'évaluation' }}</p>
+        <button @click="$router.back()" class="btn-back-error">
+          <i class="fa fa-arrow-left"></i>
           Retour
         </button>
       </div>
-    </div>
 
-    <!-- Modal de confirmation soumission -->
-    <div v-if="showConfirmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-        <h3 class="text-xl font-bold text-gray-900 mb-4">Confirmer la soumission</h3>
-        <p class="text-gray-700 mb-6">
-          Vous avez répondu à {{ answeredCount }} question(s) sur {{ evaluation.questions.length }}.
-          <br><br>
-          Êtes-vous sûr de vouloir soumettre votre évaluation ? Cette action est irréversible.
-        </p>
-        <div class="flex gap-4">
-          <button
-            @click="showConfirmModal = false"
-            class="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50"
-          >
-            Annuler
-          </button>
-          <button
-            @click="submitEvaluation"
-            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium"
-          >
-            Confirmer
+      <!-- Modal de confirmation soumission -->
+      <div v-if="showConfirmModal" class="modal-overlay" @click.self="showConfirmModal = false">
+        <div class="modal-card">
+          <h3 class="modal-title">Confirmer la soumission</h3>
+          <p class="modal-text">
+            Vous avez répondu à <strong>{{ answeredCount }}</strong> question(s) sur <strong>{{ evaluation.questions.length }}</strong>.
+          </p>
+          <p class="modal-warning" v-if="answeredCount < evaluation.questions.length">
+            <i class="fa fa-exclamation-triangle"></i>
+            Certaines questions n'ont pas été répondues.
+          </p>
+          <p class="modal-text">Êtes-vous sûr de vouloir soumettre ? Cette action est irréversible.</p>
+          <div class="modal-actions">
+            <button @click="showConfirmModal = false" class="btn-cancel">Annuler</button>
+            <button @click="submitEvaluation" class="btn-submit">Confirmer</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal résultats -->
+      <div v-if="showResultsModal" class="modal-overlay">
+        <div class="modal-card modal-results">
+          <div class="results-icon">
+            <i class="fa fa-check-circle"></i>
+          </div>
+          <h3 class="modal-title">{{ isPractice ? 'Entraînement terminé !' : 'Évaluation soumise !' }}</h3>
+          <p class="modal-text">{{ isPractice ? 'Votre entraînement a été complété.' : 'Votre évaluation a été soumise avec succès.' }}</p>
+
+          <div v-if="results" class="results-score" :class="{ 'results-practice': isPractice }">
+            <p class="score-label">{{ isPractice ? 'Note indicative' : 'Votre note' }}</p>
+            <p class="score-value">{{ results.note_sur_20 }}<span class="score-unit">/20</span></p>
+            <p class="score-detail">Score: {{ results.score }} points</p>
+            <p v-if="isPractice" class="practice-note-info">Cette note n'est pas comptabilisée dans votre moyenne.</p>
+          </div>
+
+          <button @click="returnToEvaluations" class="btn-submit btn-full">
+            <i class="fa fa-arrow-left"></i>
+            Retour aux évaluations
           </button>
         </div>
       </div>
     </div>
-
-    <!-- Modal résultats -->
-    <div v-if="showResultsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-        <div class="text-center">
-          <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-          </div>
-          <h3 class="text-2xl font-bold text-gray-900 mb-2">Évaluation soumise !</h3>
-          <p class="text-gray-600 mb-6">Votre évaluation a été soumise avec succès.</p>
-
-          <div v-if="results" class="bg-blue-50 rounded-lg p-6 mb-6">
-            <p class="text-sm text-blue-900 mb-2">Votre note</p>
-            <p class="text-4xl font-bold text-blue-600">{{ results.note_sur_20 }}/20</p>
-            <p class="text-sm text-blue-700 mt-2">Score: {{ results.score }} points</p>
-          </div>
-
-          <button
-            @click="returnToDashboard"
-            class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium"
-          >
-            Retour au dashboard
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+  </DashboardLayout>
 </template>
 
 <script>
+import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import evaluationService from '@/services/evaluation'
 import { auth } from '@/services/api'
 import ContentLoader from '@/components/common/ContentLoader.vue'
@@ -284,6 +223,7 @@ import ContentLoader from '@/components/common/ContentLoader.vue'
 export default {
   name: 'TakeEvaluation',
   components: {
+    DashboardLayout,
     ContentLoader
   },
   data() {
@@ -301,15 +241,14 @@ export default {
       timeCheckInterval: null,
       showConfirmModal: false,
       showResultsModal: false,
-      results: null
+      results: null,
+      isPractice: false
     }
   },
   computed: {
     answeredCount() {
       return Object.values(this.answers).filter(answer => {
-        if (Array.isArray(answer)) {
-          return answer.length > 0
-        }
+        if (Array.isArray(answer)) return answer.length > 0
         return answer !== undefined && answer !== null && answer !== ''
       }).length
     },
@@ -326,6 +265,7 @@ export default {
     }
 
     this.submissionId = this.$route.query.submission_id
+    this.isPractice = this.$route.query.practice === '1'
     if (!this.submissionId) {
       this.error = 'ID de soumission manquant'
       this.loading = false
@@ -335,12 +275,8 @@ export default {
     await this.loadEvaluation()
   },
   beforeUnmount() {
-    if (this.timer) {
-      clearInterval(this.timer)
-    }
-    if (this.timeCheckInterval) {
-      clearInterval(this.timeCheckInterval)
-    }
+    if (this.timer) clearInterval(this.timer)
+    if (this.timeCheckInterval) clearInterval(this.timeCheckInterval)
   },
   methods: {
     async loadEvaluation() {
@@ -367,7 +303,7 @@ export default {
           }
 
           // Démarrer le timer
-          this.timeRemaining = this.evaluation.duree_minutes * 60 // en secondes
+          this.timeRemaining = this.evaluation.duree_minutes * 60
           this.startTimer()
           this.startWindowTimeTracking()
         } else {
@@ -384,7 +320,6 @@ export default {
     startTimer() {
       this.timer = setInterval(() => {
         this.timeRemaining--
-
         if (this.timeRemaining <= 0) {
           clearInterval(this.timer)
           alert('Temps écoulé ! Votre évaluation va être soumise automatiquement.')
@@ -403,30 +338,24 @@ export default {
       if (minutes === null || minutes <= 0) return '0 min'
       const hours = Math.floor(minutes / 60)
       const mins = minutes % 60
-      if (hours > 0) {
-        return `${hours}h ${mins.toString().padStart(2, '0')}min`
-      }
+      if (hours > 0) return `${hours}h ${mins.toString().padStart(2, '0')}min`
       return `${mins} min`
     },
 
     startWindowTimeTracking() {
-      // Vérifier le temps toutes les 30 secondes
       this.timeCheckInterval = setInterval(async () => {
         await this.checkWindowTimeRemaining()
-      }, 30000) // 30 secondes
+      }, 30000)
     },
 
     async checkWindowTimeRemaining() {
       try {
         const result = await evaluationService.getTimeStatus(this.evaluation.id)
-
         if (result.success && result.data.window) {
           const window = result.data.window
           this.windowTimeLeft = window.time_left_minutes
 
-          // Auto-soumission si fenêtre fermée
           if (window.has_ended && !this.submitting) {
-            console.warn('⏰ Fenêtre fermée - Auto-soumission')
             clearInterval(this.timeCheckInterval)
             clearInterval(this.timer)
             alert('La fenêtre d\'évaluation est fermée. Soumission automatique de vos réponses...')
@@ -438,16 +367,20 @@ export default {
       }
     },
 
+    isAnswered(questionId) {
+      const answer = this.answers[questionId]
+      if (Array.isArray(answer)) return answer.length > 0
+      return answer !== undefined && answer !== null && answer !== ''
+    },
+
     isOptionSelected(questionId, option) {
-      return Array.isArray(this.answers[questionId]) &&
-             this.answers[questionId].includes(option)
+      return Array.isArray(this.answers[questionId]) && this.answers[questionId].includes(option)
     },
 
     toggleMultipleChoice(questionId, option) {
       if (!Array.isArray(this.answers[questionId])) {
         this.answers[questionId] = []
       }
-
       const index = this.answers[questionId].indexOf(option)
       if (index > -1) {
         this.answers[questionId].splice(index, 1)
@@ -458,7 +391,7 @@ export default {
 
     confirmCancel() {
       if (confirm('Êtes-vous sûr de vouloir annuler ? Vos réponses ne seront pas sauvegardées.')) {
-        this.$router.push('/student/evaluations')
+        this.$router.push('/student/evaluations-list')
       }
     },
 
@@ -471,13 +404,8 @@ export default {
       this.submitting = true
 
       try {
-        // Arrêter les timers
-        if (this.timer) {
-          clearInterval(this.timer)
-        }
-        if (this.timeCheckInterval) {
-          clearInterval(this.timeCheckInterval)
-        }
+        if (this.timer) clearInterval(this.timer)
+        if (this.timeCheckInterval) clearInterval(this.timeCheckInterval)
 
         const result = await evaluationService.submitEvaluation(
           this.evaluation.id,
@@ -487,14 +415,7 @@ export default {
 
         if (result.success) {
           this.results = result.data
-
-          // Afficher les résultats si configuré
-          if (this.evaluation.show_results) {
-            this.showResultsModal = true
-          } else {
-            alert('Évaluation soumise avec succès !')
-            this.returnToDashboard()
-          }
+          this.showResultsModal = true
         }
       } catch (error) {
         console.error('Erreur soumission évaluation:', error)
@@ -504,9 +425,590 @@ export default {
       }
     },
 
-    returnToDashboard() {
-      this.$router.push('/student/evaluations')
+    returnToEvaluations() {
+      this.$router.push('/student/evaluations-list')
     }
   }
 }
 </script>
+
+<style scoped>
+.take-evaluation-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+/* Bandeau mode entraînement */
+.practice-banner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #f3e8ff, #ede9fe);
+  border: 2px solid #8b5cf6;
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+  color: #5b21b6;
+}
+
+.practice-banner .fa {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.practice-title {
+  font-weight: 700;
+  font-size: 1rem;
+  margin: 0 0 0.25rem 0;
+}
+
+.practice-subtitle {
+  font-size: 0.875rem;
+  margin: 0;
+  opacity: 0.85;
+}
+
+.results-practice {
+  border-color: #8b5cf6 !important;
+  background: #f5f3ff !important;
+}
+
+.practice-note-info {
+  font-size: 0.8rem;
+  color: #7c3aed;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+/* Alerts */
+.alert-urgent {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: #fee2e2;
+  border: 2px solid #ef4444;
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+  animation: pulse 2s infinite;
+  color: #991b1b;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.alert-urgent .fa {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.alert-title {
+  font-weight: 700;
+  font-size: 1rem;
+  margin: 0 0 0.25rem 0;
+}
+
+.alert-subtitle {
+  font-size: 0.875rem;
+  margin: 0;
+  opacity: 0.9;
+}
+
+.alert-info {
+  padding: 1rem 1.5rem;
+  background: var(--bg-secondary, #eff6ff);
+  border: 1px solid var(--primary-color, #3b82f6);
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+}
+
+.alert-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.alert-info-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.alert-info-time {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary-color, #3b82f6);
+}
+
+/* Header */
+.eval-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  background: var(--card-bg);
+  border-radius: 0.75rem;
+  box-shadow: var(--card-shadow);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.eval-header-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.eval-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem 0;
+}
+
+.eval-description {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.eval-timer {
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.timer-value {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-color, #3b82f6);
+  font-variant-numeric: tabular-nums;
+}
+
+.timer-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 0.125rem;
+}
+
+.timer-warning .timer-value {
+  color: #f59e0b;
+}
+
+.timer-danger .timer-value {
+  color: #ef4444;
+  animation: pulse 1s infinite;
+}
+
+/* Progress */
+.eval-progress {
+  background: var(--card-bg);
+  border-radius: 0.75rem;
+  box-shadow: var(--card-shadow);
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 0.5rem;
+  background: var(--bg-secondary, #e5e7eb);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-color, #3b82f6), #8b5cf6);
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+/* Questions */
+.questions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.question-card {
+  background: var(--card-bg);
+  border-radius: 0.75rem;
+  box-shadow: var(--card-shadow);
+  padding: 1.5rem;
+  border-left: 4px solid transparent;
+  transition: all 0.2s;
+}
+
+.question-answered {
+  border-left-color: #22c55e;
+}
+
+.question-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.question-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.question-number {
+  background: var(--primary-color, #3b82f6);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.question-points {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.question-check {
+  color: #22c55e;
+  font-size: 1.25rem;
+}
+
+.question-text {
+  font-size: 1.0625rem;
+  color: var(--text-primary);
+  margin: 0 0 1rem 0;
+  line-height: 1.6;
+}
+
+/* Options */
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border: 2px solid var(--border-color, #e5e7eb);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.option-item:hover {
+  background: var(--bg-secondary, #f9fafb);
+  border-color: var(--primary-color, #3b82f6);
+}
+
+.option-selected {
+  border-color: var(--primary-color, #3b82f6);
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.option-input {
+  accent-color: var(--primary-color, #3b82f6);
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+}
+
+.option-label {
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+}
+
+/* Text inputs */
+.text-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--border-color, #e5e7eb);
+  border-radius: 0.5rem;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+  transition: border-color 0.2s;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.text-input:focus {
+  outline: none;
+  border-color: var(--primary-color, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.textarea-input {
+  resize: vertical;
+  min-height: 120px;
+}
+
+/* Actions */
+.eval-actions {
+  display: flex;
+  gap: 0.75rem;
+  background: var(--card-bg);
+  border-radius: 0.75rem;
+  box-shadow: var(--card-shadow);
+  padding: 1.25rem 1.5rem;
+}
+
+.btn-cancel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: 2px solid var(--border-color, #d1d5db);
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+  background: var(--bg-secondary, #f3f4f6);
+  color: var(--text-primary);
+}
+
+.btn-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, var(--primary-color, #3b82f6), #2563eb);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-submit:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-1px);
+}
+
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+.actions-hint {
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--text-tertiary);
+  margin: 0.75rem 0 0 0;
+}
+
+/* Error state */
+.error-state {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.error-icon {
+  font-size: 3rem;
+  color: #ef4444;
+  margin-bottom: 1rem;
+}
+
+.error-text {
+  font-size: 1.125rem;
+  color: var(--text-primary);
+  margin: 0 0 1.5rem 0;
+}
+
+.btn-back-error {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-back-error:hover {
+  background: #dc2626;
+}
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 1rem;
+}
+
+.modal-card {
+  background: var(--card-bg);
+  border-radius: 0.75rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  max-width: 480px;
+  width: 100%;
+  padding: 2rem;
+}
+
+.modal-results {
+  text-align: center;
+}
+
+.modal-title {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 1rem 0;
+}
+
+.modal-text {
+  color: var(--text-secondary);
+  margin: 0 0 1rem 0;
+  line-height: 1.6;
+}
+
+.modal-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0 0 1rem 0;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.modal-actions .btn-cancel,
+.modal-actions .btn-submit {
+  flex: 1;
+}
+
+/* Results icon */
+.results-icon {
+  margin-bottom: 1rem;
+}
+
+.results-icon .fa {
+  font-size: 3rem;
+  color: #22c55e;
+}
+
+/* Results score */
+.results-score {
+  background: var(--bg-secondary, #eff6ff);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.score-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0 0 0.25rem 0;
+}
+
+.score-value {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--primary-color, #3b82f6);
+  margin: 0;
+}
+
+.score-unit {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.score-detail {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0.5rem 0 0 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .eval-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .eval-timer {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .timer-value {
+    font-size: 1.5rem;
+  }
+
+  .timer-label {
+    margin-top: 0;
+  }
+
+  .eval-actions {
+    flex-direction: column;
+  }
+
+  .btn-cancel {
+    justify-content: center;
+  }
+
+  .question-card {
+    padding: 1.25rem;
+  }
+
+  .alert-info-row {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+}
+</style>

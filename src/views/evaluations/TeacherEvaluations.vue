@@ -84,6 +84,34 @@
               </button>
             </div>
           </div>
+
+          <!-- Bouton masquer/supprimer les évaluations expirées sans version en ligne -->
+          <div v-if="expiredWithoutOnlineCount > 0" class="expired-cleanup-bar">
+            <div class="expired-info">
+              <ClockIcon class="w-5 h-5 text-amber-500" />
+              <span>
+                <strong>{{ expiredWithoutOnlineCount }}</strong> évaluation(s) expirée(s) sans version en ligne
+              </span>
+            </div>
+            <div class="expired-actions">
+              <button
+                v-if="!hideExpired"
+                @click="hideExpired = true"
+                class="btn-hide-expired"
+              >
+                <XMarkIcon class="w-4 h-4" />
+                Masquer
+              </button>
+              <button
+                v-else
+                @click="hideExpired = false"
+                class="btn-show-expired"
+              >
+                <EyeIcon class="w-4 h-4" />
+                Afficher
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- Statistics -->
@@ -449,6 +477,7 @@ const syncing = ref(null)
 const showCreateModal = ref(false)
 const selectedEvaluation = ref(null)
 const creating = ref(false)
+const hideExpired = ref(true) // Par défaut, masquer les évaluations expirées sans version en ligne
 const onlineForm = reactive({
   type: 'qcm',
   duree_minutes: 60,
@@ -477,9 +506,34 @@ const evaluationsWithOnline = computed(() => {
   }))
 })
 
+// Check if an evaluation is expired and without online version
+function isExpiredWithoutOnline(evaluation) {
+  if (evaluation.has_online) return false
+  // Check window status (KLASSCI programmation)
+  const window = evaluation.programmation?.window
+  if (window && !window.is_open && window.has_started) return true
+  // Check date_evaluation
+  const dateEval = evaluation.programmation?.date_evaluation || evaluation.date_evaluation
+  if (dateEval) {
+    const evalDate = new Date(dateEval)
+    return evalDate < new Date()
+  }
+  return false
+}
+
+// Count of expired evaluations without online version
+const expiredWithoutOnlineCount = computed(() => {
+  return evaluationsWithOnline.value.filter(e => isExpiredWithoutOnline(e)).length
+})
+
 // Filtered evaluations
 const filteredEvaluations = computed(() => {
   let filtered = evaluationsWithOnline.value
+
+  // Hide expired without online version
+  if (hideExpired.value) {
+    filtered = filtered.filter(e => !isExpiredWithoutOnline(e))
+  }
 
   // Filter by classe
   if (filters.classe_id) {
@@ -1019,6 +1073,53 @@ onMounted(() => {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1.5rem;
   align-items: end;
+}
+
+.expired-cleanup-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: 0.5rem;
+  gap: 1rem;
+}
+
+.expired-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.expired-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-hide-expired,
+.btn-show-expired {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.btn-hide-expired:hover,
+.btn-show-expired:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 .filter-item {

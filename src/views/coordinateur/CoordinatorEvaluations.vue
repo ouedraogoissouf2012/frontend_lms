@@ -359,7 +359,7 @@ const resetFilters = () => {
 }
 
 const viewResults = (id) => {
-  router.push(`/admin/evaluations/${id}/results`)
+  router.push(`/admin/evaluations/${id}/details`)
 }
 
 const viewDetails = (id) => {

@@ -172,5 +172,18 @@ export default {
    */
   async getResultsByClass(id) {
     return this.getEvaluationResultsByClass(id)
+  },
+
+  /**
+   * Prévisualise une évaluation (enseignant)
+   */
+  async previewEvaluation(id) {
+    try {
+      const response = await api.get(`/evaluations/${id}/preview`)
+      return response
+    } catch (error) {
+      console.error('Erreur prévisualisation évaluation:', error)
+      throw error
+    }
   }
 }
