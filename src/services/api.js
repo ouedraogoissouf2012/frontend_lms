@@ -1,20 +1,50 @@
 import axios from 'axios'
 
+/**
+ * Détecte le slug de l'institution depuis le sous-domaine ou localStorage.
+ * En production : "presentation.klassci.com" → "presentation"
+ * En local : fallback sur localStorage ou "presentation"
+ */
+function getInstitutionSlug() {
+  const hostname = window.location.hostname
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return localStorage.getItem('institution') || 'presentation'
+  }
+  const parts = hostname.split('.')
+  const subdomain = parts.length >= 3 ? parts[0] : 'presentation'
+  // admin.klassci.com → pas d'institution (supradmin)
+  if (subdomain === 'admin') return null
+  return subdomain
+}
+
 // Configuration de base
+const institutionSlug = getInstitutionSlug()
+const defaultHeaders = {
+  'Content-Type': 'application/json',
+  'Accept': 'application/json',
+}
+if (institutionSlug) {
+  defaultHeaders['X-Institution'] = institutionSlug
+}
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  }
+  headers: defaultHeaders
 })
 
-// Intercepteur pour ajouter le token automatiquement
+// Intercepteur pour ajouter le token et le header institution
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
+    }
+    // Envoyer le slug institution le plus récent (sauf pour supradmin)
+    const slug = getInstitutionSlug()
+    if (slug) {
+      config.headers['X-Institution'] = slug
+    } else {
+      delete config.headers['X-Institution']
     }
     return config
   },
@@ -26,12 +56,11 @@ api.interceptors.request.use(
 // Intercepteur pour gérer les erreurs
 api.interceptors.response.use(
   (response) => {
-    console.log('✅ API Response:', response.config.url, response.status)
     // Retourner la structure complète pour accéder à 'meta' et 'data'
     return response.data
   },
   (error) => {
-    console.error('❌ API Error:', error.config?.url, error.response?.status, error.response?.data)
+    console.error('❌ API Error:', error.config?.url, error.response?.status)
 
     // Si erreur 401, déconnecter l'utilisateur
     if (error.response?.status === 401) {
@@ -53,29 +82,18 @@ api.interceptors.response.use(
 // Fonctions d'authentification
 export const auth = {
   async login(username, password) {
-    console.log('🔐 auth.login() appelé avec username:', username)
     const response = await api.post('/auth/login', { username, password })
-    console.log('📦 Réponse brute du serveur:', response)
 
-    // Vérifier si la connexion a réussi
     if (response.success && response.data) {
-      console.log('✅ Connexion réussie, stockage des données...')
-      console.log('🔑 Token à stocker:', response.data.token)
-
-      // Stocker le token KLASSCI
       localStorage.setItem('token', response.data.token)
       localStorage.setItem('user', JSON.stringify(response.data.user))
 
-      // Stocker les métadonnées (année universitaire, etc.)
       if (response.meta) {
         localStorage.setItem('meta', JSON.stringify(response.meta))
+        if (response.meta.institution) {
+          localStorage.setItem('institution', response.meta.institution)
+        }
       }
-
-      console.log('💾 Données stockées dans localStorage')
-      console.log('🔑 Token vérifié:', localStorage.getItem('token'))
-      console.log('👤 User vérifié:', localStorage.getItem('user'))
-    } else {
-      console.error('❌ Connexion échouée:', response)
     }
 
     return response
@@ -88,6 +106,7 @@ export const auth = {
     localStorage.removeItem('meta')
     // Vider le cache du dashboard pour éviter qu'il soit accessible après déconnexion
     localStorage.removeItem('student_dashboard_cache')
+    // Note: on ne supprime PAS 'institution' car le slug est déterminé par le sous-domaine
     console.log('✅ localStorage et cache nettoyés')
   },
 
@@ -136,6 +155,32 @@ export const auth = {
   // Vérifier si étudiant
   isStudent() {
     return this.hasRole(['etudiant'])
+  },
+
+  // Obtenir le slug de l'institution courante
+  getInstitution() {
+    return getInstitutionSlug()
+  },
+
+  // Obtenir le nom de l'institution depuis les métadonnées
+  getInstitutionName() {
+    const meta = this.getMeta()
+    return meta?.institution_name || null
+  },
+
+  // Vérifier si l'utilisateur est supradmin
+  isSupradmin() {
+    return this.hasRole(['supradmin'])
+  },
+
+  // Récupérer la liste des institutions actives (route publique)
+  async getActiveInstitutions() {
+    return await api.get('/institutions/active')
+  },
+
+  // Changer l'institution courante (local dev uniquement)
+  setInstitution(slug) {
+    localStorage.setItem('institution', slug)
   }
 }
 
@@ -280,6 +325,33 @@ export const teacherStats = {
   async getStats() {
     const response = await api.get('/teacher/stats')
     return response.data
+  }
+}
+
+// Institution Management (superAdmin uniquement)
+export const institutions = {
+  async getAll() {
+    return await api.get('/admin/institutions')
+  },
+
+  async getOne(id) {
+    return await api.get(`/admin/institutions/${id}`)
+  },
+
+  async create(data) {
+    return await api.post('/admin/institutions', data)
+  },
+
+  async update(id, data) {
+    return await api.put(`/admin/institutions/${id}`, data)
+  },
+
+  async toggle(id) {
+    return await api.patch(`/admin/institutions/${id}/toggle`)
+  },
+
+  async testConnection(id) {
+    return await api.post(`/admin/institutions/${id}/test-connection`)
   }
 }
 
