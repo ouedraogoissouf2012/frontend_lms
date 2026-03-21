@@ -1,57 +1,19 @@
 import axios from 'axios'
 
-/**
- * Détecte le slug de l'institution depuis le sous-domaine ou localStorage.
- * En production : "presentation.klassci.com" → "presentation"
- * En local : fallback sur localStorage ou "presentation"
- */
-// Domaines génériques qui ne correspondent pas à une institution spécifique
-const GENERIC_SUBDOMAINS = ['edu', 'lms', 'admin', 'app', 'www']
-
-function getInstitutionSlug() {
-  // Toujours priorité au localStorage (défini par le sélecteur d'institution sur la page login)
-  const stored = localStorage.getItem('institution')
-  if (stored) return stored
-
-  // Fallback : détecter depuis le sous-domaine (déploiements dédiés par école)
-  const hostname = window.location.hostname
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return 'presentation'
-  }
-  const parts = hostname.split('.')
-  const subdomain = parts.length >= 3 ? parts[0] : null
-  if (!subdomain || GENERIC_SUBDOMAINS.includes(subdomain)) return null
-  return subdomain
-}
-
-// Configuration de base
-const institutionSlug = getInstitutionSlug()
-const defaultHeaders = {
-  'Content-Type': 'application/json',
-  'Accept': 'application/json',
-}
-if (institutionSlug) {
-  defaultHeaders['X-Institution'] = institutionSlug
-}
-
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
-  headers: defaultHeaders
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  }
 })
 
-// Intercepteur pour ajouter le token et le header institution
+// Intercepteur : ajouter uniquement le token Bearer
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
-    }
-    // Envoyer le slug institution le plus récent (sauf pour supradmin)
-    const slug = getInstitutionSlug()
-    if (slug) {
-      config.headers['X-Institution'] = slug
-    } else {
-      delete config.headers['X-Institution']
     }
     return config
   },
@@ -107,14 +69,11 @@ export const auth = {
   },
 
   logout() {
-    // Nettoyer le localStorage (pas besoin d'appeler l'API backend)
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     localStorage.removeItem('meta')
-    // Vider le cache du dashboard pour éviter qu'il soit accessible après déconnexion
+    localStorage.removeItem('institution')
     localStorage.removeItem('student_dashboard_cache')
-    // Note: on ne supprime PAS 'institution' car le slug est déterminé par le sous-domaine
-    console.log('✅ localStorage et cache nettoyés')
   },
 
   async me() {
@@ -164,9 +123,10 @@ export const auth = {
     return this.hasRole(['etudiant'])
   },
 
-  // Obtenir le slug de l'institution courante
+  // Obtenir le slug de l'institution depuis les métadonnées de session
   getInstitution() {
-    return getInstitutionSlug()
+    const meta = this.getMeta()
+    return meta?.institution || localStorage.getItem('institution') || null
   },
 
   // Obtenir le nom de l'institution depuis les métadonnées

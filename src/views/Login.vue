@@ -12,20 +12,6 @@
         {{ error }}
       </div>
 
-      <!-- Sélecteur d'institution -->
-      <div class="mb-4">
-        <label class="block text-gray-700 mb-2 text-sm font-semibold">Établissement</label>
-        <select
-          v-model="selectedInstitution"
-          @change="onInstitutionChange"
-          class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
-        >
-          <option value="">-- Sélectionnez votre établissement --</option>
-          <option v-for="inst in institutions" :key="inst.slug" :value="inst.slug">
-            {{ inst.name }}
-          </option>
-        </select>
-      </div>
 
       <!-- Formulaire -->
       <form @submit.prevent="handleLogin">
@@ -40,7 +26,7 @@
             type="text"
             required
             class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
-            placeholder="superadmin ou votre email"
+            placeholder="Nom d'utilisateur ou email"
           />
         </div>
 
@@ -84,33 +70,12 @@ export default {
       password: '',
       loading: false,
       error: null,
-      institutions: [],
-      selectedInstitution: localStorage.getItem('institution') || 'presentation'
-    }
-  },
-  async mounted() {
-    try {
-      const response = await auth.getActiveInstitutions()
-      if (response.success && response.data) {
-        this.institutions = response.data
-      }
-    } catch (e) {
-      this.institutions = [{ slug: 'presentation', name: 'KLASSCI Présentation' }]
     }
   },
   methods: {
-    onInstitutionChange() {
-      auth.setInstitution(this.selectedInstitution)
-    },
     async handleLogin() {
       this.loading = true
       this.error = null
-
-      if (!this.selectedInstitution) {
-        this.error = 'Veuillez sélectionner votre établissement.'
-        this.loading = false
-        return
-      }
 
       try {
         const response = await auth.login(this.username, this.password)
@@ -131,7 +96,7 @@ export default {
           this.error = response.message || 'Échec de la connexion'
         }
       } catch (err) {
-        this.error = err.response?.data?.message || 'Identifiants incorrects ou établissement invalide.'
+        this.error = err.response?.data?.message || 'Identifiants incorrects.'
       } finally {
         this.loading = false
       }

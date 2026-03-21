@@ -63,7 +63,9 @@ const routes = [
       if (!user) return '/login'
 
       // Redirection selon le rôle
-      if (['superAdmin', 'coordinateur', 'secretaire'].includes(user.role)) {
+      if (user.role === 'supradmin') {
+        return '/admin/institutions'
+      } else if (['superAdmin', 'coordinateur', 'secretaire'].includes(user.role)) {
         return '/admin/dashboard'
       } else if (['enseignant', 'teacher'].includes(user.role)) {
         return '/teacher/dashboard'
@@ -203,6 +205,17 @@ const routes = [
       requiresAuth: true,
       roles: ['superAdmin', 'coordinateur'],
       title: 'Paramètres'
+    }
+  },
+  // Gestion Institutions - supradmin uniquement
+  {
+    path: '/admin/institutions',
+    name: 'AdminInstitutions',
+    component: () => import('@/views/admin/AdminInstitutions.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['supradmin'],
+      title: 'Gestion des Institutions'
     }
   },
   // Dashboard Enseignant
@@ -678,7 +691,9 @@ router.beforeEach((to, from, next) => {
   if (to.meta.guest && isAuthenticated) {
     // Rediriger vers le dashboard approprié
     if (user) {
-      if (['superAdmin', 'coordinateur', 'secretaire'].includes(user.role)) {
+      if (user.role === 'supradmin') {
+        next('/admin/institutions')
+      } else if (['superAdmin', 'coordinateur', 'secretaire'].includes(user.role)) {
         next('/admin/dashboard')
       } else if (['enseignant', 'teacher'].includes(user.role)) {
         next('/teacher/dashboard')
@@ -694,11 +709,15 @@ router.beforeEach((to, from, next) => {
   }
 
   // Vérifier les rôles requis pour la route
+  // superAdmin a accès à toutes les routes (admin + teacher + coordinateur)
   if (to.meta.roles && user) {
-    const hasRequiredRole = to.meta.roles.includes(user.role)
+    const hasRequiredRole = to.meta.roles.includes(user.role) ||
+      ['superAdmin', 'coordinateur'].includes(user.role)
     if (!hasRequiredRole) {
       // Rediriger vers le dashboard approprié si rôle incorrect
-      if (['superAdmin', 'coordinateur', 'secretaire'].includes(user.role)) {
+      if (user.role === 'supradmin') {
+        next('/admin/institutions')
+      } else if (['superAdmin', 'coordinateur', 'secretaire'].includes(user.role)) {
         next('/admin/dashboard')
       } else if (['enseignant', 'teacher'].includes(user.role)) {
         next('/teacher/dashboard')

@@ -124,7 +124,8 @@ export default {
         'teacher': 'Enseignant',
         'coordinateur': 'Coordinateur',
         'admin': 'Administrateur',
-        'superAdmin': 'Super Administrateur'
+        'superAdmin': 'Super Administrateur',
+        'supradmin': 'Supradmin'
       }
 
       return roleLabels[user.role] || user.role
@@ -144,6 +145,15 @@ export default {
     const menuSections = computed(() => {
       const user = auth.getUser()
       if (!user) return []
+
+      // Supradmin : menu minimal (uniquement Institutions)
+      if (user.role === 'supradmin') {
+        return [{
+          icon: 'fa-university',
+          label: 'Institutions',
+          to: '/admin/institutions'
+        }]
+      }
 
       const isStudent = ['etudiant', 'student'].includes(user.role)
       const isTeacher = ['enseignant', 'teacher', 'coordinateur', 'superAdmin'].includes(user.role)
