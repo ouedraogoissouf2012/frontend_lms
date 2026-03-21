@@ -5,15 +5,22 @@ import axios from 'axios'
  * En production : "presentation.klassci.com" → "presentation"
  * En local : fallback sur localStorage ou "presentation"
  */
+// Domaines génériques qui ne correspondent pas à une institution spécifique
+const GENERIC_SUBDOMAINS = ['edu', 'lms', 'admin', 'app', 'www']
+
 function getInstitutionSlug() {
+  // Toujours priorité au localStorage (défini par le sélecteur d'institution sur la page login)
+  const stored = localStorage.getItem('institution')
+  if (stored) return stored
+
+  // Fallback : détecter depuis le sous-domaine (déploiements dédiés par école)
   const hostname = window.location.hostname
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return localStorage.getItem('institution') || 'presentation'
+    return 'presentation'
   }
   const parts = hostname.split('.')
-  const subdomain = parts.length >= 3 ? parts[0] : 'presentation'
-  // admin.klassci.com → pas d'institution (supradmin)
-  if (subdomain === 'admin') return null
+  const subdomain = parts.length >= 3 ? parts[0] : null
+  if (!subdomain || GENERIC_SUBDOMAINS.includes(subdomain)) return null
   return subdomain
 }
 
