@@ -75,6 +75,11 @@ const routes = [
       return '/dashboard'
     }
   },
+  // Redirect /admin → /admin/dashboard
+  {
+    path: '/admin',
+    redirect: '/admin/dashboard'
+  },
   // Dashboard Admin
   {
     path: '/admin/dashboard',

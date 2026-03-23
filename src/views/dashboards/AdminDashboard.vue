@@ -491,9 +491,12 @@ async function loadKlassciData() {
     console.log('✅ Enseignants chargés:', enseignants)
 
     // Calculer les vraies statistiques
+    // nb_etudiants : somme de places_occupees par classe (étudiants inscrits actifs année courante)
+    const nbEtudiants = (classes.value || []).reduce((sum, c) => sum + (c.places_occupees || 0), 0)
+
     stats.value = {
-      nb_enseignants: enseignants?.length || 0, // Nombre réel depuis BDD locale
-      nb_etudiants: stats.value?.nb_etudiants || 0,
+      nb_enseignants: enseignants?.length || 0,
+      nb_etudiants: nbEtudiants,
       nb_classes_actives: classes.value?.length || 0,
       nb_matieres_actives: matieres.value?.length || 0,
       nb_filieres: stats.value?.nb_filieres || 0,

@@ -11,7 +11,7 @@ const api = axios.create({
 // Intercepteur : ajouter uniquement le token Bearer
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -34,9 +34,9 @@ api.interceptors.response.use(
     // Si erreur 401, déconnecter l'utilisateur
     if (error.response?.status === 401) {
       console.warn('Session expirée - Déconnexion automatique')
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      localStorage.removeItem('meta')
+      sessionStorage.removeItem('token')
+      sessionStorage.removeItem('user')
+      sessionStorage.removeItem('meta')
 
       // Ne rediriger que si on n'est pas déjà sur la page de login
       if (!window.location.pathname.includes('/login')) {
@@ -54,13 +54,13 @@ export const auth = {
     const response = await api.post('/auth/login', { username, password })
 
     if (response.success && response.data) {
-      localStorage.setItem('token', response.data.token)
-      localStorage.setItem('user', JSON.stringify(response.data.user))
+      sessionStorage.setItem('token', response.data.token)
+      sessionStorage.setItem('user', JSON.stringify(response.data.user))
 
       if (response.meta) {
-        localStorage.setItem('meta', JSON.stringify(response.meta))
+        sessionStorage.setItem('meta', JSON.stringify(response.meta))
         if (response.meta.institution) {
-          localStorage.setItem('institution', response.meta.institution)
+          sessionStorage.setItem('institution', response.meta.institution)
         }
       }
     }
@@ -69,10 +69,10 @@ export const auth = {
   },
 
   logout() {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    localStorage.removeItem('meta')
-    localStorage.removeItem('institution')
+    sessionStorage.removeItem('token')
+    sessionStorage.removeItem('user')
+    sessionStorage.removeItem('meta')
+    sessionStorage.removeItem('institution')
     localStorage.removeItem('student_dashboard_cache')
   },
 
@@ -81,17 +81,17 @@ export const auth = {
   },
 
   getUser() {
-    const user = localStorage.getItem('user')
+    const user = sessionStorage.getItem('user')
     return user ? JSON.parse(user) : null
   },
 
   getMeta() {
-    const meta = localStorage.getItem('meta')
+    const meta = sessionStorage.getItem('meta')
     return meta ? JSON.parse(meta) : null
   },
 
   isAuthenticated() {
-    return !!localStorage.getItem('token')
+    return !!sessionStorage.getItem('token')
   },
 
   // Obtenir le rôle de l'utilisateur
@@ -126,7 +126,7 @@ export const auth = {
   // Obtenir le slug de l'institution depuis les métadonnées de session
   getInstitution() {
     const meta = this.getMeta()
-    return meta?.institution || localStorage.getItem('institution') || null
+    return meta?.institution || sessionStorage.getItem('institution') || null
   },
 
   // Obtenir le nom de l'institution depuis les métadonnées
@@ -147,7 +147,7 @@ export const auth = {
 
   // Changer l'institution courante (local dev uniquement)
   setInstitution(slug) {
-    localStorage.setItem('institution', slug)
+    sessionStorage.setItem('institution', slug)
   }
 }
 
@@ -319,6 +319,10 @@ export const institutions = {
 
   async testConnection(id) {
     return await api.post(`/admin/institutions/${id}/test-connection`)
+  },
+
+  async delete(id) {
+    return await api.delete(`/admin/institutions/${id}`)
   }
 }
 

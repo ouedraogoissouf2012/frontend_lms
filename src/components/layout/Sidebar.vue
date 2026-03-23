@@ -156,7 +156,7 @@ export default {
       }
 
       const isStudent = ['etudiant', 'student'].includes(user.role)
-      const isTeacher = ['enseignant', 'teacher', 'coordinateur', 'superAdmin'].includes(user.role)
+      const isTeacher = ['enseignant', 'teacher', 'coordinateur'].includes(user.role)
       const isAdmin = ['admin', 'coordinateur', 'superAdmin', 'secretaire'].includes(user.role)
 
       const menu = []
