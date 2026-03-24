@@ -354,7 +354,7 @@ export default {
         openSubmenus.value = {}
       }
       // Store preference
-      localStorage.setItem('sidebar-collapsed', isCollapsed.value)
+      localStorage.setItem(getSidebarKey(), isCollapsed.value)
     }
 
     // Toggle submenu
@@ -399,9 +399,11 @@ export default {
       })
     }
 
-    // Restore collapsed state from localStorage
+    // Restore collapsed state from localStorage (scopé par institution)
+    const getSidebarKey = () => `sidebar-collapsed-${auth.getInstitution() || 'default'}`
+
     onMounted(() => {
-      const savedState = localStorage.getItem('sidebar-collapsed')
+      const savedState = localStorage.getItem(getSidebarKey())
       if (savedState !== null) {
         isCollapsed.value = savedState === 'true'
       }

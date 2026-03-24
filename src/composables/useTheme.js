@@ -4,9 +4,14 @@
  */
 
 import { ref, onMounted, watch } from 'vue'
+import { auth } from '@/services/api'
 
-const THEME_KEY = 'lms-theme-preference'
 const DEFAULT_THEME = 'light'
+
+function getThemeKey() {
+  const institution = auth.getInstitution() || 'default'
+  return `lms-theme-preference-${institution}`
+}
 
 // Shared state across all instances
 const currentTheme = ref(DEFAULT_THEME)
@@ -17,7 +22,7 @@ export function useTheme() {
    */
   const getInitialTheme = () => {
     // Check localStorage first
-    const stored = localStorage.getItem(THEME_KEY)
+    const stored = localStorage.getItem(getThemeKey())
     if (stored === 'light' || stored === 'dark') {
       return stored
     }
@@ -56,7 +61,7 @@ export function useTheme() {
 
     currentTheme.value = theme
     applyTheme(theme)
-    localStorage.setItem(THEME_KEY, theme)
+    localStorage.setItem(getThemeKey(), theme)
   }
 
   /**
@@ -91,7 +96,7 @@ export function useTheme() {
 
     const handleChange = (e) => {
       // Only auto-switch if user hasn't set a preference
-      if (!localStorage.getItem(THEME_KEY)) {
+      if (!localStorage.getItem(getThemeKey())) {
         setTheme(e.matches ? 'dark' : 'light')
       }
     }
