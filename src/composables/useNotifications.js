@@ -7,6 +7,7 @@ const previousNotificationIds = new Set()
 let sessionStartTime = null
 let consecutiveErrors = 0
 const MAX_CONSECUTIVE_ERRORS = 3
+const REMOUNT_COOLDOWN_MS = 60000 // 1 minute cooldown entre rechargements initiaux
 
 export function useNotifications(options = {}) {
   const {
@@ -26,6 +27,7 @@ export function useNotifications(options = {}) {
       notifications.value = data
       unreadCount.value = Array.isArray(data) ? data.filter(n => n.is_unread).length : 0
       consecutiveErrors = 0
+      lastCheckTime = Date.now()
       return data
     } catch (error) {
       console.error('Erreur chargement notifications:', error)
@@ -135,13 +137,15 @@ export function useNotifications(options = {}) {
       clearInterval(checkInterval)
     }
 
-    // Premier check immédiat
-    loadNotifications().then(() => {
-      // Initialiser previousNotificationIds avec les IDs actuels
-      notifications.value.forEach(notif => {
-        previousNotificationIds.add(notif.id)
+    // Éviter le spam d'API quand DashboardLayout se remonte à chaque navigation
+    const shouldLoad = !lastCheckTime || (Date.now() - lastCheckTime) > REMOUNT_COOLDOWN_MS
+    if (shouldLoad) {
+      loadNotifications().then(() => {
+        notifications.value.forEach(notif => {
+          previousNotificationIds.add(notif.id)
+        })
       })
-    })
+    }
 
     // Puis checks réguliers
     checkInterval = setInterval(checkNewNotifications, checkIntervalMs)
