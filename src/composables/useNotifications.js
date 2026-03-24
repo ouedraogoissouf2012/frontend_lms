@@ -4,12 +4,14 @@ import { notificationsService } from '@/services/notifications'
 let lastCheckTime = null
 let checkInterval = null
 const previousNotificationIds = new Set()
-let sessionStartTime = null // Timestamp du démarrage de la session
+let sessionStartTime = null
+let consecutiveErrors = 0
+const MAX_CONSECUTIVE_ERRORS = 3
 
 export function useNotifications(options = {}) {
   const {
     autoCheck = true,
-    checkIntervalMs = 30000, // 30 secondes
+    checkIntervalMs = 120000, // 2 minutes (réduit la charge sur hébergement mutualisé)
     showToast = true
   } = options
 
@@ -22,11 +24,8 @@ export function useNotifications(options = {}) {
       isLoading.value = true
       const data = await notificationsService.getRecentNotifications(10)
       notifications.value = data
-
-      // Mettre à jour le compteur
-      const count = await notificationsService.getUnreadCount()
-      unreadCount.value = count
-
+      unreadCount.value = Array.isArray(data) ? data.filter(n => n.is_unread).length : 0
+      consecutiveErrors = 0
       return data
     } catch (error) {
       console.error('Erreur chargement notifications:', error)
@@ -39,13 +38,13 @@ export function useNotifications(options = {}) {
   async function checkNewNotifications() {
     try {
       const data = await notificationsService.getRecentNotifications(10)
+      consecutiveErrors = 0
 
       // Trouver les nouvelles notifications
       const newNotifications = data.filter(notif => {
         const isNew = !previousNotificationIds.has(notif.id)
         previousNotificationIds.add(notif.id)
 
-        // Ne considérer comme "nouvelle" que si créée après le début de la session
         if (isNew && notif.is_unread && sessionStartTime) {
           const notifTime = new Date(notif.created_at).getTime()
           return notifTime > sessionStartTime
@@ -66,14 +65,17 @@ export function useNotifications(options = {}) {
         })
       }
 
-      // Mettre à jour les données
       notifications.value = data
-      const count = await notificationsService.getUnreadCount()
-      unreadCount.value = count
-
+      unreadCount.value = Array.isArray(data) ? data.filter(n => n.is_unread).length : 0
       lastCheckTime = Date.now()
     } catch (error) {
+      consecutiveErrors++
       console.error('Erreur vérification nouvelles notifications:', error)
+
+      // Arrêter le polling après trop d'erreurs consécutives (serveur surchargé)
+      if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+        stopAutoCheck()
+      }
     }
   }
 
