@@ -31,6 +31,13 @@ if (initialTheme === 'dark') {
 }
 document.documentElement.setAttribute('data-theme', initialTheme)
 
+// Désactiver console.log en production (garder console.error et console.warn)
+if (!import.meta.env.DEV) {
+  console.log = () => {}
+  console.debug = () => {}
+  console.info = () => {}
+}
+
 const app = createApp(App)
 
 app.use(createPinia())
