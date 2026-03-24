@@ -395,7 +395,7 @@ export default {
         console.log('[VisioManager] Téléchargement liste de présence PDF...')
 
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
-        const token = localStorage.getItem('token')
+        const token = sessionStorage.getItem('token')
 
         // Créer l'URL de téléchargement
         const url = `${API_URL}/lms/seances/${this.seance.id}/export/presences/pdf`

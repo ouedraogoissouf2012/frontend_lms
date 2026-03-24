@@ -220,7 +220,7 @@ export function useVisioParticipation(seanceId) {
   const sendLeaveVisioBeacon = async () => {
     try {
       const apiUrl = `${import.meta.env.VITE_API_URL}/api/seances/${seanceId}/leave-visio`
-      const token = localStorage.getItem('token')
+      const token = sessionStorage.getItem('token')
 
       if (!token) {
         console.warn('[useVisioParticipation] Pas de token, impossible d\'envoyer Beacon')
