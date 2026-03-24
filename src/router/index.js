@@ -661,13 +661,14 @@ const routes = [
     }
   },
 
-  // 🧪 TEST - Visio Store (Tests de la correction heartbeat)
+  // 🧪 TEST - Visio Store (réservé supradmin uniquement)
   {
     path: '/test-visio',
     name: 'TestVisio',
     component: () => import('@/components/test/VisioStoreTest.vue'),
     meta: {
-      requiresAuth: true
+      requiresAuth: true,
+      roles: ['supradmin']
     }
   }
 ]
@@ -714,10 +715,10 @@ router.beforeEach((to, from, next) => {
   }
 
   // Vérifier les rôles requis pour la route
-  // superAdmin a accès à toutes les routes (admin + teacher + coordinateur)
+  // supradmin (gestionnaire plateforme) bypasse toutes les vérifications de rôle
   if (to.meta.roles && user) {
     const hasRequiredRole = to.meta.roles.includes(user.role) ||
-      ['superAdmin', 'coordinateur'].includes(user.role)
+      user.role === 'supradmin'
     if (!hasRequiredRole) {
       // Rediriger vers le dashboard approprié si rôle incorrect
       if (user.role === 'supradmin') {
