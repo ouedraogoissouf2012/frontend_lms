@@ -320,16 +320,16 @@ const selectedEnseignant = ref(null)
 
 // Computed stats
 const totalMatieres = computed(() => {
-  return enseignants.value.reduce((sum, ens) => sum + (ens.matieres?.length || 0), 0)
+  const list = Array.isArray(enseignants.value) ? enseignants.value : []
+  return list.reduce((sum, ens) => sum + (ens.matieres?.length || 0), 0)
 })
 
 const totalClasses = computed(() => {
-  // Utiliser les statistiques si disponibles, sinon compter depuis les matieres
-  return enseignants.value.reduce((sum, ens) => {
+  const list = Array.isArray(enseignants.value) ? enseignants.value : []
+  return list.reduce((sum, ens) => {
     if (ens.statistiques?.total_classes) {
       return sum + ens.statistiques.total_classes
     }
-    // Fallback: extraire classes uniques depuis les matieres
     const classesSet = new Set()
     ens.matieres?.forEach(matiere => {
       matiere.classes?.forEach(classe => classesSet.add(classe.id))
@@ -339,7 +339,8 @@ const totalClasses = computed(() => {
 })
 
 const enseignantsActifs = computed(() => {
-  return enseignants.value.filter(ens => ens.matieres?.length > 0 || ens.classes?.length > 0).length
+  const list = Array.isArray(enseignants.value) ? enseignants.value : []
+  return list.filter(ens => ens.matieres?.length > 0 || ens.classes?.length > 0).length
 })
 
 // Get initials from enseignant

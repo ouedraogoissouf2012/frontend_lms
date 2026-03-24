@@ -251,11 +251,12 @@ const filteredClasses = computed(() => {
 
 // Computed: Statistics
 const stats = computed(() => {
+  const list = Array.isArray(classes.value) ? classes.value : []
   return {
-    total: classes.value.length,
-    totalEtudiants: classes.value.reduce((sum, c) => sum + (c.places_occupees || 0), 0),
-    totalMatieres: classes.value.reduce((sum, c) => sum + (c.nb_matieres || 0), 0),
-    actives: classes.value.filter(c => c.is_active).length
+    total: list.length,
+    totalEtudiants: list.reduce((sum, c) => sum + (c.places_occupees || 0), 0),
+    totalMatieres: list.reduce((sum, c) => sum + (c.nb_matieres || 0), 0),
+    actives: list.filter(c => c.is_active).length
   }
 })
 
