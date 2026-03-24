@@ -160,6 +160,7 @@ import { ref, onMounted } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import { klassciService } from '@/services/klassci'
+import { readCache, writeCache } from '@/services/cache'
 import {
   CalendarIcon,
   VideoCameraIcon,
@@ -184,8 +185,6 @@ const filters = ref({
   status: ''
 })
 
-const CACHE_KEY = 'admin_seances_cache'
-const CACHE_TTL = 2 * 60 * 1000 // 2 minutes
 
 async function loadSeances() {
   loading.value = true
@@ -193,19 +192,14 @@ async function loadSeances() {
 
   try {
     // Tenter de charger depuis le cache
-    const cached = localStorage.getItem(CACHE_KEY)
-    if (cached && !filters.value.teacher_id && !filters.value.classe_id) {
-      try {
-        const { data, timestamp, filterState } = JSON.parse(cached)
-        if (Date.now() - timestamp < CACHE_TTL && filterState.days === filters.value.days) {
-          console.log('[CACHE] Séances admin chargées depuis le cache')
-          seances.value = data
-          loading.value = false
-          refreshInBackground()
-          return
-        }
-      } catch (err) {
-        console.warn('[CACHE] Cache invalide, rechargement...')
+    if (!filters.value.teacher_id && !filters.value.classe_id) {
+      const cached = readCache('admin_seances')
+      if (cached) {
+        console.log('[CACHE] Séances admin chargées depuis le cache')
+        seances.value = cached
+        loading.value = false
+        refreshInBackground()
+        return
       }
     }
 
@@ -221,11 +215,7 @@ async function loadSeances() {
 
       // Mettre en cache si aucun filtre actif
       if (!filters.value.teacher_id && !filters.value.classe_id) {
-        localStorage.setItem(CACHE_KEY, JSON.stringify({
-          data: seances.value,
-          timestamp: Date.now(),
-          filterState: { days: filters.value.days }
-        }))
+        writeCache('admin_seances', seances.value)
       }
     } else {
       throw new Error(response.message || 'Erreur lors du chargement des séances')
@@ -246,11 +236,7 @@ async function refreshInBackground() {
 
     if (response.success) {
       seances.value = response.data || []
-      localStorage.setItem(CACHE_KEY, JSON.stringify({
-        data: seances.value,
-        timestamp: Date.now(),
-        filterState: { days: filters.value.days }
-      }))
+      writeCache('admin_seances', seances.value)
       console.log('[CACHE] Séances admin rafraîchies en arrière-plan')
     }
   } catch (err) {

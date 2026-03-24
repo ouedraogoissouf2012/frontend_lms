@@ -255,9 +255,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import klassciService from '@/services/klassci'
-
-const CACHE_KEY = 'admin_users_cache'
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+import { readCache, writeCache } from '@/services/cache'
 const PAGE_SIZE = 25
 
 // Data
@@ -417,17 +415,14 @@ async function loadAllUsers(forceReload = false) {
 
     // Check cache
     if (!forceReload) {
-      const cached = localStorage.getItem(CACHE_KEY)
-      if (cached) {
-        const { data, timestamp } = JSON.parse(cached)
-        if (Date.now() - timestamp < CACHE_TTL && data.etudiants?.length > 0) {
-          etudiants.value = data.etudiants
-          enseignants.value = data.enseignants || []
-          classes.value = data.classes || []
-          loading.value = false
-          refreshInBackground()
-          return
-        }
+      const cached = readCache('admin_users')
+      if (cached && cached.etudiants?.length > 0) {
+        etudiants.value = cached.etudiants
+        enseignants.value = cached.enseignants || []
+        classes.value = cached.classes || []
+        loading.value = false
+        refreshInBackground()
+        return
       }
     }
 
@@ -452,7 +447,7 @@ async function loadAllUsers(forceReload = false) {
         const studentsArray = Array.isArray(etudiantsData) ? etudiantsData : []
         studentsArray.forEach(etu => {
           etu.classe_id = classe.id
-          etu.classe_nom = classe.nom || `Classe ${classe.id}`
+          etu.classe_nom = classe.name || classe.libelle || classe.nom || `Classe ${classe.id}`
           allEtudiants.push(etu)
         })
       } catch (err) {
@@ -463,14 +458,11 @@ async function loadAllUsers(forceReload = false) {
     etudiants.value = allEtudiants
 
     // Save cache
-    localStorage.setItem(CACHE_KEY, JSON.stringify({
-      data: {
-        etudiants: etudiants.value,
-        enseignants: enseignants.value,
-        classes: classes.value,
-      },
-      timestamp: Date.now()
-    }))
+    writeCache('admin_users', {
+      etudiants: etudiants.value,
+      enseignants: enseignants.value,
+      classes: classes.value,
+    })
 
     loading.value = false
     loadingProgress.value = ''
@@ -498,7 +490,7 @@ async function refreshInBackground() {
         const studentsArray = Array.isArray(etudiantsData) ? etudiantsData : []
         studentsArray.forEach(etu => {
           etu.classe_id = classe.id
-          etu.classe_nom = classe.nom || `Classe ${classe.id}`
+          etu.classe_nom = classe.name || classe.libelle || classe.nom || `Classe ${classe.id}`
           allEtudiants.push(etu)
         })
       } catch {
@@ -508,14 +500,11 @@ async function refreshInBackground() {
 
     etudiants.value = allEtudiants
 
-    localStorage.setItem(CACHE_KEY, JSON.stringify({
-      data: {
-        etudiants: etudiants.value,
-        enseignants: enseignants.value,
-        classes: classes.value,
-      },
-      timestamp: Date.now()
-    }))
+    writeCache('admin_users', {
+      etudiants: etudiants.value,
+      enseignants: enseignants.value,
+      classes: classes.value,
+    })
   } catch {
     // Ignorer les erreurs en background
   }

@@ -211,6 +211,7 @@ import { useRouter } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import { klassciService } from '@/services/klassci'
+import { readCache, writeCache } from '@/services/cache'
 
 const router = useRouter()
 
@@ -227,8 +228,6 @@ const filters = ref({
   statut: ''
 })
 
-const CACHE_KEY = 'admin_classes_cache'
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
 // Computed: Filtered classes
 const filteredClasses = computed(() => {
@@ -263,23 +262,15 @@ const stats = computed(() => {
 // Load classes
 async function loadClasses() {
   // Check cache
-  const cached = localStorage.getItem(CACHE_KEY)
+  const cached = readCache('admin_classes')
   if (cached) {
-    try {
-      const { data, timestamp } = JSON.parse(cached)
-      if (Date.now() - timestamp < CACHE_TTL) {
-        console.log('[CACHE] Classes admin chargées depuis le cache')
-        classes.value = data.classes
-        filieres.value = data.filieres
-        niveaux.value = data.niveaux
-        matieres.value = data.matieres
-        loading.value = false
-        refreshInBackground()
-        return
-      }
-    } catch (err) {
-      console.warn('[CACHE] Cache invalide, rechargement...')
-    }
+    classes.value = cached.classes
+    filieres.value = cached.filieres
+    niveaux.value = cached.niveaux
+    matieres.value = cached.matieres
+    loading.value = false
+    refreshInBackground()
+    return
   }
 
   loading.value = true
@@ -339,17 +330,12 @@ async function loadClasses() {
     classes.value = enrichedClasses
 
     // Save to cache
-    localStorage.setItem(CACHE_KEY, JSON.stringify({
-      data: {
-        classes: classes.value,
-        filieres: filieres.value,
-        niveaux: niveaux.value,
-        matieres: matieres.value
-      },
-      timestamp: Date.now()
-    }))
-
-    console.log('[OK] Classes admin enrichies:', classes.value.length)
+    writeCache('admin_classes', {
+      classes: classes.value,
+      filieres: filieres.value,
+      niveaux: niveaux.value,
+      matieres: matieres.value
+    })
   } catch (err) {
     console.error('[ERREUR] Chargement classes admin:', err)
     error.value = 'Impossible de charger les classes. Veuillez réessayer.'
@@ -400,17 +386,12 @@ async function refreshInBackground() {
 
     classes.value = enrichedClasses
 
-    localStorage.setItem(CACHE_KEY, JSON.stringify({
-      data: {
-        classes: classes.value,
-        filieres: filieres.value,
-        niveaux: niveaux.value,
-        matieres: matieres.value
-      },
-      timestamp: Date.now()
-    }))
-
-    console.log('[BACKGROUND] Rafraîchissement terminé')
+    writeCache('admin_classes', {
+      classes: classes.value,
+      filieres: filieres.value,
+      niveaux: niveaux.value,
+      matieres: matieres.value
+    })
   } catch (error) {
     console.warn('[BACKGROUND] Erreur rafraîchissement:', error)
   }

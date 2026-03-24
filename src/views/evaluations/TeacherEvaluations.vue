@@ -446,6 +446,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import klassciService from '@/services/klassci'
 import evaluationService from '@/services/evaluation'
+import { readCache, writeCache } from '@/services/cache'
 import {
   DocumentTextIcon,
   BookOpenIcon,
@@ -491,11 +492,6 @@ const filters = reactive({
   statut: ''
 })
 
-// Cache
-const CACHE_KEY_EVALUATIONS = 'teacher_evaluations_cache'
-const CACHE_KEY_CLASSES = 'teacher_classes_cache'
-const CACHE_KEY_MATIERES = 'teacher_matieres_cache'
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
 // Merge KLASSCI evaluations with LMS online versions
 const evaluationsWithOnline = computed(() => {
@@ -593,27 +589,17 @@ async function loadData() {
 
 // Load classes with cache
 async function loadClasses() {
-  const cached = localStorage.getItem(CACHE_KEY_CLASSES)
-  if (cached) {
-    try {
-      const { data, timestamp } = JSON.parse(cached)
-      if (Date.now() - timestamp < CACHE_TTL) {
-        classes.value = data
-        return
-      }
-    } catch (err) {
-      console.warn('[CACHE] Cache classes invalide')
-    }
+  const cachedData = readCache('teacher_classes')
+  if (cachedData !== null) {
+    classes.value = cachedData
+    return
   }
 
   try {
     const classesData = await klassciService.getClasses()
     classes.value = Array.isArray(classesData) ? classesData : []
 
-    localStorage.setItem(CACHE_KEY_CLASSES, JSON.stringify({
-      data: classes.value,
-      timestamp: Date.now()
-    }))
+    writeCache('teacher_classes', classes.value)
   } catch (err) {
     console.error('[ERREUR] Chargement classes:', err)
   }
@@ -621,27 +607,17 @@ async function loadClasses() {
 
 // Load matieres with cache
 async function loadMatieres() {
-  const cached = localStorage.getItem(CACHE_KEY_MATIERES)
-  if (cached) {
-    try {
-      const { data, timestamp } = JSON.parse(cached)
-      if (Date.now() - timestamp < CACHE_TTL) {
-        matieres.value = data
-        return
-      }
-    } catch (err) {
-      console.warn('[CACHE] Cache matières invalide')
-    }
+  const cachedData = readCache('teacher_matieres')
+  if (cachedData !== null) {
+    matieres.value = cachedData
+    return
   }
 
   try {
     const matieresData = await klassciService.getMatieres()
     matieres.value = Array.isArray(matieresData) ? matieresData : []
 
-    localStorage.setItem(CACHE_KEY_MATIERES, JSON.stringify({
-      data: matieres.value,
-      timestamp: Date.now()
-    }))
+    writeCache('teacher_matieres', matieres.value)
   } catch (err) {
     console.error('[ERREUR] Chargement matières:', err)
   }

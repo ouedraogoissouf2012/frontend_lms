@@ -327,6 +327,7 @@ import { ref, computed, onMounted } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import { klassciService } from '@/services/klassci'
+import { readCache, writeCache, clearCache } from '@/services/cache'
 import {
   BookOpenIcon,
   AcademicCapIcon,
@@ -357,8 +358,6 @@ const selectedNiveau = ref(null)
 const showMatiereModal = ref(false)
 const selectedMatiere = ref(null)
 
-const CACHE_KEY = 'admin_matieres_cache'
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
 // Computed: Filtered matieres
 const filteredMatieres = computed(() => {
@@ -555,22 +554,15 @@ function closeMatiereModal() {
 // Load matieres
 async function loadMatieres() {
   // Try cache first
-  const cached = localStorage.getItem(CACHE_KEY)
+  const cached = readCache('admin_matieres')
   if (cached) {
-    try {
-      const { data, timestamp } = JSON.parse(cached)
-      if (Date.now() - timestamp < CACHE_TTL) {
-        console.log('[CACHE] Matières admin chargées depuis le cache')
-        matieres.value = data.matieres
-        filieres.value = data.filieres
-        niveaux.value = data.niveaux
-        loading.value = false
-        refreshInBackground()
-        return
-      }
-    } catch (err) {
-      console.warn('[CACHE] Cache invalide, rechargement...')
-    }
+    console.log('[CACHE] Matières admin chargées depuis le cache')
+    matieres.value = cached.matieres
+    filieres.value = cached.filieres
+    niveaux.value = cached.niveaux
+    loading.value = false
+    refreshInBackground()
+    return
   }
 
   loading.value = true
@@ -598,14 +590,11 @@ async function loadMatieres() {
     console.log('[ADMIN] Niveaux:', niveaux.value.length)
 
     // Save to cache
-    localStorage.setItem(CACHE_KEY, JSON.stringify({
-      data: {
-        matieres: matieres.value,
-        filieres: filieres.value,
-        niveaux: niveaux.value
-      },
-      timestamp: Date.now()
-    }))
+    writeCache('admin_matieres', {
+      matieres: matieres.value,
+      filieres: filieres.value,
+      niveaux: niveaux.value
+    })
 
     console.log('[OK] Matières admin chargées avec combinaisons complètes')
   } catch (err) {
@@ -631,14 +620,11 @@ async function refreshInBackground() {
       filieres.value = structureData?.filieres || []
       niveaux.value = structureData?.niveaux_etude || structureData?.niveaux || []
 
-      localStorage.setItem(CACHE_KEY, JSON.stringify({
-        data: {
-          matieres: matieres.value,
-          filieres: filieres.value,
-          niveaux: niveaux.value
-        },
-        timestamp: Date.now()
-      }))
+      writeCache('admin_matieres', {
+        matieres: matieres.value,
+        filieres: filieres.value,
+        niveaux: niveaux.value
+      })
 
       console.log('[BACKGROUND] Rafraîchissement terminé')
     }
@@ -649,7 +635,7 @@ async function refreshInBackground() {
 
 // Refresh data manually
 function refreshData() {
-  localStorage.removeItem(CACHE_KEY)
+  clearCache('admin_matieres')
   loadMatieres()
 }
 

@@ -281,6 +281,7 @@ import { useVisioParticipation } from '@/composables/useVisioParticipation'
 import ParticipantsModal from '@/components/visio/ParticipantsModal.vue'
 
 import lmsService from '@/services/lms'
+import { readCache, writeCache, clearCache } from '@/services/cache'
 
 const router = useRouter()
 
@@ -311,9 +312,6 @@ const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
 // visioParticipation sera créé dynamiquement pour chaque séance
 const visioParticipations = reactive({})
 
-// Cache
-const CACHE_KEY = 'seances_management_cache'
-const CACHE_TTL = 2 * 60 * 1000 // 2 minutes
 
 // Formatters
 const formatTime = (isoTimestamp) => {
@@ -364,22 +362,14 @@ const loadEnseignants = async () => {
 
 const loadSeances = async () => {
   // Try cache first
-  const cached = localStorage.getItem(CACHE_KEY)
-  if (cached && !filters.teacher_id && !filters.classe_id) {
-    try {
-      const { data, timestamp, filterState } = JSON.parse(cached)
-      if (
-        Date.now() - timestamp < CACHE_TTL &&
-        filterState.days === filters.days
-      ) {
-        console.log('[CACHE] Séances chargées depuis le cache')
-        seances.value = data
-        loading.value = false
-        refreshInBackground()
-        return
-      }
-    } catch (err) {
-      console.warn('[CACHE] Cache invalide, rechargement...')
+  if (!filters.teacher_id && !filters.classe_id) {
+    const cachedEntry = readCache('seances_management')
+    if (cachedEntry !== null && cachedEntry.filterState?.days === filters.days) {
+      console.log('[CACHE] Séances chargées depuis le cache')
+      seances.value = cachedEntry.data
+      loading.value = false
+      refreshInBackground()
+      return
     }
   }
 
@@ -404,11 +394,10 @@ const loadSeances = async () => {
 
       // Save to cache only if no filters applied
       if (!filters.teacher_id && !filters.classe_id) {
-        localStorage.setItem(CACHE_KEY, JSON.stringify({
+        writeCache('seances_management', {
           data: seances.value,
-          timestamp: Date.now(),
           filterState: { days: filters.days }
-        }))
+        })
       }
     } else {
       error.value = 'Erreur lors du chargement des séances'
@@ -432,11 +421,10 @@ async function refreshInBackground() {
     if (data.success) {
       seances.value = Array.isArray(data.data) ? data.data : (data.data.seances || [])
 
-      localStorage.setItem(CACHE_KEY, JSON.stringify({
+      writeCache('seances_management', {
         data: seances.value,
-        timestamp: Date.now(),
         filterState: { days: filters.days }
-      }))
+      })
 
       console.log('[BACKGROUND] Rafraîchissement terminé')
     }
@@ -470,7 +458,7 @@ const toggleSeanceVisio = async (seance) => {
       }
 
       // Clear cache after update
-      localStorage.removeItem(CACHE_KEY)
+      clearCache('seances_management')
 
       $toast?.success(response.message || 'Visioconférence mise à jour')
     } else {

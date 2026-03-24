@@ -195,6 +195,7 @@ import { ref, computed, onMounted } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import { klassciService } from '@/services/klassci'
+import { readCache, writeCache } from '@/services/cache'
 import {
   VideoCameraIcon,
   CalendarIcon,
@@ -219,8 +220,6 @@ const filters = ref({
   search: ''
 })
 
-const CACHE_KEY = 'admin_visio_cache'
-const CACHE_TTL = 2 * 60 * 1000 // 2 minutes
 
 // Stats computées
 const stats = computed(() => {
@@ -261,20 +260,13 @@ async function loadVisioconferences() {
 
   try {
     // Tenter de charger depuis le cache
-    const cached = localStorage.getItem(CACHE_KEY)
+    const cached = readCache('admin_visio')
     if (cached) {
-      try {
-        const { data, timestamp, filterState } = JSON.parse(cached)
-        if (Date.now() - timestamp < CACHE_TTL && filterState.days === filters.value.days) {
-          console.log('[CACHE] Visioconférences admin chargées depuis le cache')
-          processVisioData(data)
-          loading.value = false
-          refreshInBackground()
-          return
-        }
-      } catch (err) {
-        console.warn('[CACHE] Cache invalide, rechargement...')
-      }
+      console.log('[CACHE] Visioconférences admin chargées depuis le cache')
+      processVisioData(cached)
+      loading.value = false
+      refreshInBackground()
+      return
     }
 
     // Charger depuis l'API - utiliser getSeances et filtrer celles avec visio_enabled
@@ -287,11 +279,7 @@ async function loadVisioconferences() {
       processVisioData(seances)
 
       // Mettre en cache
-      localStorage.setItem(CACHE_KEY, JSON.stringify({
-        data: seances,
-        timestamp: Date.now(),
-        filterState: { days: filters.value.days }
-      }))
+      writeCache('admin_visio', seances)
     } else {
       throw new Error(response.message || 'Erreur lors du chargement des visioconférences')
     }
@@ -330,11 +318,7 @@ async function refreshInBackground() {
       const seances = response.data || []
       processVisioData(seances)
 
-      localStorage.setItem(CACHE_KEY, JSON.stringify({
-        data: seances,
-        timestamp: Date.now(),
-        filterState: { days: filters.value.days }
-      }))
+      writeCache('admin_visio', seances)
       console.log('[CACHE] Visioconférences admin rafraîchies en arrière-plan')
     }
   } catch (err) {

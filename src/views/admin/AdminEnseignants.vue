@@ -311,9 +311,7 @@ import { ref, computed, onMounted } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import klassciService from '@/services/klassci'
-
-const CACHE_KEY = 'admin_enseignants_cache'
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+import { readCache, writeCache, clearCache } from '@/services/cache'
 
 const enseignants = ref([])
 const loading = ref(true)
@@ -390,21 +388,17 @@ async function loadEnseignants(forceReload = false) {
     // Si force reload, ignorer le cache
     if (forceReload) {
       console.log('🔄 Force reload demandé, vidage du cache...')
-      localStorage.removeItem(CACHE_KEY)
+      clearCache('admin_enseignants')
     } else {
       // Check cache first
-      const cached = localStorage.getItem(CACHE_KEY)
+      const cached = readCache('admin_enseignants')
       if (cached) {
-        const { data, timestamp } = JSON.parse(cached)
+        const cacheHasData = cached && cached.length > 0
+        const cacheHasDetails = cacheHasData && (cached.some(e => e.matieres?.length > 0 || e.classes?.length > 0))
 
-        // Vérifier si le cache est valide et contient des données utiles
-        const cacheIsRecent = Date.now() - timestamp < CACHE_TTL
-        const cacheHasData = data && data.length > 0
-        const cacheHasDetails = cacheHasData && (data.some(e => e.matieres?.length > 0 || e.classes?.length > 0))
-
-        if (cacheIsRecent && cacheHasData) {
+        if (cacheHasData) {
           console.log('fa-check-circle Loaded enseignants from cache')
-          enseignants.value = data
+          enseignants.value = cached
           loading.value = false
 
           // Si le cache n'a pas de détails, forcer un refresh en background
@@ -415,8 +409,6 @@ async function loadEnseignants(forceReload = false) {
           // Refresh in background
           refreshInBackground()
           return
-        } else if (!cacheIsRecent) {
-          console.log('fa-clock-o Cache expiré, rechargement...')
         } else if (!cacheHasData) {
           console.log('📭 Cache vide, rechargement...')
         }
@@ -454,10 +446,7 @@ async function loadEnseignants(forceReload = false) {
     }
 
     // Update cache
-    localStorage.setItem(CACHE_KEY, JSON.stringify({
-      data: enseignants.value,
-      timestamp: Date.now()
-    }))
+    writeCache('admin_enseignants', enseignants.value)
 
     loading.value = false
   } catch (err) {
@@ -493,10 +482,7 @@ async function refreshInBackground() {
     }
 
     // Update cache
-    localStorage.setItem(CACHE_KEY, JSON.stringify({
-      data: enseignants.value,
-      timestamp: Date.now()
-    }))
+    writeCache('admin_enseignants', enseignants.value)
     console.log('fa-save Cache updated with', enseignants.value.length, 'enseignants')
   } catch (err) {
     // Si erreur (503, etc.), utiliser endpoint simple
@@ -509,10 +495,7 @@ async function refreshInBackground() {
       enseignants.value = Array.isArray(fallbackData) ? fallbackData : []
 
       // Update cache avec données simple
-      localStorage.setItem(CACHE_KEY, JSON.stringify({
-        data: enseignants.value,
-        timestamp: Date.now()
-      }))
+      writeCache('admin_enseignants', enseignants.value)
 
       console.log(`fa-check-circle Background refresh completed with fallback (simple data) - ${enseignants.value.length} enseignants`)
     } catch (fallbackErr) {

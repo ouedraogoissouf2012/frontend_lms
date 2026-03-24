@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { clearAllCache } from './cache'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -73,7 +74,7 @@ export const auth = {
     sessionStorage.removeItem('user')
     sessionStorage.removeItem('meta')
     sessionStorage.removeItem('institution')
-    localStorage.removeItem('student_dashboard_cache')
+    clearAllCache()
   },
 
   async me() {
