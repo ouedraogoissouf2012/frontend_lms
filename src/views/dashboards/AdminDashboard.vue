@@ -430,8 +430,8 @@ async function loadKlassciData() {
   loading.value.stats = true
 
   // Lire les caches existants
-  const classesCached = readCache('admin_classes')
-  const matieresCached = readCache('admin_matieres')
+  const classesCached = readCache('admin_klassci_classes')
+  const matieresCached = readCache('admin_klassci_matieres')
 
   // Afficher immédiatement ce qui est en cache
   if (classesCached) { classes.value = classesCached; loading.value.classes = false }
@@ -450,11 +450,11 @@ async function loadKlassciData() {
 
     if (needClasses) {
       classes.value = classesData
-      writeCache('admin_classes', classesData)
+      writeCache('admin_klassci_classes', classesData)
     }
     if (needMatieres) {
       matieres.value = matieresData
-      writeCache('admin_matieres', matieresData)
+      writeCache('admin_klassci_matieres', matieresData)
     }
 
     const nbEtudiants = (classes.value || []).reduce((sum, c) => sum + (c.places_occupees || 0), 0)
