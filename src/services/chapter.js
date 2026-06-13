@@ -43,13 +43,18 @@ const chapterService = {
   },
 
   /**
-   * Créer un nouveau chapitre (Enseignant uniquement)
-   * @param {Object} chapterData
+   * Créer un nouveau chapitre rattaché à une leçon (Enseignant uniquement)
+   * @param {Number} lessonId - Leçon parente (segment d'URL, obligatoire)
+   * @param {Object} chapterData - Champs FR attendus par StoreChapterRequest :
+   *   titre, description, ordre, type_contenu, fichier (multipart si présent)
    * @returns {Promise}
    */
-  async createChapter(chapterData) {
+  async createChapter(lessonId, chapterData) {
+    if (!lessonId) {
+      throw new Error('[ChapterService] lessonId requis pour créer un chapitre')
+    }
     try {
-      const response = await api.post('/chapters', chapterData)
+      const response = await api.post(`/lessons/${lessonId}/chapters`, chapterData)
       return response.data
     } catch (error) {
       console.error('[ChapterService] Erreur createChapter:', error)
@@ -89,13 +94,17 @@ const chapterService = {
   },
 
   /**
-   * Réorganiser l'ordre des chapitres
+   * Réorganiser l'ordre des chapitres d'une leçon
+   * @param {Number} lessonId - Leçon parente (segment d'URL, obligatoire)
    * @param {Array} chapters - Tableau d'objets {id, order}
    * @returns {Promise}
    */
-  async reorderChapters(chapters) {
+  async reorderChapters(lessonId, chapters) {
+    if (!lessonId) {
+      throw new Error('[ChapterService] lessonId requis pour réordonner les chapitres')
+    }
     try {
-      const response = await api.post('/chapters/reorder', { chapters })
+      const response = await api.post(`/lessons/${lessonId}/chapters/reorder`, { chapters })
       return response.data
     } catch (error) {
       console.error('[ChapterService] Erreur reorderChapters:', error)

@@ -341,7 +341,9 @@ export const lmsService = {
    */
   async getVisioParticipants(seanceId) {
     try {
-      return await api.get(`/lms/seances/${seanceId}/participants`)
+      // Participants CONNECTÉS (route renommée backend). NE PAS confondre avec
+      // getSeanceParticipants → /participants (participants AUTORISÉS).
+      return await api.get(`/lms/seances/${seanceId}/visio-participants`)
     } catch (error) {
       console.error('Erreur récupération participants:', error)
       throw error

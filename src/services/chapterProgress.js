@@ -68,25 +68,9 @@ const chapterProgressService = {
       console.error('[ChapterProgressService] Erreur updateTimeSpent:', error)
       throw error
     }
-  },
-
-  /**
-   * Reinitialiser la progression d'une lecon
-   * @param {number} lessonId - ID de la lecon
-   * @param {number} userId - ID de l'utilisateur (optionnel, admin seulement)
-   * @returns {Promise}
-   */
-  async resetLessonProgress(lessonId, userId = null) {
-    try {
-      const response = await api.delete(`/lessons/${lessonId}/progress`, {
-        data: userId ? { user_id: userId } : {}
-      })
-      return response
-    } catch (error) {
-      console.error('[ChapterProgressService] Erreur resetLessonProgress:', error)
-      throw error
-    }
   }
+  // resetLessonProgress supprimée (#17 Ék-12) : route DELETE /lessons/{id}/progress
+  // inexistante côté backend, aucun consommateur.
 }
 
 export default chapterProgressService

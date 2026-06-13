@@ -412,7 +412,8 @@ async function loadEvaluations() {
     switch (props.userRole) {
       case 'student':
         if (props.userId) {
-          response = await evaluationService.getStudentEvaluations(props.userId)
+          // #17 Ék-6 : évals de l'étudiant connecté (identité dérivée du token, anti-IDOR)
+          response = await evaluationService.getStudentEvaluations()
         }
         break
       case 'teacher':
