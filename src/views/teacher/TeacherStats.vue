@@ -217,6 +217,7 @@ import { ref, onMounted } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import { klassciService } from '@/services/klassci'
+import { readCache, writeCache } from '@/services/cache'
 import {
   ChartBarIcon,
   BookOpenIcon,
@@ -235,26 +236,16 @@ const stats = ref(null)
 const loading = ref(false)
 const error = ref(null)
 
-const CACHE_KEY = 'teacher_stats_cache'
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
-
 async function loadStats() {
   // Vérifier le cache
-  const cached = localStorage.getItem(CACHE_KEY)
-  if (cached) {
-    try {
-      const { data, timestamp } = JSON.parse(cached)
-      if (Date.now() - timestamp < CACHE_TTL) {
-        console.log('[CACHE] Stats chargées depuis le cache')
-        stats.value = data
-        loading.value = false
-        // Rafraîchir en arrière-plan
-        refreshInBackground()
-        return
-      }
-    } catch (err) {
-      console.warn('[CACHE] Cache invalide, rechargement...')
-    }
+  const cachedData = readCache('teacher_stats')
+  if (cachedData !== null) {
+    console.log('[CACHE] Stats chargées depuis le cache')
+    stats.value = cachedData
+    loading.value = false
+    // Rafraîchir en arrière-plan
+    refreshInBackground()
+    return
   }
 
   loading.value = true
@@ -279,10 +270,7 @@ async function loadStats() {
     }
 
     // Mettre en cache
-    localStorage.setItem(CACHE_KEY, JSON.stringify({
-      data: stats.value,
-      timestamp: Date.now()
-    }))
+    writeCache('teacher_stats', stats.value)
 
     console.log('[OK] Statistiques chargées:', stats.value)
   } catch (err) {
@@ -311,10 +299,7 @@ async function refreshInBackground() {
       par_classe: dashboardData.classes || []
     }
 
-    localStorage.setItem(CACHE_KEY, JSON.stringify({
-      data: stats.value,
-      timestamp: Date.now()
-    }))
+    writeCache('teacher_stats', stats.value)
 
     console.log('[BACKGROUND] Stats rafraîchies')
   } catch (error) {

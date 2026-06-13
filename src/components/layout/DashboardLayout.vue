@@ -67,7 +67,6 @@ export default {
     // Initialiser le système de notifications avec vérification automatique
     const { unreadCount, notifications } = useNotifications({
       autoCheck: true,
-      checkIntervalMs: 30000, // Vérifier toutes les 30 secondes
       showToast: true
     })
 

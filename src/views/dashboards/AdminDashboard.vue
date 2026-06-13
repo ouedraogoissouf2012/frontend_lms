@@ -387,6 +387,8 @@ import GenerateReportModal from '@/components/modals/GenerateReportModal.vue'
 import NotificationsWidget from '@/components/widgets/NotificationsWidget.vue'
 import CalendarWidget from '@/components/widgets/CalendarWidget.vue'
 import { auth } from '@/services/api'
+import { readCache, writeCache } from '@/services/cache'
+
 import { klassciService } from '@/services/klassci'
 import { analyticsService } from '@/services/analytics'
 import {
@@ -422,78 +424,43 @@ const loading = ref({
   analytics: false
 })
 
-const CACHE_KEY_CLASSES = 'admin_classes_cache'
-const CACHE_KEY_MATIERES = 'admin_matieres_cache'
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
-
 async function loadKlassciData() {
-  // Charger les classes avec cache
   loading.value.classes = true
+  loading.value.matieres = true
   loading.value.stats = true
 
+  // Lire les caches existants
+  const classesCached = readCache('admin_klassci_classes')
+  const matieresCached = readCache('admin_klassci_matieres')
+
+  // Afficher immédiatement ce qui est en cache
+  if (classesCached) { classes.value = classesCached; loading.value.classes = false }
+  if (matieresCached) { matieres.value = matieresCached; loading.value.matieres = false }
+
+  // Lancer en parallèle uniquement ce qui est nécessaire
+  const needClasses = !classesCached
+  const needMatieres = !matieresCached
+
   try {
-    const cachedClasses = localStorage.getItem(CACHE_KEY_CLASSES)
-    if (cachedClasses) {
-      const { data, timestamp } = JSON.parse(cachedClasses)
-      if (Date.now() - timestamp < CACHE_TTL) {
-        console.log('📦 Classes chargées depuis le cache')
-        classes.value = data
-        loading.value.classes = false
-        // Continuer en arrière-plan pour refresh
-      }
+    const [classesData, matieresData, enseignants] = await Promise.all([
+      needClasses  ? klassciService.getClasses()     : Promise.resolve(classesCached),
+      needMatieres ? klassciService.getMatieres()    : Promise.resolve(matieresCached),
+      klassciService.getEnseignants()
+    ])
+
+    if (needClasses) {
+      classes.value = classesData
+      writeCache('admin_klassci_classes', classesData)
+    }
+    if (needMatieres) {
+      matieres.value = matieresData
+      writeCache('admin_klassci_matieres', matieresData)
     }
 
-    const classesData = await klassciService.getClasses()
-    classes.value = classesData
-    localStorage.setItem(CACHE_KEY_CLASSES, JSON.stringify({
-      data: classesData,
-      timestamp: Date.now()
-    }))
-    console.log('✅ Classes chargées:', classesData)
-  } catch (error) {
-    console.error('❌ Erreur chargement classes:', error)
-    classes.value = []
-  } finally {
-    loading.value.classes = false
-  }
-
-  // Charger les matières avec cache
-  loading.value.matieres = true
-  try {
-    const cachedMatieres = localStorage.getItem(CACHE_KEY_MATIERES)
-    if (cachedMatieres) {
-      const { data, timestamp } = JSON.parse(cachedMatieres)
-      if (Date.now() - timestamp < CACHE_TTL) {
-        console.log('📦 Matières chargées depuis le cache')
-        matieres.value = data
-        loading.value.matieres = false
-        // Continuer en arrière-plan pour refresh
-      }
-    }
-
-    const matieresData = await klassciService.getMatieres()
-    matieres.value = matieresData
-    localStorage.setItem(CACHE_KEY_MATIERES, JSON.stringify({
-      data: matieresData,
-      timestamp: Date.now()
-    }))
-    console.log('✅ Matières chargées:', matieresData)
-  } catch (error) {
-    console.error('❌ Erreur chargement matières:', error)
-    matieres.value = []
-  } finally {
-    loading.value.matieres = false
-  }
-
-  // Charger les enseignants et calculer les vraies stats
-  try {
-    const enseignants = await klassciService.getEnseignants()
-    console.log('✅ Enseignants chargés:', enseignants)
-
-    // Calculer les vraies statistiques
+    const nbEtudiants = (classes.value || []).reduce((sum, c) => sum + (c.places_occupees || 0), 0)
     stats.value = {
-      nb_enseignants: enseignants?.length || 0, // Nombre réel depuis BDD locale
-      nb_etudiants: stats.value?.nb_etudiants || 0,
+      nb_enseignants: enseignants?.length || 0,
+      nb_etudiants: nbEtudiants,
       nb_classes_actives: classes.value?.length || 0,
       nb_matieres_actives: matieres.value?.length || 0,
       nb_filieres: stats.value?.nb_filieres || 0,
@@ -501,11 +468,13 @@ async function loadKlassciData() {
       nb_seances_actives: stats.value?.nb_seances_actives || 0,
       nb_evaluations: stats.value?.nb_evaluations || 0
     }
-
-    console.log('✅ Statistiques recalculées:', stats.value)
   } catch (error) {
-    console.error('❌ Erreur chargement enseignants:', error)
+    console.error('❌ Erreur chargement données KLASSCI:', error)
+    if (needClasses) classes.value = []
+    if (needMatieres) matieres.value = []
   } finally {
+    loading.value.classes = false
+    loading.value.matieres = false
     loading.value.stats = false
   }
 }
@@ -525,7 +494,6 @@ async function loadAnalytics() {
     const users = await analyticsService.getRecentUsers()
     recentUsers.value = users
 
-    console.log('Analytics chargées:', { trends, tasks, users })
   } catch (error) {
     console.error('Erreur chargement analytics:', error)
   } finally {
@@ -669,7 +637,6 @@ async function loadCalendarEvents() {
     })
 
     calendarEvents.value = events
-    console.log('✅ Événements calendrier chargés depuis KLASSCI:', events.length)
   } catch (error) {
     console.error('❌ Erreur chargement événements calendrier:', error)
     // En cas d'erreur, laisser le calendrier vide
@@ -681,10 +648,6 @@ onMounted(() => {
   user.value = auth.getUser()
   meta.value = auth.getMeta()
   stats.value = user.value?.admin_data?.statistics || {}
-
-  console.log('AdminDashboard mounted')
-  console.log('Admin User:', user.value)
-  console.log('Admin Stats:', stats.value)
 
   // Charger les données KLASSCI
   loadKlassciData()

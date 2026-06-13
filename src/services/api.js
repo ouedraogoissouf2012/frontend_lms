@@ -1,18 +1,18 @@
 import axios from 'axios'
+import { clearAllCache } from './cache'
 
-// Configuration de base
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json'
+    'Accept': 'application/json',
   }
 })
 
-// Intercepteur pour ajouter le token automatiquement
+// Intercepteur : ajouter uniquement le token Bearer
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -26,19 +26,18 @@ api.interceptors.request.use(
 // Intercepteur pour gérer les erreurs
 api.interceptors.response.use(
   (response) => {
-    console.log('✅ API Response:', response.config.url, response.status)
     // Retourner la structure complète pour accéder à 'meta' et 'data'
     return response.data
   },
   (error) => {
-    console.error('❌ API Error:', error.config?.url, error.response?.status, error.response?.data)
+    console.error('❌ API Error:', error.config?.url, error.response?.status)
 
     // Si erreur 401, déconnecter l'utilisateur
     if (error.response?.status === 401) {
       console.warn('Session expirée - Déconnexion automatique')
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      localStorage.removeItem('meta')
+      sessionStorage.removeItem('token')
+      sessionStorage.removeItem('user')
+      sessionStorage.removeItem('meta')
 
       // Ne rediriger que si on n'est pas déjà sur la page de login
       if (!window.location.pathname.includes('/login')) {
@@ -53,42 +52,29 @@ api.interceptors.response.use(
 // Fonctions d'authentification
 export const auth = {
   async login(username, password) {
-    console.log('🔐 auth.login() appelé avec username:', username)
     const response = await api.post('/auth/login', { username, password })
-    console.log('📦 Réponse brute du serveur:', response)
 
-    // Vérifier si la connexion a réussi
     if (response.success && response.data) {
-      console.log('✅ Connexion réussie, stockage des données...')
-      console.log('🔑 Token à stocker:', response.data.token)
+      sessionStorage.setItem('token', response.data.token)
+      sessionStorage.setItem('user', JSON.stringify(response.data.user))
 
-      // Stocker le token KLASSCI
-      localStorage.setItem('token', response.data.token)
-      localStorage.setItem('user', JSON.stringify(response.data.user))
-
-      // Stocker les métadonnées (année universitaire, etc.)
       if (response.meta) {
-        localStorage.setItem('meta', JSON.stringify(response.meta))
+        sessionStorage.setItem('meta', JSON.stringify(response.meta))
+        if (response.meta.institution) {
+          sessionStorage.setItem('institution', response.meta.institution)
+        }
       }
-
-      console.log('💾 Données stockées dans localStorage')
-      console.log('🔑 Token vérifié:', localStorage.getItem('token'))
-      console.log('👤 User vérifié:', localStorage.getItem('user'))
-    } else {
-      console.error('❌ Connexion échouée:', response)
     }
 
     return response
   },
 
   logout() {
-    // Nettoyer le localStorage (pas besoin d'appeler l'API backend)
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    localStorage.removeItem('meta')
-    // Vider le cache du dashboard pour éviter qu'il soit accessible après déconnexion
-    localStorage.removeItem('student_dashboard_cache')
-    console.log('✅ localStorage et cache nettoyés')
+    sessionStorage.removeItem('token')
+    sessionStorage.removeItem('user')
+    sessionStorage.removeItem('meta')
+    sessionStorage.removeItem('institution')
+    clearAllCache()
   },
 
   async me() {
@@ -96,17 +82,17 @@ export const auth = {
   },
 
   getUser() {
-    const user = localStorage.getItem('user')
+    const user = sessionStorage.getItem('user')
     return user ? JSON.parse(user) : null
   },
 
   getMeta() {
-    const meta = localStorage.getItem('meta')
+    const meta = sessionStorage.getItem('meta')
     return meta ? JSON.parse(meta) : null
   },
 
   isAuthenticated() {
-    return !!localStorage.getItem('token')
+    return !!sessionStorage.getItem('token')
   },
 
   // Obtenir le rôle de l'utilisateur
@@ -136,6 +122,33 @@ export const auth = {
   // Vérifier si étudiant
   isStudent() {
     return this.hasRole(['etudiant'])
+  },
+
+  // Obtenir le slug de l'institution depuis les métadonnées de session
+  getInstitution() {
+    const meta = this.getMeta()
+    return meta?.institution || sessionStorage.getItem('institution') || null
+  },
+
+  // Obtenir le nom de l'institution depuis les métadonnées
+  getInstitutionName() {
+    const meta = this.getMeta()
+    return meta?.institution_name || null
+  },
+
+  // Vérifier si l'utilisateur est supradmin
+  isSupradmin() {
+    return this.hasRole(['supradmin'])
+  },
+
+  // Récupérer la liste des institutions actives (route publique)
+  async getActiveInstitutions() {
+    return await api.get('/institutions/active')
+  },
+
+  // Changer l'institution courante (local dev uniquement)
+  setInstitution(slug) {
+    sessionStorage.setItem('institution', slug)
   }
 }
 
@@ -280,6 +293,37 @@ export const teacherStats = {
   async getStats() {
     const response = await api.get('/teacher/stats')
     return response.data
+  }
+}
+
+// Institution Management (superAdmin uniquement)
+export const institutions = {
+  async getAll() {
+    return await api.get('/admin/institutions')
+  },
+
+  async getOne(id) {
+    return await api.get(`/admin/institutions/${id}`)
+  },
+
+  async create(data) {
+    return await api.post('/admin/institutions', data)
+  },
+
+  async update(id, data) {
+    return await api.put(`/admin/institutions/${id}`, data)
+  },
+
+  async toggle(id) {
+    return await api.patch(`/admin/institutions/${id}/toggle`)
+  },
+
+  async testConnection(id) {
+    return await api.post(`/admin/institutions/${id}/test-connection`)
+  },
+
+  async delete(id) {
+    return await api.delete(`/admin/institutions/${id}`)
   }
 }
 

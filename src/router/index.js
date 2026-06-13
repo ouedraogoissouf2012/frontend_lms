@@ -63,7 +63,9 @@ const routes = [
       if (!user) return '/login'
 
       // Redirection selon le rôle
-      if (['superAdmin', 'coordinateur', 'secretaire'].includes(user.role)) {
+      if (user.role === 'supradmin') {
+        return '/admin/institutions'
+      } else if (['superAdmin', 'coordinateur', 'secretaire'].includes(user.role)) {
         return '/admin/dashboard'
       } else if (['enseignant', 'teacher'].includes(user.role)) {
         return '/teacher/dashboard'
@@ -72,6 +74,11 @@ const routes = [
       }
       return '/dashboard'
     }
+  },
+  // Redirect /admin → /admin/dashboard
+  {
+    path: '/admin',
+    redirect: '/admin/dashboard'
   },
   // Dashboard Admin
   {
@@ -203,6 +210,17 @@ const routes = [
       requiresAuth: true,
       roles: ['superAdmin', 'coordinateur'],
       title: 'Paramètres'
+    }
+  },
+  // Gestion Institutions - supradmin uniquement
+  {
+    path: '/admin/institutions',
+    name: 'AdminInstitutions',
+    component: () => import('@/views/admin/AdminInstitutions.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['supradmin'],
+      title: 'Gestion des Institutions'
     }
   },
   // Dashboard Enseignant
@@ -643,13 +661,14 @@ const routes = [
     }
   },
 
-  // 🧪 TEST - Visio Store (Tests de la correction heartbeat)
+  // 🧪 TEST - Visio Store (réservé supradmin uniquement)
   {
     path: '/test-visio',
     name: 'TestVisio',
     component: () => import('@/components/test/VisioStoreTest.vue'),
     meta: {
-      requiresAuth: true
+      requiresAuth: true,
+      roles: ['supradmin']
     }
   }
 ]
@@ -678,7 +697,9 @@ router.beforeEach((to, from, next) => {
   if (to.meta.guest && isAuthenticated) {
     // Rediriger vers le dashboard approprié
     if (user) {
-      if (['superAdmin', 'coordinateur', 'secretaire'].includes(user.role)) {
+      if (user.role === 'supradmin') {
+        next('/admin/institutions')
+      } else if (['superAdmin', 'coordinateur', 'secretaire'].includes(user.role)) {
         next('/admin/dashboard')
       } else if (['enseignant', 'teacher'].includes(user.role)) {
         next('/teacher/dashboard')
@@ -694,11 +715,15 @@ router.beforeEach((to, from, next) => {
   }
 
   // Vérifier les rôles requis pour la route
+  // supradmin (gestionnaire plateforme) bypasse toutes les vérifications de rôle
   if (to.meta.roles && user) {
-    const hasRequiredRole = to.meta.roles.includes(user.role)
+    const hasRequiredRole = to.meta.roles.includes(user.role) ||
+      user.role === 'supradmin'
     if (!hasRequiredRole) {
       // Rediriger vers le dashboard approprié si rôle incorrect
-      if (['superAdmin', 'coordinateur', 'secretaire'].includes(user.role)) {
+      if (user.role === 'supradmin') {
+        next('/admin/institutions')
+      } else if (['superAdmin', 'coordinateur', 'secretaire'].includes(user.role)) {
         next('/admin/dashboard')
       } else if (['enseignant', 'teacher'].includes(user.role)) {
         next('/teacher/dashboard')

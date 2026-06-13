@@ -341,6 +341,7 @@ import ContentLoader from '@/components/common/ContentLoader.vue'
 import { useVisioParticipation } from '@/composables/useVisioParticipation'
 import { lmsService } from '@/services/lms'
 import { klassciService } from '@/services/klassci'
+import { readCache, writeCache, clearCache } from '@/services/cache'
 
 const seances = ref([])
 const matieres = ref([])
@@ -363,10 +364,6 @@ const filters = reactive({
   period: 'all'
 })
 
-// Cache
-const CACHE_KEY_SEANCES = 'teacher_seances_cache'
-const CACHE_KEY_MATIERES = 'teacher_matieres_cache'
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
 // Computed - Filtered seances
 const filteredSeances = computed(() => {
@@ -425,21 +422,14 @@ const stats = computed(() => {
 // Load seances with cache
 async function loadSeances() {
   // Check cache first
-  const cached = localStorage.getItem(CACHE_KEY_SEANCES)
-  if (cached) {
-    try {
-      const { data, timestamp } = JSON.parse(cached)
-      if (Date.now() - timestamp < CACHE_TTL) {
-        console.log('[CACHE] Utilisation du cache séances')
-        seances.value = data
-        loading.value = false
-        // Refresh in background
-        refreshInBackground()
-        return
-      }
-    } catch (err) {
-      console.warn('[CACHE] Cache séances invalide, rechargement...')
-    }
+  const cachedData = readCache('teacher_seances')
+  if (cachedData !== null) {
+    console.log('[CACHE] Utilisation du cache séances')
+    seances.value = cachedData
+    loading.value = false
+    // Refresh in background
+    refreshInBackground()
+    return
   }
 
   // Load from API
@@ -454,10 +444,7 @@ async function loadSeances() {
     seances.value = response.data || []
 
     // Save to cache
-    localStorage.setItem(CACHE_KEY_SEANCES, JSON.stringify({
-      data: seances.value,
-      timestamp: Date.now()
-    }))
+    writeCache('teacher_seances', seances.value)
 
     console.log(`[SUCCESS] ${seances.value.length} séance(s) chargée(s)`)
   } catch (err) {
@@ -475,10 +462,7 @@ async function refreshInBackground() {
     const response = await lmsService.getMyTeachingSeances()
     seances.value = response.data || []
 
-    localStorage.setItem(CACHE_KEY_SEANCES, JSON.stringify({
-      data: seances.value,
-      timestamp: Date.now()
-    }))
+    writeCache('teacher_seances', seances.value)
 
     console.log('[BACKGROUND] Séances rafraîchies')
   } catch (err) {
@@ -488,18 +472,11 @@ async function refreshInBackground() {
 
 // Load matières with cache
 async function loadMatieres() {
-  const cached = localStorage.getItem(CACHE_KEY_MATIERES)
-  if (cached) {
-    try {
-      const { data, timestamp } = JSON.parse(cached)
-      if (Date.now() - timestamp < CACHE_TTL) {
-        console.log('[CACHE] Utilisation du cache matières')
-        matieres.value = data
-        return
-      }
-    } catch (err) {
-      console.warn('[CACHE] Cache matières invalide')
-    }
+  const cachedData = readCache('teacher_matieres')
+  if (cachedData !== null) {
+    console.log('[CACHE] Utilisation du cache matières')
+    matieres.value = cachedData
+    return
   }
 
   try {
@@ -507,10 +484,7 @@ async function loadMatieres() {
     const dashboardData = await klassciService.getTeacherDashboard()
     matieres.value = dashboardData.matieres || []
 
-    localStorage.setItem(CACHE_KEY_MATIERES, JSON.stringify({
-      data: matieres.value,
-      timestamp: Date.now()
-    }))
+    writeCache('teacher_matieres', matieres.value)
 
     console.log('[SUCCESS] Matières chargées')
   } catch (err) {
@@ -544,7 +518,7 @@ async function handleActivateVisio(seance) {
     console.log('[VISIO] Visio activée:', response)
 
     // Invalidate cache and reload
-    localStorage.removeItem(CACHE_KEY_SEANCES)
+    clearCache('teacher_seances')
     await loadSeances()
   } catch (err) {
     console.error('[ERREUR] Activation visio:', err)
@@ -570,7 +544,7 @@ async function handleDeactivateVisio(seance) {
     console.log('[VISIO] Visio désactivée:', response)
 
     // Invalidate cache and reload
-    localStorage.removeItem(CACHE_KEY_SEANCES)
+    clearCache('teacher_seances')
     await loadSeances()
   } catch (err) {
     console.error('[ERREUR] Désactivation visio:', err)
@@ -592,7 +566,7 @@ async function handleStartVisio(seance) {
     console.log('[VISIO] Visio démarrée:', response)
 
     // Invalidate cache and reload
-    localStorage.removeItem(CACHE_KEY_SEANCES)
+    clearCache('teacher_seances')
     await loadSeances()
   } catch (err) {
     console.error('[ERREUR] Démarrage visio:', err)
@@ -621,7 +595,7 @@ async function handleJoinVisio(seance) {
     console.log('[VISIO] Visio rejointe avec window.open + tracking Web Worker')
 
     // Rafraîchir les séances pour mettre à jour le compteur de participants
-    localStorage.removeItem(CACHE_KEY_SEANCES)
+    clearCache('teacher_seances')
     loadSeances()
   } catch (error) {
     console.error('[ERREUR] Join visio:', error)
@@ -645,7 +619,7 @@ async function handleEndVisio(seance) {
     console.log('[VISIO] Visio terminée:', response)
 
     // Invalidate cache and reload
-    localStorage.removeItem(CACHE_KEY_SEANCES)
+    clearCache('teacher_seances')
     await loadSeances()
   } catch (err) {
     console.error('[ERREUR] Fin visio:', err)

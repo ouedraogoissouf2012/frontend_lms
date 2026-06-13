@@ -124,7 +124,8 @@ export default {
         'teacher': 'Enseignant',
         'coordinateur': 'Coordinateur',
         'admin': 'Administrateur',
-        'superAdmin': 'Super Administrateur'
+        'superAdmin': 'Super Administrateur',
+        'supradmin': 'Supradmin'
       }
 
       return roleLabels[user.role] || user.role
@@ -145,8 +146,17 @@ export default {
       const user = auth.getUser()
       if (!user) return []
 
+      // Supradmin : menu minimal (uniquement Institutions)
+      if (user.role === 'supradmin') {
+        return [{
+          icon: 'fa-university',
+          label: 'Institutions',
+          to: '/admin/institutions'
+        }]
+      }
+
       const isStudent = ['etudiant', 'student'].includes(user.role)
-      const isTeacher = ['enseignant', 'teacher', 'coordinateur', 'superAdmin'].includes(user.role)
+      const isTeacher = ['enseignant', 'teacher', 'coordinateur'].includes(user.role)
       const isAdmin = ['admin', 'coordinateur', 'superAdmin', 'secretaire'].includes(user.role)
 
       const menu = []
@@ -344,7 +354,7 @@ export default {
         openSubmenus.value = {}
       }
       // Store preference
-      localStorage.setItem('sidebar-collapsed', isCollapsed.value)
+      localStorage.setItem(getSidebarKey(), isCollapsed.value)
     }
 
     // Toggle submenu
@@ -389,9 +399,11 @@ export default {
       })
     }
 
-    // Restore collapsed state from localStorage
+    // Restore collapsed state from localStorage (scopé par institution)
+    const getSidebarKey = () => `sidebar-collapsed-${auth.getInstitution() || 'default'}`
+
     onMounted(() => {
-      const savedState = localStorage.getItem('sidebar-collapsed')
+      const savedState = localStorage.getItem(getSidebarKey())
       if (savedState !== null) {
         isCollapsed.value = savedState === 'true'
       }

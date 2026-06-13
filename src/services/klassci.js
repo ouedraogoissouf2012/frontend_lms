@@ -192,6 +192,21 @@ export const klassciService = {
   },
 
   /**
+   * Récupérer les séances depuis KLASSCI (admin/coordinateur)
+   * @param {Object} filters - Filtres optionnels (days, teacher_id, classe_id)
+   * @returns {Promise<Object>} { success, data: séances[] }
+   */
+  async getSeances(filters = {}) {
+    try {
+      const response = await api.get('/lms/seances/upcoming', { params: filters })
+      return response
+    } catch (error) {
+      console.error('Erreur récupération séances:', error)
+      throw error
+    }
+  },
+
+  /**
    * Récupérer les séances à venir depuis KLASSCI
    * @param {Object} filters - Filtres optionnels (days, teacher_id, classe_id)
    * @returns {Promise<Array>} Liste des séances enrichies avec infos visio
@@ -341,6 +356,11 @@ export const klassciService = {
       console.error('Erreur récupération matières admin:', error)
       throw error
     }
+  },
+
+  // Alias pour compatibilité (AdminSeances.vue utilise getTeachers)
+  async getTeachers() {
+    return this.getEnseignants()
   }
 }
 

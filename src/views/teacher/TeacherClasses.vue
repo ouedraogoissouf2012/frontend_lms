@@ -127,6 +127,7 @@ import { ref, onMounted } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import { klassciService } from '@/services/klassci'
+import { readCache, writeCache } from '@/services/cache'
 import {
   BuildingLibraryIcon,
   UserGroupIcon,
@@ -139,26 +140,16 @@ const classes = ref([])
 const loading = ref(false)
 const error = ref(null)
 
-const CACHE_KEY = 'teacher_classes_cache'
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
-
 async function loadClasses() {
   // Vérifier le cache
-  const cached = localStorage.getItem(CACHE_KEY)
-  if (cached) {
-    try {
-      const { data, timestamp } = JSON.parse(cached)
-      if (Date.now() - timestamp < CACHE_TTL) {
-        console.log('[CACHE] Classes chargées depuis le cache')
-        classes.value = data
-        loading.value = false
-        // Rafraîchir en arrière-plan
-        refreshInBackground()
-        return
-      }
-    } catch (err) {
-      console.warn('[CACHE] Cache invalide, rechargement...')
-    }
+  const cachedData = readCache('teacher_classes')
+  if (cachedData !== null) {
+    console.log('[CACHE] Classes chargées depuis le cache')
+    classes.value = cachedData
+    loading.value = false
+    // Rafraîchir en arrière-plan
+    refreshInBackground()
+    return
   }
 
   loading.value = true
@@ -226,10 +217,7 @@ async function loadClasses() {
     classes.value = enrichedClasses
 
     // Mettre en cache
-    localStorage.setItem(CACHE_KEY, JSON.stringify({
-      data: classes.value,
-      timestamp: Date.now()
-    }))
+    writeCache('teacher_classes', classes.value)
 
     console.log('[OK] Classes enrichies:', classes.value)
   } catch (err) {
@@ -283,10 +271,7 @@ async function refreshInBackground() {
 
     classes.value = enrichedClasses
 
-    localStorage.setItem(CACHE_KEY, JSON.stringify({
-      data: classes.value,
-      timestamp: Date.now()
-    }))
+    writeCache('teacher_classes', classes.value)
 
     console.log('[BACKGROUND] Classes rafraîchies')
   } catch (error) {

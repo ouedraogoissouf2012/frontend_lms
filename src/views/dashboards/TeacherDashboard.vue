@@ -264,6 +264,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import { auth } from '@/services/api'
 import { klassciService } from '@/services/klassci'
+import { readCache, writeCache } from '@/services/cache'
 import {
   UserIcon,
   BookOpenIcon,
@@ -280,24 +281,14 @@ const dashboardData = ref(null)
 const loading = ref(false)
 const error = ref(null)
 
-const CACHE_KEY = 'teacher_dashboard_cache'
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
-
 async function loadDashboard(forceRefresh = false) {
   // Vérifier le cache si pas de force refresh
   if (!forceRefresh) {
-    const cached = localStorage.getItem(CACHE_KEY)
-    if (cached) {
-      try {
-        const { data, timestamp } = JSON.parse(cached)
-        if (Date.now() - timestamp < CACHE_TTL) {
-          console.log('📦 Dashboard enseignant chargé depuis le cache')
-          dashboardData.value = data
-          return
-        }
-      } catch (err) {
-        console.warn('fa-exclamation-triangle Cache invalide, rechargement...')
-      }
+    const data = readCache('teacher_dashboard')
+    if (data !== null) {
+      console.log('📦 Dashboard enseignant chargé depuis le cache')
+      dashboardData.value = data
+      return
     }
   }
 
@@ -310,10 +301,7 @@ async function loadDashboard(forceRefresh = false) {
     dashboardData.value = data
 
     // Mettre en cache
-    localStorage.setItem(CACHE_KEY, JSON.stringify({
-      data,
-      timestamp: Date.now()
-    }))
+    writeCache('teacher_dashboard', data)
 
     console.log('fa-check-circle Dashboard chargé:', data)
 

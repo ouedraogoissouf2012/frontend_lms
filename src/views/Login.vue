@@ -12,6 +12,7 @@
         {{ error }}
       </div>
 
+
       <!-- Formulaire -->
       <form @submit.prevent="handleLogin">
         <!-- Username -->
@@ -25,7 +26,7 @@
             type="text"
             required
             class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
-            placeholder="superadmin ou votre email"
+            placeholder="Nom d'utilisateur ou email"
           />
         </div>
 
@@ -54,13 +55,6 @@
         </button>
       </form>
 
-      <!-- Info de test -->
-      <div class="mt-6 p-4 bg-blue-50 rounded-lg">
-        <p class="text-sm text-blue-800 font-semibold mb-2">Compte de test KLASSCI :</p>
-        <p class="text-xs text-blue-600">Username: <strong>superadmin</strong></p>
-        <p class="text-xs text-blue-600">Mot de passe: <strong>password123</strong></p>
-        <p class="text-xs text-gray-500 mt-2">Authentification via KLASSCI</p>
-      </div>
     </div>
   </div>
 </template>
@@ -75,7 +69,7 @@ export default {
       username: '',
       password: '',
       loading: false,
-      error: null
+      error: null,
     }
   },
   methods: {
@@ -84,37 +78,25 @@ export default {
       this.error = null
 
       try {
-        console.log('🔐 Tentative de connexion avec:', this.username)
         const response = await auth.login(this.username, this.password)
-        console.log('📦 Réponse login:', response)
 
-        // Vérifier la réponse
         if (response.success) {
-          // Récupérer le rôle de l'utilisateur
           const user = response.data.user
-          console.log('👤 Utilisateur connecté:', user.name, 'Rôle:', user.role)
-          console.log('🔑 Token stocké:', localStorage.getItem('token'))
 
-          // Rediriger selon le rôle
-          if (['superAdmin', 'coordinateur', 'secretaire'].includes(user.role)) {
-            console.log('➡️ Redirection vers /admin/dashboard')
+          if (['supradmin', 'superAdmin', 'coordinateur', 'secretaire'].includes(user.role)) {
             this.$router.push('/admin/dashboard')
           } else if (['enseignant', 'teacher'].includes(user.role)) {
-            console.log('➡️ Redirection vers /teacher/dashboard')
             this.$router.push('/teacher/dashboard')
           } else if (user.role === 'etudiant') {
-            console.log('➡️ Redirection vers /student/dashboard')
             this.$router.push('/student/dashboard')
           } else {
-            console.log('➡️ Redirection vers /')
             this.$router.push('/')
           }
         } else {
           this.error = response.message || 'Échec de la connexion'
         }
       } catch (err) {
-        console.error('❌ Erreur login:', err)
-        this.error = err.response?.data?.message || 'Erreur de connexion. Vérifiez vos identifiants.'
+        this.error = err.response?.data?.message || 'Identifiants incorrects.'
       } finally {
         this.loading = false
       }

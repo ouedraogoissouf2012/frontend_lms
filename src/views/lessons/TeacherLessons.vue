@@ -254,6 +254,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import { klassciService } from '@/services/klassci'
 import lessonService from '@/services/lesson'
+import { readCache, writeCache } from '@/services/cache'
 import {
   BookOpenIcon,
   PlusIcon,
@@ -293,9 +294,6 @@ const lessonForm = reactive({
   status: 'draft'
 })
 
-const CACHE_KEY_LESSONS = 'teacher_lessons_cache'
-const CACHE_KEY_MATIERES = 'teacher_matieres_cache'
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
 // Computed
 const filteredLessons = computed(() => {
@@ -326,20 +324,13 @@ const stats = computed(() => {
 // Methods
 async function loadLessons() {
   // Vérifier le cache
-  const cached = localStorage.getItem(CACHE_KEY_LESSONS)
-  if (cached) {
-    try {
-      const { data, timestamp } = JSON.parse(cached)
-      if (Date.now() - timestamp < CACHE_TTL) {
-        console.log('[CACHE] Leçons chargées depuis le cache')
-        lessons.value = data
-        loading.value = false
-        refreshInBackground()
-        return
-      }
-    } catch (err) {
-      console.warn('[CACHE] Cache invalide, rechargement...')
-    }
+  const cachedData = readCache('teacher_lessons')
+  if (cachedData !== null) {
+    console.log('[CACHE] Leçons chargées depuis le cache')
+    lessons.value = cachedData
+    loading.value = false
+    refreshInBackground()
+    return
   }
 
   loading.value = true
@@ -374,10 +365,7 @@ async function loadLessons() {
       console.warn('[WARN] response.data:', response?.data)
     }
 
-    localStorage.setItem(CACHE_KEY_LESSONS, JSON.stringify({
-      data: lessons.value,
-      timestamp: Date.now()
-    }))
+    writeCache('teacher_lessons', lessons.value)
   } catch (err) {
     console.error('[ERREUR] Erreur chargement leçons:', err)
     error.value = 'Impossible de charger les leçons. Veuillez réessayer.'
@@ -388,17 +376,10 @@ async function loadLessons() {
 }
 
 async function loadMatieres() {
-  const cached = localStorage.getItem(CACHE_KEY_MATIERES)
-  if (cached) {
-    try {
-      const { data, timestamp } = JSON.parse(cached)
-      if (Date.now() - timestamp < CACHE_TTL) {
-        matieres.value = data
-        return
-      }
-    } catch (err) {
-      console.warn('[CACHE] Cache matières invalide')
-    }
+  const cachedData = readCache('teacher_matieres')
+  if (cachedData !== null) {
+    matieres.value = cachedData
+    return
   }
 
   try {
@@ -406,10 +387,7 @@ async function loadMatieres() {
     const matieresData = await klassciService.getMatieres()
     matieres.value = matieresData || []
 
-    localStorage.setItem(CACHE_KEY_MATIERES, JSON.stringify({
-      data: matieres.value,
-      timestamp: Date.now()
-    }))
+    writeCache('teacher_matieres', matieres.value)
   } catch (err) {
     console.error('[ERREUR] Chargement matières:', err)
   }
@@ -422,10 +400,7 @@ async function refreshInBackground() {
 
     if (response && response.success) {
       lessons.value = response.data.data || response.data || []
-      localStorage.setItem(CACHE_KEY_LESSONS, JSON.stringify({
-        data: lessons.value,
-        timestamp: Date.now()
-      }))
+      writeCache('teacher_lessons', lessons.value)
     }
   } catch (error) {
     console.warn('[BACKGROUND] Erreur rafraîchissement:', error)
@@ -541,10 +516,7 @@ async function saveLesson() {
     }
 
     // Mettre à jour le cache
-    localStorage.setItem(CACHE_KEY_LESSONS, JSON.stringify({
-      data: lessons.value,
-      timestamp: Date.now()
-    }))
+    writeCache('teacher_lessons', lessons.value)
 
     closeModal()
     console.log('[OK] Leçon sauvegardée')

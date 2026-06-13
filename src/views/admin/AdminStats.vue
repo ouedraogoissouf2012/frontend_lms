@@ -175,6 +175,7 @@ import { ref, onMounted } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import { auth } from '@/services/api'
+import { readCache, writeCache } from '@/services/cache'
 import {
   ChartBarIcon,
   UserGroupIcon,
@@ -194,8 +195,6 @@ const error = ref(null)
 const stats = ref({})
 const meta = ref(null)
 
-const CACHE_KEY = 'admin_stats_cache'
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
 async function loadStats() {
   loading.value = true
@@ -203,21 +202,14 @@ async function loadStats() {
 
   try {
     // Tenter de charger depuis le cache
-    const cached = localStorage.getItem(CACHE_KEY)
+    const cached = readCache('admin_stats')
     if (cached) {
-      try {
-        const { data, metaData, timestamp } = JSON.parse(cached)
-        if (Date.now() - timestamp < CACHE_TTL) {
-          console.log('[CACHE] Statistiques admin chargées depuis le cache')
-          stats.value = data
-          meta.value = metaData
-          loading.value = false
-          refreshInBackground()
-          return
-        }
-      } catch (err) {
-        console.warn('[CACHE] Cache invalide, rechargement...')
-      }
+      console.log('[CACHE] Statistiques admin chargées depuis le cache')
+      stats.value = cached.data
+      meta.value = cached.metaData
+      loading.value = false
+      refreshInBackground()
+      return
     }
 
     // Charger depuis l'auth service (données synchronisées lors du login)
@@ -249,11 +241,7 @@ async function loadStats() {
     }
 
     // Mettre en cache
-    localStorage.setItem(CACHE_KEY, JSON.stringify({
-      data: stats.value,
-      metaData: meta.value,
-      timestamp: Date.now()
-    }))
+    writeCache('admin_stats', { data: stats.value, metaData: meta.value })
 
     console.log('✅ Statistiques chargées:', stats.value)
   } catch (err) {
@@ -273,11 +261,7 @@ async function refreshInBackground() {
       stats.value = user.admin_data.statistics
       meta.value = newMeta
 
-      localStorage.setItem(CACHE_KEY, JSON.stringify({
-        data: stats.value,
-        metaData: meta.value,
-        timestamp: Date.now()
-      }))
+      writeCache('admin_stats', { data: stats.value, metaData: meta.value })
       console.log('[CACHE] Statistiques rafraîchies en arrière-plan')
     }
   } catch (err) {

@@ -201,6 +201,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
 import { auth } from '@/services/api'
 import { klassciService } from '@/services/klassci'
+import { readCache, writeCache } from '@/services/cache'
 import {
   AcademicCapIcon,
   BookOpenIcon,
@@ -236,35 +237,18 @@ export default {
   },
   methods: {
     loadCachedData() {
-      try {
-        const cached = localStorage.getItem('student_dashboard_cache')
-        if (cached) {
-          const { data, timestamp } = JSON.parse(cached)
-          // Cache valide pour 5 minutes
-          const isValid = Date.now() - timestamp < 5 * 60 * 1000
-          if (isValid) {
-            console.log('[CACHE] Données chargées depuis le cache')
-            this.dashboardData = data
-            return true
-          }
-        }
-      } catch (error) {
-        console.warn('[CACHE] Erreur lecture cache:', error)
+      const data = readCache('student_dashboard')
+      if (data !== null) {
+        console.log('[CACHE] Données chargées depuis le cache')
+        this.dashboardData = data
+        return true
       }
       return false
     },
 
     saveCacheData(data) {
-      try {
-        const cacheData = {
-          data,
-          timestamp: Date.now()
-        }
-        localStorage.setItem('student_dashboard_cache', JSON.stringify(cacheData))
-        console.log('[CACHE] Données sauvegardées dans le cache')
-      } catch (error) {
-        console.warn('[CACHE] Erreur sauvegarde cache:', error)
-      }
+      writeCache('student_dashboard', data)
+      console.log('[CACHE] Données sauvegardées dans le cache')
     },
 
     async loadDashboard(forceRefresh = false) {

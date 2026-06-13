@@ -534,7 +534,7 @@ export default {
         console.log('[SeanceHistory] Export PDF de la séance', this.selectedSeance.klassci_seance_id)
 
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
-        const token = localStorage.getItem('token')
+        const token = sessionStorage.getItem('token')
 
         // Créer l'URL de téléchargement
         const url = `${API_URL}/lms/seances/${this.selectedSeance.klassci_seance_id}/export/presences/pdf`
@@ -583,7 +583,7 @@ export default {
         console.log('[SeanceHistory] Export Excel de la séance', this.selectedSeance.klassci_seance_id)
 
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
-        const token = localStorage.getItem('token')
+        const token = sessionStorage.getItem('token')
 
         // Créer l'URL de téléchargement
         const url = `${API_URL}/lms/seances/${this.selectedSeance.klassci_seance_id}/export/presences/excel`
