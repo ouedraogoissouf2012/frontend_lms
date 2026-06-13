@@ -39,22 +39,7 @@ export const klassciService = {
   async getEnseignants() {
     try {
       const response = await api.get('/proxy/enseignants')
-      console.log('🔍 DEBUG getEnseignants - Réponse complète:', response)
-      console.log('🔍 DEBUG getEnseignants - response.success:', response.success)
-      console.log('🔍 DEBUG getEnseignants - response.data:', response.data)
-      console.log('🔍 DEBUG getEnseignants - Type de response.data:', Array.isArray(response.data) ? 'Array' : typeof response.data)
-
-      // Vérifier différentes structures possibles
-      if (response.success && response.data) {
-        return response.data
-      } else if (Array.isArray(response)) {
-        return response
-      } else if (response.data && Array.isArray(response.data)) {
-        return response.data
-      } else {
-        console.warn('⚠️ Structure de réponse inattendue pour enseignants')
-        return []
-      }
+      return response.success ? response.data : []
     } catch (error) {
       console.error('Erreur récupération enseignants:', error)
       throw error
@@ -163,9 +148,7 @@ export const klassciService = {
    */
   async getLmsEnseignants(params = {}) {
     try {
-      console.log('[KlassciService] Appel getLmsEnseignants avec params:', params)
       const response = await api.get('/lms/enseignants', { params })
-      console.log('[KlassciService] Réponse getLmsEnseignants:', response)
       return response // Retourne l'objet complet avec success, data, etc.
     } catch (error) {
       console.error('[KlassciService] Erreur récupération enseignants LMS:', error)
@@ -173,23 +156,9 @@ export const klassciService = {
     }
   },
 
-  /**
-   * Rechercher dans KLASSCI
-   * @param {string} query - Terme de recherche
-   * @param {string} type - Type de recherche (classes, matieres, etudiants, enseignants)
-   * @returns {Promise<Array>} Résultats de recherche
-   */
-  async search(query, type = 'all') {
-    try {
-      const response = await api.get('/proxy/search', {
-        params: { q: query, type }
-      })
-      return response.success ? response.data : []
-    } catch (error) {
-      console.error('Erreur recherche KLASSCI:', error)
-      throw error
-    }
-  },
+  // search() supprimée (#17 Ék-10) : route /proxy/search inexistante, aucun
+  // consommateur. Le client canonique de recherche globale est searchService
+  // (src/services/search.js → GET /search), consommé par GlobalSearchModal.vue.
 
   /**
    * Récupérer les séances depuis KLASSCI (admin/coordinateur)

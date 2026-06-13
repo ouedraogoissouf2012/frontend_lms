@@ -207,7 +207,8 @@ export default {
       this.loading = true
       this.error = null
       try {
-        const result = await evaluationService.getStudentEvaluations(this.user.klassci_id)
+        // #17 Ék-6 : évals de l'étudiant connecté (identité dérivée du token, anti-IDOR)
+        const result = await evaluationService.getStudentEvaluations()
         if (result.success) {
           this.evaluations = result.data
         } else {

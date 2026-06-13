@@ -32,11 +32,14 @@ export default {
   },
 
   /**
-   * Récupère les évaluations disponibles pour un étudiant
+   * Récupère les évaluations de l'étudiant CONNECTÉ.
+   * Anti-IDOR (#17 Ék-6) : aucun identifiant côté client — l'identité est dérivée
+   * du token côté backend. La route paramétrée /evaluations/student/{id} a été
+   * supprimée côté backend (vecteur IDOR). Ne JAMAIS réintroduire de segment d'ID.
    */
-  async getStudentEvaluations(klassciEtudiantId) {
+  async getStudentEvaluations() {
     try {
-      const response = await api.get(`/evaluations/student/${klassciEtudiantId}`)
+      const response = await api.get('/evaluations/student')
       return response
     } catch (error) {
       console.error('Erreur récupération évaluations étudiant:', error)
@@ -132,7 +135,7 @@ export default {
    */
   async syncToKlassci(id) {
     try {
-      const response = await api.post(`/evaluations/${id}/sync-to-klassci`)
+      const response = await api.post(`/evaluations/${id}/sync-klassci`)
       return response
     } catch (error) {
       console.error('Erreur synchronisation KLASSCI:', error)

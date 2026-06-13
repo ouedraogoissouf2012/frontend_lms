@@ -1,8 +1,12 @@
 import axios from 'axios'
 import { clearAllCache } from './cache'
+import notificationsService from './notifications'
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  // Optional chaining : `import.meta.env` est injecté par Vite au build/dev, mais
+  // vaut `undefined` hors Vite (ex. exécution sous Node pour les tests de contrat).
+  // `?.` évite un crash au chargement du module sans changer le comportement Vite.
+  baseURL: import.meta.env?.VITE_API_URL,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -186,16 +190,15 @@ export const quizzes = {
   },
 
   async startAttempt(quizId) {
-    return await api.post(`/quizzes/${quizId}/attempts`)
+    return await api.post(`/quizzes/${quizId}/start`)
   },
 
   async submitAttempt(attemptId, answers) {
-    return await api.put(`/quizzes/attempts/${attemptId}/submit`, { answers })
-  },
-
-  async getMyAttempts(quizId) {
-    return await api.get(`/quizzes/${quizId}/my-attempts`)
+    // Backend : POST /quiz-attempts/{id}/submit, corps { answers } (SubmitQuizAttemptRequest)
+    return await api.post(`/quiz-attempts/${attemptId}/submit`, { answers })
   }
+  // getMyAttempts supprimée (#17 Ék-3) : route /quizzes/{id}/my-attempts inexistante,
+  // aucun consommateur. La consultation d'une tentative est GET /quiz-attempts/{id}.
 }
 
 // Fonctions pour le dashboard
@@ -213,22 +216,20 @@ export const dashboard = {
   }
 }
 
-// Fonctions pour les notifications
+// Notifications — façade de compatibilité (#17 Ék-4/Ék-5, dédup R6).
+// Le client canonique est notificationsService (src/services/notifications.js),
+// qui porte les chemins corrects (/mark-as-read, /mark-all-as-read). Cet export
+// reste pour les imports existants (ex. Dashboard.vue), mais délègue au canonique.
+// Les anciennes méthodes markAsRead/markAllAsRead aux chemins erronés sont retirées.
 export const notifications = {
+  // getAll retourne le tableau de notifications (Dashboard.vue fait Array.isArray(...)).
   async getAll(params = {}) {
-    return await api.get('/notifications', { params })
+    const res = await notificationsService.getNotifications(1, params.limit ?? 10, false)
+    return res?.data ?? []
   },
 
-  async markAsRead(id) {
-    return await api.post(`/notifications/${id}/read`)
-  },
-
-  async markAllAsRead() {
-    return await api.post('/notifications/read-all')
-  },
-
-  async getUnreadCount() {
-    return await api.get('/notifications/unread-count')
+  getUnreadCount() {
+    return notificationsService.getUnreadCount()
   }
 }
 
