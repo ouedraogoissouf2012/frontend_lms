@@ -96,6 +96,9 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { auth } from '@/services/api'
+import {
+  ROLES, hasRole, isSupradmin, isAdminScope, isTeacher, isStudent, getRoleDisplayName,
+} from '@/constants/roles'
 
 export default {
   name: 'ModernSidebar',
@@ -116,19 +119,8 @@ export default {
     const userRole = computed(() => {
       const user = auth.getUser()
       if (!user) return 'Invité'
-
-      const roleLabels = {
-        'etudiant': 'Étudiant',
-        'student': 'Étudiant',
-        'enseignant': 'Enseignant',
-        'teacher': 'Enseignant',
-        'coordinateur': 'Coordinateur',
-        'admin': 'Administrateur',
-        'superAdmin': 'Super Administrateur',
-        'supradmin': 'Supradmin'
-      }
-
-      return roleLabels[user.role] || user.role
+      // Libellé unique centralisé (#18 R4.3)
+      return getRoleDisplayName(user) || 'Invité'
     })
 
     const userInitials = computed(() => {
@@ -146,8 +138,9 @@ export default {
       const user = auth.getUser()
       if (!user) return []
 
-      // Supradmin : menu minimal (uniquement Institutions)
-      if (user.role === 'supradmin') {
+      // Supradmin (plateforme) : menu minimal. isSupradmin couvre 'supradmin' ET
+      // 'superAdmin' (#18, corrige l'incohérence de variante).
+      if (isSupradmin(user)) {
         return [{
           icon: 'fa-university',
           label: 'Institutions',
@@ -155,14 +148,16 @@ export default {
         }]
       }
 
-      const isStudent = ['etudiant', 'student'].includes(user.role)
-      const isTeacher = ['enseignant', 'teacher', 'coordinateur'].includes(user.role)
-      const isAdmin = ['admin', 'coordinateur', 'superAdmin', 'secretaire'].includes(user.role)
+      const isStudentRole = isStudent(user)
+      // Le "teacher" local inclut le coordinateur (sections enseignant partagées).
+      const isTeacherRole = isTeacher(user) || hasRole(user, ROLES.COORDINATEUR)
+      const isAdminRole = isAdminScope(user)
+      const isCoordinateur = hasRole(user, ROLES.COORDINATEUR)
 
       const menu = []
 
       // Student Menu
-      if (isStudent) {
+      if (isStudentRole) {
         menu.push({
           icon: 'fa-home',
           label: 'Dashboard',
@@ -201,18 +196,18 @@ export default {
       }
 
       // Dashboard - Admin pour coordinateur/admin, Teacher pour enseignant
-      if (isTeacher || isAdmin) {
+      if (isTeacherRole || isAdminRole) {
         menu.push({
           icon: 'fa-home',
           label: 'Dashboard',
-          to: isAdmin ? '/admin/dashboard' : '/teacher/dashboard'
+          to: isAdminRole ? '/admin/dashboard' : '/teacher/dashboard'
         })
       }
 
       // Teacher Menu - OPTIMISE (5 items principaux)
-      if (isTeacher) {
+      if (isTeacherRole) {
         // Emploi du Temps - Vue principale quotidienne (calendrier unifie)
-        if (user.role !== 'coordinateur') {
+        if (!isCoordinateur) {
         menu.push({
           icon: 'fa-calendar',
           label: 'Emploi du Temps',
@@ -220,7 +215,7 @@ export default {
         })
         }
         // Mon Espace - Hub enseignant (Classes + Matieres + Lecons)
-        if (user.role !== 'coordinateur') {
+        if (!isCoordinateur) {
         menu.push({
           icon: 'fa-th-large',
           label: 'Mon Espace',
@@ -228,7 +223,7 @@ export default {
         })
         }
         // Évaluations - Enseignant
-        if (user.role !== 'coordinateur') {
+        if (!isCoordinateur) {
         menu.push({
           icon: 'fa-edit',
           label: 'Évaluations',
@@ -236,7 +231,7 @@ export default {
         })
         }
         // Évaluations - Coordinateur (vue globale sans creation)
-        if (user.role === 'coordinateur') {
+        if (isCoordinateur) {
         menu.push({
           icon: 'fa-edit',
           label: 'Évaluations',
@@ -246,9 +241,9 @@ export default {
       }
 
       // Admin Menu
-      if (isAdmin) {
+      if (isAdminRole) {
         // Utilisateurs - seulement pour admin complet (pas coordinateur)
-        if (user.role !== 'coordinateur') {
+        if (!isCoordinateur) {
           menu.push({
             icon: 'fa-users',
             label: 'Utilisateurs',
@@ -257,7 +252,7 @@ export default {
         }
 
         // Espace Admin (Hub) - Classes, Matières, Enseignants - pour coordinateur
-        if (user.role === 'coordinateur') {
+        if (isCoordinateur) {
           menu.push({
             icon: 'fa-building',
             label: 'Espace Admin',
@@ -278,7 +273,7 @@ export default {
         }
 
         // Menu étendu pour admin/superAdmin (pas coordinateur)
-        if (user.role !== 'coordinateur') {
+        if (!isCoordinateur) {
           menu.push({
             icon: 'fa-building',
             label: 'Classes',
@@ -318,7 +313,7 @@ export default {
       }
 
       // Forum - accessible pour tous (enseignants et admins)
-      if (isTeacher || isAdmin) {
+      if (isTeacherRole || isAdminRole) {
         menu.push({
           icon: 'fa-comments',
           label: 'Forum',
@@ -327,7 +322,7 @@ export default {
       }
 
       // Historique (seances passees + presences) - uniquement pour enseignants et admins
-      if (isTeacher || isAdmin) {
+      if (isTeacherRole || isAdminRole) {
         menu.push({
           icon: 'fa-history',
           label: 'Historique',
@@ -336,11 +331,11 @@ export default {
       }
 
       // Paramètres - dernière entrée pour tous
-      if (isTeacher || isAdmin) {
+      if (isTeacherRole || isAdminRole) {
         menu.push({
           icon: 'fa-cog',
           label: 'Paramètres',
-          to: isAdmin ? '/admin/settings' : '/teacher/settings'
+          to: isAdminRole ? '/admin/settings' : '/teacher/settings'
         })
       }
 
@@ -373,15 +368,13 @@ export default {
         return
       }
 
-      const role = user.role
-      if (['etudiant', 'student'].includes(role)) {
+      if (isStudent(user)) {
         router.push('/student/settings')
-      } else if (['enseignant', 'teacher'].includes(role)) {
+      } else if (isTeacher(user)) {
         router.push('/teacher/profile')
-      } else if (['admin', 'coordinateur', 'superAdmin', 'secretaire'].includes(role)) {
-        router.push('/admin/profile')
       } else {
-        router.push('/student/settings')
+        // admin / supradmin / coordinateur (et secretaire→coordinateur)
+        router.push('/admin/profile')
       }
     }
 

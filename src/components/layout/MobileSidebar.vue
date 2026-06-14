@@ -80,6 +80,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { auth } from '@/services/api'
+import { isStudent, isTeacher, isSupradmin, hasRole, ROLES } from '@/constants/roles'
 
 const props = defineProps({
   isOpen: {
@@ -114,17 +115,17 @@ onUnmounted(() => {
 
 // Navigation items based on user role
 const secondaryNavItems = computed(() => {
-  const role = user.value?.role
+  const u = user.value
 
   // Routes communes (vides pour l'instant - à implémenter plus tard)
   const commonItems = []
 
-  if (role === 'etudiant') {
+  if (isStudent(u)) {
     return [
       ...commonItems
       // À ajouter: Mes Notes, Ma Progression, etc.
     ]
-  } else if (role === 'enseignant' || role === 'teacher') {
+  } else if (isTeacher(u)) {
     // Items supplémentaires (pas dans BottomNavigation)
     return [
       ...commonItems,
@@ -133,7 +134,7 @@ const secondaryNavItems = computed(() => {
       { path: '/attendance/seances', icon: 'fa-history', label: 'Historique', badge: null },
       { path: '/teacher/settings', icon: 'fa-cog', label: 'Paramètres', badge: null }
     ]
-  } else if (role === 'coordinateur') {
+  } else if (hasRole(u, ROLES.COORDINATEUR)) {
     // Items supplémentaires (pas dans BottomNavigation)
     return [
       ...commonItems,
@@ -147,10 +148,9 @@ const secondaryNavItems = computed(() => {
 })
 
 const adminNavItems = computed(() => {
-  const role = user.value?.role
-
-  // Pour superAdmin uniquement (coordinateur a tout dans secondaryNavItems)
-  if (role === 'superAdmin') {
+  // Super admin plateforme uniquement (coordinateur a tout dans secondaryNavItems).
+  // isSupradmin couvre les deux variantes 'superAdmin'/'supradmin' (#18, corrige #8).
+  if (isSupradmin(user.value)) {
     return [
       { path: '/admin/classes', icon: 'fa-building', label: 'Classes', badge: null },
       { path: '/admin/matieres', icon: 'fa-book', label: 'Matières', badge: null },

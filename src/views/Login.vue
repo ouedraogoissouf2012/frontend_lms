@@ -61,6 +61,7 @@
 
 <script>
 import { auth } from '@/services/api'
+import { getDashboardRoute, isSupradmin, logRoleDecision } from '@/constants/roles'
 
 export default {
   name: 'Login',
@@ -83,15 +84,19 @@ export default {
         if (response.success) {
           const user = response.data.user
 
-          if (['supradmin', 'superAdmin', 'coordinateur', 'secretaire'].includes(user.role)) {
-            this.$router.push('/admin/dashboard')
-          } else if (['enseignant', 'teacher'].includes(user.role)) {
-            this.$router.push('/teacher/dashboard')
-          } else if (user.role === 'etudiant') {
-            this.$router.push('/student/dashboard')
-          } else {
-            this.$router.push('/')
+          // Redirection centralisée via le rôle normalisé (#18) — corrige la
+          // divergence supradmin (envoyait /admin/dashboard au lieu de /admin/institutions).
+          const target = getDashboardRoute(user)
+
+          // Vérification de cohérence SECONDAIRE non bloquante (#18 R7) : le booléen
+          // serveur meta.is_supradmin (flux local) n'est qu'un signal de diagnostic ;
+          // la décision suit toujours le rôle normalisé.
+          const meta = auth.getMeta()
+          if (meta && typeof meta.is_supradmin === 'boolean' && meta.is_supradmin !== isSupradmin(user)) {
+            logRoleDecision('supradmin_flag_mismatch', { target })
           }
+
+          this.$router.push(target)
         } else {
           this.error = response.message || 'Échec de la connexion'
         }

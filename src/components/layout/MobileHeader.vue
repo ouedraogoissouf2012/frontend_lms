@@ -77,6 +77,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { auth } from '@/services/api'
+import { getRoleDisplayName, isStudent, isTeacher, hasRole, ROLES } from '@/constants/roles'
 
 const emit = defineEmits(['toggle-sidebar'])
 const router = useRouter()
@@ -113,22 +114,14 @@ const userInitials = computed(() => {
   return name.substring(0, 2).toUpperCase()
 })
 
-const userRoleLabel = computed(() => {
-  const roles = {
-    'etudiant': 'Étudiant',
-    'enseignant': 'Enseignant',
-    'teacher': 'Enseignant',
-    'coordinateur': 'Coordinateur',
-    'superAdmin': 'Administrateur'
-  }
-  return roles[userRole.value] || userRole.value
-})
+// Libellé unique centralisé (#18 R4.3)
+const userRoleLabel = computed(() => getRoleDisplayName(user.value))
 
 const profilePath = computed(() => {
-  const role = userRole.value
-  if (role === 'etudiant') return '/student/profile'
-  if (role === 'enseignant' || role === 'teacher') return '/teacher/profile'
-  if (role === 'coordinateur') return '/coordinateur/profile'
+  const u = user.value
+  if (isStudent(u)) return '/student/profile'
+  if (isTeacher(u)) return '/teacher/profile'
+  if (hasRole(u, ROLES.COORDINATEUR)) return '/coordinateur/profile'
   return '/profile'
 })
 

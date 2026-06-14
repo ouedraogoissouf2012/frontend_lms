@@ -1,6 +1,15 @@
 import axios from 'axios'
 import { clearAllCache } from './cache'
 import notificationsService from './notifications'
+// Import relatif (pas l'alias @) : le runner natif des tests de contrat (#17) ne
+// résout que les chemins relatifs. Délégation de la logique de rôle (#18).
+import {
+  hasRole as roleHasRole,
+  isAdmin as roleIsAdmin,
+  isTeacher as roleIsTeacher,
+  isStudent as roleIsStudent,
+  isSupradmin as roleIsSupradmin,
+} from '../constants/roles'
 
 const api = axios.create({
   // Optional chaining : `import.meta.env` est injecté par Vite au build/dev, mais
@@ -105,27 +114,23 @@ export const auth = {
     return user?.role || null
   },
 
-  // Vérifier si l'utilisateur a un rôle spécifique
+  // Logique de rôle déléguée à src/constants/roles.js (#18) — rôle normalisé,
+  // plus aucune comparaison de chaîne brute ici.
   hasRole(roles) {
-    const userRole = this.getUserRole()
-    if (!userRole) return false
-    const roleArray = Array.isArray(roles) ? roles : [roles]
-    return roleArray.includes(userRole)
+    return roleHasRole(this.getUser(), roles)
   },
 
-  // Vérifier si admin
+  // Périmètre admin STRICT (admin | supradmin), aligné backend Role::isAdmin()
   isAdmin() {
-    return this.hasRole(['superAdmin', 'coordinateur', 'secretaire'])
+    return roleIsAdmin(this.getUser())
   },
 
-  // Vérifier si enseignant
   isTeacher() {
-    return this.hasRole(['enseignant', 'teacher'])
+    return roleIsTeacher(this.getUser())
   },
 
-  // Vérifier si étudiant
   isStudent() {
-    return this.hasRole(['etudiant'])
+    return roleIsStudent(this.getUser())
   },
 
   // Obtenir le slug de l'institution depuis les métadonnées de session
@@ -140,9 +145,9 @@ export const auth = {
     return meta?.institution_name || null
   },
 
-  // Vérifier si l'utilisateur est supradmin
+  // Vérifier si l'utilisateur est supradmin (rôle normalisé)
   isSupradmin() {
-    return this.hasRole(['supradmin'])
+    return roleIsSupradmin(this.getUser())
   },
 
   // Récupérer la liste des institutions actives (route publique)

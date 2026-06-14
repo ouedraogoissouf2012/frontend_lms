@@ -90,6 +90,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { auth } from '@/services/api'
+import { isStudent, isTeacher, isAdminScope } from '@/constants/roles'
 import ThemeToggle from '@/components/ui/ThemeToggle.vue'
 import { useNotifications } from '@/composables/useNotifications'
 
@@ -128,38 +129,20 @@ export default {
       return (firstInitial + lastInitial).toUpperCase()
     })
 
-    // User role
-    const userRole = computed(() => {
-      const user = auth.getUser()
-      return user?.role || 'guest'
-    })
-
-    // Profile and Settings URLs based on role
+    // Profile and Settings URLs based on role (rôle normalisé, #18)
     const profileUrl = computed(() => {
-      const role = userRole.value
-      if (role === 'etudiant' || role === 'student') {
-        return '/student/settings'
-      }
-      if (role === 'enseignant' || role === 'teacher') {
-        return '/teacher/profile'
-      }
-      if (role === 'coordinateur' || role === 'superAdmin') {
-        return '/admin/profile'
-      }
+      const user = auth.getUser()
+      if (isStudent(user)) return '/student/settings'
+      if (isTeacher(user)) return '/teacher/profile'
+      if (isAdminScope(user)) return '/admin/profile'
       return '/dashboard'
     })
 
     const settingsUrl = computed(() => {
-      const role = userRole.value
-      if (role === 'etudiant' || role === 'student') {
-        return '/student/settings'
-      }
-      if (role === 'enseignant' || role === 'teacher') {
-        return '/teacher/settings'
-      }
-      if (role === 'coordinateur' || role === 'superAdmin') {
-        return '/admin/settings'
-      }
+      const user = auth.getUser()
+      if (isStudent(user)) return '/student/settings'
+      if (isTeacher(user)) return '/teacher/settings'
+      if (isAdminScope(user)) return '/admin/settings'
       return '/dashboard'
     })
 
