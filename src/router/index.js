@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { auth } from '@/services/api'
+import { canActivate, getDashboardRoute, logRoleDecision } from '@/constants/roles'
 
 // Import des pages
 import Login from '@/views/Login.vue'
@@ -58,27 +59,13 @@ const routes = [
   // Redirection / vers dashboard approprié
   {
     path: '/',
-    redirect: () => {
-      const user = auth.getUser()
-      if (!user) return '/login'
-
-      // Redirection selon le rôle
-      if (user.role === 'supradmin') {
-        return '/admin/institutions'
-      } else if (['superAdmin', 'coordinateur', 'secretaire'].includes(user.role)) {
-        return '/admin/dashboard'
-      } else if (['enseignant', 'teacher'].includes(user.role)) {
-        return '/teacher/dashboard'
-      } else if (user.role === 'etudiant') {
-        return '/student/dashboard'
-      }
-      return '/dashboard'
-    }
+    // Redirection via la source unique getDashboardRoute (rôle normalisé, #18)
+    redirect: () => getDashboardRoute(auth.getUser())
   },
-  // Redirect /admin → /admin/dashboard
+  // Redirect /admin → dashboard approprié selon le rôle normalisé
   {
     path: '/admin',
-    redirect: '/admin/dashboard'
+    redirect: () => getDashboardRoute(auth.getUser())
   },
   // Dashboard Admin
   {
@@ -683,60 +670,27 @@ router.beforeEach((to, from, next) => {
   const isAuthenticated = auth.isAuthenticated()
   const user = auth.getUser()
 
-  console.log('🛣️ Navigation:', from.path, '→', to.path)
-  console.log('🔒 isAuthenticated:', isAuthenticated, 'User:', user?.name, 'Role:', user?.role)
-
-  // Si la route nécessite l'authentification
+  // 1. Route protégée sans authentification → login
   if (to.meta.requiresAuth && !isAuthenticated) {
-    console.warn('⛔ Route protégée sans authentification → Redirect /login')
-    next('/login')
-    return
+    return next('/login')
   }
 
-  // Si l'utilisateur est connecté et va sur login
+  // 2. Utilisateur authentifié sur une route guest → son dashboard (source unique)
   if (to.meta.guest && isAuthenticated) {
-    // Rediriger vers le dashboard approprié
-    if (user) {
-      if (user.role === 'supradmin') {
-        next('/admin/institutions')
-      } else if (['superAdmin', 'coordinateur', 'secretaire'].includes(user.role)) {
-        next('/admin/dashboard')
-      } else if (['enseignant', 'teacher'].includes(user.role)) {
-        next('/teacher/dashboard')
-      } else if (user.role === 'etudiant') {
-        next('/student/dashboard')
-      } else {
-        next('/dashboard')
-      }
-    } else {
-      next('/dashboard')
-    }
-    return
+    return next(user ? getDashboardRoute(user) : '/login')
   }
 
-  // Vérifier les rôles requis pour la route
-  // supradmin (gestionnaire plateforme) bypasse toutes les vérifications de rôle
+  // 3. Route à rôles requis : décision unique, normalisée, fail-secure.
+  //    canActivate est la MÊME fonction que celle testée (pas de logique dupliquée) ;
+  //    le bypass supradmin y est appliqué sur le rôle normalisé (superAdmin == supradmin).
   if (to.meta.roles && user) {
-    const hasRequiredRole = to.meta.roles.includes(user.role) ||
-      user.role === 'supradmin'
-    if (!hasRequiredRole) {
-      // Rediriger vers le dashboard approprié si rôle incorrect
-      if (user.role === 'supradmin') {
-        next('/admin/institutions')
-      } else if (['superAdmin', 'coordinateur', 'secretaire'].includes(user.role)) {
-        next('/admin/dashboard')
-      } else if (['enseignant', 'teacher'].includes(user.role)) {
-        next('/teacher/dashboard')
-      } else if (user.role === 'etudiant') {
-        next('/student/dashboard')
-      } else {
-        next('/dashboard')
-      }
-      return
+    const decision = canActivate(user, to.meta.roles)
+    if (!decision.allowed) {
+      logRoleDecision('access_denied', { route: to.name ?? to.path })
+      return next(decision.redirectTo)
     }
   }
 
-  // Laisser passer
   next()
 })
 

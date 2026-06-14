@@ -17,6 +17,7 @@
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { auth } from '@/services/api'
+import { isStudent, isTeacher, hasRole, ROLES } from '@/constants/roles'
 
 const route = useRoute()
 
@@ -38,9 +39,8 @@ onUnmounted(() => {
 // Navigation items based on user role
 const navItems = computed(() => {
   const user = auth.getUser()
-  const role = user?.role
 
-  if (role === 'etudiant') {
+  if (isStudent(user)) {
     return [
       { name: 'dashboard', path: '/student/dashboard', icon: 'fa-home', label: 'Accueil' },
       { name: 'courses', path: '/student/courses', icon: 'fa-book', label: 'Cours' },
@@ -48,7 +48,7 @@ const navItems = computed(() => {
       { name: 'schedule', path: '/student/schedule', icon: 'fa-calendar', label: 'Emploi' },
       { name: 'settings', path: '/student/settings', icon: 'fa-cog', label: 'Paramètres' }
     ]
-  } else if (role === 'enseignant' || role === 'teacher') {
+  } else if (isTeacher(user)) {
     return [
       { name: 'dashboard', path: '/teacher/dashboard', icon: 'fa-home', label: 'Accueil' },
       { name: 'hub', path: '/teacher/hub', icon: 'fa-th-large', label: 'Espace' },
@@ -56,7 +56,7 @@ const navItems = computed(() => {
       { name: 'schedule', path: '/teacher/schedule', icon: 'fa-calendar', label: 'Emploi' },
       { name: 'profile', path: '/teacher/profile', icon: 'fa-user', label: 'Profil' }
     ]
-  } else if (role === 'coordinateur') {
+  } else if (hasRole(user, ROLES.COORDINATEUR)) {
     return [
       { name: 'dashboard', path: '/admin/dashboard', icon: 'fa-home', label: 'Accueil' },
       { name: 'hub', path: '/admin/hub', icon: 'fa-building', label: 'Admin' },
