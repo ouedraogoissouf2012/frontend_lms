@@ -280,6 +280,8 @@ import UniversalCalendar from '@/components/calendar/UniversalCalendar.vue'
 import { useVisioParticipation } from '@/composables/useVisioParticipation'
 import ParticipantsModal from '@/components/visio/ParticipantsModal.vue'
 import { useAuthStore } from '@/stores/auth'
+import { toast } from '@/services/toast'
+import { normalizeError } from '@/services/errorHandler'
 
 import lmsService from '@/services/lms'
 import { readCache, writeCache, clearCache } from '@/services/cache'
@@ -498,7 +500,7 @@ const handleJoinVisio = async (seance) => {
     await loadSeances()
   } catch (error) {
     console.error('[ERREUR] Join visio coordinateur:', error)
-    alert('Erreur lors de la connexion à la visio: ' + error.message)
+    toast.error(error.userMessage ?? normalizeError(error).userMessage)
   }
 }
 

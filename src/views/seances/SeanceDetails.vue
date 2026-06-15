@@ -250,6 +250,8 @@
 import lmsService from '@/services/lms'
 import { auth } from '@/services/api'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
+import { toast } from '@/services/toast'
+import { normalizeError } from '@/services/errorHandler'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import { useVisioParticipation } from '@/composables/useVisioParticipation'
 
@@ -514,7 +516,7 @@ export default {
         }
       } catch (error) {
         console.error('[SeanceDetails] Erreur masquage séance:', error)
-        alert('Erreur lors du masquage: ' + (error.response?.data?.message || error.message))
+        toast.error(error.userMessage ?? normalizeError(error).userMessage)
       }
     },
 

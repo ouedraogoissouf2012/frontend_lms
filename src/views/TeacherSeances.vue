@@ -342,6 +342,8 @@ import { useVisioParticipation } from '@/composables/useVisioParticipation'
 import { lmsService } from '@/services/lms'
 import { klassciService } from '@/services/klassci'
 import { useAuthStore } from '@/stores/auth'
+import { toast } from '@/services/toast'
+import { normalizeError } from '@/services/errorHandler'
 import { readCache, writeCache, clearCache } from '@/services/cache'
 
 const seances = ref([])
@@ -600,7 +602,7 @@ async function handleJoinVisio(seance) {
     loadSeances()
   } catch (error) {
     console.error('[ERREUR] Join visio:', error)
-    alert('Erreur lors de la connexion à la visio: ' + error.message)
+    toast.error(error.userMessage ?? normalizeError(error).userMessage)
   }
 }
 

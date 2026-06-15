@@ -67,6 +67,8 @@
 <script>
 import Navbar from '@/components/Navbar.vue'
 import { quizzes } from '@/services/api'
+import { toast } from '@/services/toast'
+import { normalizeError } from '@/services/errorHandler'
 
 export default {
   name: 'Quizzes',
@@ -102,7 +104,7 @@ export default {
         await quizzes.startAttempt(quizId)
         this.$router.push(`/quizzes/${quizId}/take`)
       } catch (error) {
-        alert(error.response?.data?.message || 'Erreur lors du démarrage du quiz')
+        toast.error(error.userMessage ?? normalizeError(error).userMessage)
       }
     }
   }

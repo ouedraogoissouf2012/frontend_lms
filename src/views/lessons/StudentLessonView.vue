@@ -310,6 +310,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
+import { toast } from '@/services/toast'
+import { normalizeError } from '@/services/errorHandler'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import KnowledgeCheckPlayer from '@/components/lessons/KnowledgeCheckPlayer.vue'
 import lessonService from '@/services/lesson'
@@ -493,7 +495,7 @@ const markChapterAsCompleted = async (chapterId) => {
     }
   } catch (err) {
     console.error('[StudentLessonView] Erreur marquage chapitre:', err)
-    alert(err.response?.data?.message || 'Erreur lors du marquage du chapitre')
+    toast.error(err.userMessage ?? normalizeError(err).userMessage)
   } finally {
     markingChapter.value = null
   }
