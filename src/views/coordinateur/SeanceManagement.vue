@@ -279,6 +279,7 @@ import ContentLoader from '@/components/common/ContentLoader.vue'
 import UniversalCalendar from '@/components/calendar/UniversalCalendar.vue'
 import { useVisioParticipation } from '@/composables/useVisioParticipation'
 import ParticipantsModal from '@/components/visio/ParticipantsModal.vue'
+import { useAuthStore } from '@/stores/auth'
 
 import lmsService from '@/services/lms'
 import { readCache, writeCache, clearCache } from '@/services/cache'
@@ -305,8 +306,8 @@ const filters = reactive({
   classe_id: null
 })
 
-// Get current user for Jitsi
-const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
+// Get current user for Jitsi (#19 : via store, plus de localStorage('user'))
+const currentUser = useAuthStore().currentUser
 
 // État de la modal Jitsi
 // visioParticipation sera créé dynamiquement pour chaque séance
@@ -526,7 +527,7 @@ async function handleCalendarAction({ type, data }) {
       // Coordinateur rejoint la visio
       {
         const roomId = data.visio?.room_id || data.visio_room_id || `seance_${data.id}`
-        const userName = encodeURIComponent(currentUser.name || 'Coordinateur')
+        const userName = encodeURIComponent(currentUser?.name || 'Coordinateur')
         const jitsiLink = `https://meet.jit.si/${roomId}#config.prejoinConfig.enabled=false&userInfo.displayName=${userName}`
         window.open(jitsiLink, '_blank')
       }

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import lmsService from '@/services/lms'
+import { useAuthStore } from '@/stores/auth'
 
 /**
  * Store Pinia global pour gérer la participation aux visioconférences
@@ -245,7 +246,7 @@ export const useVisioStore = defineStore('visio', () => {
   const sendLeaveVisioBeacon = async (seanceId) => {
     try {
       const apiUrl = `${import.meta.env.VITE_API_URL}/api/seances/${seanceId}/leave-visio`
-      const token = localStorage.getItem('token')
+      const token = useAuthStore().token
 
       if (!token) {
         console.warn('[VisioStore] Pas de token, impossible d\'envoyer Beacon')
@@ -343,9 +344,9 @@ export const useVisioStore = defineStore('visio', () => {
     // Se déconnecter d'abord
     leaveVisio()
 
-    // Si enseignant : proposer de fermer la séance pour tous
-    const user = JSON.parse(localStorage.getItem('user') || '{}')
-    if (user.role === 'enseignant' || user.role === 'teacher') {
+    // Si enseignant : proposer de fermer la séance pour tous (#19 : user via store)
+    const role = useAuthStore().currentUser?.role
+    if (role === 'enseignant' || role === 'teacher') {
       // Utiliser setTimeout pour s'assurer que leaveVisio() est terminé
       setTimeout(() => {
         const shouldEnd = confirm(

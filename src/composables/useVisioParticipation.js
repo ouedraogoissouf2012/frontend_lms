@@ -1,5 +1,6 @@
 import { ref, onBeforeUnmount } from 'vue'
 import lmsService from '@/services/lms'
+import { useAuthStore } from '@/stores/auth'
 
 /**
  * Composable pour gérer la participation à une visioconférence
@@ -220,7 +221,7 @@ export function useVisioParticipation(seanceId) {
   const sendLeaveVisioBeacon = async () => {
     try {
       const apiUrl = `${import.meta.env.VITE_API_URL}/api/seances/${seanceId}/leave-visio`
-      const token = sessionStorage.getItem('token')
+      const token = useAuthStore().token
 
       if (!token) {
         console.warn('[useVisioParticipation] Pas de token, impossible d\'envoyer Beacon')

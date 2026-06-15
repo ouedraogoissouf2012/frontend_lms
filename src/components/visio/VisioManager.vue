@@ -138,6 +138,7 @@
 <script>
 import { auth } from '@/services/api'
 import lmsService from '@/services/lms'
+import { useAuthStore } from '@/stores/auth'
 import jitsiService from '@/services/jitsi'
 import ParticipantsModal from './ParticipantsModal.vue'
 import { useVisioStore } from '@/stores/visio'
@@ -395,7 +396,7 @@ export default {
         console.log('[VisioManager] Téléchargement liste de présence PDF...')
 
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
-        const token = sessionStorage.getItem('token')
+        const token = useAuthStore().token
 
         // Créer l'URL de téléchargement
         const url = `${API_URL}/lms/seances/${this.seance.id}/export/presences/pdf`

@@ -277,6 +277,7 @@
 
 <script>
 import lmsService from '@/services/lms'
+import { useAuthStore } from '@/stores/auth'
 
 export default {
   name: 'ParticipantsModal',
@@ -426,7 +427,7 @@ export default {
         console.log('[ParticipantsModal] Export PDF de la séance', this.seanceId)
 
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
-        const token = sessionStorage.getItem('token')
+        const token = useAuthStore().token
 
         // Créer l'URL de téléchargement
         const url = `${API_URL}/lms/seances/${this.seanceId}/export/presences/pdf`
@@ -475,7 +476,7 @@ export default {
         console.log('[ParticipantsModal] Export Excel de la séance', this.seanceId)
 
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
-        const token = sessionStorage.getItem('token')
+        const token = useAuthStore().token
 
         // Créer l'URL de téléchargement
         const url = `${API_URL}/lms/seances/${this.seanceId}/export/presences/excel`
