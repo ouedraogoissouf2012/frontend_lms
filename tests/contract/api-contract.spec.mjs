@@ -12,6 +12,7 @@
  *
  * Chaque cible est confirmée par `.claude/specs/api-contract-sync/backend-contract-verified.md`.
  */
+import { setActivePinia, createPinia } from 'pinia'
 import { installCapture } from './captureAdapter.mjs'
 
 // Services réels (import = le vrai code testé, pas un double).
@@ -172,6 +173,9 @@ const DEAD_PATH_MATCHERS = [
  * @returns {Promise<{results: Array<{name, ok, detail, _req, _ek}>, failed: number}>}
  */
 export async function runContractAssertions() {
+  // Pinia actif requis : l'intercepteur axios lit le token via useAuthStore() (#19).
+  // Store vide ici → aucun header Authorization → les assertions de chemin sont intactes.
+  setActivePinia(createPinia())
   const capture = installCapture()
   const results = []
 

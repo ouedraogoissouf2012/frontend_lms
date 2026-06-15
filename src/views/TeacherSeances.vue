@@ -341,6 +341,7 @@ import ContentLoader from '@/components/common/ContentLoader.vue'
 import { useVisioParticipation } from '@/composables/useVisioParticipation'
 import { lmsService } from '@/services/lms'
 import { klassciService } from '@/services/klassci'
+import { useAuthStore } from '@/stores/auth'
 import { readCache, writeCache, clearCache } from '@/services/cache'
 
 const seances = ref([])
@@ -353,9 +354,9 @@ const actionLoading = ref(null)
 // visioParticipation sera créé dynamiquement pour chaque séance
 const visioParticipations = reactive({})
 
-// Get current user
-const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
-const isEnseignant = currentUser.role === 'enseignant'
+// Get current user (#19 : via store, plus de localStorage('user'))
+const currentUser = useAuthStore().currentUser
+const isEnseignant = currentUser?.role === 'enseignant'
 
 // Filters
 const filters = reactive({

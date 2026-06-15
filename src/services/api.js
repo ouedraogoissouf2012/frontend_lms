@@ -1,15 +1,13 @@
 import axios from 'axios'
-import { clearAllCache } from './cache'
 import notificationsService from './notifications'
-// Import relatif (pas l'alias @) : le runner natif des tests de contrat (#17) ne
-// résout que les chemins relatifs. Délégation de la logique de rôle (#18).
-import {
-  hasRole as roleHasRole,
-  isAdmin as roleIsAdmin,
-  isTeacher as roleIsTeacher,
-  isStudent as roleIsStudent,
-  isSupradmin as roleIsSupradmin,
-} from '../constants/roles'
+// Imports relatifs (pas l'alias @) : le runner natif des tests de contrat (#17) ne
+// résout que les chemins relatifs.
+import { hasRole as roleHasRole } from '../constants/roles'
+// useAuthStore : on importe la DÉFINITION au top-level (sûr) ; on n'APPELLE
+// useAuthStore() qu'à la volée dans les méthodes (Pinia actif à l'exécution).
+// Cycle api.js <-> auth.js sans danger : aucune des deux références n'est utilisée
+// au chargement du module, seulement dans les corps de fonctions (#19, décision C/D).
+import { useAuthStore } from '../stores/auth'
 
 const api = axios.create({
   // Optional chaining : `import.meta.env` est injecté par Vite au build/dev, mais
@@ -25,7 +23,10 @@ const api = axios.create({
 // Intercepteur : ajouter uniquement le token Bearer
 api.interceptors.request.use(
   (config) => {
-    const token = sessionStorage.getItem('token')
+    // Token lu DEPUIS le store à la volée (#19) — source unique, fin du mix
+    // localStorage/sessionStorage. useAuthStore() est sûr ici : l'intercepteur
+    // s'exécute à chaque requête, donc après le montage (Pinia actif).
+    const token = useAuthStore().token
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -45,12 +46,9 @@ api.interceptors.response.use(
   (error) => {
     console.error('❌ API Error:', error.config?.url, error.response?.status)
 
-    // Si erreur 401, déconnecter l'utilisateur
+    // Si erreur 401, déconnecter l'utilisateur via le store (purge state + storage + cache)
     if (error.response?.status === 401) {
-      console.warn('Session expirée - Déconnexion automatique')
-      sessionStorage.removeItem('token')
-      sessionStorage.removeItem('user')
-      sessionStorage.removeItem('meta')
+      useAuthStore().logout()
 
       // Ne rediriger que si on n'est pas déjà sur la page de login
       if (!window.location.pathname.includes('/login')) {
@@ -62,103 +60,28 @@ api.interceptors.response.use(
   }
 )
 
-// Fonctions d'authentification
+// Façade d'authentification — délègue au store Pinia useAuthStore (#19).
+// L'état (user/token/meta/institution) vit DANS le store ; cette façade conserve
+// l'API publique consommée par 32 fichiers (88 appels) sans la réécrire. Chaque
+// méthode appelle useAuthStore() À LA VOLÉE (Pinia actif à l'exécution).
 export const auth = {
-  async login(username, password) {
-    const response = await api.post('/auth/login', { username, password })
-
-    if (response.success && response.data) {
-      sessionStorage.setItem('token', response.data.token)
-      sessionStorage.setItem('user', JSON.stringify(response.data.user))
-
-      if (response.meta) {
-        sessionStorage.setItem('meta', JSON.stringify(response.meta))
-        if (response.meta.institution) {
-          sessionStorage.setItem('institution', response.meta.institution)
-        }
-      }
-    }
-
-    return response
-  },
-
-  logout() {
-    sessionStorage.removeItem('token')
-    sessionStorage.removeItem('user')
-    sessionStorage.removeItem('meta')
-    sessionStorage.removeItem('institution')
-    clearAllCache()
-  },
-
-  async me() {
-    return await api.get('/auth/me')
-  },
-
-  getUser() {
-    const user = sessionStorage.getItem('user')
-    return user ? JSON.parse(user) : null
-  },
-
-  getMeta() {
-    const meta = sessionStorage.getItem('meta')
-    return meta ? JSON.parse(meta) : null
-  },
-
-  isAuthenticated() {
-    return !!sessionStorage.getItem('token')
-  },
-
-  // Obtenir le rôle de l'utilisateur
-  getUserRole() {
-    const user = this.getUser()
-    return user?.role || null
-  },
-
-  // Logique de rôle déléguée à src/constants/roles.js (#18) — rôle normalisé,
-  // plus aucune comparaison de chaîne brute ici.
-  hasRole(roles) {
-    return roleHasRole(this.getUser(), roles)
-  },
-
-  // Périmètre admin STRICT (admin | supradmin), aligné backend Role::isAdmin()
-  isAdmin() {
-    return roleIsAdmin(this.getUser())
-  },
-
-  isTeacher() {
-    return roleIsTeacher(this.getUser())
-  },
-
-  isStudent() {
-    return roleIsStudent(this.getUser())
-  },
-
-  // Obtenir le slug de l'institution depuis les métadonnées de session
-  getInstitution() {
-    const meta = this.getMeta()
-    return meta?.institution || sessionStorage.getItem('institution') || null
-  },
-
-  // Obtenir le nom de l'institution depuis les métadonnées
-  getInstitutionName() {
-    const meta = this.getMeta()
-    return meta?.institution_name || null
-  },
-
-  // Vérifier si l'utilisateur est supradmin (rôle normalisé)
-  isSupradmin() {
-    return roleIsSupradmin(this.getUser())
-  },
-
-  // Récupérer la liste des institutions actives (route publique)
-  async getActiveInstitutions() {
-    return await api.get('/institutions/active')
-  },
-
-  // Changer l'institution courante (local dev uniquement)
-  setInstitution(slug) {
-    sessionStorage.setItem('institution', slug)
-  }
+  login: (username, password) => useAuthStore().login(username, password),
+  logout: () => useAuthStore().logout(),
+  me: () => useAuthStore().me(),
+  getUser: () => useAuthStore().currentUser,
+  getMeta: () => useAuthStore().meta,
+  isAuthenticated: () => useAuthStore().isAuthenticated,
+  getUserRole: () => useAuthStore().userRole,
+  // hasRole délègue au helper normalisé (pas de réimplémentation, #18)
+  hasRole: (roles) => roleHasRole(useAuthStore().currentUser, roles),
+  isAdmin: () => useAuthStore().isAdmin,
+  isTeacher: () => useAuthStore().isTeacher,
+  isStudent: () => useAuthStore().isStudent,
+  isSupradmin: () => useAuthStore().isSupradmin,
+  getInstitution: () => useAuthStore().institutionSlug,
+  getInstitutionName: () => useAuthStore().institutionDisplayName,
+  setInstitution: (slug) => useAuthStore().setInstitution(slug),
+  getActiveInstitutions: () => useAuthStore().fetchActiveInstitutions(),
 }
 
 // Fonctions pour les leçons

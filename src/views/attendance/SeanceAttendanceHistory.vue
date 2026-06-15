@@ -325,6 +325,7 @@
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import lmsService from '@/services/lms'
+import { useAuthStore } from '@/stores/auth'
 
 export default {
   name: 'SeanceAttendanceHistory',
@@ -534,7 +535,7 @@ export default {
         console.log('[SeanceHistory] Export PDF de la séance', this.selectedSeance.klassci_seance_id)
 
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
-        const token = sessionStorage.getItem('token')
+        const token = useAuthStore().token
 
         // Créer l'URL de téléchargement
         const url = `${API_URL}/lms/seances/${this.selectedSeance.klassci_seance_id}/export/presences/pdf`
@@ -583,7 +584,7 @@ export default {
         console.log('[SeanceHistory] Export Excel de la séance', this.selectedSeance.klassci_seance_id)
 
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
-        const token = sessionStorage.getItem('token')
+        const token = useAuthStore().token
 
         // Créer l'URL de téléchargement
         const url = `${API_URL}/lms/seances/${this.selectedSeance.klassci_seance_id}/export/presences/excel`

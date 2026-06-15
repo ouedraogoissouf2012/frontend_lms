@@ -175,6 +175,7 @@
 <script>
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import { forum } from '@/services/api'
+import { useAuthStore } from '@/stores/auth'
 
 export default {
   name: 'ForumTopic',
@@ -195,9 +196,8 @@ export default {
   },
   methods: {
     getCurrentUser() {
-      // Récupérer l'utilisateur connecté depuis le service auth
-      const user = JSON.parse(localStorage.getItem('user') || '{}')
-      this.currentUser = user
+      // Récupérer l'utilisateur connecté depuis le store (#19) — plus de localStorage('user')
+      this.currentUser = useAuthStore().currentUser
     },
 
     canMarkAsSolution(post) {

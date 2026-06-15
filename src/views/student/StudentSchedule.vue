@@ -23,15 +23,17 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import UniversalCalendar from '@/components/calendar/UniversalCalendar.vue'
 import { lmsService } from '@/services/lms'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 
-const currentUser = ref(JSON.parse(localStorage.getItem('user') || '{}'))
+// Utilisateur courant réactif depuis le store (#19) — plus de localStorage('user')
+const currentUser = computed(() => useAuthStore().currentUser)
 
 async function handleEventAction({ type, data }) {
   console.log('[StudentSchedule] Action:', type, data)
@@ -45,7 +47,7 @@ async function handleEventAction({ type, data }) {
         console.log('[StudentSchedule] Rejoint visio:', data.id)
         // Ouvrir Jitsi
         const roomId = data.visio?.room_id || data.visio_room_id || `seance_${data.id}`
-        const userName = encodeURIComponent(currentUser.value.name || 'Etudiant')
+        const userName = encodeURIComponent(currentUser.value?.name || 'Etudiant')
         const jitsiLink = `https://meet.jit.si/${roomId}#config.prejoinConfig.enabled=false&userInfo.displayName=${userName}`
         window.open(jitsiLink, '_blank')
       } catch (error) {
