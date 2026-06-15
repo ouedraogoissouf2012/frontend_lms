@@ -111,6 +111,7 @@
 
 <script>
 import lessonService from '@/services/lesson'
+import { formatDateShort } from '@/utils/formatters'
 import LessonProgress from './LessonProgress.vue'
 
 export default {
@@ -154,13 +155,7 @@ export default {
       return lessonService.formatDuration(minutes)
     },
     formatDate(dateString) {
-      if (!dateString) return 'N/A'
-      const date = new Date(dateString)
-      return date.toLocaleDateString('fr-FR', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      })
+      return formatDateShort(dateString, { fallback: 'N/A' })
     },
     getTypeIcon(type) {
       const icons = {

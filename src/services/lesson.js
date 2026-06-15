@@ -1,4 +1,5 @@
 import api from './api'
+import { formatDuration as fmtDuration } from '../utils/formatters'
 
 /**
  * Service pour la gestion des leçons (Lessons)
@@ -254,15 +255,7 @@ const lessonService = {
    * @returns {String}
    */
   formatDuration(minutes) {
-    if (!minutes) return 'N/A'
-
-    const hours = Math.floor(minutes / 60)
-    const mins = minutes % 60
-
-    if (hours > 0) {
-      return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`
-    }
-    return `${mins}min`
+    return fmtDuration(minutes, { fallback: 'N/A' })
   },
 
   /**

@@ -1,4 +1,6 @@
 import api from './api'
+// Import relatif : ce service est chargé par le runner natif des tests de contrat (#17).
+import { formatDuration as fmtDuration } from '../utils/formatters'
 
 /**
  * Service pour la gestion des chapitres (Chapters)
@@ -133,15 +135,7 @@ const chapterService = {
    * @returns {String}
    */
   formatDuration(minutes) {
-    if (!minutes) return 'Non définie'
-
-    const hours = Math.floor(minutes / 60)
-    const mins = minutes % 60
-
-    if (hours > 0) {
-      return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`
-    }
-    return `${mins}min`
+    return fmtDuration(minutes, { fallback: 'Non définie' })
   }
 }
 

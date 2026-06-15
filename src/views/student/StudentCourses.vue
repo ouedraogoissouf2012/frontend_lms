@@ -147,6 +147,7 @@
 <script>
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
+import { truncate } from '@/utils/formatters'
 import { klassciService } from '@/services/klassci'
 import { toast } from '@/services/toast'
 
@@ -233,9 +234,7 @@ export default {
     },
 
     truncateText(text, maxLength) {
-      if (!text) return ''
-      if (text.length <= maxLength) return text
-      return text.substring(0, maxLength) + '...'
+      return truncate(text, maxLength)
     }
   },
   mounted() {

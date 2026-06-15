@@ -253,6 +253,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { getInitials } from '@/utils/formatters'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import klassciService from '@/services/klassci'
 import { readCache, writeCache } from '@/services/cache'
@@ -370,16 +371,6 @@ function sortBy(field) {
     sortField.value = field
     sortAsc.value = true
   }
-}
-
-// Get initials
-function getInitials(user) {
-  if (!user || !user.name) return '?'
-  const parts = user.name.trim().split(/\s+/)
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-  }
-  return user.name.substring(0, 2).toUpperCase()
 }
 
 // Get role label

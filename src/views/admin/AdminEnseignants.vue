@@ -308,6 +308,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { getInitials } from '@/utils/formatters'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import klassciService from '@/services/klassci'
@@ -342,14 +343,6 @@ const enseignantsActifs = computed(() => {
   const list = Array.isArray(enseignants.value) ? enseignants.value : []
   return list.filter(ens => ens.matieres?.length > 0 || ens.classes?.length > 0).length
 })
-
-// Get initials from enseignant
-function getInitials(enseignant) {
-  if (!enseignant) return '?'
-  const firstInitial = (enseignant.prenom || enseignant.nom || '?')[0]
-  const lastInitial = enseignant.nom ? enseignant.nom[0] : ''
-  return (firstInitial + lastInitial).toUpperCase()
-}
 
 // Get classes count for an enseignant
 function getEnseignantClassesCount(enseignant) {
