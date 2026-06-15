@@ -3,6 +3,7 @@ import notificationsService from './notifications'
 // Imports relatifs (pas l'alias @) : le runner natif des tests de contrat (#17) ne
 // résout que les chemins relatifs.
 import { hasRole as roleHasRole } from '../constants/roles'
+import { normalizeError, logError } from './errorHandler'
 // useAuthStore : on importe la DÉFINITION au top-level (sûr) ; on n'APPELLE
 // useAuthStore() qu'à la volée dans les méthodes (Pinia actif à l'exécution).
 // Cycle api.js <-> auth.js sans danger : aucune des deux références n'est utilisée
@@ -44,7 +45,14 @@ api.interceptors.response.use(
     return response.data
   },
   (error) => {
-    console.error('❌ API Error:', error.config?.url, error.response?.status)
+    // Journalisation sûre (sans donnée sensible, désactivée en prod) — #20
+    logError(error, '[api.js] response interceptor')
+
+    // Attacher un message utilisateur SÛR normalisé pour que tout appelant l'ait
+    // prêt à afficher (et les erreurs de champ 422), sans changer le flux de rejet.
+    const normalized = normalizeError(error)
+    error.userMessage = normalized.userMessage
+    error.fieldErrors = normalized.fieldErrors
 
     // Si erreur 401, déconnecter l'utilisateur via le store (purge state + storage + cache)
     if (error.response?.status === 401) {

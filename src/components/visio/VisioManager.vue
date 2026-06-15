@@ -139,6 +139,8 @@
 import { auth } from '@/services/api'
 import lmsService from '@/services/lms'
 import { useAuthStore } from '@/stores/auth'
+import { toast } from '@/services/toast'
+import { normalizeError } from '@/services/errorHandler'
 import jitsiService from '@/services/jitsi'
 import ParticipantsModal from './ParticipantsModal.vue'
 import { useVisioStore } from '@/stores/visio'
@@ -282,7 +284,7 @@ export default {
         }
       } catch (error) {
         console.error('[VisioManager] Erreur programmation visio:', error)
-        alert('Erreur lors de la programmation de la visio: ' + (error.response?.data?.message || error.message))
+        toast.error(error.userMessage ?? normalizeError(error).userMessage)
       } finally {
         this.loading = false
       }
@@ -308,7 +310,7 @@ export default {
         }
       } catch (error) {
         console.error('[VisioManager] Erreur désactivation visio:', error)
-        alert('Erreur lors de la désactivation de la visio: ' + (error.response?.data?.message || error.message))
+        toast.error(error.userMessage ?? normalizeError(error).userMessage)
       } finally {
         this.loading = false
       }
@@ -344,7 +346,7 @@ export default {
 
       } catch (error) {
         console.error('[VisioManager] Erreur démarrage visio:', error)
-        alert('Erreur lors du démarrage de la visio: ' + (error.response?.data?.message || error.message))
+        toast.error(error.userMessage ?? normalizeError(error).userMessage)
       } finally {
         this.loading = false
       }
@@ -381,7 +383,7 @@ export default {
         }
       } catch (error) {
         console.error('[VisioManager] Erreur fermeture séance:', error)
-        alert('Erreur lors de la fermeture: ' + (error.response?.data?.message || error.message))
+        toast.error(error.userMessage ?? normalizeError(error).userMessage)
       } finally {
         this.loading = false
       }
@@ -429,7 +431,7 @@ export default {
         console.log('[VisioManager] ✅ PDF téléchargé avec succès')
       } catch (error) {
         console.error('[VisioManager] Erreur téléchargement PDF:', error)
-        alert('Erreur lors du téléchargement : ' + error.message)
+        toast.error(error.userMessage ?? normalizeError(error).userMessage)
       } finally {
         this.loading = false
       }

@@ -436,6 +436,8 @@ Exemples:
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
+import { toast } from '@/services/toast'
+import { normalizeError } from '@/services/errorHandler'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import lessonService from '@/services/lesson'
 import chapterService from '@/services/chapter'
@@ -566,7 +568,7 @@ const saveLesson = async () => {
   } catch (error) {
     console.error('[LessonEditor] Erreur saveLesson:', error)
     console.error('[LessonEditor] error.response:', error.response)
-    alert('Erreur: ' + (error.response?.data?.message || error.message))
+    toast.error(error.userMessage ?? normalizeError(error).userMessage)
   } finally {
     saving.value = false
     console.log('[LessonEditor] saving = false')
@@ -588,7 +590,7 @@ const deleteLesson = async () => {
     }
   } catch (error) {
     console.error('[LessonEditor] Erreur deleteLesson:', error)
-    alert('Erreur lors de la suppression: ' + (error.response?.data?.message || error.message))
+    toast.error(error.userMessage ?? normalizeError(error).userMessage)
   } finally {
     saving.value = false
   }

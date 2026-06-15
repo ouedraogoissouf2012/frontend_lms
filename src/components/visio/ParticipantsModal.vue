@@ -278,6 +278,8 @@
 <script>
 import lmsService from '@/services/lms'
 import { useAuthStore } from '@/stores/auth'
+import { toast } from '@/services/toast'
+import { normalizeError } from '@/services/errorHandler'
 
 export default {
   name: 'ParticipantsModal',
@@ -459,7 +461,7 @@ export default {
         console.log('[ParticipantsModal] ✅ PDF téléchargé avec succès')
       } catch (error) {
         console.error('[ParticipantsModal] Erreur export PDF:', error)
-        alert('Erreur lors de l\'export PDF : ' + error.message)
+        toast.error(error.userMessage ?? normalizeError(error).userMessage)
       } finally {
         this.exporting = false
       }
@@ -508,7 +510,7 @@ export default {
         console.log('[ParticipantsModal] ✅ Excel téléchargé avec succès')
       } catch (error) {
         console.error('[ParticipantsModal] Erreur export Excel:', error)
-        alert('Erreur lors de l\'export Excel : ' + error.message)
+        toast.error(error.userMessage ?? normalizeError(error).userMessage)
       } finally {
         this.exporting = false
       }

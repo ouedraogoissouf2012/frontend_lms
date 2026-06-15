@@ -256,6 +256,8 @@
 
 <script>
 import api from '@/services/api'
+import { toast } from '@/services/toast'
+import { normalizeError } from '@/services/errorHandler'
 import TipTapEditor from '@/components/common/TipTapEditor.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import KnowledgeCheckEditor from '@/components/lessons/KnowledgeCheckEditor.vue'
@@ -410,7 +412,7 @@ export default {
         }
       } catch (error) {
         console.error('[ChapterManager] Erreur sauvegarde:', error)
-        alert('Erreur: ' + (error.response?.data?.message || error.message))
+        toast.error(error.userMessage ?? normalizeError(error).userMessage)
       } finally {
         this.saving = false
       }
@@ -439,7 +441,7 @@ export default {
         }
       } catch (error) {
         console.error('[ChapterManager] Erreur upload:', error)
-        alert('Erreur upload: ' + (error.response?.data?.message || error.message))
+        toast.error(error.userMessage ?? normalizeError(error).userMessage)
       } finally {
         setTimeout(() => {
           this.uploadingFile = false
@@ -460,7 +462,7 @@ export default {
         }
       } catch (error) {
         console.error('[ChapterManager] Erreur suppression:', error)
-        alert('Erreur: ' + (error.response?.data?.message || error.message))
+        toast.error(error.userMessage ?? normalizeError(error).userMessage)
       }
     },
 
@@ -576,7 +578,7 @@ export default {
         }
       } catch (error) {
         console.error('[ChapterManager] Erreur suppression quiz:', error)
-        alert('Erreur: ' + (error.response?.data?.message || error.message))
+        toast.error(error.userMessage ?? normalizeError(error).userMessage)
       }
     },
 

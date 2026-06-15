@@ -94,6 +94,8 @@
 <script>
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ChapterManager from '@/components/lessons/ChapterManager.vue'
+import { toast } from '@/services/toast'
+import { normalizeError } from '@/services/errorHandler'
 import lessonService from '@/services/lesson'
 
 export default {
@@ -177,7 +179,7 @@ export default {
         }
       } catch (error) {
         console.error('[LessonChapters] Erreur publication:', error)
-        alert('Erreur: ' + (error.response?.data?.message || error.message))
+        toast.error(error.userMessage ?? normalizeError(error).userMessage)
       } finally {
         this.publishing = false
       }
