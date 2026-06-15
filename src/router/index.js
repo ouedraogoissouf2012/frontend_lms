@@ -646,17 +646,6 @@ const routes = [
       requiresAuth: true,
       roles: ['coordinateur', 'superAdmin']
     }
-  },
-
-  // 🧪 TEST - Visio Store (réservé supradmin uniquement)
-  {
-    path: '/test-visio',
-    name: 'TestVisio',
-    component: () => import('@/components/test/VisioStoreTest.vue'),
-    meta: {
-      requiresAuth: true,
-      roles: ['supradmin']
-    }
   }
 ]
 
