@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import lmsService from '@/services/lms'
 import { useAuthStore } from '@/stores/auth'
-import { VISIO_CONFIG } from '@/constants/visio'
+import { useVisioHeartbeat } from '@/composables/useVisioHeartbeat'
 
 /**
  * Store Pinia global pour gérer la participation aux visioconférences
@@ -25,114 +25,20 @@ export const useVisioStore = defineStore('visio', () => {
   const activeSeanceId = ref(null)
   const isInVisio = ref(false)
   const visioWindow = ref(null)
-  const heartbeatWorker = ref(null)
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // Gestion du Web Worker (Heartbeat)
+  // Heartbeat (moteur Web Worker mutualisé — #26)
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  /**
-   * Démarrer le Web Worker pour le heartbeat
-   * Le Worker tourne en arrière-plan, indépendant de l'état de l'onglet
-   */
-  const startHeartbeat = () => {
-    stopHeartbeat()
-
-    try {
-      // Créer le Worker
-      heartbeatWorker.value = new Worker('/heartbeat-worker.js')
-
-      // Écouter les messages du Worker
-      heartbeatWorker.value.addEventListener('message', async (e) => {
-        const { type } = e.data
-
-        if (type === 'heartbeat') {
-          // Le Worker demande d'envoyer un heartbeat
-          await sendHeartbeat()
-        } else if (type === 'started') {
-          console.log('[VisioStore] 💓 Worker démarré')
-        } else if (type === 'stopped') {
-          console.log('[VisioStore] 💔 Worker arrêté')
-        } else if (type === 'error') {
-          console.error('[VisioStore] Erreur Worker:', e.data.error)
-        }
-      })
-
-      // Gérer les erreurs du Worker
-      heartbeatWorker.value.addEventListener('error', (error) => {
-        console.error('[VisioStore] Erreur Worker:', error)
-      })
-
-      // Démarrer le Worker (30 secondes)
-      heartbeatWorker.value.postMessage({ command: 'start', interval: VISIO_CONFIG.HEARTBEAT_INTERVAL_MS })
-
-      // Premier heartbeat immédiat
-      sendHeartbeat()
-
-      console.log('[VisioStore] 💓 Heartbeat démarré (Web Worker, 30s)')
-
-    } catch (error) {
-      console.error('[VisioStore] Erreur création Worker:', error)
-      // Fallback sur setInterval si Worker non supporté
-      fallbackHeartbeat()
-    }
-  }
-
-  /**
-   * Fallback heartbeat avec setInterval (si Worker non supporté)
-   */
-  let fallbackInterval = null
-  const fallbackHeartbeat = () => {
-    console.warn('[VisioStore] Fallback sur setInterval (Worker non supporté)')
-
-    if (fallbackInterval) clearInterval(fallbackInterval)
-
-    sendHeartbeat()
-    fallbackInterval = setInterval(() => {
-      sendHeartbeat()
-    }, VISIO_CONFIG.HEARTBEAT_INTERVAL_MS)
-  }
-
-  /**
-   * Arrêter le heartbeat (Worker ou fallback)
-   */
-  const stopHeartbeat = () => {
-    // Arrêter le Worker
-    if (heartbeatWorker.value) {
-      heartbeatWorker.value.postMessage({ command: 'stop' })
-      heartbeatWorker.value.terminate()
-      heartbeatWorker.value = null
-      console.log('[VisioStore] 💔 Worker terminé')
-    }
-
-    // Arrêter le fallback
-    if (fallbackInterval) {
-      clearInterval(fallbackInterval)
-      fallbackInterval = null
-    }
-  }
-
-  /**
-   * Envoyer un heartbeat au serveur
-   */
-  const sendHeartbeat = async () => {
-    if (!isInVisio.value || !activeSeanceId.value) return
-
-    try {
-      await lmsService.heartbeatVisio(activeSeanceId.value)
-      console.log(`[VisioStore] 💓 Heartbeat envoyé (séance ${activeSeanceId.value})`)
-    } catch (error) {
-      console.error('[VisioStore] Erreur heartbeat:', error)
-
-      // Si 404 (participation non trouvée), arrêter le heartbeat
-      if (error.response?.status === 404) {
-        console.warn('[VisioStore] ⚠️ Participation non trouvée, arrêt heartbeat')
-        stopHeartbeat()
-        isInVisio.value = false
-        activeSeanceId.value = null
-      }
-    }
-  }
+  const { start: startHeartbeat, stop: stopHeartbeat, sendHeartbeat } = useVisioHeartbeat({
+    getSeanceId: () => activeSeanceId.value,
+    isActive: () => isInVisio.value,
+    onParticipationLost: () => {
+      isInVisio.value = false
+      activeSeanceId.value = null
+    },
+    logPrefix: '[VisioStore]'
+  })
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // Page Visibility API

@@ -1,8 +1,8 @@
 import { ref, onBeforeUnmount } from 'vue'
 import lmsService from '@/services/lms'
 import { useAuthStore } from '@/stores/auth'
-import { VISIO_CONFIG } from '@/constants/visio'
 import { apiOrigin } from '@/constants/http'
+import { useVisioHeartbeat } from '@/composables/useVisioHeartbeat'
 
 /**
  * Composable pour gérer la participation à une visioconférence
@@ -20,109 +20,16 @@ export function useVisioParticipation(seanceId) {
   // États réactifs
   const isInVisio = ref(false)
   const visioWindow = ref(null)
-  const heartbeatWorker = ref(null)
 
-  /**
-   * Démarrer le Web Worker pour le heartbeat
-   * Le Worker tourne en arrière-plan, indépendant de l'état de l'onglet
-   */
-  const startHeartbeat = () => {
-    stopHeartbeat()
-
-    try {
-      // Créer le Worker
-      heartbeatWorker.value = new Worker('/heartbeat-worker.js')
-
-      // Écouter les messages du Worker
-      heartbeatWorker.value.addEventListener('message', async (e) => {
-        const { type, timestamp } = e.data
-
-        if (type === 'heartbeat') {
-          // Le Worker demande d'envoyer un heartbeat
-          await sendHeartbeat()
-        } else if (type === 'started') {
-          console.log('[useVisioParticipation] 💓 Worker démarré')
-        } else if (type === 'stopped') {
-          console.log('[useVisioParticipation] 💔 Worker arrêté')
-        } else if (type === 'error') {
-          console.error('[useVisioParticipation] Erreur Worker:', e.data.error)
-        }
-      })
-
-      // Gérer les erreurs du Worker
-      heartbeatWorker.value.addEventListener('error', (error) => {
-        console.error('[useVisioParticipation] Erreur Worker:', error)
-      })
-
-      // Démarrer le Worker (30 secondes)
-      heartbeatWorker.value.postMessage({ command: 'start', interval: VISIO_CONFIG.HEARTBEAT_INTERVAL_MS })
-
-      // Premier heartbeat immédiat
-      sendHeartbeat()
-
-      console.log('[useVisioParticipation] 💓 Heartbeat démarré (Web Worker, 30s)')
-
-    } catch (error) {
-      console.error('[useVisioParticipation] Erreur création Worker:', error)
-      // Fallback sur setInterval si Worker non supporté
-      fallbackHeartbeat()
-    }
-  }
-
-  /**
-   * Fallback heartbeat avec setInterval (si Worker non supporté)
-   */
-  let fallbackInterval = null
-  const fallbackHeartbeat = () => {
-    console.warn('[useVisioParticipation] Fallback sur setInterval (Worker non supporté)')
-
-    if (fallbackInterval) clearInterval(fallbackInterval)
-
-    sendHeartbeat()
-    fallbackInterval = setInterval(() => {
-      sendHeartbeat()
-    }, VISIO_CONFIG.HEARTBEAT_INTERVAL_MS)
-  }
-
-  /**
-   * Arrêter le heartbeat (Worker ou fallback)
-   */
-  const stopHeartbeat = () => {
-    // Arrêter le Worker
-    if (heartbeatWorker.value) {
-      heartbeatWorker.value.postMessage({ command: 'stop' })
-      heartbeatWorker.value.terminate()
-      heartbeatWorker.value = null
-      console.log('[useVisioParticipation] 💔 Worker terminé')
-    }
-
-    // Arrêter le fallback
-    if (fallbackInterval) {
-      clearInterval(fallbackInterval)
-      fallbackInterval = null
-    }
-  }
-
-  /**
-   * Envoyer un heartbeat au serveur
-   */
-  const sendHeartbeat = async () => {
-    if (!isInVisio.value) return
-
-    try {
-      await lmsService.heartbeatVisio(seanceId)
-      console.log(`[useVisioParticipation] 💓 Heartbeat envoyé (séance ${seanceId})`)
-    } catch (error) {
-      console.error('[useVisioParticipation] Erreur heartbeat:', error)
-
-      // Si 404 (participation non trouvée), arrêter le heartbeat
-      if (error.response?.status === 404) {
-        console.warn('[useVisioParticipation] ⚠️ Participation non trouvée, arrêt heartbeat')
-        stopHeartbeat()
-        isInVisio.value = false
-      }
-    }
-  }
+  // Heartbeat (moteur Web Worker mutualisé — #26)
+  const { start: startHeartbeat, stop: stopHeartbeat, sendHeartbeat } = useVisioHeartbeat({
+    getSeanceId: () => seanceId,
+    isActive: () => isInVisio.value,
+    onParticipationLost: () => {
+      isInVisio.value = false
+    },
+    logPrefix: '[useVisioParticipation]'
+  })
 
   /**
    * Page Visibility API - Heartbeat immédiat au retour sur l'onglet
