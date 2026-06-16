@@ -1,10 +1,14 @@
 <template>
   <transition name="modal-fade">
     <div v-if="visible" class="modal-overlay" @click.self="close">
-      <div class="modal-container">
+      <!-- $attrs sur le conteneur visible (inheritAttrs:false) : class/id/aria-*/data-* traversent -->
+      <div class="modal-container" :class="`modal-${normalizedSize}`" v-bind="$attrs">
         <div class="modal-header">
-          <h3 class="modal-title">{{ title }}</h3>
-          <button class="modal-close-btn" @click="close">✕</button>
+          <!-- Slot header custom ; sinon title optionnelle. Le ✕ reste TOUJOURS rendu (hors slot). -->
+          <slot name="header">
+            <h3 v-if="title" class="modal-title">{{ title }}</h3>
+          </slot>
+          <button class="modal-close-btn" aria-label="Fermer" @click="close">✕</button>
         </div>
         <div class="modal-body">
           <slot></slot>
@@ -20,6 +24,8 @@
 <script>
 export default {
   name: 'Modal',
+  // Les attributs non déclarés (class, aria-*, data-*) vont sur .modal-container, pas la racine transition.
+  inheritAttrs: false,
   props: {
     modelValue: {
       type: Boolean,
@@ -27,7 +33,12 @@ export default {
     },
     title: {
       type: String,
-      required: true
+      default: ''
+    },
+    size: {
+      type: String,
+      default: 'md',
+      validator: (v) => ['sm', 'md', 'lg', 'xl', 'medium'].includes(v)
     }
   },
   computed: {
@@ -38,24 +49,41 @@ export default {
       set(value) {
         this.$emit('update:modelValue', value)
       }
+    },
+    // Normalise l'alias 'medium' → 'md' et retombe sur 'md' si valeur inattendue.
+    normalizedSize() {
+      if (this.size === 'medium') return 'md'
+      return ['sm', 'md', 'lg', 'xl'].includes(this.size) ? this.size : 'md'
     }
   },
   methods: {
     close() {
       this.visible = false
+    },
+    onKeydown(e) {
+      if (e.key === 'Escape' && this.visible) {
+        this.close()
+      }
     }
   },
   watch: {
-    visible(newVal) {
-      if (newVal) {
-        document.body.style.overflow = 'hidden'
-      } else {
-        document.body.style.overflow = ''
+    visible: {
+      immediate: true,
+      handler(newVal) {
+        if (typeof document === 'undefined') return
+        if (newVal) {
+          document.body.style.overflow = 'hidden'
+          document.addEventListener('keydown', this.onKeydown)
+        } else {
+          document.body.style.overflow = ''
+          document.removeEventListener('keydown', this.onKeydown)
+        }
       }
     }
   },
   beforeUnmount() {
     document.body.style.overflow = ''
+    document.removeEventListener('keydown', this.onKeydown)
   }
 }
 </script>
