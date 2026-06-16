@@ -10,8 +10,6 @@ import QuizTake from '@/views/QuizTake.vue'
 import Forum from '@/views/Forum.vue'
 import ForumTopic from '@/views/ForumTopic.vue'
 
-// Import Lessons
-import StudentLessonView from '@/views/lessons/StudentLessonView.vue'
 
 // Import des dashboards par rôle
 import AdminDashboard from '@/views/dashboards/AdminDashboard.vue'
@@ -423,10 +421,13 @@ const routes = [
     meta: { requiresAuth: true }
   },
   // Leçons - Étudiants
+  // #26 : vue leçon unifiée. /lessons/:id et /student/lessons/:id pointent vers
+  // la même vue canonique (src/views/student/StudentLessonView.vue) ; l'ancien
+  // doublon src/views/lessons/StudentLessonView.vue a été supprimé.
   {
     path: '/lessons/:id',
     name: 'LessonView',
-    component: StudentLessonView,
+    component: () => import('@/views/student/StudentLessonView.vue'),
     meta: {
       requiresAuth: true,
       roles: ['etudiant', 'enseignant', 'teacher', 'coordinateur', 'superAdmin']

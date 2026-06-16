@@ -397,7 +397,14 @@ export default {
         await Promise.all(quizPromises)
       } catch (err) {
         console.error('[StudentLesson] Load error:', err)
-        this.error = 'Impossible de charger le cours. Veuillez réessayer.'
+        // #26 : messages spécifiques portés depuis l'ex-vue /lessons/:id.
+        if (err.response?.status === 403) {
+          this.error = "Cette leçon n'est pas encore disponible"
+        } else if (err.response?.status === 404) {
+          this.error = 'Leçon introuvable'
+        } else {
+          this.error = 'Impossible de charger le cours. Veuillez réessayer.'
+        }
       } finally {
         this.loading = false
       }
@@ -448,6 +455,12 @@ export default {
         this.completedChapters = new Set(this.completedChapters)
         this.chapterStartTime = Date.now()
 
+        // #26 : synchroniser la progression NIVEAU-LEÇON (table lesson_progress,
+        // lue par la page matière / dashboard). Le backend a deux systèmes
+        // distincts (chapter_progress vs lesson_progress) : l'ex-vue /lessons/:id
+        // alimentait lesson_progress ; on préserve ce comportement ici.
+        await this.syncLessonProgress()
+
         // Auto-advance to next chapter
         if (this.activeChapterIndex < this.chapters.length - 1) {
           setTimeout(() => {
@@ -461,6 +474,26 @@ export default {
         this.completedChapters = new Set(this.completedChapters)
       } finally {
         this.markingComplete = false
+      }
+    },
+
+    /**
+     * #26 : pont vers la progression niveau-leçon (table lesson_progress).
+     * Le backend ne dérive PAS lesson_progress depuis chapter_progress ; cette
+     * vue alimente donc les deux pour que la page matière/dashboard reste à jour.
+     * Non bloquant : la progression chapitre reste la source fine de vérité.
+     */
+    async syncLessonProgress() {
+      try {
+        const percentage = this.overallProgress
+        const durationMinutes = this.lesson?.duration_minutes || 0
+        if (percentage >= 100) {
+          await lessonService.markComplete(this.lessonId)
+        } else {
+          await lessonService.updateProgress(this.lessonId, percentage, durationMinutes)
+        }
+      } catch (e) {
+        console.warn('[StudentLesson] Sync progression leçon échouée:', e?.message)
       }
     },
 
