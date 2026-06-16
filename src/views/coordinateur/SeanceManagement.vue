@@ -284,6 +284,7 @@ import { toast } from '@/services/toast'
 import { normalizeError } from '@/services/errorHandler'
 
 import lmsService from '@/services/lms'
+import { klassciService } from '@/services/klassci'
 import { readCache, writeCache, clearCache } from '@/services/cache'
 import { buildJitsiUrl } from '@/constants/visio'
 
@@ -339,12 +340,10 @@ const formatDate = (date) => {
 const loadClasses = async () => {
   try {
     console.log('[CLASSES] Chargement...')
-    const response = await lmsService.getClasses()
-
-    if (response && response.success) {
-      classes.value = response.data || []
-      console.log(`[OK] ${classes.value.length} classes chargées`)
-    }
+    // #26 : source unique des classes brutes = klassciService (/proxy/classes),
+    // qui renvoie directement le tableau (déballe response.data).
+    classes.value = await klassciService.getClasses()
+    console.log(`[OK] ${classes.value.length} classes chargées`)
   } catch (err) {
     console.error('[ERREUR] Chargement classes:', err)
   }
