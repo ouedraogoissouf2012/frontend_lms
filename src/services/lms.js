@@ -1,8 +1,14 @@
 import api from './api'
 
 /**
- * Service pour les endpoints LMS enrichis (KLASSCI + données locales LMS)
- * Ces endpoints combinent les données KLASSCI avec les données du LMS local
+ * Service LMS — données ENRICHIES (endpoints `/lms/*`).
+ * Ces endpoints combinent les données KLASSCI avec les données locales LMS
+ * (leçons, présences, visio, stats…).
+ *
+ * Frontière d'usage (#26) :
+ *  - lmsService (CE fichier) : données enrichies LMS via `/lms/*`.
+ *  - klassciService (src/services/klassci.js) : proxy BRUT KLASSCI via `/proxy/*`.
+ * Pour une donnée enrichie → lmsService ; pour la donnée KLASSCI brute → klassciService.
  *
  * IMPORTANT: L'intercepteur dans api.js (ligne 31) retourne déjà response.data
  * Donc on ne doit PAS faire .data une deuxième fois ici

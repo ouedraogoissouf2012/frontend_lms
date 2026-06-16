@@ -1,5 +1,14 @@
 /**
- * Service pour interagir avec les données KLASSCI via le proxy LMS
+ * Service KLASSCI — PROXY BRUT vers l'API KLASSCI.
+ *
+ * Frontière d'usage (#26) :
+ *  - klassciService (CE fichier) : passe-plat vers les endpoints `/proxy/*`,
+ *    données KLASSCI brutes (classes, matières, structure académique).
+ *  - lmsService (src/services/lms.js) : données ENRICHIES LMS via `/lms/*`
+ *    (combinent KLASSCI + données locales LMS : leçons, stats, présences…).
+ *
+ * Règle : pour une donnée enrichie LMS, utiliser lmsService. N'utiliser
+ * klassciService que pour la donnée KLASSCI brute (ex. liste des classes).
  */
 import api from './api'
 
@@ -91,35 +100,10 @@ export const klassciService = {
     }
   },
 
-  /**
-   * Récupérer les détails d'une matière spécifique
-   * @param {number} matiereId - ID de la matière
-   * @returns {Promise<Object>} Détails de la matière
-   */
-  async getMatiereDetails(matiereId) {
-    try {
-      const response = await api.get(`/proxy/matieres/${matiereId}`)
-      return response.success ? response.data : null
-    } catch (error) {
-      console.error(`Erreur récupération matière ${matiereId}:`, error)
-      throw error
-    }
-  },
-
-  /**
-   * Récupérer les détails d'une matière depuis le LMS (avec leçons, stats, etc.)
-   * @param {number} matiereId - ID de la matière
-   * @returns {Promise<Object>} Détails de la matière avec données LMS
-   */
-  async getLmsMatiereDetails(matiereId) {
-    try {
-      const response = await api.get(`/lms/matieres/${matiereId}`)
-      return response // Retourne l'objet complet avec success, data, etc.
-    } catch (error) {
-      console.error(`Erreur récupération matière LMS ${matiereId}:`, error)
-      throw error
-    }
-  },
+  // NOTE (#26) : getMatiereDetails (/proxy/matieres/:id, brut) et
+  // getLmsMatiereDetails (/lms/matieres/:id, enrichi) ont été supprimées —
+  // doublons orphelins. La source unique des détails matière est
+  // lmsService.getMatiereDetails (src/services/lms.js → /lms/matieres/:id).
 
   /**
    * Récupérer la liste des enseignants depuis le LMS (avec classes, matières, stats, etc.)
