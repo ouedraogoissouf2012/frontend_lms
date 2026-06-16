@@ -5,12 +5,12 @@
 
 import { ref, onMounted, watch } from 'vue'
 import { auth } from '@/services/api'
+import { themeKey } from '@/constants/storageKeys'
 
 const DEFAULT_THEME = 'light'
 
 function getThemeKey() {
-  const institution = auth.getInstitution() || 'default'
-  return `lms-theme-preference-${institution}`
+  return themeKey(auth.getInstitution())
 }
 
 // Shared state across all instances

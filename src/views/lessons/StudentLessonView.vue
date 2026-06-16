@@ -318,6 +318,7 @@ import lessonService from '@/services/lesson'
 import knowledgeCheckService from '@/services/knowledgeCheck'
 import chapterProgressService from '@/services/chapterProgress'
 import api from '@/services/api'
+import { apiOrigin } from '@/constants/http'
 
 const route = useRoute()
 const router = useRouter()
@@ -383,7 +384,7 @@ const getImageUrl = (imagePath) => {
     return imagePath
   }
   // Sinon, construire l'URL avec le backend
-  const backendUrl = import.meta.env.VITE_API_URL.replace('/api', '')
+  const backendUrl = apiOrigin()
   return `${backendUrl}/storage/${imagePath}`
 }
 
@@ -393,7 +394,7 @@ const getVideoUrl = (chapter) => {
 
   // Si c'est un chemin relatif (vidéo uploadée), construire l'URL complète
   if (url.startsWith('/storage/') || (url && !url.startsWith('http'))) {
-    const backendUrl = import.meta.env.VITE_API_URL.replace('/api', '')
+    const backendUrl = apiOrigin()
     return `${backendUrl}${url}`
   }
 

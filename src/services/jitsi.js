@@ -1,5 +1,7 @@
 import api from './api'
 import { auth } from './api'
+import { getJitsiDomain, VISIO_CONFIG } from '../constants/visio'
+import { VISIO_PARTICIPATION_PREFIX, visioParticipationKey } from '../constants/storageKeys'
 
 /**
  * Service pour la gestion des visioconférences Jitsi Meet
@@ -11,8 +13,7 @@ import { auth } from './api'
  * - Synchronisation des présences vers KLASSCI
  */
 
-// Configuration Jitsi
-const JITSI_DOMAIN = 'meet.jit.si' // Utilise le serveur public Jitsi
+// Domaine Jitsi : centralisé dans src/constants/visio.js (configurable VITE_JITSI_DOMAIN, #24)
 // Alternative: Déployer votre propre serveur Jitsi et utiliser votre domaine
 
 export const jitsiService = {
@@ -44,7 +45,7 @@ export const jitsiService = {
       'interfaceConfig.DEFAULT_WELCOME_PAGE_LOGO_URL': ''
     })
 
-    const jitsiUrl = `https://${JITSI_DOMAIN}/${roomName}#${params.toString()}`
+    const jitsiUrl = `https://${getJitsiDomain()}/${roomName}#${params.toString()}`
 
     console.log('[JitsiService] Lien généré:', jitsiUrl)
     console.log('[JitsiService] Room ID:', roomId)
@@ -123,7 +124,7 @@ export const jitsiService = {
     const joinTime = new Date().toISOString()
 
     // Stocker localement pour tracking
-    const participationKey = `visio_participation_${seanceId}_${userId}`
+    const participationKey = visioParticipationKey(seanceId, userId)
     const participation = {
       seance_id: seanceId,
       user_id: userId,
@@ -165,7 +166,7 @@ export const jitsiService = {
     const leaveTime = new Date().toISOString()
 
     // Récupérer la participation du localStorage
-    const participationKey = `visio_participation_${seanceId}_${userId}`
+    const participationKey = visioParticipationKey(seanceId, userId)
     const storedData = localStorage.getItem(participationKey)
 
     if (!storedData) {
@@ -266,7 +267,7 @@ export const jitsiService = {
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i)
 
-      if (key && key.startsWith('visio_participation_')) {
+      if (key && key.startsWith(VISIO_PARTICIPATION_PREFIX)) {
         const data = localStorage.getItem(key)
         const participation = JSON.parse(data)
 
@@ -305,7 +306,7 @@ export const jitsiService = {
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i)
 
-      if (key && key.startsWith('visio_participation_')) {
+      if (key && key.startsWith(VISIO_PARTICIPATION_PREFIX)) {
         const data = localStorage.getItem(key)
         const participation = JSON.parse(data)
 
@@ -322,13 +323,13 @@ export const jitsiService = {
    * Nettoyer les participations expirées (> 7 jours)
    */
   cleanupExpiredParticipations() {
-    const expirationMs = 7 * 24 * 60 * 60 * 1000 // 7 jours
+    const expirationMs = VISIO_CONFIG.PARTICIPATION_EXPIRATION_MS
     const now = Date.now()
 
     for (let i = localStorage.length - 1; i >= 0; i--) {
       const key = localStorage.key(i)
 
-      if (key && key.startsWith('visio_participation_')) {
+      if (key && key.startsWith(VISIO_PARTICIPATION_PREFIX)) {
         const data = localStorage.getItem(key)
         const participation = JSON.parse(data)
 

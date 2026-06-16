@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import lmsService from '@/services/lms'
 import { useAuthStore } from '@/stores/auth'
+import { VISIO_CONFIG } from '@/constants/visio'
 
 /**
  * Store Pinia global pour gérer la participation aux visioconférences
@@ -63,7 +64,7 @@ export const useVisioStore = defineStore('visio', () => {
       })
 
       // Démarrer le Worker (30 secondes)
-      heartbeatWorker.value.postMessage({ command: 'start', interval: 30000 })
+      heartbeatWorker.value.postMessage({ command: 'start', interval: VISIO_CONFIG.HEARTBEAT_INTERVAL_MS })
 
       // Premier heartbeat immédiat
       sendHeartbeat()
@@ -89,7 +90,7 @@ export const useVisioStore = defineStore('visio', () => {
     sendHeartbeat()
     fallbackInterval = setInterval(() => {
       sendHeartbeat()
-    }, 30000)
+    }, VISIO_CONFIG.HEARTBEAT_INTERVAL_MS)
   }
 
   /**

@@ -1,6 +1,8 @@
 import { ref, onBeforeUnmount } from 'vue'
 import lmsService from '@/services/lms'
 import { useAuthStore } from '@/stores/auth'
+import { VISIO_CONFIG } from '@/constants/visio'
+import { apiOrigin } from '@/constants/http'
 
 /**
  * Composable pour gérer la participation à une visioconférence
@@ -53,7 +55,7 @@ export function useVisioParticipation(seanceId) {
       })
 
       // Démarrer le Worker (30 secondes)
-      heartbeatWorker.value.postMessage({ command: 'start', interval: 30000 })
+      heartbeatWorker.value.postMessage({ command: 'start', interval: VISIO_CONFIG.HEARTBEAT_INTERVAL_MS })
 
       // Premier heartbeat immédiat
       sendHeartbeat()
@@ -79,7 +81,7 @@ export function useVisioParticipation(seanceId) {
     sendHeartbeat()
     fallbackInterval = setInterval(() => {
       sendHeartbeat()
-    }, 30000)
+    }, VISIO_CONFIG.HEARTBEAT_INTERVAL_MS)
   }
 
   /**
@@ -220,7 +222,7 @@ export function useVisioParticipation(seanceId) {
    */
   const sendLeaveVisioBeacon = async () => {
     try {
-      const apiUrl = `${import.meta.env.VITE_API_URL}/api/seances/${seanceId}/leave-visio`
+      const apiUrl = `${apiOrigin()}/api/seances/${seanceId}/leave-visio`
       const token = useAuthStore().token
 
       if (!token) {

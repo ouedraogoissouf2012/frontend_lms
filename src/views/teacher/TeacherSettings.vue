@@ -177,6 +177,7 @@ import ThemeToggle from '@/components/ui/ThemeToggle.vue'
 import Modal from '@/components/ui/Modal.vue'
 import { auth } from '@/services/api'
 import { toast } from '@/services/toast'
+import { STORAGE_KEYS } from '@/constants/storageKeys'
 import {
   UserIcon,
   AdjustmentsHorizontalIcon,
@@ -230,13 +231,13 @@ export default {
         emailNotifications: this.emailNotifications,
         seanceReminders: this.seanceReminders
       }
-      localStorage.setItem('teacherPreferences', JSON.stringify(preferences))
+      localStorage.setItem(STORAGE_KEYS.TEACHER_PREFERENCES, JSON.stringify(preferences))
       console.log('[SETTINGS] Préférences sauvegardées:', preferences)
       toast.success('Vos préférences ont été sauvegardées')
     },
 
     loadPreferences() {
-      const saved = localStorage.getItem('teacherPreferences')
+      const saved = localStorage.getItem(STORAGE_KEYS.TEACHER_PREFERENCES)
       if (saved) {
         const preferences = JSON.parse(saved)
         this.emailNotifications = preferences.emailNotifications ?? true

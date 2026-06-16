@@ -5,9 +5,14 @@ import router from './router'
 import './style.css'
 import './assets/styles/themes.css'
 import './assets/styles/mobile-responsive.css'
+import { themeKey } from '@/constants/storageKeys'
 
-// Initialiser le thème AVANT de monter l'application
-const THEME_KEY = 'lms-theme-preference'
+// Initialiser le thème AVANT de monter l'application.
+// Avant le montage, Pinia n'est pas hydraté : on lit le slug d'institution
+// directement depuis sessionStorage (même source que le store auth) pour
+// résoudre la clé thème SCOPÉE, alignée sur useTheme.js (#24, corrige l'ancienne
+// clé non scopée). Pas d'import du store auth (évite tout cycle).
+const THEME_KEY = themeKey(sessionStorage.getItem('institution'))
 const DEFAULT_THEME = 'light'
 
 // Récupérer le thème sauvegardé

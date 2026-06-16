@@ -144,6 +144,8 @@ import { normalizeError } from '@/services/errorHandler'
 import jitsiService from '@/services/jitsi'
 import ParticipantsModal from './ParticipantsModal.vue'
 import { useVisioStore } from '@/stores/visio'
+import { buildJitsiUrl, VISIO_CONFIG } from '@/constants/visio'
+import { apiBaseUrl } from '@/constants/http'
 
 export default {
   name: 'VisioManager',
@@ -240,7 +242,7 @@ export default {
     // Rafraîchir l'heure actuelle toutes les 30 secondes
     this.timeCheckInterval = setInterval(() => {
       this.currentTime = new Date()
-    }, 30000)
+    }, VISIO_CONFIG.HEARTBEAT_INTERVAL_MS)
 
     // NOTE: loadParticipantCount() désactivé car cause erreur 500
     // On utilise expectedParticipants (effectif classe) à la place
@@ -334,7 +336,7 @@ export default {
 
         // 2. Récupérer le lien Jitsi
         const roomId = result.data.visio_room_id || this.seance.visio?.room_id
-        const jitsiLink = `https://meet.jit.si/${roomId}`
+        const jitsiLink = buildJitsiUrl(roomId)
 
         // 3. Utiliser le store pour ouvrir et tracker
         await this.visioStore.joinVisio(this.seance.id, jitsiLink)
@@ -397,7 +399,7 @@ export default {
       try {
         console.log('[VisioManager] Téléchargement liste de présence PDF...')
 
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+        const API_URL = apiBaseUrl()
         const token = useAuthStore().token
 
         // Créer l'URL de téléchargement
@@ -459,7 +461,7 @@ export default {
         }
 
         // Utiliser le store pour ouvrir et tracker
-        const jitsiLink = `https://meet.jit.si/${roomId}`
+        const jitsiLink = buildJitsiUrl(roomId)
         await this.visioStore.joinVisio(this.seance.id, jitsiLink)
 
         console.log('✅ Étudiant a rejoint avec window.open + tracking')
