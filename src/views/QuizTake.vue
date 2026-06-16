@@ -114,6 +114,7 @@
 <script>
 import Navbar from '@/components/Navbar.vue'
 import { quizzes } from '@/services/api'
+import { formatElapsed } from '@/utils/formatters'
 
 export default {
   name: 'QuizTake',
@@ -176,9 +177,8 @@ export default {
     },
 
     formatTime(seconds) {
-      const mins = Math.floor(seconds / 60)
-      const secs = seconds % 60
-      return `${mins}:${secs.toString().padStart(2, '0')}`
+      // Durée écoulée mm:ss — délègue au formatter centralisé (#23)
+      return formatElapsed(seconds)
     },
 
     async saveProgress() {
