@@ -1,5 +1,5 @@
 <template>
-  <Modal v-model="isOpen" title="Générer un Rapport PDF" size="medium">
+  <Modal v-model="isOpen" title="Générer un Rapport PDF" size="md">
     <form @submit.prevent="handleGenerate" class="report-form">
       <!-- Type de rapport -->
       <div class="form-group">
@@ -69,23 +69,12 @@
     </form>
 
     <template #footer>
-      <button
-        type="button"
-        class="btn-cancel"
-        @click="handleCancel"
-        :disabled="loading"
-      >
+      <BaseButton variant="secondary" :disabled="loading" @click="handleCancel">
         Annuler
-      </button>
-      <button
-        type="submit"
-        class="btn-primary"
-        @click="handleGenerate"
-        :disabled="loading || !form.type"
-      >
-        <span v-if="loading">Génération en cours...</span>
-        <span v-else>Générer PDF</span>
-      </button>
+      </BaseButton>
+      <BaseButton variant="primary" :loading="loading" :disabled="!form.type" @click="handleGenerate">
+        Générer PDF
+      </BaseButton>
     </template>
   </Modal>
 </template>
@@ -93,6 +82,7 @@
 <script setup>
 import { ref, watch, onMounted, computed } from 'vue'
 import Modal from '@/components/ui/Modal.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
 import { klassciService } from '@/services/klassci'
 import api from '@/services/api'
 import { toast } from '@/services/toast'
@@ -288,41 +278,5 @@ onMounted(() => {
   margin: 0;
   font-size: 0.875rem;
   color: #1e40af;
-}
-
-.btn-cancel,
-.btn-primary {
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-  font-size: 0.875rem;
-}
-
-.btn-cancel {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-}
-
-.btn-cancel:hover:not(:disabled) {
-  background: var(--bg-tertiary);
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  transform: scale(1.02);
-}
-
-.btn-cancel:disabled,
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 </style>
