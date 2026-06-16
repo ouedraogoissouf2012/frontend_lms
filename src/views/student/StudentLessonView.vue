@@ -282,6 +282,7 @@ import lessonService from '@/services/lesson'
 import chapterProgressService from '@/services/chapterProgress'
 import api from '@/services/api'
 import KnowledgeCheckPlayer from '@/components/lessons/KnowledgeCheckPlayer.vue'
+import { apiOrigin } from '@/constants/http'
 
 export default {
   name: 'StudentLessonView',
@@ -492,7 +493,7 @@ export default {
       if (!slide) return ''
       if (slide.startsWith('http')) return slide
       // Relative path — prepend API base URL
-      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+      const baseUrl = apiOrigin()
       return `${baseUrl}/storage/${slide}`
     },
 
@@ -500,7 +501,7 @@ export default {
       const path = chapter.pdf_url || chapter.file_converted_path
       if (!path) return ''
       if (path.startsWith('http')) return path
-      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+      const baseUrl = apiOrigin()
       return `${baseUrl}/storage/${path}`
     },
 

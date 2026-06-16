@@ -285,6 +285,7 @@ import { normalizeError } from '@/services/errorHandler'
 
 import lmsService from '@/services/lms'
 import { readCache, writeCache, clearCache } from '@/services/cache'
+import { buildJitsiUrl } from '@/constants/visio'
 
 const router = useRouter()
 
@@ -490,7 +491,7 @@ const handleJoinVisio = async (seance) => {
 
     // Ouvrir window.open avec tracking
     const roomId = seance.visio_room_id
-    const jitsiLink = `https://meet.jit.si/${roomId}`
+    const jitsiLink = buildJitsiUrl(roomId)
 
     await visioParticipations[seance.id].joinVisio(jitsiLink)
 
@@ -529,8 +530,10 @@ async function handleCalendarAction({ type, data }) {
       // Coordinateur rejoint la visio
       {
         const roomId = data.visio?.room_id || data.visio_room_id || `seance_${data.id}`
-        const userName = encodeURIComponent(currentUser?.name || 'Coordinateur')
-        const jitsiLink = `https://meet.jit.si/${roomId}#config.prejoinConfig.enabled=false&userInfo.displayName=${userName}`
+        const jitsiLink = buildJitsiUrl(roomId, {
+          displayName: currentUser?.name || 'Coordinateur',
+          prejoinDisabled: true,
+        })
         window.open(jitsiLink, '_blank')
       }
       break

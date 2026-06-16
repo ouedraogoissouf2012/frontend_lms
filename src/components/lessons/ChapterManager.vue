@@ -102,7 +102,7 @@
                 <span v-if="!chapter.selectedFile"><i class="fa fa-cloud-upload"></i> Ajouter un media</span>
                 <span v-else class="file-selected-name">{{ chapter.selectedFile.name }}</span>
               </label>
-              <p class="file-help-text">Taille max: 30 MB</p>
+              <p class="file-help-text">Taille max: {{ maxFileSizeLabel }}</p>
             </div>
 
             <!-- Quiz Editor Inline -->
@@ -263,6 +263,7 @@ import ContentLoader from '@/components/common/ContentLoader.vue'
 import KnowledgeCheckEditor from '@/components/lessons/KnowledgeCheckEditor.vue'
 import KnowledgeCheckPlayer from '@/components/lessons/KnowledgeCheckPlayer.vue'
 import knowledgeCheckService from '@/services/knowledgeCheck'
+import { UPLOAD_CONFIG, ACCEPTED_FILE_TYPES } from '@/constants/upload'
 
 export default {
   name: 'ChapterManager',
@@ -304,6 +305,13 @@ export default {
 
   mounted() {
     this.loadChapters()
+  },
+
+  computed: {
+    // Libellé de taille max d'upload (source unique #24)
+    maxFileSizeLabel() {
+      return UPLOAD_CONFIG.MAX_FILE_SIZE_LABEL
+    }
   },
 
   watch: {
@@ -469,8 +477,8 @@ export default {
     handleFileSelect(event, chapter) {
       const file = event.target.files[0]
       if (file) {
-        if (file.size > 30 * 1024 * 1024) {
-          alert('Fichier trop volumineux! Max: 30 MB')
+        if (file.size > UPLOAD_CONFIG.MAX_FILE_SIZE_BYTES) {
+          alert(`Fichier trop volumineux! Max: ${UPLOAD_CONFIG.MAX_FILE_SIZE_LABEL}`)
           event.target.value = ''
           return
         }
@@ -479,12 +487,7 @@ export default {
     },
 
     getAcceptedFileTypes(contentType) {
-      const types = {
-        powerpoint: '.pptx,.ppt',
-        word: '.docx,.doc',
-        pdf: '.pdf'
-      }
-      return types[contentType] || '*'
+      return ACCEPTED_FILE_TYPES[contentType] || '*'
     },
 
     getContentTypeLabel(type) {

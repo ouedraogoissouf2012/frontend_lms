@@ -99,6 +99,7 @@ import { auth } from '@/services/api'
 import {
   ROLES, hasRole, isSupradmin, isAdminScope, isTeacher, isStudent, getRoleDisplayName,
 } from '@/constants/roles'
+import { sidebarKey } from '@/constants/storageKeys'
 
 export default {
   name: 'ModernSidebar',
@@ -393,7 +394,7 @@ export default {
     }
 
     // Restore collapsed state from localStorage (scopé par institution)
-    const getSidebarKey = () => `sidebar-collapsed-${auth.getInstitution() || 'default'}`
+    const getSidebarKey = () => sidebarKey(auth.getInstitution())
 
     onMounted(() => {
       const savedState = localStorage.getItem(getSidebarKey())

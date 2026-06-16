@@ -30,6 +30,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import UniversalCalendar from '@/components/calendar/UniversalCalendar.vue'
 import { lmsService } from '@/services/lms'
 import { useAuthStore } from '@/stores/auth'
+import { buildJitsiUrl } from '@/constants/visio'
 
 const router = useRouter()
 const calendarRef = ref(null)
@@ -45,8 +46,10 @@ async function handleEventAction({ type, data }) {
       // Enseignant rejoint la visio active - ouvrir Jitsi directement
       {
         const roomId = data.visio?.room_id || data.visio_room_id || `seance_${data.id}`
-        const userName = encodeURIComponent(currentUser.value?.name || 'Enseignant')
-        const jitsiLink = `https://meet.jit.si/${roomId}#config.prejoinConfig.enabled=false&userInfo.displayName=${userName}`
+        const jitsiLink = buildJitsiUrl(roomId, {
+          displayName: currentUser.value?.name || 'Enseignant',
+          prejoinDisabled: true,
+        })
         window.open(jitsiLink, '_blank')
       }
       break
@@ -59,8 +62,10 @@ async function handleEventAction({ type, data }) {
           console.log('[TeacherSchedule] Visio demarree:', data.id)
           // Ouvrir Jitsi
           const roomId = result.data?.visio_room_id || data.visio?.room_id || `seance_${data.id}`
-          const userName = encodeURIComponent(currentUser.value?.name || 'Enseignant')
-          const jitsiLink = `https://meet.jit.si/${roomId}#config.prejoinConfig.enabled=false&userInfo.displayName=${userName}`
+          const jitsiLink = buildJitsiUrl(roomId, {
+            displayName: currentUser.value?.name || 'Enseignant',
+            prejoinDisabled: true,
+          })
           window.open(jitsiLink, '_blank')
           // Rafraichir le calendrier
           if (calendarRef.value?.refreshEvents) {

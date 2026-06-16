@@ -27,6 +27,7 @@
 <script>
 import { auth } from '@/services/api'
 import ContentLoader from '@/components/common/ContentLoader.vue'
+import { jitsiExternalApiSrc, getJitsiDomain } from '@/constants/visio'
 
 export default {
   name: 'VideoConference',
@@ -70,7 +71,7 @@ export default {
 
       // Charger le script Jitsi
       const script = document.createElement('script')
-      script.src = 'https://meet.jit.si/external_api.js'
+      script.src = jitsiExternalApiSrc()
       script.async = true
       script.onload = () => {
         console.log('fa-check-circle Script Jitsi chargé')
@@ -85,7 +86,7 @@ export default {
     },
 
     initJitsi() {
-      const domain = 'meet.jit.si'
+      const domain = getJitsiDomain()
       const options = {
         roomName: this.roomName,
         width: '100%',

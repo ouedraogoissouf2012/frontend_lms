@@ -345,6 +345,7 @@ import { useAuthStore } from '@/stores/auth'
 import { toast } from '@/services/toast'
 import { normalizeError } from '@/services/errorHandler'
 import { readCache, writeCache, clearCache } from '@/services/cache'
+import { buildJitsiUrl } from '@/constants/visio'
 
 const seances = ref([])
 const matieres = ref([])
@@ -591,7 +592,7 @@ async function handleJoinVisio(seance) {
 
     // Ouvrir window.open avec tracking
     const roomId = seance.visio.room_id
-    const jitsiLink = `https://meet.jit.si/${roomId}`
+    const jitsiLink = buildJitsiUrl(roomId)
 
     await visioParticipations[seance.id].joinVisio(jitsiLink)
 

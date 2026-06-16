@@ -280,6 +280,7 @@ import lmsService from '@/services/lms'
 import { useAuthStore } from '@/stores/auth'
 import { toast } from '@/services/toast'
 import { normalizeError } from '@/services/errorHandler'
+import { apiBaseUrl } from '@/constants/http'
 
 export default {
   name: 'ParticipantsModal',
@@ -428,7 +429,7 @@ export default {
       try {
         console.log('[ParticipantsModal] Export PDF de la séance', this.seanceId)
 
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+        const API_URL = apiBaseUrl()
         const token = useAuthStore().token
 
         // Créer l'URL de téléchargement
@@ -477,7 +478,7 @@ export default {
       try {
         console.log('[ParticipantsModal] Export Excel de la séance', this.seanceId)
 
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+        const API_URL = apiBaseUrl()
         const token = useAuthStore().token
 
         // Créer l'URL de téléchargement

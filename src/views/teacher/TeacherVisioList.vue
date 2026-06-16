@@ -116,7 +116,7 @@
               <div class="card-actions">
                 <a
                   v-if="seance.visio?.room_id"
-                  :href="`https://meet.jit.si/${seance.visio.room_id}`"
+                  :href="buildJitsiUrl(seance.visio.room_id)"
                   target="_blank"
                   class="btn-action btn-join"
                 >
@@ -236,6 +236,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import { lmsService } from '@/services/lms'
 import { readCache, writeCache, clearCache } from '@/services/cache'
+import { buildJitsiUrl } from '@/constants/visio'
 import {
   VideoCameraIcon,
   CalendarIcon,

@@ -23,6 +23,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import lmsService from '@/services/lms'
+import { jitsiExternalApiSrc, getJitsiDomain, VISIO_CONFIG } from '@/constants/visio'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 
 const props = defineProps({
@@ -79,7 +80,7 @@ const loadJitsiScript = () => {
     }
 
     const script = document.createElement('script')
-    script.src = 'https://meet.jit.si/external_api.js'
+    script.src = jitsiExternalApiSrc()
     script.async = true
     script.onload = resolve
     script.onerror = reject
@@ -107,7 +108,7 @@ const initJitsi = async () => {
     console.log(`[JitsiMeet] Initialisation room: ${roomName}`)
 
     // 3. Configuration Jitsi
-    const domain = 'meet.jit.si'
+    const domain = getJitsiDomain()
     const options = {
       roomName: roomName,
       width: '100%',
@@ -250,7 +251,7 @@ const startHeartbeat = () => {
         hasJoined.value = false
       }
     }
-  }, 30000) // 30 secondes
+  }, VISIO_CONFIG.HEARTBEAT_INTERVAL_MS)
 
   console.log('[JitsiMeet] 💓 Heartbeat démarré (ping toutes les 30s)')
 }
