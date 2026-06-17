@@ -2,56 +2,15 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { auth } from '@/services/api'
 import { canActivate, getDashboardRoute, logRoleDecision } from '@/constants/roles'
 
-// Import des pages
-import Login from '@/views/Login.vue'
-import Dashboard from '@/views/Dashboard.vue'
-import Quizzes from '@/views/Quizzes.vue'
-import QuizTake from '@/views/QuizTake.vue'
-import Forum from '@/views/Forum.vue'
-import ForumTopic from '@/views/ForumTopic.vue'
-
-
-// Import des dashboards par rôle
-import AdminDashboard from '@/views/dashboards/AdminDashboard.vue'
-import TeacherDashboard from '@/views/dashboards/TeacherDashboard.vue'
-import StudentDashboard from '@/views/dashboards/StudentDashboard.vue'
-
-// Import Visioconférence
-import VideoConference from '@/views/VideoConference.vue'
-
-// Import Évaluations
-import TeacherEvaluations from '@/views/evaluations/TeacherEvaluations.vue'
-import CreateQuestions from '@/views/evaluations/CreateQuestions.vue'
-import TakeEvaluation from '@/views/evaluations/TakeEvaluation.vue'
-import PreviewEvaluation from '@/views/evaluations/PreviewEvaluation.vue'
-import EvaluationResults from '@/views/evaluations/EvaluationResults.vue'
-
-// Import Matières, Classes, Séances et Coordinateur
-import MatiereDetails from '@/views/matieres/MatiereDetails.vue'
-import ClasseDetails from '@/views/classes/ClasseDetails.vue'
-import SeanceDetails from '@/views/seances/SeanceDetails.vue'
-import SeanceManagement from '@/views/coordinateur/SeanceManagement.vue'
-import CoordinatorEvaluations from '@/views/coordinateur/CoordinatorEvaluations.vue'
-import TeacherSeances from '@/views/TeacherSeances.vue'
-
-// Import Historique des présences
-import SeanceAttendanceHistory from '@/views/attendance/SeanceAttendanceHistory.vue'
-
-// Import des nouvelles vues Enseignant et Admin
-import TeacherHub from '@/views/teacher/TeacherHub.vue'
-import TeacherClasses from '@/views/teacher/TeacherClasses.vue'
-import TeacherStats from '@/views/teacher/TeacherStats.vue'
-import EvaluationCorrections from '@/views/teacher/EvaluationCorrections.vue'
-import AdminUsers from '@/views/admin/AdminUsers.vue'
-import AdminClasses from '@/views/admin/AdminClasses.vue'
-import AdminMatieres from '@/views/admin/AdminMatieres.vue'
-import AdminHub from '@/views/admin/AdminHub.vue'
+// #27 : toutes les routes sont en lazy loading (() => import()) pour un code
+// splitting systématique (un chunk par route). Voir la convention dans
+// CONTRIBUTING.md (« <script setup> + lazy routes »).
 
 const routes = [
   {
     path: '/login',
     name: 'Login',
-    component: Login,
+    component: () => import('@/views/Login.vue'),
     meta: { guest: true }
   },
   // Redirection / vers dashboard approprié
@@ -69,7 +28,7 @@ const routes = [
   {
     path: '/admin/dashboard',
     name: 'AdminDashboard',
-    component: AdminDashboard,
+    component: () => import('@/views/dashboards/AdminDashboard.vue'),
     meta: {
       requiresAuth: true,
       roles: ['superAdmin', 'coordinateur', 'secretaire']
@@ -79,7 +38,7 @@ const routes = [
   {
     path: '/admin/users',
     name: 'AdminUsers',
-    component: AdminUsers,
+    component: () => import('@/views/admin/AdminUsers.vue'),
     meta: {
       requiresAuth: true,
       roles: ['superAdmin', 'coordinateur']
@@ -89,7 +48,7 @@ const routes = [
   {
     path: '/admin/hub',
     name: 'AdminHub',
-    component: AdminHub,
+    component: () => import('@/views/admin/AdminHub.vue'),
     meta: {
       requiresAuth: true,
       roles: ['superAdmin', 'coordinateur', 'secretaire']
@@ -99,7 +58,7 @@ const routes = [
   {
     path: '/admin/classes',
     name: 'AdminClasses',
-    component: AdminClasses,
+    component: () => import('@/views/admin/AdminClasses.vue'),
     meta: {
       requiresAuth: true,
       roles: ['superAdmin', 'coordinateur']
@@ -109,7 +68,7 @@ const routes = [
   {
     path: '/admin/matieres',
     name: 'AdminMatieres',
-    component: AdminMatieres,
+    component: () => import('@/views/admin/AdminMatieres.vue'),
     meta: {
       requiresAuth: true,
       roles: ['superAdmin', 'coordinateur']
@@ -216,7 +175,7 @@ const routes = [
   {
     path: '/teacher/dashboard',
     name: 'TeacherDashboard',
-    component: TeacherDashboard,
+    component: () => import('@/views/dashboards/TeacherDashboard.vue'),
     meta: {
       requiresAuth: true,
       roles: ['enseignant', 'teacher']
@@ -226,7 +185,7 @@ const routes = [
   {
     path: '/teacher/seances',
     name: 'TeacherSeances',
-    component: TeacherSeances,
+    component: () => import('@/views/TeacherSeances.vue'),
     meta: {
       requiresAuth: true,
       roles: ['enseignant', 'teacher']
@@ -247,7 +206,7 @@ const routes = [
   {
     path: '/teacher/hub',
     name: 'TeacherHub',
-    component: TeacherHub,
+    component: () => import('@/views/teacher/TeacherHub.vue'),
     meta: {
       requiresAuth: true,
       roles: ['enseignant', 'teacher'],
@@ -258,7 +217,7 @@ const routes = [
   {
     path: '/teacher/classes',
     name: 'TeacherClasses',
-    component: TeacherClasses,
+    component: () => import('@/views/teacher/TeacherClasses.vue'),
     meta: {
       requiresAuth: true,
       roles: ['enseignant', 'teacher']
@@ -268,7 +227,7 @@ const routes = [
   {
     path: '/teacher/stats',
     name: 'TeacherStats',
-    component: TeacherStats,
+    component: () => import('@/views/teacher/TeacherStats.vue'),
     meta: {
       requiresAuth: true,
       roles: ['enseignant', 'teacher']
@@ -311,7 +270,7 @@ const routes = [
   {
     path: '/teacher/evaluations/:id/corrections',
     name: 'EvaluationCorrections',
-    component: EvaluationCorrections,
+    component: () => import('@/views/teacher/EvaluationCorrections.vue'),
     meta: {
       requiresAuth: true,
       roles: ['enseignant', 'teacher']
@@ -325,7 +284,7 @@ const routes = [
   {
     path: '/student/dashboard',
     name: 'StudentDashboard',
-    component: StudentDashboard,
+    component: () => import('@/views/dashboards/StudentDashboard.vue'),
     meta: {
       requiresAuth: true,
       roles: ['etudiant'],
@@ -417,7 +376,7 @@ const routes = [
   {
     path: '/dashboard',
     name: 'Dashboard',
-    component: Dashboard,
+    component: () => import('@/views/Dashboard.vue'),
     meta: { requiresAuth: true }
   },
   // Leçons - Étudiants
@@ -484,39 +443,39 @@ const routes = [
   {
     path: '/quizzes',
     name: 'Quizzes',
-    component: Quizzes,
+    component: () => import('@/views/Quizzes.vue'),
     meta: { requiresAuth: true }
   },
   {
     path: '/quizzes/:id/take',
     name: 'QuizTake',
-    component: QuizTake,
+    component: () => import('@/views/QuizTake.vue'),
     meta: { requiresAuth: true }
   },
   {
     path: '/forum',
     name: 'Forum',
-    component: Forum,
+    component: () => import('@/views/Forum.vue'),
     meta: { requiresAuth: true }
   },
   {
     path: '/forum/topics/:id',
     name: 'ForumTopic',
-    component: ForumTopic,
+    component: () => import('@/views/ForumTopic.vue'),
     meta: { requiresAuth: true }
   },
   // Visioconférence
   {
     path: '/video-conference/:roomName',
     name: 'VideoConference',
-    component: VideoConference,
+    component: () => import('@/views/VideoConference.vue'),
     meta: { requiresAuth: true }
   },
   // Évaluations - Enseignant
   {
     path: '/teacher/evaluations',
     name: 'TeacherEvaluations',
-    component: TeacherEvaluations,
+    component: () => import('@/views/evaluations/TeacherEvaluations.vue'),
     meta: {
       requiresAuth: true,
       roles: ['enseignant', 'teacher']
@@ -529,7 +488,7 @@ const routes = [
   {
     path: '/teacher/evaluations/create-questions',
     name: 'CreateQuestions',
-    component: CreateQuestions,
+    component: () => import('@/views/evaluations/CreateQuestions.vue'),
     meta: {
       requiresAuth: true,
       roles: ['enseignant', 'teacher']
@@ -538,7 +497,7 @@ const routes = [
   {
     path: '/teacher/evaluations/:id/edit-questions',
     name: 'EditQuestions',
-    component: CreateQuestions,
+    component: () => import('@/views/evaluations/CreateQuestions.vue'),
     meta: {
       requiresAuth: true,
       roles: ['enseignant', 'teacher']
@@ -552,7 +511,7 @@ const routes = [
   {
     path: '/student/evaluations/:id/take',
     name: 'TakeEvaluation',
-    component: TakeEvaluation,
+    component: () => import('@/views/evaluations/TakeEvaluation.vue'),
     meta: {
       requiresAuth: true,
       roles: ['etudiant']
@@ -561,7 +520,7 @@ const routes = [
   {
     path: '/student/evaluations/:id/results',
     name: 'EvaluationResults',
-    component: EvaluationResults,
+    component: () => import('@/views/evaluations/EvaluationResults.vue'),
     meta: {
       requiresAuth: true,
       roles: ['etudiant']
@@ -570,7 +529,7 @@ const routes = [
   {
     path: '/teacher/evaluations/:id/preview',
     name: 'PreviewEvaluation',
-    component: PreviewEvaluation,
+    component: () => import('@/views/evaluations/PreviewEvaluation.vue'),
     meta: {
       requiresAuth: true,
       roles: ['enseignant']
@@ -580,7 +539,7 @@ const routes = [
   {
     path: '/coordinateur/evaluations/:id/preview',
     name: 'CoordinatorPreviewEvaluation',
-    component: PreviewEvaluation,
+    component: () => import('@/views/evaluations/PreviewEvaluation.vue'),
     meta: {
       requiresAuth: true,
       roles: ['coordinateur', 'superAdmin']
@@ -590,7 +549,7 @@ const routes = [
   {
     path: '/matieres/:id',
     name: 'matiere-details',
-    component: MatiereDetails,
+    component: () => import('@/views/matieres/MatiereDetails.vue'),
     meta: {
       requiresAuth: true,
       title: 'Détails Matière'
@@ -600,7 +559,7 @@ const routes = [
   {
     path: '/classes/:id',
     name: 'classe-details',
-    component: ClasseDetails,
+    component: () => import('@/views/classes/ClasseDetails.vue'),
     meta: { requiresAuth: true }
   },
   // Séances - Détails avec visioconférence
@@ -611,27 +570,27 @@ const routes = [
   {
     path: '/seances/:id',
     name: 'seance-details',
-    component: SeanceDetails,
+    component: () => import('@/views/seances/SeanceDetails.vue'),
     meta: { requiresAuth: true }
   },
   // Historique des séances avec présences
   {
     path: '/attendance/seances',
     name: 'seance-attendance-history',
-    component: SeanceAttendanceHistory,
+    component: () => import('@/views/attendance/SeanceAttendanceHistory.vue'),
     meta: { requiresAuth: true }
   },
   {
     path: '/attendance/seances/:seanceId',
     name: 'seance-attendance-detail',
-    component: SeanceAttendanceHistory,
+    component: () => import('@/views/attendance/SeanceAttendanceHistory.vue'),
     meta: { requiresAuth: true }
   },
   // Coordinateur - Gestion des évaluations
   {
     path: '/coordinateur/evaluations',
     name: 'coordinator-evaluations',
-    component: CoordinatorEvaluations,
+    component: () => import('@/views/coordinateur/CoordinatorEvaluations.vue'),
     meta: {
       requiresAuth: true,
       roles: ['coordinateur', 'superAdmin']
@@ -642,7 +601,7 @@ const routes = [
   {
     path: '/coordinateur/seances',
     name: 'seance-management',
-    component: SeanceManagement,
+    component: () => import('@/views/coordinateur/SeanceManagement.vue'),
     meta: {
       requiresAuth: true,
       roles: ['coordinateur', 'superAdmin']
