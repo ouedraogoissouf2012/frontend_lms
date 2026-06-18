@@ -440,23 +440,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
-import klassciService from '@/services/klassci'
 import evaluationService from '@/services/evaluation'
-import { readCache, writeCache } from '@/services/cache'
-// #28 : logique métier pure extraite (testée dans tests/unit/evaluations.test.js)
-import {
-  mergeWithOnlineVersions,
-  isExpiredWithoutOnline,
-  filterEvaluations,
-  computeEvaluationStats,
-  getStatusLabel,
-  getStatusTooltip,
-  getStatusBadgeClass
-} from '@/utils/evaluations'
+// #28 : données déléguées au composable ; mappers de statut purs pour le template
+import { useTeacherEvaluations } from '@/composables/useTeacherEvaluations'
+import { getStatusLabel, getStatusTooltip, getStatusBadgeClass } from '@/utils/evaluations'
 import {
   DocumentTextIcon,
   BookOpenIcon,
@@ -478,171 +469,34 @@ import {
 
 const router = useRouter()
 
-const evaluationsKlassci = ref([])
-const evaluationsLMS = ref([])
-const classes = ref([])
-const matieres = ref([])
-const loading = ref(true)
-const error = ref(null)
+// Données, filtres & dérivés délégués au composable (#28, tranche 2)
+const {
+  evaluationsLMS,
+  classes,
+  matieres,
+  loading,
+  error,
+  hideExpired,
+  filters,
+  expiredWithoutOnlineCount,
+  filteredEvaluations,
+  stats,
+  loadData,
+  loadEvaluationsLMS,
+  applyFilters,
+  resetFilters
+} = useTeacherEvaluations()
+
+// État UI local aux actions (modale de création de version en ligne)
 const syncing = ref(null)
 const showCreateModal = ref(false)
 const selectedEvaluation = ref(null)
 const creating = ref(false)
-const hideExpired = ref(true) // Par défaut, masquer les évaluations expirées sans version en ligne
 const onlineForm = reactive({
   type: 'qcm',
   duree_minutes: 60,
   description: ''
 })
-
-// Filters
-const filters = reactive({
-  classe_id: '',
-  matiere_id: '',
-  statut: ''
-})
-
-
-// Fusion KLASSCI + versions LMS en ligne (logique pure extraite, #28)
-const evaluationsWithOnline = computed(() =>
-  mergeWithOnlineVersions(evaluationsKlassci.value, evaluationsLMS.value)
-)
-
-// Nombre d'évaluations expirées sans version en ligne
-const expiredWithoutOnlineCount = computed(() =>
-  evaluationsWithOnline.value.filter(isExpiredWithoutOnline).length
-)
-
-// Évaluations filtrées (logique pure extraite, #28)
-const filteredEvaluations = computed(() =>
-  filterEvaluations(evaluationsWithOnline.value, {
-    hideExpired: hideExpired.value,
-    classe_id: filters.classe_id,
-    matiere_id: filters.matiere_id,
-    statut: filters.statut
-  })
-)
-
-// Statistiques (logique pure extraite, #28)
-const stats = computed(() => computeEvaluationStats(evaluationsWithOnline.value))
-
-// Load all data with cache
-async function loadData() {
-  loading.value = true
-  error.value = null
-
-  try {
-    // Load classes and matieres in parallel
-    await Promise.all([
-      loadClasses(),
-      loadMatieres()
-    ])
-
-    // Load evaluations
-    await Promise.all([
-      loadEvaluationsKlassci(),
-      loadEvaluationsLMS()
-    ])
-
-    console.log('[SUCCESS] Données chargées')
-  } catch (err) {
-    console.error('[ERREUR] Chargement données:', err)
-    error.value = 'Impossible de charger les évaluations. Veuillez réessayer.'
-  } finally {
-    loading.value = false
-  }
-}
-
-// Load classes with cache
-async function loadClasses() {
-  const cachedData = readCache('teacher_classes')
-  if (cachedData !== null) {
-    classes.value = cachedData
-    return
-  }
-
-  try {
-    const classesData = await klassciService.getClasses()
-    classes.value = Array.isArray(classesData) ? classesData : []
-
-    writeCache('teacher_classes', classes.value)
-  } catch (err) {
-    console.error('[ERREUR] Chargement classes:', err)
-  }
-}
-
-// Load matieres with cache
-async function loadMatieres() {
-  const cachedData = readCache('teacher_matieres')
-  if (cachedData !== null) {
-    matieres.value = cachedData
-    return
-  }
-
-  try {
-    const matieresData = await klassciService.getMatieres()
-    matieres.value = Array.isArray(matieresData) ? matieresData : []
-
-    writeCache('teacher_matieres', matieres.value)
-  } catch (err) {
-    console.error('[ERREUR] Chargement matières:', err)
-  }
-}
-
-// Load KLASSCI evaluations
-async function loadEvaluationsKlassci() {
-  try {
-    const result = await klassciService.getEvaluations(filters)
-    if (result.success) {
-      evaluationsKlassci.value = result.data
-      console.log('[SUCCESS] Évaluations KLASSCI:', evaluationsKlassci.value.length)
-    }
-  } catch (err) {
-    console.error('[ERREUR] Chargement évaluations KLASSCI, utilisation du dashboard:', err)
-
-    // Fallback: use dashboard
-    try {
-      const dashboard = await klassciService.getTeacherDashboard()
-      if (dashboard && dashboard.evaluations) {
-        evaluationsKlassci.value = dashboard.evaluations
-        console.log('[SUCCESS] Évaluations depuis dashboard:', evaluationsKlassci.value.length)
-      }
-    } catch (dashboardError) {
-      console.error('[ERREUR] Fallback dashboard:', dashboardError)
-    }
-  }
-}
-
-// Load LMS evaluations
-async function loadEvaluationsLMS() {
-  try {
-    const result = await evaluationService.getEvaluations()
-    if (result.success) {
-      evaluationsLMS.value = result.data.map(e => ({
-        ...e,
-        questions_count: e.questions?.length || 0,
-        submissions_count: e.submissions?.length || 0
-      }))
-      console.log('[SUCCESS] Évaluations LMS:', evaluationsLMS.value.length)
-    }
-  } catch (err) {
-    console.warn('[INFO] Aucune évaluation LMS (normal si aucune créée):', err.message)
-    evaluationsLMS.value = []
-  }
-}
-
-// Apply filters
-function applyFilters() {
-  console.log('[FILTERS] Filtres appliqués:', filters)
-}
-
-// Reset filters
-function resetFilters() {
-  filters.classe_id = ''
-  filters.matiere_id = ''
-  filters.statut = ''
-  console.log('[FILTERS] Filtres réinitialisés')
-}
 
 // getStatusBadgeClass / getStatusLabel / getStatusTooltip : importés depuis
 // @/utils/evaluations (#28). getStatusIcon reste ici (mappe des composants Vue).
