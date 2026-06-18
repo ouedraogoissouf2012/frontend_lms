@@ -325,8 +325,7 @@
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import lmsService from '@/services/lms'
-import { useAuthStore } from '@/stores/auth'
-import { apiBaseUrl } from '@/constants/http'
+import attendanceExportService from '@/services/attendanceExport'
 // #28 : logique métier pure extraite (testée dans tests/unit/attendance.test.js)
 import {
   getAttendanceRateClass,
@@ -512,44 +511,12 @@ export default {
     /**
      * Exporter la liste de présence en PDF
      */
+    // #28 : téléchargement (fetch + blob) délégué à attendanceExportService.
     async exportPDF() {
       if (this.exporting || !this.selectedSeance) return
-
       this.exporting = true
       try {
-        console.log('[SeanceHistory] Export PDF de la séance', this.selectedSeance.klassci_seance_id)
-
-        const API_URL = apiBaseUrl()
-        const token = useAuthStore().token
-
-        // Créer l'URL de téléchargement
-        const url = `${API_URL}/lms/seances/${this.selectedSeance.klassci_seance_id}/export/presences/pdf`
-
-        // Télécharger le fichier
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/pdf'
-          }
-        })
-
-        if (!response.ok) {
-          throw new Error('Erreur lors du téléchargement du PDF')
-        }
-
-        // Créer un blob et télécharger
-        const blob = await response.blob()
-        const downloadUrl = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = downloadUrl
-        a.download = `presences_seance_${this.selectedSeance.klassci_seance_id}_${new Date().toISOString().split('T')[0]}.pdf`
-        document.body.appendChild(a)
-        a.click()
-        window.URL.revokeObjectURL(downloadUrl)
-        document.body.removeChild(a)
-
-        console.log('[SeanceHistory] ✅ PDF téléchargé avec succès')
+        await attendanceExportService.exportPdf(this.selectedSeance.klassci_seance_id)
       } catch (error) {
         console.error('[SeanceHistory] Erreur export PDF:', error)
         this.$toast?.error('Erreur lors de l\'export PDF : ' + error.message)
@@ -558,47 +525,11 @@ export default {
       }
     },
 
-    /**
-     * Exporter la liste de présence en Excel
-     */
     async exportExcel() {
       if (this.exporting || !this.selectedSeance) return
-
       this.exporting = true
       try {
-        console.log('[SeanceHistory] Export Excel de la séance', this.selectedSeance.klassci_seance_id)
-
-        const API_URL = apiBaseUrl()
-        const token = useAuthStore().token
-
-        // Créer l'URL de téléchargement
-        const url = `${API_URL}/lms/seances/${this.selectedSeance.klassci_seance_id}/export/presences/excel`
-
-        // Télécharger le fichier
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-          }
-        })
-
-        if (!response.ok) {
-          throw new Error('Erreur lors du téléchargement du fichier Excel')
-        }
-
-        // Créer un blob et télécharger
-        const blob = await response.blob()
-        const downloadUrl = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = downloadUrl
-        a.download = `presences_seance_${this.selectedSeance.klassci_seance_id}_${new Date().toISOString().split('T')[0]}.xlsx`
-        document.body.appendChild(a)
-        a.click()
-        window.URL.revokeObjectURL(downloadUrl)
-        document.body.removeChild(a)
-
-        console.log('[SeanceHistory] ✅ Excel téléchargé avec succès')
+        await attendanceExportService.exportExcel(this.selectedSeance.klassci_seance_id)
       } catch (error) {
         console.error('[SeanceHistory] Erreur export Excel:', error)
         this.$toast?.error('Erreur lors de l\'export Excel : ' + error.message)
