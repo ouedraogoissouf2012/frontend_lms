@@ -195,6 +195,14 @@ import { lmsService } from '@/services/lms'
 import evaluationService from '@/services/evaluation'
 import EventDetailModal from './EventDetailModal.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
+// #28 : logique métier pure extraite (testée dans tests/unit/calendar.test.js)
+import {
+  determineSeanceColor,
+  determineEvaluationColor,
+  isEvaluationUrgent,
+  getDateRangeStart,
+  getDateRangeEnd
+} from '@/utils/calendar'
 
 const props = defineProps({
   userRole: {
@@ -372,8 +380,8 @@ async function loadSeances(forceRefresh = false) {
       case 'coordinator':
       case 'admin':
         response = await lmsService.getUpcomingSeances({
-          date_debut: getDateRangeStart(),
-          date_fin: getDateRangeEnd(),
+          date_debut: getDateRangeStart(dateRangePreset.value),
+          date_fin: getDateRangeEnd(dateRangePreset.value),
           refresh: forceRefresh
         })
         break
@@ -420,8 +428,8 @@ async function loadEvaluations() {
       case 'coordinator':
       case 'admin':
         response = await evaluationService.getEvaluations({
-          date_debut: getDateRangeStart(),
-          date_fin: getDateRangeEnd()
+          date_debut: getDateRangeStart(dateRangePreset.value),
+          date_fin: getDateRangeEnd(dateRangePreset.value)
         })
         break
     }
@@ -506,95 +514,6 @@ async function loadFilterOptions() {
     enseignants.value = Array.from(allEnseignants.values()).sort((a, b) => a.nom.localeCompare(b.nom))
   } catch (error) {
     console.error('Erreur chargement options de filtres:', error)
-  }
-}
-
-function determineSeanceColor(seance) {
-  const visioStatus = seance.visio?.status
-
-  // Vert vif si visio active (en cours)
-  if (visioStatus === 'active') {
-    return '#10b981'
-  }
-
-  // Bleu si visio programmée (en attente de démarrage)
-  if (visioStatus === 'programmee') {
-    return '#3b82f6'
-  }
-
-  // Gris si visio terminée
-  if (visioStatus === 'terminee') {
-    return '#6b7280'
-  }
-
-  // Bleu LMS par défaut
-  return '#2563eb'
-}
-
-function determineEvaluationColor(evaluation) {
-  if (isEvaluationUrgent(evaluation)) {
-    return '#ef4444' // Rouge urgent
-  }
-  return '#ea580c' // LMS orange pour évaluations // Orange LMS
-}
-
-function isEvaluationUrgent(evaluation) {
-  const dateStr = evaluation.programmation?.date_evaluation || evaluation.date_evaluation
-  if (!dateStr) return false // Pas de date = pas urgent
-
-  const now = new Date()
-  const evalDate = new Date(dateStr)
-
-  // Verification que la date est valide
-  if (isNaN(evalDate.getTime())) return false
-
-  const hoursDiff = (evalDate - now) / (1000 * 60 * 60)
-  return hoursDiff < 24 && hoursDiff > 0
-}
-
-function getDateRangeStart() {
-  const now = new Date()
-  switch (dateRangePreset.value) {
-    case 'today':
-      return now.toISOString().split('T')[0]
-    case 'week':
-      const startOfWeek = new Date(now)
-      startOfWeek.setDate(now.getDate() - now.getDay() + 1)
-      return startOfWeek.toISOString().split('T')[0]
-    case 'month':
-      return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
-    default:
-      return now.toISOString().split('T')[0]
-  }
-}
-
-function getDateRangeEnd() {
-  const now = new Date()
-  switch (dateRangePreset.value) {
-    case 'today':
-      return now.toISOString().split('T')[0]
-    case 'week':
-      const endOfWeek = new Date(now)
-      endOfWeek.setDate(now.getDate() + (7 - now.getDay()))
-      return endOfWeek.toISOString().split('T')[0]
-    case 'month':
-      return new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0]
-    case '7days':
-      const in7Days = new Date(now)
-      in7Days.setDate(now.getDate() + 7)
-      return in7Days.toISOString().split('T')[0]
-    case '30days':
-      const in30Days = new Date(now)
-      in30Days.setDate(now.getDate() + 30)
-      return in30Days.toISOString().split('T')[0]
-    case '90days':
-      const in90Days = new Date(now)
-      in90Days.setDate(now.getDate() + 90)
-      return in90Days.toISOString().split('T')[0]
-    default:
-      const in30DaysDefault = new Date(now)
-      in30DaysDefault.setDate(now.getDate() + 30)
-      return in30DaysDefault.toISOString().split('T')[0]
   }
 }
 
