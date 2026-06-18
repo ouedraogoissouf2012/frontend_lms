@@ -264,6 +264,8 @@ import KnowledgeCheckEditor from '@/components/lessons/KnowledgeCheckEditor.vue'
 import KnowledgeCheckPlayer from '@/components/lessons/KnowledgeCheckPlayer.vue'
 import knowledgeCheckService from '@/services/knowledgeCheck'
 import { UPLOAD_CONFIG, ACCEPTED_FILE_TYPES } from '@/constants/upload'
+// #28 : logique pure extraite (testée dans tests/unit/chapterContent.test.js)
+import { getChapterContentTypeLabel, getChapterContentPreview } from '@/utils/chapterContent'
 
 export default {
   name: 'ChapterManager',
@@ -490,22 +492,13 @@ export default {
       return ACCEPTED_FILE_TYPES[contentType] || '*'
     },
 
+    // #28 : logique pure déléguée à utils/chapterContent
     getContentTypeLabel(type) {
-      const labels = {
-        text: 'Texte / Markdown',
-        video: 'Vidéo',
-        powerpoint: 'PowerPoint',
-        word: 'Document Word',
-        pdf: 'PDF',
-        link: 'Lien externe',
-        quiz: 'Quiz / Testez vos connaissances'
-      }
-      return labels[type] || type
+      return getChapterContentTypeLabel(type)
     },
 
     getContentPreview(content) {
-      if (!content) return ''
-      return content.length > 150 ? content.substring(0, 150) + '...' : content
+      return getChapterContentPreview(content)
     },
 
     // =====================
