@@ -313,65 +313,25 @@ import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import klassciService from '@/services/klassci'
 import { readCache, writeCache, clearCache } from '@/services/cache'
+// #28 : logique métier pure extraite (testée dans tests/unit/enseignants.test.js)
+import {
+  computeEnseignantsStats,
+  getEnseignantClassesCount,
+  getEnseignantUniqueClasses
+} from '@/utils/enseignants'
 
 const enseignants = ref([])
 const loading = ref(true)
 const error = ref(null)
 const selectedEnseignant = ref(null)
 
-// Computed stats
-const totalMatieres = computed(() => {
-  const list = Array.isArray(enseignants.value) ? enseignants.value : []
-  return list.reduce((sum, ens) => sum + (ens.matieres?.length || 0), 0)
-})
+// Computed stats — délégués à la logique pure extraite (#28)
+const stats = computed(() => computeEnseignantsStats(enseignants.value))
+const totalMatieres = computed(() => stats.value.totalMatieres)
+const totalClasses = computed(() => stats.value.totalClasses)
+const enseignantsActifs = computed(() => stats.value.actifs)
 
-const totalClasses = computed(() => {
-  const list = Array.isArray(enseignants.value) ? enseignants.value : []
-  return list.reduce((sum, ens) => {
-    if (ens.statistiques?.total_classes) {
-      return sum + ens.statistiques.total_classes
-    }
-    const classesSet = new Set()
-    ens.matieres?.forEach(matiere => {
-      matiere.classes?.forEach(classe => classesSet.add(classe.id))
-    })
-    return sum + classesSet.size
-  }, 0)
-})
-
-const enseignantsActifs = computed(() => {
-  const list = Array.isArray(enseignants.value) ? enseignants.value : []
-  return list.filter(ens => ens.matieres?.length > 0 || ens.classes?.length > 0).length
-})
-
-// Get classes count for an enseignant
-function getEnseignantClassesCount(enseignant) {
-  if (enseignant.statistiques?.total_classes) {
-    return enseignant.statistiques.total_classes
-  }
-  // Fallback: extraire classes uniques depuis les matieres
-  const classesSet = new Set()
-  enseignant.matieres?.forEach(matiere => {
-    matiere.classes?.forEach(classe => classesSet.add(classe.id))
-  })
-  return classesSet.size
-}
-
-// Get unique classes list from enseignant's matieres
-function getEnseignantUniqueClasses(enseignant) {
-  if (!enseignant || !enseignant.matieres) return []
-
-  const classesMap = new Map()
-  enseignant.matieres.forEach(matiere => {
-    matiere.classes?.forEach(classe => {
-      if (!classesMap.has(classe.id)) {
-        classesMap.set(classe.id, classe)
-      }
-    })
-  })
-
-  return Array.from(classesMap.values())
-}
+// getEnseignantClassesCount / getEnseignantUniqueClasses : importés depuis @/utils/enseignants (#28).
 
 // Load enseignants from API
 async function loadEnseignants(forceReload = false) {
