@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import lmsService from '@/services/lms'
 import { useAuthStore } from '@/stores/auth'
 import { useVisioHeartbeat } from '@/composables/useVisioHeartbeat'
+import { sendVisioLeaveBeacon } from '@/services/visioLeave'
 
 /**
  * Store Pinia global pour gérer la participation aux visioconférences
@@ -121,7 +122,7 @@ export const useVisioStore = defineStore('visio', () => {
       stopHeartbeat()
 
       // 2. Envoyer leaveVisio avec Beacon API (garanti même si fermeture brutale)
-      const success = await sendLeaveVisioBeacon(seanceId)
+      const success = await sendVisioLeaveBeacon(seanceId)
 
       if (!success) {
         // Fallback sur requête normale si Beacon échoue
@@ -144,47 +145,8 @@ export const useVisioStore = defineStore('visio', () => {
     }
   }
 
-  /**
-   * Envoyer leaveVisio avec Beacon API
-   * Garanti l'envoi même si l'onglet se ferme
-   * @param {number} seanceId - ID de la séance
-   * @returns {Promise<boolean>} true si envoyé avec succès
-   */
-  const sendLeaveVisioBeacon = async (seanceId) => {
-    try {
-      const apiUrl = `${import.meta.env.VITE_API_URL}/api/seances/${seanceId}/leave-visio`
-      const token = useAuthStore().token
-
-      if (!token) {
-        console.warn('[VisioStore] Pas de token, impossible d\'envoyer Beacon')
-        return false
-      }
-
-      // Utiliser Beacon API si disponible
-      if (navigator.sendBeacon) {
-        // Créer les données pour Beacon
-        const formData = new FormData()
-        formData.append('_token', token)
-
-        // Envoyer le Beacon
-        const success = navigator.sendBeacon(apiUrl, formData)
-
-        if (success) {
-          console.log('[VisioStore] 📡 Beacon envoyé pour leaveVisio')
-          return true
-        } else {
-          console.warn('[VisioStore] Beacon échoué, fallback sur fetch')
-          return false
-        }
-      }
-
-      return false
-
-    } catch (error) {
-      console.error('[VisioStore] Erreur Beacon:', error)
-      return false
-    }
-  }
+  // sendLeaveVisioBeacon : déplacé dans @/services/visioLeave (fix Beacon).
+  // fetch keepalive + Bearer vers la vraie route POST /api/lms/seances/:id/leave.
 
   /**
    * Surveiller la fermeture de la fenêtre Jitsi
@@ -287,7 +249,7 @@ export const useVisioStore = defineStore('visio', () => {
   const handleBeforeUnload = () => {
     if (isInVisio.value && activeSeanceId.value) {
       // Utiliser Beacon pour garantir l'envoi
-      sendLeaveVisioBeacon(activeSeanceId.value)
+      sendVisioLeaveBeacon(activeSeanceId.value)
     }
   }
 
