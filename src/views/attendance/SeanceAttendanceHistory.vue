@@ -327,6 +327,14 @@ import ContentLoader from '@/components/common/ContentLoader.vue'
 import lmsService from '@/services/lms'
 import { useAuthStore } from '@/stores/auth'
 import { apiBaseUrl } from '@/constants/http'
+// #28 : logique métier pure extraite (testée dans tests/unit/attendance.test.js)
+import {
+  getAttendanceRateClass,
+  getAttendanceStatusBadgeClass,
+  getConnectionStatusClass,
+  getConnectionStatusLabel,
+  getPeriodDates
+} from '@/utils/attendance'
 
 export default {
   name: 'SeanceAttendanceHistory',
@@ -407,32 +415,8 @@ export default {
     },
 
     getPeriodDates() {
-      const now = new Date()
-      const dates = {}
-
-      switch (this.selectedPeriod) {
-        case 'today':
-          dates.from = this.formatDateInput(now)
-          dates.to = this.formatDateInput(now)
-          break
-        case 'week':
-          const weekStart = new Date(now)
-          weekStart.setDate(now.getDate() - now.getDay())
-          dates.from = this.formatDateInput(weekStart)
-          dates.to = this.formatDateInput(now)
-          break
-        case 'month':
-          const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-          dates.from = this.formatDateInput(monthStart)
-          dates.to = this.formatDateInput(now)
-          break
-        case 'custom':
-          dates.from = this.customDates.from
-          dates.to = this.customDates.to
-          break
-      }
-
-      return dates
+      // #28 : logique pure déléguée à utils/attendance
+      return getPeriodDates(this.selectedPeriod, this.customDates)
     },
 
     selectPeriod(period) {
@@ -682,37 +666,21 @@ export default {
         .substring(0, 2)
     },
 
+    // #28 : logique pure déléguée à utils/attendance
     getRateClass(rate) {
-      if (rate >= 80) return 'rate-high'
-      if (rate >= 60) return 'rate-medium'
-      return 'rate-low'
+      return getAttendanceRateClass(rate)
     },
 
     getStatusBadgeClass(statusLevel) {
-      const baseClass = 'status-badge'
-
-      switch (statusLevel) {
-        case 'present':
-          return `${baseClass} status-present`
-        case 'partial':
-          return `${baseClass} status-partial`
-        case 'low':
-          return `${baseClass} status-low`
-        case 'absent':
-          return `${baseClass} status-absent`
-        case 'ongoing':
-          return `${baseClass} status-ongoing`
-        default:
-          return baseClass
-      }
+      return getAttendanceStatusBadgeClass(statusLevel)
     },
 
     getStatusClass(status) {
-      return status === 'connected' ? 'status-online' : 'status-offline'
+      return getConnectionStatusClass(status)
     },
 
     getStatusLabel(status) {
-      return status === 'connected' ? 'Connecté' : 'Déconnecté'
+      return getConnectionStatusLabel(status)
     }
   }
 }
