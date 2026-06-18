@@ -346,6 +346,8 @@ import { toast } from '@/services/toast'
 import { normalizeError } from '@/services/errorHandler'
 import { readCache, writeCache, clearCache } from '@/services/cache'
 import { buildJitsiUrl } from '@/constants/visio'
+// #28 : logique métier pure extraite (testée dans tests/unit/seances.test.js)
+import { filterSeances, computeSeancesStats } from '@/utils/seances'
 
 const seances = ref([])
 const matieres = ref([])
@@ -369,59 +371,10 @@ const filters = reactive({
 })
 
 
-// Computed - Filtered seances
-const filteredSeances = computed(() => {
-  let filtered = seances.value
+// Computeds délégués à la logique pure extraite (#28)
+const filteredSeances = computed(() => filterSeances(seances.value, filters))
 
-  // Filter by matière
-  if (filters.matiere_id) {
-    filtered = filtered.filter(s => s.matiere?.id == filters.matiere_id)
-  }
-
-  // Filter by visio status
-  if (filters.visio_status) {
-    if (filters.visio_status === 'none') {
-      filtered = filtered.filter(s => !s.visio || !s.visio.enabled)
-    } else {
-      filtered = filtered.filter(s => s.visio?.status === filters.visio_status)
-    }
-  }
-
-  // Filter by period
-  if (filters.period !== 'all') {
-    const now = new Date()
-    filtered = filtered.filter(s => {
-      if (!s.programmation?.date) return false
-      const seanceDate = new Date(s.programmation.date)
-
-      if (filters.period === 'today') {
-        return seanceDate.toDateString() === now.toDateString()
-      } else if (filters.period === 'week') {
-        const weekStart = new Date(now)
-        weekStart.setDate(now.getDate() - now.getDay())
-        const weekEnd = new Date(weekStart)
-        weekEnd.setDate(weekStart.getDate() + 7)
-        return seanceDate >= weekStart && seanceDate < weekEnd
-      } else if (filters.period === 'month') {
-        return seanceDate.getMonth() === now.getMonth() &&
-               seanceDate.getFullYear() === now.getFullYear()
-      }
-      return true
-    })
-  }
-
-  return filtered
-})
-
-// Computed - Statistics
-const stats = computed(() => {
-  return {
-    total: seances.value.length,
-    active: seances.value.filter(s => s.visio?.status === 'active').length,
-    scheduled: seances.value.filter(s => s.visio?.status === 'programmee').length,
-    finished: seances.value.filter(s => s.visio?.status === 'terminee').length
-  }
-})
+const stats = computed(() => computeSeancesStats(seances.value))
 
 // Load seances with cache
 async function loadSeances() {
