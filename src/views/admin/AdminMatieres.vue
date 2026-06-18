@@ -328,6 +328,14 @@ import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import { klassciService } from '@/services/klassci'
 import { readCache, writeCache, clearCache } from '@/services/cache'
+// #28 : logique métier pure extraite (testée dans tests/unit/matieres.test.js)
+import {
+  filterMatieres,
+  groupMatieresByNiveau,
+  computeMatieresStats,
+  getMatiereFilieres,
+  getMatiereNiveaux
+} from '@/utils/matieres'
 import {
   BookOpenIcon,
   AcademicCapIcon,
@@ -359,173 +367,16 @@ const showMatiereModal = ref(false)
 const selectedMatiere = ref(null)
 
 
-// Computed: Filtered matieres
-const filteredMatieres = computed(() => {
-  let result = matieres.value
+// Computeds délégués à la logique pure extraite (#28)
+const filteredMatieres = computed(() => filterMatieres(matieres.value, filters.value))
 
-  // Filter by search
-  if (filters.value.search) {
-    const search = filters.value.search.toLowerCase()
-    result = result.filter(m =>
-      (m.nom?.toLowerCase() || '').includes(search) ||
-      (m.code?.toLowerCase() || '').includes(search) ||
-      (m.description?.toLowerCase() || '').includes(search)
-    )
-  }
+const filteredNiveauxWithMatieres = computed(() =>
+  groupMatieresByNiveau(filteredMatieres.value, niveaux.value)
+)
 
-  // Filter by filiere
-  if (filters.value.filiere_id) {
-    result = result.filter(m => {
-      if (!m.combinaisons || m.combinaisons.length === 0) return false
-      return m.combinaisons.some(c => c.filiere?.id == filters.value.filiere_id)
-    })
-  }
+const stats = computed(() => computeMatieresStats(matieres.value))
 
-  // Filter by niveau
-  if (filters.value.niveau_id) {
-    result = result.filter(m => {
-      if (!m.combinaisons || m.combinaisons.length === 0) return false
-      return m.combinaisons.some(c => c.niveau?.id == filters.value.niveau_id)
-    })
-  }
-
-  return result
-})
-
-// Computed: Niveaux with matieres
-const filteredNiveauxWithMatieres = computed(() => {
-  // Si pas de matières, grouper par niveaux disponibles dans structure
-  if (filteredMatieres.value.length === 0 && niveaux.value.length > 0) {
-    return niveaux.value.map(niveau => ({
-      niveau: niveau,
-      matieres: [],
-      totalHeures: 0,
-      totalSeances: 0
-    }))
-  }
-
-  // Group matieres by niveau
-  const niveauxMap = new Map()
-
-  filteredMatieres.value.forEach(matiere => {
-    // Si la matière a des combinaisons (même avec objets vides)
-    if (matiere.combinaisons && matiere.combinaisons.length > 0) {
-      // Vérifier si les combinaisons contiennent des niveaux valides
-      const hasValidNiveau = matiere.combinaisons.some(c => c.niveau?.id || c.niveau?.code)
-
-      if (hasValidNiveau) {
-        // Récupérer les niveaux uniques avec données valides
-        const uniqueNiveaux = new Set()
-        matiere.combinaisons.forEach(combi => {
-          if (combi.niveau?.id) {
-            uniqueNiveaux.add(combi.niveau.id)
-          }
-        })
-
-        // Ajouter la matière à chaque groupe de niveau
-        uniqueNiveaux.forEach(niveauId => {
-          if (!niveauxMap.has(niveauId)) {
-            const niveau = matiere.combinaisons.find(c => c.niveau?.id === niveauId)?.niveau
-            if (niveau) {
-              niveauxMap.set(niveauId, {
-                niveau: niveau,
-                matieres: []
-              })
-            }
-          }
-          if (niveauxMap.has(niveauId)) {
-            niveauxMap.get(niveauId).matieres.push(matiere)
-          }
-        })
-      } else {
-        // Les combinaisons existent mais sont vides → groupe "Niveau non défini"
-        if (!niveauxMap.has('undefined')) {
-          niveauxMap.set('undefined', {
-            niveau: { id: 'undefined', nom: 'Niveau non défini', code: 'N/A' },
-            matieres: []
-          })
-        }
-        niveauxMap.get('undefined').matieres.push(matiere)
-      }
-    } else {
-      // Pas de combinaisons → groupe "Sans niveau"
-      if (!niveauxMap.has('none')) {
-        niveauxMap.set('none', {
-          niveau: { id: 'none', nom: 'Sans niveau', code: 'N/A' },
-          matieres: []
-        })
-      }
-      niveauxMap.get('none').matieres.push(matiere)
-    }
-  })
-
-  // Convert to array and add stats
-  const result = Array.from(niveauxMap.values()).map(group => {
-    const totalHeures = group.matieres.reduce((sum, m) => sum + (m.heures_total || 0), 0)
-    const totalSeances = group.matieres.reduce((sum, m) => sum + (m.nb_seances_programmees || 0), 0)
-
-    return {
-      ...group,
-      totalHeures,
-      totalSeances
-    }
-  })
-
-  // Sort: undefined/none at the end, others by code
-  result.sort((a, b) => {
-    const aId = a.niveau.id
-    const bId = b.niveau.id
-
-    if (aId === 'undefined' || aId === 'none') return 1
-    if (bId === 'undefined' || bId === 'none') return -1
-    return (a.niveau.code || '').localeCompare(b.niveau.code || '')
-  })
-
-  return result
-})
-
-// Computed: Statistics
-const stats = computed(() => {
-  return {
-    total: matieres.value.length,
-    totalHeures: matieres.value.reduce((sum, m) => sum + (m.heures_total || 0), 0),
-    totalSeances: matieres.value.reduce((sum, m) => sum + (m.nb_seances_programmees || 0), 0)
-  }
-})
-
-// Get matiere filieres (unique)
-function getMatiereFilieres(matiere) {
-  if (!matiere.combinaisons || matiere.combinaisons.length === 0) return []
-
-  const uniqueFilieres = new Set()
-  matiere.combinaisons.forEach(combi => {
-    // Priorité: nom > code
-    if (combi.filiere?.nom) {
-      uniqueFilieres.add(combi.filiere.nom)
-    } else if (combi.filiere?.code) {
-      uniqueFilieres.add(combi.filiere.code)
-    }
-  })
-
-  return Array.from(uniqueFilieres)
-}
-
-// Get matiere niveaux (unique)
-function getMatiereNiveaux(matiere) {
-  if (!matiere.combinaisons || matiere.combinaisons.length === 0) return []
-
-  const uniqueNiveaux = new Set()
-  matiere.combinaisons.forEach(combi => {
-    // Priorité: nom > code
-    if (combi.niveau?.nom) {
-      uniqueNiveaux.add(combi.niveau.nom)
-    } else if (combi.niveau?.code) {
-      uniqueNiveaux.add(combi.niveau.code)
-    }
-  })
-
-  return Array.from(uniqueNiveaux)
-}
+// getMatiereFilieres / getMatiereNiveaux : importés depuis @/utils/matieres (#28).
 
 // View niveau details (open modal)
 function viewNiveauDetails(niveauGroup) {
