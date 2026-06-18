@@ -765,24 +765,10 @@
 
 <script setup>
 import { useEditor, EditorContent } from '@tiptap/vue-3'
-import StarterKit from '@tiptap/starter-kit'
-import Placeholder from '@tiptap/extension-placeholder'
-import Link from '@tiptap/extension-link'
-import Underline from '@tiptap/extension-underline'
-import { TextAlign } from '@tiptap/extension-text-align'
-import { TextStyle } from '@tiptap/extension-text-style'
-import { Color } from '@tiptap/extension-color'
-import { Highlight } from '@tiptap/extension-highlight'
-import { FontFamily } from '@tiptap/extension-font-family'
-import { Table } from '@tiptap/extension-table'
-import { TableRow } from '@tiptap/extension-table-row'
-import { TableCell } from '@tiptap/extension-table-cell'
-import { TableHeader } from '@tiptap/extension-table-header'
-import { TaskList } from '@tiptap/extension-task-list'
-import { TaskItem } from '@tiptap/extension-task-item'
-import { Youtube } from '@tiptap/extension-youtube'
-import { Image } from '@tiptap/extension-image'
 import { watch, computed, ref, onMounted, onBeforeUnmount } from 'vue'
+// #28 : config des extensions + stats de texte extraites
+import { buildEditorExtensions } from '@/config/tiptapExtensions'
+import { countWords, countCharacters } from '@/utils/textStats'
 
 const props = defineProps({
   modelValue: {
@@ -801,52 +787,7 @@ const isFullscreen = ref(false)
 
 const editor = useEditor({
   content: props.modelValue,
-  extensions: [
-    StarterKit.configure({
-      heading: {
-        levels: [1, 2, 3]
-      },
-      // Note: StarterKit v3 might include some extensions by default
-      // If duplicates occur, disable them here
-    }),
-    Placeholder.configure({
-      placeholder: props.placeholder
-    }),
-    Link.configure({
-      openOnClick: false,
-      HTMLAttributes: {
-        class: 'editor-link'
-      }
-    }),
-    Underline,
-    TextAlign.configure({
-      types: ['heading', 'paragraph']
-    }),
-    TextStyle,
-    Color,
-    Highlight.configure({
-      multicolor: true
-    }),
-    FontFamily,
-    Table.configure({
-      resizable: true
-    }),
-    TableRow,
-    TableCell,
-    TableHeader,
-    TaskList,
-    TaskItem.configure({
-      nested: true
-    }),
-    Youtube.configure({
-      width: 640,
-      height: 480
-    }),
-    Image.configure({
-      inline: true,
-      allowBase64: true
-    })
-  ],
+  extensions: buildEditorExtensions(props.placeholder),
   editorProps: {
     attributes: {
       class: 'prose prose-sm max-w-none focus:outline-none'
@@ -925,18 +866,9 @@ const addYoutubeVideo = () => {
   }
 }
 
-// Word count
-const wordCount = computed(() => {
-  if (!editor.value) return 0
-  const text = editor.value.getText()
-  return text.trim().split(/\s+/).filter(word => word.length > 0).length
-})
-
-// Character count
-const characterCount = computed(() => {
-  if (!editor.value) return 0
-  return editor.value.getText().length
-})
+// Word / character count (logique pure extraite, #28)
+const wordCount = computed(() => (editor.value ? countWords(editor.value.getText()) : 0))
+const characterCount = computed(() => (editor.value ? countCharacters(editor.value.getText()) : 0))
 </script>
 
 <style scoped>
