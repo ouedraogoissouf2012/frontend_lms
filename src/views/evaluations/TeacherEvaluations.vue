@@ -447,6 +447,16 @@ import ContentLoader from '@/components/common/ContentLoader.vue'
 import klassciService from '@/services/klassci'
 import evaluationService from '@/services/evaluation'
 import { readCache, writeCache } from '@/services/cache'
+// #28 : logique métier pure extraite (testée dans tests/unit/evaluations.test.js)
+import {
+  mergeWithOnlineVersions,
+  isExpiredWithoutOnline,
+  filterEvaluations,
+  computeEvaluationStats,
+  getStatusLabel,
+  getStatusTooltip,
+  getStatusBadgeClass
+} from '@/utils/evaluations'
 import {
   DocumentTextIcon,
   BookOpenIcon,
@@ -493,72 +503,28 @@ const filters = reactive({
 })
 
 
-// Merge KLASSCI evaluations with LMS online versions
-const evaluationsWithOnline = computed(() => {
-  return evaluationsKlassci.value.map(evaluation => ({
-    ...evaluation,
-    online_version: evaluationsLMS.value.find(e => e.klassci_evaluation_id === evaluation.id),
-    has_online: evaluationsLMS.value.some(e => e.klassci_evaluation_id === evaluation.id)
-  }))
-})
+// Fusion KLASSCI + versions LMS en ligne (logique pure extraite, #28)
+const evaluationsWithOnline = computed(() =>
+  mergeWithOnlineVersions(evaluationsKlassci.value, evaluationsLMS.value)
+)
 
-// Check if an evaluation is expired and without online version
-function isExpiredWithoutOnline(evaluation) {
-  if (evaluation.has_online) return false
-  // Check window status (KLASSCI programmation)
-  const window = evaluation.programmation?.window
-  if (window && !window.is_open && window.has_started) return true
-  // Check date_evaluation
-  const dateEval = evaluation.programmation?.date_evaluation || evaluation.date_evaluation
-  if (dateEval) {
-    const evalDate = new Date(dateEval)
-    return evalDate < new Date()
-  }
-  return false
-}
+// Nombre d'évaluations expirées sans version en ligne
+const expiredWithoutOnlineCount = computed(() =>
+  evaluationsWithOnline.value.filter(isExpiredWithoutOnline).length
+)
 
-// Count of expired evaluations without online version
-const expiredWithoutOnlineCount = computed(() => {
-  return evaluationsWithOnline.value.filter(e => isExpiredWithoutOnline(e)).length
-})
+// Évaluations filtrées (logique pure extraite, #28)
+const filteredEvaluations = computed(() =>
+  filterEvaluations(evaluationsWithOnline.value, {
+    hideExpired: hideExpired.value,
+    classe_id: filters.classe_id,
+    matiere_id: filters.matiere_id,
+    statut: filters.statut
+  })
+)
 
-// Filtered evaluations
-const filteredEvaluations = computed(() => {
-  let filtered = evaluationsWithOnline.value
-
-  // Hide expired without online version
-  if (hideExpired.value) {
-    filtered = filtered.filter(e => !isExpiredWithoutOnline(e))
-  }
-
-  // Filter by classe
-  if (filters.classe_id) {
-    filtered = filtered.filter(e => e.classe?.id == filters.classe_id)
-  }
-
-  // Filter by matiere
-  if (filters.matiere_id) {
-    filtered = filtered.filter(e => e.matiere?.id == filters.matiere_id)
-  }
-
-  // Filter by statut
-  if (filters.statut) {
-    filtered = filtered.filter(e => e.status === filters.statut)
-  }
-
-  return filtered
-})
-
-// Statistics
-const stats = computed(() => {
-  const all = evaluationsWithOnline.value
-  return {
-    total: all.length,
-    enCours: all.filter(e => e.programmation?.window?.is_open).length,
-    terminees: all.filter(e => e.status === 'terminee').length,
-    avecVersionEnLigne: all.filter(e => e.has_online).length
-  }
-})
+// Statistiques (logique pure extraite, #28)
+const stats = computed(() => computeEvaluationStats(evaluationsWithOnline.value))
 
 // Load all data with cache
 async function loadData() {
@@ -678,37 +644,8 @@ function resetFilters() {
   console.log('[FILTERS] Filtres réinitialisés')
 }
 
-// Get status badge class
-function getStatusBadgeClass(evaluation) {
-  const baseClass = 'status-badge'
-
-  if (evaluation.programmation?.window?.is_open) {
-    return `${baseClass} status-badge-active`
-  }
-
-  const statusClasses = {
-    'planifiee': `${baseClass} status-badge-planned`,
-    'en_cours': `${baseClass} status-badge-active`,
-    'terminee': `${baseClass} status-badge-finished`,
-    'brouillon': `${baseClass} status-badge-draft`
-  }
-
-  return statusClasses[evaluation.status] || `${baseClass} status-badge-default`
-}
-
-// Get status label
-function getStatusLabel(status) {
-  const labels = {
-    'planifiee': 'Planifiée',
-    'en_cours': 'En cours',
-    'terminee': 'Terminée',
-    'brouillon': 'Brouillon',
-    'draft': 'Brouillon',
-    'in_progress': 'En cours',
-    'completed': 'Terminée'
-  }
-  return labels[status] || status
-}
+// getStatusBadgeClass / getStatusLabel / getStatusTooltip : importés depuis
+// @/utils/evaluations (#28). getStatusIcon reste ici (mappe des composants Vue).
 
 // Get status icon
 function getStatusIcon(status) {
@@ -722,20 +659,6 @@ function getStatusIcon(status) {
     'completed': CheckCircleIcon
   }
   return icons[status] || DocumentTextIcon
-}
-
-// Get status tooltip
-function getStatusTooltip(status) {
-  const tooltips = {
-    'planifiee': 'Évaluation programmée dans le calendrier KLASSCI',
-    'en_cours': 'Fenêtre temporelle ouverte - Les étudiants peuvent composer',
-    'terminee': 'Fenêtre fermée - Composition terminée',
-    'brouillon': 'Évaluation en préparation, non encore programmée',
-    'draft': 'Évaluation en préparation, non encore programmée',
-    'in_progress': 'Fenêtre temporelle ouverte - Les étudiants peuvent composer',
-    'completed': 'Fenêtre fermée - Composition terminée'
-  }
-  return tooltips[status] || 'Statut de l\'évaluation'
 }
 
 // Format date
