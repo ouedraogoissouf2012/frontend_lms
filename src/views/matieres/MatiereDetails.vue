@@ -537,6 +537,14 @@ import lessonService from '@/services/lesson'
 import VisioManager from '@/components/visio/VisioManager.vue'
 import LessonCard from '@/components/lessons/LessonCard.vue'
 import { auth } from '@/services/api'
+// #28 : logique métier pure extraite (testée dans tests/unit/matiereDetails.test.js)
+import {
+  calculateSeanceDuration,
+  getSeanceStatusClass as seanceStatusClass,
+  getSeanceStatusLabel as seanceStatusLabel,
+  getEvaluationStatusClass as evaluationStatusClass,
+  getEvaluationStatusLabel as evaluationStatusLabel
+} from '@/utils/matiereDetails'
 
 export default {
   name: 'MatiereDetails',
@@ -861,13 +869,9 @@ export default {
       })
     },
 
+    // #28 : logique pure déléguée à utils/matiereDetails
     calculateDuration(seance) {
-      // Utiliser programmation.heure_debut/fin (ISO 8601)
-      if (!seance.programmation?.heure_debut || !seance.programmation?.heure_fin) return 0
-      const debut = new Date(seance.programmation.heure_debut)
-      const fin = new Date(seance.programmation.heure_fin)
-      if (isNaN(debut.getTime()) || isNaN(fin.getTime())) return 0
-      return Math.round((fin - debut) / 60000) // millisecondes → minutes
+      return calculateSeanceDuration(seance)
     },
 
     formatTime(isoTimestamp) {
@@ -881,37 +885,19 @@ export default {
     },
 
     getSeanceStatusClass(seance) {
-      const now = new Date()
-      const seanceDate = new Date(`${seance.date_seance} ${seance.heure_debut}`)
-      const seanceEnd = new Date(`${seance.date_seance} ${seance.heure_fin}`)
-
-      if (now < seanceDate) return 'bg-orange-100 text-orange-700'
-      if (now >= seanceDate && now <= seanceEnd) return 'bg-green-100 text-green-700'
-      if (seance.statut === 'realise') return 'bg-blue-100 text-blue-700'
-      return 'bg-gray-100 text-gray-700'
+      return seanceStatusClass(seance)
     },
 
     getSeanceStatusLabel(seance) {
-      const now = new Date()
-      const seanceDate = new Date(`${seance.date_seance} ${seance.heure_debut}`)
-      const seanceEnd = new Date(`${seance.date_seance} ${seance.heure_fin}`)
-
-      if (now < seanceDate) return 'À venir'
-      if (now >= seanceDate && now <= seanceEnd) return 'En cours'
-      if (seance.statut === 'realise') return 'Terminé'
-      return 'Passé'
+      return seanceStatusLabel(seance)
     },
 
     getEvaluationStatusClass(window) {
-      if (!window.has_started) return 'bg-orange-100 text-orange-700'
-      if (window.is_open) return 'bg-green-100 text-green-700'
-      return 'bg-gray-100 text-gray-700'
+      return evaluationStatusClass(window)
     },
 
     getEvaluationStatusLabel(window) {
-      if (!window.has_started) return 'Pas encore ouverte'
-      if (window.is_open) return 'Ouverte'
-      return 'Fermée'
+      return evaluationStatusLabel(window)
     }
   }
 }
