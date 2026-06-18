@@ -282,7 +282,15 @@ import lessonService from '@/services/lesson'
 import chapterProgressService from '@/services/chapterProgress'
 import api from '@/services/api'
 import KnowledgeCheckPlayer from '@/components/lessons/KnowledgeCheckPlayer.vue'
-import { apiOrigin } from '@/constants/http'
+// #28 : logique pure extraite (testée dans tests/unit/lessonContent.test.js)
+import {
+  getVideoEmbedUrl,
+  getSlideUrl as slideUrl,
+  getPdfUrl as pdfUrl,
+  getContentTypeLabel as contentTypeLabel,
+  getContentTypeIcon as contentTypeIcon,
+  isChapterContentEmpty
+} from '@/utils/lessonContent'
 
 export default {
   name: 'StudentLessonView',
@@ -511,71 +519,29 @@ export default {
 
     // ==================== CONTENT HELPERS ====================
 
+    // #28 : logique pure déléguée à utils/lessonContent
     getEmbedUrl(url) {
-      if (!url) return null
-      // YouTube
-      const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
-      if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}?rel=0`
-      // Vimeo
-      const vimeoMatch = url.match(/vimeo\.com\/(\d+)/)
-      if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`
-      return null
+      return getVideoEmbedUrl(url)
     },
 
     getSlideUrl(slide) {
-      if (!slide) return ''
-      if (slide.startsWith('http')) return slide
-      // Relative path — prepend API base URL
-      const baseUrl = apiOrigin()
-      return `${baseUrl}/storage/${slide}`
+      return slideUrl(slide)
     },
 
     getPdfUrl(chapter) {
-      const path = chapter.pdf_url || chapter.file_converted_path
-      if (!path) return ''
-      if (path.startsWith('http')) return path
-      const baseUrl = apiOrigin()
-      return `${baseUrl}/storage/${path}`
+      return pdfUrl(chapter)
     },
 
     getContentTypeLabel(type) {
-      const labels = {
-        text: 'Texte',
-        video: 'Vidéo',
-        powerpoint: 'Présentation',
-        word: 'Document',
-        pdf: 'PDF',
-        link: 'Lien externe',
-        quiz: 'Quiz'
-      }
-      return labels[type] || type
+      return contentTypeLabel(type)
     },
 
     getContentTypeIcon(type) {
-      const icons = {
-        text: 'fa fa-file-text-o',
-        video: 'fa fa-play-circle',
-        powerpoint: 'fa fa-file-powerpoint-o',
-        word: 'fa fa-file-word-o',
-        pdf: 'fa fa-file-pdf-o',
-        link: 'fa fa-link',
-        quiz: 'fa fa-question-circle'
-      }
-      return icons[type] || 'fa fa-file-o'
+      return contentTypeIcon(type)
     },
 
     isContentEmpty(chapter) {
-      if (!chapter) return true
-      switch (chapter.content_type) {
-        case 'text': return !chapter.content
-        case 'video': return !chapter.video_url
-        case 'powerpoint': return !chapter.slides_images || chapter.slides_images.length === 0
-        case 'word': return !chapter.content
-        case 'pdf': return !chapter.pdf_url && !chapter.file_converted_path
-        case 'link': return !chapter.external_link
-        case 'quiz': return !this.chapterQuiz
-        default: return true
-      }
+      return isChapterContentEmpty(chapter, !!this.chapterQuiz)
     },
 
     async onQuizCompleted(resultData) {
