@@ -139,46 +139,9 @@
             </div>
           </div>
 
-          <!-- POWERPOINT (slides images) -->
+          <!-- POWERPOINT (slides images) — #28 : diaporama extrait en sous-composant -->
           <div v-if="activeChapter.content_type === 'powerpoint'" class="content-block content-slides">
-            <div v-if="activeChapter.slides_images && activeChapter.slides_images.length > 0" class="slides-viewer">
-              <div class="slide-display">
-                <img
-                  :src="getSlideUrl(activeChapter.slides_images[currentSlide])"
-                  :alt="`Slide ${currentSlide + 1}`"
-                  class="slide-image"
-                  @click="nextSlide"
-                />
-              </div>
-              <div class="slides-controls">
-                <button @click="prevSlide" :disabled="currentSlide === 0" class="btn-slide">
-                  <i class="fa fa-chevron-left"></i>
-                </button>
-                <span class="slide-counter">
-                  {{ currentSlide + 1 }} / {{ activeChapter.slides_images.length }}
-                </span>
-                <button @click="nextSlide" :disabled="currentSlide >= activeChapter.slides_images.length - 1" class="btn-slide">
-                  <i class="fa fa-chevron-right"></i>
-                </button>
-              </div>
-              <!-- Slide thumbnails -->
-              <div class="slides-thumbnails">
-                <button
-                  v-for="(slide, idx) in activeChapter.slides_images"
-                  :key="idx"
-                  @click="currentSlide = idx"
-                  class="slide-thumb"
-                  :class="{ active: currentSlide === idx }"
-                >
-                  <img :src="getSlideUrl(slide)" :alt="`Miniature ${idx + 1}`" />
-                  <span class="thumb-number">{{ idx + 1 }}</span>
-                </button>
-              </div>
-            </div>
-            <div v-else class="slides-empty">
-              <i class="fa fa-file-powerpoint-o"></i>
-              <p>Présentation en cours de conversion...</p>
-            </div>
+            <SlidesViewer :slides="activeChapter.slides_images" />
           </div>
 
           <!-- WORD (HTML content) -->
@@ -282,10 +245,11 @@ import lessonService from '@/services/lesson'
 import chapterProgressService from '@/services/chapterProgress'
 import api from '@/services/api'
 import KnowledgeCheckPlayer from '@/components/lessons/KnowledgeCheckPlayer.vue'
+import SlidesViewer from '@/components/lessons/SlidesViewer.vue'
 // #28 : logique pure extraite (testée dans tests/unit/lessonContent.test.js)
+// (getSlideUrl + navigation slides déplacés dans SlidesViewer)
 import {
   getVideoEmbedUrl,
-  getSlideUrl as slideUrl,
   getPdfUrl as pdfUrl,
   getContentTypeLabel as contentTypeLabel,
   getContentTypeIcon as contentTypeIcon,
@@ -294,7 +258,7 @@ import {
 
 export default {
   name: 'StudentLessonView',
-  components: { KnowledgeCheckPlayer },
+  components: { KnowledgeCheckPlayer, SlidesViewer },
 
   data() {
     return {
@@ -302,7 +266,6 @@ export default {
       chapters: [],
       completedChapters: new Set(),
       activeChapterIndex: 0,
-      currentSlide: 0,
       sidebarCollapsed: false,
       loading: true,
       error: null,
@@ -332,7 +295,6 @@ export default {
 
   watch: {
     activeChapterIndex() {
-      this.currentSlide = 0
       this.showQuizPlayer = false
       this.trackTimeSpent()
       this.chapterStartTime = Date.now()
@@ -438,16 +400,6 @@ export default {
       }
     },
 
-    prevSlide() {
-      if (this.currentSlide > 0) this.currentSlide--
-    },
-
-    nextSlide() {
-      if (this.activeChapter?.slides_images && this.currentSlide < this.activeChapter.slides_images.length - 1) {
-        this.currentSlide++
-      }
-    },
-
     isChapterCompleted(chapterId) {
       return this.completedChapters.has(chapterId)
     },
@@ -522,10 +474,6 @@ export default {
     // #28 : logique pure déléguée à utils/lessonContent
     getEmbedUrl(url) {
       return getVideoEmbedUrl(url)
-    },
-
-    getSlideUrl(slide) {
-      return slideUrl(slide)
     },
 
     getPdfUrl(chapter) {
@@ -1042,119 +990,7 @@ export default {
   font-weight: 600;
 }
 
-/* SLIDES CONTENT */
-.slides-viewer {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.slide-display {
-  background: #000;
-  border-radius: 0.75rem;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  cursor: pointer;
-}
-
-.slide-image {
-  max-width: 100%;
-  max-height: 70vh;
-  object-fit: contain;
-}
-
-.slides-controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
-}
-
-.btn-slide {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 50%;
-  background: var(--card-bg, #1e293b);
-  border: 1px solid var(--border-primary, #334155);
-  color: var(--text-primary, #e2e8f0);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-
-.btn-slide:hover:not(:disabled) {
-  background: #3b82f6;
-  border-color: #3b82f6;
-  color: white;
-}
-
-.btn-slide:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.slide-counter {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--text-secondary, #94a3b8);
-}
-
-.slides-thumbnails {
-  display: flex;
-  gap: 0.5rem;
-  overflow-x: auto;
-  padding: 0.5rem 0;
-}
-
-.slide-thumb {
-  flex-shrink: 0;
-  width: 80px;
-  height: 50px;
-  border-radius: 0.375rem;
-  overflow: hidden;
-  border: 2px solid transparent;
-  cursor: pointer;
-  position: relative;
-  background: var(--bg-secondary, #334155);
-  padding: 0;
-}
-
-.slide-thumb.active {
-  border-color: #3b82f6;
-}
-
-.slide-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.thumb-number {
-  position: absolute;
-  bottom: 2px;
-  right: 4px;
-  font-size: 0.6rem;
-  font-weight: 700;
-  color: white;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-}
-
-.slides-empty {
-  text-align: center;
-  padding: 3rem;
-  color: var(--text-secondary, #94a3b8);
-}
-
-.slides-empty i {
-  font-size: 3rem;
-  opacity: 0.5;
-  margin-bottom: 1rem;
-}
+/* SLIDES CONTENT : déplacé dans SlidesViewer.vue (#28) */
 
 /* PDF CONTENT */
 .pdf-viewer {
@@ -1504,10 +1340,6 @@ export default {
 
   .nav-buttons {
     justify-content: space-between;
-  }
-
-  .slide-display {
-    min-height: 250px;
   }
 }
 </style>
