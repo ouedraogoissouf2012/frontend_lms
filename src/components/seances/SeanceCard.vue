@@ -195,7 +195,11 @@ defineProps({
 
 defineEmits(['activate', 'start', 'deactivate', 'join', 'end'])
 
-// Formatters locaux (copie exacte de l'ex-vue ; dédup vers utils/formatters = dette #23).
+// #23 : l'heure délègue au formatter centralisé (repli 'N/A' identique).
+import { formatTime as fmtTime } from '@/utils/formatters'
+
+// formatDate gardé local : format « ven. 19 juin 2026 » (weekday court + jour
+// numérique) sans équivalent canonique strict (#23 — pas de convergence forcée).
 function formatDate(dateStr) {
   if (!dateStr) return 'N/A'
   return new Date(dateStr).toLocaleDateString('fr-FR', {
@@ -207,11 +211,7 @@ function formatDate(dateStr) {
 }
 
 function formatTime(dateTimeStr) {
-  if (!dateTimeStr) return 'N/A'
-  return new Date(dateTimeStr).toLocaleTimeString('fr-FR', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+  return fmtTime(dateTimeStr, { fallback: 'N/A' })
 }
 </script>
 

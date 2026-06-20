@@ -140,6 +140,8 @@
  * Émet les intentions ; la logique (chargement, export) reste dans le parent.
  */
 import { getAttendanceStatusBadgeClass } from '@/utils/attendance'
+// #23 : format date/heure centralisé (parité exacte via fallback '-')
+import { formatDate as fmtDate, formatTime as fmtTime } from '@/utils/formatters'
 
 defineProps({
   selectedSeance: { type: Object, default: null },
@@ -151,20 +153,17 @@ defineProps({
 
 defineEmits(['close', 'export-pdf', 'export-excel', 'retry'])
 
-// Formatters locaux (copie exacte de l'ex-vue ; dédup vers utils/formatters = dette #23).
+// #23 : date/heure délèguent au formatter centralisé (repli '-' identique à l'origine).
 function formatDate(dateString) {
-  if (!dateString) return '-'
-  return new Date(dateString).toLocaleDateString('fr-FR')
+  return fmtDate(dateString, { fallback: '-' })
 }
 
 function formatTime(dateString) {
-  if (!dateString) return '-'
-  return new Date(dateString).toLocaleTimeString('fr-FR', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+  return fmtTime(dateString, { fallback: '-' })
 }
 
+// formatDuration NON convergé : sortie distincte du canonique
+// (Math.round vs Math.floor + « 45 min » avec espace) — gardé local (#23).
 function formatDuration(minutes) {
   if (!minutes || minutes === 0) return '-'
   const totalMinutes = Math.round(minutes)
