@@ -55,84 +55,23 @@
       </div>
     </div>
 
-    <!-- ========== FILTERS CARD ========== -->
-    <div class="filters-card card">
-      <div class="filters-header">
-        <div class="filters-title">
-          <i class="material-icons">filter_list</i>
-          <h3>Filtres</h3>
-        </div>
-        <button class="reset-button" @click="resetFilters()">
-          <i class="material-icons">refresh</i>
-          Réinitialiser
-        </button>
-      </div>
-
-      <div class="filters-content">
-        <!-- Filtre Type -->
-        <div class="filter-field">
-          <label><i class="material-icons icon-label">bookmark</i> Type</label>
-          <select v-model="eventTypeFilter">
-            <option value="all">Tous les types</option>
-            <option value="seances">Séances uniquement</option>
-            <option value="evaluations">Évaluations uniquement</option>
-          </select>
-        </div>
-
-        <!-- Filtre Période -->
-        <div class="filter-field">
-          <label><i class="material-icons icon-label">date_range</i> Période</label>
-          <select v-model="dateRangePreset" @change="applyDateRangePreset">
-            <option value="all">Tout</option>
-            <option value="today">Aujourd'hui</option>
-            <option value="week">Cette semaine</option>
-            <option value="month">Ce mois</option>
-            <option value="7days">7 prochains jours</option>
-            <option value="30days">30 prochains jours</option>
-            <option value="90days">90 prochains jours</option>
-          </select>
-        </div>
-
-        <!-- Filtre Matière (Enseignant/Admin/Coordinateur) -->
-        <div v-if="showMatiereFilter" class="filter-field">
-          <label><i class="material-icons icon-label">school</i> Matière</label>
-          <select v-model="selectedMatiere">
-            <option value="">Toutes les matières</option>
-            <option v-for="matiere in matieres" :key="matiere.id" :value="matiere.id">
-              {{ matiere.nom }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Filtre Classe (Admin/Coordinateur) -->
-        <div v-if="showClasseFilter" class="filter-field">
-          <label><i class="material-icons icon-label">people</i> Classe</label>
-          <select v-model="selectedClasse">
-            <option value="">Toutes les classes</option>
-            <option v-for="classe in classes" :key="classe.id" :value="classe.id">
-              {{ classe.nom }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Filtre Enseignant (Admin/Coordinateur) -->
-        <div v-if="showEnseignantFilter" class="filter-field">
-          <label><i class="material-icons icon-label">person</i> Enseignant</label>
-          <select v-model="selectedEnseignant">
-            <option value="">Tous les enseignants</option>
-            <option v-for="enseignant in enseignants" :key="enseignant.id" :value="enseignant.id">
-              {{ enseignant.nom }} {{ enseignant.prenom }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Compteur d'événements -->
-        <div class="filter-count">
-          <i class="material-icons">event_available</i>
-          <span>{{ filteredEvents.length }} événement(s) trouvé(s)</span>
-        </div>
-      </div>
-    </div>
+    <!-- ========== FILTERS CARD (#28bis : extraite en sous-composant) ========== -->
+    <CalendarFilters
+      v-model:event-type-filter="eventTypeFilter"
+      v-model:date-range-preset="dateRangePreset"
+      v-model:selected-matiere="selectedMatiere"
+      v-model:selected-classe="selectedClasse"
+      v-model:selected-enseignant="selectedEnseignant"
+      :matieres="matieres"
+      :classes="classes"
+      :enseignants="enseignants"
+      :show-matiere-filter="showMatiereFilter"
+      :show-classe-filter="showClasseFilter"
+      :show-enseignant-filter="showEnseignantFilter"
+      :event-count="filteredEvents.length"
+      @reset="resetFilters"
+      @apply-preset="applyDateRangePreset"
+    />
 
     <!-- ========== CALENDAR CARD ========== -->
     <div class="calendar-card card">
@@ -194,6 +133,7 @@ import frLocale from '@fullcalendar/core/locales/fr'
 import { lmsService } from '@/services/lms'
 import evaluationService from '@/services/evaluation'
 import EventDetailModal from './EventDetailModal.vue'
+import CalendarFilters from './CalendarFilters.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 // #28 : logique métier pure extraite (testée dans tests/unit/calendar.test.js)
 import {
@@ -830,124 +770,6 @@ $border-radius-full: 9999px;
             color: $white;
           }
         }
-      }
-    }
-  }
-}
-
-// ========== FILTERS ==========
-.filters-card {
-  .filters-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1.5rem;
-
-    .filters-title {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-
-      .material-icons {
-        color: $lms-blue;
-        font-size: 1.5rem;
-      }
-
-      h3 {
-        margin: 0;
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: $lms-blue;
-      }
-    }
-
-    .reset-button {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      border: none;
-      background: transparent;
-      color: var(--text-tertiary, $text-tertiary);
-      cursor: pointer;
-      transition: $transition-fast;
-      border-radius: $border-radius-md;
-      font-weight: 500;
-
-      &:hover {
-        background: var(--bg-hover, $gray-light);
-        color: $lms-blue;
-      }
-    }
-  }
-
-  .filters-content {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    align-items: end;
-
-    .filter-field {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-
-      label {
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: var(--text-secondary, $text-secondary);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-
-        .icon-label {
-          font-size: 1.125rem;
-          color: $lms-blue;
-        }
-      }
-
-      select {
-        padding: 0.75rem 1rem;
-        border: 1px solid var(--input-border, $gray-border);
-        border-radius: $border-radius-md;
-        background: var(--input-bg, $white);
-        color: var(--input-text, $text-primary);
-        font-size: 0.875rem;
-        cursor: pointer;
-        transition: $transition-fast;
-
-        option {
-          background: var(--bg-primary, $white);
-          color: var(--text-primary, $text-primary);
-        }
-
-        &:hover {
-          border-color: $lms-blue-light;
-        }
-
-        &:focus {
-          outline: none;
-          border-color: $lms-blue;
-          box-shadow: 0 0 0 3px rgba($lms-blue, 0.1);
-        }
-      }
-    }
-
-    .filter-count {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.75rem 1.5rem;
-      background: $lms-blue-dark;
-      border-radius: $border-radius-full;
-      color: $white;
-      font-weight: 600;
-      white-space: nowrap;
-      justify-self: end;
-
-      .material-icons {
-        color: $white;
-        font-size: 1.25rem;
       }
     }
   }
