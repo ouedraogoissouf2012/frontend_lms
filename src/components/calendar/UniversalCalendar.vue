@@ -55,84 +55,23 @@
       </div>
     </div>
 
-    <!-- ========== FILTERS CARD ========== -->
-    <div class="filters-card card">
-      <div class="filters-header">
-        <div class="filters-title">
-          <i class="material-icons">filter_list</i>
-          <h3>Filtres</h3>
-        </div>
-        <button class="reset-button" @click="resetFilters()">
-          <i class="material-icons">refresh</i>
-          Réinitialiser
-        </button>
-      </div>
-
-      <div class="filters-content">
-        <!-- Filtre Type -->
-        <div class="filter-field">
-          <label><i class="material-icons icon-label">bookmark</i> Type</label>
-          <select v-model="eventTypeFilter">
-            <option value="all">Tous les types</option>
-            <option value="seances">Séances uniquement</option>
-            <option value="evaluations">Évaluations uniquement</option>
-          </select>
-        </div>
-
-        <!-- Filtre Période -->
-        <div class="filter-field">
-          <label><i class="material-icons icon-label">date_range</i> Période</label>
-          <select v-model="dateRangePreset" @change="applyDateRangePreset">
-            <option value="all">Tout</option>
-            <option value="today">Aujourd'hui</option>
-            <option value="week">Cette semaine</option>
-            <option value="month">Ce mois</option>
-            <option value="7days">7 prochains jours</option>
-            <option value="30days">30 prochains jours</option>
-            <option value="90days">90 prochains jours</option>
-          </select>
-        </div>
-
-        <!-- Filtre Matière (Enseignant/Admin/Coordinateur) -->
-        <div v-if="showMatiereFilter" class="filter-field">
-          <label><i class="material-icons icon-label">school</i> Matière</label>
-          <select v-model="selectedMatiere">
-            <option value="">Toutes les matières</option>
-            <option v-for="matiere in matieres" :key="matiere.id" :value="matiere.id">
-              {{ matiere.nom }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Filtre Classe (Admin/Coordinateur) -->
-        <div v-if="showClasseFilter" class="filter-field">
-          <label><i class="material-icons icon-label">people</i> Classe</label>
-          <select v-model="selectedClasse">
-            <option value="">Toutes les classes</option>
-            <option v-for="classe in classes" :key="classe.id" :value="classe.id">
-              {{ classe.nom }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Filtre Enseignant (Admin/Coordinateur) -->
-        <div v-if="showEnseignantFilter" class="filter-field">
-          <label><i class="material-icons icon-label">person</i> Enseignant</label>
-          <select v-model="selectedEnseignant">
-            <option value="">Tous les enseignants</option>
-            <option v-for="enseignant in enseignants" :key="enseignant.id" :value="enseignant.id">
-              {{ enseignant.nom }} {{ enseignant.prenom }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Compteur d'événements -->
-        <div class="filter-count">
-          <i class="material-icons">event_available</i>
-          <span>{{ filteredEvents.length }} événement(s) trouvé(s)</span>
-        </div>
-      </div>
-    </div>
+    <!-- ========== FILTERS CARD (#28bis : extraite en sous-composant) ========== -->
+    <CalendarFilters
+      v-model:event-type-filter="eventTypeFilter"
+      v-model:date-range-preset="dateRangePreset"
+      v-model:selected-matiere="selectedMatiere"
+      v-model:selected-classe="selectedClasse"
+      v-model:selected-enseignant="selectedEnseignant"
+      :matieres="matieres"
+      :classes="classes"
+      :enseignants="enseignants"
+      :show-matiere-filter="showMatiereFilter"
+      :show-classe-filter="showClasseFilter"
+      :show-enseignant-filter="showEnseignantFilter"
+      :event-count="filteredEvents.length"
+      @reset="resetFilters"
+      @apply-preset="applyDateRangePreset"
+    />
 
     <!-- ========== CALENDAR CARD ========== -->
     <div class="calendar-card card">
@@ -191,18 +130,12 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import frLocale from '@fullcalendar/core/locales/fr'
-import { lmsService } from '@/services/lms'
-import evaluationService from '@/services/evaluation'
 import EventDetailModal from './EventDetailModal.vue'
+import CalendarFilters from './CalendarFilters.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
-// #28 : logique métier pure extraite (testée dans tests/unit/calendar.test.js)
-import {
-  determineSeanceColor,
-  determineEvaluationColor,
-  isEvaluationUrgent,
-  getDateRangeStart,
-  getDateRangeEnd
-} from '@/utils/calendar'
+// #28bis : données + chargement extraits dans le composable (couleurs/urgence/bornes
+// pures dans @/utils/calendar, testées dans tests/unit/calendar.test.js)
+import { useCalendarEvents } from '@/composables/useCalendarEvents'
 
 const props = defineProps({
   userRole: {
@@ -222,8 +155,6 @@ const router = useRouter()
 const calendarRef = ref(null)
 const currentView = ref('dayGridMonth')
 const currentDate = ref(new Date())  // Pour forcer la réactivité du label
-const loading = ref(true)
-const refreshing = ref(false)
 const selectedEvent = ref(null)
 
 // Filtres
@@ -233,11 +164,13 @@ const selectedMatiere = ref('')
 const selectedClasse = ref('')
 const selectedEnseignant = ref('')
 
-// Données
-const events = ref([])
-const matieres = ref([])
-const classes = ref([])
-const enseignants = ref([])
+// Données + chargement délégués au composable (#28bis : script < 300)
+const { events, matieres, classes, enseignants, loading, refreshing, loadEvents, refreshData } = useCalendarEvents({
+  getUserRole: () => props.userRole,
+  getUserId: () => props.userId,
+  eventTypeFilter,
+  dateRangePreset
+})
 
 // Computed - Label mois courant
 const currentMonthLabel = computed(() => {
@@ -338,200 +271,8 @@ const calendarOptions = computed(() => ({
 }))
 
 // Charger les données
-async function loadEvents(forceRefresh = false) {
-  loading.value = true
-  try {
-    const allEvents = []
-
-    // Charger les séances
-    if (eventTypeFilter.value !== 'evaluations') {
-      const seances = await loadSeances(forceRefresh)
-      allEvents.push(...seances)
-    }
-
-    // Charger les évaluations
-    if (eventTypeFilter.value !== 'seances') {
-      const evaluations = await loadEvaluations()
-      allEvents.push(...evaluations)
-    }
-
-    events.value = allEvents
-
-    // Charger les options de filtres
-    await loadFilterOptions()
-  } catch (error) {
-    console.error('Erreur lors du chargement des événements:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-async function loadSeances(forceRefresh = false) {
-  try {
-    let response
-
-    switch (props.userRole) {
-      case 'student':
-        response = await lmsService.getMyClassesSeances(forceRefresh)
-        break
-      case 'teacher':
-        response = await lmsService.getMyTeachingSeances(forceRefresh)
-        break
-      case 'coordinator':
-      case 'admin':
-        response = await lmsService.getUpcomingSeances({
-          date_debut: getDateRangeStart(dateRangePreset.value),
-          date_fin: getDateRangeEnd(dateRangePreset.value),
-          refresh: forceRefresh
-        })
-        break
-    }
-
-    // Correction: l'API retourne { success: true, data: [...] }
-    const seances = Array.isArray(response?.data) ? response.data :
-                    Array.isArray(response) ? response : []
-
-    return seances.map(seance => ({
-      id: `seance-${seance.id}`,
-      title: `${seance.matiere?.nom || seance.matiere_nom || 'Cours'} - ${seance.classe?.nom || seance.classe_nom || ''}`,
-      start: seance.programmation?.heure_debut || seance.date_seance,
-      end: seance.programmation?.heure_fin,
-      backgroundColor: determineSeanceColor(seance),
-      borderColor: determineSeanceColor(seance),
-      extendedProps: {
-        eventType: 'seance',
-        data: seance,
-        matiereId: seance.matiere?.id || seance.klassci_matiere_id,
-        classeId: seance.classe?.id || seance.klassci_classe_id,
-        enseignantId: seance.enseignant?.id || seance.klassci_enseignant_id,
-        isUrgent: false
-      }
-    }))
-  } catch (error) {
-    console.error('Erreur chargement séances:', error)
-    return []
-  }
-}
-
-async function loadEvaluations() {
-  try {
-    let response
-
-    switch (props.userRole) {
-      case 'student':
-        if (props.userId) {
-          // #17 Ék-6 : évals de l'étudiant connecté (identité dérivée du token, anti-IDOR)
-          response = await evaluationService.getStudentEvaluations()
-        }
-        break
-      case 'teacher':
-      case 'coordinator':
-      case 'admin':
-        response = await evaluationService.getEvaluations({
-          date_debut: getDateRangeStart(dateRangePreset.value),
-          date_fin: getDateRangeEnd(dateRangePreset.value)
-        })
-        break
-    }
-
-    // Correction: l'API retourne { success: true, data: [...] }
-    const evaluations = Array.isArray(response?.data) ? response.data :
-                        Array.isArray(response) ? response : []
-
-    return evaluations.map(evaluation => {
-      // Calcul de la date de fin basee sur la duree
-      const startDateStr = evaluation.programmation?.date_evaluation || evaluation.date_evaluation
-      const startDate = startDateStr ? new Date(startDateStr) : null
-      const endDate = startDate && !isNaN(startDate.getTime())
-        ? new Date(startDate.getTime() + (evaluation.duree_minutes || 60) * 60000)
-        : null
-
-      return {
-        id: `eval-${evaluation.id}`,
-        title: evaluation.titre,
-        start: startDate,
-        end: endDate,
-        backgroundColor: determineEvaluationColor(evaluation),
-        borderColor: determineEvaluationColor(evaluation),
-        extendedProps: {
-          eventType: 'evaluation',
-          data: evaluation,
-          matiereId: evaluation.klassci_matiere_id,
-          classeId: evaluation.klassci_classe_id,
-          enseignantId: evaluation.klassci_enseignant_id,
-          isUrgent: isEvaluationUrgent(evaluation)
-        }
-      }
-    })
-  } catch (error) {
-    console.error('Erreur chargement évaluations:', error)
-    return []
-  }
-}
-
-async function loadFilterOptions() {
-  try {
-    // Extraire les options uniques des événements
-    const allMatieres = new Map()
-    const allClasses = new Map()
-    const allEnseignants = new Map()
-
-    events.value.forEach(event => {
-      const data = event.extendedProps.data
-
-      // Matières
-      if (data.matiere?.id) {
-        allMatieres.set(data.matiere.id, { id: data.matiere.id, nom: data.matiere.nom })
-      } else if (data.matiere_nom) {
-        allMatieres.set(data.klassci_matiere_id, { id: data.klassci_matiere_id, nom: data.matiere_nom })
-      }
-
-      // Classes
-      if (data.classe?.id) {
-        allClasses.set(data.classe.id, { id: data.classe.id, nom: data.classe.nom })
-      } else if (data.classe_nom) {
-        allClasses.set(data.klassci_classe_id, { id: data.klassci_classe_id, nom: data.classe_nom })
-      }
-
-      // Enseignants
-      if (data.enseignant?.id) {
-        allEnseignants.set(data.enseignant.id, {
-          id: data.enseignant.id,
-          nom: data.enseignant.nom,
-          prenom: data.enseignant.prenom || ''
-        })
-      } else if (data.enseignant_nom) {
-        allEnseignants.set(data.klassci_enseignant_id, {
-          id: data.klassci_enseignant_id,
-          nom: data.enseignant_nom,
-          prenom: ''
-        })
-      }
-    })
-
-    matieres.value = Array.from(allMatieres.values()).sort((a, b) => a.nom.localeCompare(b.nom))
-    classes.value = Array.from(allClasses.values()).sort((a, b) => a.nom.localeCompare(b.nom))
-    enseignants.value = Array.from(allEnseignants.values()).sort((a, b) => a.nom.localeCompare(b.nom))
-  } catch (error) {
-    console.error('Erreur chargement options de filtres:', error)
-  }
-}
-
 function applyDateRangePreset() {
   loadEvents()
-}
-
-// Actualiser les donnees depuis KLASSCI (bypass cache)
-async function refreshData() {
-  refreshing.value = true
-  try {
-    // Recharger les evenements avec le parametre refresh
-    await loadEvents(true)
-  } catch (error) {
-    console.error('Erreur lors du rafraichissement:', error)
-  } finally {
-    refreshing.value = false
-  }
 }
 
 function changeView(view) {
@@ -615,10 +356,9 @@ watch(filteredEvents, (newEvents) => {
   }
 }, { deep: true, immediate: true })
 
-// Exposer les methodes pour le parent
+// Exposer les methodes pour le parent (force le bypass cache KLASSCI des 2 sources)
 async function refreshEvents() {
-  await loadSeances(true)
-  await loadEvents()
+  await refreshData()
 }
 
 defineExpose({
@@ -830,124 +570,6 @@ $border-radius-full: 9999px;
             color: $white;
           }
         }
-      }
-    }
-  }
-}
-
-// ========== FILTERS ==========
-.filters-card {
-  .filters-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1.5rem;
-
-    .filters-title {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-
-      .material-icons {
-        color: $lms-blue;
-        font-size: 1.5rem;
-      }
-
-      h3 {
-        margin: 0;
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: $lms-blue;
-      }
-    }
-
-    .reset-button {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      border: none;
-      background: transparent;
-      color: var(--text-tertiary, $text-tertiary);
-      cursor: pointer;
-      transition: $transition-fast;
-      border-radius: $border-radius-md;
-      font-weight: 500;
-
-      &:hover {
-        background: var(--bg-hover, $gray-light);
-        color: $lms-blue;
-      }
-    }
-  }
-
-  .filters-content {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    align-items: end;
-
-    .filter-field {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-
-      label {
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: var(--text-secondary, $text-secondary);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-
-        .icon-label {
-          font-size: 1.125rem;
-          color: $lms-blue;
-        }
-      }
-
-      select {
-        padding: 0.75rem 1rem;
-        border: 1px solid var(--input-border, $gray-border);
-        border-radius: $border-radius-md;
-        background: var(--input-bg, $white);
-        color: var(--input-text, $text-primary);
-        font-size: 0.875rem;
-        cursor: pointer;
-        transition: $transition-fast;
-
-        option {
-          background: var(--bg-primary, $white);
-          color: var(--text-primary, $text-primary);
-        }
-
-        &:hover {
-          border-color: $lms-blue-light;
-        }
-
-        &:focus {
-          outline: none;
-          border-color: $lms-blue;
-          box-shadow: 0 0 0 3px rgba($lms-blue, 0.1);
-        }
-      }
-    }
-
-    .filter-count {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.75rem 1.5rem;
-      background: $lms-blue-dark;
-      border-radius: $border-radius-full;
-      color: $white;
-      font-weight: 600;
-      white-space: nowrap;
-      justify-self: end;
-
-      .material-icons {
-        color: $white;
-        font-size: 1.25rem;
       }
     }
   }
