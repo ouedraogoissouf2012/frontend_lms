@@ -130,19 +130,12 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import frLocale from '@fullcalendar/core/locales/fr'
-import { lmsService } from '@/services/lms'
-import evaluationService from '@/services/evaluation'
 import EventDetailModal from './EventDetailModal.vue'
 import CalendarFilters from './CalendarFilters.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
-// #28 : logique métier pure extraite (testée dans tests/unit/calendar.test.js)
-import {
-  determineSeanceColor,
-  determineEvaluationColor,
-  isEvaluationUrgent,
-  getDateRangeStart,
-  getDateRangeEnd
-} from '@/utils/calendar'
+// #28bis : données + chargement extraits dans le composable (couleurs/urgence/bornes
+// pures dans @/utils/calendar, testées dans tests/unit/calendar.test.js)
+import { useCalendarEvents } from '@/composables/useCalendarEvents'
 
 const props = defineProps({
   userRole: {
@@ -162,8 +155,6 @@ const router = useRouter()
 const calendarRef = ref(null)
 const currentView = ref('dayGridMonth')
 const currentDate = ref(new Date())  // Pour forcer la réactivité du label
-const loading = ref(true)
-const refreshing = ref(false)
 const selectedEvent = ref(null)
 
 // Filtres
@@ -173,11 +164,13 @@ const selectedMatiere = ref('')
 const selectedClasse = ref('')
 const selectedEnseignant = ref('')
 
-// Données
-const events = ref([])
-const matieres = ref([])
-const classes = ref([])
-const enseignants = ref([])
+// Données + chargement délégués au composable (#28bis : script < 300)
+const { events, matieres, classes, enseignants, loading, refreshing, loadEvents, refreshData } = useCalendarEvents({
+  getUserRole: () => props.userRole,
+  getUserId: () => props.userId,
+  eventTypeFilter,
+  dateRangePreset
+})
 
 // Computed - Label mois courant
 const currentMonthLabel = computed(() => {
@@ -278,200 +271,8 @@ const calendarOptions = computed(() => ({
 }))
 
 // Charger les données
-async function loadEvents(forceRefresh = false) {
-  loading.value = true
-  try {
-    const allEvents = []
-
-    // Charger les séances
-    if (eventTypeFilter.value !== 'evaluations') {
-      const seances = await loadSeances(forceRefresh)
-      allEvents.push(...seances)
-    }
-
-    // Charger les évaluations
-    if (eventTypeFilter.value !== 'seances') {
-      const evaluations = await loadEvaluations()
-      allEvents.push(...evaluations)
-    }
-
-    events.value = allEvents
-
-    // Charger les options de filtres
-    await loadFilterOptions()
-  } catch (error) {
-    console.error('Erreur lors du chargement des événements:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-async function loadSeances(forceRefresh = false) {
-  try {
-    let response
-
-    switch (props.userRole) {
-      case 'student':
-        response = await lmsService.getMyClassesSeances(forceRefresh)
-        break
-      case 'teacher':
-        response = await lmsService.getMyTeachingSeances(forceRefresh)
-        break
-      case 'coordinator':
-      case 'admin':
-        response = await lmsService.getUpcomingSeances({
-          date_debut: getDateRangeStart(dateRangePreset.value),
-          date_fin: getDateRangeEnd(dateRangePreset.value),
-          refresh: forceRefresh
-        })
-        break
-    }
-
-    // Correction: l'API retourne { success: true, data: [...] }
-    const seances = Array.isArray(response?.data) ? response.data :
-                    Array.isArray(response) ? response : []
-
-    return seances.map(seance => ({
-      id: `seance-${seance.id}`,
-      title: `${seance.matiere?.nom || seance.matiere_nom || 'Cours'} - ${seance.classe?.nom || seance.classe_nom || ''}`,
-      start: seance.programmation?.heure_debut || seance.date_seance,
-      end: seance.programmation?.heure_fin,
-      backgroundColor: determineSeanceColor(seance),
-      borderColor: determineSeanceColor(seance),
-      extendedProps: {
-        eventType: 'seance',
-        data: seance,
-        matiereId: seance.matiere?.id || seance.klassci_matiere_id,
-        classeId: seance.classe?.id || seance.klassci_classe_id,
-        enseignantId: seance.enseignant?.id || seance.klassci_enseignant_id,
-        isUrgent: false
-      }
-    }))
-  } catch (error) {
-    console.error('Erreur chargement séances:', error)
-    return []
-  }
-}
-
-async function loadEvaluations() {
-  try {
-    let response
-
-    switch (props.userRole) {
-      case 'student':
-        if (props.userId) {
-          // #17 Ék-6 : évals de l'étudiant connecté (identité dérivée du token, anti-IDOR)
-          response = await evaluationService.getStudentEvaluations()
-        }
-        break
-      case 'teacher':
-      case 'coordinator':
-      case 'admin':
-        response = await evaluationService.getEvaluations({
-          date_debut: getDateRangeStart(dateRangePreset.value),
-          date_fin: getDateRangeEnd(dateRangePreset.value)
-        })
-        break
-    }
-
-    // Correction: l'API retourne { success: true, data: [...] }
-    const evaluations = Array.isArray(response?.data) ? response.data :
-                        Array.isArray(response) ? response : []
-
-    return evaluations.map(evaluation => {
-      // Calcul de la date de fin basee sur la duree
-      const startDateStr = evaluation.programmation?.date_evaluation || evaluation.date_evaluation
-      const startDate = startDateStr ? new Date(startDateStr) : null
-      const endDate = startDate && !isNaN(startDate.getTime())
-        ? new Date(startDate.getTime() + (evaluation.duree_minutes || 60) * 60000)
-        : null
-
-      return {
-        id: `eval-${evaluation.id}`,
-        title: evaluation.titre,
-        start: startDate,
-        end: endDate,
-        backgroundColor: determineEvaluationColor(evaluation),
-        borderColor: determineEvaluationColor(evaluation),
-        extendedProps: {
-          eventType: 'evaluation',
-          data: evaluation,
-          matiereId: evaluation.klassci_matiere_id,
-          classeId: evaluation.klassci_classe_id,
-          enseignantId: evaluation.klassci_enseignant_id,
-          isUrgent: isEvaluationUrgent(evaluation)
-        }
-      }
-    })
-  } catch (error) {
-    console.error('Erreur chargement évaluations:', error)
-    return []
-  }
-}
-
-async function loadFilterOptions() {
-  try {
-    // Extraire les options uniques des événements
-    const allMatieres = new Map()
-    const allClasses = new Map()
-    const allEnseignants = new Map()
-
-    events.value.forEach(event => {
-      const data = event.extendedProps.data
-
-      // Matières
-      if (data.matiere?.id) {
-        allMatieres.set(data.matiere.id, { id: data.matiere.id, nom: data.matiere.nom })
-      } else if (data.matiere_nom) {
-        allMatieres.set(data.klassci_matiere_id, { id: data.klassci_matiere_id, nom: data.matiere_nom })
-      }
-
-      // Classes
-      if (data.classe?.id) {
-        allClasses.set(data.classe.id, { id: data.classe.id, nom: data.classe.nom })
-      } else if (data.classe_nom) {
-        allClasses.set(data.klassci_classe_id, { id: data.klassci_classe_id, nom: data.classe_nom })
-      }
-
-      // Enseignants
-      if (data.enseignant?.id) {
-        allEnseignants.set(data.enseignant.id, {
-          id: data.enseignant.id,
-          nom: data.enseignant.nom,
-          prenom: data.enseignant.prenom || ''
-        })
-      } else if (data.enseignant_nom) {
-        allEnseignants.set(data.klassci_enseignant_id, {
-          id: data.klassci_enseignant_id,
-          nom: data.enseignant_nom,
-          prenom: ''
-        })
-      }
-    })
-
-    matieres.value = Array.from(allMatieres.values()).sort((a, b) => a.nom.localeCompare(b.nom))
-    classes.value = Array.from(allClasses.values()).sort((a, b) => a.nom.localeCompare(b.nom))
-    enseignants.value = Array.from(allEnseignants.values()).sort((a, b) => a.nom.localeCompare(b.nom))
-  } catch (error) {
-    console.error('Erreur chargement options de filtres:', error)
-  }
-}
-
 function applyDateRangePreset() {
   loadEvents()
-}
-
-// Actualiser les donnees depuis KLASSCI (bypass cache)
-async function refreshData() {
-  refreshing.value = true
-  try {
-    // Recharger les evenements avec le parametre refresh
-    await loadEvents(true)
-  } catch (error) {
-    console.error('Erreur lors du rafraichissement:', error)
-  } finally {
-    refreshing.value = false
-  }
 }
 
 function changeView(view) {
@@ -555,10 +356,9 @@ watch(filteredEvents, (newEvents) => {
   }
 }, { deep: true, immediate: true })
 
-// Exposer les methodes pour le parent
+// Exposer les methodes pour le parent (force le bypass cache KLASSCI des 2 sources)
 async function refreshEvents() {
-  await loadSeances(true)
-  await loadEvents()
+  await refreshData()
 }
 
 defineExpose({
