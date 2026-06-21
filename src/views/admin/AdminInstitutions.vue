@@ -477,67 +477,18 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+@use '../../assets/styles/admin-shared';
+
 .admin-institutions-container {
   padding: var(--spacing-xl);
   max-width: 1400px;
   margin: 0 auto;
 }
 
-/* Header Section */
-.header-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-xl);
-  gap: var(--spacing-lg);
-}
-
-.header-content {
-  flex: 1;
-}
-
-.page-title {
-  font-size: var(--font-size-3xl);
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 var(--spacing-xs) 0;
-}
-
-.page-subtitle {
-  font-size: var(--font-size-md);
-  color: var(--text-secondary);
-  margin: 0;
-}
-
 .header-actions {
   display: flex;
   gap: var(--spacing-sm);
-}
-
-.refresh-btn {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-md) var(--spacing-lg);
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  color: var(--text-primary);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.refresh-btn:hover:not(:disabled) {
-  background: var(--hover-bg);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.refresh-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 .create-btn {
@@ -571,22 +522,6 @@ onMounted(() => {
   margin-bottom: var(--spacing-xl);
 }
 
-.stat-card {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-xl);
-  padding: var(--spacing-lg);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  transition: all var(--transition-fast);
-}
-
-.stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-}
-
 .stat-icon {
   font-size: 1.5rem;
   width: 52px;
@@ -609,11 +544,6 @@ onMounted(() => {
 
 .stat-icon-purple {
   background: linear-gradient(135deg, #a855f7, #9333ea);
-}
-
-.stat-details {
-  display: flex;
-  flex-direction: column;
 }
 
 .stat-value {
@@ -906,11 +836,6 @@ onMounted(() => {
   transition: all var(--transition-fast);
 }
 
-.close-btn:hover {
-  background: var(--hover-bg);
-  color: var(--text-primary);
-}
-
 .modal-body {
   padding: var(--spacing-xl);
 }
@@ -939,10 +864,6 @@ onMounted(() => {
   background: var(--bg-secondary);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
-}
-
-.modal-btn-secondary:hover {
-  background: var(--hover-bg);
 }
 
 .modal-btn-primary {
