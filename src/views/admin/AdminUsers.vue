@@ -13,61 +13,19 @@
         </button>
       </div>
 
-      <!-- Stats Cards -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <i class="fa fa-users stat-icon"></i>
-          <div class="stat-details">
-            <span class="stat-value">{{ totalUsers }}</span>
-            <span class="stat-label">Total Utilisateurs</span>
-          </div>
-        </div>
-        <div class="stat-card">
-          <i class="fa fa-graduation-cap stat-icon"></i>
-          <div class="stat-details">
-            <span class="stat-value">{{ etudiants.length }}</span>
-            <span class="stat-label">Étudiants</span>
-          </div>
-        </div>
-        <div class="stat-card">
-          <i class="fa fa-user stat-icon"></i>
-          <div class="stat-details">
-            <span class="stat-value">{{ enseignants.length }}</span>
-            <span class="stat-label">Enseignants</span>
-          </div>
-        </div>
-        <div class="stat-card">
-          <i class="fa fa-building stat-icon"></i>
-          <div class="stat-details">
-            <span class="stat-value">{{ classes.length }}</span>
-            <span class="stat-label">Classes</span>
-          </div>
-        </div>
-      </div>
+      <UsersStatsCards
+        :total="totalUsers"
+        :etudiants="etudiants.length"
+        :enseignants="enseignants.length"
+        :classes="classes.length"
+      />
 
-      <!-- Filters -->
-      <div class="filters-section">
-        <div class="search-box">
-          <i class="fa fa-search search-icon"></i>
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Rechercher par nom ou email..."
-            class="search-input"
-          />
-        </div>
-        <div class="filter-group">
-          <select v-model="filterRole" class="filter-select">
-            <option value="all">Tous les rôles</option>
-            <option value="etudiant">Étudiants</option>
-            <option value="enseignant">Enseignants</option>
-          </select>
-          <select v-model="filterClasse" class="filter-select">
-            <option value="all">Toutes les classes</option>
-            <option v-for="c in classes" :key="c.id" :value="c.id">{{ c.nom }}</option>
-          </select>
-        </div>
-      </div>
+      <UsersFilters
+        v-model:search="searchQuery"
+        v-model:role="filterRole"
+        v-model:classe="filterClasse"
+        :classes="classes"
+      />
 
       <!-- Loading State -->
       <div v-if="loading" class="loading-state">
@@ -97,343 +55,46 @@
       </div>
 
       <!-- Users Table -->
-      <div v-else class="users-table-wrapper">
-        <table class="users-table">
-          <thead>
-            <tr>
-              <th @click="sortBy('name')" class="sortable">
-                Nom
-                <i v-if="sortField === 'name'" :class="sortAsc ? 'fa fa-sort-up' : 'fa fa-sort-down'"></i>
-              </th>
-              <th @click="sortBy('email')" class="sortable">
-                Email
-                <i v-if="sortField === 'email'" :class="sortAsc ? 'fa fa-sort-up' : 'fa fa-sort-down'"></i>
-              </th>
-              <th @click="sortBy('role')" class="sortable">
-                Rôle
-                <i v-if="sortField === 'role'" :class="sortAsc ? 'fa fa-sort-up' : 'fa fa-sort-down'"></i>
-              </th>
-              <th>Classe</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="user in paginatedUsers" :key="user._uid" @click="selectUser(user)" class="user-row">
-              <td>
-                <div class="user-name-cell">
-                  <div class="user-avatar" :class="'avatar-' + user.role">
-                    <span>{{ getInitials(user) }}</span>
-                  </div>
-                  <span class="user-name">{{ user.name }}</span>
-                </div>
-              </td>
-              <td class="user-email">{{ user.email || 'Non disponible' }}</td>
-              <td>
-                <span class="role-badge" :class="'role-' + user.role">
-                  {{ getRoleLabel(user.role) }}
-                </span>
-              </td>
-              <td class="user-classe">{{ user.classe_nom || '-' }}</td>
-              <td>
-                <button class="action-btn" @click.stop="selectUser(user)">
-                  <i class="fa fa-eye"></i>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <UsersTable
+        v-else
+        :users="paginatedUsers"
+        :sort-field="sortField"
+        :sort-asc="sortAsc"
+        v-model:current-page="currentPage"
+        :total-pages="totalPages"
+        :filtered-count="filteredUsers.length"
+        @sort="sortBy"
+        @select="selectUser"
+      />
 
-        <!-- Pagination -->
-        <div class="pagination" v-if="totalPages > 1">
-          <button
-            class="page-btn"
-            :disabled="currentPage === 1"
-            @click="currentPage = 1"
-          >
-            <i class="fa fa-angle-double-left"></i>
-          </button>
-          <button
-            class="page-btn"
-            :disabled="currentPage === 1"
-            @click="currentPage--"
-          >
-            <i class="fa fa-angle-left"></i>
-          </button>
-          <span class="page-info">
-            Page {{ currentPage }} / {{ totalPages }}
-            <span class="page-total">({{ filteredUsers.length }} utilisateurs)</span>
-          </span>
-          <button
-            class="page-btn"
-            :disabled="currentPage === totalPages"
-            @click="currentPage++"
-          >
-            <i class="fa fa-angle-right"></i>
-          </button>
-          <button
-            class="page-btn"
-            :disabled="currentPage === totalPages"
-            @click="currentPage = totalPages"
-          >
-            <i class="fa fa-angle-double-right"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- User Detail Modal -->
       <UserDetailModal :user="selectedUser" @close="closeModal" />
     </div>
   </DashboardLayout>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { getInitials } from '@/utils/formatters'
-import { getRoleLabel } from '@/utils/userRoles'
-import UserDetailModal from '@/components/admin/UserDetailModal.vue'
+/**
+ * Gestion des utilisateurs (admin). Orchestrateur (#G1 ≤300) : la donnée et la
+ * logique vivent dans useAdminUsers ; l'UI est composée de UsersStatsCards,
+ * UsersFilters, UsersTable et UserDetailModal.
+ */
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-import klassciService from '@/services/klassci'
-import { readCache, writeCache } from '@/services/cache'
-const PAGE_SIZE = 25
+import UserDetailModal from '@/components/admin/UserDetailModal.vue'
+import UsersStatsCards from '@/components/admin/UsersStatsCards.vue'
+import UsersFilters from '@/components/admin/UsersFilters.vue'
+import UsersTable from '@/components/admin/UsersTable.vue'
+import { useAdminUsers } from '@/composables/useAdminUsers'
 
-// Data
-const etudiants = ref([])
-const enseignants = ref([])
-const classes = ref([])
-const loading = ref(true)
-const loadingProgress = ref('')
-const error = ref(null)
-const selectedUser = ref(null)
-
-// Filters
-const searchQuery = ref('')
-const filterRole = ref('all')
-const filterClasse = ref('all')
-const currentPage = ref(1)
-const sortField = ref('name')
-const sortAsc = ref(true)
-
-// Reset page on filter change
-watch([searchQuery, filterRole, filterClasse], () => {
-  currentPage.value = 1
-})
-
-// All users combined
-const allUsers = computed(() => {
-  const users = []
-
-  // Add étudiants
-  etudiants.value.forEach(e => {
-    users.push({
-      _uid: `etu-${e.id}`,
-      klassci_id: e.id,
-      name: e.name || e.nom || `${e.prenom || ''} ${e.nom || ''}`.trim(),
-      email: e.email,
-      role: 'etudiant',
-      classe_id: e.classe_id,
-      classe_nom: e.classe_nom,
-      matricule: e.matricule,
-      telephone: e.telephone,
-    })
-  })
-
-  // Add enseignants
-  enseignants.value.forEach(e => {
-    users.push({
-      _uid: `ens-${e.id || e.teacher_id}`,
-      klassci_id: e.id || e.teacher_id,
-      name: e.nom || e.name || `${e.prenom || ''} ${e.nom || ''}`.trim(),
-      email: e.email,
-      role: 'enseignant',
-      classe_id: null,
-      classe_nom: null,
-      matricule: e.matricule,
-      telephone: e.telephone,
-      specialization: e.specialization,
-    })
-  })
-
-  return users
-})
-
-const totalUsers = computed(() => allUsers.value.length)
-
-// Filtered users
-const filteredUsers = computed(() => {
-  let result = allUsers.value
-
-  // Filter by role
-  if (filterRole.value !== 'all') {
-    result = result.filter(u => u.role === filterRole.value)
-  }
-
-  // Filter by classe
-  if (filterClasse.value !== 'all') {
-    result = result.filter(u => u.classe_id === filterClasse.value)
-  }
-
-  // Filter by search query
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.toLowerCase().trim()
-    result = result.filter(u =>
-      (u.name && u.name.toLowerCase().includes(q)) ||
-      (u.email && u.email.toLowerCase().includes(q))
-    )
-  }
-
-  // Sort
-  result.sort((a, b) => {
-    const valA = (a[sortField.value] || '').toString().toLowerCase()
-    const valB = (b[sortField.value] || '').toString().toLowerCase()
-    const cmp = valA.localeCompare(valB)
-    return sortAsc.value ? cmp : -cmp
-  })
-
-  return result
-})
-
-// Pagination
-const totalPages = computed(() => Math.max(1, Math.ceil(filteredUsers.value.length / PAGE_SIZE)))
-
-const paginatedUsers = computed(() => {
-  const start = (currentPage.value - 1) * PAGE_SIZE
-  return filteredUsers.value.slice(start, start + PAGE_SIZE)
-})
-
-// Sort function
-function sortBy(field) {
-  if (sortField.value === field) {
-    sortAsc.value = !sortAsc.value
-  } else {
-    sortField.value = field
-    sortAsc.value = true
-  }
-}
-
-// Get role label
-
-// Select user
-function selectUser(user) {
-  selectedUser.value = user
-}
-
-// Close modal
-function closeModal() {
-  selectedUser.value = null
-}
-
-// Load all users
-async function loadAllUsers(forceReload = false) {
-  try {
-    loading.value = true
-    error.value = null
-    loadingProgress.value = ''
-
-    // Check cache
-    if (!forceReload) {
-      const cached = readCache('admin_users')
-      if (cached && cached.etudiants?.length > 0) {
-        etudiants.value = cached.etudiants
-        enseignants.value = cached.enseignants || []
-        classes.value = cached.classes || []
-        loading.value = false
-        refreshInBackground()
-        return
-      }
-    }
-
-    // 1. Load classes
-    loadingProgress.value = 'Chargement des classes...'
-    const classesData = await klassciService.getClasses()
-    classes.value = Array.isArray(classesData) ? classesData : []
-
-    // 2. Load enseignants
-    loadingProgress.value = 'Chargement des enseignants...'
-    const enseignantsData = await klassciService.getEnseignants()
-    enseignants.value = Array.isArray(enseignantsData) ? enseignantsData : []
-
-    // 3. Load étudiants for each class
-    loadingProgress.value = 'Chargement des étudiants...'
-    const allEtudiants = []
-
-    for (const classe of classes.value) {
-      try {
-        loadingProgress.value = `Chargement des étudiants de ${classe.nom || 'classe ' + classe.id}...`
-        const etudiantsData = await klassciService.getClasseEtudiants(classe.id)
-        const studentsArray = Array.isArray(etudiantsData) ? etudiantsData : []
-        studentsArray.forEach(etu => {
-          etu.classe_id = classe.id
-          etu.classe_nom = classe.name || classe.libelle || classe.nom || `Classe ${classe.id}`
-          allEtudiants.push(etu)
-        })
-      } catch (err) {
-        console.warn(`Impossible de charger les étudiants de la classe ${classe.id}:`, err.message)
-      }
-    }
-
-    etudiants.value = allEtudiants
-
-    // Save cache
-    writeCache('admin_users', {
-      etudiants: etudiants.value,
-      enseignants: enseignants.value,
-      classes: classes.value,
-    })
-
-    loading.value = false
-    loadingProgress.value = ''
-  } catch (err) {
-    console.error('Erreur chargement utilisateurs:', err)
-    error.value = err.message || 'Erreur lors du chargement des utilisateurs'
-    loading.value = false
-    loadingProgress.value = ''
-  }
-}
-
-// Background refresh
-async function refreshInBackground() {
-  try {
-    const classesData = await klassciService.getClasses()
-    classes.value = Array.isArray(classesData) ? classesData : []
-
-    const enseignantsData = await klassciService.getEnseignants()
-    enseignants.value = Array.isArray(enseignantsData) ? enseignantsData : []
-
-    const allEtudiants = []
-    for (const classe of classes.value) {
-      try {
-        const etudiantsData = await klassciService.getClasseEtudiants(classe.id)
-        const studentsArray = Array.isArray(etudiantsData) ? etudiantsData : []
-        studentsArray.forEach(etu => {
-          etu.classe_id = classe.id
-          etu.classe_nom = classe.name || classe.libelle || classe.nom || `Classe ${classe.id}`
-          allEtudiants.push(etu)
-        })
-      } catch {
-        // Ignorer les erreurs en background
-      }
-    }
-
-    etudiants.value = allEtudiants
-
-    writeCache('admin_users', {
-      etudiants: etudiants.value,
-      enseignants: enseignants.value,
-      classes: classes.value,
-    })
-  } catch {
-    // Ignorer les erreurs en background
-  }
-}
-
-onMounted(() => {
-  loadAllUsers()
-})
+const {
+  etudiants, enseignants, classes, loading, loadingProgress, error, selectedUser,
+  searchQuery, filterRole, filterClasse, currentPage, sortField, sortAsc,
+  totalUsers, filteredUsers, totalPages, paginatedUsers,
+  sortBy, selectUser, closeModal, loadAllUsers,
+} = useAdminUsers()
 </script>
 
 <style scoped lang="scss">
 @use '../../assets/styles/admin-shared';
-@use '../../assets/styles/admin-badges';
 
 .admin-users-container {
   padding: var(--spacing-xl);
@@ -443,100 +104,6 @@ onMounted(() => {
 
 .btn-icon {
   font-size: 1.25rem;
-}
-
-/* Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-lg);
-  margin-bottom: var(--spacing-xl);
-}
-
-.stat-icon {
-  font-size: 2rem;
-  width: 56px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--primary-gradient);
-  border-radius: var(--radius-lg);
-}
-
-.stat-value {
-  font-size: var(--font-size-2xl);
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.stat-label {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-}
-
-/* Filters */
-.filters-section {
-  display: flex;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-xl);
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.search-box {
-  flex: 1;
-  min-width: 250px;
-  position: relative;
-}
-
-.search-icon {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-tertiary);
-  font-size: 0.9rem;
-}
-
-.search-input {
-  width: 100%;
-  padding: 10px 14px 10px 38px;
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  color: var(--text-primary);
-  font-size: var(--font-size-md);
-  transition: border-color var(--transition-fast);
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: var(--primary-color);
-}
-
-.search-input::placeholder {
-  color: var(--text-tertiary);
-}
-
-.filter-group {
-  display: flex;
-  gap: var(--spacing-sm);
-}
-
-.filter-select {
-  padding: 10px 14px;
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  color: var(--text-primary);
-  font-size: var(--font-size-sm);
-  cursor: pointer;
-}
-
-.filter-select:focus {
-  outline: none;
-  border-color: var(--primary-color);
 }
 
 /* Loading State */
@@ -572,8 +139,9 @@ onMounted(() => {
   margin-top: var(--spacing-xs);
 }
 
-/* Error State */
-.error-state {
+/* Error / Empty States */
+.error-state,
+.empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -587,7 +155,8 @@ onMounted(() => {
   margin-bottom: var(--spacing-lg);
 }
 
-.error-title {
+.error-title,
+.empty-title {
   font-size: var(--font-size-xl);
   font-weight: 600;
   color: var(--text-primary);
@@ -613,26 +182,10 @@ onMounted(() => {
   opacity: 0.9;
 }
 
-/* Empty State */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 4rem 2rem;
-  text-align: center;
-}
-
 .empty-icon {
   font-size: 4rem;
   color: var(--text-tertiary);
   margin-bottom: var(--spacing-lg);
-}
-
-.empty-title {
-  font-size: var(--font-size-xl);
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-sm);
 }
 
 .empty-message {
@@ -640,155 +193,6 @@ onMounted(() => {
   max-width: 400px;
 }
 
-/* Users Table */
-.users-table-wrapper {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-}
-
-.users-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.users-table thead {
-  background: var(--bg-secondary);
-}
-
-.users-table th {
-  padding: 14px 16px;
-  text-align: left;
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: 1px solid var(--border-color);
-  white-space: nowrap;
-}
-
-.users-table th.sortable {
-  cursor: pointer;
-  user-select: none;
-}
-
-.users-table th.sortable:hover {
-  color: var(--text-primary);
-}
-
-.users-table th i {
-  margin-left: 4px;
-  font-size: 0.7rem;
-}
-
-.users-table td {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border-color);
-  font-size: var(--font-size-sm);
-  color: var(--text-primary);
-}
-
-.user-row {
-  cursor: pointer;
-  transition: background var(--transition-fast);
-}
-
-.user-row:hover {
-  background: var(--hover-bg);
-}
-
-.user-name-cell {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-.user-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: white;
-  flex-shrink: 0;
-}
-
-.user-name {
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.user-email {
-  color: var(--text-secondary);
-}
-
-.user-classe {
-  color: var(--text-secondary);
-}
-
-/* Action Button */
-.action-btn {
-  padding: 6px 10px;
-  background: transparent;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.action-btn:hover {
-  background: var(--hover-bg);
-  color: var(--primary-color);
-  border-color: var(--primary-color);
-}
-
-/* Pagination */
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-lg);
-  border-top: 1px solid var(--border-color);
-}
-
-.page-btn {
-  padding: 8px 12px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.page-btn:hover:not(:disabled) {
-  background: var(--hover-bg);
-  border-color: var(--primary-color);
-}
-
-.page-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.page-info {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  padding: 0 var(--spacing-md);
-}
-
-.page-total {
-  color: var(--text-tertiary);
-}
-
-/* Responsive */
 @media (max-width: 768px) {
   .admin-users-container {
     padding: var(--spacing-md);
@@ -797,23 +201,6 @@ onMounted(() => {
   .header-section {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .filters-section {
-    flex-direction: column;
-  }
-
-  .filter-group {
-    width: 100%;
-  }
-
-  .filter-select {
-    flex: 1;
-  }
-
-  .users-table th:nth-child(4),
-  .users-table td:nth-child(4) {
-    display: none;
   }
 }
 </style>
