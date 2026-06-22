@@ -278,9 +278,27 @@
 <script>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '@/services/api'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
+import { useStudentGrades } from '@/composables/useStudentGrades'
+// G4 : logique pure (format/tri/stats/tendance) extraite et testée.
+import {
+  formatType,
+  formatDate,
+  formatTemps,
+  getMoyenneClass,
+  getNoteClass,
+  getMaxNote,
+  getMinNote,
+  getTrendIcon,
+  getTrendText,
+  isNew,
+  flattenEvaluations,
+  filterAndSortEvaluations,
+  computeStatsReussite,
+  computeMeilleureNote,
+  findMeilleureMatiere
+} from '@/utils/studentGrades'
 
 export default {
   name: 'StudentGrades',
@@ -290,12 +308,17 @@ export default {
   },
   setup() {
     const router = useRouter()
-    const loading = ref(false)
-    const error = ref(null)
-    const matieres = ref([])
-    const moyenneGenerale = ref(0)
-    const totalMatieres = ref(0)
-    const totalEvaluations = ref(0)
+
+    // État + chargement délégués au composable (G4 : script < 300)
+    const {
+      loading,
+      error,
+      matieres,
+      moyenneGenerale,
+      totalMatieres,
+      totalEvaluations,
+      fetchGrades
+    } = useStudentGrades()
 
     // Filtres et tri
     const searchQuery = ref('')
@@ -304,221 +327,23 @@ export default {
     const sortBy = ref('date-desc')
     const showSummary = ref(true)
 
-    // Aplatir toutes les évaluations dans un seul tableau
-    const allEvaluations = computed(() => {
-      const evaluations = []
-      matieres.value.forEach(matiere => {
-        matiere.evaluations.forEach(evaluation => {
-          evaluations.push({
-            ...evaluation,
-            matiere_nom: matiere.matiere_nom,
-            matiere_id: matiere.matiere_id
-          })
-        })
-      })
-      return evaluations
-    })
+    // Évaluations aplaties, filtrées/triées et stats dérivées (utils purs)
+    const allEvaluations = computed(() => flattenEvaluations(matieres.value))
 
-    // Évaluations filtrées et triées
-    const filteredEvaluations = computed(() => {
-      let result = [...allEvaluations.value]
+    const filteredEvaluations = computed(() => filterAndSortEvaluations(allEvaluations.value, {
+      searchQuery: searchQuery.value,
+      filterType: filterType.value,
+      filterMatiere: filterMatiere.value,
+      sortBy: sortBy.value
+    }))
 
-      // Filtrer par recherche
-      if (searchQuery.value) {
-        const query = searchQuery.value.toLowerCase()
-        result = result.filter(e =>
-          e.matiere_nom.toLowerCase().includes(query) ||
-          e.titre.toLowerCase().includes(query)
-        )
-      }
-
-      // Filtrer par type
-      if (filterType.value) {
-        result = result.filter(e => e.type === filterType.value)
-      }
-
-      // Filtrer par matière
-      if (filterMatiere.value) {
-        result = result.filter(e => e.matiere_id === filterMatiere.value)
-      }
-
-      // Trier
-      switch (sortBy.value) {
-        case 'date-desc':
-          result.sort((a, b) => new Date(b.date_evaluation) - new Date(a.date_evaluation))
-          break
-        case 'date-asc':
-          result.sort((a, b) => new Date(a.date_evaluation) - new Date(b.date_evaluation))
-          break
-        case 'note-desc':
-          result.sort((a, b) => parseFloat(b.note) - parseFloat(a.note))
-          break
-        case 'note-asc':
-          result.sort((a, b) => parseFloat(a.note) - parseFloat(b.note))
-          break
-        case 'matiere':
-          result.sort((a, b) => a.matiere_nom.localeCompare(b.matiere_nom))
-          break
-      }
-
-      return result
-    })
-
-    // Statistiques de réussite
-    const statsReussite = computed(() => {
-      const total = allEvaluations.value.length
-      const reussies = allEvaluations.value.filter(e => parseFloat(e.note) >= 10).length
-      const taux = total > 0 ? Math.round((reussies / total) * 100) : 0
-      return { total, reussies, taux }
-    })
-
-    // Meilleure note
-    const statsMeilleureNote = computed(() => {
-      if (allEvaluations.value.length === 0) return 0
-      return Math.max(...allEvaluations.value.map(e => parseFloat(e.note)))
-    })
-
-    // Matière avec la meilleure note
-    const meilleureMatiere = computed(() => {
-      const meilleureEval = allEvaluations.value.find(
-        e => parseFloat(e.note) === statsMeilleureNote.value
-      )
-      return meilleureEval?.matiere_nom || ''
-    })
-
-    // Récupérer les notes
-    const fetchGrades = async () => {
-      loading.value = true
-      error.value = null
-
-      try {
-        const response = await api.get('/my-grades')
-
-        if (response.success) {
-          const data = response.data
-          matieres.value = data.matieres || []
-          moyenneGenerale.value = data.moyenne_generale || 0
-          totalMatieres.value = data.total_matieres || 0
-          totalEvaluations.value = data.total_evaluations || 0
-        } else {
-          error.value = response.message || 'Erreur lors du chargement des notes'
-        }
-      } catch (err) {
-        console.error('Erreur récupération notes:', err)
-        error.value = err.response?.data?.message || 'Erreur de connexion au serveur'
-      } finally {
-        loading.value = false
-      }
-    }
+    const statsReussite = computed(() => computeStatsReussite(allEvaluations.value))
+    const statsMeilleureNote = computed(() => computeMeilleureNote(allEvaluations.value))
+    const meilleureMatiere = computed(() => findMeilleureMatiere(allEvaluations.value, statsMeilleureNote.value))
 
     // Voir les résultats d'une évaluation
     const viewResults = (evaluationId) => {
       router.push(`/student/evaluations/${evaluationId}/results`)
-    }
-
-    // Formater le type d'évaluation
-    const formatType = (type) => {
-      const types = {
-        'devoir': 'Devoir',
-        'composition': 'Composition',
-        'interrogation': 'Interrogation',
-        'examen': 'Examen',
-        'tp': 'TP',
-        'td': 'TD',
-        'qcm': 'QCM'
-      }
-      return types[type] || type
-    }
-
-    // Formater la date
-    const formatDate = (dateString) => {
-      if (!dateString) return '-'
-      const date = new Date(dateString)
-      return date.toLocaleDateString('fr-FR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      })
-    }
-
-    // Formater le temps passé
-    const formatTemps = (minutes) => {
-      if (!minutes || minutes === 0) return '-'
-      if (minutes < 60) return `${minutes} min`
-      const heures = Math.floor(minutes / 60)
-      const mins = minutes % 60
-      return mins > 0 ? `${heures}h${mins}` : `${heures}h`
-    }
-
-    // Classe CSS pour la moyenne
-    const getMoyenneClass = (moyenne) => {
-      if (moyenne >= 16) return 'note-excellent'
-      if (moyenne >= 14) return 'note-good'
-      if (moyenne >= 12) return 'note-average'
-      if (moyenne >= 10) return 'note-below-average'
-      return 'note-fail'
-    }
-
-    // Classe CSS pour une note
-    const getNoteClass = (note) => {
-      if (note >= 16) return 'note-excellent'
-      if (note >= 14) return 'note-good'
-      if (note >= 12) return 'note-average'
-      if (note >= 10) return 'note-below-average'
-      return 'note-fail'
-    }
-
-    // Note maximale d'une matière
-    const getMaxNote = (matiere) => {
-      if (!matiere.evaluations || matiere.evaluations.length === 0) return 0
-      return Math.max(...matiere.evaluations.map(e => parseFloat(e.note)))
-    }
-
-    // Note minimale d'une matière
-    const getMinNote = (matiere) => {
-      if (!matiere.evaluations || matiere.evaluations.length === 0) return 0
-      return Math.min(...matiere.evaluations.map(e => parseFloat(e.note)))
-    }
-
-    // Icône de tendance (progression ou régression)
-    const getTrendIcon = (matiere) => {
-      if (!matiere.evaluations || matiere.evaluations.length < 2) return 'mdi-arrow-right'
-
-      const sorted = [...matiere.evaluations].sort((a, b) =>
-        new Date(a.date_evaluation) - new Date(b.date_evaluation)
-      )
-
-      const firstNote = parseFloat(sorted[0].note)
-      const lastNote = parseFloat(sorted[sorted.length - 1].note)
-
-      if (lastNote > firstNote) return 'mdi-trending-up'
-      if (lastNote < firstNote) return 'mdi-trending-down'
-      return 'mdi-arrow-right'
-    }
-
-    // Texte de la tendance
-    const getTrendText = (matiere) => {
-      if (!matiere.evaluations || matiere.evaluations.length < 2) return 'Stable'
-
-      const sorted = [...matiere.evaluations].sort((a, b) =>
-        new Date(a.date_evaluation) - new Date(b.date_evaluation)
-      )
-
-      const firstNote = parseFloat(sorted[0].note)
-      const lastNote = parseFloat(sorted[sorted.length - 1].note)
-
-      if (lastNote > firstNote) return 'En hausse'
-      if (lastNote < firstNote) return 'En baisse'
-      return 'Stable'
-    }
-
-    // Vérifier si une note est nouvelle (< 48h)
-    const isNew = (evaluation) => {
-      if (!evaluation.date_soumission) return false
-      const soumissionDate = new Date(evaluation.date_soumission)
-      const now = new Date()
-      const diffHours = (now - soumissionDate) / (1000 * 60 * 60)
-      return diffHours < 48
     }
 
     // Réinitialiser les filtres
