@@ -284,9 +284,9 @@ import { toast } from '@/services/toast'
 import { normalizeError } from '@/services/errorHandler'
 
 import lmsService from '@/services/lms'
-import { klassciService } from '@/services/klassci'
-import { readCache, writeCache, clearCache } from '@/services/cache'
+import { clearCache } from '@/services/cache'
 import { buildJitsiUrl } from '@/constants/visio'
+import { useCoordinatorSeances } from '@/composables/useCoordinatorSeances'
 
 const router = useRouter()
 
@@ -294,21 +294,24 @@ const router = useRouter()
 const instance = getCurrentInstance()
 const $toast = instance?.appContext.config.globalProperties.$toast
 
-// Reactive state
-const loading = ref(false)
-const error = ref(null)
-const seances = ref([])
-const classes = ref([])
-const enseignants = ref([])
+// Données + appels API (état séances/classes/enseignants/filtres + loaders)
+const {
+  loading,
+  error,
+  seances,
+  classes,
+  enseignants,
+  filters,
+  loadClasses,
+  loadEnseignants,
+  loadSeances
+} = useCoordinatorSeances()
+
+// État UI local
 const showParticipantsModal = ref(false)
 const selectedSeanceId = ref(null)
 const viewMode = ref('list')
 const calendarRef = ref(null)
-const filters = reactive({
-  days: 30,
-  teacher_id: null,
-  classe_id: null
-})
 
 // Get current user for Jitsi (#19 : via store, plus de localStorage('user'))
 const currentUser = useAuthStore().currentUser
@@ -335,105 +338,6 @@ const formatDate = (date) => {
     month: 'short',
     year: 'numeric'
   })
-}
-
-const loadClasses = async () => {
-  try {
-    console.log('[CLASSES] Chargement...')
-    // #26 : source unique des classes brutes = klassciService (/proxy/classes),
-    // qui renvoie directement le tableau (déballe response.data).
-    classes.value = await klassciService.getClasses()
-    console.log(`[OK] ${classes.value.length} classes chargées`)
-  } catch (err) {
-    console.error('[ERREUR] Chargement classes:', err)
-  }
-}
-
-const loadEnseignants = async () => {
-  try {
-    console.log('[ENSEIGNANTS] Chargement...')
-    const response = await lmsService.getEnseignants()
-
-    if (response && response.success) {
-      enseignants.value = response.data || []
-      console.log(`[OK] ${enseignants.value.length} enseignants chargés`)
-    }
-  } catch (err) {
-    console.error('[ERREUR] Chargement enseignants:', err)
-  }
-}
-
-const loadSeances = async () => {
-  // Try cache first
-  if (!filters.teacher_id && !filters.classe_id) {
-    const cachedEntry = readCache('seances_management')
-    if (cachedEntry !== null && cachedEntry.filterState?.days === filters.days) {
-      console.log('[CACHE] Séances chargées depuis le cache')
-      seances.value = cachedEntry.data
-      loading.value = false
-      refreshInBackground()
-      return
-    }
-  }
-
-  loading.value = true
-  error.value = null
-
-  try {
-    console.log('[SEANCES] Chargement à venir...')
-
-    const params = {}
-    if (filters.days) params.days = filters.days
-    if (filters.teacher_id) params.teacher_id = filters.teacher_id
-    if (filters.classe_id) params.classe_id = filters.classe_id
-
-    const data = await lmsService.getUpcomingSeances(params)
-
-    console.log('[OK] Séances reçues:', data)
-
-    if (data.success) {
-      seances.value = Array.isArray(data.data) ? data.data : (data.data.seances || [])
-      console.log(`[OK] ${seances.value.length} séances chargées`)
-
-      // Save to cache only if no filters applied
-      if (!filters.teacher_id && !filters.classe_id) {
-        writeCache('seances_management', {
-          data: seances.value,
-          filterState: { days: filters.days }
-        })
-      }
-    } else {
-      error.value = 'Erreur lors du chargement des séances'
-    }
-  } catch (err) {
-    console.error('[ERREUR] Chargement séances:', err)
-    error.value = 'Impossible de charger les séances. Veuillez réessayer.'
-  } finally {
-    loading.value = false
-  }
-}
-
-// Refresh in background
-async function refreshInBackground() {
-  try {
-    console.log('[BACKGROUND] Rafraîchissement séances...')
-
-    const params = { days: filters.days }
-    const data = await lmsService.getUpcomingSeances(params)
-
-    if (data.success) {
-      seances.value = Array.isArray(data.data) ? data.data : (data.data.seances || [])
-
-      writeCache('seances_management', {
-        data: seances.value,
-        filterState: { days: filters.days }
-      })
-
-      console.log('[BACKGROUND] Rafraîchissement terminé')
-    }
-  } catch (error) {
-    console.warn('[BACKGROUND] Erreur rafraîchissement:', error)
-  }
 }
 
 const toggleSeanceVisio = async (seance) => {
