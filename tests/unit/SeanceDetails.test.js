@@ -1,12 +1,16 @@
 /**
- * Test de montage de la vue SeanceDetails (G7, Options API).
- * Vérifie que la vue monte sans erreur (route + services mockés) et rend son
- * conteneur racine. Les enfants (DashboardLayout, ContentLoader) sont stubbés
- * via shallow ; les services sont mockés pour neutraliser le chargement.
+ * Test de montage de la vue SeanceDetails (#H6, script setup + composable).
+ * Vérifie que la vue monte sans erreur (router + services mockés) et rend son
+ * conteneur racine. Les enfants sont stubbés via shallow ; les services sont
+ * mockés pour neutraliser le chargement.
  */
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi } from 'vitest'
 
+vi.mock('vue-router', () => ({
+  useRoute: () => ({ params: { id: '1' }, query: {} }),
+  useRouter: () => ({ push: vi.fn(), back: vi.fn(), go: vi.fn() })
+}))
 vi.mock('@/services/lms', () => {
   const p = new Proxy({}, {
     get: () => vi.fn().mockResolvedValue({
@@ -25,13 +29,12 @@ vi.mock('@/composables/useVisioParticipation', () => ({
 
 import SeanceDetails from '@/views/seances/SeanceDetails.vue'
 
-describe('SeanceDetails (G7) — montage', () => {
+describe('SeanceDetails (#H6) — montage', () => {
   it('monte sans erreur et rend le conteneur racine', () => {
     const w = mount(SeanceDetails, {
       shallow: true,
       global: {
-        stubs: { DashboardLayout: { template: '<div><slot /></div>' } },
-        mocks: { $route: { params: { id: '1' }, query: {} }, $router: { push: vi.fn() } }
+        stubs: { DashboardLayout: { template: '<div><slot /></div>' } }
       }
     })
     expect(w.find('.seance-details').exists()).toBe(true)
