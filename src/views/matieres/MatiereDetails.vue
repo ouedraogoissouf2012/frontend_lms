@@ -362,8 +362,11 @@ import MatiereSeancesTab from '@/components/matieres/MatiereSeancesTab.vue'
 import MatiereEvaluationsTab from '@/components/matieres/MatiereEvaluationsTab.vue'
 import MatiereClassesTab from '@/components/matieres/MatiereClassesTab.vue'
 import { auth } from '@/services/api'
+import { createEmptyLesson, buildLessonPayload, resolveEvaluationRoute } from '@/utils/matiereDetails'
 // #28 : la logique pure (statut séance/éval, durée, formatage) vit désormais
 // dans les onglets extraits (MatiereSeancesTab / MatiereEvaluationsTab).
+// G10 : le brouillon de leçon, son payload et le routage évaluation sont des
+// fonctions pures dans utils/matiereDetails (testées unitairement).
 
 export default {
   name: 'MatiereDetails',
@@ -391,14 +394,7 @@ export default {
       // Modal création leçon
       showCreateLessonModal: false,
       creatingLesson: false,
-      newLesson: {
-        title: '',
-        description: '',
-        prerequis: '',
-        niveau_difficulte: 'debutant',
-        objectifs_pedagogiques: '',
-        duree_estimee_minutes: null
-      },
+      newLesson: createEmptyLesson(),
       // Système de notifications toast
       notifications: []
     }
@@ -488,26 +484,12 @@ export default {
       // Ouvrir le modal au lieu de rediriger
       this.showCreateLessonModal = true
       // Réinitialiser le formulaire
-      this.newLesson = {
-        title: '',
-        description: '',
-        prerequis: '',
-        niveau_difficulte: 'debutant',
-        objectifs_pedagogiques: '',
-        duree_estimee_minutes: null
-      }
+      this.newLesson = createEmptyLesson()
     },
 
     closeCreateLessonModal() {
       this.showCreateLessonModal = false
-      this.newLesson = {
-        title: '',
-        description: '',
-        prerequis: '',
-        niveau_difficulte: 'debutant',
-        objectifs_pedagogiques: '',
-        duree_estimee_minutes: null
-      }
+      this.newLesson = createEmptyLesson()
     },
 
     async submitCreateLesson() {
@@ -522,15 +504,12 @@ export default {
       try {
         const user = auth.getUser()
 
-        // Préparer les données avec contexte automatique
-        const lessonData = {
-          ...this.newLesson,
-          matiere_id: this.matiereId,
-          classe_id: this.matiere?.classes?.[0]?.id || null, // Prendre première classe si disponible
-          enseignant_id: user?.id,
-          type: 'cours',
-          status: 'draft'
-        }
+        // Préparer les données avec contexte automatique (mapping pur extrait)
+        const lessonData = buildLessonPayload(this.newLesson, {
+          matiere: this.matiere,
+          user,
+          matiereId: this.matiereId
+        })
 
         console.log('[MatiereDetails] Création leçon contextuelle:', lessonData)
 
@@ -637,40 +616,14 @@ export default {
     },
 
     viewEvaluation(evaluation) {
-      const user = auth.getUser()
-      const role = user?.role
+      // Décision de routage déléguée à une fonction pure (testée unitairement).
+      const role = auth.getUser()?.role
+      const action = resolveEvaluationRoute(evaluation, { role, matiereId: this.matiereId })
 
-      // Si l'évaluation a une version en ligne (quiz LMS)
-      if (evaluation.online_version || evaluation.has_online) {
-        const lmsId = evaluation.online_version?.id || evaluation.lms_id
-
-        if (role === 'etudiant') {
-          // Étudiant : passer ou voir résultats
-          if (evaluation.student_submission) {
-            this.$router.push({ name: 'EvaluationResults', params: { id: lmsId } })
-          } else {
-            this.$router.push({ name: 'TakeEvaluation', params: { id: lmsId } })
-          }
-        } else if (['coordinateur', 'superAdmin'].includes(role)) {
-          this.$router.push({ name: 'CoordinatorPreviewEvaluation', params: { id: lmsId } })
-        } else {
-          // Enseignant
-          this.$router.push({ name: 'PreviewEvaluation', params: { id: lmsId } })
-        }
+      if (action.route) {
+        this.$router.push(action.route)
       } else {
-        // Pas de version en ligne - enseignant peut créer les questions
-        if (['enseignant', 'teacher'].includes(role)) {
-          this.$router.push({
-            name: 'CreateQuestions',
-            query: {
-              klassci_evaluation_id: evaluation.id,
-              klassci_matiere_id: this.matiereId,
-              titre: evaluation.titre
-            }
-          })
-        } else {
-          this.showNotification('Cette évaluation n\'a pas encore de version en ligne', 'info')
-        }
+        this.showNotification(action.notify.message, action.notify.level)
       }
     },
 
