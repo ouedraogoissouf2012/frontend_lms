@@ -1,7 +1,7 @@
 import api from './api'
-import { auth } from './api'
-import { getJitsiDomain, VISIO_CONFIG } from '../constants/visio'
+import { VISIO_CONFIG } from '../constants/visio'
 import { VISIO_PARTICIPATION_PREFIX, visioParticipationKey } from '../constants/storageKeys'
+import * as jitsiRoom from '../utils/jitsiRoom'
 
 /**
  * Service pour la gestion des visioconférences Jitsi Meet
@@ -17,108 +17,49 @@ import { VISIO_PARTICIPATION_PREFIX, visioParticipationKey } from '../constants/
 // Alternative: Déployer votre propre serveur Jitsi et utiliser votre domaine
 
 export const jitsiService = {
+  // --- Construction de salle / lien (logique pure déléguée à utils/jitsiRoom.js, G8) ---
+  // API publique inchangée : mêmes signatures et comportement qu'à l'origine.
+
   /**
    * Générer un lien Jitsi unique pour une séance
    * @param {Object} seance - { id, visio_room_id, matiere, classe }
    * @returns {string} URL Jitsi
    */
   generateRoomLink(seance) {
-    // Utiliser visio_room_id si existant, sinon générer un ID unique
-    const roomId = seance.visio_room_id || this.generateRoomId(seance)
-
-    // Construire le nom de la salle
-    const roomName = this.buildRoomName(seance, roomId)
-
-    // URL Jitsi avec paramètres
-    const user = auth.getUser()
-    const displayName = encodeURIComponent(user?.name || 'Participant')
-
-    // Configuration Jitsi via URL params
-    const params = new URLSearchParams({
-      'userInfo.displayName': user?.name || 'Participant',
-      'config.prejoinPageEnabled': 'false', // Skip prejoin page
-      'config.startWithAudioMuted': user?.role === 'etudiant', // Mute students by default
-      'config.startWithVideoMuted': false,
-      'interfaceConfig.SHOW_JITSI_WATERMARK': 'false',
-      'interfaceConfig.SHOW_WATERMARK_FOR_GUESTS': 'false',
-      'interfaceConfig.DEFAULT_LOGO_URL': '',
-      'interfaceConfig.DEFAULT_WELCOME_PAGE_LOGO_URL': ''
-    })
-
-    const jitsiUrl = `https://${getJitsiDomain()}/${roomName}#${params.toString()}`
-
-    console.log('[JitsiService] Lien généré:', jitsiUrl)
-    console.log('[JitsiService] Room ID:', roomId)
-    console.log('[JitsiService] User:', user?.name, user?.role)
-
-    return jitsiUrl
+    return jitsiRoom.generateRoomLink(seance)
   },
 
   /**
-   * Générer un Room ID unique pour la séance
-   * Format: lms_seance_{id}_{timestamp}
+   * Générer un Room ID unique pour la séance (format: lms_seance_{id}_{timestamp})
    * @param {Object} seance
    * @returns {string}
    */
   generateRoomId(seance) {
-    const timestamp = Date.now()
-    return `lms_seance_${seance.id}_${timestamp}`
+    return jitsiRoom.generateRoomId(seance)
   },
 
   /**
-   * Construire le nom de la salle Jitsi
-   * Format: LMS-{Matiere}-{Classe}-{Date}
-   * Ex: LMS-Mathematiques-L1-InfoA-2025-10-20
+   * Construire le nom de la salle Jitsi (format: LMS-{Matiere}-{Classe}-{Date})
    * @param {Object} seance
    * @param {string} roomId
    * @returns {string}
    */
   buildRoomName(seance, roomId) {
-    const parts = ['LMS']
-
-    // Ajouter matière (sanitized)
-    if (seance.matiere?.nom) {
-      parts.push(this.sanitizeForUrl(seance.matiere.nom))
-    }
-
-    // Ajouter classe (sanitized)
-    if (seance.classe?.nom) {
-      parts.push(this.sanitizeForUrl(seance.classe.nom))
-    }
-
-    // Ajouter date
-    if (seance.programmation?.date) {
-      const date = new Date(seance.programmation.date)
-      const dateStr = date.toISOString().split('T')[0] // YYYY-MM-DD
-      parts.push(dateStr)
-    }
-
-    // Ajouter Room ID court (derniers 8 caractères)
-    parts.push(roomId.slice(-8))
-
-    return parts.join('-')
+    return jitsiRoom.buildRoomName(seance, roomId)
   },
 
   /**
-   * Sanitize string pour URL
-   * Supprime espaces, accents, caractères spéciaux
+   * Sanitize string pour URL (supprime espaces, accents, caractères spéciaux)
    * @param {string} str
    * @returns {string}
    */
   sanitizeForUrl(str) {
-    return str
-      .normalize('NFD') // Décompose les caractères accentués
-      .replace(/[\u0300-\u036f]/g, '') // Supprime les accents
-      .replace(/[^a-zA-Z0-9]/g, '') // Garde seulement alphanumérique
-      .substring(0, 20) // Limite à 20 caractères
+    return jitsiRoom.sanitizeForUrl(str)
   },
 
   /**
-   * Enregistrer qu'un participant a rejoint la visio
-   * Enregistre l'heure de début dans localStorage (tracking côté client)
-   * @param {number} seanceId
-   * @param {number} userId
-   * @returns {Promise<Object>}
+   * Enregistrer qu'un participant a rejoint la visio (heure de début en localStorage).
+   * @param {number} seanceId @param {number} userId @returns {Promise<Object>}
    */
   async trackParticipantJoin(seanceId, userId) {
     const joinTime = new Date().toISOString()
@@ -156,11 +97,8 @@ export const jitsiService = {
   },
 
   /**
-   * Enregistrer qu'un participant a quitté la visio
-   * Calcule la durée et synchronise avec KLASSCI
-   * @param {number} seanceId
-   * @param {number} userId
-   * @returns {Promise<Object>}
+   * Enregistrer qu'un participant a quitté la visio : calcule la durée et synchronise (KLASSCI).
+   * @param {number} seanceId @param {number} userId @returns {Promise<Object>}
    */
   async trackParticipantLeave(seanceId, userId) {
     const leaveTime = new Date().toISOString()
@@ -211,11 +149,8 @@ export const jitsiService = {
   },
 
   /**
-   * Synchroniser une participation vers KLASSCI
-   * Envoie les données de présence via l'endpoint LMS
-   * @param {number} seanceId
-   * @param {Object} participation
-   * @returns {Promise<Object>}
+   * Synchroniser une participation vers KLASSCI (présences via l'endpoint LMS).
+   * @param {number} seanceId @param {Object} participation @returns {Promise<Object>}
    */
   async syncParticipation(seanceId, participation) {
     try {
@@ -256,8 +191,7 @@ export const jitsiService = {
   },
 
   /**
-   * Synchroniser toutes les participations en attente
-   * Utile pour retry des syncs échouées
+   * Synchroniser toutes les participations en attente (retry des syncs échouées).
    * @returns {Promise<Array>}
    */
   async syncPendingParticipations() {
@@ -344,10 +278,8 @@ export const jitsiService = {
   },
 
   /**
-   * Vérifier si une séance a une visio active
-   * (Utile pour l'UI: afficher badge "En cours")
-   * @param {number} seanceId
-   * @returns {Promise<boolean>}
+   * Vérifier si une séance a une visio active (UI: badge "En cours").
+   * @param {number} seanceId @returns {Promise<boolean>}
    */
   async isVisioActive(seanceId) {
     try {
