@@ -1,0 +1,91 @@
+// =============================================================================
+// Mode sombre de la coque du calendrier unifié (H8 — décomposition
+// UniversalCalendar.vue sous 300 lignes).
+//
+// Bloc de styles *global* (non-scoped) déplacé VERBATIM depuis le second
+// `<style>` de UniversalCalendar.vue. Couvre le conteneur, la base `.card` et le
+// dark mode des filtres (`.filters-card` appartient à CalendarFilters.vue, hors
+// lot H8 : son dark mode global est conservé ici plutôt que de modifier un fichier
+// hors périmètre). Importé une seule fois via `@use` depuis UniversalCalendar.vue.
+// Aucune règle modifiée — relocalisation pure.
+// =============================================================================
+
+// Couleurs LMS pour le mode sombre
+$lms-blue: #2563eb;
+$lms-blue-light: #3b82f6;
+$white: #ffffff;
+
+html[data-theme="dark"] {
+  .calendar-container {
+    background: transparent;
+  }
+
+  // Cards en mode sombre
+  .card {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--card-border) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  // Filtres en mode sombre — `.filters-card` appartient à CalendarFilters.vue (hors
+  // lot H8) ; son dark mode global est conservé ici (verbatim).
+  .filters-card {
+    .filters-title {
+      .material-icons {
+        color: $lms-blue-light;
+      }
+
+      h3 {
+        color: $white;
+      }
+    }
+
+    .reset-button {
+      color: rgba($white, 0.7);
+
+      &:hover {
+        background: rgba($lms-blue-light, 0.3);
+        color: $lms-blue-light;
+      }
+    }
+
+    .filter-field {
+      label {
+        color: rgba($white, 0.8);
+
+        .icon-label {
+          color: $lms-blue-light;
+        }
+      }
+
+      select {
+        background: var(--input-bg);
+        border-color: var(--input-border);
+        color: var(--input-text);
+
+        &:hover {
+          border-color: $lms-blue-light;
+        }
+
+        &:focus {
+          border-color: $lms-blue-light;
+          box-shadow: 0 0 0 3px rgba($lms-blue-light, 0.2);
+        }
+
+        option {
+          background: var(--bg-primary);
+          color: var(--text-primary);
+        }
+      }
+    }
+
+    .filter-count {
+      background: linear-gradient(135deg, $lms-blue-light 0%, $lms-blue 100%);
+      color: $white;
+
+      .material-icons {
+        color: $white;
+      }
+    }
+  }
+}
