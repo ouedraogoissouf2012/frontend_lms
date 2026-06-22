@@ -1,0 +1,12 @@
+// États hover partagés par les modales admin (#G1 décompo). Sortis de _admin-shared
+// (réservé au design-system de page) une fois les modales extraites en composants :
+// @use'd par les modales qui utilisent .close-btn / .modal-btn-secondary.
+
+.close-btn:hover {
+  background: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+.modal-btn-secondary:hover {
+  background: var(--hover-bg);
+}

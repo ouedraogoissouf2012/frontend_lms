@@ -181,72 +181,7 @@
       </div>
 
       <!-- User Detail Modal -->
-      <Teleport to="body">
-        <div v-if="selectedUser" class="modal-overlay" @click="closeModal">
-          <div class="modal-content" @click.stop>
-            <div class="modal-header">
-              <div class="modal-title-section">
-                <div class="modal-avatar" :class="'avatar-' + selectedUser.role">
-                  <span>{{ getInitials(selectedUser) }}</span>
-                </div>
-                <div>
-                  <h2 class="modal-title">{{ selectedUser.name }}</h2>
-                  <p class="modal-subtitle">{{ getRoleLabel(selectedUser.role) }}</p>
-                </div>
-              </div>
-              <button @click="closeModal" class="close-btn">✕</button>
-            </div>
-
-            <div class="modal-body">
-              <div class="info-section">
-                <h3 class="section-title"><i class="fa fa-user"></i> Informations</h3>
-                <div class="info-grid">
-                  <div class="info-item">
-                    <span class="info-label">Nom complet:</span>
-                    <span class="info-value">{{ selectedUser.name }}</span>
-                  </div>
-                  <div class="info-item">
-                    <span class="info-label">Email:</span>
-                    <span class="info-value">{{ selectedUser.email || 'Non disponible' }}</span>
-                  </div>
-                  <div class="info-item">
-                    <span class="info-label">Rôle:</span>
-                    <span class="info-value">
-                      <span class="role-badge" :class="'role-' + selectedUser.role">
-                        {{ getRoleLabel(selectedUser.role) }}
-                      </span>
-                    </span>
-                  </div>
-                  <div v-if="selectedUser.classe_nom" class="info-item">
-                    <span class="info-label">Classe:</span>
-                    <span class="info-value">{{ selectedUser.classe_nom }}</span>
-                  </div>
-                  <div v-if="selectedUser.klassci_id" class="info-item">
-                    <span class="info-label">KLASSCI ID:</span>
-                    <span class="info-value">#{{ selectedUser.klassci_id }}</span>
-                  </div>
-                  <div v-if="selectedUser.matricule" class="info-item">
-                    <span class="info-label">Matricule:</span>
-                    <span class="info-value">{{ selectedUser.matricule }}</span>
-                  </div>
-                  <div v-if="selectedUser.telephone" class="info-item">
-                    <span class="info-label">Téléphone:</span>
-                    <span class="info-value">{{ selectedUser.telephone }}</span>
-                  </div>
-                  <div v-if="selectedUser.specialization" class="info-item">
-                    <span class="info-label">Spécialisation:</span>
-                    <span class="info-value">{{ selectedUser.specialization }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="modal-footer">
-              <button @click="closeModal" class="modal-btn modal-btn-secondary">Fermer</button>
-            </div>
-          </div>
-        </div>
-      </Teleport>
+      <UserDetailModal :user="selectedUser" @close="closeModal" />
     </div>
   </DashboardLayout>
 </template>
@@ -254,6 +189,8 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { getInitials } from '@/utils/formatters'
+import { getRoleLabel } from '@/utils/userRoles'
+import UserDetailModal from '@/components/admin/UserDetailModal.vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import klassciService from '@/services/klassci'
 import { readCache, writeCache } from '@/services/cache'
@@ -374,18 +311,6 @@ function sortBy(field) {
 }
 
 // Get role label
-function getRoleLabel(role) {
-  const labels = {
-    etudiant: 'Étudiant',
-    student: 'Étudiant',
-    enseignant: 'Enseignant',
-    teacher: 'Enseignant',
-    coordinateur: 'Coordinateur',
-    admin: 'Admin',
-    superAdmin: 'Super Admin',
-  }
-  return labels[role] || role
-}
 
 // Select user
 function selectUser(user) {
@@ -506,62 +431,14 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+@use '../../assets/styles/admin-shared';
+@use '../../assets/styles/admin-badges';
+
 .admin-users-container {
   padding: var(--spacing-xl);
   max-width: 1400px;
   margin: 0 auto;
-}
-
-/* Header Section */
-.header-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-xl);
-  gap: var(--spacing-lg);
-}
-
-.header-content {
-  flex: 1;
-}
-
-.page-title {
-  font-size: var(--font-size-3xl);
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 var(--spacing-xs) 0;
-}
-
-.page-subtitle {
-  font-size: var(--font-size-md);
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.refresh-btn {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-md) var(--spacing-lg);
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  color: var(--text-primary);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.refresh-btn:hover:not(:disabled) {
-  background: var(--hover-bg);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.refresh-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 .btn-icon {
@@ -576,22 +453,6 @@ onMounted(() => {
   margin-bottom: var(--spacing-xl);
 }
 
-.stat-card {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-xl);
-  padding: var(--spacing-lg);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  transition: all var(--transition-fast);
-}
-
-.stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-}
-
 .stat-icon {
   font-size: 2rem;
   width: 56px;
@@ -601,11 +462,6 @@ onMounted(() => {
   justify-content: center;
   background: var(--primary-gradient);
   border-radius: var(--radius-lg);
-}
-
-.stat-details {
-  display: flex;
-  flex-direction: column;
 }
 
 .stat-value {
@@ -862,14 +718,6 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-.avatar-etudiant {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-}
-
-.avatar-enseignant {
-  background: linear-gradient(135deg, #10b981, #059669);
-}
-
 .user-name {
   font-weight: 500;
   white-space: nowrap;
@@ -881,39 +729,6 @@ onMounted(() => {
 
 .user-classe {
   color: var(--text-secondary);
-}
-
-/* Role Badge */
-.role-badge {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.role-etudiant,
-.role-student {
-  background: rgba(59, 130, 246, 0.15);
-  color: #3b82f6;
-}
-
-.role-enseignant,
-.role-teacher {
-  background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
-}
-
-.role-coordinateur {
-  background: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
-}
-
-.role-admin,
-.role-superAdmin {
-  background: rgba(139, 92, 246, 0.15);
-  color: #8b5cf6;
 }
 
 /* Action Button */
@@ -973,161 +788,6 @@ onMounted(() => {
   color: var(--text-tertiary);
 }
 
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: var(--spacing-xl);
-  backdrop-filter: blur(4px);
-}
-
-.modal-content {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-2xl);
-  width: 100%;
-  max-width: 560px;
-  max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: var(--shadow-xl);
-}
-
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-xl);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.modal-title-section {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-}
-
-.modal-avatar {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: white;
-}
-
-.modal-title {
-  font-size: var(--font-size-xl);
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.modal-subtitle {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  margin: 4px 0 0 0;
-}
-
-.close-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 1px solid var(--border-color);
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
-  transition: all var(--transition-fast);
-}
-
-.close-btn:hover {
-  background: var(--hover-bg);
-  color: var(--text-primary);
-}
-
-.modal-body {
-  padding: var(--spacing-xl);
-}
-
-.info-section {
-  margin-bottom: var(--spacing-lg);
-}
-
-.section-title {
-  font-size: var(--font-size-md);
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 var(--spacing-md) 0;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-.section-title i {
-  color: var(--primary-color);
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-md);
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.info-label {
-  font-size: var(--font-size-xs);
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.info-value {
-  font-size: var(--font-size-sm);
-  color: var(--text-primary);
-  font-weight: 500;
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  padding: var(--spacing-lg) var(--spacing-xl);
-  border-top: 1px solid var(--border-color);
-}
-
-.modal-btn {
-  padding: var(--spacing-sm) var(--spacing-xl);
-  border-radius: var(--radius-lg);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.modal-btn-secondary {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-}
-
-.modal-btn-secondary:hover {
-  background: var(--hover-bg);
-}
-
 /* Responsive */
 @media (max-width: 768px) {
   .admin-users-container {
@@ -1149,10 +809,6 @@ onMounted(() => {
 
   .filter-select {
     flex: 1;
-  }
-
-  .info-grid {
-    grid-template-columns: 1fr;
   }
 
   .users-table th:nth-child(4),
