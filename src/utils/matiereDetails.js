@@ -71,3 +71,81 @@ export function getEvaluationStatusLabel(window) {
   if (window.is_open) return 'Ouverte'
   return 'Fermée'
 }
+
+/**
+ * Fabrique l'état initial d'une nouvelle leçon (formulaire du modal de création).
+ * Centralise le littéral autrefois dupliqué 3× dans MatiereDetails.vue (data,
+ * ouverture et fermeture du modal) → une seule source de vérité.
+ * @returns {Object} brouillon de leçon vierge
+ */
+export function createEmptyLesson() {
+  return {
+    title: '',
+    description: '',
+    prerequis: '',
+    niveau_difficulte: 'debutant',
+    objectifs_pedagogiques: '',
+    duree_estimee_minutes: null
+  }
+}
+
+/**
+ * Construit le payload de création de leçon (contexte matière/classe/enseignant
+ * ajouté au brouillon). Mapping PUR — identique au littéral d'origine.
+ * @param {Object} newLesson - brouillon du formulaire
+ * @param {{ matiere:Object, user:Object, matiereId:number }} ctx
+ * @returns {Object} payload prêt pour lessonService.createLesson
+ */
+export function buildLessonPayload(newLesson, { matiere, user, matiereId }) {
+  return {
+    ...newLesson,
+    matiere_id: matiereId,
+    classe_id: matiere?.classes?.[0]?.id || null, // Première classe si disponible
+    enseignant_id: user?.id,
+    type: 'cours',
+    status: 'draft'
+  }
+}
+
+/**
+ * Décide de la destination au clic sur une évaluation, selon le rôle et l'état
+ * (version en ligne, soumission étudiant). Décision PURE : renvoie un descripteur
+ * `{ route }` (à pousser) ou `{ notify }` (à signaler). Aucun effet de bord.
+ * @param {Object} evaluation
+ * @param {{ role:string, matiereId:number }} ctx
+ * @returns {{ route?:Object, notify?:{ message:string, level:string } }}
+ */
+export function resolveEvaluationRoute(evaluation, { role, matiereId }) {
+  // Évaluation disposant d'une version en ligne (quiz LMS)
+  if (evaluation.online_version || evaluation.has_online) {
+    const lmsId = evaluation.online_version?.id || evaluation.lms_id
+
+    if (role === 'etudiant') {
+      // Étudiant : voir résultats si déjà soumis, sinon passer l'évaluation
+      return evaluation.student_submission
+        ? { route: { name: 'EvaluationResults', params: { id: lmsId } } }
+        : { route: { name: 'TakeEvaluation', params: { id: lmsId } } }
+    }
+    if (['coordinateur', 'superAdmin'].includes(role)) {
+      return { route: { name: 'CoordinatorPreviewEvaluation', params: { id: lmsId } } }
+    }
+    // Enseignant
+    return { route: { name: 'PreviewEvaluation', params: { id: lmsId } } }
+  }
+
+  // Pas de version en ligne : l'enseignant peut créer les questions
+  if (['enseignant', 'teacher'].includes(role)) {
+    return {
+      route: {
+        name: 'CreateQuestions',
+        query: {
+          klassci_evaluation_id: evaluation.id,
+          klassci_matiere_id: matiereId,
+          titre: evaluation.titre
+        }
+      }
+    }
+  }
+
+  return { notify: { message: 'Cette évaluation n\'a pas encore de version en ligne', level: 'info' } }
+}
