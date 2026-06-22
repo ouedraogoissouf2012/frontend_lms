@@ -84,7 +84,7 @@ defineEmits(['close'])
 
 <style scoped lang="scss">
 // Styles partagés (hover) + badges/avatars communs table↔modale (source unique)
-@use '../../assets/styles/admin-shared';
+@use '../../assets/styles/admin-modal';
 @use '../../assets/styles/admin-badges';
 
 .modal-overlay {

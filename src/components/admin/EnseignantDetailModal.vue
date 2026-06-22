@@ -184,7 +184,7 @@ defineEmits(['close'])
 </script>
 
 <style scoped lang="scss">
-@use '../../assets/styles/admin-shared';
+@use '../../assets/styles/admin-modal';
 
 /* Modal */
 .modal-overlay {
