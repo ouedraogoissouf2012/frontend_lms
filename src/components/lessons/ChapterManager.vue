@@ -106,6 +106,7 @@ import KnowledgeCheckPlayer from '@/components/lessons/KnowledgeCheckPlayer.vue'
 import knowledgeCheckService from '@/services/knowledgeCheck'
 import ChapterViewMode from '@/components/lessons/ChapterViewMode.vue'
 import ChapterEditForm from '@/components/lessons/ChapterEditForm.vue'
+import { createEmptyChapter, buildChapterPayload } from '@/utils/chapterManager'
 
 export default {
   name: 'ChapterManager',
@@ -188,19 +189,7 @@ export default {
     },
 
     addChapter() {
-      const newChapter = {
-        tempId: this.nextTempId++,
-        title: '',
-        content_type: 'text',
-        content: '',
-        video_url: '',
-        external_link: '',
-        autoplay_video: false,
-        order: this.chapters.length,
-        isEditing: true,
-        isNew: true
-      }
-      this.chapters.push(newChapter)
+      this.chapters.push(createEmptyChapter(this.chapters.length, this.nextTempId++))
     },
 
     editChapter(chapter) {
@@ -229,15 +218,7 @@ export default {
 
       this.saving = true
       try {
-        const chapterData = {
-          title: chapter.title,
-          content_type: chapter.content_type,
-          content: chapter.content,
-          video_url: chapter.video_url,
-          external_link: chapter.external_link,
-          autoplay_video: chapter.autoplay_video,
-          order: chapter.order
-        }
+        const chapterData = buildChapterPayload(chapter)
 
         let response
         if (chapter.id) {
