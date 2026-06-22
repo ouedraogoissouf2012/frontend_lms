@@ -137,15 +137,14 @@
 
 <script>
 import { auth } from '@/services/api'
-import lmsService from '@/services/lms'
-import { useAuthStore } from '@/stores/auth'
-import { toast } from '@/services/toast'
-import { normalizeError } from '@/services/errorHandler'
-import jitsiService from '@/services/jitsi'
+// Import conservé pour son EFFET DE BORD au chargement du module :
+// services/jitsi.js exécute jitsiService.cleanupExpiredParticipations() à l'import,
+// et VisioManager est son seul importeur vivant. Ne pas retirer (parité).
+import '@/services/jitsi'
 import ParticipantsModal from './ParticipantsModal.vue'
-import { useVisioStore } from '@/stores/visio'
-import { buildJitsiUrl, VISIO_CONFIG } from '@/constants/visio'
-import { apiBaseUrl } from '@/constants/http'
+import { VISIO_CONFIG } from '@/constants/visio'
+import { formatVisioTime, isInTimeWindow, timeWindowMessage } from '@/utils/visioTimeWindow'
+import { useVisioActions } from '@/composables/useVisioActions'
 
 export default {
   name: 'VisioManager',
@@ -158,21 +157,16 @@ export default {
       required: true
     }
   },
-  setup() {
-    // Utiliser le store Pinia global pour gérer la participation
-    // ✅ AVANTAGE: Le store persiste lors de la navigation entre pages
-    const visioStore = useVisioStore()
-
+  setup(props, { emit }) {
+    // État (loading / participantCount) + orchestration des appels visio,
+    // extraits dans le composable useVisioActions (comportement identique).
     return {
-      // Exposer le store
-      visioStore
+      ...useVisioActions(props, emit)
     }
   },
   data() {
     return {
-      loading: false,
       showParticipantsModal: false,
-      participantCount: 0,
       currentTime: new Date(),
       timeCheckInterval: null
     }
@@ -197,45 +191,14 @@ export default {
       return this.seance.classe_effectif || this.seance.classe?.effectif || 0
     },
     /**
-     * Vérifier si on est dans la fenêtre temporelle:
-     * - Début: heure_debut - 15 minutes
-     * - Fin: heure_fin + 30 minutes
+     * Fenêtre temporelle d'ouverture : -15min avant le début, +30min après la fin.
+     * (logique pure extraite dans utils/visioTimeWindow.js)
      */
     isInTimeWindow() {
-      // Utiliser programmation.heure_debut/fin (ISO 8601)
-      if (!this.seance.programmation?.heure_debut || !this.seance.programmation?.heure_fin) {
-        return false
-      }
-
-      const debut = new Date(this.seance.programmation.heure_debut)
-      const fin = new Date(this.seance.programmation.heure_fin)
-
-      // Fenêtre temporelle: -15min avant, +30min après
-      const windowStart = new Date(debut.getTime() - 15 * 60 * 1000) // -15min
-      const windowEnd = new Date(fin.getTime() + 30 * 60 * 1000) // +30min
-
-      return this.currentTime >= windowStart && this.currentTime <= windowEnd
+      return isInTimeWindow(this.seance, this.currentTime)
     },
     timeWindowMessage() {
-      if (!this.seance.programmation?.heure_debut) {
-        return ''
-      }
-
-      const debut = new Date(this.seance.programmation.heure_debut)
-      const windowStart = new Date(debut.getTime() - 15 * 60 * 1000)
-
-      if (this.currentTime < windowStart) {
-        const diffMinutes = Math.floor((windowStart - this.currentTime) / 60000)
-        const hours = Math.floor(diffMinutes / 60)
-        const minutes = diffMinutes % 60
-
-        if (hours > 0) {
-          return `dans ${hours}h ${minutes}min`
-        }
-        return `dans ${minutes} minutes`
-      }
-
-      return 'maintenant'
+      return timeWindowMessage(this.seance, this.currentTime)
     }
   },
   mounted() {
@@ -259,223 +222,7 @@ export default {
   },
   methods: {
     formatTime(isoTimestamp) {
-      if (!isoTimestamp) return 'N/A'
-      return new Date(isoTimestamp).toLocaleTimeString('fr-FR', {
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    },
-
-    /**
-     * Coordinateur: Programmer la visio
-     */
-    async programmerVisio() {
-      if (!confirm('Voulez-vous programmer une visioconférence Jitsi pour cette séance ?')) {
-        return
-      }
-
-      this.loading = true
-      try {
-        const response = await lmsService.toggleVisio(this.seance.id, true, 'jitsi')
-
-        if (response && response.success) {
-          this.$emit('visio-updated', response.data)
-          alert('Visioconférence programmée avec succès!')
-        } else {
-          throw new Error(response?.message || 'Erreur lors de la programmation')
-        }
-      } catch (error) {
-        console.error('[VisioManager] Erreur programmation visio:', error)
-        toast.error(error.userMessage ?? normalizeError(error).userMessage)
-      } finally {
-        this.loading = false
-      }
-    },
-
-    /**
-     * Coordinateur: Désactiver la visio
-     */
-    async desactiverVisio() {
-      if (!confirm('Voulez-vous désactiver la visioconférence pour cette séance ?')) {
-        return
-      }
-
-      this.loading = true
-      try {
-        const response = await lmsService.toggleVisio(this.seance.id, false)
-
-        if (response && response.success) {
-          this.$emit('visio-updated', response.data)
-          alert('Visioconférence désactivée avec succès!')
-        } else {
-          throw new Error(response?.message || 'Erreur lors de la désactivation')
-        }
-      } catch (error) {
-        console.error('[VisioManager] Erreur désactivation visio:', error)
-        toast.error(error.userMessage ?? normalizeError(error).userMessage)
-      } finally {
-        this.loading = false
-      }
-    },
-
-    /**
-     * Enseignant: Démarrer la visio (window.open avec tracking)
-     */
-    async demarrerVisio() {
-      this.loading = true
-      try {
-        console.log('🎥 Démarrage visio par enseignant...')
-
-        // 1. Démarrer la visio (change status à 'active')
-        const result = await lmsService.startVisio(this.seance.id)
-
-        if (!result.success) {
-          alert(`Erreur: ${result.message}`)
-          return
-        }
-
-        // 2. Récupérer le lien Jitsi
-        const roomId = result.data.visio_room_id || this.seance.visio?.room_id
-        const jitsiLink = buildJitsiUrl(roomId)
-
-        // 3. Utiliser le store pour ouvrir et tracker
-        await this.visioStore.joinVisio(this.seance.id, jitsiLink)
-
-        console.log('✅ Visio démarrée avec window.open + tracking')
-
-        // 4. Rafraîchir les données
-        this.$emit('visio-updated', result.data)
-
-      } catch (error) {
-        console.error('[VisioManager] Erreur démarrage visio:', error)
-        toast.error(error.userMessage ?? normalizeError(error).userMessage)
-      } finally {
-        this.loading = false
-      }
-    },
-
-    /**
-     * Enseignant: Terminer la séance pour tous les participants
-     * Ferme immédiatement tous les participants avec leurs heures réelles
-     */
-    async terminerPourTous() {
-      const confirmer = confirm(
-        '🔚 Voulez-vous vraiment terminer cette séance pour TOUS les participants ?\n\n' +
-        '✅ Chaque participant sera déconnecté avec son heure réelle de départ.\n' +
-        '❌ Cette action est irréversible.'
-      )
-
-      if (!confirmer) return
-
-      this.loading = true
-      try {
-        console.log('🔚 Fermeture de la séance pour tous...')
-
-        // Appeler endVisio() qui ferme tous les participants
-        const response = await lmsService.endVisio(this.seance.id)
-
-        if (response.success) {
-          console.log('✅ Séance fermée avec succès')
-          alert(`✅ Séance terminée !\n\n${response.data.participants_disconnected} participant(s) déconnecté(s) avec leurs heures réelles.`)
-
-          // Rafraîchir les données
-          this.$emit('visio-updated', { ...this.seance, visio_active: false })
-        } else {
-          throw new Error(response.message || 'Erreur lors de la fermeture')
-        }
-      } catch (error) {
-        console.error('[VisioManager] Erreur fermeture séance:', error)
-        toast.error(error.userMessage ?? normalizeError(error).userMessage)
-      } finally {
-        this.loading = false
-      }
-    },
-
-    /**
-     * Télécharger la liste de présence en PDF
-     */
-    async telechargerPresences() {
-      this.loading = true
-      try {
-        console.log('[VisioManager] Téléchargement liste de présence PDF...')
-
-        const API_URL = apiBaseUrl()
-        const token = useAuthStore().token
-
-        // Créer l'URL de téléchargement
-        const url = `${API_URL}/lms/seances/${this.seance.id}/export/presences/pdf`
-
-        // Télécharger le fichier
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/pdf'
-          }
-        })
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}))
-          throw new Error(errorData.message || 'Erreur lors du téléchargement du PDF')
-        }
-
-        // Créer un blob et télécharger
-        const blob = await response.blob()
-        const downloadUrl = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = downloadUrl
-        a.download = `presences_seance_${this.seance.id}_${new Date().toISOString().split('T')[0]}.pdf`
-        document.body.appendChild(a)
-        a.click()
-        window.URL.revokeObjectURL(downloadUrl)
-        document.body.removeChild(a)
-
-        console.log('[VisioManager] ✅ PDF téléchargé avec succès')
-      } catch (error) {
-        console.error('[VisioManager] Erreur téléchargement PDF:', error)
-        toast.error(error.userMessage ?? normalizeError(error).userMessage)
-      } finally {
-        this.loading = false
-      }
-    },
-
-    /**
-     * Étudiant: Rejoindre la visio (window.open avec tracking)
-     */
-    async rejoindreVisio() {
-      if (!this.seance.visio_active) {
-        alert('La visio n\'est pas encore démarrée par l\'enseignant')
-        return
-      }
-
-      this.loading = true
-      try {
-        console.log('👨‍🎓 Étudiant rejoint la visio...')
-
-        // Room ID depuis la séance
-        const roomId = this.seance.visio_room_id || this.seance.visio?.room_id
-
-        if (!roomId) {
-          alert('Erreur: Room ID introuvable')
-          return
-        }
-
-        // Utiliser le store pour ouvrir et tracker
-        const jitsiLink = buildJitsiUrl(roomId)
-        await this.visioStore.joinVisio(this.seance.id, jitsiLink)
-
-        console.log('✅ Étudiant a rejoint avec window.open + tracking')
-
-        // Émettre événement pour rafraîchir le compteur de participants
-        this.$emit('participant-joined')
-
-      } catch (error) {
-        console.error('[VisioManager] Erreur rejoindre visio:', error)
-        const errorMessage = error.response?.data?.message || error.message
-        alert('Erreur lors de la connexion à la visio: ' + errorMessage)
-      } finally {
-        this.loading = false
-      }
+      return formatVisioTime(isoTimestamp)
     },
 
     /**
@@ -483,22 +230,7 @@ export default {
      */
     showParticipants() {
       this.showParticipantsModal = true
-    },
-
-    /**
-     * Charger le nombre de participants
-     */
-    async loadParticipantCount() {
-      try {
-        const response = await lmsService.getSeanceParticipants(this.seance.id)
-        if (response && response.success) {
-          this.participantCount = response.data.total || 0
-        }
-      } catch (error) {
-        console.error('[VisioManager] Erreur chargement participants:', error)
-      }
-    },
-
+    }
   }
 }
 </script>
