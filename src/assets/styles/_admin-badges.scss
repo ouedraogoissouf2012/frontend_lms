@@ -1,0 +1,45 @@
+// Badges & avatars utilisateurs (#G1 décompo) — partagés entre la table d'AdminUsers
+// et UserDetailModal (mêmes classes .role-* / .avatar-* sur les deux). Source unique
+// pour garder table et modale strictement cohérentes. @use'd dans chaque <style scoped>.
+
+/* Avatars (couleur par rôle) */
+.avatar-etudiant {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.avatar-enseignant {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+/* Role Badge */
+.role-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.role-etudiant,
+.role-student {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+
+.role-enseignant,
+.role-teacher {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.role-coordinateur {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+.role-admin,
+.role-superAdmin {
+  background: rgba(139, 92, 246, 0.15);
+  color: #8b5cf6;
+}
