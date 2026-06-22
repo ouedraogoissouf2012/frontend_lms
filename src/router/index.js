@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { auth } from '@/services/api'
-import { canActivate, getDashboardRoute, logRoleDecision } from '@/constants/roles'
+import { getDashboardRoute } from '@/constants/roles'
+import { navigationGuard } from './guards'
 
 // #27 : toutes les routes sont en lazy loading (() => import()) pour un code
 // splitting systématique (un chunk par route). Voir la convention dans
@@ -614,33 +615,7 @@ const router = createRouter({
   routes
 })
 
-// Guard de navigation amélioré
-router.beforeEach((to, from, next) => {
-  const isAuthenticated = auth.isAuthenticated()
-  const user = auth.getUser()
-
-  // 1. Route protégée sans authentification → login
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    return next('/login')
-  }
-
-  // 2. Utilisateur authentifié sur une route guest → son dashboard (source unique)
-  if (to.meta.guest && isAuthenticated) {
-    return next(user ? getDashboardRoute(user) : '/login')
-  }
-
-  // 3. Route à rôles requis : décision unique, normalisée, fail-secure.
-  //    canActivate est la MÊME fonction que celle testée (pas de logique dupliquée) ;
-  //    le bypass supradmin y est appliqué sur le rôle normalisé (superAdmin == supradmin).
-  if (to.meta.roles && user) {
-    const decision = canActivate(user, to.meta.roles)
-    if (!decision.allowed) {
-      logRoleDecision('access_denied', { route: to.name ?? to.path })
-      return next(decision.redirectTo)
-    }
-  }
-
-  next()
-})
+// Guard de navigation global (logique métier extraite dans ./guards)
+router.beforeEach(navigationGuard)
 
 export default router
