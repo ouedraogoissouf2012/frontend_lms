@@ -1,0 +1,96 @@
+/**
+ * Test du composable useAdminEvaluationDetails (#H3 ≤300) : chargement des résultats
+ * par classe, gestion d'erreur, et helpers de présentation (statut/note/CSV).
+ * Service api + vue-router mockés.
+ */
+import { mount, flushPromises } from '@vue/test-utils'
+import { defineComponent } from 'vue'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+const getMock = vi.fn()
+vi.mock('@/services/api', () => ({ default: { get: (...args) => getMock(...args) } }))
+
+const pushMock = vi.fn()
+const backMock = vi.fn()
+vi.mock('vue-router', () => ({
+  useRoute: () => ({ params: { id: '42' } }),
+  useRouter: () => ({ push: pushMock, back: backMock }),
+}))
+
+import { useAdminEvaluationDetails } from '@/composables/useAdminEvaluationDetails'
+
+async function setup() {
+  let api
+  const Comp = defineComponent({ setup() { api = useAdminEvaluationDetails(); return () => null } })
+  mount(Comp)
+  await flushPromises()
+  return api
+}
+
+describe('useAdminEvaluationDetails (#H3)', () => {
+  beforeEach(() => {
+    getMock.mockReset()
+    pushMock.mockReset()
+    backMock.mockReset()
+  })
+
+  it('charge les résultats par classe et peuple state au montage', async () => {
+    getMock.mockResolvedValue({
+      success: true,
+      data: {
+        evaluation: { titre: 'Test 1' },
+        resultats: [{ etudiant_id: 1, etudiant_nom_complet: 'Aline' }],
+        statistiques: { total_etudiants: 30 },
+      },
+    })
+    const c = await setup()
+    expect(getMock).toHaveBeenCalledWith('/evaluations/42/results-by-class')
+    expect(c.loading.value).toBe(false)
+    expect(c.evaluation.value.titre).toBe('Test 1')
+    expect(c.resultats.value).toHaveLength(1)
+    expect(c.statistiques.value.total_etudiants).toBe(30)
+    expect(c.error.value).toBe(null)
+  })
+
+  it('positionne error si la réponse est en échec', async () => {
+    getMock.mockResolvedValue({ success: false, message: 'Boom' })
+    const c = await setup()
+    expect(c.error.value).toBe('Boom')
+    expect(c.loading.value).toBe(false)
+  })
+
+  it('capture les exceptions réseau dans error', async () => {
+    getMock.mockRejectedValue({ response: { data: { message: 'HTTP 500' } } })
+    const c = await setup()
+    expect(c.error.value).toBe('HTTP 500')
+    expect(c.loading.value).toBe(false)
+  })
+
+  it('goBack délègue à router.back', async () => {
+    getMock.mockResolvedValue({ success: true, data: { evaluation: {}, resultats: [], statistiques: {} } })
+    const c = await setup()
+    c.goBack()
+    expect(backMock).toHaveBeenCalled()
+  })
+
+  it('mappe statut et note vers les bonnes classes/libellés', async () => {
+    getMock.mockResolvedValue({ success: true, data: { evaluation: {}, resultats: [], statistiques: {} } })
+    const c = await setup()
+    expect(c.getStatusClass('soumis')).toBe('status-success')
+    expect(c.getStatusClass('en_cours')).toBe('status-warning')
+    expect(c.getStatusClass('inconnu')).toBe('status-default')
+    expect(c.getStatusLabel('non_passee')).toBe('Non passée')
+    expect(c.getNoteClass(18)).toBe('note-excellent')
+    expect(c.getNoteClass(15)).toBe('note-good')
+    expect(c.getNoteClass(11)).toBe('note-average')
+    expect(c.getNoteClass(5)).toBe('note-poor')
+    expect(c.getNoteClass(null)).toBe('')
+  })
+
+  it('formatDate / formatDateTime renvoient "-" sans valeur', async () => {
+    getMock.mockResolvedValue({ success: true, data: { evaluation: {}, resultats: [], statistiques: {} } })
+    const c = await setup()
+    expect(c.formatDate(null)).toBe('-')
+    expect(c.formatDateTime(undefined)).toBe('-')
+  })
+})
