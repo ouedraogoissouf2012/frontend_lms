@@ -12,32 +12,7 @@
       <!-- Settings Sections -->
       <div class="settings-content">
         <!-- Informations Personnelles -->
-        <div class="settings-section">
-          <div class="section-header">
-            <UserIcon class="section-icon" />
-            <h2 class="section-title">Informations Personnelles</h2>
-          </div>
-          <div class="section-body">
-            <div class="info-grid">
-              <div class="info-item">
-                <label class="info-label">Nom complet</label>
-                <p class="info-value">{{ user?.nom }} {{ user?.prenom }}</p>
-              </div>
-              <div class="info-item">
-                <label class="info-label">Email</label>
-                <p class="info-value">{{ user?.email || 'Non renseigné' }}</p>
-              </div>
-              <div class="info-item">
-                <label class="info-label">Téléphone</label>
-                <p class="info-value">{{ user?.telephone || 'Non renseigné' }}</p>
-              </div>
-              <div class="info-item">
-                <label class="info-label">Rôle</label>
-                <p class="info-value">{{ getRoleLabel(user?.role) }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <SettingsPersonalInfo :user="user" :role-label="getRoleLabel(user?.role)" />
 
         <!-- Préférences d'affichage -->
         <div class="settings-section">
@@ -59,38 +34,11 @@
         </div>
 
         <!-- Notifications -->
-        <div class="settings-section">
-          <div class="section-header">
-            <BellIcon class="section-icon" />
-            <h2 class="section-title">Notifications</h2>
-          </div>
-          <div class="section-body">
-            <div class="preference-item">
-              <div class="preference-info">
-                <label class="preference-label">Notifications par email</label>
-                <p class="preference-description">Recevoir des notifications pour les nouvelles évaluations et cours</p>
-              </div>
-              <div class="preference-control">
-                <label class="toggle-switch">
-                  <input type="checkbox" v-model="emailNotifications" @change="savePreferences">
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-            </div>
-            <div class="preference-item">
-              <div class="preference-info">
-                <label class="preference-label">Rappels de séances</label>
-                <p class="preference-description">Recevoir un rappel avant le début des séances de cours</p>
-              </div>
-              <div class="preference-control">
-                <label class="toggle-switch">
-                  <input type="checkbox" v-model="seanceReminders" @change="savePreferences">
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
+        <SettingsNotifications
+          v-model:email-notifications="emailNotifications"
+          v-model:seance-reminders="seanceReminders"
+          @save="savePreferences"
+        />
 
         <!-- Sécurité -->
         <div class="settings-section">
@@ -122,167 +70,41 @@
       </div>
 
       <!-- Modal Changement de mot de passe -->
-      <Modal v-model="showPasswordModal" title="Changer le mot de passe">
-        <form @submit.prevent="submitPasswordChange">
-          <div class="form-group">
-            <label class="form-label">Mot de passe actuel</label>
-            <input
-              type="password"
-              v-model="passwordForm.currentPassword"
-              class="form-input"
-              placeholder="Entrez votre mot de passe actuel"
-              required
-            />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Nouveau mot de passe</label>
-            <input
-              type="password"
-              v-model="passwordForm.newPassword"
-              class="form-input"
-              placeholder="Entrez votre nouveau mot de passe"
-              required
-              minlength="6"
-            />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Confirmer le mot de passe</label>
-            <input
-              type="password"
-              v-model="passwordForm.confirmPassword"
-              class="form-input"
-              placeholder="Confirmez votre nouveau mot de passe"
-              required
-              minlength="6"
-            />
-          </div>
-        </form>
-
-        <template #footer>
-          <button type="button" class="btn-cancel" @click="showPasswordModal = false" aria-label="Annuler le changement de mot de passe">
-            Annuler
-          </button>
-          <button type="submit" class="btn-primary" @click="submitPasswordChange" aria-label="Confirmer le changement de mot de passe">
-            Confirmer
-          </button>
-        </template>
-      </Modal>
+      <PasswordChangeModal
+        v-model="showPasswordModal"
+        v-model:current-password="passwordForm.currentPassword"
+        v-model:new-password="passwordForm.newPassword"
+        v-model:confirm-password="passwordForm.confirmPassword"
+        @submit="submitPasswordChange"
+      />
     </div>
   </DashboardLayout>
 </template>
 
-<script>
+<script setup>
+/**
+ * Paramètres enseignant — orchestrateur (#H11 ≤300). La donnée/logique vit dans
+ * useTeacherSettings ; l'UI est composée de SettingsPersonalInfo,
+ * SettingsNotifications et PasswordChangeModal ; les sections triviales (thème,
+ * sécurité, session) restent inline.
+ */
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ThemeToggle from '@/components/ui/ThemeToggle.vue'
-import Modal from '@/components/ui/Modal.vue'
-import { auth } from '@/services/api'
-import { toast } from '@/services/toast'
-import { STORAGE_KEYS } from '@/constants/storageKeys'
+import SettingsPersonalInfo from '@/components/teacher/SettingsPersonalInfo.vue'
+import SettingsNotifications from '@/components/teacher/SettingsNotifications.vue'
+import PasswordChangeModal from '@/components/teacher/PasswordChangeModal.vue'
 import {
-  UserIcon,
   AdjustmentsHorizontalIcon,
-  BellIcon,
   LockClosedIcon,
   KeyIcon,
   ArrowRightOnRectangleIcon
 } from '@heroicons/vue/24/outline'
+import { useTeacherSettings } from '@/composables/useTeacherSettings'
 
-export default {
-  name: 'TeacherSettings',
-  components: {
-    DashboardLayout,
-    ThemeToggle,
-    Modal,
-    UserIcon,
-    AdjustmentsHorizontalIcon,
-    BellIcon,
-    LockClosedIcon,
-    KeyIcon,
-    ArrowRightOnRectangleIcon
-  },
-  data() {
-    return {
-      user: null,
-      emailNotifications: true,
-      seanceReminders: true,
-      showPasswordModal: false,
-      passwordForm: {
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      }
-    }
-  },
-  methods: {
-    getRoleLabel(role) {
-      const labels = {
-        'etudiant': 'Étudiant',
-        'student': 'Étudiant',
-        'enseignant': 'Enseignant',
-        'teacher': 'Enseignant',
-        'coordinateur': 'Coordinateur',
-        'admin': 'Administrateur'
-      }
-      return labels[role] || role
-    },
-
-    savePreferences() {
-      const preferences = {
-        emailNotifications: this.emailNotifications,
-        seanceReminders: this.seanceReminders
-      }
-      localStorage.setItem(STORAGE_KEYS.TEACHER_PREFERENCES, JSON.stringify(preferences))
-      console.log('[SETTINGS] Préférences sauvegardées:', preferences)
-      toast.success('Vos préférences ont été sauvegardées')
-    },
-
-    loadPreferences() {
-      const saved = localStorage.getItem(STORAGE_KEYS.TEACHER_PREFERENCES)
-      if (saved) {
-        const preferences = JSON.parse(saved)
-        this.emailNotifications = preferences.emailNotifications ?? true
-        this.seanceReminders = preferences.seanceReminders ?? true
-      }
-    },
-
-    submitPasswordChange() {
-      // Validation
-      if (this.passwordForm.newPassword !== this.passwordForm.confirmPassword) {
-        toast.error('Les mots de passe ne correspondent pas')
-        return
-      }
-
-      if (this.passwordForm.newPassword.length < 6) {
-        toast.error('Le mot de passe doit contenir au moins 6 caractères')
-        return
-      }
-
-      // TODO: Appel API pour changer le mot de passe
-      // Pour l'instant, simulons le succès
-      toast.success('Votre mot de passe a été changé avec succès')
-
-      // Réinitialiser le formulaire et fermer le modal
-      this.passwordForm = {
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      }
-      this.showPasswordModal = false
-    },
-
-    logout() {
-      if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
-        auth.logout()
-        toast.success('Vous avez été déconnecté avec succès')
-        this.$router.push('/login')
-      }
-    }
-  },
-  mounted() {
-    this.user = auth.getUser()
-    this.loadPreferences()
-  }
-}
+const {
+  user, emailNotifications, seanceReminders, showPasswordModal, passwordForm,
+  getRoleLabel, savePreferences, submitPasswordChange, logout,
+} = useTeacherSettings()
 </script>
 
 <style scoped>
@@ -349,36 +171,6 @@ export default {
   gap: 1rem;
 }
 
-/* Info Grid */
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.info-label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.info-value {
-  font-size: 1rem;
-  color: var(--text-primary);
-  padding: 0.75rem;
-  background: var(--bg-secondary);
-  border-radius: 0.5rem;
-  margin: 0;
-}
-
 /* Preferences */
 .preference-item {
   display: flex;
@@ -409,52 +201,6 @@ export default {
 
 .preference-control {
   margin-left: 1rem;
-}
-
-/* Toggle Switch */
-.toggle-switch {
-  position: relative;
-  display: inline-block;
-  width: 50px;
-  height: 26px;
-}
-
-.toggle-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.toggle-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: 0.3s;
-  border-radius: 26px;
-}
-
-.toggle-slider:before {
-  position: absolute;
-  content: "";
-  height: 20px;
-  width: 20px;
-  left: 3px;
-  bottom: 3px;
-  background-color: white;
-  transition: 0.3s;
-  border-radius: 50%;
-}
-
-input:checked + .toggle-slider {
-  background-color: #3b82f6;
-}
-
-input:checked + .toggle-slider:before {
-  transform: translateX(24px);
 }
 
 /* Buttons */
@@ -490,73 +236,7 @@ input:checked + .toggle-slider:before {
   transform: scale(1.02);
 }
 
-/* Modal Form */
-.form-group {
-  margin-bottom: 1.25rem;
-}
-
-.form-label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
-}
-
-.form-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--border-primary);
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  color: var(--text-primary);
-  background: var(--card-bg);
-  transition: border-color 0.2s;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: #3B82F6;
-}
-
-.form-input::placeholder {
-  color: var(--text-tertiary);
-}
-
-.btn-primary, .btn-cancel {
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-  font-size: 1rem;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
-}
-
-.btn-primary:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  transform: scale(1.02);
-}
-
-.btn-cancel {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-}
-
-.btn-cancel:hover {
-  background: var(--bg-tertiary);
-}
-
 @media (max-width: 768px) {
-  .info-grid {
-    grid-template-columns: 1fr;
-  }
-
   .preference-item {
     flex-direction: column;
     align-items: flex-start;
