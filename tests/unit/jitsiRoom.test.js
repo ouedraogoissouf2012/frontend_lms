@@ -24,8 +24,10 @@ describe('utils/jitsiRoom — sanitizeForUrl', () => {
 })
 
 describe('utils/jitsiRoom — generateRoomId', () => {
-  it('format lms_seance_{id}_{timestamp}', () => {
-    expect(generateRoomId({ id: 7 })).toMatch(/^lms_seance_7_\d+$/)
+  it('déterministe par séance : lms_seance_{id} (même salle prof + élèves)', () => {
+    expect(generateRoomId({ id: 7 })).toBe('lms_seance_7')
+    // Stable d'une ouverture à l'autre (sinon prof et élèves dans 2 salles).
+    expect(generateRoomId({ id: 7 })).toBe(generateRoomId({ id: 7 }))
   })
 })
 

@@ -35,14 +35,25 @@
           <label class="block text-gray-700 mb-2" for="password">
             Mot de passe
           </label>
-          <input
-            id="password"
-            v-model="password"
-            type="password"
-            required
-            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
-            placeholder="••••••••"
-          />
+          <div class="relative">
+            <input
+              id="password"
+              v-model="password"
+              :type="showPassword ? 'text' : 'password'"
+              required
+              class="w-full px-4 py-2 pr-11 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
+              placeholder="••••••••"
+            />
+            <button
+              type="button"
+              @click="showPassword = !showPassword"
+              :aria-label="showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
+              :aria-pressed="showPassword"
+              class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 focus:outline-none"
+            >
+              <i :class="showPassword ? 'fa fa-eye-slash' : 'fa fa-eye'"></i>
+            </button>
+          </div>
         </div>
 
         <!-- Bouton de connexion -->
@@ -69,6 +80,7 @@ export default {
     return {
       username: '',
       password: '',
+      showPassword: false,
       loading: false,
       error: null,
     }

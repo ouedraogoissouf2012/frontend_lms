@@ -75,6 +75,28 @@ export function normalizeError(error) {
 }
 
 /**
+ * Décide si une erreur HTTP doit invalider la SESSION locale (déconnexion).
+ *
+ * Un 401 n'implique PAS toujours que le token de session (Sanctum) est invalide :
+ * les endpoints proxy KLASSCI répondent 401 « Token KLASSCI non trouvé » quand le
+ * token KLASSCI (géré côté serveur) est absent/expiré, alors que la session locale
+ * reste valide. Déconnecter dans ce cas éjecterait l'utilisateur à tort.
+ *
+ * Règle (fail-safe) : on ne force la déconnexion que pour un 401 qui n'est PAS un
+ * échec de proxy KLASSCI. Fonction PURE, ne lève jamais.
+ *
+ * @param {unknown} error
+ * @returns {boolean} true s'il faut déconnecter l'utilisateur.
+ */
+export function shouldForceLogout(error) {
+  if (error?.response?.status !== 401) return false
+  const url = error.config?.url ?? ''
+  const message = error.response?.data?.message ?? ''
+  const isKlassciProxyFailure = url.includes('/proxy/') || /klassci/i.test(message)
+  return !isKlassciProxyFailure
+}
+
+/**
  * Journalise une erreur de façon SÛRE (catégorie, status, url) — jamais de token,
  * email ni corps de requête. Désactivée en production (#15).
  * @param {unknown} error
