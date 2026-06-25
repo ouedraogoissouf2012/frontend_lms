@@ -39,305 +39,54 @@
 
       <template v-else>
         <!-- Statistiques globales -->
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-icon-wrapper bg-blue-100">
-              <UserGroupIcon class="stat-icon text-blue-600" />
-            </div>
-            <div class="stat-content">
-              <p class="stat-label">Total étudiants</p>
-              <p class="stat-value">{{ statistiques?.total_etudiants || 0 }}</p>
-            </div>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-icon-wrapper bg-green-100">
-              <CheckCircleIcon class="stat-icon text-green-600" />
-            </div>
-            <div class="stat-content">
-              <p class="stat-label">Ont soumis</p>
-              <p class="stat-value">{{ statistiques?.etudiants_soumis || 0 }}</p>
-            </div>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-icon-wrapper bg-purple-100">
-              <ChartBarIcon class="stat-icon text-purple-600" />
-            </div>
-            <div class="stat-content">
-              <p class="stat-label">Moyenne classe</p>
-              <p class="stat-value">{{ (statistiques?.moyenne_classe !== null && statistiques?.moyenne_classe !== undefined) ? statistiques.moyenne_classe.toFixed(2) : '-' }}/20</p>
-            </div>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-icon-wrapper bg-indigo-100">
-              <ClockIcon class="stat-icon text-indigo-600" />
-            </div>
-            <div class="stat-content">
-              <p class="stat-label">Taux participation</p>
-              <p class="stat-value">{{ statistiques?.taux_participation || 0 }}%</p>
-            </div>
-          </div>
-        </div>
+        <EvaluationStatsCards :statistiques="statistiques" />
 
         <!-- Informations évaluation -->
-        <div class="info-card">
-          <h3 class="info-title">Informations de l'évaluation</h3>
-          <div class="info-grid">
-            <div class="info-item">
-              <span class="info-label">Enseignant:</span>
-              <span class="info-value">{{ evaluation?.enseignant_nom || 'N/A' }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Date:</span>
-              <span class="info-value">{{ formatDate(evaluation?.date_evaluation) }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Durée:</span>
-              <span class="info-value">{{ evaluation?.duree_minutes }} minutes</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Questions:</span>
-              <span class="info-value">{{ evaluation?.questions_count || 0 }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Type:</span>
-              <span class="info-value">{{ evaluation?.type || 'N/A' }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Coefficient:</span>
-              <span class="info-value">{{ evaluation?.coefficient || 1 }}</span>
-            </div>
-          </div>
-        </div>
+        <EvaluationInfoCard :evaluation="evaluation" :format-date="formatDate" />
 
         <!-- Tableau des résultats -->
-        <div class="results-card">
-          <div class="results-header">
-            <h3 class="results-title">Résultats par étudiant</h3>
-            <div class="results-actions">
-              <button @click="exportCSV" class="btn-export">
-                <DocumentArrowDownIcon class="w-5 h-5" />
-                Exporter CSV
-              </button>
-            </div>
-          </div>
-
-          <div class="table-container">
-            <table class="results-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Nom complet</th>
-                  <th>Statut</th>
-                  <th>Note /20</th>
-                  <th>Score</th>
-                  <th>Date soumission</th>
-                  <th>Tentative</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(resultat, index) in resultats" :key="resultat.etudiant_id">
-                  <td>{{ index + 1 }}</td>
-                  <td class="student-name">{{ resultat.etudiant_nom_complet }}</td>
-                  <td>
-                    <span :class="getStatusClass(resultat.status)" class="status-badge">
-                      {{ getStatusLabel(resultat.status) }}
-                    </span>
-                  </td>
-                  <td>
-                    <span :class="getNoteClass(resultat.note)" class="note-value">
-                      {{ resultat.note !== null && resultat.note !== undefined ? parseFloat(resultat.note).toFixed(2) : '-' }}
-                    </span>
-                  </td>
-                  <td>{{ resultat.score !== null ? resultat.score : '-' }}</td>
-                  <td>{{ formatDateTime(resultat.submitted_at) }}</td>
-                  <td>{{ resultat.attempt || '-' }}</td>
-                </tr>
-              </tbody>
-            </table>
-
-            <div v-if="resultats.length === 0" class="empty-state">
-              <UserGroupIcon class="empty-icon" />
-              <p class="empty-text">Aucun résultat disponible</p>
-            </div>
-          </div>
-        </div>
+        <EvaluationResultsTable
+          :resultats="resultats"
+          :get-status-class="getStatusClass"
+          :get-status-label="getStatusLabel"
+          :get-note-class="getNoteClass"
+          :format-date-time="formatDateTime"
+          @export="exportCSV"
+        />
 
         <!-- Statistiques détaillées -->
-        <div class="detailed-stats-grid">
-          <div class="stat-detail-card">
-            <h4 class="stat-detail-title">Distribution des notes</h4>
-            <div class="distribution-list">
-              <div class="distribution-item">
-                <span class="distribution-label">Note min:</span>
-                <span class="distribution-value">{{ (statistiques?.note_min !== null && statistiques?.note_min !== undefined) ? statistiques.note_min.toFixed(2) : '-' }}</span>
-              </div>
-              <div class="distribution-item">
-                <span class="distribution-label">Note max:</span>
-                <span class="distribution-value">{{ (statistiques?.note_max !== null && statistiques?.note_max !== undefined) ? statistiques.note_max.toFixed(2) : '-' }}</span>
-              </div>
-              <div class="distribution-item">
-                <span class="distribution-label">Médiane:</span>
-                <span class="distribution-value">{{ (statistiques?.mediane !== null && statistiques?.mediane !== undefined) ? statistiques.mediane.toFixed(2) : '-' }}</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="stat-detail-card">
-            <h4 class="stat-detail-title">Répartition</h4>
-            <div class="distribution-list">
-              <div class="distribution-item">
-                <span class="distribution-label">Étudiants soumis:</span>
-                <span class="distribution-value text-green-600">{{ statistiques?.etudiants_soumis || 0 }}</span>
-              </div>
-              <div class="distribution-item">
-                <span class="distribution-label">En cours:</span>
-                <span class="distribution-value text-orange-600">{{ statistiques?.etudiants_en_cours || 0 }}</span>
-              </div>
-              <div class="distribution-item">
-                <span class="distribution-label">Non passés:</span>
-                <span class="distribution-value text-red-600">{{ statistiques?.etudiants_non_passes || 0 }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <EvaluationDistributionStats :statistiques="statistiques" />
       </template>
     </div>
   </DashboardLayout>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+/**
+ * Résultats détaillés d'une évaluation (admin). Orchestrateur (#H3 ≤300) : la donnée
+ * et la logique vivent dans useAdminEvaluationDetails ; l'UI est composée de
+ * EvaluationStatsCards, EvaluationInfoCard, EvaluationResultsTable et
+ * EvaluationDistributionStats. La vue ne garde que header + états chargement/erreur.
+ */
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import {
   DocumentTextIcon,
-  UserGroupIcon,
-  CheckCircleIcon,
-  ChartBarIcon,
-  ClockIcon,
   ArrowLeftIcon,
-  ArrowPathIcon,
-  DocumentArrowDownIcon
+  ArrowPathIcon
 } from '@heroicons/vue/24/outline'
-import api from '@/services/api'
+import EvaluationStatsCards from '@/components/admin/EvaluationStatsCards.vue'
+import EvaluationInfoCard from '@/components/admin/EvaluationInfoCard.vue'
+import EvaluationResultsTable from '@/components/admin/EvaluationResultsTable.vue'
+import EvaluationDistributionStats from '@/components/admin/EvaluationDistributionStats.vue'
+import { useAdminEvaluationDetails } from '@/composables/useAdminEvaluationDetails'
 
-const router = useRouter()
-const route = useRoute()
-
-// State
-const loading = ref(true)
-const error = ref(null)
-const evaluation = ref(null)
-const resultats = ref([])
-const statistiques = ref(null)
-
-// Methods
-const loadData = async () => {
-  loading.value = true
-  error.value = null
-
-  try {
-    const evaluationId = route.params.id
-    const response = await api.get(`/evaluations/${evaluationId}/results-by-class`)
-
-    // L'intercepteur retourne déjà response.data, donc response = { success: true, data: {...} }
-    if (response.success) {
-      evaluation.value = response.data.evaluation
-      resultats.value = response.data.resultats
-      statistiques.value = response.data.statistiques
-    } else {
-      error.value = response.message || 'Erreur lors du chargement des résultats'
-    }
-  } catch (err) {
-    console.error('Erreur chargement résultats:', err)
-    error.value = err.response?.data?.message || 'Erreur lors du chargement des résultats'
-  } finally {
-    loading.value = false
-  }
-}
-
-const goBack = () => {
-  router.back()
-}
-
-const getStatusClass = (status) => {
-  const classes = {
-    'soumis': 'status-success',
-    'corrige': 'status-success',
-    'en_cours': 'status-warning',
-    'non_passee': 'status-error'
-  }
-  return classes[status] || 'status-default'
-}
-
-const getStatusLabel = (status) => {
-  const labels = {
-    'soumis': 'Soumis',
-    'corrige': 'Corrigé',
-    'en_cours': 'En cours',
-    'non_passee': 'Non passée'
-  }
-  return labels[status] || status
-}
-
-const getNoteClass = (note) => {
-  if (note === null || note === undefined) return ''
-  if (note >= 16) return 'note-excellent'
-  if (note >= 14) return 'note-good'
-  if (note >= 10) return 'note-average'
-  return 'note-poor'
-}
-
-const formatDate = (date) => {
-  if (!date) return '-'
-  return new Date(date).toLocaleDateString('fr-FR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
-
-const formatDateTime = (datetime) => {
-  if (!datetime) return '-'
-  return new Date(datetime).toLocaleDateString('fr-FR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
-
-const exportCSV = () => {
-  const csvContent = [
-    ['#', 'Nom complet', 'Statut', 'Note /20', 'Score', 'Date soumission', 'Tentative'],
-    ...resultats.value.map((r, i) => [
-      i + 1,
-      r.etudiant_nom_complet,
-      getStatusLabel(r.status),
-      r.note !== null && r.note !== undefined ? r.note.toFixed(2) : '-',
-      r.score || '-',
-      formatDateTime(r.submitted_at),
-      r.attempt || '-'
-    ])
-  ].map(row => row.join(';')).join('\n')
-
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
-  link.download = `resultats_${evaluation.value?.titre || 'evaluation'}_${new Date().getTime()}.csv`
-  link.click()
-}
-
-onMounted(() => {
-  loadData()
-})
+const {
+  loading, error, evaluation, resultats, statistiques,
+  loadData, goBack,
+  getStatusClass, getStatusLabel, getNoteClass,
+  formatDate, formatDateTime, exportCSV,
+} = useAdminEvaluationDetails()
 </script>
 
 <style scoped>
@@ -396,271 +145,6 @@ onMounted(() => {
   margin: 0.25rem 0 0;
 }
 
-/* Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.stat-card {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  box-shadow: var(--card-shadow);
-}
-
-.stat-icon-wrapper {
-  width: 3rem;
-  height: 3rem;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.stat-icon {
-  width: 1.5rem;
-  height: 1.5rem;
-}
-
-.stat-content {
-  flex: 1;
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin: 0 0 0.25rem;
-}
-
-.stat-value {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-/* Info Card */
-.info-card {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  box-shadow: var(--card-shadow);
-}
-
-.info-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 1rem;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.info-label {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-.info-value {
-  font-size: 1rem;
-  color: var(--text-primary);
-}
-
-/* Results Card */
-.results-card {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  box-shadow: var(--card-shadow);
-}
-
-.results-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.results-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.results-actions {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.btn-export {
-  padding: 0.625rem 1.25rem;
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: background var(--transition-fast);
-}
-
-.btn-export:hover {
-  background: var(--primary-hover);
-}
-
-/* Table */
-.table-container {
-  overflow-x: auto;
-}
-
-.results-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.results-table thead {
-  background: var(--neutral-light);
-}
-
-.results-table th {
-  padding: 1rem;
-  text-align: left;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  border-bottom: 2px solid var(--border-primary);
-}
-
-.results-table td {
-  padding: 1rem;
-  border-bottom: 1px solid var(--border-light);
-  color: var(--text-primary);
-}
-
-.student-name {
-  font-weight: 500;
-}
-
-.status-badge {
-  display: inline-block;
-  padding: 0.375rem 0.75rem;
-  border-radius: var(--radius-full);
-  font-size: 0.75rem;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.status-success {
-  background: var(--success-light);
-  color: var(--success);
-}
-
-.status-warning {
-  background: var(--warning-light);
-  color: var(--warning);
-}
-
-.status-error {
-  background: var(--danger-light);
-  color: var(--danger);
-}
-
-.status-default {
-  background: var(--neutral-light);
-  color: var(--text-secondary);
-}
-
-.note-value {
-  font-weight: 600;
-}
-
-.note-excellent {
-  color: #10b981;
-}
-
-.note-good {
-  color: #3b82f6;
-}
-
-.note-average {
-  color: #f59e0b;
-}
-
-.note-poor {
-  color: #ef4444;
-}
-
-/* Detailed Stats */
-.detailed-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
-
-.stat-detail-card {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
-  box-shadow: var(--card-shadow);
-}
-
-.stat-detail-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 1rem;
-}
-
-.distribution-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.distribution-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.distribution-label {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-}
-
-.distribution-value {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
 /* Loading/Error States */
 .loading-state,
 .error-state {
@@ -708,23 +192,5 @@ onMounted(() => {
 
 .btn-retry:hover {
   background: var(--primary-hover);
-}
-
-.empty-state {
-  padding: 3rem;
-  text-align: center;
-}
-
-.empty-icon {
-  width: 4rem;
-  height: 4rem;
-  color: var(--text-secondary);
-  margin: 0 auto 1rem;
-  opacity: 0.5;
-}
-
-.empty-text {
-  color: var(--text-secondary);
-  font-size: 1rem;
 }
 </style>

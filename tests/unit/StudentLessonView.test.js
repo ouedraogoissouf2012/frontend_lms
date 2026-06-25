@@ -1,25 +1,26 @@
 /**
- * Test de montage de la vue StudentLessonView (G5).
- * Vérifie le montage et le chargement (leçon + chapitres) avec parité des routes.
+ * Test de montage de la vue StudentLessonView (G5 → #H4).
+ * La logique est passée dans useStudentLessonView (composition) ; ce test vérifie le
+ * montage + déclenchement du chargement (leçon + chapitres) par id de route.
+ * Le comportement détaillé (progression, navigation, erreurs) est couvert dans
+ * useStudentLessonView.test.js.
  */
 import { shallowMount, flushPromises } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const getLesson = vi.fn()
 const apiGet = vi.fn()
+vi.mock('vue-router', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+  useRoute: () => ({ params: { id: '5' } })
+}))
 vi.mock('@/services/lesson', () => ({ default: { getLesson: (...a) => getLesson(...a) } }))
 vi.mock('@/services/api', () => ({ default: { get: (...a) => apiGet(...a) } }))
-vi.mock('@/services/chapterProgress', () => ({ default: { markComplete: vi.fn() } }))
+vi.mock('@/services/chapterProgress', () => ({ default: { markAsCompleted: vi.fn(), updateTimeSpent: vi.fn() } }))
 
 import StudentLessonView from '@/views/student/StudentLessonView.vue'
 
-function mountView() {
-  return shallowMount(StudentLessonView, {
-    global: { mocks: { $route: { params: { id: '5' } } } }
-  })
-}
-
-describe('StudentLessonView (G5) — montage', () => {
+describe('StudentLessonView (G5 → #H4) — montage', () => {
   beforeEach(() => {
     getLesson.mockReset()
     apiGet.mockReset()
@@ -28,15 +29,10 @@ describe('StudentLessonView (G5) — montage', () => {
   it('monte sans erreur et charge leçon + chapitres par id de route', async () => {
     getLesson.mockResolvedValue({ success: true, data: { id: 5, title: 'L' } })
     apiGet.mockResolvedValue({ success: true, data: [{ id: 1, content_type: 'text' }] })
-    const w = mountView()
+    const w = shallowMount(StudentLessonView)
     await flushPromises()
+    expect(w.exists()).toBe(true)
     expect(getLesson).toHaveBeenCalledWith(5)
     expect(apiGet).toHaveBeenCalledWith('/lessons/5/chapters')
-    expect(w.vm.chapters).toHaveLength(1)
-  })
-
-  it('overallProgress vaut 0 quand aucun chapitre', () => {
-    const w = mountView()
-    expect(w.vm.overallProgress).toBe(0)
   })
 })
