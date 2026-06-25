@@ -1,0 +1,188 @@
+// =============================================================================
+// Mode sombre du calendrier unifié — FullCalendar (H8 — décomposition
+// UniversalCalendar.vue sous 300 lignes).
+//
+// Bloc de styles *global* (non-scoped) déplacé VERBATIM depuis le second
+// `<style>` de UniversalCalendar.vue (lignes 963-1152). Il cible le rendu
+// FullCalendar (`.fc`) ainsi que la carte calendrier et le loader en thème
+// sombre. Importé une seule fois via `@use` depuis CalendarView.vue (qui rend
+// FullCalendar). Aucune règle modifiée — relocalisation pure.
+// =============================================================================
+
+// Couleurs LMS pour le mode sombre
+$lms-blue: #2563eb;
+$lms-blue-light: #3b82f6;
+$white: #ffffff;
+
+html[data-theme="dark"] {
+  // Calendrier en mode sombre
+  .calendar-card {
+    background: var(--card-bg) !important;
+  }
+
+  .loading-container {
+    color: rgba($white, 0.7);
+
+    .material-icons {
+      color: $lms-blue-light;
+    }
+
+    p {
+      color: rgba($white, 0.7);
+    }
+  }
+
+  // FullCalendar en mode sombre
+  .fc {
+    color: $white;
+
+    .fc-button-primary {
+      background: linear-gradient(135deg, $lms-blue-light 0%, $lms-blue 100%);
+      border-color: $lms-blue-light;
+      color: $white;
+
+      &:hover:not(:disabled) {
+        background: $lms-blue;
+        border-color: $lms-blue;
+      }
+
+      &:focus {
+        box-shadow: 0 0 0 3px rgba($lms-blue-light, 0.3);
+      }
+    }
+
+    .fc-col-header-cell {
+      background: linear-gradient(180deg, #0a1929 0%, #001e3c 100%) !important;
+      border-color: #001e3c !important;
+
+      .fc-col-header-cell-cushion {
+        color: $white !important;
+        font-weight: 600;
+      }
+    }
+
+    .fc-daygrid-day,
+    .fc-timegrid-slot {
+      background: var(--bg-secondary) !important;
+      border-color: var(--border-primary) !important;
+    }
+
+    .fc-daygrid-day-number,
+    .fc-timegrid-slot-label {
+      color: var(--text-primary) !important;
+    }
+
+    .fc-daygrid-day.fc-day-today {
+      background: linear-gradient(135deg, rgba($lms-blue-light, 0.3) 0%, rgba($lms-blue-light, 0.15) 100%) !important;
+      border: 2px solid $lms-blue-light !important;
+
+      .fc-daygrid-day-number {
+        color: $lms-blue-light !important;
+        font-weight: 700;
+      }
+    }
+
+    .fc-daygrid-day.fc-day-other {
+      background: var(--bg-tertiary) !important;
+      opacity: 0.6;
+
+      .fc-daygrid-day-number {
+        color: var(--text-tertiary) !important;
+      }
+    }
+
+    .fc-timegrid-now-indicator-line {
+      border-color: $lms-blue-light;
+    }
+
+    .fc-timegrid-now-indicator-arrow {
+      border-color: $lms-blue-light;
+    }
+
+    // Événements en mode sombre
+    .fc-event {
+      border-width: 2px;
+      font-weight: 500;
+    }
+
+    .event-seance {
+      background: rgba($lms-blue, 0.9);
+      border-color: $lms-blue;
+      color: $white;
+
+      &:hover {
+        background: $lms-blue;
+        box-shadow: 0 2px 8px rgba($lms-blue, 0.5);
+      }
+    }
+
+    .event-evaluation {
+      background: rgba(#06b6d4, 0.9);
+      border-color: #06b6d4;
+      color: $white;
+      font-weight: 600;
+
+      &:hover {
+        background: #06b6d4;
+        box-shadow: 0 2px 8px rgba(#06b6d4, 0.5);
+      }
+    }
+
+    .event-urgent {
+      background: #ef4444 !important;
+      border-color: #ef4444 !important;
+      color: $white !important;
+      animation: pulse-urgent-dark 2s infinite;
+
+      &:hover {
+        box-shadow: 0 2px 8px rgba(#ef4444, 0.5);
+      }
+    }
+
+    // Grille horaire en mode sombre
+    .fc-scrollgrid {
+      border-color: var(--border-primary) !important;
+    }
+
+    .fc-scrollgrid-section > * {
+      border-color: var(--border-primary) !important;
+    }
+
+    // Conteneurs FullCalendar en mode sombre
+    .fc-view-harness,
+    .fc-scrollgrid-sync-table,
+    .fc-timegrid-body,
+    .fc-timegrid-slots,
+    .fc-daygrid-body {
+      background: var(--bg-secondary) !important;
+    }
+
+    // Cellules de la grille temporelle
+    .fc-timegrid-slot-lane {
+      background: var(--bg-secondary) !important;
+      border-color: var(--border-primary) !important;
+    }
+
+    // Zone vide du calendrier
+    .fc-daygrid-day-frame,
+    .fc-daygrid-day-bg {
+      background: transparent !important;
+    }
+
+    // Table et corps du calendrier
+    table, tbody, tr, td, th {
+      border-color: var(--border-primary) !important;
+    }
+  }
+
+  @keyframes pulse-urgent-dark {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.85;
+      transform: scale(1.02);
+    }
+  }
+}
