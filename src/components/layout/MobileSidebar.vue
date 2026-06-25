@@ -23,49 +23,13 @@
       </div>
 
       <!-- Navigation secondaire -->
-      <nav class="sidebar-nav">
-        <div class="nav-section">
-          <h3 class="section-title">Navigation</h3>
-
-          <router-link
-            v-for="item in secondaryNavItems"
-            :key="item.path"
-            :to="item.path"
-            @click="close"
-            class="nav-link"
-            :class="{ active: isActive(item.path) }"
-          >
-            <i :class="`fa ${item.icon} nav-icon`"></i>
-            <span class="nav-text">{{ item.label }}</span>
-            <span v-if="item.badge" class="nav-badge">{{ item.badge }}</span>
-          </router-link>
-        </div>
-
-        <div class="nav-section" v-if="adminNavItems.length > 0">
-          <h3 class="section-title">Administration</h3>
-
-          <router-link
-            v-for="item in adminNavItems"
-            :key="item.path"
-            :to="item.path"
-            @click="close"
-            class="nav-link"
-            :class="{ active: isActive(item.path) }"
-          >
-            <i :class="`fa ${item.icon} nav-icon`"></i>
-            <span class="nav-text">{{ item.label }}</span>
-          </router-link>
-        </div>
-
-        <div class="nav-section">
-          <h3 class="section-title">Compte</h3>
-
-          <button @click="handleLogout" class="nav-link logout-link">
-            <span class="nav-icon">→</span>
-            <span class="nav-text">Déconnexion</span>
-          </button>
-        </div>
-      </nav>
+      <MobileSidebarNav
+        :secondary-nav-items="secondaryNavItems"
+        :admin-nav-items="adminNavItems"
+        :active-path="activePath"
+        @close="close"
+        @logout="handleLogout"
+      />
 
       <!-- Footer -->
       <div class="sidebar-footer">
@@ -77,10 +41,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { auth } from '@/services/api'
-import { isStudent, isTeacher, isSupradmin, hasRole, ROLES } from '@/constants/roles'
+/**
+ * MobileSidebar (#H12 ≤300) — orchestrateur du drawer mobile. La logique vit dans
+ * useMobileSidebar ; la navigation est déléguée à MobileSidebarNav. Chrome
+ * (overlay, en-tête, pied, transitions) conservé ici.
+ */
+import { useMobileSidebar } from '@/composables/useMobileSidebar'
+import MobileSidebarNav from '@/components/layout/mobile/MobileSidebarNav.vue'
 
 const props = defineProps({
   isOpen: {
@@ -91,96 +58,14 @@ const props = defineProps({
 
 const emit = defineEmits(['close'])
 
-const route = useRoute()
-const router = useRouter()
-
-const isMobile = ref(window.innerWidth < 768)
-const user = computed(() => auth.getUser())
-
-// Detect window resize
-const handleResize = () => {
-  isMobile.value = window.innerWidth < 768
-  if (!isMobile.value && props.isOpen) {
-    close()
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('resize', handleResize)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize)
-})
-
-// Navigation items based on user role
-const secondaryNavItems = computed(() => {
-  const u = user.value
-
-  // Routes communes (vides pour l'instant - à implémenter plus tard)
-  const commonItems = []
-
-  if (isStudent(u)) {
-    return [
-      ...commonItems
-      // À ajouter: Mes Notes, Ma Progression, etc.
-    ]
-  } else if (isTeacher(u)) {
-    // Items supplémentaires (pas dans BottomNavigation)
-    return [
-      ...commonItems,
-      { path: '/teacher/seances', icon: 'fa-video-camera', label: 'Mes Séances Visio', badge: null },
-      { path: '/forum', icon: 'fa-comments', label: 'Forum', badge: null },
-      { path: '/attendance/seances', icon: 'fa-history', label: 'Historique', badge: null },
-      { path: '/teacher/settings', icon: 'fa-cog', label: 'Paramètres', badge: null }
-    ]
-  } else if (hasRole(u, ROLES.COORDINATEUR)) {
-    // Items supplémentaires (pas dans BottomNavigation)
-    return [
-      ...commonItems,
-      { path: '/forum', icon: 'fa-comments', label: 'Forum', badge: null },
-      { path: '/attendance/seances', icon: 'fa-history', label: 'Historique', badge: null },
-      { path: '/admin/settings', icon: 'fa-cog', label: 'Paramètres', badge: null }
-    ]
-  }
-
-  return commonItems
-})
-
-const adminNavItems = computed(() => {
-  // Super admin plateforme uniquement (coordinateur a tout dans secondaryNavItems).
-  // isSupradmin couvre les deux variantes 'superAdmin'/'supradmin' (#18, corrige #8).
-  if (isSupradmin(user.value)) {
-    return [
-      { path: '/admin/classes', icon: 'fa-building', label: 'Classes', badge: null },
-      { path: '/admin/matieres', icon: 'fa-book', label: 'Matières', badge: null },
-      { path: '/admin/enseignants', icon: 'fa-user', label: 'Enseignants', badge: null }
-    ]
-  }
-
-  return []
-})
-
-// Check if route is active
-function isActive(path) {
-  return route.path.startsWith(path)
-}
-
-// Close sidebar
-function close() {
-  emit('close')
-}
-
-// Logout
-async function handleLogout() {
-  try {
-    await auth.logout()
-    close()
-    router.push('/login')
-  } catch (error) {
-    console.error('Erreur déconnexion:', error)
-  }
-}
+const {
+  isMobile,
+  activePath,
+  secondaryNavItems,
+  adminNavItems,
+  close,
+  handleLogout
+} = useMobileSidebar(props, emit)
 </script>
 
 <style scoped>
@@ -257,84 +142,6 @@ async function handleLogout() {
 .close-icon {
   font-size: 1.25rem;
   line-height: 1;
-}
-
-/* Navigation */
-.sidebar-nav {
-  flex: 1;
-  padding: 1rem 0;
-  overflow-y: auto;
-}
-
-.nav-section {
-  margin-bottom: 1.5rem;
-}
-
-.section-title {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-tertiary);
-  padding: 0 1rem;
-  margin: 0 0 0.5rem 0;
-}
-
-.nav-link {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  color: var(--text-secondary);
-  text-decoration: none;
-  transition: all 0.2s;
-  border: none;
-  background: none;
-  width: 100%;
-  font-size: 0.9375rem;
-  cursor: pointer;
-  text-align: left;
-  min-height: 44px;
-}
-
-.nav-link:active {
-  background: var(--bg-hover);
-}
-
-.nav-link.active {
-  background: var(--bg-hover);
-  color: var(--primary-color);
-  border-left: 3px solid var(--primary-color);
-  padding-left: calc(1rem - 3px);
-}
-
-.nav-icon {
-  font-size: 1.125rem;
-  width: 1.5rem;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.nav-text {
-  flex: 1;
-}
-
-.nav-badge {
-  background: var(--primary-color);
-  color: white;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  padding: 0.125rem 0.375rem;
-  border-radius: 9999px;
-  min-width: 1.25rem;
-  text-align: center;
-}
-
-.logout-link {
-  color: #ef4444;
-  margin-top: 0.5rem;
-  border-top: 1px solid var(--border-color);
-  padding-top: 1rem;
 }
 
 /* Footer */
