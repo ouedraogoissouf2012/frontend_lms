@@ -1,4 +1,4 @@
-import { reactive, ref, computed, onMounted } from 'vue'
+import { reactive, ref, computed, onMounted, getCurrentInstance } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import evaluationService from '@/services/evaluation'
 import klassciService from '@/services/klassci'
@@ -10,8 +10,11 @@ import klassciService from '@/services/klassci'
  * Comportement, services, routes et alertes strictement identiques à l'original.
  */
 export function useCreateEvaluation() {
-  const route = useRoute()
-  const router = useRouter()
+  // Pont route/router double source : proxy.$route (tests de vue + prod) ; useRoute()
+  // (tests de composable mockant vue-router) ; repli sûr. Voir specs decomposition-300.
+  const inst = getCurrentInstance()
+  const route = inst?.proxy?.$route ?? useRoute() ?? { params: {}, query: {} }
+  const router = inst?.proxy?.$router ?? useRouter()
 
   const evaluation = reactive({
     klassci_evaluation_id: null,

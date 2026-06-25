@@ -1,4 +1,5 @@
 import { ref, computed, onMounted, getCurrentInstance } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { toast } from '@/services/toast'
 import { normalizeError } from '@/services/errorHandler'
 import lessonService from '@/services/lesson'
@@ -9,20 +10,23 @@ import lessonService from '@/services/lesson'
  * et la navigation. La vue ne fait plus que câbler le composable + ChapterManager.
  */
 export function useLessonChapters() {
-  // Pont route/router via l'instance (compatible global.mocks.$route des tests de
-  // montage, et réactif en prod) — voir specs decomposition-300.
+  // Pont route/router double source : inst.proxy.$route (tests de vue via
+  // global.mocks.$route + prod) avec repli sur useRoute() (tests de composable qui
+  // mockent vue-router). Réactif en prod ; comportement identique. Voir specs decomposition-300.
   const inst = getCurrentInstance()
-  const route = computed(() => inst.proxy.$route)
-  const router = inst.proxy.$router
+  const injectedRoute = useRoute()
+  const injectedRouter = useRouter()
+  const route = computed(() => inst?.proxy?.$route ?? injectedRoute)
+  const router = inst?.proxy?.$router ?? injectedRouter
 
   const lesson = ref(null)
   const loadingLesson = ref(false)
   const error = ref(null)
   const publishing = ref(false)
 
-  const lessonId = computed(() => parseInt(route.value.params.id))
+  const lessonId = computed(() => parseInt(route.value?.params?.id))
   // Mode lecture seule uniquement si explicitement demande avec ?readonly=true
-  const isReadOnly = computed(() => route.value.query.readonly === 'true')
+  const isReadOnly = computed(() => route.value?.query?.readonly === 'true')
 
   async function loadLesson() {
     loadingLesson.value = true
