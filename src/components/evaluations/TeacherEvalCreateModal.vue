@@ -26,7 +26,8 @@
             <label class="form-label required">Type d'évaluation</label>
             <select v-model="onlineForm.type" required class="form-select">
               <option value="qcm">QCM uniquement</option>
-              <option value="qcm_multiple">QCM à choix multiples</option>
+              <option value="reponse_courte">Réponses courtes</option>
+              <option value="dissertation">Dissertation</option>
               <option value="mixte">Mixte (QCM + réponses courtes)</option>
             </select>
           </div>
