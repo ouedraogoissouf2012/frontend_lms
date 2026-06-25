@@ -1,0 +1,99 @@
+// Styles partagés de la barre d'outils de l'éditeur riche (#28, décompo ≤300).
+// Extraits VERBATIM du <style scoped> d'EditorToolbar.vue : ces classes sont
+// communes à tous les groupes de boutons, donc mutualisées en partial puis
+// `@use`-ées (scoped) dans chaque sous-composant présentationnel.
+
+.toolbar-group {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.toolbar-divider {
+  width: 2px;
+  background: var(--border-color);
+  margin: 0 8px;
+  align-self: stretch;
+}
+
+.toolbar-btn {
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.toolbar-btn:hover:not(:disabled) {
+  background: var(--hover-bg);
+  border-color: var(--border-color);
+  transform: translateY(-1px);
+}
+
+.toolbar-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.toolbar-btn.is-active {
+  background: var(--color-primary, #10b981);
+  color: white;
+  border-color: var(--color-primary, #10b981);
+}
+
+.toolbar-btn-fullscreen {
+  gap: 6px;
+  padding: 8px 14px;
+}
+
+.btn-label {
+  font-size: 0.85rem;
+}
+
+/* Select dropdown */
+.toolbar-select {
+  padding: 6px 10px;
+  font-size: 0.875rem;
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  cursor: pointer;
+  max-width: 160px;
+  transition: all 0.2s ease;
+}
+
+.toolbar-select:hover {
+  border-color: var(--color-primary, #10b981);
+}
+
+.toolbar-select:focus {
+  outline: none;
+  border-color: var(--color-primary, #10b981);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+
+/* Color picker */
+.color-picker {
+  width: 36px;
+  height: 36px;
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 2px;
+  transition: all 0.2s ease;
+}
+
+.color-picker:hover {
+  border-color: var(--color-primary, #10b981);
+  transform: scale(1.05);
+}
