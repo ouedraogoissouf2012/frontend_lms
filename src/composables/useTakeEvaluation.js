@@ -1,5 +1,4 @@
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref, computed, onMounted, onBeforeUnmount, getCurrentInstance } from 'vue'
 import evaluationService from '@/services/evaluation'
 import { auth } from '@/services/api'
 
@@ -11,8 +10,11 @@ import { auth } from '@/services/api'
  * l'original (conversion Options API → Composition API sans changement de logique).
  */
 export function useTakeEvaluation() {
-  const router = useRouter()
-  const route = useRoute()
+  // Pont route/router via l'instance (compatible global.mocks.$route des tests de
+  // montage, et réactif en prod) — voir specs decomposition-300.
+  const inst = getCurrentInstance()
+  const router = inst.proxy.$router
+  const route = computed(() => inst.proxy.$route)
 
   const evaluation = ref(null)
   const answers = ref({})
@@ -45,7 +47,7 @@ export function useTakeEvaluation() {
   async function loadEvaluation() {
     loading.value = true
     try {
-      const id = route.params.id
+      const id = route.value.params.id
       const result = await evaluationService.getEvaluation(id)
 
       if (result.success) {
@@ -199,8 +201,8 @@ export function useTakeEvaluation() {
       return
     }
 
-    submissionId.value = route.query.submission_id
-    isPractice.value = route.query.practice === '1'
+    submissionId.value = route.value.query.submission_id
+    isPractice.value = route.value.query.practice === '1'
     if (!submissionId.value) {
       error.value = 'ID de soumission manquant'
       loading.value = false

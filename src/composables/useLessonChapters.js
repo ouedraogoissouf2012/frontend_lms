@@ -1,5 +1,4 @@
-import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, computed, onMounted, getCurrentInstance } from 'vue'
 import { toast } from '@/services/toast'
 import { normalizeError } from '@/services/errorHandler'
 import lessonService from '@/services/lesson'
@@ -10,17 +9,20 @@ import lessonService from '@/services/lesson'
  * et la navigation. La vue ne fait plus que câbler le composable + ChapterManager.
  */
 export function useLessonChapters() {
-  const route = useRoute()
-  const router = useRouter()
+  // Pont route/router via l'instance (compatible global.mocks.$route des tests de
+  // montage, et réactif en prod) — voir specs decomposition-300.
+  const inst = getCurrentInstance()
+  const route = computed(() => inst.proxy.$route)
+  const router = inst.proxy.$router
 
   const lesson = ref(null)
   const loadingLesson = ref(false)
   const error = ref(null)
   const publishing = ref(false)
 
-  const lessonId = computed(() => parseInt(route.params.id))
+  const lessonId = computed(() => parseInt(route.value.params.id))
   // Mode lecture seule uniquement si explicitement demande avec ?readonly=true
-  const isReadOnly = computed(() => route.query.readonly === 'true')
+  const isReadOnly = computed(() => route.value.query.readonly === 'true')
 
   async function loadLesson() {
     loadingLesson.value = true
