@@ -19,7 +19,6 @@ export function useLessonEditor() {
 
   const loading = ref(false)
   const saving = ref(false)
-  const showPreview = ref(false)
 
   const form = ref({
     title: '',
@@ -238,7 +237,6 @@ export function useLessonEditor() {
   return {
     loading,
     saving,
-    showPreview,
     form,
     chapters,
     loadingChapters,
