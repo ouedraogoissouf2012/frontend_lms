@@ -1,0 +1,183 @@
+// Surcouches de thème de la vue SeanceDetails (#H6 ≤300).
+//
+// Bloc de styles transverses extrait VERBATIM de SeanceDetails.vue : il
+// surcharge les classes utilitaires Tailwind (couleurs, boutons, badges,
+// bordures, icônes) employées dans toute la sous-arborescence de la vue.
+// @use'd dans le <style scoped> du parent ET de chaque sous-composant
+// (SeanceDetailsHeader, SeanceDetailsVisio) → scoping per-composant préservé,
+// donc chaque élément déplacé conserve exactement la même règle (parité).
+
+/* Header card styling */
+.bg-white {
+  background: var(--card-bg) !important;
+}
+
+.shadow {
+  box-shadow: var(--card-shadow, 0 1px 3px rgba(0, 0, 0, 0.1)) !important;
+}
+
+/* Text colors */
+.text-gray-600,
+.text-gray-500 {
+  color: var(--text-secondary) !important;
+}
+
+.text-gray-900 {
+  color: var(--text-primary) !important;
+}
+
+.text-gray-800 {
+  color: var(--text-primary) !important;
+}
+
+/* Buttons */
+button {
+  background: var(--color-primary, #10b981);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+button:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Status badges */
+.bg-green-100,
+.bg-green-50 {
+  background: rgba(16, 185, 129, 0.1) !important;
+  color: var(--color-primary, #10b981) !important;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.bg-blue-100,
+.bg-blue-50 {
+  background: rgba(59, 130, 246, 0.1) !important;
+  color: #3b82f6 !important;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.bg-yellow-100,
+.bg-orange-100,
+.bg-orange-50 {
+  background: rgba(245, 158, 11, 0.1) !important;
+  color: #f59e0b !important;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.bg-gray-100,
+.bg-gray-50 {
+  background: var(--bg-secondary) !important;
+  color: var(--text-secondary) !important;
+  border: 1px solid var(--border-color);
+}
+
+/* Border colors */
+.border-green-300 {
+  border-color: rgba(16, 185, 129, 0.5) !important;
+}
+
+.border-orange-300 {
+  border-color: rgba(245, 158, 11, 0.5) !important;
+}
+
+.border-gray-300 {
+  border-color: var(--border-color) !important;
+}
+
+/* Text colors orange */
+.text-orange-700 {
+  color: #c2410c !important;
+}
+
+/* Borders */
+.border {
+  border-color: var(--border-color) !important;
+}
+
+.border-gray-200 {
+  border-color: var(--border-color) !important;
+}
+
+/* Red/Error states */
+.bg-red-50 {
+  background: rgba(239, 68, 68, 0.1) !important;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.border-red-200 {
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+.text-red-900 {
+  color: #dc2626 !important;
+}
+
+.bg-red-600 {
+  background: #dc2626 !important;
+}
+
+.bg-red-600:hover {
+  background: #b91c1c !important;
+}
+
+/* Loading spinner */
+.border-blue-600 {
+  border-color: var(--color-primary, #10b981) !important;
+}
+
+/* Emoticons styles */
+.visio-header-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.status-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.btn-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.waiting-icon {
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.finished-icon {
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.recording-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.presentiel-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+/* Rounded corners */
+.rounded-lg {
+  border-radius: 1rem;
+}
+
+.rounded-full {
+  border-radius: 9999px;
+}

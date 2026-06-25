@@ -1,0 +1,42 @@
+// Overrides de thème des résultats d'évaluation (H2 DRY) — adapte les utilitaires
+// Tailwind aux variables de thème. CSS byte-identique extrait verbatim de
+// `views/evaluations/EvaluationResults.vue`. @use'd dans le <style scoped> de
+// l'orchestrateur et des sous-composants (header / countdown / question / choix)
+// pour préserver le scoping per-composant et la parité visuelle.
+
+/* Adapter les cartes au thème */
+.bg-card {
+  background-color: var(--card-bg) !important;
+}
+
+.shadow-md {
+  box-shadow: var(--card-shadow) !important;
+}
+
+.text-primary {
+  color: var(--text-primary) !important;
+}
+
+.text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+.text-tertiary {
+  color: var(--text-tertiary) !important;
+}
+
+.bg-secondary {
+  background-color: var(--bg-secondary) !important;
+}
+
+.bg-tertiary {
+  background-color: var(--bg-tertiary) !important;
+}
+
+.bg-hover {
+  background-color: var(--bg-hover) !important;
+}
+
+.border-gray-200 {
+  border-color: var(--border-primary) !important;
+}

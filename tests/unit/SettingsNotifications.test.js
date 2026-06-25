@@ -1,37 +1,26 @@
-/**
- * Test de SettingsNotifications (#H10) : les bascules pilotent les v-model et
- * émettent `change` pour déclencher la persistance côté parent.
- */
+/** Test de rendu SettingsNotifications (#H3 ≤300) : v-model des deux interrupteurs + émission `save`. */
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
-import SettingsNotifications from '@/components/student/SettingsNotifications.vue'
+import SettingsNotifications from '@/components/admin/SettingsNotifications.vue'
 
-function mountNotif(props = {}) {
-  return mount(SettingsNotifications, {
-    props: { emailNotifications: true, visioReminders: true, ...props },
-    global: { stubs: { BellIcon: true } },
-  })
-}
-
-describe('SettingsNotifications (#H10)', () => {
-  it('rend les deux préférences', () => {
-    const w = mountNotif()
-    expect(w.findAll('input[type="checkbox"]')).toHaveLength(2)
-    expect(w.text()).toContain('Notifications par email')
-    expect(w.text()).toContain('Rappels de visioconférences')
+const mountNotif = (props = {}) =>
+  mount(SettingsNotifications, {
+    props: { emailNotifications: true, systemAlerts: true, ...props },
   })
 
-  it('bascule email : émet update:emailNotifications + change', async () => {
-    const w = mountNotif()
+describe('SettingsNotifications (#H3)', () => {
+  it('rend deux interrupteurs reflétant les v-model', () => {
+    const w = mountNotif({ emailNotifications: true, systemAlerts: false })
+    const inputs = w.findAll('input[type="checkbox"]')
+    expect(inputs).toHaveLength(2)
+    expect(inputs[0].element.checked).toBe(true)
+    expect(inputs[1].element.checked).toBe(false)
+  })
+
+  it('met à jour le v-model et émet `save` au changement', async () => {
+    const w = mountNotif({ emailNotifications: true, systemAlerts: true })
     await w.findAll('input[type="checkbox"]')[0].setValue(false)
-    expect(w.emitted('update:emailNotifications').at(-1)).toEqual([false])
-    expect(w.emitted('change')).toBeTruthy()
-  })
-
-  it('bascule visio : émet update:visioReminders + change', async () => {
-    const w = mountNotif()
-    await w.findAll('input[type="checkbox"]')[1].setValue(false)
-    expect(w.emitted('update:visioReminders').at(-1)).toEqual([false])
-    expect(w.emitted('change')).toBeTruthy()
+    expect(w.emitted('update:emailNotifications')[0]).toEqual([false])
+    expect(w.emitted('save')).toBeTruthy()
   })
 })
