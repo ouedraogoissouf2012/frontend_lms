@@ -3,7 +3,7 @@ import notificationsService from './notifications'
 // Imports relatifs (pas l'alias @) : le runner natif des tests de contrat (#17) ne
 // résout que les chemins relatifs.
 import { hasRole as roleHasRole } from '../constants/roles'
-import { normalizeError, logError } from './errorHandler'
+import { normalizeError, logError, shouldForceLogout } from './errorHandler'
 // useAuthStore : on importe la DÉFINITION au top-level (sûr) ; on n'APPELLE
 // useAuthStore() qu'à la volée dans les méthodes (Pinia actif à l'exécution).
 // Cycle api.js <-> auth.js sans danger : aucune des deux références n'est utilisée
@@ -54,8 +54,9 @@ api.interceptors.response.use(
     error.userMessage = normalized.userMessage
     error.fieldErrors = normalized.fieldErrors
 
-    // Si erreur 401, déconnecter l'utilisateur via le store (purge state + storage + cache)
-    if (error.response?.status === 401) {
+    // Déconnexion seulement si le 401 invalide vraiment la session locale (décision
+    // pure et testée). Un 401 de proxy KLASSCI ne doit PAS éjecter l'utilisateur.
+    if (shouldForceLogout(error)) {
       useAuthStore().logout()
 
       // Ne rediriger que si on n'est pas déjà sur la page de login

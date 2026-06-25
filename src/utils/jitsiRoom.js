@@ -24,14 +24,18 @@ export function sanitizeForUrl(str) {
 }
 
 /**
- * Générer un Room ID unique pour la séance
- * Format: lms_seance_{id}_{timestamp}
+ * Room ID DÉTERMINISTE par séance.
+ * Format: lms_seance_{id}
+ *
+ * Prof ET élèves d'une séance doivent rejoindre la MÊME salle. Un timestamp
+ * (Date.now()) donnait une salle différente à chaque ouverture → les élèves
+ * atterrissaient dans une autre salle que le prof (ne pouvaient pas suivre).
+ * L'unicité par séance suffit (le nom de salle inclut déjà la séance).
  * @param {Object} seance
  * @returns {string}
  */
 export function generateRoomId(seance) {
-  const timestamp = Date.now()
-  return `lms_seance_${seance.id}_${timestamp}`
+  return `lms_seance_${seance.id}`
 }
 
 /**
