@@ -22,14 +22,12 @@ import { getPeriodDates as computePeriodDates } from '@/utils/attendance'
  *   PRÉEXISTANT conservé à l'identique. Les exports gardent l'appel optionnel.
  * - formatDate/formatTime/formatDuration restent LOCAUX (non convergés vers
  *   @/utils/formatters) pour un rendu strictement inchangé.
- * - getInitials et formatDateInput étaient des méthodes MORTES (jamais appelées)
- *   dans le composant d'origine : conservées telles quelles (dette documentée).
+ * - getInitials et formatDateInput : méthodes MORTES d'origine conservées (dette documentée).
  */
 export function useSeanceAttendanceHistory() {
   // Instance pour le pont route + $toast (non enregistré → undefined, cf. parité supra).
   const instance = getCurrentInstance()
-  // Pont route double source : proxy.$route (tests de vue + prod) ; useRoute() (tests de
-  // composable mockant vue-router) ; repli sûr pour ne jamais crasher. Voir specs decomposition-300.
+  // Pont route double source (proxy.$route + repli useRoute()/sûr) — voir specs decomposition-300.
   const route = instance?.proxy?.$route ?? useRoute() ?? { params: {}, query: {} }
   const $toast = instance?.appContext.config.globalProperties.$toast
 
