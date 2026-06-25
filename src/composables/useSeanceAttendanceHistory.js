@@ -26,9 +26,11 @@ import { getPeriodDates as computePeriodDates } from '@/utils/attendance'
  *   dans le composant d'origine : conservées telles quelles (dette documentée).
  */
 export function useSeanceAttendanceHistory() {
-  const route = useRoute()
-  // Instance pour accéder à $toast (non enregistré → undefined, cf. parité supra).
+  // Instance pour le pont route + $toast (non enregistré → undefined, cf. parité supra).
   const instance = getCurrentInstance()
+  // Pont route double source : proxy.$route (tests de vue + prod) ; useRoute() (tests de
+  // composable mockant vue-router) ; repli sûr pour ne jamais crasher. Voir specs decomposition-300.
+  const route = instance?.proxy?.$route ?? useRoute() ?? { params: {}, query: {} }
   const $toast = instance?.appContext.config.globalProperties.$toast
 
   const loading = ref(false)
