@@ -3,16 +3,18 @@ import { useRoute, useRouter } from 'vue-router'
 import { auth } from '@/services/api'
 import { isTeacher, isStudent, getRoleDisplayName } from '@/constants/roles'
 import { sidebarKey } from '@/constants/storageKeys'
-import { buildMenuSections } from '@/utils/sidebarMenu'
+import { useNavigation } from '@/composables/useNavigation'
 
 /**
- * Couche logique de la sidebar (#H12 ≤300) : état repli/sous-menus, infos
- * utilisateur, menu dérivé du rôle (buildMenuSections), persistance du repli
- * (scopé par institution) et ouverture auto du sous-menu actif. La vue ne fait
- * plus que câbler ces valeurs à des sous-composants présentationnels.
+ * Couche logique de la sidebar (#H12 ≤300, #108) : état repli/sous-menus, infos
+ * utilisateur, menu dérivé du rôle et persistance du repli (scopé par institution)
+ * avec ouverture auto du sous-menu actif. La vue ne fait plus que câbler ces
+ * valeurs à des sous-composants présentationnels.
  *
- * Comportement strictement identique à l'origine (parité de câblage avec
- * auth.getUser() vérifiée par Sidebar.test.js).
+ * Le menu provient de la SOURCE UNIQUE déclarative `useNavigation()` (#104),
+ * partagée avec la BottomNavigation : plus de logique de rôle dupliquée ici. Les
+ * sections retournées sont déjà filtrées par rôle, à parité stricte (mêmes routes,
+ * libellés et ordre) avec l'ancien `buildMenuSections` — cf. NavConfig.test.js.
  */
 export function useSidebar() {
   const route = useRoute()
@@ -44,8 +46,9 @@ export function useSidebar() {
     return (firstInitial + lastInitial).toUpperCase()
   })
 
-  // Menu selon le rôle (logique pure extraite dans utils/sidebarMenu)
-  const menuSections = computed(() => buildMenuSections(auth.getUser()))
+  // Menu selon le rôle, issu de la source unique déclarative (#104). `sections`
+  // est un computed déjà filtré sur auth.getUser() — réévalué comme avant.
+  const { sections: menuSections } = useNavigation()
 
   // Restaure l'état replié depuis localStorage (scopé par institution)
   const getSidebarKey = () => sidebarKey(auth.getInstitution())
