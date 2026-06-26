@@ -1,4 +1,5 @@
 import api from './api'
+import { endpoints } from './endpoints'
 
 /**
  * Service LMS — domaine CLASSES (données enrichies `/lms/classes/*`).
@@ -15,7 +16,7 @@ export const lmsClassesService = {
    */
   async getClasseDetails(classeId) {
     try {
-      return await api.get(`/lms/classes/${classeId}`)
+      return await api.get(endpoints.lms.classes.details(classeId))
     } catch (error) {
       console.error('Erreur récupération classe enrichie:', error)
       throw error
@@ -29,7 +30,7 @@ export const lmsClassesService = {
    */
   async getClasseEtudiants(classeId) {
     try {
-      return await api.get(`/lms/classes/${classeId}/etudiants`)
+      return await api.get(endpoints.lms.classes.etudiants(classeId))
     } catch (error) {
       console.error('Erreur récupération étudiants classe:', error)
       throw error

@@ -1,4 +1,5 @@
 import api from './api'
+import { endpoints } from './endpoints'
 
 /**
  * Service LMS — domaine NOTIFICATIONS de séance (`/lms/notifications/*`).
@@ -15,7 +16,7 @@ export const lmsNotificationsService = {
    */
   async getNotificationPreferences(userId) {
     try {
-      return await api.get(`/lms/notifications/preferences/${userId}`)
+      return await api.get(endpoints.lms.notifications.preferences(userId))
     } catch (error) {
       console.error('Erreur récupération préférences notifications:', error)
       throw error
@@ -29,7 +30,7 @@ export const lmsNotificationsService = {
    */
   async sendSessionReminder(data) {
     try {
-      return await api.post('/lms/notifications/send-session-reminder', data)
+      return await api.post(endpoints.lms.notifications.sendSessionReminder, data)
     } catch (error) {
       console.error('Erreur envoi rappel séance:', error)
       throw error
