@@ -91,16 +91,18 @@ export function createEmptyLesson() {
 
 /**
  * Construit le payload de création de leçon (contexte matière/classe/enseignant
- * ajouté au brouillon). Mapping PUR — identique au littéral d'origine.
+ * ajouté au brouillon). Mapping PUR.
  * @param {Object} newLesson - brouillon du formulaire
- * @param {{ matiere:Object, user:Object, matiereId:number }} ctx
+ * @param {{ classes:Array, user:Object, matiereId:number }} ctx
+ *   `classes` = classes_concernees de la matière (1ère classe utilisée comme
+ *   classe_id, requis par le backend). `matiere` n'a PAS de propriété `classes`.
  * @returns {Object} payload prêt pour lessonService.createLesson
  */
-export function buildLessonPayload(newLesson, { matiere, user, matiereId }) {
+export function buildLessonPayload(newLesson, { classes, user, matiereId }) {
   return {
     ...newLesson,
     matiere_id: matiereId,
-    classe_id: matiere?.classes?.[0]?.id || null, // Première classe si disponible
+    classe_id: classes?.[0]?.id || null, // 1ère classe concernée (classes_concernees)
     enseignant_id: user?.id,
     type: 'cours',
     status: 'draft'

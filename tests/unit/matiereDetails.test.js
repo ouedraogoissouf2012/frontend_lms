@@ -83,9 +83,9 @@ describe('utils/matiereDetails — createEmptyLesson', () => {
 describe('utils/matiereDetails — buildLessonPayload', () => {
   const draft = { title: 'Algèbre', description: 'Intro', niveau_difficulte: 'debutant' }
 
-  it('enrichit le brouillon avec le contexte matière/enseignant', () => {
+  it('enrichit le brouillon avec le contexte classes_concernees/enseignant', () => {
     const payload = buildLessonPayload(draft, {
-      matiere: { classes: [{ id: 7 }, { id: 9 }] },
+      classes: [{ id: 7 }, { id: 9 }], // classes_concernees de la matière
       user: { id: 42 },
       matiereId: 3
     })
@@ -93,15 +93,15 @@ describe('utils/matiereDetails — buildLessonPayload', () => {
       title: 'Algèbre',
       description: 'Intro',
       matiere_id: 3,
-      classe_id: 7,            // première classe
+      classe_id: 7,            // première classe concernée
       enseignant_id: 42,
       type: 'cours',
       status: 'draft'
     })
   })
-  it('classe_id null si la matière n\'a pas de classe', () => {
-    expect(buildLessonPayload(draft, { matiere: {}, user: { id: 1 }, matiereId: 3 }).classe_id).toBeNull()
-    expect(buildLessonPayload(draft, { matiere: null, user: null, matiereId: 3 }).classe_id).toBeNull()
+  it('classe_id null si aucune classe concernée', () => {
+    expect(buildLessonPayload(draft, { classes: [], user: { id: 1 }, matiereId: 3 }).classe_id).toBeNull()
+    expect(buildLessonPayload(draft, { classes: null, user: null, matiereId: 3 }).classe_id).toBeNull()
   })
 })
 
