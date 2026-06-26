@@ -1,7 +1,7 @@
 /**
- * Test de MONTAGE de Sidebar.vue (G9 — décomposition < 300 lignes).
+ * Test de MONTAGE de Sidebar.vue (G9 — décomposition < 300 lignes ; #108).
  *
- * Vérifie qu'après extraction de `buildMenuSections` (utils/sidebarMenu), la
+ * Vérifie qu'avec le menu issu de la source unique `useNavigation()` (#104), la
  * sidebar monte sans erreur, rend les entrées du rôle courant (parité de câblage
  * avec `auth.getUser()`) et expose les infos utilisateur (initiales/nom/rôle).
  */

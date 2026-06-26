@@ -1,7 +1,8 @@
 /**
- * Tests de la logique useSidebar (#H12) — services/router mockés, helpers de rôle
- * et buildMenuSections réels. Vérifie infos utilisateur, repli persistant,
- * bascule des sous-menus et redirection profil selon le rôle.
+ * Tests de la logique useSidebar (#H12, #108) — services/router mockés, helpers de
+ * rôle et la config de navigation réelle (`useNavigation`/`NAV_SECTIONS`). Vérifie
+ * infos utilisateur, menu dérivé du rôle (parité stricte de routes via la source
+ * unique #104), repli persistant, bascule des sous-menus et redirection profil.
  */
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -45,11 +46,26 @@ describe('useSidebar (#H12)', () => {
     expect(api.userRole.value).toBe('Étudiant')
   })
 
-  it('dérive le menu du rôle courant (enseignant)', () => {
+  it('dérive le menu du rôle courant via useNavigation (parité enseignant)', () => {
     getUser.mockReturnValue({ role: 'enseignant', nom: 'Doe', prenom: 'Jane' })
     const { api } = run()
-    expect(Array.isArray(api.menuSections.value)).toBe(true)
-    expect(api.menuSections.value.length).toBeGreaterThan(0)
+    // Parité stricte avec la source unique #104 (mêmes routes, même ordre que
+    // l'ancien buildMenuSections — verrouille le câblage useSidebar→useNavigation).
+    expect(api.menuSections.value.map((s) => s.to)).toEqual([
+      '/teacher/dashboard',
+      '/teacher/schedule',
+      '/teacher/hub',
+      '/teacher/evaluations',
+      '/forum',
+      '/attendance/seances',
+      '/teacher/settings'
+    ])
+  })
+
+  it('menu minimal du supradmin (Institutions uniquement)', () => {
+    getUser.mockReturnValue({ role: 'supradmin', nom: 'Root' })
+    const { api } = run()
+    expect(api.menuSections.value.map((s) => s.to)).toEqual(['/admin/institutions'])
   })
 
   it('toggleSidebar replie, vide les sous-menus et persiste', () => {
