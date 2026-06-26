@@ -33,7 +33,12 @@ export function buildEditorExtensions(placeholder) {
     StarterKit.configure({
       heading: {
         levels: [1, 2, 3]
-      }
+      },
+      // StarterKit v3 inclut désormais Link + Underline : on les désactive ici
+      // pour garder nos versions configurées plus bas (sinon « Duplicate
+      // extension names: ['link','underline'] »).
+      link: false,
+      underline: false
     }),
     Placeholder.configure({ placeholder }),
     Link.configure({
