@@ -6,6 +6,7 @@
  * l'original.
  */
 import api from './api'
+import { endpoints } from './endpoints'
 
 export const klassciEvaluationsService = {
   /**
@@ -15,7 +16,7 @@ export const klassciEvaluationsService = {
    */
   async getEvaluations(filters = {}) {
     try {
-      const response = await api.get('/proxy/evaluations', { params: filters })
+      const response = await api.get(endpoints.klassci.evaluations, { params: filters })
       return { success: true, data: response.data || response }
     } catch (error) {
       console.error('Erreur récupération évaluations KLASSCI:', error)
@@ -29,7 +30,7 @@ export const klassciEvaluationsService = {
    */
   async getMyEvaluations() {
     try {
-      const response = await api.get('/evaluations/student')
+      const response = await api.get(endpoints.evaluations.student)
       return response.success ? response.data : []
     } catch (error) {
       console.error('Erreur récupération mes évaluations:', error)

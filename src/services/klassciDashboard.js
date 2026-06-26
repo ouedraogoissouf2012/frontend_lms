@@ -5,6 +5,7 @@
  * dashboard élève. Comportement et payloads STRICTEMENT identiques à l'original.
  */
 import api from './api'
+import { endpoints } from './endpoints'
 
 export const klassciDashboardService = {
   /**
@@ -14,7 +15,7 @@ export const klassciDashboardService = {
    */
   async getStudentDashboard() {
     try {
-      const response = await api.get('/proxy/me/dashboard')
+      const response = await api.get(endpoints.klassci.studentDashboard)
       return response.success ? response.data : null
     } catch (error) {
       console.error('Erreur récupération dashboard étudiant:', error)
@@ -29,7 +30,7 @@ export const klassciDashboardService = {
    */
   async getTeacherDashboard() {
     try {
-      const response = await api.get('/proxy/me/teacher-dashboard')
+      const response = await api.get(endpoints.klassci.teacherDashboard)
       return response.success ? response.data : null
     } catch (error) {
       console.error('Erreur récupération dashboard enseignant:', error)

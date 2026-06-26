@@ -6,6 +6,7 @@
  * à l'original.
  */
 import api from './api'
+import { endpoints } from './endpoints'
 
 export const klassciSeancesService = {
   /**
@@ -15,7 +16,7 @@ export const klassciSeancesService = {
    */
   async getSeances(filters = {}) {
     try {
-      const response = await api.get('/lms/seances/upcoming', { params: filters })
+      const response = await api.get(endpoints.lms.seances.upcoming, { params: filters })
       return response
     } catch (error) {
       console.error('Erreur récupération séances:', error)
@@ -30,7 +31,7 @@ export const klassciSeancesService = {
    */
   async getUpcomingSeances(filters = {}) {
     try {
-      const response = await api.get('/lms/seances/upcoming', { params: filters })
+      const response = await api.get(endpoints.lms.seances.upcoming, { params: filters })
       return response.success ? response.data : []
     } catch (error) {
       console.error('Erreur récupération séances à venir:', error)
@@ -44,7 +45,7 @@ export const klassciSeancesService = {
    */
   async getMyVisioConferences() {
     try {
-      const response = await api.get('/lms/seances/my-classes')
+      const response = await api.get(endpoints.lms.seances.myClasses)
       return response.success ? response.data : []
     } catch (error) {
       console.error('Erreur récupération mes visioconférences:', error)
