@@ -108,7 +108,7 @@ const { user, dashboardData, loading, error, loadDashboard } = useStudentDashboa
 .error-title {
   font-size: 1.125rem;
   font-weight: 700;
-  color: #991B1B;
+  color: var(--error-text);
   margin: 0 0 0.5rem 0;
 }
 
