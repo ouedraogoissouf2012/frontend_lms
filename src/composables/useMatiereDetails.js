@@ -126,7 +126,7 @@ export function useMatiereDetails() {
 
       // Préparer les données avec contexte automatique (mapping pur extrait)
       const lessonData = buildLessonPayload(newLesson.value, {
-        matiere: matiere.value,
+        classes: classes.value,
         user,
         matiereId: matiereId.value
       })
