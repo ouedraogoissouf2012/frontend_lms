@@ -94,7 +94,7 @@ const { stats, loading, error, loadStats } = useTeacherStats()
   gap: 1.5rem;
   padding: 1.5rem;
   background: #FEF2F2;
-  border: 1px solid #FCA5A5;
+  border: 1px solid var(--error-border);
   border-radius: 0.75rem;
   margin-bottom: 1.5rem;
 }
@@ -112,7 +112,7 @@ const { stats, loading, error, loadStats } = useTeacherStats()
 .error-title {
   font-size: 1.125rem;
   font-weight: 700;
-  color: #991B1B;
+  color: var(--error-text);
   margin: 0 0 0.5rem 0;
 }
 

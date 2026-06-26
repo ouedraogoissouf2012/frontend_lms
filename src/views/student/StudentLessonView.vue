@@ -104,8 +104,8 @@ const {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: var(--bg-primary, #0f172a);
-  color: var(--text-primary, #e2e8f0);
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .top-bar {
@@ -113,8 +113,8 @@ const {
   align-items: center;
   gap: 1rem;
   padding: 0.75rem 1.5rem;
-  background: var(--card-bg, #1e293b);
-  border-bottom: 1px solid var(--border-primary, #334155);
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-primary);
   z-index: 20;
   flex-shrink: 0;
 }
@@ -125,17 +125,17 @@ const {
   gap: 0.5rem;
   padding: 0.5rem 1rem;
   background: transparent;
-  border: 1px solid var(--border-primary, #334155);
+  border: 1px solid var(--border-primary);
   border-radius: 0.5rem;
-  color: var(--text-secondary, #94a3b8);
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
 }
 
 .btn-back:hover {
-  background: var(--bg-secondary, #1e293b);
-  color: var(--text-primary, #e2e8f0);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .lesson-title-bar {
@@ -162,14 +162,14 @@ const {
 .progress-bar-top {
   width: 120px;
   height: 6px;
-  background: var(--bg-secondary, #334155);
+  background: var(--bg-secondary);
   border-radius: 3px;
   overflow: hidden;
 }
 
 .progress-fill-top {
   height: 100%;
-  background: linear-gradient(90deg, #3b82f6, #10b981);
+  background: linear-gradient(90deg, var(--blue-500), #10b981);
   border-radius: 3px;
   transition: width 0.5s ease;
 }
@@ -206,14 +206,14 @@ const {
   height: 60vh;
   text-align: center;
   gap: 1rem;
-  color: var(--text-secondary, #94a3b8);
+  color: var(--text-secondary);
 }
 
 .content-loading .spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid var(--border-primary, #334155);
-  border-top-color: #3b82f6;
+  border: 3px solid var(--border-primary);
+  border-top-color: var(--blue-500);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -229,7 +229,7 @@ const {
 
 .btn-retry {
   padding: 0.5rem 1.5rem;
-  background: #3b82f6;
+  background: var(--blue-500);
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -245,7 +245,7 @@ const {
   width: 3rem;
   height: 3rem;
   border-radius: 50%;
-  background: #3b82f6;
+  background: var(--blue-500);
   color: white;
   border: none;
   cursor: pointer;
