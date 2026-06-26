@@ -112,7 +112,7 @@ const {
   align-items: center;
   gap: var(--spacing-sm);
   padding: var(--spacing-md) var(--spacing-lg);
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, var(--blue-500), #2563eb);
   border: none;
   border-radius: var(--radius-lg);
   color: white;
@@ -163,7 +163,7 @@ const {
 
 .retry-btn {
   padding: var(--spacing-md) var(--spacing-xl);
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, var(--blue-500), #2563eb);
   border: none;
   border-radius: var(--radius-lg);
   color: white;

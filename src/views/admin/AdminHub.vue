@@ -204,7 +204,7 @@ const { loading, stats } = useAdminHub()
 
 /* Text color utilities */
 .text-blue-500 {
-  color: #3b82f6;
+  color: var(--blue-500);
 }
 
 .text-orange-500 {
