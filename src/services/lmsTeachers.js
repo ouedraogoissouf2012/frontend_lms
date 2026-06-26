@@ -1,4 +1,5 @@
 import api from './api'
+import { endpoints } from './endpoints'
 
 /**
  * Service LMS — domaine ENSEIGNANTS (`/lms/enseignants`, dashboard enseignant).
@@ -13,7 +14,8 @@ export const lmsTeachersService = {
    */
   async getEnseignants(withDetails = false) {
     try {
-      const url = withDetails ? '/lms/enseignants?with_details=true' : '/lms/enseignants'
+      // Query string ?with_details (orthogonale) laissée au client — cf. endpoints.js.
+      const url = withDetails ? `${endpoints.lms.enseignants}?with_details=true` : endpoints.lms.enseignants
       return await api.get(url)
     } catch (error) {
       console.error('Erreur récupération enseignants:', error)
@@ -27,7 +29,7 @@ export const lmsTeachersService = {
    */
   async getTeacherDashboard() {
     try {
-      return await api.get('/proxy/me/teacher-dashboard')
+      return await api.get(endpoints.klassci.teacherDashboard)
     } catch (error) {
       console.error('Erreur récupération dashboard enseignant:', error)
       throw error

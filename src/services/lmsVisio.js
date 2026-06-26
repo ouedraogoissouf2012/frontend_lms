@@ -1,4 +1,5 @@
 import api from './api'
+import { endpoints } from './endpoints'
 
 /**
  * Service LMS — domaine VISIO (`/lms/seances/{id}/{toggle,activate,...}-visio`, join/leave/heartbeat).
@@ -16,7 +17,7 @@ export const lmsVisioService = {
    */
   async toggleVisio(seanceId, enabled, visioType = 'jitsi') {
     try {
-      return await api.post(`/lms/seances/${seanceId}/toggle-visio`, {
+      return await api.post(endpoints.lms.visio.toggle(seanceId), {
         enabled,
         visio_type: visioType
       })
@@ -33,7 +34,7 @@ export const lmsVisioService = {
    */
   async activateVisio(seanceId) {
     try {
-      return await api.post(`/lms/seances/${seanceId}/activate-visio`)
+      return await api.post(endpoints.lms.visio.activate(seanceId))
     } catch (error) {
       console.error('Erreur activation visio:', error)
       throw error
@@ -47,7 +48,7 @@ export const lmsVisioService = {
    */
   async deactivateVisio(seanceId) {
     try {
-      return await api.post(`/lms/seances/${seanceId}/deactivate-visio`)
+      return await api.post(endpoints.lms.visio.deactivate(seanceId))
     } catch (error) {
       console.error('Erreur désactivation visio:', error)
       throw error
@@ -61,7 +62,7 @@ export const lmsVisioService = {
    */
   async startVisio(seanceId) {
     try {
-      return await api.post(`/lms/seances/${seanceId}/start-visio`)
+      return await api.post(endpoints.lms.visio.start(seanceId))
     } catch (error) {
       console.error('Erreur démarrage visio:', error)
       throw error
@@ -75,7 +76,7 @@ export const lmsVisioService = {
    */
   async endVisio(seanceId) {
     try {
-      return await api.post(`/lms/seances/${seanceId}/end-visio`)
+      return await api.post(endpoints.lms.visio.end(seanceId))
     } catch (error) {
       console.error('Erreur fin visio:', error)
       throw error
@@ -89,7 +90,7 @@ export const lmsVisioService = {
    */
   async joinVisio(seanceId) {
     try {
-      return await api.post(`/lms/seances/${seanceId}/join`)
+      return await api.post(endpoints.lms.visio.join(seanceId))
     } catch (error) {
       console.error('Erreur rejoindre visio:', error)
       throw error
@@ -103,7 +104,7 @@ export const lmsVisioService = {
    */
   async leaveVisio(seanceId) {
     try {
-      return await api.post(`/lms/seances/${seanceId}/leave`)
+      return await api.post(endpoints.lms.visio.leave(seanceId))
     } catch (error) {
       console.error('Erreur leave visio:', error)
       throw error
@@ -117,7 +118,7 @@ export const lmsVisioService = {
    */
   async heartbeatVisio(seanceId) {
     try {
-      return await api.post(`/lms/seances/${seanceId}/heartbeat`)
+      return await api.post(endpoints.lms.visio.heartbeat(seanceId))
     } catch (error) {
       console.error('Erreur heartbeat visio:', error)
       throw error
@@ -132,7 +133,7 @@ export const lmsVisioService = {
    */
   async getVisioParticipants(seanceId) {
     try {
-      return await api.get(`/lms/seances/${seanceId}/visio-participants`)
+      return await api.get(endpoints.lms.visio.participants(seanceId))
     } catch (error) {
       console.error('Erreur récupération participants:', error)
       throw error

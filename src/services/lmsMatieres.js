@@ -1,4 +1,5 @@
 import api from './api'
+import { endpoints } from './endpoints'
 
 /**
  * Service LMS — domaine MATIÈRES (données enrichies `/lms/matieres/*`, `/lms/teacher/*`).
@@ -15,7 +16,7 @@ export const lmsMatieresService = {
    */
   async getMatiereDetails(matiereId) {
     try {
-      return await api.get(`/lms/matieres/${matiereId}`)
+      return await api.get(endpoints.lms.matieres.details(matiereId))
     } catch (error) {
       console.error('Erreur récupération matière enrichie:', error)
       throw error
@@ -28,7 +29,7 @@ export const lmsMatieresService = {
    */
   async getMyMatieres() {
     try {
-      return await api.get('/lms/teacher/my-matieres')
+      return await api.get(endpoints.lms.matieres.myTeacher)
     } catch (error) {
       console.error('Erreur récupération mes matières:', error)
       throw error

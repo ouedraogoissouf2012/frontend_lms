@@ -1,4 +1,5 @@
 import api from './api'
+import { endpoints } from './endpoints'
 
 /**
  * Service LMS — domaine SÉANCES & PRÉSENCES (`/lms/seances/*`, `/lms/attendance*`).
@@ -15,7 +16,7 @@ export const lmsSeancesService = {
    */
   async getUpcomingSeances(params = {}) {
     try {
-      return await api.get('/lms/seances/upcoming', { params })
+      return await api.get(endpoints.lms.seances.upcoming, { params })
     } catch (error) {
       console.error('Erreur récupération séances à venir:', error)
       throw error
@@ -29,7 +30,7 @@ export const lmsSeancesService = {
    */
   async getSeanceDetails(seanceId) {
     try {
-      return await api.get(`/lms/seances/${seanceId}/details`)
+      return await api.get(endpoints.lms.seances.details(seanceId))
     } catch (error) {
       console.error('Erreur récupération détails séance:', error)
       throw error
@@ -44,7 +45,7 @@ export const lmsSeancesService = {
    */
   async getSeanceParticipants(seanceId) {
     try {
-      return await api.get(`/lms/seances/${seanceId}/participants`)
+      return await api.get(endpoints.lms.seances.participants(seanceId))
     } catch (error) {
       console.error('Erreur récupération participants séance:', error)
       throw error
@@ -59,7 +60,7 @@ export const lmsSeancesService = {
    */
   async validateParticipant(seanceId, userId) {
     try {
-      return await api.post(`/lms/seances/${seanceId}/validate-participant`, {
+      return await api.post(endpoints.lms.seances.validateParticipant(seanceId), {
         user_id: userId
       })
     } catch (error) {
@@ -77,7 +78,7 @@ export const lmsSeancesService = {
    */
   async syncVideoAttendances(seanceId, date, participants) {
     try {
-      return await api.post('/lms/attendances/from-video-session', {
+      return await api.post(endpoints.lms.attendance.fromVideoSession, {
         seance_cours_id: seanceId,
         date,
         participants
@@ -96,7 +97,7 @@ export const lmsSeancesService = {
   async getMyTeachingSeances(forceRefresh = false) {
     try {
       const params = forceRefresh ? { refresh: true } : {}
-      return await api.get('/lms/seances/my-teaching', { params })
+      return await api.get(endpoints.lms.seances.myTeaching, { params })
     } catch (error) {
       console.error('Erreur récupération mes séances enseignant:', error)
       throw error
@@ -111,7 +112,7 @@ export const lmsSeancesService = {
   async getMyClassesSeances(forceRefresh = false) {
     try {
       const params = forceRefresh ? { refresh: true } : {}
-      return await api.get('/lms/seances/my-classes', { params })
+      return await api.get(endpoints.lms.seances.myClasses, { params })
     } catch (error) {
       console.error('Erreur récupération mes cours étudiant:', error)
       throw error
@@ -125,7 +126,7 @@ export const lmsSeancesService = {
    */
   async hideSeance(seanceId) {
     try {
-      return await api.post(`/lms/seances/${seanceId}/hide`)
+      return await api.post(endpoints.lms.seances.hide(seanceId))
     } catch (error) {
       console.error('Erreur masquage séance:', error)
       throw error
@@ -139,7 +140,7 @@ export const lmsSeancesService = {
    */
   async unhideSeance(seanceId) {
     try {
-      return await api.post(`/lms/seances/${seanceId}/unhide`)
+      return await api.post(endpoints.lms.seances.unhide(seanceId))
     } catch (error) {
       console.error('Erreur réaffichage séance:', error)
       throw error
@@ -153,7 +154,7 @@ export const lmsSeancesService = {
    */
   async getAttendanceHistory(params = {}) {
     try {
-      return await api.get('/lms/attendance/history', { params })
+      return await api.get(endpoints.lms.attendance.history, { params })
     } catch (error) {
       console.error('Erreur récupération historique présences:', error)
       throw error
@@ -167,7 +168,7 @@ export const lmsSeancesService = {
    */
   async getSeancesHistory(params = {}) {
     try {
-      return await api.get('/lms/seances/history', { params })
+      return await api.get(endpoints.lms.seances.history, { params })
     } catch (error) {
       console.error('Erreur récupération historique séances:', error)
       throw error
@@ -181,7 +182,7 @@ export const lmsSeancesService = {
    */
   async getSeanceAttendances(seanceId) {
     try {
-      return await api.get(`/lms/seances/${seanceId}/attendances`)
+      return await api.get(endpoints.lms.seances.attendances(seanceId))
     } catch (error) {
       console.error('Erreur récupération présences séance:', error)
       throw error
@@ -195,7 +196,7 @@ export const lmsSeancesService = {
    */
   async deleteSeance(seanceId) {
     try {
-      return await api.delete(`/lms/seances/${seanceId}`)
+      return await api.delete(endpoints.lms.seances.delete(seanceId))
     } catch (error) {
       console.error('Erreur suppression séance:', error)
       throw error
