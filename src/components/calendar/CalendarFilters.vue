@@ -107,6 +107,7 @@ defineEmits(['reset', 'apply-preset'])
 <style lang="scss" scoped>
 // Variables LMS nécessaires à ce composant (copie locale du sous-ensemble utilisé ;
 // les couleurs « système » passent par les CSS custom properties globales var(--…)).
+// NB : la carte de base `.card` est fournie par le parent via :deep() (#107), pas dupliquée ici.
 $lms-blue: #2563eb;
 $lms-blue-light: #3b82f6;
 $lms-blue-dark: #1e3a8a;
@@ -116,21 +117,9 @@ $text-secondary: #64748B;
 $text-tertiary: #6B7280;
 $gray-light: #F8FAFC;
 $gray-border: #E5E7EB;
-$shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
 $transition-fast: all 0.2s ease;
 $border-radius-md: 6px;
-$border-radius-lg: 8px;
 $border-radius-full: 9999px;
-
-.card {
-  background: var(--card-bg, $white);
-  border: 1px solid var(--card-border, transparent);
-  border-radius: $border-radius-lg;
-  box-shadow: var(--card-shadow, $shadow-light);
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  transition: background 0.2s ease, border-color 0.2s ease;
-}
 
 .filters-card {
   .filters-header {
@@ -244,6 +233,86 @@ $border-radius-full: 9999px;
       .material-icons {
         color: $white;
         font-size: 1.25rem;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .filters-content {
+    grid-template-columns: 1fr !important;
+
+    .filter-count {
+      justify-self: stretch;
+      justify-content: center;
+    }
+  }
+}
+</style>
+
+<!-- Mode sombre : non-scoped pour cibler html[data-theme="dark"] (rapatrié du parent, #107) -->
+<style lang="scss">
+$lms-blue: #2563eb;
+$lms-blue-light: #3b82f6;
+$white: #ffffff;
+
+html[data-theme="dark"] {
+  .filters-card {
+    .filters-title {
+      .material-icons {
+        color: $lms-blue-light;
+      }
+
+      h3 {
+        color: $white;
+      }
+    }
+
+    .reset-button {
+      color: rgba($white, 0.7);
+
+      &:hover {
+        background: rgba($lms-blue-light, 0.3);
+        color: $lms-blue-light;
+      }
+    }
+
+    .filter-field {
+      label {
+        color: rgba($white, 0.8);
+
+        .icon-label {
+          color: $lms-blue-light;
+        }
+      }
+
+      select {
+        background: var(--input-bg);
+        border-color: var(--input-border);
+        color: var(--input-text);
+
+        &:hover {
+          border-color: $lms-blue-light;
+        }
+
+        &:focus {
+          border-color: $lms-blue-light;
+          box-shadow: 0 0 0 3px rgba($lms-blue-light, 0.2);
+        }
+
+        option {
+          background: var(--bg-primary);
+          color: var(--text-primary);
+        }
+      }
+    }
+
+    .filter-count {
+      background: linear-gradient(135deg, $lms-blue-light 0%, $lms-blue 100%);
+      color: $white;
+
+      .material-icons {
+        color: $white;
       }
     }
   }
