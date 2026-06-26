@@ -4,6 +4,8 @@ import notificationsService from './notifications'
 // résout que les chemins relatifs.
 import { hasRole as roleHasRole } from '../constants/roles'
 import { normalizeError, logError, shouldForceLogout } from './errorHandler'
+// Carte unique des chemins d'API (#105/#110) — source de vérité des URLs.
+import { endpoints } from './endpoints'
 // useAuthStore : on importe la DÉFINITION au top-level (sûr) ; on n'APPELLE
 // useAuthStore() qu'à la volée dans les méthodes (Pinia actif à l'exécution).
 // Cycle api.js <-> auth.js sans danger : aucune des deux références n'est utilisée
@@ -96,43 +98,43 @@ export const auth = {
 // Fonctions pour les leçons
 export const lessons = {
   async getAll(params = {}) {
-    return await api.get('/lessons', { params })
+    return await api.get(endpoints.lessons.list, { params })
   },
 
   async getOne(id) {
-    return await api.get(`/lessons/${id}`)
+    return await api.get(endpoints.lessons.details(id))
   },
 
   async create(data) {
-    return await api.post('/lessons', data)
+    return await api.post(endpoints.lessons.list, data)
   },
 
   async update(id, data) {
-    return await api.put(`/lessons/${id}`, data)
+    return await api.put(endpoints.lessons.details(id), data)
   },
 
   async delete(id) {
-    return await api.delete(`/lessons/${id}`)
+    return await api.delete(endpoints.lessons.details(id))
   }
 }
 
 // Fonctions pour les quiz
 export const quizzes = {
   async getAll() {
-    return await api.get('/quizzes')
+    return await api.get(endpoints.quizzes.list)
   },
 
   async getOne(id) {
-    return await api.get(`/quizzes/${id}`)
+    return await api.get(endpoints.quizzes.details(id))
   },
 
   async startAttempt(quizId) {
-    return await api.post(`/quizzes/${quizId}/start`)
+    return await api.post(endpoints.quizzes.start(quizId))
   },
 
   async submitAttempt(attemptId, answers) {
     // Backend : POST /quiz-attempts/{id}/submit, corps { answers } (SubmitQuizAttemptRequest)
-    return await api.post(`/quiz-attempts/${attemptId}/submit`, { answers })
+    return await api.post(endpoints.quizzes.submitAttempt(attemptId), { answers })
   }
   // getMyAttempts supprimée (#17 Ék-3) : route /quizzes/{id}/my-attempts inexistante,
   // aucun consommateur. La consultation d'une tentative est GET /quiz-attempts/{id}.
@@ -141,15 +143,15 @@ export const quizzes = {
 // Fonctions pour le dashboard
 export const dashboard = {
   async getStudentDashboard() {
-    return await api.get('/dashboard/student')
+    return await api.get(endpoints.dashboard.student)
   },
 
   async getTeacherDashboard() {
-    return await api.get('/dashboard/teacher')
+    return await api.get(endpoints.dashboard.teacher)
   },
 
   async getStats() {
-    return await api.get('/dashboard/stats')
+    return await api.get(endpoints.dashboard.stats)
   }
 }
 
@@ -181,55 +183,55 @@ export const forum = {
     if (params.sort) queryParams.append('sort', params.sort)
 
     const queryString = queryParams.toString()
-    const url = queryString ? `/forum/topics?${queryString}` : '/forum/topics'
+    const url = queryString ? `${endpoints.forum.topics}?${queryString}` : endpoints.forum.topics
     return await api.get(url)
   },
 
   async getTopic(topicId) {
-    return await api.get(`/forum/topics/${topicId}`)
+    return await api.get(endpoints.forum.topic(topicId))
   },
 
   async createTopic(data) {
-    return await api.post('/forum/topics', data)
+    return await api.post(endpoints.forum.topics, data)
   },
 
   async replyToTopic(topicId, content) {
-    return await api.post(`/forum/topics/${topicId}/posts`, { content })
+    return await api.post(endpoints.forum.topicPosts(topicId), { content })
   },
 
   async updateTopic(topicId, data) {
-    return await api.put(`/forum/topics/${topicId}`, data)
+    return await api.put(endpoints.forum.topic(topicId), data)
   },
 
   async deleteTopic(topicId) {
-    return await api.delete(`/forum/topics/${topicId}`)
+    return await api.delete(endpoints.forum.topic(topicId))
   },
 
   async updatePost(postId, content) {
-    return await api.put(`/forum/posts/${postId}`, { content })
+    return await api.put(endpoints.forum.post(postId), { content })
   },
 
   async deletePost(postId) {
-    return await api.delete(`/forum/posts/${postId}`)
+    return await api.delete(endpoints.forum.post(postId))
   },
 
   async markAsSolution(postId) {
-    return await api.post(`/forum/posts/${postId}/solution`)
+    return await api.post(endpoints.forum.postSolution(postId))
   },
 
   async closeTopic(topicId) {
-    return await api.post(`/forum/topics/${topicId}/close`)
+    return await api.post(endpoints.forum.closeTopic(topicId))
   },
 
   async pinTopic(topicId) {
-    return await api.post(`/forum/topics/${topicId}/pin`)
+    return await api.post(endpoints.forum.pinTopic(topicId))
   }
 }
 
 // Teacher Stats
 export const teacherStats = {
   async getStats() {
-    const response = await api.get('/teacher/stats')
+    const response = await api.get(endpoints.teacher.stats)
     return response.data
   }
 }
@@ -237,31 +239,31 @@ export const teacherStats = {
 // Institution Management (superAdmin uniquement)
 export const institutions = {
   async getAll() {
-    return await api.get('/admin/institutions')
+    return await api.get(endpoints.admin.institutions.list)
   },
 
   async getOne(id) {
-    return await api.get(`/admin/institutions/${id}`)
+    return await api.get(endpoints.admin.institutions.details(id))
   },
 
   async create(data) {
-    return await api.post('/admin/institutions', data)
+    return await api.post(endpoints.admin.institutions.list, data)
   },
 
   async update(id, data) {
-    return await api.put(`/admin/institutions/${id}`, data)
+    return await api.put(endpoints.admin.institutions.details(id), data)
   },
 
   async toggle(id) {
-    return await api.patch(`/admin/institutions/${id}/toggle`)
+    return await api.patch(endpoints.admin.institutions.toggle(id))
   },
 
   async testConnection(id) {
-    return await api.post(`/admin/institutions/${id}/test-connection`)
+    return await api.post(endpoints.admin.institutions.testConnection(id))
   },
 
   async delete(id) {
-    return await api.delete(`/admin/institutions/${id}`)
+    return await api.delete(endpoints.admin.institutions.details(id))
   }
 }
 

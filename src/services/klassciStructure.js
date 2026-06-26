@@ -7,6 +7,7 @@
  * STRICTEMENT identiques à l'original.
  */
 import api from './api'
+import { endpoints } from './endpoints'
 
 export const klassciStructureService = {
   /**
@@ -15,7 +16,7 @@ export const klassciStructureService = {
    */
   async getClasses() {
     try {
-      const response = await api.get('/proxy/classes')
+      const response = await api.get(endpoints.klassci.classes)
       return response.success ? response.data : []
     } catch (error) {
       console.error('Erreur récupération classes:', error)
@@ -29,7 +30,7 @@ export const klassciStructureService = {
    */
   async getMatieres() {
     try {
-      const response = await api.get('/proxy/matieres')
+      const response = await api.get(endpoints.klassci.matieres)
       return response.success ? response.data : []
     } catch (error) {
       console.error('Erreur récupération matières:', error)
@@ -43,7 +44,7 @@ export const klassciStructureService = {
    */
   async getEnseignants() {
     try {
-      const response = await api.get('/proxy/enseignants')
+      const response = await api.get(endpoints.klassci.enseignants)
       return response.success ? response.data : []
     } catch (error) {
       console.error('Erreur récupération enseignants:', error)
@@ -58,7 +59,7 @@ export const klassciStructureService = {
    */
   async getEmploiTemps(filters = {}) {
     try {
-      const response = await api.get('/proxy/emploi-temps', { params: filters })
+      const response = await api.get(endpoints.klassci.emploiTemps, { params: filters })
       return response.success ? response.data : []
     } catch (error) {
       console.error('Erreur récupération emploi du temps:', error)
@@ -73,7 +74,7 @@ export const klassciStructureService = {
    */
   async getClasseDetails(classeId) {
     try {
-      const response = await api.get(`/proxy/classes/${classeId}`)
+      const response = await api.get(endpoints.klassci.classeDetails(classeId))
       return response.success ? response.data : null
     } catch (error) {
       console.error(`Erreur récupération classe ${classeId}:`, error)
@@ -88,7 +89,7 @@ export const klassciStructureService = {
    */
   async getClasseEtudiants(classeId) {
     try {
-      const response = await api.get(`/proxy/classes/${classeId}/etudiants`)
+      const response = await api.get(endpoints.klassci.classeEtudiants(classeId))
       return response.success ? response.data : []
     } catch (error) {
       console.error(`Erreur récupération étudiants classe ${classeId}:`, error)
@@ -102,7 +103,7 @@ export const klassciStructureService = {
    */
   async getStructure() {
     try {
-      const response = await api.get('/proxy/structure')
+      const response = await api.get(endpoints.klassci.structure)
       return response.success ? response.data : { filieres: [], niveaux_etude: [] }
     } catch (error) {
       console.error('Erreur récupération structure:', error)

@@ -6,6 +6,7 @@
  * l'original.
  */
 import api from './api'
+import { endpoints } from './endpoints'
 
 export const klassciAdminService = {
   /**
@@ -35,7 +36,7 @@ export const klassciAdminService = {
    */
   async getLmsEnseignants(params = {}) {
     try {
-      const response = await api.get('/lms/enseignants', { params })
+      const response = await api.get(endpoints.lms.enseignants, { params })
       return response // Retourne l'objet complet avec success, data, etc.
     } catch (error) {
       console.error('[KlassciService] Erreur récupération enseignants LMS:', error)
@@ -49,7 +50,7 @@ export const klassciAdminService = {
    */
   async getAdminMatieres() {
     try {
-      const response = await api.get('/admin/matieres')
+      const response = await api.get(endpoints.admin.matieres)
       return response
     } catch (error) {
       console.error('Erreur récupération matières admin:', error)

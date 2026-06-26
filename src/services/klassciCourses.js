@@ -6,6 +6,7 @@
  * identiques à l'original.
  */
 import api from './api'
+import { endpoints } from './endpoints'
 
 export const klassciCoursesService = {
   /**
@@ -20,7 +21,7 @@ export const klassciCoursesService = {
       if (filters.enseignant_id) params.append('enseignant_id', filters.enseignant_id)
 
       const queryString = params.toString()
-      const url = queryString ? `/lessons/my-courses?${queryString}` : '/lessons/my-courses'
+      const url = queryString ? `${endpoints.lessons.myCourses}?${queryString}` : endpoints.lessons.myCourses
 
       const response = await api.get(url)
       return response.success ? response : { data: [], filters: { matieres: [], enseignants: [] }, total: 0 }
