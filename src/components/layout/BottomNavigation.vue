@@ -1,13 +1,13 @@
 <template>
-  <nav class="bottom-nav" v-if="isMobile">
+  <nav v-if="isMobile" class="bottom-nav">
     <router-link
-      v-for="item in navItems"
-      :key="item.name"
-      :to="item.path"
+      v-for="item in sections"
+      :key="item.to"
+      :to="item.to"
       class="nav-item"
-      :class="{ active: isActive(item.path) }"
+      :class="{ active: isActive(item.to) }"
     >
-      <i :class="`fa ${item.icon} nav-icon`"></i>
+      <i :class="['fa', item.icon, 'nav-icon']"></i>
       <span class="nav-label">{{ item.label }}</span>
     </router-link>
   </nav>
@@ -16,60 +16,26 @@
 <script setup>
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { auth } from '@/services/api'
-import { isStudent, isTeacher, hasRole, ROLES } from '@/constants/roles'
+import { useNavigation } from '@/composables/useNavigation'
 
 const route = useRoute()
 
-const isMobile = ref(window.innerWidth < 768)
+// Source UNIQUE du menu (#104), deja filtree par role par le composable.
+// Aucune liste de liens en dur, aucune logique de role ici : la barre se contente
+// de rendre ce que `useNavigation()` expose. On ne garde que les liens feuilles
+// (ceux qui ont un `to`) car une barre du bas est plate et ne rend pas de groupe.
+const { sections: navSections } = useNavigation()
+const sections = computed(() => navSections.value.filter((item) => item.to))
 
-// Detect window resize
+// Affichage responsive : la barre du bas n'existe que sur mobile (presentation pure).
+const isMobile = ref(window.innerWidth < 768)
 const handleResize = () => {
   isMobile.value = window.innerWidth < 768
 }
+onMounted(() => window.addEventListener('resize', handleResize))
+onUnmounted(() => window.removeEventListener('resize', handleResize))
 
-onMounted(() => {
-  window.addEventListener('resize', handleResize)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize)
-})
-
-// Navigation items based on user role
-const navItems = computed(() => {
-  const user = auth.getUser()
-
-  if (isStudent(user)) {
-    return [
-      { name: 'dashboard', path: '/student/dashboard', icon: 'fa-home', label: 'Accueil' },
-      { name: 'courses', path: '/student/courses', icon: 'fa-book', label: 'Cours' },
-      { name: 'evaluations', path: '/student/evaluations-list', icon: 'fa-edit', label: 'Évaluations' },
-      { name: 'schedule', path: '/student/schedule', icon: 'fa-calendar', label: 'Emploi' },
-      { name: 'settings', path: '/student/settings', icon: 'fa-cog', label: 'Paramètres' }
-    ]
-  } else if (isTeacher(user)) {
-    return [
-      { name: 'dashboard', path: '/teacher/dashboard', icon: 'fa-home', label: 'Accueil' },
-      { name: 'hub', path: '/teacher/hub', icon: 'fa-th-large', label: 'Espace' },
-      { name: 'evaluations', path: '/teacher/evaluations', icon: 'fa-edit', label: 'Évaluations' },
-      { name: 'schedule', path: '/teacher/schedule', icon: 'fa-calendar', label: 'Emploi' },
-      { name: 'profile', path: '/teacher/profile', icon: 'fa-user', label: 'Profil' }
-    ]
-  } else if (hasRole(user, ROLES.COORDINATEUR)) {
-    return [
-      { name: 'dashboard', path: '/admin/dashboard', icon: 'fa-home', label: 'Accueil' },
-      { name: 'hub', path: '/admin/hub', icon: 'fa-building', label: 'Admin' },
-      { name: 'evaluations', path: '/coordinateur/evaluations', icon: 'fa-edit', label: 'Évaluations' },
-      { name: 'seances', path: '/coordinateur/seances', icon: 'fa-calendar', label: 'Séances' },
-      { name: 'resultats', path: '/admin/evaluations/results', icon: 'fa-trophy', label: 'Résultats' }
-    ]
-  }
-
-  return []
-})
-
-// Check if current route is active
+// Etat actif : responsabilite de presentation, derivee de la route courante.
 function isActive(path) {
   return route.path.startsWith(path)
 }
@@ -89,6 +55,17 @@ function isActive(path) {
   align-items: center;
   z-index: 1000;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  /* Plus de liens en dur : le menu est filtre par role et peut compter plus
+     d'entrees que l'ancienne liste fixe. On degrade proprement en defilement
+     horizontal plutot que d'ecraser les items ou d'en selectionner un sous-ensemble. */
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none; /* Firefox */
+  -webkit-overflow-scrolling: touch;
+}
+
+.bottom-nav::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
 }
 
 .nav-item {
@@ -96,13 +73,15 @@ function isActive(path) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  flex: 1;
+  /* grow:1 pour remplir la barre quand peu d'items ; shrink:0 + min-width pour
+     declencher le defilement (au lieu d'ecraser) quand il y en a beaucoup. */
+  flex: 1 0 auto;
+  min-width: 64px;
   height: 100%;
   color: var(--text-secondary);
   text-decoration: none;
   transition: all 0.2s;
   position: relative;
-  min-width: 44px;
 }
 
 .nav-item:active {
@@ -121,6 +100,7 @@ function isActive(path) {
   font-weight: 500;
   text-align: center;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .nav-item.active {
