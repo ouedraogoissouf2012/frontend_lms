@@ -4,14 +4,13 @@
        (gras/italique/souligné/barré), lien (via addLink émis vers le parent) et
        sélecteurs de couleur (texte / surlignage). Markup et CSS conservés à
        l'identique pour parité stricte.
-       DETTE PRÉ-EXISTANTE conservée telle quelle : le composant `BubbleMenu` de
-       @tiptap/vue-3 n'est pas importé/enregistré (cf. TipTapEditor.vue d'origine,
-       aucune registration globale ni isCustomElement). Le tag reste `<bubble-menu>`
-       à l'identique pour ne rien changer au rendu actuel. -->
+       TipTap v3 : `BubbleMenu` est importé depuis `@tiptap/vue-3/menus` (déplacé
+       hors de @tiptap/vue-3 en v3) et `:tippy-options` (tippy, supprimé) est
+       remplacé par `:options` (floating-ui). Le composant s'auto-enregistre. -->
   <bubble-menu
     v-if="editor"
     :editor="editor"
-    :tippy-options="{ duration: 100, placement: 'top' }"
+    :options="{ placement: 'top' }"
     class="bubble-menu-custom"
   >
     <button
@@ -71,6 +70,8 @@
 </template>
 
 <script setup>
+import { BubbleMenu } from '@tiptap/vue-3/menus' // v3 : BubbleMenu déplacé hors de @tiptap/vue-3
+
 /**
  * Bubble menu (toolbar flottante) de l'éditeur riche (#G1 ≤300).
  * Extrait de TipTapEditor.vue. Reçoit l'instance `editor` ; les commandes inline
