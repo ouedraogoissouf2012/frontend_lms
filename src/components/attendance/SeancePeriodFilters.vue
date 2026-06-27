@@ -108,9 +108,9 @@ defineEmits(['select-period', 'apply-custom', 'search', 'clear'])
 }
 
 .period-tab.active {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--blue-500) 0%, #2563eb 100%);
   color: white;
-  border-color: #3b82f6;
+  border-color: var(--blue-500);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
@@ -158,13 +158,13 @@ defineEmits(['select-period', 'apply-custom', 'search', 'clear'])
 
 .date-input:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--blue-500);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .btn-primary-action {
   padding: 0.75rem 2rem;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--blue-500) 0%, #2563eb 100%);
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -216,7 +216,7 @@ defineEmits(['select-period', 'apply-custom', 'search', 'clear'])
 
 .search-input:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--blue-500);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 

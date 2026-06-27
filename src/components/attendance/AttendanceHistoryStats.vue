@@ -64,7 +64,7 @@ defineProps({
   border-left: 4px solid;
 }
 
-.border-l-blue { border-left-color: #3b82f6; }
+.border-l-blue { border-left-color: var(--blue-500); }
 .border-l-green { border-left-color: #10b981; }
 .border-l-orange { border-left-color: #f59e0b; }
 .border-l-red { border-left-color: #ef4444; }

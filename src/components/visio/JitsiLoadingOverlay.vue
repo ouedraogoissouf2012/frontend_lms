@@ -35,7 +35,7 @@ import ContentLoader from '@/components/common/ContentLoader.vue'
 .spinner {
   border: 4px solid rgba(255, 255, 255, 0.1);
   border-radius: 50%;
-  border-top: 4px solid #3b82f6;
+  border-top: 4px solid var(--blue-500);
   width: 50px;
   height: 50px;
   animation: spin 1s linear infinite;

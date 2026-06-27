@@ -59,9 +59,9 @@ defineEmits(['change-page'])
 }
 
 .pagination-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--blue-500) 0%, #2563eb 100%);
   color: white;
-  border-color: #3b82f6;
+  border-color: var(--blue-500);
   box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
 }
 

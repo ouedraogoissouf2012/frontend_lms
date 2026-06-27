@@ -199,7 +199,7 @@ function formatTime(dateTimeStr) {
   font-size: 1.5rem;
   line-height: 1;
   flex-shrink: 0;
-  color: #3b82f6;
+  color: var(--blue-500);
 }
 
 .action-content {

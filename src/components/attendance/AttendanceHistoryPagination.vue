@@ -48,7 +48,7 @@ defineEmits(['load-page'])
 
 .btn-page {
   padding: 0.625rem 1rem;
-  background: #3b82f6;
+  background: var(--blue-500);
   color: white;
   border: none;
   border-radius: 8px;

@@ -141,7 +141,7 @@ defineEmits(['view-attendances', 'delete-seance', 'change-page'])
 }
 
 .data-table tbody tr:hover {
-  background: var(--bg-hover, rgba(0, 0, 0, 0.02));
+  background: var(--bg-hover);
 }
 
 .data-table tbody tr.row-selected {
