@@ -169,8 +169,8 @@ defineEmits(['join', 'view'])
 }
 
 .status-completed {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--gray-100);
+  color: var(--gray-500);
 }
 
 .visio-body {

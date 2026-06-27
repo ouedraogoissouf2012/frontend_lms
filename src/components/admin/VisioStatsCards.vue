@@ -96,7 +96,7 @@ defineProps({
 }
 
 .stat-icon-wrapper.completed {
-  background: #f3f4f6;
+  background: var(--gray-100);
 }
 
 .stat-icon-wrapper.total {
@@ -117,7 +117,7 @@ defineProps({
 }
 
 .stat-icon-wrapper.completed .stat-icon {
-  color: #6b7280;
+  color: var(--gray-500);
 }
 
 .stat-icon-wrapper.total .stat-icon {

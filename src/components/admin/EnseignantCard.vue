@@ -190,13 +190,13 @@ defineEmits(['view'])
 }
 
 .tag-matiere {
-  background: #e0f2fe;
-  color: #0369a1;
+  background: var(--sky-100);
+  color: var(--sky-700);
 }
 
 :global(.dark) .tag-matiere {
   background: rgba(14, 165, 233, 0.2);
-  color: #7dd3fc;
+  color: var(--sky-300);
 }
 
 .tag-classe {
