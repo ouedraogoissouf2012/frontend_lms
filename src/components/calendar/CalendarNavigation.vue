@@ -52,21 +52,16 @@ defineEmits(['previous', 'next', 'today', 'refresh', 'change-view'])
 // Variables LMS nécessaires à ce composant (copie locale du sous-ensemble utilisé).
 $lms-blue: #2563eb;
 $white: #ffffff;
-$text-primary: #1E293B;
-$text-tertiary: #6B7280;
-$gray-light: #F8FAFC;
-$gray-border: #E5E7EB;
-$shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
 $transition-fast: all 0.2s ease;
 $border-radius-md: 6px;
 $border-radius-lg: 8px;
 
 // ========== CARD BASE ==========
 .card {
-  background: var(--card-bg, $white);
-  border: 1px solid var(--card-border, transparent);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: $border-radius-lg;
-  box-shadow: var(--card-shadow, $shadow-light);
+  box-shadow: var(--card-shadow);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
   transition: background 0.2s ease, border-color 0.2s ease;
@@ -88,20 +83,20 @@ $border-radius-lg: 8px;
       justify-content: center;
       width: 40px;
       height: 40px;
-      border: 1px solid var(--border-primary, $gray-border);
+      border: 1px solid var(--border-primary);
       border-radius: $border-radius-md;
       background: transparent;
-      color: var(--text-primary, $text-primary);
+      color: var(--text-primary);
       cursor: pointer;
       transition: $transition-fast;
 
       .material-icons {
         font-size: 1.5rem;
-        color: var(--text-primary, $text-primary);
+        color: var(--text-primary);
       }
 
       &:hover {
-        background: var(--bg-hover, $gray-light);
+        background: var(--bg-hover);
         border-color: $lms-blue;
         color: $lms-blue;
 
@@ -211,7 +206,6 @@ $border-radius-lg: 8px;
 
 <!-- Styles mode sombre non-scoped pour fonctionner avec data-theme -->
 <style lang="scss">
-$lms-blue: #2563eb;
 $lms-blue-light: #3b82f6;
 $white: #ffffff;
 

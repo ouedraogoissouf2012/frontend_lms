@@ -108,25 +108,18 @@ defineEmits(['reset', 'apply-preset'])
 // Variables LMS nécessaires à ce composant (copie locale du sous-ensemble utilisé ;
 // les couleurs « système » passent par les CSS custom properties globales var(--…)).
 $lms-blue: #2563eb;
-$lms-blue-light: #3b82f6;
 $lms-blue-dark: #1e3a8a;
 $white: #ffffff;
-$text-primary: #1E293B;
-$text-secondary: #64748B;
-$text-tertiary: #6B7280;
-$gray-light: #F8FAFC;
-$gray-border: #E5E7EB;
-$shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
 $transition-fast: all 0.2s ease;
 $border-radius-md: 6px;
 $border-radius-lg: 8px;
 $border-radius-full: 9999px;
 
 .card {
-  background: var(--card-bg, $white);
-  border: 1px solid var(--card-border, transparent);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: $border-radius-lg;
-  box-shadow: var(--card-shadow, $shadow-light);
+  box-shadow: var(--card-shadow);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
   transition: background 0.2s ease, border-color 0.2s ease;
@@ -164,14 +157,14 @@ $border-radius-full: 9999px;
       padding: 0.5rem 1rem;
       border: none;
       background: transparent;
-      color: var(--text-tertiary, $text-tertiary);
+      color: var(--text-tertiary);
       cursor: pointer;
       transition: $transition-fast;
       border-radius: $border-radius-md;
       font-weight: 500;
 
       &:hover {
-        background: var(--bg-hover, $gray-light);
+        background: var(--bg-hover);
         color: $lms-blue;
       }
     }
@@ -191,7 +184,7 @@ $border-radius-full: 9999px;
       label {
         font-size: 0.875rem;
         font-weight: 500;
-        color: var(--text-secondary, $text-secondary);
+        color: var(--text-secondary);
         display: flex;
         align-items: center;
         gap: 0.5rem;
@@ -204,21 +197,21 @@ $border-radius-full: 9999px;
 
       select {
         padding: 0.75rem 1rem;
-        border: 1px solid var(--input-border, $gray-border);
+        border: 1px solid var(--input-border);
         border-radius: $border-radius-md;
-        background: var(--input-bg, $white);
-        color: var(--input-text, $text-primary);
+        background: var(--input-bg);
+        color: var(--input-text);
         font-size: 0.875rem;
         cursor: pointer;
         transition: $transition-fast;
 
         option {
-          background: var(--bg-primary, $white);
-          color: var(--text-primary, $text-primary);
+          background: var(--bg-primary);
+          color: var(--text-primary);
         }
 
         &:hover {
-          border-color: $lms-blue-light;
+          border-color: var(--blue-500);
         }
 
         &:focus {

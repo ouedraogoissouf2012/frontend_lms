@@ -39,23 +39,17 @@ defineExpose({
 <style lang="scss" scoped>
 // Variables LMS nécessaires à ce composant (copie locale du sous-ensemble utilisé).
 $lms-blue: #2563eb;
-$lms-blue-light: #3b82f6;
 $white: #ffffff;
-$text-primary: #1E293B;
-$text-secondary: #64748B;
-$text-tertiary: #6B7280;
-$gray-border: #E5E7EB;
-$shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
 $shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.1);
 $transition-fast: all 0.2s ease;
 $border-radius-lg: 8px;
 
 // ========== CARD BASE ==========
 .card {
-  background: var(--card-bg, $white);
-  border: 1px solid var(--card-border, transparent);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: $border-radius-lg;
-  box-shadow: var(--card-shadow, $shadow-light);
+  box-shadow: var(--card-shadow);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
   transition: background 0.2s ease, border-color 0.2s ease;
@@ -74,7 +68,7 @@ $border-radius-lg: 8px;
 .loading-container {
   padding: 4rem;
   text-align: center;
-  color: var(--text-tertiary, $text-tertiary);
+  color: var(--text-tertiary);
 
   .material-icons {
     font-size: 3rem;
@@ -88,7 +82,7 @@ $border-radius-lg: 8px;
 
   p {
     font-size: 1rem;
-    color: var(--text-secondary, $text-secondary);
+    color: var(--text-secondary);
   }
 }
 
@@ -115,8 +109,8 @@ $border-radius-lg: 8px;
     transition: $transition-fast;
 
     &:hover:not(:disabled) {
-      background: $lms-blue-light;
-      border-color: $lms-blue-light;
+      background: var(--blue-500);
+      border-color: var(--blue-500);
     }
 
     &:focus {
@@ -139,14 +133,14 @@ $border-radius-lg: 8px;
   // Cases des jours
   .fc-daygrid-day,
   .fc-timegrid-slot {
-    background: var(--bg-secondary, $white);
-    border-color: var(--border-primary, $gray-border);
+    background: var(--bg-secondary);
+    border-color: var(--border-primary);
   }
 
   // Numéros des jours
   .fc-daygrid-day-number,
   .fc-timegrid-slot-label {
-    color: var(--text-primary, $text-primary);
+    color: var(--text-primary);
     padding: 0.5rem;
   }
 

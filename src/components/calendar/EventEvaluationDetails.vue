@@ -114,7 +114,7 @@ defineProps({
 .detail-icon {
   width: 1.25rem;
   height: 1.25rem;
-  color: var(--color-primary, #3b82f6);
+  color: var(--blue-500);
   flex-shrink: 0;
   margin-top: 0.125rem;
 }
@@ -122,13 +122,13 @@ defineProps({
 .detail-label {
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   margin: 0 0 0.25rem 0;
 }
 
 .detail-value {
   font-size: 0.875rem;
-  color: var(--text-primary, #111827);
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -145,24 +145,24 @@ defineProps({
   gap: 0.5rem;
   font-size: 1rem;
   font-weight: 700;
-  color: var(--text-primary, #111827);
+  color: var(--text-primary);
   margin: 0 0 1rem 0;
 }
 
 .result-score {
   font-size: 2.5rem;
   font-weight: 700;
-  color: var(--color-primary, #3b82f6);
+  color: var(--blue-500);
   text-align: center;
   margin: 1rem 0;
 }
 
 .score-value {
-  color: var(--color-primary, #3b82f6);
+  color: var(--blue-500);
 }
 
 .score-total {
   font-size: 1.5rem;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
 }
 </style>

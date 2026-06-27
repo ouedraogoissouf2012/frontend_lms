@@ -133,7 +133,7 @@ defineEmits(['action'])
 .modal-footer {
   padding: 1.5rem;
   border-top: 1px solid var(--border-color, #e5e7eb);
-  background: var(--bg-secondary, #f9fafb);
+  background: var(--bg-secondary);
 }
 
 .action-buttons {
@@ -156,7 +156,7 @@ defineEmits(['action'])
 }
 
 .action-btn.primary {
-  background: var(--color-primary, #3b82f6);
+  background: var(--blue-500);
   color: white;
 }
 
@@ -183,24 +183,24 @@ defineEmits(['action'])
 }
 
 .action-btn.secondary {
-  background: var(--bg-secondary, #f3f4f6);
-  color: var(--text-primary, #111827);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   border: 1px solid var(--border-color, #e5e7eb);
 }
 
 .action-btn.secondary:hover {
-  background: var(--bg-primary, white);
-  border-color: var(--color-primary, #3b82f6);
+  background: var(--bg-primary);
+  border-color: var(--blue-500);
 }
 
 .action-btn.outline {
   background: transparent;
-  color: var(--color-primary, #3b82f6);
-  border: 1px solid var(--color-primary, #3b82f6);
+  color: var(--blue-500);
+  border: 1px solid var(--blue-500);
 }
 
 .action-btn.outline:hover {
-  background: var(--color-primary, #3b82f6);
+  background: var(--blue-500);
   color: white;
 }
 

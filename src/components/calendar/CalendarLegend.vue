@@ -36,20 +36,14 @@
 <style lang="scss" scoped>
 // Variables LMS nécessaires à ce composant (copie locale du sous-ensemble utilisé).
 $lms-blue: #2563eb;
-$white: #ffffff;
-$text-primary: #1E293B;
-$gray-lightest: #F9FAFB;
-$gray-border: #E5E7EB;
-$gray-dark: #374151;
-$shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
 $border-radius-lg: 8px;
 
 // ========== CARD BASE ==========
 .card {
-  background: var(--card-bg, $white);
-  border: 1px solid var(--card-border, transparent);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: $border-radius-lg;
-  box-shadow: var(--card-shadow, $shadow-light);
+  box-shadow: var(--card-shadow);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
   transition: background 0.2s ease, border-color 0.2s ease;
@@ -83,9 +77,9 @@ $border-radius-lg: 8px;
     align-items: center;
     gap: 0.75rem;
     padding: 0.75rem;
-    background: var(--bg-tertiary, $gray-lightest);
+    background: var(--bg-tertiary);
     border-radius: $border-radius-lg;
-    border: 1px solid var(--border-primary, $gray-border);
+    border: 1px solid var(--border-primary);
 
     .color-dot {
       width: 16px;
@@ -95,7 +89,7 @@ $border-radius-lg: 8px;
 
     span {
       font-size: 0.875rem;
-      color: var(--text-primary, $gray-dark);
+      color: var(--text-primary);
       font-weight: 500;
     }
   }
