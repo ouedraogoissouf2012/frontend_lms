@@ -100,15 +100,15 @@ function getStatusIcon(status) {
 }
 
 .status-badge-planned {
-  background: #dbeafe;
-  color: #1e40af;
-  border: 1px solid #bfdbfe;
+  background: var(--info-bg);
+  color: var(--info-text);
+  border: 1px solid var(--blue-200);
 }
 
 .status-badge-active {
-  background: #dcfce7;
-  color: #166534;
-  border: 1px solid #86efac;
+  background: var(--success-bg);
+  color: var(--success-text);
+  border: 1px solid var(--success-border);
   animation: pulse-badge 2s ease-in-out infinite;
 }
 
@@ -128,7 +128,7 @@ function getStatusIcon(status) {
 }
 
 .status-badge-draft {
-  background: #fef3c7;
+  background: var(--warning-bg);
   color: #92400e;
   border: 1px solid #fde68a;
 }

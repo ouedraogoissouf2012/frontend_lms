@@ -165,7 +165,7 @@ defineProps({
 /* Classes personnalisées pour les options - période d'attente (pas de correction) */
 .option-selected-waiting {
   background-color: var(--bg-tertiary) !important;
-  border: 2px solid #60a5fa !important;
+  border: 2px solid var(--blue-400) !important;
   border-radius: 0.5rem;
 }
 
@@ -204,7 +204,7 @@ defineProps({
 
 /* Texte dans option sélectionnée (attente) */
 .option-selected-waiting .option-text {
-  color: #60a5fa !important;
+  color: var(--blue-400) !important;
 }
 
 /* Texte dans option non sélectionnée */

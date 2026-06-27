@@ -81,12 +81,12 @@ defineProps({
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.5rem;
-  background: #fee2e2;
+  background: var(--error-bg);
   border: 2px solid #ef4444;
   border-radius: 0.75rem;
   margin-bottom: 1.5rem;
   animation: pulse 2s infinite;
-  color: #991b1b;
+  color: var(--error-text);
 }
 
 @keyframes pulse {

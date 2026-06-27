@@ -255,13 +255,13 @@ onMounted(() => {
 .form-input:focus,
 .form-select:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--blue-500);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .error-message {
   padding: 0.75rem;
-  background: #fee2e2;
+  background: var(--error-bg);
   color: #dc2626;
   border-radius: 0.5rem;
   font-size: 0.875rem;
@@ -269,14 +269,14 @@ onMounted(() => {
 
 .info-box {
   padding: 0.75rem;
-  background: #dbeafe;
-  border-left: 4px solid #3b82f6;
+  background: var(--info-bg);
+  border-left: 4px solid var(--blue-500);
   border-radius: 0.5rem;
 }
 
 .info-box p {
   margin: 0;
   font-size: 0.875rem;
-  color: #1e40af;
+  color: var(--info-text);
 }
 </style>
