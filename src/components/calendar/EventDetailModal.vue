@@ -111,7 +111,7 @@ const {
 }
 
 .modal-container {
-  background: var(--bg-primary, white);
+  background: var(--bg-primary);
   border-radius: 1rem;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   max-width: 600px;
@@ -140,7 +140,7 @@ const {
 .modal-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--text-primary, #111827);
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -173,7 +173,7 @@ const {
   flex-shrink: 0;
   background: transparent;
   border: none;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   cursor: pointer;
   padding: 0.25rem;
   border-radius: 0.375rem;
@@ -181,8 +181,8 @@ const {
 }
 
 .close-btn:hover {
-  background: var(--bg-secondary, #f3f4f6);
-  color: var(--text-primary, #111827);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .modal-body {

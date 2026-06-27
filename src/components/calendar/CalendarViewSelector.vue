@@ -43,14 +43,8 @@ defineEmits(['change-view'])
 
 <style lang="scss" scoped>
 // Variables LMS nécessaires à ce composant (copie locale du sous-ensemble utilisé).
-$lms-blue: #2563eb;
 $lms-blue-dark: #1e3a8a;
 $white: #ffffff;
-$text-tertiary: #6B7280;
-$gray-lightest: #F9FAFB;
-$gray-medium: #E2E8F0;
-$gray-border: #E5E7EB;
-$gray-dark: #374151;
 $transition-fast: all 0.2s ease;
 $border-radius-md: 6px;
 $border-radius-lg: 8px;
@@ -58,10 +52,10 @@ $border-radius-lg: 8px;
 .view-selector {
   display: flex;
   gap: 0.5rem;
-  border: 1px solid var(--border-primary, $gray-border);
+  border: 1px solid var(--border-primary);
   border-radius: $border-radius-lg;
   padding: 0.25rem;
-  background: var(--bg-tertiary, $gray-lightest);
+  background: var(--bg-tertiary);
 
   button {
     display: flex;
@@ -71,15 +65,15 @@ $border-radius-lg: 8px;
     border-radius: $border-radius-md;
     border: none;
     transition: $transition-fast;
-    color: var(--text-tertiary, $text-tertiary);
+    color: var(--text-tertiary);
     font-weight: 500;
     font-size: 0.875rem;
     cursor: pointer;
     background: transparent;
 
     &:hover {
-      background: var(--bg-hover, $gray-medium);
-      color: var(--text-primary, $gray-dark);
+      background: var(--bg-hover);
+      color: var(--text-primary);
     }
 
     &.active {
