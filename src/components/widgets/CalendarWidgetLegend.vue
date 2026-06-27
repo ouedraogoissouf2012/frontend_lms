@@ -49,11 +49,11 @@
 }
 
 .legend-dot.evaluation {
-  background: #f59e0b;
+  background: var(--amber-500);
 }
 
 .legend-dot.visio {
-  background: #10b981;
+  background: var(--emerald-500);
 }
 
 .legend-label {

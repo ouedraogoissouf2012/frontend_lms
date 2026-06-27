@@ -206,7 +206,7 @@ function formatEventTime(date) {
 }
 
 .action-btn:hover {
-  background: #2563eb;
+  background: var(--color-info-strong);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }

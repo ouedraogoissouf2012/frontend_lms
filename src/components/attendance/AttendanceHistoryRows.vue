@@ -173,8 +173,8 @@ defineEmits(['view-details'])
 .classe-badge {
   display: inline-block;
   padding: 0.25rem 0.75rem;
-  background: #e0e7ff;
-  color: #3730a3;
+  background: var(--indigo-100);
+  color: var(--indigo-800);
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 500;
@@ -189,8 +189,8 @@ defineEmits(['view-details'])
 }
 
 .status-connected {
-  background: #d1fae5;
-  color: #065f46;
+  background: var(--emerald-100);
+  color: var(--emerald-800);
 }
 
 .status-disconnected {
@@ -204,7 +204,7 @@ defineEmits(['view-details'])
 }
 
 .text-green {
-  color: #10b981;
+  color: var(--emerald-500);
 }
 
 .text-gray {

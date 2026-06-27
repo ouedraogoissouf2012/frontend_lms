@@ -88,7 +88,7 @@ defineProps({
 }
 
 .stat-icon-scheduled {
-  color: #f59e0b;
+  color: var(--amber-500);
 }
 
 .stat-icon-finished {

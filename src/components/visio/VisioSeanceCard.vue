@@ -261,25 +261,25 @@ defineEmits(['start', 'end', 'activate'])
 }
 
 .btn-start:hover {
-  background: #2563eb;
+  background: var(--color-info-strong);
 }
 
 .btn-activate {
-  background: #f59e0b;
+  background: var(--amber-500);
   color: white;
 }
 
 .btn-activate:hover {
-  background: #d97706;
+  background: var(--amber-600);
 }
 
 .btn-end {
-  background: #ef4444;
+  background: var(--red-500);
   color: white;
 }
 
 .btn-end:hover {
-  background: #dc2626;
+  background: var(--red-600);
 }
 
 /* Responsive */

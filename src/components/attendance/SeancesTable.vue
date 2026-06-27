@@ -206,15 +206,15 @@ defineEmits(['view-attendances', 'delete-seance', 'change-page'])
 }
 
 .rate-text.rate-high {
-  color: #10B981;
+  color: var(--emerald-500);
 }
 
 .rate-text.rate-medium {
-  color: #F59E0B;
+  color: var(--amber-500);
 }
 
 .rate-text.rate-low {
-  color: #EF4444;
+  color: var(--red-500);
 }
 
 /* Action Buttons */
@@ -238,13 +238,13 @@ defineEmits(['view-attendances', 'delete-seance', 'change-page'])
 }
 
 .btn-view:hover {
-  background: #2563eb;
+  background: var(--color-info-strong);
   transform: translateY(-1px);
 }
 
 .btn-delete {
   padding: 0.5rem 1rem;
-  background: #ef4444;
+  background: var(--red-500);
   color: white;
   border: none;
   border-radius: 0.375rem;
@@ -255,7 +255,7 @@ defineEmits(['view-attendances', 'delete-seance', 'change-page'])
 }
 
 .btn-delete:hover {
-  background: #dc2626;
+  background: var(--red-600);
   transform: translateY(-1px);
 }
 </style>

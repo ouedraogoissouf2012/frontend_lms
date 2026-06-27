@@ -63,7 +63,7 @@ defineProps({
 
 .cap-center i {
   font-size: 3.5rem;
-  color: #ffffff;
+  color: var(--btn-primary-text);
   filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.4));
   animation: cap-pulse 2s ease-in-out infinite;
 }
@@ -108,7 +108,7 @@ defineProps({
 
 /* Lettre M - position 120deg */
 .letter-m {
-  color: #fbbf24;
+  color: var(--amber-400);
   transform: translate(-50%, -50%) rotate(120deg) translateY(-65px) rotate(-120deg);
   animation: letter-scale-m 3s ease-in-out infinite;
 }

@@ -121,13 +121,13 @@ function getIconComponent(iconName) {
 }
 
 .type-success {
-  background: #d1fae5;
-  color: #065f46;
+  background: var(--emerald-100);
+  color: var(--emerald-800);
 }
 
 .type-warning {
   background: var(--warning-bg);
-  color: #92400e;
+  color: var(--amber-800);
 }
 
 .type-danger {
@@ -189,21 +189,21 @@ function getIconComponent(iconName) {
 }
 
 .mark-read-btn {
-  color: #10b981;
+  color: var(--emerald-500);
 }
 
 .mark-read-btn:hover {
-  background: #d1fae5;
-  border-color: #10b981;
+  background: var(--emerald-100);
+  border-color: var(--emerald-500);
 }
 
 .delete-btn {
-  color: #ef4444;
+  color: var(--red-500);
 }
 
 .delete-btn:hover {
   background: var(--error-bg);
-  border-color: #ef4444;
+  border-color: var(--red-500);
 }
 
 /* Responsive */

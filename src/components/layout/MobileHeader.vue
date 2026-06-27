@@ -161,7 +161,7 @@ const {
   right: 8px;
   width: 8px;
   height: 8px;
-  background: #ef4444;
+  background: var(--red-500);
   border-radius: 50%;
   border: 2px solid var(--card-bg);
 }

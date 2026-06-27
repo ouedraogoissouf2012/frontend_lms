@@ -212,17 +212,17 @@ const {
 /* Event Styles */
 :deep(.event-seance) {
   background: var(--blue-500) !important;
-  border-color: #2563eb !important;
+  border-color: var(--color-info-strong) !important;
 }
 
 :deep(.event-evaluation) {
-  background: #f59e0b !important;
-  border-color: #d97706 !important;
+  background: var(--amber-500) !important;
+  border-color: var(--amber-600) !important;
 }
 
 :deep(.event-visio) {
-  background: #10b981 !important;
-  border-color: #059669 !important;
+  background: var(--emerald-500) !important;
+  border-color: var(--emerald-600) !important;
 }
 
 :deep(.fc-event) {

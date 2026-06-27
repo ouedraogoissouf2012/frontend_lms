@@ -158,13 +158,13 @@ defineProps({
 }
 
 .visio-status.active {
-  background-color: #dcfce7;
+  background-color: var(--success-bg);
   color: #16a34a;
 }
 
 .visio-status.programmee {
-  background-color: #dbeafe;
-  color: #2563eb;
+  background-color: var(--blue-100);
+  color: var(--color-info-strong);
 }
 
 .visio-status.terminee {

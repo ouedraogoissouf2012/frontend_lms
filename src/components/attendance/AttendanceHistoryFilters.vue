@@ -128,7 +128,7 @@ defineEmits(['change', 'input', 'reset'])
 
 .btn-reset {
   padding: 0.625rem 1rem;
-  background: #ef4444;
+  background: var(--red-500);
   color: white;
   border: none;
   border-radius: 8px;
@@ -139,7 +139,7 @@ defineEmits(['change', 'input', 'reset'])
 }
 
 .btn-reset:hover {
-  background: #dc2626;
+  background: var(--red-600);
   transform: translateY(-1px);
 }
 

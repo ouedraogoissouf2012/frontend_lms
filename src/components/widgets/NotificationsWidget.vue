@@ -132,7 +132,7 @@ const {
 }
 
 .widget-icon.has-unread {
-  color: #f59e0b;
+  color: var(--amber-500);
   animation: ring 2s ease-in-out infinite;
 }
 
@@ -156,7 +156,7 @@ const {
   min-width: 1.5rem;
   height: 1.5rem;
   padding: 0 0.5rem;
-  background: #ef4444;
+  background: var(--red-500);
   color: white;
   border-radius: 9999px;
   font-size: 0.75rem;
@@ -272,7 +272,7 @@ const {
 }
 
 .view-all-link:hover {
-  color: #2563eb;
+  color: var(--color-info-strong);
   text-decoration: underline;
 }
 

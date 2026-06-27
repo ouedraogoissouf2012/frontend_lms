@@ -178,20 +178,20 @@ function formatDuration(minutes) {
 
 /* Présent - Vert (≥80%) */
 .status-badge.status-present {
-  background: #D1FAE5;
-  color: #065F46;
+  background: var(--emerald-100);
+  color: var(--emerald-800);
 }
 
 /* Partiel - Orange (50-79%) */
 .status-badge.status-partial {
   background: #FED7AA;
-  color: #92400E;
+  color: var(--amber-800);
 }
 
 /* Faible - Rouge clair (20-49%) */
 .status-badge.status-low {
-  background: #FECACA;
-  color: #7F1D1D;
+  background: var(--red-200);
+  color: var(--red-900);
 }
 
 /* Absent - Rouge foncé (<20%) */

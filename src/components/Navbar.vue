@@ -114,7 +114,7 @@ export default {
 
 <style scoped>
 .router-link-active {
-  border-bottom: 2px solid #2563eb;
-  color: #2563eb;
+  border-bottom: 2px solid var(--color-info-strong);
+  color: var(--color-info-strong);
 }
 </style>

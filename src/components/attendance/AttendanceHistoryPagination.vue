@@ -59,7 +59,7 @@ defineEmits(['load-page'])
 }
 
 .btn-page:hover:not(:disabled) {
-  background: #2563eb;
+  background: var(--color-info-strong);
 }
 
 .btn-page:disabled {

@@ -149,8 +149,8 @@ $border-radius-lg: 8px;
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      border: 1px solid #10b981;
-      color: #10b981;
+      border: 1px solid var(--emerald-500);
+      color: var(--emerald-500);
       padding: 0.5rem 1rem;
       border-radius: $border-radius-md;
       background: transparent;
@@ -159,7 +159,7 @@ $border-radius-lg: 8px;
       cursor: pointer;
 
       &:hover:not(:disabled) {
-        background: #10b981;
+        background: var(--emerald-500);
         color: $white;
 
         .material-icons {

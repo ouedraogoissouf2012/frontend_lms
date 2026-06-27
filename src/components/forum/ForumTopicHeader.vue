@@ -60,7 +60,7 @@ defineProps({
 /* Force proper backgrounds for BOTH modes - Using data-theme attribute */
 html[data-theme="light"] .light-mode-card,
 html:not([data-theme="dark"]) .light-mode-card {
-  background-color: #ffffff !important;
+  background-color: var(--card-bg) !important;
 }
 
 html[data-theme="dark"] .light-mode-card {

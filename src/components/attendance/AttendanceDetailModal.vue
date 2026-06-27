@@ -153,7 +153,7 @@ defineEmits(['close', 'export-pdf', 'export-excel', 'retry'])
 
 .modal-error span {
   font-size: 3rem;
-  color: #EF4444;
+  color: var(--red-500);
 }
 
 .btn-retry {
@@ -169,7 +169,7 @@ defineEmits(['close', 'export-pdf', 'export-excel', 'retry'])
 }
 
 .btn-retry:hover {
-  background: #2563eb;
+  background: var(--color-info-strong);
 }
 
 /* Modal Transitions */

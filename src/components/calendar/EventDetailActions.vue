@@ -165,21 +165,21 @@ defineEmits(['action'])
 }
 
 .action-btn.success {
-  background: #10b981;
+  background: var(--emerald-500);
   color: white;
 }
 
 .action-btn.success:hover {
-  background: #059669;
+  background: var(--emerald-600);
 }
 
 .action-btn.danger {
-  background: #ef4444;
+  background: var(--red-500);
   color: white;
 }
 
 .action-btn.danger:hover {
-  background: #dc2626;
+  background: var(--red-600);
 }
 
 .action-btn.secondary {
@@ -210,8 +210,8 @@ defineEmits(['action'])
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--warning-bg);
+  color: var(--amber-800);
   border-radius: 0.5rem;
   font-size: 0.875rem;
   font-weight: 500;

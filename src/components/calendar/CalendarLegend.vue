@@ -6,11 +6,11 @@
     </h3>
     <div class="legend-items">
       <div class="legend-item">
-        <div class="color-dot" style="background: #2563eb; /* LMS blue (séances) */"></div>
+        <div class="color-dot" style="background: var(--color-info-strong); /* LMS blue (séances) */"></div>
         <span>Séances</span>
       </div>
       <div class="legend-item">
-        <div class="color-dot" style="background: #10b981"></div>
+        <div class="color-dot" style="background: var(--emerald-500)"></div>
         <span>Visio active</span>
       </div>
       <div class="legend-item">
@@ -18,7 +18,7 @@
         <span>Évaluations</span>
       </div>
       <div class="legend-item">
-        <div class="color-dot" style="background: #ef4444"></div>
+        <div class="color-dot" style="background: var(--red-500)"></div>
         <span>Urgent (&lt; 24h)</span>
       </div>
     </div>

@@ -225,7 +225,7 @@ onMounted(() => {
 }
 
 .required {
-  color: #ef4444;
+  color: var(--red-500);
 }
 
 .form-input,
@@ -273,7 +273,7 @@ onMounted(() => {
 .error-message {
   padding: 0.75rem;
   background: var(--error-bg);
-  color: #dc2626;
+  color: var(--red-600);
   border-radius: 0.5rem;
   font-size: 0.875rem;
 }

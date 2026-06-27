@@ -120,8 +120,8 @@ $border-radius-lg: 8px;
 
   // En-tête des jours (lun, mar, mer, etc.) - Couleur sidebar
   .fc-col-header-cell {
-    background: linear-gradient(180deg, #0052cc 0%, #0747a6 100%);
-    border-color: #0747a6;
+    background: linear-gradient(180deg, var(--blue-600) 0%, var(--blue-700) 100%);
+    border-color: var(--blue-700);
 
     .fc-col-header-cell-cushion {
       color: $white;
@@ -171,8 +171,8 @@ $border-radius-lg: 8px;
 
   // Couleurs des événements
   .event-seance {
-    background: #2563eb; /* LMS blue (séances) */;
-    border-color: #2563eb; /* LMS blue */
+    background: var(--color-info-strong); /* LMS blue (séances) */;
+    border-color: var(--color-info-strong); /* LMS blue */
   }
 
   .event-evaluation {
@@ -181,8 +181,8 @@ $border-radius-lg: 8px;
   }
 
   .event-urgent {
-    background: #ef4444 !important;
-    border-color: #ef4444 !important;
+    background: var(--red-500) !important;
+    border-color: var(--red-500) !important;
     animation: pulse 2s infinite;
   }
 

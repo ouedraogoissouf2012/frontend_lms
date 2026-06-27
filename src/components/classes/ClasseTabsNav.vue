@@ -67,8 +67,8 @@ button[class*="px-6 py-4"] {
 .tab-button-active,
 button[class*="px-6"][class*="py-4"][class*="border-green-600"],
 button.px-6.py-4.font-medium.text-sm.border-b-2.transition.border-green-600.text-green-600 {
-  border-bottom-color: #10b981 !important;
-  color: #10b981 !important;
+  border-bottom-color: var(--emerald-500) !important;
+  color: var(--emerald-500) !important;
 }
 
 /* Disable hover effect */
@@ -78,7 +78,7 @@ button[class*="px-6 py-4"]:hover {
 
 /* Badge in tabs */
 button[class*="px-6 py-4"] span[class*="bg-green-100"] {
-  background: #10b981 !important;
+  background: var(--emerald-500) !important;
   color: white !important;
 }
 

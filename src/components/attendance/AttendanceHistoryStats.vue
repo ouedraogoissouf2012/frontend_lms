@@ -65,10 +65,10 @@ defineProps({
 }
 
 .border-l-blue { border-left-color: var(--blue-500); }
-.border-l-green { border-left-color: #10b981; }
-.border-l-orange { border-left-color: #f59e0b; }
-.border-l-red { border-left-color: #ef4444; }
-.border-l-purple { border-left-color: #8b5cf6; }
+.border-l-green { border-left-color: var(--emerald-500); }
+.border-l-orange { border-left-color: var(--amber-500); }
+.border-l-red { border-left-color: var(--red-500); }
+.border-l-purple { border-left-color: var(--violet-500); }
 
 .stat-header {
   display: flex;
