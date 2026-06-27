@@ -68,7 +68,7 @@ import { BoltIcon, CogIcon, DocumentTextIcon, AcademicCapIcon, ChartBarIcon } fr
 .header-icon {
   width: 1.5rem;
   height: 1.5rem;
-  color: #3b82f6;
+  color: var(--blue-500);
 }
 
 .card-title {
@@ -103,7 +103,7 @@ import { BoltIcon, CogIcon, DocumentTextIcon, AcademicCapIcon, ChartBarIcon } fr
 
 .action-button:hover {
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
-  border-color: #3b82f6;
+  border-color: var(--blue-500);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
@@ -111,7 +111,7 @@ import { BoltIcon, CogIcon, DocumentTextIcon, AcademicCapIcon, ChartBarIcon } fr
 .action-icon {
   width: 2rem;
   height: 2rem;
-  color: #3b82f6;
+  color: var(--blue-500);
   flex-shrink: 0;
 }
 

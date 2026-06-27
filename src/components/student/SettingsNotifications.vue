@@ -88,7 +88,7 @@ defineEmits(['change'])
 }
 
 input:checked + .toggle-slider {
-  background-color: #3b82f6;
+  background-color: var(--blue-500);
 }
 
 input:checked + .toggle-slider:before {

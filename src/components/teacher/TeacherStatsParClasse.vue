@@ -104,8 +104,8 @@ defineProps({
 
 .classe-badge {
   padding: 0.25rem 0.5rem;
-  background: #e0e7ff;
-  color: #5b21b6;
+  background: var(--indigo-100);
+  color: var(--violet-800);
   border-radius: 0.25rem;
   font-size: 0.75rem;
   font-weight: 600;

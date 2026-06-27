@@ -99,14 +99,14 @@ const { getInitials, getRoleLabel, getRoleClass, formatDate } = useDashboardForm
 .view-all-link {
   margin-left: auto;
   font-size: 0.875rem;
-  color: #3b82f6;
+  color: var(--blue-500);
   text-decoration: none;
   font-weight: 600;
   transition: color 0.2s;
 }
 
 .view-all-link:hover {
-  color: #2563eb;
+  color: var(--color-info-strong);
   text-decoration: underline;
 }
 
@@ -138,7 +138,7 @@ const { getInitials, getRoleLabel, getRoleClass, formatDate } = useDashboardForm
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--blue-500) 0%, var(--color-info-strong) 100%);
   color: white;
   font-weight: 700;
   font-size: 0.875rem;
@@ -184,23 +184,23 @@ const { getInitials, getRoleLabel, getRoleClass, formatDate } = useDashboardForm
 }
 
 .role-student {
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--info-bg);
+  color: var(--info-text);
 }
 
 .role-teacher {
-  background: #d1fae5;
-  color: #065f46;
+  background: var(--emerald-100);
+  color: var(--emerald-800);
 }
 
 .role-coordinator {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--warning-bg);
+  color: var(--amber-800);
 }
 
 .role-admin {
-  background: #fecaca;
-  color: #991b1b;
+  background: var(--red-200);
+  color: var(--error-text);
 }
 
 .role-default {

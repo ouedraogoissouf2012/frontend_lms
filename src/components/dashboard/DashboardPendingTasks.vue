@@ -118,8 +118,8 @@ defineProps({
 }
 
 .task-item.urgent {
-  border-left-color: #ef4444;
-  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-left-color: var(--red-500);
+  background: linear-gradient(135deg, var(--red-50) 0%, var(--error-bg) 100%);
 }
 
 .task-icon {
@@ -153,7 +153,7 @@ defineProps({
 
 .task-urgent {
   font-size: 0.75rem;
-  color: #dc2626;
+  color: var(--red-600);
   font-weight: 600;
   margin: 0.25rem 0 0 0;
 }

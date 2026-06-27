@@ -23,14 +23,14 @@ defineProps({
   align-items: center;
   gap: 0.75rem;
   padding: 1rem 1.5rem;
-  background: #dbeafe;
+  background: var(--info-bg);
   border-radius: 0.75rem;
 }
 
 .info-icon {
   width: 1.5rem;
   height: 1.5rem;
-  color: #1e40af;
+  color: var(--info-text);
 }
 
 .info-text {

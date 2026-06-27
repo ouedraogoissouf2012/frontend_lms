@@ -115,13 +115,13 @@ defineProps({
 }
 
 .badge-success {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--success-bg);
+  color: var(--success-text);
 }
 
 .badge-info {
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--info-bg);
+  color: var(--info-text);
 }
 
 .badge-default {

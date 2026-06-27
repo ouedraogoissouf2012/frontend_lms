@@ -112,23 +112,23 @@ function truncateText(text, maxLength) {
 }
 
 .course-type-badge.cours {
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--info-bg);
+  color: var(--info-text);
 }
 
 .course-type-badge.tp {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--success-bg);
+  color: var(--success-text);
 }
 
 .course-type-badge.td {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--warning-bg);
+  color: var(--amber-800);
 }
 
 .course-type-badge.projet {
   background: #f3e8ff;
-  color: #7c3aed;
+  color: var(--violet-600);
 }
 
 .course-type-badge.autre {
@@ -196,7 +196,7 @@ function truncateText(text, maxLength) {
 
 .progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #3b82f6, #2563eb);
+  background: linear-gradient(90deg, var(--blue-500), var(--color-info-strong));
   border-radius: 3px;
   transition: width 0.3s ease;
 }
@@ -213,7 +213,7 @@ function truncateText(text, maxLength) {
   justify-content: center;
   gap: 0.5rem;
   padding: 0.75rem;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--blue-500) 0%, var(--color-info-strong) 100%);
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -224,7 +224,7 @@ function truncateText(text, maxLength) {
 }
 
 .course-button:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, var(--color-info-strong) 0%, #1d4ed8 100%);
   transform: scale(1.02);
 }
 

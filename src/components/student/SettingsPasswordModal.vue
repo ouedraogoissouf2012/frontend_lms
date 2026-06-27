@@ -119,7 +119,7 @@ function submitPasswordChange() {
 
 .form-input:focus {
   outline: none;
-  border-color: #3B82F6;
+  border-color: var(--blue-500);
 }
 
 .form-input::placeholder {
@@ -137,12 +137,12 @@ function submitPasswordChange() {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--blue-500) 0%, var(--color-info-strong) 100%);
   color: white;
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, var(--color-info-strong) 0%, #1d4ed8 100%);
   transform: scale(1.02);
 }
 
