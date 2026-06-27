@@ -113,7 +113,7 @@ function onTypeChange() {
 
 .form-input:focus {
   outline: none;
-  border-color: #6366f1;
+  border-color: var(--indigo-500);
 }
 
 .question-card {
@@ -126,7 +126,7 @@ function onTypeChange() {
 
 .ghost-question {
   opacity: 0.5;
-  background: #6366f1 !important;
+  background: var(--indigo-500) !important;
 }
 
 .question-header {
@@ -168,7 +168,7 @@ function onTypeChange() {
   cursor: pointer;
   padding: 0.375rem;
   border-radius: 4px;
-  color: #ef4444;
+  color: var(--red-500);
   transition: all 0.2s;
 }
 

@@ -159,7 +159,7 @@ defineEmits(['load-chapters'])
 
 .form-label.required::after {
   content: ' *';
-  color: #ef4444;
+  color: var(--red-500);
 }
 
 .form-input,

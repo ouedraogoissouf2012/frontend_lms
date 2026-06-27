@@ -172,7 +172,7 @@ defineEmits(['close', 'save'])
 
 .form-label.required::after {
   content: ' *';
-  color: #dc2626;
+  color: var(--red-600);
 }
 
 .form-input,
@@ -224,12 +224,12 @@ defineEmits(['close', 'save'])
 }
 
 .btn-save {
-  background: linear-gradient(135deg, var(--blue-500) 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--blue-500) 0%, var(--color-info-strong) 100%);
   color: white;
 }
 
 .btn-save:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, var(--color-info-strong) 0%, #1d4ed8 100%);
 }
 
 .btn-save:disabled {

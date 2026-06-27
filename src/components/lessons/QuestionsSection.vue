@@ -89,7 +89,7 @@ defineEmits(['add-question', 'remove-question'])
   align-items: center;
   gap: 0.25rem;
   padding: 0.5rem 1rem;
-  background: #6366f1;
+  background: var(--indigo-500);
   color: white;
   border: none;
   border-radius: 6px;
@@ -100,7 +100,7 @@ defineEmits(['add-question', 'remove-question'])
 }
 
 .add-question-btn:hover {
-  background: #4f46e5;
+  background: var(--indigo-600);
 }
 
 .add-question-section {
@@ -123,7 +123,7 @@ defineEmits(['add-question', 'remove-question'])
   background: rgba(245, 158, 11, 0.1);
   border: 1px solid rgba(245, 158, 11, 0.3);
   border-radius: 8px;
-  color: #b45309;
+  color: var(--amber-700);
   font-size: 0.8125rem;
   margin-top: 1rem;
 }

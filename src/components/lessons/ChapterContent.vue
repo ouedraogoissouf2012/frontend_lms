@@ -144,12 +144,12 @@ const isContentEmpty = (chapter) => isChapterContentEmpty(chapter, !!props.quiz)
   color: var(--blue-400);
 }
 
-.chapter-type-badge.video { background: rgba(239, 68, 68, 0.1); color: #f87171; }
+.chapter-type-badge.video { background: rgba(239, 68, 68, 0.1); color: var(--red-400); }
 .chapter-type-badge.powerpoint { background: rgba(249, 115, 22, 0.1); color: #fb923c; }
 .chapter-type-badge.word { background: rgba(59, 130, 246, 0.1); color: var(--blue-400); }
-.chapter-type-badge.pdf { background: rgba(220, 38, 38, 0.1); color: #f87171; }
-.chapter-type-badge.link { background: rgba(139, 92, 246, 0.1); color: #a78bfa; }
-.chapter-type-badge.quiz { background: rgba(16, 185, 129, 0.1); color: #34d399; }
+.chapter-type-badge.pdf { background: rgba(220, 38, 38, 0.1); color: var(--red-400); }
+.chapter-type-badge.link { background: rgba(139, 92, 246, 0.1); color: var(--violet-400); }
+.chapter-type-badge.quiz { background: rgba(16, 185, 129, 0.1); color: var(--emerald-400); }
 
 /* Content blocks */
 .content-block {
@@ -183,7 +183,7 @@ const isContentEmpty = (chapter) => isChapterContentEmpty(chapter, !!props.quiz)
 
 .btn-mark-complete {
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, var(--emerald-500), var(--emerald-600));
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -211,7 +211,7 @@ const isContentEmpty = (chapter) => isChapterContentEmpty(chapter, !!props.quiz)
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
   background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
+  color: var(--emerald-500);
   border-radius: 0.5rem;
   font-weight: 700;
 }
@@ -253,7 +253,7 @@ const isContentEmpty = (chapter) => isChapterContentEmpty(chapter, !!props.quiz)
 }
 
 .btn-nav.next:hover:not(:disabled) {
-  background: #2563eb;
+  background: var(--color-info-strong);
 }
 
 /* ==================== RESPONSIVE ==================== */

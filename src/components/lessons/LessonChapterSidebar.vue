@@ -170,7 +170,7 @@ function isChapterCompleted(chapterId) {
 }
 
 .chapter-nav-item.completed .chapter-status-icon {
-  color: #10b981;
+  color: var(--emerald-500);
 }
 
 .chapter-status-icon {

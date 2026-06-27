@@ -74,7 +74,7 @@ defineEmits(['open-quiz-editor'])
 
 .quiz-summary i {
   font-size: 1.5rem;
-  color: #6366f1;
+  color: var(--indigo-500);
 }
 
 .quiz-summary-text {
@@ -98,7 +98,7 @@ defineEmits(['open-quiz-editor'])
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background: #6366f1;
+  background: var(--indigo-500);
   color: white;
   border: none;
   border-radius: 6px;
@@ -109,7 +109,7 @@ defineEmits(['open-quiz-editor'])
 }
 
 .btn-edit-inline-quiz:hover {
-  background: #4f46e5;
+  background: var(--indigo-600);
 }
 
 .btn-edit-inline-quiz i {
@@ -131,7 +131,7 @@ defineEmits(['open-quiz-editor'])
   align-items: center;
   gap: 6px;
   padding: 10px 20px;
-  background: #6366f1;
+  background: var(--indigo-500);
   color: white;
   border: none;
   border-radius: 8px;
@@ -142,7 +142,7 @@ defineEmits(['open-quiz-editor'])
 }
 
 .btn-create-quiz:hover {
-  background: #4f46e5;
+  background: var(--indigo-600);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
@@ -159,7 +159,7 @@ defineEmits(['open-quiz-editor'])
   background: rgba(245, 158, 11, 0.1);
   border: 1px solid rgba(245, 158, 11, 0.3);
   border-radius: 8px;
-  color: #b45309;
+  color: var(--amber-700);
 }
 
 .quiz-save-first i {

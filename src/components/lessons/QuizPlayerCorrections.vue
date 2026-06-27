@@ -71,12 +71,12 @@ function getAnswerText(questionIndex, answerValue) {
 
 .correction-item.correct {
   background: rgba(16, 185, 129, 0.1);
-  border-color: #10b981;
+  border-color: var(--emerald-500);
 }
 
 .correction-item.incorrect {
   background: rgba(239, 68, 68, 0.1);
-  border-color: #ef4444;
+  border-color: var(--red-500);
 }
 
 .correction-header {
@@ -91,11 +91,11 @@ function getAnswerText(questionIndex, answerValue) {
 }
 
 .correction-item.correct .correction-header i {
-  color: #10b981;
+  color: var(--emerald-500);
 }
 
 .correction-item.incorrect .correction-header i {
-  color: #ef4444;
+  color: var(--red-500);
 }
 
 .correction-question {
@@ -121,7 +121,7 @@ function getAnswerText(questionIndex, answerValue) {
   padding: 0.5rem;
   background: rgba(99, 102, 241, 0.1);
   border-radius: 6px;
-  color: #4f46e5 !important;
+  color: var(--indigo-600) !important;
 }
 
 .explanation i {

@@ -122,7 +122,7 @@ const { saving, isEditing, quiz, isValid, addQuestion, removeQuestion, save } =
 }
 
 .editor-title i {
-  color: #6366f1;
+  color: var(--indigo-500);
 }
 
 .close-btn {
@@ -182,7 +182,7 @@ const { saving, isEditing, quiz, isValid, addQuestion, removeQuestion, save } =
 
 .form-input:focus {
   outline: none;
-  border-color: #6366f1;
+  border-color: var(--indigo-500);
 }
 
 .editor-footer {
@@ -215,7 +215,7 @@ const { saving, isEditing, quiz, isValid, addQuestion, removeQuestion, save } =
   align-items: center;
   gap: 0.375rem;
   padding: 0.625rem 1.25rem;
-  background: #6366f1;
+  background: var(--indigo-500);
   color: white;
   border: none;
   border-radius: 6px;
@@ -226,7 +226,7 @@ const { saving, isEditing, quiz, isValid, addQuestion, removeQuestion, save } =
 }
 
 .save-btn:hover:not(:disabled) {
-  background: #4f46e5;
+  background: var(--indigo-600);
 }
 
 .save-btn:disabled {

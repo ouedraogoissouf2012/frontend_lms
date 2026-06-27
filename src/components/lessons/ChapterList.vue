@@ -80,7 +80,7 @@ defineEmits(['edit', 'delete', 'save', 'cancel', 'open-quiz-editor', 'open-quiz-
 .chapter-block {
   background: var(--card-bg);
   border: 3px solid var(--border-color);
-  border-left: 6px solid var(--color-primary, #10b981);
+  border-left: 6px solid var(--color-primary, var(--emerald-500));
   border-radius: 12px;
   margin-bottom: 24px;
   overflow: hidden;
@@ -91,7 +91,7 @@ defineEmits(['edit', 'delete', 'save', 'cancel', 'open-quiz-editor', 'open-quiz-
 .chapter-block:hover {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
   transform: translateY(-3px);
-  border-color: var(--color-primary, #10b981);
+  border-color: var(--color-primary, var(--emerald-500));
 }
 
 .chapter-header-bar {
@@ -100,7 +100,7 @@ defineEmits(['edit', 'delete', 'save', 'cancel', 'open-quiz-editor', 'open-quiz-
   align-items: center;
   padding: 16px 20px;
   background: var(--bg-secondary);
-  border-bottom: 3px solid var(--color-primary, #10b981);
+  border-bottom: 3px solid var(--color-primary, var(--emerald-500));
   position: relative;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
@@ -108,7 +108,7 @@ defineEmits(['edit', 'delete', 'save', 'cancel', 'open-quiz-editor', 'open-quiz-
 .chapter-number-badge {
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-primary, #3b82f6);
+  color: var(--color-primary, var(--blue-500));
 }
 
 .chapter-actions-inline {
@@ -129,23 +129,23 @@ defineEmits(['edit', 'delete', 'save', 'cancel', 'open-quiz-editor', 'open-quiz-
 }
 
 .btn-edit {
-  color: var(--color-primary, #10b981);
+  color: var(--color-primary, var(--emerald-500));
 }
 
 .btn-edit:hover {
   background: rgba(16, 185, 129, 0.15);
-  border-color: var(--color-primary, #10b981);
+  border-color: var(--color-primary, var(--emerald-500));
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .btn-delete {
-  color: #dc2626;
+  color: var(--red-600);
 }
 
 .btn-delete:hover {
   background: rgba(220, 38, 38, 0.15);
-  border-color: #dc2626;
+  border-color: var(--red-600);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
 }
@@ -160,9 +160,9 @@ defineEmits(['edit', 'delete', 'save', 'cancel', 'open-quiz-editor', 'open-quiz-
   padding: 14px 36px;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-primary, #10b981);
+  color: var(--color-primary, var(--emerald-500));
   background: var(--card-bg);
-  border: 4px dashed var(--color-primary, #10b981);
+  border: 4px dashed var(--color-primary, var(--emerald-500));
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;

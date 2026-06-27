@@ -46,7 +46,7 @@ defineEmits(['completed', 'close'])
 
 .quiz-icon {
   font-size: 3rem;
-  color: #34d399;
+  color: var(--emerald-400);
   margin-bottom: 1rem;
 }
 
@@ -81,19 +81,19 @@ defineEmits(['completed', 'close'])
 
 .score-circle.passed {
   background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
-  border: 2px solid #10b981;
+  color: var(--emerald-500);
+  border: 2px solid var(--emerald-500);
 }
 
 .score-circle.failed {
   background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
-  border: 2px solid #ef4444;
+  color: var(--red-500);
+  border: 2px solid var(--red-500);
 }
 
 .btn-start-quiz {
   padding: 0.75rem 2rem;
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, var(--emerald-500), var(--emerald-600));
   color: white;
   border: none;
   border-radius: 0.5rem;

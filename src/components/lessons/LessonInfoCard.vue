@@ -128,13 +128,13 @@ function getNiveauLabel(niveau) {
 
 .badge-intermediaire {
   background-color: rgba(245, 158, 11, 0.1);
-  color: #f59e0b;
+  color: var(--amber-500);
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 .badge-avance {
   background-color: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  color: var(--red-500);
   border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
@@ -159,13 +159,13 @@ function getNiveauLabel(niveau) {
 
 .status-published {
   background-color: rgba(16, 185, 129, 0.15);
-  color: #10b981;
+  color: var(--emerald-500);
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .status-draft {
   background-color: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
+  color: var(--amber-500);
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
@@ -194,7 +194,7 @@ function getNiveauLabel(niveau) {
 
 .btn-publish {
   padding: 10px 20px;
-  background-color: var(--color-primary, #10b981);
+  background-color: var(--color-primary, var(--emerald-500));
   color: white;
   border: none;
   border-radius: 8px;

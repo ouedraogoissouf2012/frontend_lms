@@ -76,7 +76,7 @@ defineEmits(['start'])
   width: 80px;
   height: 80px;
   margin: 0 auto 1.5rem;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, var(--indigo-500) 0%, var(--violet-500) 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -121,7 +121,7 @@ defineEmits(['start'])
 
 .stat-item i {
   font-size: 1.125rem;
-  color: #6366f1;
+  color: var(--indigo-500);
 }
 
 .previous-attempts {
@@ -134,14 +134,14 @@ defineEmits(['start'])
   gap: 0.5rem;
   padding: 0.75rem 1.25rem;
   background: var(--warning-bg);
-  color: #b45309;
+  color: var(--amber-700);
   border-radius: 8px;
   font-weight: 500;
 }
 
 .best-score.passed {
-  background: #d1fae5;
-  color: #047857;
+  background: var(--emerald-100);
+  color: var(--emerald-700);
 }
 
 .best-score i {
@@ -153,7 +153,7 @@ defineEmits(['start'])
   align-items: center;
   gap: 0.5rem;
   padding: 0.875rem 2rem;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, var(--indigo-500) 0%, var(--violet-500) 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -180,7 +180,7 @@ defineEmits(['start'])
   gap: 0.5rem;
   padding: 1rem;
   background: var(--error-bg);
-  color: #b91c1c;
+  color: var(--red-700);
   border-radius: 8px;
   font-weight: 500;
 }

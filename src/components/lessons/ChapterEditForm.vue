@@ -114,7 +114,7 @@ defineEmits(['save', 'cancel', 'open-quiz-editor'])
 
 .title-input:focus {
   outline: none;
-  border-color: var(--color-primary, #10b981);
+  border-color: var(--color-primary, var(--emerald-500));
   background-color: rgba(16, 185, 129, 0.05);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 0 5px rgba(16, 185, 129, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
@@ -140,7 +140,7 @@ defineEmits(['save', 'cancel', 'open-quiz-editor'])
 
 /* Options styling - Mode clair par défaut */
 .content-type-select option {
-  background-color: #ffffff;
+  background-color: var(--bg-primary);
   color: #111827;
   padding: 10px;
 }
@@ -171,7 +171,7 @@ defineEmits(['save', 'cancel', 'open-quiz-editor'])
 
 .content-type-select:focus {
   outline: none;
-  border-color: var(--color-primary, #10b981);
+  border-color: var(--color-primary, var(--emerald-500));
   background-color: rgba(16, 185, 129, 0.05);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 0 5px rgba(16, 185, 129, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1);
 }
@@ -207,7 +207,7 @@ defineEmits(['save', 'cancel', 'open-quiz-editor'])
   font-size: 0.875rem;
   font-weight: 500;
   color: white;
-  background: var(--color-primary, #10b981);
+  background: var(--color-primary, var(--emerald-500));
   border: none;
   border-radius: 6px;
   cursor: pointer;

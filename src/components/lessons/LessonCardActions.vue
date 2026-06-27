@@ -85,17 +85,17 @@ defineEmits(['view', 'edit', 'delete', 'publish', 'unpublish'])
 }
 
 .btn-publish {
-  color: #059669;
-  border-color: #059669;
+  color: var(--emerald-600);
+  border-color: var(--emerald-600);
 }
 
 .btn-publish:hover {
-  background: #d1fae5;
+  background: var(--emerald-100);
 }
 
 .btn-unpublish {
-  color: #d97706;
-  border-color: #d97706;
+  color: var(--amber-600);
+  border-color: var(--amber-600);
 }
 
 .btn-unpublish:hover {
@@ -112,8 +112,8 @@ defineEmits(['view', 'edit', 'delete', 'publish', 'unpublish'])
 }
 
 .btn-delete {
-  color: #dc2626;
-  border-color: #dc2626;
+  color: var(--red-600);
+  border-color: var(--red-600);
 }
 
 .btn-delete:hover {
@@ -121,13 +121,13 @@ defineEmits(['view', 'edit', 'delete', 'publish', 'unpublish'])
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--blue-500), #8b5cf6);
+  background: linear-gradient(135deg, var(--blue-500), var(--violet-500));
   color: white;
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  background: linear-gradient(135deg, var(--color-info-strong), var(--violet-600));
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
   transform: translateY(-1px);
 }

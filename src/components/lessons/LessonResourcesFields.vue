@@ -215,7 +215,7 @@ defineEmits(['add', 'remove'])
 .btn-remove {
   padding: 0.5rem 1rem;
   background: var(--error-bg);
-  color: #dc2626;
+  color: var(--red-600);
   border: 1px solid var(--error-border);
   border-radius: 0.375rem;
   font-size: 0.813rem;
@@ -225,7 +225,7 @@ defineEmits(['add', 'remove'])
 }
 
 .btn-remove:hover {
-  background: #fecaca;
+  background: var(--red-200);
 }
 
 .resources-empty {

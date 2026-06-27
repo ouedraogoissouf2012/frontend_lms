@@ -112,7 +112,7 @@ function handleFileSelect(event) {
 
 .url-input:focus {
   outline: none;
-  border-color: var(--color-primary, #10b981);
+  border-color: var(--color-primary, var(--emerald-500));
   background-color: rgba(16, 185, 129, 0.05);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 0 5px rgba(16, 185, 129, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
@@ -153,7 +153,7 @@ function handleFileSelect(event) {
 }
 
 .file-upload-label:hover {
-  background: #2563eb;
+  background: var(--color-info-strong);
 }
 
 .file-selected-name {
