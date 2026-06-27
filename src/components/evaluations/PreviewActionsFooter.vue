@@ -124,7 +124,7 @@ defineEmits(['back', 'edit', 'publish'])
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: #22c55e;
+  background: var(--emerald-500);
   color: white;
   border: none;
   border-radius: var(--radius-md);
@@ -134,7 +134,7 @@ defineEmits(['back', 'edit', 'publish'])
 }
 
 .btn-publish:hover:not(:disabled) {
-  background: #16a34a;
+  background: var(--emerald-600);
   transform: translateY(-1px);
 }
 

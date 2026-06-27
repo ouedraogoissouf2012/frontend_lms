@@ -196,11 +196,11 @@ export default {
 }
 
 .trend-up {
-  color: #22c55e;
+  color: var(--emerald-500);
 }
 
 .trend-down {
-  color: #ef4444;
+  color: var(--red-500);
 }
 
 .trend-neutral {

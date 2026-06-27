@@ -102,7 +102,7 @@ defineEmits(['close-confirm', 'submit', 'return'])
 }
 
 .btn-submit:hover {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: linear-gradient(135deg, var(--color-info-strong), #1d4ed8);
   transform: translateY(-1px);
 }
 
@@ -117,13 +117,13 @@ defineEmits(['close-confirm', 'submit', 'return'])
 }
 
 .results-practice {
-  border-color: #8b5cf6 !important;
-  background: #f5f3ff !important;
+  border-color: var(--violet-500) !important;
+  background: var(--violet-50) !important;
 }
 
 .practice-note-info {
   font-size: 0.8rem;
-  color: #7c3aed;
+  color: var(--violet-600);
   margin-top: 0.5rem;
   font-style: italic;
 }
@@ -172,7 +172,7 @@ defineEmits(['close-confirm', 'submit', 'return'])
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   background: var(--warning-bg);
-  color: #92400e;
+  color: var(--amber-800);
   border-radius: 0.5rem;
   font-size: 0.875rem;
   font-weight: 500;
@@ -197,7 +197,7 @@ defineEmits(['close-confirm', 'submit', 'return'])
 
 .results-icon .fa {
   font-size: 3rem;
-  color: #22c55e;
+  color: var(--emerald-500);
 }
 
 /* Results score */

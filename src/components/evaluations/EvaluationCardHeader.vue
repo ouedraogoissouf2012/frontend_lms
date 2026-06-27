@@ -129,8 +129,8 @@ function getStatusIcon(status) {
 
 .status-badge-draft {
   background: var(--warning-bg);
-  color: #92400e;
-  border: 1px solid #fde68a;
+  color: var(--amber-800);
+  border: 1px solid var(--amber-200);
 }
 
 .status-badge-default {
@@ -147,9 +147,9 @@ function getStatusIcon(status) {
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 600;
-  background: #d1fae5;
-  color: #065f46;
-  border: 1px solid #6ee7b7;
+  background: var(--emerald-100);
+  color: var(--emerald-800);
+  border: 1px solid var(--emerald-300);
   cursor: help;
   transition: all 0.2s;
 }

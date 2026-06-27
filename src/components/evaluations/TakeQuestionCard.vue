@@ -111,7 +111,7 @@ defineEmits(['toggle-multiple'])
 }
 
 .question-answered {
-  border-left-color: #22c55e;
+  border-left-color: var(--emerald-500);
 }
 
 .question-header {
@@ -142,7 +142,7 @@ defineEmits(['toggle-multiple'])
 }
 
 .question-check {
-  color: #22c55e;
+  color: var(--emerald-500);
   font-size: 1.25rem;
 }
 

@@ -86,8 +86,8 @@ function handleClick() {
 
 /* Variants */
 .quick-action-btn.primary:hover:not(:disabled) {
-  border-color: #3b82f6;
-  background: #3b82f6;
+  border-color: var(--blue-500);
+  background: var(--blue-500);
 }
 
 .quick-action-btn.primary:hover:not(:disabled) .action-icon {
@@ -112,8 +112,8 @@ function handleClick() {
 }
 
 .quick-action-btn.success:hover:not(:disabled) {
-  border-color: #10b981;
-  background: #10b981;
+  border-color: var(--emerald-500);
+  background: var(--emerald-500);
 }
 
 .quick-action-btn.success:hover:not(:disabled) .action-icon {
@@ -125,8 +125,8 @@ function handleClick() {
 }
 
 .quick-action-btn.warning:hover:not(:disabled) {
-  border-color: #f59e0b;
-  background: #f59e0b;
+  border-color: var(--amber-500);
+  background: var(--amber-500);
 }
 
 .quick-action-btn.warning:hover:not(:disabled) .action-icon {
@@ -138,8 +138,8 @@ function handleClick() {
 }
 
 .quick-action-btn.danger:hover:not(:disabled) {
-  border-color: #ef4444;
-  background: #ef4444;
+  border-color: var(--red-500);
+  background: var(--red-500);
 }
 
 .quick-action-btn.danger:hover:not(:disabled) .action-icon {

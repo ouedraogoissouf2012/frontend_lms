@@ -58,7 +58,7 @@ defineProps({
 /* Alerte de compte à rebours */
 .countdown-alert {
   background-color: var(--bg-tertiary);
-  border-left: 4px solid #f59e0b;
+  border-left: 4px solid var(--amber-500);
   border-radius: 0.5rem;
   padding: 1rem;
   margin-bottom: 1.5rem;
@@ -66,7 +66,7 @@ defineProps({
 }
 
 .countdown-alert svg {
-  color: #f59e0b;
+  color: var(--amber-500);
 }
 
 .countdown-title {
@@ -82,18 +82,18 @@ defineProps({
   box-shadow: var(--card-shadow);
   padding: 1rem;
   text-align: center;
-  border: 2px solid #fbbf24;
+  border: 2px solid var(--amber-400);
 }
 
 .countdown-number {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #f59e0b;
+  color: var(--amber-500);
 }
 
 .countdown-label {
   font-size: 0.75rem;
-  color: #d97706;
+  color: var(--amber-600);
   font-weight: 600;
 }
 
@@ -113,7 +113,7 @@ defineProps({
 }
 
 .progress-bar-fill {
-  background-color: #f59e0b;
+  background-color: var(--amber-500);
   height: 0.5rem;
   border-radius: 9999px;
   transition: all 0.5s;
@@ -121,7 +121,7 @@ defineProps({
 
 .countdown-percent {
   font-size: 0.75rem;
-  color: #d97706;
+  color: var(--amber-600);
   margin-top: 0.25rem;
 }
 
