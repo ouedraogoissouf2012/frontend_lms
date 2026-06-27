@@ -51,7 +51,7 @@ defineProps({
 
 .progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #8b5cf6 0%, #6366f1 100%);
+  background: linear-gradient(90deg, var(--violet-500) 0%, var(--indigo-500) 100%);
   border-radius: var(--radius-full);
   transition: width 0.3s ease;
 }

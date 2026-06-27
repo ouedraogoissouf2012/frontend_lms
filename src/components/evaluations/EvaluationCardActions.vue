@@ -118,69 +118,69 @@ defineEmits(['create', 'edit', 'view-results', 'publish', 'preview', 'sync', 'de
 }
 
 .btn-create {
-  background: linear-gradient(135deg, var(--blue-500) 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--blue-500) 0%, var(--color-info-strong) 100%);
   color: white;
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
 .btn-create:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, var(--color-info-strong) 0%, #1d4ed8 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
 .btn-edit {
-  background: #f59e0b;
+  background: var(--amber-500);
   color: white;
 }
 
 .btn-edit:hover:not(:disabled) {
-  background: #d97706;
+  background: var(--amber-600);
 }
 
 .btn-view-results {
-  background: #8b5cf6;
+  background: var(--violet-500);
   color: white;
 }
 
 .btn-view-results:hover:not(:disabled) {
-  background: #7c3aed;
+  background: var(--violet-600);
 }
 
 .btn-sync {
-  background: #22c55e;
+  background: var(--emerald-500);
   color: white;
 }
 
 .btn-sync:hover:not(:disabled) {
-  background: #16a34a;
+  background: var(--emerald-600);
 }
 
 .btn-publish {
-  background: #8b5cf6;
+  background: var(--violet-500);
   color: white;
 }
 
 .btn-publish:hover:not(:disabled) {
-  background: #7c3aed;
+  background: var(--violet-600);
 }
 
 .btn-preview {
-  background: #6366f1;
+  background: var(--indigo-500);
   color: white;
 }
 
 .btn-preview:hover:not(:disabled) {
-  background: #4f46e5;
+  background: var(--indigo-600);
 }
 
 .btn-delete {
-  background: #ef4444;
+  background: var(--red-500);
   color: white;
 }
 
 .btn-delete:hover:not(:disabled) {
-  background: #dc2626;
+  background: var(--red-600);
 }
 
 .animate-spin {

@@ -178,13 +178,13 @@ defineProps({
 /* Classes personnalisées pour les options - avec correction */
 .option-correct {
   background-color: rgba(34, 197, 94, 0.15) !important;
-  border: 2px solid #22c55e !important;
+  border: 2px solid var(--emerald-500) !important;
   border-radius: 0.5rem;
 }
 
 .option-incorrect {
   background-color: rgba(239, 68, 68, 0.15) !important;
-  border: 2px solid #ef4444 !important;
+  border: 2px solid var(--red-500) !important;
   border-radius: 0.5rem;
 }
 
@@ -214,12 +214,12 @@ defineProps({
 
 /* Texte dans bonnes réponses */
 .option-correct .option-text {
-  color: #22c55e !important;
+  color: var(--emerald-500) !important;
 }
 
 /* Texte dans mauvaises réponses */
 .option-incorrect .option-text {
-  color: #ef4444 !important;
+  color: var(--red-500) !important;
 }
 
 /* Texte dans options neutres */

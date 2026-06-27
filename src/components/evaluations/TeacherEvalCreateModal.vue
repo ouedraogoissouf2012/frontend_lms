@@ -201,7 +201,7 @@ defineEmits(['close', 'submit'])
 
 .form-label.required::after {
   content: ' *';
-  color: #dc2626;
+  color: var(--red-600);
 }
 
 .form-select,
@@ -268,7 +268,7 @@ defineEmits(['close', 'submit'])
 }
 
 .btn-submit:hover:not(:disabled) {
-  background: #2563eb;
+  background: var(--color-info-strong);
 }
 
 .btn-submit:disabled {

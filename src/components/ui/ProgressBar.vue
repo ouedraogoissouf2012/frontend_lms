@@ -174,7 +174,7 @@ export default {
 }
 
 .progress-green {
-  background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+  background: linear-gradient(90deg, var(--emerald-500) 0%, var(--emerald-600) 100%);
 }
 
 .progress-yellow {
@@ -182,14 +182,14 @@ export default {
 }
 
 .progress-red {
-  background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(90deg, var(--red-500) 0%, var(--red-600) 100%);
 }
 
 .progress-purple {
-  background: linear-gradient(90deg, #a855f7 0%, #9333ea 100%);
+  background: linear-gradient(90deg, var(--violet-500) 0%, var(--violet-600) 100%);
 }
 
 .progress-gradient {
-  background: linear-gradient(90deg, #06b6d4 0%, #3b82f6 50%, #a855f7 100%);
+  background: linear-gradient(90deg, #06b6d4 0%, var(--blue-500) 50%, var(--violet-500) 100%);
 }
 </style>

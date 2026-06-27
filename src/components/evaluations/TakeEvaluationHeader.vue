@@ -93,11 +93,11 @@ defineProps({
 }
 
 .timer-warning .timer-value {
-  color: #f59e0b;
+  color: var(--amber-500);
 }
 
 .timer-danger .timer-value {
-  color: #ef4444;
+  color: var(--red-500);
   animation: pulse 1s infinite;
 }
 

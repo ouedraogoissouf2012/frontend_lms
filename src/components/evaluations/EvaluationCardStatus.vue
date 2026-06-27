@@ -83,16 +83,16 @@ defineProps({
 }
 
 .status-pending {
-  border-color: #f59e0b;
+  border-color: var(--amber-500);
   background: rgba(245, 158, 11, 0.05);
 }
 
 .status-pending .status-icon {
-  color: #f59e0b;
+  color: var(--amber-500);
 }
 
 .status-pending .status-text {
-  color: #d97706;
+  color: var(--amber-600);
 }
 
 .status-pending .status-detail {
@@ -100,12 +100,12 @@ defineProps({
 }
 
 .status-active {
-  border-color: #10b981;
+  border-color: var(--emerald-500);
   background: rgba(16, 185, 129, 0.05);
 }
 
 .status-active .status-text {
-  color: #059669;
+  color: var(--emerald-600);
 }
 
 .status-active .status-detail {
@@ -138,7 +138,7 @@ defineProps({
 .pulse-dot {
   width: 0.75rem;
   height: 0.75rem;
-  background: #22c55e;
+  background: var(--emerald-500);
   border-radius: 50%;
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   flex-shrink: 0;
@@ -179,7 +179,7 @@ defineProps({
 .online-icon {
   width: 1.5rem;
   height: 1.5rem;
-  color: #2563eb;
+  color: var(--color-info-strong);
   flex-shrink: 0;
 }
 

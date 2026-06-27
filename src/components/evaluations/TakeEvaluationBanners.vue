@@ -51,11 +51,11 @@ defineProps({
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, #f3e8ff, #ede9fe);
-  border: 2px solid #8b5cf6;
+  background: linear-gradient(135deg, #f3e8ff, var(--violet-100));
+  border: 2px solid var(--violet-500);
   border-radius: 0.75rem;
   margin-bottom: 1.5rem;
-  color: #5b21b6;
+  color: var(--violet-800);
 }
 
 .practice-banner .fa {
@@ -82,7 +82,7 @@ defineProps({
   gap: 1rem;
   padding: 1rem 1.5rem;
   background: var(--error-bg);
-  border: 2px solid #ef4444;
+  border: 2px solid var(--red-500);
   border-radius: 0.75rem;
   margin-bottom: 1.5rem;
   animation: pulse 2s infinite;

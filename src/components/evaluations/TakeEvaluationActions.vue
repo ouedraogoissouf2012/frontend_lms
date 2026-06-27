@@ -79,7 +79,7 @@ defineEmits(['cancel', 'submit'])
 }
 
 .btn-submit:hover {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: linear-gradient(135deg, var(--color-info-strong), #1d4ed8);
   transform: translateY(-1px);
 }
 

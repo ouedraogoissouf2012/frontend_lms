@@ -118,14 +118,14 @@ defineEmits(['select'])
 
 .preview-badge {
   background: rgba(139, 92, 246, 0.1);
-  color: #8b5cf6;
+  color: var(--violet-500);
   padding: 0.25rem 0.5rem;
   border-radius: var(--radius-md);
   font-size: 0.75rem;
 }
 
 .answered-icon {
-  color: #8b5cf6;
+  color: var(--violet-500);
 }
 
 .question-text {
@@ -158,12 +158,12 @@ defineEmits(['select'])
 }
 
 .option-button:hover {
-  border-color: #8b5cf6;
+  border-color: var(--violet-500);
   background: rgba(139, 92, 246, 0.05);
 }
 
 .option-button.option-selected {
-  border-color: #8b5cf6;
+  border-color: var(--violet-500);
   background: rgba(139, 92, 246, 0.1);
 }
 
@@ -180,8 +180,8 @@ defineEmits(['select'])
 }
 
 .option-radio.selected {
-  border-color: #8b5cf6;
-  background: #8b5cf6;
+  border-color: var(--violet-500);
+  background: var(--violet-500);
 }
 
 .option-radio-dot {
@@ -210,7 +210,7 @@ defineEmits(['select'])
 
 .answer-input:focus {
   outline: none;
-  border-color: #8b5cf6;
+  border-color: var(--violet-500);
   background: var(--input-bg);
 }
 
