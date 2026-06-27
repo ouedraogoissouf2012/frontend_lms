@@ -144,7 +144,7 @@ defineProps({
 /* Texte de chargement */
 .loader-text {
   margin-top: 1.5rem;
-  color: #475569;
+  color: var(--text-secondary);
   font-size: 0.95rem;
   font-weight: 500;
   letter-spacing: 0.5px;

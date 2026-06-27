@@ -69,7 +69,7 @@ const isDisabled = computed(() => props.disabled || props.loading)
 
 .base-btn--primary {
   background: var(--accent-primary, #4f46e5);
-  color: #fff;
+  color: var(--btn-primary-text);
 }
 
 .base-btn--primary:hover:not(:disabled) {
@@ -88,7 +88,7 @@ const isDisabled = computed(() => props.disabled || props.loading)
 
 .base-btn--danger {
   background: var(--danger, #dc2626);
-  color: #fff;
+  color: var(--btn-primary-text);
 }
 
 .base-btn--danger:hover:not(:disabled) {
