@@ -170,8 +170,8 @@ defineProps({
   display: flex;
   gap: 1rem;
   padding: 1rem;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  background: var(--blue-50);
+  border: 1px solid var(--blue-200);
   border-radius: 0.5rem;
   margin-bottom: 1.5rem;
 }
@@ -190,7 +190,7 @@ defineProps({
 .online-title {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #1e40af;
+  color: var(--info-text);
   margin: 0 0 0.5rem 0;
 }
 
@@ -205,6 +205,6 @@ defineProps({
   align-items: center;
   gap: 0.375rem;
   font-size: 0.875rem;
-  color: #1e40af;
+  color: var(--info-text);
 }
 </style>

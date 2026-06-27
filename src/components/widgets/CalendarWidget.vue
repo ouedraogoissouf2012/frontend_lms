@@ -211,7 +211,7 @@ const {
 
 /* Event Styles */
 :deep(.event-seance) {
-  background: #3b82f6 !important;
+  background: var(--blue-500) !important;
   border-color: #2563eb !important;
 }
 

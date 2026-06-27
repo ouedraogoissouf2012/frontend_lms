@@ -238,7 +238,7 @@ onMounted(() => {
 .form-input:focus,
 .form-select:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--blue-500);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
@@ -258,7 +258,7 @@ onMounted(() => {
 
 .error-message {
   padding: 0.75rem;
-  background: #fee2e2;
+  background: var(--error-bg);
   color: #dc2626;
   border-radius: 0.5rem;
   font-size: 0.875rem;

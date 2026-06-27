@@ -101,8 +101,8 @@ function getIconComponent(iconName) {
 }
 
 .notification-item.unread {
-  background: linear-gradient(90deg, #eff6ff 0%, transparent 100%);
-  border-left: 3px solid #3b82f6;
+  background: linear-gradient(90deg, var(--blue-50) 0%, transparent 100%);
+  border-left: 3px solid var(--blue-500);
 }
 
 .notification-icon {
@@ -116,8 +116,8 @@ function getIconComponent(iconName) {
 }
 
 .type-info {
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--info-bg);
+  color: var(--info-text);
 }
 
 .type-success {
@@ -126,13 +126,13 @@ function getIconComponent(iconName) {
 }
 
 .type-warning {
-  background: #fef3c7;
+  background: var(--warning-bg);
   color: #92400e;
 }
 
 .type-danger {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--error-bg);
+  color: var(--error-text);
 }
 
 .notification-content {
@@ -202,7 +202,7 @@ function getIconComponent(iconName) {
 }
 
 .delete-btn:hover {
-  background: #fee2e2;
+  background: var(--error-bg);
   border-color: #ef4444;
 }
 

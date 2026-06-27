@@ -168,8 +168,8 @@ defineEmits(['close', 'submit'])
 }
 
 .modal-info {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  background: var(--blue-50);
+  border: 1px solid var(--blue-200);
   border-radius: 0.5rem;
   padding: 1rem;
   margin-bottom: 1.5rem;
@@ -177,7 +177,7 @@ defineEmits(['close', 'submit'])
 
 .info-text {
   font-size: 0.875rem;
-  color: #1e40af;
+  color: var(--info-text);
   margin: 0.25rem 0;
 }
 
@@ -263,7 +263,7 @@ defineEmits(['close', 'submit'])
 }
 
 .btn-submit {
-  background: #3b82f6;
+  background: var(--blue-500);
   color: white;
 }
 

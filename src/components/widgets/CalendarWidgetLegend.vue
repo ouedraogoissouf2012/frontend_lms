@@ -45,7 +45,7 @@
 }
 
 .legend-dot.seance {
-  background: #3b82f6;
+  background: var(--blue-500);
 }
 
 .legend-dot.evaluation {
