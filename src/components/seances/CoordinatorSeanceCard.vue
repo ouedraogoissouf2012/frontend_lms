@@ -195,7 +195,7 @@ const formatDate = (date) => {
 
 .visio-active {
   background: #f3e8ff;
-  color: #7c3aed;
+  color: var(--violet-600);
 }
 
 .visio-active:hover {

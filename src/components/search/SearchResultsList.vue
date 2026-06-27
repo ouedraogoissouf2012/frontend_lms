@@ -124,18 +124,18 @@ defineEmits(['select', 'highlight'])
 }
 
 .icon-user {
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--info-bg);
+  color: var(--info-text);
 }
 
 .icon-lesson {
-  background: #d1fae5;
-  color: #065f46;
+  background: var(--emerald-100);
+  color: var(--emerald-800);
 }
 
 .icon-evaluation {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--warning-bg);
+  color: var(--amber-800);
 }
 
 .icon-classe {
@@ -144,8 +144,8 @@ defineEmits(['select', 'highlight'])
 }
 
 .icon-matiere {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--error-bg);
+  color: var(--error-text);
 }
 
 .result-content {

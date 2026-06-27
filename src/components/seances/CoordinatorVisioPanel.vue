@@ -169,7 +169,7 @@ defineEmits(['show-participants', 'join'])
 }
 
 .participants-btn:hover {
-  background: #2563eb;
+  background: var(--color-info-strong);
 }
 
 .open-jitsi-btn {
@@ -199,7 +199,7 @@ defineEmits(['show-participants', 'join'])
   padding: 0.75rem 1.25rem;
   background: var(--warning-bg);
   border-radius: 0.5rem;
-  border: 1px solid #fcd34d;
+  border: 1px solid var(--amber-300);
 }
 
 .waiting-icon {
@@ -210,7 +210,7 @@ defineEmits(['show-participants', 'join'])
 .waiting-text {
   font-size: 0.875rem;
   font-weight: 500;
-  color: #92400e;
+  color: var(--amber-800);
 }
 
 /* btn-icon : partagé avec la carte (copie verbatim pour le scoping) */

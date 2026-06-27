@@ -134,7 +134,7 @@ defineEmits(['create', 'view', 'edit', 'delete', 'publish', 'unpublish'])
 
 .toggle-btn.active {
   background: var(--card-bg);
-  color: #3b82f6;
+  color: var(--blue-500);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 

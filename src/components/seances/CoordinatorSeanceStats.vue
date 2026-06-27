@@ -58,7 +58,7 @@ defineProps({
 }
 
 .stat-card-primary .stat-label {
-  color: #7c3aed;
+  color: var(--violet-600);
 }
 
 .stat-value {
@@ -69,7 +69,7 @@ defineProps({
 }
 
 .stat-card-primary .stat-value {
-  color: #6d28d9;
+  color: var(--violet-700);
 }
 
 /* Responsive */

@@ -50,7 +50,7 @@ defineEmits(['export-pdf', 'export-excel', 'close'])
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  background: linear-gradient(135deg, var(--red-600) 0%, var(--red-700) 100%);
   color: white;
   border: none;
   border-radius: 0.375rem;
@@ -62,7 +62,7 @@ defineEmits(['export-pdf', 'export-excel', 'close'])
 }
 
 .btn-export-pdf:hover:not(:disabled) {
-  background: linear-gradient(135deg, #b91c1c 0%, var(--error-text) 100%);
+  background: linear-gradient(135deg, var(--red-700) 0%, var(--error-text) 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
 }
@@ -78,7 +78,7 @@ defineEmits(['export-pdf', 'export-excel', 'close'])
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, var(--emerald-500) 0%, var(--emerald-600) 100%);
   color: white;
   border: none;
   border-radius: 0.375rem;
@@ -90,7 +90,7 @@ defineEmits(['export-pdf', 'export-excel', 'close'])
 }
 
 .btn-export-excel:hover:not(:disabled) {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  background: linear-gradient(135deg, var(--emerald-600) 0%, var(--emerald-700) 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }

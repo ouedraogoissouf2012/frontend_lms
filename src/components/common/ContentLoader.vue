@@ -172,7 +172,7 @@ defineProps({
 }
 
 :deep([data-theme="dark"]) .letter-m {
-  color: #fbbf24;
+  color: var(--amber-400);
 }
 
 :deep([data-theme="dark"]) .letter-s {

@@ -209,7 +209,7 @@ defineEmits(['close', 'submit'])
 
 .form-label.required::after {
   content: ' *';
-  color: #ef4444;
+  color: var(--red-500);
 }
 
 .form-input,
@@ -229,7 +229,7 @@ defineEmits(['close', 'submit'])
 .form-textarea:focus,
 .form-select:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--blue-500);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
@@ -269,12 +269,12 @@ defineEmits(['close', 'submit'])
 }
 
 .btn-primary {
-  background-color: #3b82f6;
+  background-color: var(--blue-500);
   color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #2563eb;
+  background-color: var(--color-info-strong);
 }
 
 .btn-primary:disabled {

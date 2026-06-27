@@ -102,7 +102,7 @@ const getIconEmoji = (iconCode) => {
   position: absolute;
   top: 4px;
   right: 4px;
-  background: #ef4444;
+  background: var(--red-500);
   color: white;
   font-size: 0.625rem;
   font-weight: 700;

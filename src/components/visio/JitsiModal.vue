@@ -163,7 +163,7 @@ watch(() => props.isOpen, (newValue) => {
 
 .close-button {
   color: white;
-  background: #ef4444;
+  background: var(--red-500);
   border: none;
   border-radius: 0.375rem;
   padding: 0.5rem;
@@ -175,7 +175,7 @@ watch(() => props.isOpen, (newValue) => {
 }
 
 .close-button:hover {
-  background: #dc2626;
+  background: var(--red-600);
 }
 
 /* Contenu Jitsi */

@@ -73,7 +73,7 @@ defineEmits(['export', 'view-details', 'load-page'])
 
 .btn-export {
   padding: 0.625rem 1rem;
-  background: #10b981;
+  background: var(--emerald-500);
   color: white;
   border: none;
   border-radius: 8px;
@@ -84,7 +84,7 @@ defineEmits(['export', 'view-details', 'load-page'])
 }
 
 .btn-export:hover {
-  background: #059669;
+  background: var(--emerald-600);
   transform: translateY(-1px);
 }
 

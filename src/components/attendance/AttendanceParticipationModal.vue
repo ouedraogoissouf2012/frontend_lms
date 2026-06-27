@@ -172,11 +172,11 @@ defineEmits(['close'])
 }
 
 .text-green {
-  color: #10b981;
+  color: var(--emerald-500);
 }
 
 .text-red {
-  color: #ef4444;
+  color: var(--red-500);
 }
 
 .modal-footer {

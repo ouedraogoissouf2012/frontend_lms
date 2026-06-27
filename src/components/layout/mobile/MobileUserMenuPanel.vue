@@ -158,7 +158,7 @@ defineEmits(['close', 'logout'])
 }
 
 .logout-item {
-  color: #ef4444;
+  color: var(--red-500);
   margin-top: 0.5rem;
   border-top: 1px solid var(--border-color);
   border-radius: 0;
