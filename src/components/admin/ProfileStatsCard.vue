@@ -83,7 +83,7 @@ defineProps({
 .header-icon {
   width: 1.5rem;
   height: 1.5rem;
-  color: #8b5cf6;
+  color: var(--violet-500);
 }
 
 .card-title {

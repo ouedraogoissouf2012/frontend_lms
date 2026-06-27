@@ -50,7 +50,7 @@ defineProps({
 .header-icon {
   width: 1.5rem;
   height: 1.5rem;
-  color: #8b5cf6;
+  color: var(--violet-500);
 }
 
 .card-title {
@@ -74,10 +74,10 @@ defineProps({
 .permission-badge {
   padding: 0.5rem 1rem;
   background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(124, 58, 237, 0.05) 100%);
-  border: 1px solid #8b5cf6;
+  border: 1px solid var(--violet-500);
   border-radius: 9999px;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #8b5cf6;
+  color: var(--violet-500);
 }
 </style>

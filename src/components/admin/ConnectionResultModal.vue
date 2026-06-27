@@ -60,10 +60,10 @@ defineEmits(['close'])
   margin-bottom: var(--spacing-md);
 }
 .connection-success .connection-icon {
-  color: #22c55e;
+  color: var(--emerald-500);
 }
 .connection-error .connection-icon {
-  color: #ef4444;
+  color: var(--red-500);
 }
 .connection-message {
   font-size: var(--font-size-lg);

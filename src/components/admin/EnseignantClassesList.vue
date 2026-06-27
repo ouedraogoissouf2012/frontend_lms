@@ -61,13 +61,13 @@ defineProps({ classes: { type: Array, default: () => [] } })
 }
 
 .badge-filiere {
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--info-bg);
+  color: var(--info-text);
 }
 
 .badge-niveau {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--warning-bg);
+  color: var(--amber-800);
 }
 
 .no-data {

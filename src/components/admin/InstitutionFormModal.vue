@@ -171,7 +171,7 @@ defineEmits(['close', 'save'])
 }
 .form-input:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--blue-500);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 .input-readonly {
@@ -237,7 +237,7 @@ defineEmits(['close', 'save'])
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 .toggle-input:checked + .toggle-switch {
-  background: #22c55e;
+  background: var(--emerald-500);
 }
 .toggle-input:checked + .toggle-switch::after {
   transform: translateX(20px);
@@ -257,7 +257,7 @@ defineEmits(['close', 'save'])
 }
 .form-error-item {
   font-size: var(--font-size-sm);
-  color: #dc2626;
+  color: var(--red-600);
   margin-bottom: var(--spacing-xs);
 }
 .form-error-item:last-child {

@@ -191,19 +191,19 @@ defineEmits(['export'])
 }
 
 .note-excellent {
-  color: #10b981;
+  color: var(--emerald-500);
 }
 
 .note-good {
-  color: #3b82f6;
+  color: var(--blue-500);
 }
 
 .note-average {
-  color: #f59e0b;
+  color: var(--amber-500);
 }
 
 .note-poor {
-  color: #ef4444;
+  color: var(--red-500);
 }
 
 .empty-state {

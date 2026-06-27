@@ -196,7 +196,7 @@ function formatDate(dateStr) {
 
 .status-active {
   background: rgba(34, 197, 94, 0.1);
-  color: #16a34a;
+  color: var(--emerald-600);
 }
 
 .status-inactive {
@@ -239,7 +239,7 @@ function formatDate(dateStr) {
 }
 
 .action-btn-green {
-  color: #16a34a;
+  color: var(--emerald-600);
 }
 
 .action-btn-gray {
@@ -247,7 +247,7 @@ function formatDate(dateStr) {
 }
 
 .action-btn-blue {
-  color: #3b82f6;
+  color: var(--blue-500);
 }
 
 /* Responsive */
