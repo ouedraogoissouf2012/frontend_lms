@@ -72,11 +72,11 @@ defineEmits(['retry', 'close'])
   text-align: center;
   padding: 2rem;
   margin: -2rem -2rem 2rem;
-  background: linear-gradient(135deg, var(--warning-bg) 0%, #fde68a 100%);
+  background: linear-gradient(135deg, var(--warning-bg) 0%, var(--amber-200) 100%);
 }
 
 .results-header.passed {
-  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  background: linear-gradient(135deg, var(--emerald-100) 0%, var(--emerald-200) 100%);
 }
 
 .results-icon {
@@ -93,22 +93,22 @@ defineEmits(['retry', 'close'])
 
 .results-icon i {
   font-size: 2.5rem;
-  color: #b45309;
+  color: var(--amber-700);
 }
 
 .results-header.passed .results-icon i {
-  color: #047857;
+  color: var(--emerald-700);
 }
 
 .results-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #92400e;
+  color: var(--amber-800);
   margin: 0 0 0.5rem 0;
 }
 
 .results-header.passed .results-title {
-  color: #047857;
+  color: var(--emerald-700);
 }
 
 .results-message {
@@ -117,7 +117,7 @@ defineEmits(['retry', 'close'])
 }
 
 .results-header.passed .results-message {
-  color: #059669;
+  color: var(--emerald-600);
 }
 
 .score-display {
@@ -135,7 +135,7 @@ defineEmits(['retry', 'close'])
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, var(--indigo-500) 0%, var(--violet-500) 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -144,7 +144,7 @@ defineEmits(['retry', 'close'])
 }
 
 .score-circle.passed {
-  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+  background: linear-gradient(135deg, var(--emerald-500) 0%, var(--emerald-400) 100%);
 }
 
 .score-value {
@@ -187,13 +187,13 @@ defineEmits(['retry', 'close'])
 }
 
 .retry-btn {
-  background: #6366f1;
+  background: var(--indigo-500);
   border: none;
   color: white;
 }
 
 .retry-btn:hover {
-  background: #4f46e5;
+  background: var(--indigo-600);
 }
 
 .close-btn {

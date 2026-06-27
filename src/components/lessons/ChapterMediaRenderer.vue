@@ -169,7 +169,7 @@ const getPdfUrl = (chapter) => pdfUrl(chapter)
 
 .link-card > i {
   font-size: 2rem;
-  color: #a78bfa;
+  color: var(--violet-400);
 }
 
 .link-info {
@@ -193,7 +193,7 @@ const getPdfUrl = (chapter) => pdfUrl(chapter)
 
 .btn-open-link {
   padding: 0.625rem 1.25rem;
-  background: #7c3aed;
+  background: var(--violet-600);
   color: white;
   text-decoration: none;
   border-radius: 0.5rem;
@@ -206,6 +206,6 @@ const getPdfUrl = (chapter) => pdfUrl(chapter)
 }
 
 .btn-open-link:hover {
-  background: #6d28d9;
+  background: var(--violet-700);
 }
 </style>

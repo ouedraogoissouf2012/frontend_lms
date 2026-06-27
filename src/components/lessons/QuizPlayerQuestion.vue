@@ -127,7 +127,7 @@ function isOptionSelected(index) {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, var(--indigo-500) 0%, var(--violet-500) 100%);
   transition: width 0.3s ease;
 }
 
@@ -154,7 +154,7 @@ function isOptionSelected(index) {
 
 .quiz-timer.warning {
   background: var(--error-bg);
-  color: #b91c1c;
+  color: var(--red-700);
   animation: pulse 1s infinite;
 }
 
@@ -194,12 +194,12 @@ function isOptionSelected(index) {
 }
 
 .option-item:hover {
-  border-color: #6366f1;
+  border-color: var(--indigo-500);
 }
 
 .option-item.selected {
   background: rgba(99, 102, 241, 0.1);
-  border-color: #6366f1;
+  border-color: var(--indigo-500);
 }
 
 .option-item input {

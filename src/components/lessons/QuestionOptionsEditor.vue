@@ -139,7 +139,7 @@ function toggleCorrectMultiple(optionIndex) {
 
 .option-input:focus {
   outline: none;
-  border-color: #6366f1;
+  border-color: var(--indigo-500);
 }
 
 .option-input:disabled {
@@ -157,7 +157,7 @@ function toggleCorrectMultiple(optionIndex) {
 }
 
 .remove-option-btn:hover {
-  color: #ef4444;
+  color: var(--red-500);
 }
 
 .add-option-btn {
@@ -175,7 +175,7 @@ function toggleCorrectMultiple(optionIndex) {
 }
 
 .add-option-btn:hover {
-  border-color: #6366f1;
-  color: #6366f1;
+  border-color: var(--indigo-500);
+  color: var(--indigo-500);
 }
 </style>

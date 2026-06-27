@@ -104,7 +104,7 @@ function getQuizScoreBadge(q) {
 .meta-type {
   padding: 4px 12px;
   background: rgba(59, 130, 246, 0.1);
-  color: var(--color-primary, #3b82f6);
+  color: var(--color-primary, var(--blue-500));
   font-size: 0.75rem;
   font-weight: 500;
   border-radius: 12px;
@@ -172,7 +172,7 @@ function getQuizScoreBadge(q) {
 
 .quiz-view-info .quiz-icon {
   font-size: 2rem;
-  color: #6366f1;
+  color: var(--indigo-500);
 }
 
 .quiz-view-details {
@@ -216,7 +216,7 @@ function getQuizScoreBadge(q) {
   align-items: center;
   gap: 8px;
   padding: 12px 28px;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, var(--emerald-500) 0%, var(--emerald-600) 100%);
   color: white;
   border: none;
   border-radius: 10px;
@@ -262,7 +262,7 @@ function getQuizScoreBadge(q) {
   align-items: center;
   gap: 8px;
   padding: 12px 24px;
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  background: linear-gradient(135deg, var(--indigo-500) 0%, var(--indigo-600) 100%);
   color: white;
   border: none;
   border-radius: 10px;

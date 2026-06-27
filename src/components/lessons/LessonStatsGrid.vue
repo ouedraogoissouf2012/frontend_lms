@@ -43,7 +43,7 @@ defineProps({
 }
 
 .stat-completed {
-  background: #d1fae5;
+  background: var(--emerald-100);
 }
 
 .stat-average {
@@ -60,11 +60,11 @@ defineProps({
 }
 
 .stat-completed .stat-value {
-  color: #065f46;
+  color: var(--emerald-800);
 }
 
 .stat-average .stat-value {
-  color: #7c3aed;
+  color: var(--violet-600);
 }
 
 .stat-label {

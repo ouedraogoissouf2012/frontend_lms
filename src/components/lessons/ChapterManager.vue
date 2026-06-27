@@ -132,7 +132,7 @@ const {
   width: 40px;
   height: 40px;
   border: 3px solid var(--border-color);
-  border-top-color: var(--color-primary, #10b981);
+  border-top-color: var(--color-primary, var(--emerald-500));
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 16px;
@@ -184,7 +184,7 @@ const {
 
 .progress-bar-fill {
   height: 100%;
-  background: var(--color-primary, #10b981);
+  background: var(--color-primary, var(--emerald-500));
   transition: width 0.3s;
 }
 

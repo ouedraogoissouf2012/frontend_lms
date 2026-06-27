@@ -100,23 +100,23 @@ defineEmits(['prev', 'next', 'goto', 'submit'])
 }
 
 .next-btn {
-  background: #6366f1;
+  background: var(--indigo-500);
   border: none;
   color: white;
 }
 
 .next-btn:hover {
-  background: #4f46e5;
+  background: var(--indigo-600);
 }
 
 .submit-btn {
-  background: #10b981;
+  background: var(--emerald-500);
   border: none;
   color: white;
 }
 
 .submit-btn:hover:not(:disabled) {
-  background: #059669;
+  background: var(--emerald-600);
 }
 
 .submit-btn:disabled {
@@ -144,15 +144,15 @@ defineEmits(['prev', 'next', 'goto', 'submit'])
 }
 
 .dot.active {
-  border-color: #6366f1;
-  background: #6366f1;
+  border-color: var(--indigo-500);
+  background: var(--indigo-500);
   color: white;
 }
 
 .dot.answered:not(.active) {
-  border-color: #10b981;
+  border-color: var(--emerald-500);
   background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
+  color: var(--emerald-500);
 }
 
 @media (max-width: 640px) {

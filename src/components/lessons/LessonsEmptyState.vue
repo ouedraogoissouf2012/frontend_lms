@@ -65,7 +65,7 @@ defineProps({
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, var(--blue-500) 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--blue-500) 0%, var(--color-info-strong) 100%);
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -75,7 +75,7 @@ defineProps({
 }
 
 .btn-create-empty:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, var(--color-info-strong) 0%, #1d4ed8 100%);
   transform: translateY(-2px);
 }
 </style>
