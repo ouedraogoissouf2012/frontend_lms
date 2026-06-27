@@ -46,8 +46,8 @@ const statusBadge = computed(() => getStatusBadge(props.lesson.status))
 
 /* Badges par type */
 .badge-cours {
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--info-bg);
+  color: var(--info-text);
 }
 
 .badge-tp {
@@ -72,7 +72,7 @@ const statusBadge = computed(() => getStatusBadge(props.lesson.status))
 
 /* Badges par status */
 .badge-status-draft {
-  background: #fef3c7;
+  background: var(--warning-bg);
   color: #92400e;
 }
 
@@ -82,7 +82,7 @@ const statusBadge = computed(() => getStatusBadge(props.lesson.status))
 }
 
 .badge-status-archived {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--error-bg);
+  color: var(--error-text);
 }
 </style>

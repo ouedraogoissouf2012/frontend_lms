@@ -144,7 +144,7 @@ function handleFileSelect(event) {
 .file-upload-label {
   display: inline-block;
   padding: 10px 20px;
-  background: #3b82f6;
+  background: var(--blue-500);
   color: white;
   border-radius: 4px;
   cursor: pointer;

@@ -79,7 +79,7 @@ function getNiveauLabel(niveau) {
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 24px;
-  box-shadow: var(--card-shadow, 0 1px 3px rgba(0, 0, 0, 0.1));
+  box-shadow: var(--card-shadow);
   margin-bottom: 24px;
 }
 
@@ -122,7 +122,7 @@ function getNiveauLabel(niveau) {
 
 .badge-debutant {
   background-color: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
+  color: var(--blue-500);
   border: 1px solid rgba(59, 130, 246, 0.3);
 }
 

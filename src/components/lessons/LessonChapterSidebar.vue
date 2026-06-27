@@ -75,8 +75,8 @@ function isChapterCompleted(chapterId) {
 <style scoped>
 .chapter-sidebar {
   width: 300px;
-  background: var(--card-bg, #1e293b);
-  border-right: 1px solid var(--border-primary, #334155);
+  background: var(--card-bg);
+  border-right: 1px solid var(--border-primary);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -95,20 +95,20 @@ function isChapterCompleted(chapterId) {
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--border-primary, #334155);
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .sidebar-title {
   font-size: 1rem;
   font-weight: 700;
   margin: 0;
-  color: var(--text-primary, #e2e8f0);
+  color: var(--text-primary);
 }
 
 .btn-toggle-sidebar {
   background: transparent;
   border: none;
-  color: var(--text-secondary, #94a3b8);
+  color: var(--text-secondary);
   cursor: pointer;
   padding: 0.25rem;
   font-size: 1rem;
@@ -116,7 +116,7 @@ function isChapterCompleted(chapterId) {
 
 .sidebar-meta {
   padding: 0.75rem 1.25rem;
-  border-bottom: 1px solid var(--border-primary, #334155);
+  border-bottom: 1px solid var(--border-primary);
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
@@ -127,13 +127,13 @@ function isChapterCompleted(chapterId) {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.8rem;
-  color: var(--text-secondary, #94a3b8);
+  color: var(--text-secondary);
 }
 
 .meta-row i {
   width: 1rem;
   text-align: center;
-  color: #3b82f6;
+  color: var(--blue-500);
 }
 
 /* Chapter navigation items */
@@ -152,7 +152,7 @@ function isChapterCompleted(chapterId) {
   background: transparent;
   border: none;
   border-left: 3px solid transparent;
-  color: var(--text-secondary, #94a3b8);
+  color: var(--text-secondary);
   cursor: pointer;
   text-align: left;
   transition: all 0.2s;
@@ -160,13 +160,13 @@ function isChapterCompleted(chapterId) {
 
 .chapter-nav-item:hover {
   background: rgba(59, 130, 246, 0.05);
-  color: var(--text-primary, #e2e8f0);
+  color: var(--text-primary);
 }
 
 .chapter-nav-item.active {
   background: rgba(59, 130, 246, 0.1);
-  border-left-color: #3b82f6;
-  color: var(--text-primary, #e2e8f0);
+  border-left-color: var(--blue-500);
+  color: var(--text-primary);
 }
 
 .chapter-nav-item.completed .chapter-status-icon {
@@ -180,14 +180,14 @@ function isChapterCompleted(chapterId) {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: var(--bg-secondary, #334155);
+  background: var(--bg-secondary);
   flex-shrink: 0;
   font-size: 0.75rem;
   font-weight: 700;
 }
 
 .chapter-nav-item.active .chapter-status-icon {
-  background: #3b82f6;
+  background: var(--blue-500);
   color: white;
 }
 

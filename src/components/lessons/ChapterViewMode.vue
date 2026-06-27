@@ -130,7 +130,7 @@ function getQuizScoreBadge(q) {
   line-height: 1.6;
   margin: 12px 0;
   padding: 16px;
-  background: var(--bg-secondary, #f9fafb);
+  background: var(--bg-secondary);
   border-radius: 8px;
   border: 1px solid var(--border-color, #e5e7eb);
   max-height: 400px;

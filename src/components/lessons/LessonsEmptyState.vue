@@ -65,7 +65,7 @@ defineProps({
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--blue-500) 0%, #2563eb 100%);
   color: white;
   border: none;
   border-radius: 0.5rem;

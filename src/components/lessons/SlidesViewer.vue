@@ -104,9 +104,9 @@ function nextSlide() {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 50%;
-  background: var(--card-bg, #1e293b);
-  border: 1px solid var(--border-primary, #334155);
-  color: var(--text-primary, #e2e8f0);
+  background: var(--card-bg);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -115,8 +115,8 @@ function nextSlide() {
 }
 
 .btn-slide:hover:not(:disabled) {
-  background: #3b82f6;
-  border-color: #3b82f6;
+  background: var(--blue-500);
+  border-color: var(--blue-500);
   color: white;
 }
 
@@ -128,7 +128,7 @@ function nextSlide() {
 .slide-counter {
   font-size: 0.9rem;
   font-weight: 700;
-  color: var(--text-secondary, #94a3b8);
+  color: var(--text-secondary);
 }
 
 .slides-thumbnails {
@@ -147,12 +147,12 @@ function nextSlide() {
   border: 2px solid transparent;
   cursor: pointer;
   position: relative;
-  background: var(--bg-secondary, #334155);
+  background: var(--bg-secondary);
   padding: 0;
 }
 
 .slide-thumb.active {
-  border-color: #3b82f6;
+  border-color: var(--blue-500);
 }
 
 .slide-thumb img {
@@ -174,7 +174,7 @@ function nextSlide() {
 .slides-empty {
   text-align: center;
   padding: 3rem;
-  color: var(--text-secondary, #94a3b8);
+  color: var(--text-secondary);
 }
 
 .slides-empty i {

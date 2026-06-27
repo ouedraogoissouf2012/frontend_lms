@@ -99,16 +99,16 @@ defineEmits(['view', 'edit', 'delete', 'publish', 'unpublish'])
 }
 
 .btn-unpublish:hover {
-  background: #fef3c7;
+  background: var(--warning-bg);
 }
 
 .btn-edit {
-  color: #3b82f6;
-  border-color: #3b82f6;
+  color: var(--blue-500);
+  border-color: var(--blue-500);
 }
 
 .btn-edit:hover {
-  background: #dbeafe;
+  background: var(--blue-100);
 }
 
 .btn-delete {
@@ -117,11 +117,11 @@ defineEmits(['view', 'edit', 'delete', 'publish', 'unpublish'])
 }
 
 .btn-delete:hover {
-  background: #fee2e2;
+  background: var(--error-bg);
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  background: linear-gradient(135deg, var(--blue-500), #8b5cf6);
   color: white;
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }

@@ -191,7 +191,7 @@ defineEmits(['close', 'save'])
 .form-select:focus,
 .form-textarea:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--blue-500);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
@@ -224,7 +224,7 @@ defineEmits(['close', 'save'])
 }
 
 .btn-save {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--blue-500) 0%, #2563eb 100%);
   color: white;
 }
 

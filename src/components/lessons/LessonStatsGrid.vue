@@ -39,7 +39,7 @@ defineProps({
 }
 
 .stat-started {
-  background: #dbeafe;
+  background: var(--info-bg);
 }
 
 .stat-completed {
@@ -56,7 +56,7 @@ defineProps({
 }
 
 .stat-started .stat-value {
-  color: #1e40af;
+  color: var(--info-text);
 }
 
 .stat-completed .stat-value {

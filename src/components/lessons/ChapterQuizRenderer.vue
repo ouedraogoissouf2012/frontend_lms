@@ -39,8 +39,8 @@ defineEmits(['completed', 'close'])
 .quiz-card {
   text-align: center;
   padding: 3rem 2rem;
-  background: var(--card-bg, #1e293b);
-  border: 1px solid var(--border-primary, #334155);
+  background: var(--card-bg);
+  border: 1px solid var(--border-primary);
   border-radius: 0.75rem;
 }
 
@@ -56,7 +56,7 @@ defineEmits(['completed', 'close'])
 }
 
 .quiz-meta {
-  color: var(--text-secondary, #94a3b8);
+  color: var(--text-secondary);
   margin-bottom: 1.5rem;
 }
 
@@ -113,7 +113,7 @@ defineEmits(['completed', 'close'])
 .quiz-empty {
   text-align: center;
   padding: 3rem;
-  color: var(--text-secondary, #94a3b8);
+  color: var(--text-secondary);
 }
 
 .quiz-empty i {

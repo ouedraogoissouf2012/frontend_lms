@@ -172,7 +172,7 @@ defineEmits(['add', 'remove'])
 .form-select:focus,
 .form-textarea:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--blue-500);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
@@ -214,9 +214,9 @@ defineEmits(['add', 'remove'])
 
 .btn-remove {
   padding: 0.5rem 1rem;
-  background: #fee2e2;
+  background: var(--error-bg);
   color: #dc2626;
-  border: 1px solid #fca5a5;
+  border: 1px solid var(--error-border);
   border-radius: 0.375rem;
   font-size: 0.813rem;
   font-weight: 600;
@@ -244,9 +244,9 @@ defineEmits(['add', 'remove'])
 
 .btn-add {
   padding: 0.75rem 1.5rem;
-  background: #dbeafe;
+  background: var(--blue-100);
   color: #1d4ed8;
-  border: 1px solid #93c5fd;
+  border: 1px solid var(--blue-300);
   border-radius: 0.5rem;
   font-weight: 600;
   cursor: pointer;
@@ -254,7 +254,7 @@ defineEmits(['add', 'remove'])
 }
 
 .btn-add:hover {
-  background: #bfdbfe;
+  background: var(--blue-200);
 }
 
 /* Responsive */

@@ -66,7 +66,7 @@ defineEmits(['cancel', 'delete'])
 }
 
 .btn-save {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--blue-500) 0%, #2563eb 100%);
   color: white;
 }
 
@@ -81,9 +81,9 @@ defineEmits(['cancel', 'delete'])
 }
 
 .btn-delete {
-  background: #fee2e2;
+  background: var(--error-bg);
   color: #dc2626;
-  border: 1px solid #fca5a5;
+  border: 1px solid var(--error-border);
 }
 
 .btn-delete:hover:not(:disabled) {

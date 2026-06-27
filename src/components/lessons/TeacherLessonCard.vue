@@ -140,12 +140,12 @@ function formatDate(dateString) {
 }
 
 .status-published {
-  background: #dcfce7;
+  background: var(--success-bg);
   color: #15803d;
 }
 
 .status-draft {
-  background: #fef3c7;
+  background: var(--warning-bg);
   color: #92400e;
 }
 
@@ -210,7 +210,7 @@ function formatDate(dateString) {
   border: none;
 }
 
-.btn-view {  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);  color: white;  border: none;}.btn-view:hover {  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);  transform: translateY(-2px);  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);}
+.btn-view {  background: linear-gradient(135deg, var(--blue-500) 0%, #2563eb 100%);  color: white;  border: none;}.btn-view:hover {  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);  transform: translateY(-2px);  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);}
 
 .btn-edit:hover {
   background: var(--bg-tertiary);

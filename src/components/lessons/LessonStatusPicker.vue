@@ -90,7 +90,7 @@ const status = defineModel({ type: String, default: 'draft' })
 
 .status-card.active {
   background: rgba(59, 130, 246, 0.1);
-  border-color: #3b82f6;
+  border-color: var(--blue-500);
 }
 
 .status-card input[type="radio"] {
