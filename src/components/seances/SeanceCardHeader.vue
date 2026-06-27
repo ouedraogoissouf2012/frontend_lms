@@ -71,7 +71,7 @@ defineProps({
   font-size: 2rem;
   line-height: 1;
   flex-shrink: 0;
-  color: #3b82f6;
+  color: var(--blue-500);
 }
 
 .seance-title {
@@ -104,13 +104,13 @@ defineProps({
 }
 
 .status-scheduled {
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--info-bg);
+  color: var(--info-text);
 }
 
 .status-active {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--success-bg);
+  color: var(--success-text);
 }
 
 .status-finished {

@@ -97,9 +97,9 @@ function formatDuration(minutes) {
 
 /* Modal Info Banner */
 .modal-info-banner {
-  background: #DBEAFE;
-  border: 1px solid #93C5FD;
-  color: #1E40AF;
+  background: var(--info-bg);
+  border: 1px solid var(--info-border);
+  color: var(--info-text);
   padding: 0.875rem 1rem;
   border-radius: 0.5rem;
   margin-bottom: 1.5rem;
@@ -141,7 +141,7 @@ function formatDuration(minutes) {
 }
 
 .modal-table tbody tr:hover {
-  background: var(--bg-hover, rgba(0, 0, 0, 0.02));
+  background: var(--bg-hover);
 }
 
 .modal-table td {
@@ -196,14 +196,14 @@ function formatDuration(minutes) {
 
 /* Absent - Rouge foncé (<20%) */
 .status-badge.status-absent {
-  background: #FEE2E2;
-  color: #991B1B;
+  background: var(--error-bg);
+  color: var(--error-text);
 }
 
 /* En cours - Bleu (séance non terminée) */
 .status-badge.status-ongoing {
-  background: #DBEAFE;
-  color: #1E40AF;
+  background: var(--info-bg);
+  color: var(--info-text);
 }
 
 /* Modal Stats */

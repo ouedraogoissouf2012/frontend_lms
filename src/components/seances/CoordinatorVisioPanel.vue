@@ -155,7 +155,7 @@ defineEmits(['show-participants', 'join'])
 
 .participants-btn {
   padding: 0.75rem 1.25rem;
-  background: #3b82f6;
+  background: var(--blue-500);
   border: none;
   border-radius: 0.5rem;
   color: white;
@@ -197,7 +197,7 @@ defineEmits(['show-participants', 'join'])
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.25rem;
-  background: #fef3c7;
+  background: var(--warning-bg);
   border-radius: 0.5rem;
   border: 1px solid #fcd34d;
 }

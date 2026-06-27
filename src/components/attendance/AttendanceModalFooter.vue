@@ -62,7 +62,7 @@ defineEmits(['export-pdf', 'export-excel', 'close'])
 }
 
 .btn-export-pdf:hover:not(:disabled) {
-  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+  background: linear-gradient(135deg, #b91c1c 0%, var(--error-text) 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
 }

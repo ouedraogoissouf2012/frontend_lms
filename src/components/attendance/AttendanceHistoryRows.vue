@@ -161,7 +161,7 @@ defineEmits(['view-details'])
 
 .seance-id {
   font-weight: 500;
-  color: #3b82f6;
+  color: var(--blue-500);
 }
 
 .seance-date {
@@ -194,8 +194,8 @@ defineEmits(['view-details'])
 }
 
 .status-disconnected {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--error-bg);
+  color: var(--error-text);
 }
 
 .duration-text {

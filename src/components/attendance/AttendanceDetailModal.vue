@@ -117,7 +117,7 @@ defineEmits(['close', 'export-pdf', 'export-excel', 'retry'])
   width: 3rem;
   height: 3rem;
   border: 3px solid var(--bg-secondary);
-  border-top-color: #3b82f6;
+  border-top-color: var(--blue-500);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }

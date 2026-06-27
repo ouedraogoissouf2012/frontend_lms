@@ -177,13 +177,13 @@ defineEmits(['start', 'end', 'activate'])
 }
 
 .badge-active {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--success-bg);
+  color: var(--success-text);
 }
 
 .badge-scheduled {
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--info-bg);
+  color: var(--info-text);
 }
 
 .pulse-dot {
@@ -256,7 +256,7 @@ defineEmits(['start', 'end', 'activate'])
 }
 
 .btn-start {
-  background: #3b82f6;
+  background: var(--blue-500);
   color: white;
 }
 
