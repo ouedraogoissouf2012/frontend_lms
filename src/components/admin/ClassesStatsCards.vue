@@ -71,19 +71,19 @@ defineProps({
 }
 
 .border-l-blue {
-  border-left-color: #3b82f6;
+  border-left-color: var(--blue-500);
 }
 
 .border-l-green {
-  border-left-color: #10b981;
+  border-left-color: var(--emerald-500);
 }
 
 .border-l-purple {
-  border-left-color: #8b5cf6;
+  border-left-color: var(--violet-500);
 }
 
 .border-l-orange {
-  border-left-color: #f59e0b;
+  border-left-color: var(--amber-500);
 }
 
 .stat-header {

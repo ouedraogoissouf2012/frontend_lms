@@ -200,13 +200,13 @@ defineEmits(['view'])
 }
 
 .tag-classe {
-  background: #f0fdf4;
-  color: #15803d;
+  background: var(--emerald-50);
+  color: var(--emerald-700);
 }
 
 :global(.dark) .tag-classe {
   background: rgba(34, 197, 94, 0.2);
-  color: #86efac;
+  color: var(--success-border);
 }
 
 /* View Details Button */
@@ -226,7 +226,7 @@ defineEmits(['view'])
 }
 
 .view-details-btn:hover {
-  background: #3b82f6;
+  background: var(--blue-500);
   color: white;
   transform: translateY(-2px);
 }

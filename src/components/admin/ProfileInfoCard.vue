@@ -94,7 +94,7 @@ defineProps({
 .header-icon {
   width: 1.5rem;
   height: 1.5rem;
-  color: #8b5cf6;
+  color: var(--violet-500);
 }
 
 .card-title {
@@ -122,7 +122,7 @@ defineProps({
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, var(--violet-500) 0%, var(--violet-600) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -177,7 +177,7 @@ defineProps({
 .info-icon {
   width: 1.5rem;
   height: 1.5rem;
-  color: #8b5cf6;
+  color: var(--violet-500);
   flex-shrink: 0;
   margin-top: 0.25rem;
 }

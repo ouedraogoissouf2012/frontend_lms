@@ -112,20 +112,20 @@ defineEmits(['view'])
   font-weight: 600;
 }
 .badge-filiere {
-  background: #e0e7ff;
-  color: #5b21b6;
+  background: var(--indigo-100);
+  color: var(--violet-800);
 }
 .badge-niveau {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--warning-bg);
+  color: var(--amber-800);
 }
 .active-badge {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.375rem 0.75rem;
-  background: #dcfce7;
-  color: #15803d;
+  background: var(--success-bg);
+  color: var(--emerald-700);
   border-radius: 0.5rem;
   font-size: 0.75rem;
   font-weight: 600;
@@ -134,7 +134,7 @@ defineEmits(['view'])
 .pulse-dot {
   width: 0.5rem;
   height: 0.5rem;
-  background: #22c55e;
+  background: var(--emerald-500);
   border-radius: 50%;
   animation: pulse 2s infinite;
 }
@@ -211,12 +211,12 @@ defineEmits(['view'])
   transition: all 0.2s;
 }
 .btn-primary {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--blue-500) 0%, var(--color-info-strong) 100%);
   color: white;
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 .btn-primary:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, var(--color-info-strong) 0%, #1d4ed8 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }

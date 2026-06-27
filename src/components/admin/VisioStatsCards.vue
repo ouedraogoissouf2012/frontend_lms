@@ -88,11 +88,11 @@ defineProps({
 }
 
 .stat-icon-wrapper.active {
-  background: #dcfce7;
+  background: var(--success-bg);
 }
 
 .stat-icon-wrapper.scheduled {
-  background: #dbeafe;
+  background: var(--info-bg);
 }
 
 .stat-icon-wrapper.completed {
@@ -100,7 +100,7 @@ defineProps({
 }
 
 .stat-icon-wrapper.total {
-  background: #fef3c7;
+  background: var(--warning-bg);
 }
 
 .stat-icon {
@@ -109,11 +109,11 @@ defineProps({
 }
 
 .stat-icon-wrapper.active .stat-icon {
-  color: #166534;
+  color: var(--success-text);
 }
 
 .stat-icon-wrapper.scheduled .stat-icon {
-  color: #1e40af;
+  color: var(--info-text);
 }
 
 .stat-icon-wrapper.completed .stat-icon {
@@ -121,7 +121,7 @@ defineProps({
 }
 
 .stat-icon-wrapper.total .stat-icon {
-  color: #b45309;
+  color: var(--amber-700);
 }
 
 .stat-content {

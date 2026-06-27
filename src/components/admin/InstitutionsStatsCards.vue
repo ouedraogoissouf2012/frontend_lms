@@ -59,21 +59,21 @@ defineProps({
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  background: linear-gradient(135deg, var(--indigo-500), var(--indigo-600));
   color: white;
   border-radius: var(--radius-lg);
 }
 
 .stat-icon-green {
-  background: linear-gradient(135deg, #22c55e, #16a34a);
+  background: linear-gradient(135deg, var(--emerald-500), var(--emerald-600));
 }
 
 .stat-icon-blue {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, var(--blue-500), var(--color-info-strong));
 }
 
 .stat-icon-purple {
-  background: linear-gradient(135deg, #a855f7, #9333ea);
+  background: linear-gradient(135deg, var(--violet-500), var(--violet-600));
 }
 
 .stat-value {

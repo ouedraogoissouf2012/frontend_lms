@@ -76,7 +76,7 @@ import {
 .header-icon {
   width: 1.5rem;
   height: 1.5rem;
-  color: #8b5cf6;
+  color: var(--violet-500);
 }
 
 .card-title {
@@ -111,7 +111,7 @@ import {
 
 .action-button:hover {
   background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(124, 58, 237, 0.05) 100%);
-  border-color: #8b5cf6;
+  border-color: var(--violet-500);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
 }
@@ -119,7 +119,7 @@ import {
 .action-icon {
   width: 2rem;
   height: 2rem;
-  color: #8b5cf6;
+  color: var(--violet-500);
   flex-shrink: 0;
 }
 

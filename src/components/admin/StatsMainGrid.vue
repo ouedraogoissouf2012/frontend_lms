@@ -129,19 +129,19 @@ defineProps({
 }
 
 .stat-card-large.blue {
-  border-left-color: #3b82f6;
+  border-left-color: var(--blue-500);
 }
 
 .stat-card-large.purple {
-  border-left-color: #8b5cf6;
+  border-left-color: var(--violet-500);
 }
 
 .stat-card-large.green {
-  border-left-color: #10b981;
+  border-left-color: var(--emerald-500);
 }
 
 .stat-card-large.orange {
-  border-left-color: #f59e0b;
+  border-left-color: var(--amber-500);
 }
 
 .stat-header {
