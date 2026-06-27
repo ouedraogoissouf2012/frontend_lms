@@ -32,7 +32,7 @@ defineProps({
 .rendered-html {
   line-height: 1.8;
   font-size: 1.05rem;
-  color: var(--text-primary, #e2e8f0);
+  color: var(--text-primary);
 }
 
 .rendered-html :deep(h1),
@@ -40,7 +40,7 @@ defineProps({
 .rendered-html :deep(h3) {
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
-  color: var(--text-primary, #e2e8f0);
+  color: var(--text-primary);
 }
 
 .rendered-html :deep(p) {
@@ -58,7 +58,7 @@ defineProps({
 }
 
 .rendered-html :deep(blockquote) {
-  border-left: 4px solid #3b82f6;
+  border-left: 4px solid var(--blue-500);
   padding: 1rem 1.25rem;
   margin: 1.5rem 0;
   background: rgba(59, 130, 246, 0.05);
@@ -66,14 +66,14 @@ defineProps({
 }
 
 .rendered-html :deep(code) {
-  background: var(--bg-secondary, #334155);
+  background: var(--bg-secondary);
   padding: 0.15rem 0.4rem;
   border-radius: 0.25rem;
   font-size: 0.9em;
 }
 
 .rendered-html :deep(pre) {
-  background: var(--bg-secondary, #334155);
+  background: var(--bg-secondary);
   padding: 1rem;
   border-radius: 0.5rem;
   overflow-x: auto;
@@ -95,20 +95,20 @@ defineProps({
 .rendered-html :deep(th),
 .rendered-html :deep(td) {
   padding: 0.75rem;
-  border: 1px solid var(--border-primary, #334155);
+  border: 1px solid var(--border-primary);
   text-align: left;
 }
 
 .rendered-html :deep(th) {
-  background: var(--bg-secondary, #334155);
+  background: var(--bg-secondary);
   font-weight: 700;
 }
 
 /* Word documents specific */
 .word-document {
-  background: var(--card-bg, #1e293b);
+  background: var(--card-bg);
   padding: 2rem;
   border-radius: 0.75rem;
-  border: 1px solid var(--border-primary, #334155);
+  border: 1px solid var(--border-primary);
 }
 </style>

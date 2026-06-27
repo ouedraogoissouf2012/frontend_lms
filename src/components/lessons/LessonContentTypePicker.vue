@@ -77,7 +77,7 @@ defineProps({
 
 .content-type-card.active {
   background: rgba(59, 130, 246, 0.1);
-  border-color: #3b82f6;
+  border-color: var(--blue-500);
 }
 
 .content-type-radio {

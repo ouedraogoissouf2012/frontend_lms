@@ -133,7 +133,7 @@ defineEmits(['start'])
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.25rem;
-  background: #fef3c7;
+  background: var(--warning-bg);
   color: #b45309;
   border-radius: 8px;
   font-weight: 500;
@@ -179,7 +179,7 @@ defineEmits(['start'])
   justify-content: center;
   gap: 0.5rem;
   padding: 1rem;
-  background: #fee2e2;
+  background: var(--error-bg);
   color: #b91c1c;
   border-radius: 8px;
   font-weight: 500;

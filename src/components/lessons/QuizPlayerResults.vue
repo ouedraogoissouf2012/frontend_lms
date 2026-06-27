@@ -72,7 +72,7 @@ defineEmits(['retry', 'close'])
   text-align: center;
   padding: 2rem;
   margin: -2rem -2rem 2rem;
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  background: linear-gradient(135deg, var(--warning-bg) 0%, #fde68a 100%);
 }
 
 .results-header.passed {

@@ -102,7 +102,7 @@ const getPdfUrl = (chapter) => pdfUrl(chapter)
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  color: #94a3b8;
+  color: var(--text-disabled);
 }
 
 .video-fallback i {
@@ -112,7 +112,7 @@ const getPdfUrl = (chapter) => pdfUrl(chapter)
 
 .btn-external-video {
   padding: 0.75rem 1.5rem;
-  background: #3b82f6;
+  background: var(--blue-500);
   color: white;
   text-decoration: none;
   border-radius: 0.5rem;
@@ -130,13 +130,13 @@ const getPdfUrl = (chapter) => pdfUrl(chapter)
   width: 100%;
   height: 75vh;
   border-radius: 0.75rem;
-  border: 1px solid var(--border-primary, #334155);
+  border: 1px solid var(--border-primary);
 }
 
 .btn-open-pdf {
   align-self: flex-end;
   padding: 0.5rem 1rem;
-  color: #60a5fa;
+  color: var(--blue-400);
   text-decoration: none;
   font-size: 0.85rem;
 }
@@ -148,7 +148,7 @@ const getPdfUrl = (chapter) => pdfUrl(chapter)
 .pdf-empty {
   text-align: center;
   padding: 3rem;
-  color: var(--text-secondary, #94a3b8);
+  color: var(--text-secondary);
 }
 
 .pdf-empty i {
@@ -162,8 +162,8 @@ const getPdfUrl = (chapter) => pdfUrl(chapter)
   align-items: center;
   gap: 1.25rem;
   padding: 1.5rem;
-  background: var(--card-bg, #1e293b);
-  border: 1px solid var(--border-primary, #334155);
+  background: var(--card-bg);
+  border: 1px solid var(--border-primary);
   border-radius: 0.75rem;
 }
 
@@ -184,7 +184,7 @@ const getPdfUrl = (chapter) => pdfUrl(chapter)
 
 .link-url {
   font-size: 0.85rem;
-  color: var(--text-secondary, #94a3b8);
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

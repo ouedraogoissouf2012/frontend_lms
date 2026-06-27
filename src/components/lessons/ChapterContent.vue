@@ -119,7 +119,7 @@ const isContentEmpty = (chapter) => isChapterContentEmpty(chapter, !!props.quiz)
 
 .chapter-breadcrumb {
   font-size: 0.8rem;
-  color: var(--text-secondary, #94a3b8);
+  color: var(--text-secondary);
   margin-bottom: 0.5rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -141,12 +141,12 @@ const isContentEmpty = (chapter) => isChapterContentEmpty(chapter, !!props.quiz)
   font-size: 0.75rem;
   font-weight: 600;
   background: rgba(59, 130, 246, 0.1);
-  color: #60a5fa;
+  color: var(--blue-400);
 }
 
 .chapter-type-badge.video { background: rgba(239, 68, 68, 0.1); color: #f87171; }
 .chapter-type-badge.powerpoint { background: rgba(249, 115, 22, 0.1); color: #fb923c; }
-.chapter-type-badge.word { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
+.chapter-type-badge.word { background: rgba(59, 130, 246, 0.1); color: var(--blue-400); }
 .chapter-type-badge.pdf { background: rgba(220, 38, 38, 0.1); color: #f87171; }
 .chapter-type-badge.link { background: rgba(139, 92, 246, 0.1); color: #a78bfa; }
 .chapter-type-badge.quiz { background: rgba(16, 185, 129, 0.1); color: #34d399; }
@@ -160,7 +160,7 @@ const isContentEmpty = (chapter) => isChapterContentEmpty(chapter, !!props.quiz)
 .content-empty-chapter {
   text-align: center;
   padding: 3rem;
-  color: var(--text-secondary, #94a3b8);
+  color: var(--text-secondary);
 }
 
 .content-empty-chapter i {
@@ -175,7 +175,7 @@ const isContentEmpty = (chapter) => isChapterContentEmpty(chapter, !!props.quiz)
   align-items: center;
   justify-content: space-between;
   padding: 1.5rem 0;
-  border-top: 1px solid var(--border-primary, #334155);
+  border-top: 1px solid var(--border-primary);
   margin-top: 2rem;
   gap: 1rem;
   flex-wrap: wrap;
@@ -223,9 +223,9 @@ const isContentEmpty = (chapter) => isChapterContentEmpty(chapter, !!props.quiz)
 
 .btn-nav {
   padding: 0.625rem 1.25rem;
-  background: var(--card-bg, #1e293b);
-  border: 1px solid var(--border-primary, #334155);
-  color: var(--text-primary, #e2e8f0);
+  background: var(--card-bg);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
   border-radius: 0.5rem;
   cursor: pointer;
   font-weight: 600;
@@ -236,8 +236,8 @@ const isContentEmpty = (chapter) => isChapterContentEmpty(chapter, !!props.quiz)
 }
 
 .btn-nav:hover:not(:disabled) {
-  background: #3b82f6;
-  border-color: #3b82f6;
+  background: var(--blue-500);
+  border-color: var(--blue-500);
   color: white;
 }
 
@@ -247,8 +247,8 @@ const isContentEmpty = (chapter) => isChapterContentEmpty(chapter, !!props.quiz)
 }
 
 .btn-nav.next {
-  background: #3b82f6;
-  border-color: #3b82f6;
+  background: var(--blue-500);
+  border-color: var(--blue-500);
   color: white;
 }
 

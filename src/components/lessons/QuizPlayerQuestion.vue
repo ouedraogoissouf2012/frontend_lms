@@ -153,7 +153,7 @@ function isOptionSelected(index) {
 }
 
 .quiz-timer.warning {
-  background: #fee2e2;
+  background: var(--error-bg);
   color: #b91c1c;
   animation: pulse 1s infinite;
 }

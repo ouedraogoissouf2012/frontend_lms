@@ -70,7 +70,7 @@ const showPreview = ref(false)
 
 .form-textarea:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--blue-500);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
@@ -114,8 +114,8 @@ const showPreview = ref(false)
 }
 
 .tab-btn.active {
-  color: #3b82f6;
-  border-bottom-color: #3b82f6;
+  color: var(--blue-500);
+  border-bottom-color: var(--blue-500);
 }
 
 /* Preview Panel */

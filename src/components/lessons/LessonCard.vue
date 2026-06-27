@@ -101,7 +101,7 @@ const { getContentTypeIcon, getContentTypeLabel, formatDuration, formatDate } = 
 .lesson-card:hover {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
-  border-color: #3b82f6;
+  border-color: var(--blue-500);
 }
 
 /* Header */
