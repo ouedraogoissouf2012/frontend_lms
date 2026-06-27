@@ -124,15 +124,15 @@ defineProps({
 }
 
 .classes-icon {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--blue-500) 0%, var(--color-info-strong) 100%);
 }
 
 .matieres-icon {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  background: linear-gradient(135deg, var(--amber-500) 0%, var(--amber-600) 100%);
 }
 
 .lecons-icon {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, var(--emerald-500) 0%, var(--emerald-600) 100%);
 }
 
 .card-content {

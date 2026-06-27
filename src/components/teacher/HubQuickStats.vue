@@ -100,14 +100,14 @@ defineProps({
 
 /* Text color utilities */
 .text-blue-500 {
-  color: #3b82f6;
+  color: var(--blue-500);
 }
 
 .text-orange-500 {
-  color: #f59e0b;
+  color: var(--amber-500);
 }
 
 .text-green-500 {
-  color: #10b981;
+  color: var(--emerald-500);
 }
 </style>

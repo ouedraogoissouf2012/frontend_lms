@@ -112,9 +112,9 @@ defineEmits(['apply', 'reset'])
 }
 
 .reset-filters-btn:hover {
-  background: #fee2e2;
-  color: #dc2626;
-  border-color: #dc2626;
+  background: var(--error-bg);
+  color: var(--red-600);
+  border-color: var(--red-600);
 }
 
 @media (max-width: 768px) {

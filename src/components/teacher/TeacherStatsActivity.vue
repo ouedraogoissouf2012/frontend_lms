@@ -113,11 +113,11 @@ defineProps({
 }
 
 .bg-blue-100 {
-  background: #dbeafe;
+  background: var(--info-bg);
 }
 
 .bg-green-100 {
-  background: #dcfce7;
+  background: var(--success-bg);
 }
 
 .bg-orange-100 {

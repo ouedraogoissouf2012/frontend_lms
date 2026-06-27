@@ -72,7 +72,7 @@ defineProps({
 }
 
 .action-card.highlighted {
-  border: 2px solid #f59e0b;
+  border: 2px solid var(--amber-500);
 }
 
 .action-icon {
