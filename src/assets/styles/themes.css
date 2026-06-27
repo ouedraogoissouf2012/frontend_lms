@@ -125,6 +125,37 @@
   --violet-800: #5b21b6;
   --violet-900: #4c1d95;
 
+  /* Sky — cyan/info-adjacent accent (#0ea5e9 &c.); recurring sky tones
+     (badges « visio/permissions », dégradés d'en-tête) sans équivalent
+     dans le --blue-* de marque (azure). */
+  --sky-50: #f0f9ff;
+  --sky-100: #e0f2fe;
+  --sky-200: #bae6fd;
+  --sky-300: #7dd3fc;
+  --sky-400: #38bdf8;
+  --sky-500: #0ea5e9;
+  --sky-600: #0284c7;
+  --sky-700: #0369a1;
+  --sky-800: #075985;
+  --sky-900: #0c4a6e;
+
+  /* Neutral gray (Tailwind « gray ») — tons gris one-off (fonds de badges
+     d'état « completed », textes secondaires, séparateurs) dont la valeur
+     exacte diffère de l'échelle slate des tokens --text-, --bg-, --border-.
+     Theme-invariant : migration à pixel identique sans toucher au gris
+     adaptatif du thème (une éventuelle bascule vers les tokens sémantiques
+     adaptatifs reste un choix de design ultérieur, pas une simple tokenisation). */
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+
   /* ========================================
      SEMANTIC COLOR NAMESPACE (--color-*)
      Intention-revealing aliases. Solid accents point at the raw scale
@@ -157,6 +188,7 @@
   /* Info — solid tracks the per-theme brand blue (#3b82f6 light / #60a5fa dark) */
   --color-info: var(--blue-500);
   --color-info-strong: #2563eb;
+  --color-info-stronger: #1d4ed8;
   --color-info-bg: var(--info-bg);
   --color-info-border: var(--info-border);
   --color-info-text: var(--info-text);

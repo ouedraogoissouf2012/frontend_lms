@@ -114,7 +114,7 @@ const emit = defineEmits(['submit'])
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, var(--color-info-strong) 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, var(--color-info-strong) 0%, var(--color-info-stronger) 100%);
   transform: scale(1.02);
 }
 

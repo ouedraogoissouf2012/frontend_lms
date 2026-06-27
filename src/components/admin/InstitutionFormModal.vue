@@ -219,7 +219,7 @@ defineEmits(['close', 'save'])
 .toggle-switch {
   width: 44px;
   height: 24px;
-  background: #d1d5db;
+  background: var(--gray-300);
   border-radius: 12px;
   position: relative;
   transition: background var(--transition-fast);

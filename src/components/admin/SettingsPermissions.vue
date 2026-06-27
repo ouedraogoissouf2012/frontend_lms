@@ -75,17 +75,17 @@ defineProps({
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-  color: #0369a1;
+  background: linear-gradient(135deg, var(--sky-50) 0%, var(--sky-100) 100%);
+  color: var(--sky-700);
   border-radius: 0.5rem;
   font-size: 0.875rem;
   font-weight: 600;
-  border: 1px solid #bae6fd;
+  border: 1px solid var(--sky-200);
   transition: all 0.2s;
 }
 
 .permission-badge:hover {
-  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+  background: linear-gradient(135deg, var(--sky-100) 0%, var(--sky-200) 100%);
   transform: translateY(-2px);
   box-shadow: 0 4px 6px rgba(3, 105, 161, 0.1);
 }
@@ -95,13 +95,13 @@ defineProps({
 }
 
 :root[data-theme="dark"] .permission-badge {
-  background: linear-gradient(135deg, #0c4a6e 0%, #075985 100%);
-  color: #7dd3fc;
-  border-color: #0c4a6e;
+  background: linear-gradient(135deg, var(--sky-900) 0%, var(--sky-800) 100%);
+  color: var(--sky-300);
+  border-color: var(--sky-900);
 }
 
 :root[data-theme="dark"] .permission-badge:hover {
-  background: linear-gradient(135deg, #075985 0%, #0369a1 100%);
+  background: linear-gradient(135deg, var(--sky-800) 0%, var(--sky-700) 100%);
   box-shadow: 0 4px 6px rgba(125, 211, 252, 0.1);
 }
 </style>
