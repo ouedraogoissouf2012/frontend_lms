@@ -47,8 +47,8 @@ defineProps({
 }
 
 .stat-card-primary {
-  background: #f3e8ff;
-  border-color: #c084fc;
+  background: var(--purple-100);
+  border-color: var(--purple-400);
 }
 
 .stat-label {

@@ -176,8 +176,8 @@ $border-radius-lg: 8px;
   }
 
   .event-evaluation {
-    background: #06b6d4; /* Cyan (évaluations) */;
-    border-color: #06b6d4; /* Cyan */
+    background: var(--sky-500); /* Cyan (évaluations) */;
+    border-color: var(--sky-500); /* Cyan */
   }
 
   .event-urgent {

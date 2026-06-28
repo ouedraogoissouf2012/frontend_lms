@@ -204,8 +204,8 @@ const { getInitials, getRoleLabel, getRoleClass, formatDate } = useDashboardForm
 }
 
 .role-default {
-  background: #e5e7eb;
-  color: #374151;
+  background: var(--gray-200);
+  color: var(--gray-700);
 }
 
 .user-date {

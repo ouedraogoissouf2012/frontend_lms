@@ -194,12 +194,12 @@ const formatDate = (date) => {
 }
 
 .visio-active {
-  background: #f3e8ff;
+  background: var(--purple-100);
   color: var(--violet-600);
 }
 
 .visio-active:hover {
-  background: #e9d5ff;
+  background: var(--purple-200);
 }
 
 .visio-inactive {
@@ -208,7 +208,7 @@ const formatDate = (date) => {
 }
 
 .visio-inactive:hover {
-  background: #e5e7eb;
+  background: var(--gray-200);
   color: var(--text-primary);
 }
 

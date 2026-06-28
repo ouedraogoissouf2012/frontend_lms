@@ -134,7 +134,7 @@ defineEmits(['start', 'end', 'activate'])
 }
 
 .active-card {
-  border-color: #22c55e;
+  border-color: var(--color-success);
   background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, transparent 100%);
 }
 
@@ -189,7 +189,7 @@ defineEmits(['start', 'end', 'activate'])
 .pulse-dot {
   width: 0.5rem;
   height: 0.5rem;
-  background: #22c55e;
+  background: var(--color-success);
   border-radius: 50%;
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
@@ -246,12 +246,12 @@ defineEmits(['start', 'end', 'activate'])
 }
 
 .btn-join {
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-strong) 100%);
   color: white;
 }
 
 .btn-join:hover {
-  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  background: linear-gradient(135deg, var(--color-success-strong) 0%, #15803d 100%);
   transform: scale(1.02);
 }
 

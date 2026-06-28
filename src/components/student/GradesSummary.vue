@@ -258,7 +258,7 @@ defineProps({
 
   .summary-card {
     box-shadow: none;
-    border: 1px solid #ddd;
+    border: 1px solid var(--gray-200);
   }
 }
 </style>

@@ -84,7 +84,7 @@ defineProps({
 }
 
 .stat-icon-active {
-  color: #22c55e;
+  color: var(--color-success);
 }
 
 .stat-icon-scheduled {
@@ -92,7 +92,7 @@ defineProps({
 }
 
 .stat-icon-finished {
-  color: #6b7280;
+  color: var(--gray-500);
 }
 
 .stat-label {

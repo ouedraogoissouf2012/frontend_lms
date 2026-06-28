@@ -156,7 +156,7 @@ const {
 
 .status-active {
   background-color: var(--success-bg);
-  color: #16a34a;
+  color: var(--color-success-strong);
 }
 
 .status-scheduled {
@@ -165,8 +165,8 @@ const {
 }
 
 .status-ended {
-  background-color: #f3f4f6;
-  color: #6b7280;
+  background-color: var(--gray-100);
+  color: var(--gray-500);
 }
 
 .close-btn {

@@ -35,7 +35,7 @@ defineProps({
 
 .info-text {
   font-size: 0.875rem;
-  color: #1e3a8a;
+  color: var(--info-text);
   margin: 0;
 }
 </style>

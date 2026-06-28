@@ -89,11 +89,11 @@ defineProps({
 }
 
 .bg-orange-100 {
-  background: #ffedd5;
+  background: var(--color-warning-bg);
 }
 
 .bg-purple-100 {
-  background: #f3e8ff;
+  background: var(--purple-100);
 }
 
 .stat-icon {

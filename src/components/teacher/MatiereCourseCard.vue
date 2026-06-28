@@ -144,7 +144,7 @@ defineEmits(['navigate'])
   display: inline-block;
   padding: 0.25rem 0.75rem;
   background: rgba(59, 130, 246, 0.1);
-  color: rgb(37, 99, 235);
+  color: var(--color-info-strong);
   font-size: 0.75rem;
   border-radius: 9999px;
   font-weight: 500;
