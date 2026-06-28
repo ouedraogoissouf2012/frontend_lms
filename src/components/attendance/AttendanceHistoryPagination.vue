@@ -63,7 +63,7 @@ defineEmits(['load-page'])
 }
 
 .btn-page:disabled {
-  background: #d1d5db;
+  background: var(--gray-300);
   cursor: not-allowed;
 }
 

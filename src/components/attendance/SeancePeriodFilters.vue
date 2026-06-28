@@ -104,7 +104,7 @@ defineEmits(['select-period', 'apply-custom', 'search', 'clear'])
 .period-tab:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
-  border-color: #e5e7eb;
+  border-color: var(--gray-200);
 }
 
 .period-tab.active {
@@ -176,7 +176,7 @@ defineEmits(['select-period', 'apply-custom', 'search', 'clear'])
 }
 
 .btn-primary-action:hover {
-  background: linear-gradient(135deg, var(--color-info-strong) 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, var(--color-info-strong) 0%, var(--color-info-stronger) 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }

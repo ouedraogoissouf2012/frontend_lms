@@ -122,9 +122,9 @@ function getStatusIcon(status) {
 }
 
 .status-badge-finished {
-  background: #f3f4f6;
-  color: #4b5563;
-  border: 1px solid #e5e7eb;
+  background: var(--gray-100);
+  color: var(--gray-600);
+  border: 1px solid var(--gray-200);
 }
 
 .status-badge-draft {
