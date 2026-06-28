@@ -1,6 +1,12 @@
 /* ========================================
    ACADEMIC BLUE THEME SYSTEM
    Light and Dark Mode Support
+   ----------------------------------------
+   SOURCE DES TOKENS COULEUR. Les couleurs hex en dur vivent ICI, nulle part
+   ailleurs : dans le reste de src/, utilisez var(--token) (fallback toléré :
+   var(--token, #hex)). Une couleur en dur ailleurs est refusée par
+   `npm run lint:css` (Stylelint color-no-hex + CI, #161). Ce fichier est exclu
+   de la règle via ignoreFiles. Convention détaillée : CONTRIBUTING.md §4.
    ======================================== */
 
 /* BASE THEME VARIABLES */
