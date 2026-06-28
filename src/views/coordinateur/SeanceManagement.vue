@@ -165,7 +165,7 @@ const {
 }
 
 .error-retry-btn:hover {
-  background: #4f46e5;
+  background: var(--indigo-600);
 }
 
 /* Séances List */

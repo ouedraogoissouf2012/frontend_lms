@@ -10,9 +10,9 @@
 // =============================================================================
 
 // Couleurs LMS pour le mode sombre
-$lms-blue: #2563eb;
+$lms-blue: var(--color-info-strong);
 $lms-blue-light: #3b82f6;
-$white: #ffffff;
+$white: var(--white);
 
 html[data-theme="dark"] {
   // Calendrier en mode sombre
@@ -129,13 +129,13 @@ html[data-theme="dark"] {
     }
 
     .event-urgent {
-      background: #ef4444 !important;
-      border-color: #ef4444 !important;
+      background: var(--red-500) !important;
+      border-color: var(--red-500) !important;
       color: $white !important;
       animation: pulse-urgent-dark 2s infinite;
 
       &:hover {
-        box-shadow: 0 2px 8px rgba(#ef4444, 0.5);
+        box-shadow: 0 2px 8px rgba(var(--red-500), 0.5);
       }
     }
 

@@ -131,7 +131,7 @@ const {
 }
 
 .error-message {
-  color: #ef4444;
+  color: var(--red-500);
   font-size: 1rem;
   margin-bottom: 1rem;
 }
@@ -149,7 +149,7 @@ const {
 }
 
 .btn-retry:hover {
-  background: #2563eb;
+  background: var(--color-info-strong);
 }
 
 /* Empty State */

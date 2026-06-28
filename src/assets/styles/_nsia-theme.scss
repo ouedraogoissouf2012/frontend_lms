@@ -12,21 +12,21 @@ $nsia-orange: #FFB81C;
 // Couleurs de texte
 $text-primary: #1E293B;
 $text-secondary: #64748B;
-$text-tertiary: #6B7280;
+$text-tertiary: var(--gray-500);
 
 // Couleurs de gris
-$gray-lightest: #F9FAFB;
+$gray-lightest: var(--gray-50);
 $gray-light: #F8FAFC;
 $gray-medium: #E2E8F0;
-$gray-border: #E5E7EB;
-$gray-dark: #374151;
-$gray-darker: #9CA3AF;
+$gray-border: var(--gray-200);
+$gray-dark: var(--gray-700);
+$gray-darker: var(--gray-400);
 
 // Couleurs système
-$white: #FFFFFF;
-$success: #10b981;
-$warning: #f59e0b;
-$error: #ef4444;
+$white: var(--white);
+$success: var(--emerald-500);
+$warning: var(--amber-500);
+$error: var(--red-500);
 
 // Ombres
 $shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);

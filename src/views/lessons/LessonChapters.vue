@@ -86,7 +86,7 @@ const {
   align-items: flex-start;
   gap: 1rem;
   padding: 1rem 1.25rem;
-  background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+  background: linear-gradient(135deg, #dbeafe 0%, var(--indigo-100) 100%);
   border: 2px solid #3b82f6;
   border-radius: 12px;
   margin-bottom: 1.5rem;
@@ -187,7 +187,7 @@ const {
 }
 
 .error-message {
-  color: #dc2626;
+  color: var(--red-600);
   font-weight: 500;
   margin: 0 0 16px 0;
 }

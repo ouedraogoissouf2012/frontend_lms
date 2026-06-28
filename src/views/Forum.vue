@@ -207,11 +207,11 @@ export default {
 /* Force text colors for both light and dark mode - Using data-theme */
 html[data-theme="light"] h1,
 html:not([data-theme="dark"]) h1 {
-  color: #2563eb !important;
+  color: var(--color-info-strong) !important;
 }
 
 html[data-theme="dark"] h1 {
-  color: #ffffff !important;
+  color: var(--white) !important;
 }
 
 /* Modal inputs - BOTH modes support */
@@ -219,47 +219,47 @@ html[data-theme="light"] input[type="text"],
 html:not([data-theme="dark"]) input[type="text"],
 html[data-theme="light"] textarea,
 html:not([data-theme="dark"]) textarea {
-  background-color: #ffffff !important;
-  color: #1f2937 !important;
+  background-color: var(--white) !important;
+  color: var(--gray-800) !important;
 }
 
 html[data-theme="dark"] input[type="text"],
 html[data-theme="dark"] textarea {
-  background-color: #374151 !important;
-  color: #f3f4f6 !important;
+  background-color: var(--gray-700) !important;
+  color: var(--gray-100) !important;
 }
 
 html[data-theme="light"] input[type="text"]::placeholder,
 html:not([data-theme="dark"]) input[type="text"]::placeholder,
 html[data-theme="light"] textarea::placeholder,
 html:not([data-theme="dark"]) textarea::placeholder {
-  color: #9ca3af !important;
+  color: var(--gray-400) !important;
   opacity: 1;
 }
 
 html[data-theme="dark"] input[type="text"]::placeholder,
 html[data-theme="dark"] textarea::placeholder {
-  color: #9ca3af !important;
+  color: var(--gray-400) !important;
   opacity: 1;
 }
 
 /* Modal background */
 html[data-theme="light"] .bg-white,
 html:not([data-theme="dark"]) .bg-white {
-  background-color: #ffffff !important;
+  background-color: var(--white) !important;
 }
 
 html[data-theme="dark"] .bg-white {
-  background-color: #1f2937 !important;
+  background-color: var(--gray-800) !important;
 }
 
 /* Modal text */
 html[data-theme="light"] .text-gray-700,
 html:not([data-theme="dark"]) .text-gray-700 {
-  color: #374151 !important;
+  color: var(--gray-700) !important;
 }
 
 html[data-theme="dark"] .text-gray-700 {
-  color: #e5e7eb !important;
+  color: var(--gray-200) !important;
 }
 </style>

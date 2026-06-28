@@ -11,9 +11,9 @@
 // =============================================================================
 
 // Couleurs LMS pour le mode sombre
-$lms-blue: #2563eb;
+$lms-blue: var(--color-info-strong);
 $lms-blue-light: #3b82f6;
-$white: #ffffff;
+$white: var(--white);
 
 html[data-theme="dark"] {
   .calendar-container {

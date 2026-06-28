@@ -104,14 +104,14 @@ const {
 }
 /* Loading & Error States */
 div[class*="bg-red-50"] {
-  background: #fef2f2 !important;
+  background: var(--red-50) !important;
   border: 1px solid #fca5a5;
   border-radius: 0.75rem;
   padding: 1.5rem;
   text-align: center;
 }
 button[class*="bg-red-600"] {
-  background: #dc2626 !important;
+  background: var(--red-600) !important;
   color: white !important;
   padding: 0.5rem 1rem;
   border: none;
@@ -121,7 +121,7 @@ button[class*="bg-red-600"] {
   margin-top: 1rem;
 }
 button[class*="bg-red-600"]:hover {
-  background: #b91c1c !important;
+  background: var(--red-700) !important;
 }
 /* ============================================================
    Chrome partage des onglets/sections — rendu dans les
@@ -202,8 +202,8 @@ button[class*="bg-red-600"]:hover {
   font-weight: 600;
 }
 :deep(span[class*="bg-purple-100"]) {
-  background: #f3e8ff !important;
-  color: #6b21a8 !important;
+  background: var(--purple-100) !important;
+  color: var(--purple-800) !important;
   padding: 0.25rem 0.5rem;
   border-radius: 0.375rem;
   font-size: 0.75rem;
@@ -218,7 +218,7 @@ button[class*="bg-red-600"]:hover {
 }
 :deep(span[class*="bg-yellow-100"]) {
   background: #fef3c7 !important;
-  color: #92400e !important;
+  color: var(--amber-800) !important;
 }
 /* Cards & Borders */
 :deep(div[class*="border-gray-200"]) {
@@ -250,11 +250,11 @@ button[class*="bg-red-600"]:hover {
 /* Force green color for active tabs (override Tailwind text-green-600) */
 :deep(button[class*="text-green-600"]),
 :deep(.text-green-600) {
-  color: #10b981 !important;
+  color: var(--emerald-500) !important;
 }
 /* Buttons */
 :deep(button[class*="text-green-600"]) {
-  color: #10b981 !important;
+  color: var(--emerald-500) !important;
   background: none;
   border: none;
   cursor: pointer;
@@ -262,7 +262,7 @@ button[class*="bg-red-600"]:hover {
   transition: color 0.2s;
 }
 :deep(button[class*="text-green-600"]:hover) {
-  color: #059669 !important;
+  color: var(--emerald-600) !important;
 }
 /* Seances Card */
 :deep(div[class*="bg-white shadow rounded-lg"]) {

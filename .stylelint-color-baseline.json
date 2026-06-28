@@ -1,77 +1,48 @@
 {
   "src/assets/styles/_admin-badges.scss": {
-    "#059669": 1,
-    "#10b981": 2,
-    "#2563eb": 1,
-    "#3b82f6": 2,
-    "#8b5cf6": 1,
-    "#f59e0b": 1
+    "#3b82f6": 2
   },
   "src/assets/styles/_calendar-fc-dark.scss": {
     "#001e3c": 2,
     "#06b6d4": 4,
     "#0a1929": 1,
-    "#2563eb": 1,
-    "#3b82f6": 1,
-    "#ef4444": 3,
-    "#ffffff": 1
+    "#3b82f6": 1
   },
   "src/assets/styles/_calendar-shell-dark.scss": {
-    "#2563eb": 1,
-    "#3b82f6": 1,
-    "#ffffff": 1
+    "#3b82f6": 1
   },
   "src/assets/styles/_correction-badges.scss": {
     "#166534": 2,
     "#1e40af": 2,
-    "#6b7280": 1,
-    "#92400e": 2,
     "#991b1b": 1,
     "#dbeafe": 2,
     "#dcfce7": 2,
-    "#f3f4f6": 1,
     "#fee2e2": 1,
     "#fef3c7": 2
   },
   "src/assets/styles/_institution-modal.scss": {
-    "#2563eb": 1,
     "#3b82f6": 2
   },
   "src/assets/styles/_nsia-theme.scss": {
     "#0d1f40": 1,
-    "#10b981": 1,
     "#1b3b6f": 1,
     "#1e293b": 1,
     "#2d5a9e": 1,
-    "#374151": 1,
     "#64748b": 1,
-    "#6b7280": 1,
-    "#9ca3af": 1,
     "#e2e8f0": 1,
-    "#e5e7eb": 1,
-    "#ef4444": 1,
-    "#f59e0b": 1,
     "#f8fafc": 1,
-    "#f9fafb": 1,
     "#ffb81c": 1,
     "#ffc700": 1,
-    "#ffd700": 1,
-    "#ffffff": 1
+    "#ffd700": 1
   },
   "src/assets/styles/_seance-card-buttons.scss": {
     "#16a34a": 1,
     "#22c55e": 1,
-    "#2563eb": 1,
-    "#3b82f6": 1,
-    "#dc2626": 1,
-    "#ef4444": 1
+    "#3b82f6": 1
   },
   "src/assets/styles/_seance-details.scss": {
     "#3b82f6": 1,
-    "#b91c1c": 1,
-    "#c2410c": 1,
-    "#dc2626": 2,
-    "#f59e0b": 1
+    "#c2410c": 1
   },
   "src/assets/styles/_student-eval-card.scss": {
     "#15803d": 3,
@@ -79,23 +50,12 @@
     "#16a34a": 2,
     "#1e40af": 2,
     "#22c55e": 1,
-    "#6d28d9": 2,
-    "#7c3aed": 2,
-    "#8b5cf6": 2,
-    "#92400e": 4,
     "#991b1b": 2,
-    "#b45309": 1,
-    "#d97706": 2,
     "#dbeafe": 2,
     "#dcfce7": 3,
-    "#ede9fe": 1,
     "#f0fdf4": 1,
-    "#f59e0b": 1,
     "#fee2e2": 2,
     "#fef3c7": 4
-  },
-  "src/assets/styles/_tiptap-fullscreen-modal.scss": {
-    "#059669": 1
   },
   "src/components/admin/MatieresTable.vue": {
     "#4a90e2": 1,
@@ -108,43 +68,22 @@
     "#fed7aa": 1
   },
   "src/components/calendar/CalendarFilters.vue": {
-    "#1e3a8a": 1,
-    "#2563eb": 1,
-    "#ffffff": 1
+    "#1e3a8a": 1
   },
   "src/components/calendar/CalendarLegend.vue": {
-    "#2563eb": 1,
-    "#3b82f6": 1,
-    "#ffffff": 1
+    "#3b82f6": 1
   },
   "src/components/calendar/CalendarNavigation.vue": {
-    "#2563eb": 1,
-    "#3b82f6": 1,
-    "#ffffff": 2
-  },
-  "src/components/calendar/CalendarView.vue": {
-    "#2563eb": 1,
-    "#ffffff": 1
+    "#3b82f6": 1
   },
   "src/components/calendar/CalendarViewSelector.vue": {
     "#1e3a8a": 1,
-    "#2563eb": 1,
-    "#3b82f6": 1,
-    "#ffffff": 2
+    "#3b82f6": 1
   },
   "src/components/common/ContentLoader.vue": {
     "#1b3b6f": 2,
     "#2d5a9e": 1,
     "#ffb81c": 1
-  },
-  "src/components/evaluations/TakeEvaluationActions.vue": {
-    "#2563eb": 1
-  },
-  "src/components/evaluations/TakeEvaluationHeader.vue": {
-    "#8b5cf6": 1
-  },
-  "src/components/evaluations/TakeResultModals.vue": {
-    "#2563eb": 1
   },
   "src/components/layout/sidebar/SidebarHeader.vue": {
     "#1e6fd9": 2
@@ -207,36 +146,15 @@
   "src/style.css": {
     "#555": 1,
     "#888": 1,
-    "#f1f1f1": 1,
-    "#f3f4f6": 1
-  },
-  "src/views/Forum.vue": {
-    "#1f2937": 2,
-    "#2563eb": 1,
-    "#374151": 2,
-    "#9ca3af": 2,
-    "#e5e7eb": 1,
-    "#f3f4f6": 1,
-    "#ffffff": 3
+    "#f1f1f1": 1
   },
   "src/views/ForumTopic.vue": {
-    "#1f2937": 4,
-    "#2d3748": 2,
-    "#374151": 2,
-    "#4b5563": 1,
-    "#6b7280": 1,
-    "#9ca3af": 3,
-    "#e5e7eb": 1,
-    "#f3f4f6": 1,
-    "#f9fafb": 1,
-    "#ffffff": 3
+    "#2d3748": 2
   },
   "src/views/TeacherSeances.vue": {
     "#3b82f6": 1,
     "#900": 1,
-    "#b91c1c": 1,
     "#c00": 1,
-    "#dc2626": 1,
     "#fcc": 1,
     "#fee": 1
   },
@@ -244,87 +162,38 @@
     "#1a202c": 1
   },
   "src/views/admin/AdminClasses.vue": {
-    "#1d4ed8": 1,
-    "#2563eb": 2,
-    "#b91c1c": 2,
-    "#dc2626": 2,
-    "#fca5a5": 1,
-    "#fef2f2": 1
+    "#fca5a5": 1
   },
   "src/views/admin/AdminEnseignants.vue": {
     "#93c5fd": 1,
     "#fde047": 1
   },
-  "src/views/admin/AdminHub.vue": {
-    "#10b981": 1,
-    "#f59e0b": 1
-  },
-  "src/views/admin/AdminInstitutions.vue": {
-    "#2563eb": 2
-  },
-  "src/views/admin/AdminMatieres.vue": {
-    "#4f46e5": 1
-  },
   "src/views/admin/AdminStats.vue": {
     "#667eea": 1,
     "#764ba2": 1
   },
-  "src/views/admin/AdminUsers.vue": {
-    "#ef4444": 1
-  },
   "src/views/attendance/AttendanceHistory.vue": {
-    "#2563eb": 1,
-    "#3b82f6": 2,
-    "#ef4444": 1
+    "#3b82f6": 2
   },
   "src/views/attendance/SeanceAttendanceHistory.vue": {
-    "#1d4ed8": 1,
-    "#2563eb": 2,
     "#3b82f6": 1,
     "#991b1b": 1,
-    "#b91c1c": 2,
-    "#dc2626": 2,
-    "#fca5a5": 1,
-    "#fef2f2": 1
+    "#fca5a5": 1
   },
   "src/views/classes/ClasseDetails.vue": {
-    "#059669": 1,
-    "#10b981": 2,
     "#166534": 1,
     "#1e40af": 1,
-    "#6b21a8": 1,
-    "#92400e": 1,
-    "#b91c1c": 1,
     "#dbeafe": 1,
-    "#dc2626": 1,
     "#dcfce7": 1,
-    "#f3e8ff": 1,
     "#fca5a5": 1,
-    "#fef2f2": 1,
     "#fef3c7": 1
   },
-  "src/views/coordinateur/SeanceManagement.vue": {
-    "#4f46e5": 1
-  },
   "src/views/dashboards/StudentDashboard.vue": {
-    "#b91c1c": 2,
-    "#dc2626": 2,
-    "#fca5a5": 1,
-    "#fef2f2": 1
-  },
-  "src/views/evaluations/PreviewEvaluation.vue": {
-    "#6366f1": 1,
-    "#8b5cf6": 1
-  },
-  "src/views/evaluations/TakeEvaluation.vue": {
-    "#dc2626": 1,
-    "#ef4444": 2
+    "#fca5a5": 1
   },
   "src/views/evaluations/TeacherEvaluations.vue": {
     "#900": 1,
-    "#b91c1c": 1,
     "#c00": 1,
-    "#dc2626": 1,
     "#fcc": 1,
     "#fee": 1
   },
@@ -332,85 +201,33 @@
     "#1e3a8a": 1,
     "#1e40af": 1,
     "#3b82f6": 1,
-    "#dbeafe": 1,
-    "#dc2626": 1,
-    "#e0e7ff": 1
+    "#dbeafe": 1
   },
   "src/views/lessons/LessonEditor.vue": {
     "#3b82f6": 1
   },
   "src/views/lessons/TeacherLessons.vue": {
-    "#1d4ed8": 1,
-    "#2563eb": 2,
     "#3b82f6": 1,
     "#991b1b": 1,
-    "#b91c1c": 2,
-    "#dc2626": 2,
-    "#fca5a5": 1,
-    "#fef2f2": 1
-  },
-  "src/views/student/StudentCourses.vue": {
-    "#1d4ed8": 1,
-    "#2563eb": 2,
-    "#b91c1c": 2,
-    "#dc2626": 2,
-    "#fef2f2": 1
+    "#fca5a5": 1
   },
   "src/views/student/StudentEvaluationsList.vue": {
     "#15803d": 1,
     "#16a34a": 2,
-    "#22c55e": 1,
-    "#b91c1c": 2,
-    "#dc2626": 2,
-    "#fef2f2": 1
+    "#22c55e": 1
   },
   "src/views/student/StudentGrades.vue": {
     "#f44336": 1
   },
-  "src/views/student/StudentLessonView.vue": {
-    "#10b981": 2
-  },
-  "src/views/student/StudentSchedule.vue": {
-    "#2563eb": 2
-  },
-  "src/views/student/StudentSettings.vue": {
-    "#b91c1c": 1,
-    "#dc2626": 2,
-    "#ef4444": 1
-  },
   "src/views/teacher/EvaluationCorrections.vue": {
     "#900": 1,
-    "#b91c1c": 1,
     "#c00": 1,
-    "#dc2626": 1,
     "#fcc": 1,
     "#fee": 1
   },
-  "src/views/teacher/TeacherClasses.vue": {
-    "#1d4ed8": 1,
-    "#2563eb": 2,
-    "#b91c1c": 2,
-    "#dc2626": 2,
-    "#fef2f2": 1
-  },
-  "src/views/teacher/TeacherSchedule.vue": {
-    "#2563eb": 1
-  },
-  "src/views/teacher/TeacherSettings.vue": {
-    "#b91c1c": 1,
-    "#dc2626": 2,
-    "#ef4444": 1
-  },
-  "src/views/teacher/TeacherStats.vue": {
-    "#b91c1c": 2,
-    "#dc2626": 2,
-    "#fef2f2": 1
-  },
   "src/views/teacher/TeacherVisioList.vue": {
     "#900": 1,
-    "#b91c1c": 1,
     "#c00": 1,
-    "#dc2626": 1,
     "#fcc": 1,
     "#fee": 1
   }

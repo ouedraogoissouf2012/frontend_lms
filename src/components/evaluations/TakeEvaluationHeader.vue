@@ -133,7 +133,7 @@ defineProps({
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--primary-color, #3b82f6), #8b5cf6);
+  background: linear-gradient(90deg, var(--primary-color, #3b82f6), var(--violet-500));
   border-radius: 9999px;
   transition: width 0.3s ease;
 }

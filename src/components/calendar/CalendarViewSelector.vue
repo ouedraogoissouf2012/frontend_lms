@@ -44,7 +44,7 @@ defineEmits(['change-view'])
 <style lang="scss" scoped>
 // Variables LMS nécessaires à ce composant (copie locale du sous-ensemble utilisé).
 $lms-blue-dark: #1e3a8a;
-$white: #ffffff;
+$white: var(--white);
 $transition-fast: all 0.2s ease;
 $border-radius-md: 6px;
 $border-radius-lg: 8px;
@@ -99,9 +99,9 @@ $border-radius-lg: 8px;
 
 <!-- Styles mode sombre non-scoped pour fonctionner avec data-theme -->
 <style lang="scss">
-$lms-blue: #2563eb;
+$lms-blue: var(--color-info-strong);
 $lms-blue-light: #3b82f6;
-$white: #ffffff;
+$white: var(--white);
 
 // ========== DARK MODE ==========
 html[data-theme="dark"] {

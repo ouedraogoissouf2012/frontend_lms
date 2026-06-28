@@ -4,11 +4,11 @@
 
 /* Avatars (couleur par rôle) */
 .avatar-etudiant {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, #3b82f6, var(--color-info-strong));
 }
 
 .avatar-enseignant {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, var(--emerald-500), var(--emerald-600));
 }
 
 /* Role Badge */
@@ -30,16 +30,16 @@
 .role-enseignant,
 .role-teacher {
   background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
+  color: var(--emerald-500);
 }
 
 .role-coordinateur {
   background: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
+  color: var(--amber-500);
 }
 
 .role-admin,
 .role-superAdmin {
   background: rgba(139, 92, 246, 0.15);
-  color: #8b5cf6;
+  color: var(--violet-500);
 }

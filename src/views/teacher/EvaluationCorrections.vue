@@ -177,7 +177,7 @@ const {
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1.25rem;
-  background: #dc2626;
+  background: var(--red-600);
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -187,7 +187,7 @@ const {
 }
 
 .btn-retry:hover {
-  background: #b91c1c;
+  background: var(--red-700);
 }
 
 /* Responsive */

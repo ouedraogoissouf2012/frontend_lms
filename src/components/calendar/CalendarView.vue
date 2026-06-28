@@ -38,8 +38,8 @@ defineExpose({
 
 <style lang="scss" scoped>
 // Variables LMS nécessaires à ce composant (copie locale du sous-ensemble utilisé).
-$lms-blue: #2563eb;
-$white: #ffffff;
+$lms-blue: var(--color-info-strong);
+$white: var(--white);
 $shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.1);
 $transition-fast: all 0.2s ease;
 $border-radius-lg: 8px;
