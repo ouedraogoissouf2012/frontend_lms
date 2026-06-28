@@ -55,7 +55,7 @@ defineProps({
 
 .cap-center i {
   font-size: 2.5rem;
-  color: #1B3B6F;
+  color: var(--brand-navy);
   filter: drop-shadow(0 2px 4px rgba(27, 59, 111, 0.3));
 }
 
@@ -82,21 +82,21 @@ defineProps({
 
 /* Lettre L - position 0deg (haut) */
 .letter-l {
-  color: #1B3B6F;
+  color: var(--brand-navy);
   transform: translate(-50%, -50%) rotate(0deg) translateY(-45px) rotate(0deg);
   animation: letter-scale-l 3s ease-in-out infinite;
 }
 
 /* Lettre M - position 120deg */
 .letter-m {
-  color: #FFB81C;
+  color: var(--brand-gold);
   transform: translate(-50%, -50%) rotate(120deg) translateY(-45px) rotate(-120deg);
   animation: letter-scale-m 3s ease-in-out infinite;
 }
 
 /* Lettre S - position 240deg */
 .letter-s {
-  color: #2D5A9E;
+  color: var(--brand-blue);
   transform: translate(-50%, -50%) rotate(240deg) translateY(-45px) rotate(-240deg);
   animation: letter-scale-s 3s ease-in-out infinite;
 }
@@ -163,20 +163,20 @@ defineProps({
 
 /* Mode sombre */
 :deep([data-theme="dark"]) .cap-center i {
-  color: var(--blue-500);
+  color: var(--brand-navy);
   filter: drop-shadow(0 2px 8px rgba(96, 165, 250, 0.5));
 }
 
 :deep([data-theme="dark"]) .letter-l {
-  color: var(--blue-500);
+  color: var(--brand-navy);
 }
 
 :deep([data-theme="dark"]) .letter-m {
-  color: var(--amber-400);
+  color: var(--brand-gold);
 }
 
 :deep([data-theme="dark"]) .letter-s {
-  color: var(--blue-600);
+  color: var(--brand-blue);
 }
 
 :deep([data-theme="dark"]) .loader-text {
