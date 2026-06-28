@@ -245,7 +245,7 @@ defineEmits(['add', 'remove'])
 .btn-add {
   padding: 0.75rem 1.5rem;
   background: var(--blue-100);
-  color: #1d4ed8;
+  color: var(--color-info-stronger);
   border: 1px solid var(--blue-300);
   border-radius: 0.5rem;
   font-weight: 600;

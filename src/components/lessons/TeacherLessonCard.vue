@@ -150,8 +150,8 @@ function formatDate(dateString) {
 }
 
 .status-archived {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--gray-100);
+  color: var(--gray-500);
 }
 
 .lesson-title {
@@ -210,7 +210,7 @@ function formatDate(dateString) {
   border: none;
 }
 
-.btn-view {  background: linear-gradient(135deg, var(--blue-500) 0%, var(--color-info-strong) 100%);  color: white;  border: none;}.btn-view:hover {  background: linear-gradient(135deg, var(--color-info-strong) 0%, #1d4ed8 100%);  transform: translateY(-2px);  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);}
+.btn-view {  background: linear-gradient(135deg, var(--blue-500) 0%, var(--color-info-strong) 100%);  color: white;  border: none;}.btn-view:hover {  background: linear-gradient(135deg, var(--color-info-strong) 0%, var(--color-info-stronger) 100%);  transform: translateY(-2px);  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);}
 
 .btn-edit:hover {
   background: var(--bg-tertiary);

@@ -77,7 +77,7 @@ function nextSlide() {
 }
 
 .slide-display {
-  background: #000;
+  background: var(--black);
   border-radius: 0.75rem;
   overflow: hidden;
   display: flex;

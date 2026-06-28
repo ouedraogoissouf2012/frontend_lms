@@ -141,7 +141,7 @@ defineEmits(['save', 'cancel', 'open-quiz-editor'])
 /* Options styling - Mode clair par défaut */
 .content-type-select option {
   background-color: var(--bg-primary);
-  color: #111827;
+  color: var(--gray-900);
   padding: 10px;
 }
 
@@ -152,8 +152,8 @@ defineEmits(['save', 'cancel', 'open-quiz-editor'])
 }
 
 [data-theme="dark"] .content-type-select option {
-  background-color: #1f2937;
-  color: #f9fafb;
+  background-color: var(--gray-800);
+  color: var(--gray-50);
 }
 
 /* Mode sombre avec prefers-color-scheme (fallback) */
@@ -164,8 +164,8 @@ defineEmits(['save', 'cancel', 'open-quiz-editor'])
   }
 
   .content-type-select option {
-    background-color: #1f2937;
-    color: #f9fafb;
+    background-color: var(--gray-800);
+    color: var(--gray-50);
   }
 }
 

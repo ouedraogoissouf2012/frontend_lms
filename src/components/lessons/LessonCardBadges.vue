@@ -51,7 +51,7 @@ const statusBadge = computed(() => getStatusBadge(props.lesson.status))
 }
 
 .badge-tp {
-  background: #e9d5ff;
+  background: var(--purple-200);
   color: var(--violet-600);
 }
 

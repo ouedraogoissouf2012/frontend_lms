@@ -51,7 +51,7 @@ defineProps({
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, #f3e8ff, var(--violet-100));
+  background: linear-gradient(135deg, var(--purple-100), var(--violet-100));
   border: 2px solid var(--violet-500);
   border-radius: 0.75rem;
   margin-bottom: 1.5rem;

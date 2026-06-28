@@ -188,7 +188,7 @@ defineEmits(['close'])
 
 .btn-secondary {
   padding: 0.625rem 1.5rem;
-  background: #6b7280;
+  background: var(--gray-500);
   color: white;
   border: none;
   border-radius: 8px;
@@ -199,6 +199,6 @@ defineEmits(['close'])
 }
 
 .btn-secondary:hover {
-  background: #4b5563;
+  background: var(--gray-600);
 }
 </style>

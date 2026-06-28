@@ -91,7 +91,7 @@ defineEmits(['view'])
   text-align: left;
   font-weight: 700;
   font-size: 0.8125rem;
-  color: #ffffff;
+  color: var(--white);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border: none;

@@ -163,6 +163,6 @@ function handleFileSelect(event) {
 .file-help-text {
   margin-top: 8px;
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--gray-500);
 }
 </style>

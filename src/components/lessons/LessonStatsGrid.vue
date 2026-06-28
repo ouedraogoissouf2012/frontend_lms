@@ -47,7 +47,7 @@ defineProps({
 }
 
 .stat-average {
-  background: #e9d5ff;
+  background: var(--purple-200);
 }
 
 .stat-value {

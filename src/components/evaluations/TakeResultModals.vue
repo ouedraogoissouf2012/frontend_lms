@@ -102,7 +102,7 @@ defineEmits(['close-confirm', 'submit', 'return'])
 }
 
 .btn-submit:hover {
-  background: linear-gradient(135deg, var(--color-info-strong), #1d4ed8);
+  background: linear-gradient(135deg, var(--color-info-strong), var(--color-info-stronger));
   transform: translateY(-1px);
 }
 

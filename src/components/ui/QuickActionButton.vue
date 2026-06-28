@@ -99,8 +99,8 @@ function handleClick() {
 }
 
 .quick-action-btn.secondary:hover:not(:disabled) {
-  border-color: #6b7280;
-  background: #6b7280;
+  border-color: var(--gray-500);
+  background: var(--gray-500);
 }
 
 .quick-action-btn.secondary:hover:not(:disabled) .action-icon {

@@ -81,7 +81,7 @@ const getPdfUrl = (chapter) => pdfUrl(chapter)
   position: relative;
   width: 100%;
   padding-bottom: 56.25%;
-  background: #000;
+  background: var(--black);
   border-radius: 0.75rem;
   overflow: hidden;
 }

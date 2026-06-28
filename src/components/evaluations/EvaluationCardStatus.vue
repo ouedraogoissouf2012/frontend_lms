@@ -113,16 +113,16 @@ defineProps({
 }
 
 .status-finished {
-  border-color: #6b7280;
+  border-color: var(--gray-500);
   background: rgba(107, 114, 128, 0.05);
 }
 
 .status-finished .status-icon {
-  color: #6b7280;
+  color: var(--gray-500);
 }
 
 .status-finished .status-text {
-  color: #4b5563;
+  color: var(--gray-600);
 }
 
 .status-finished .status-detail {
