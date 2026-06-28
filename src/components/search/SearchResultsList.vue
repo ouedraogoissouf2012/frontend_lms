@@ -139,8 +139,8 @@ defineEmits(['select', 'highlight'])
 }
 
 .icon-classe {
-  background: #f3e8ff;
-  color: #6b21a8;
+  background: var(--purple-100);
+  color: var(--purple-800);
 }
 
 .icon-matiere {
