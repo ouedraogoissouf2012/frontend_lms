@@ -70,7 +70,7 @@ defineEmits(['change'])
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #ccc;
+  background-color: var(--gray-300);
   transition: 0.3s;
   border-radius: 26px;
 }

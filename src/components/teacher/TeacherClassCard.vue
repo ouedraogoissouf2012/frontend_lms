@@ -148,7 +148,7 @@ defineProps({
 .pulse-dot {
   width: 0.5rem;
   height: 0.5rem;
-  background: #22c55e;
+  background: var(--color-success);
   border-radius: 50%;
   animation: pulse 2s infinite;
 }

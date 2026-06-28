@@ -174,7 +174,7 @@ defineEmits(['show-participants', 'join'])
 
 .open-jitsi-btn {
   padding: 0.75rem 1.25rem;
-  background: #16a34a;
+  background: var(--color-success-strong);
   border: none;
   border-radius: 0.5rem;
   color: white;

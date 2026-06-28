@@ -127,7 +127,7 @@ function truncateText(text, maxLength) {
 }
 
 .course-type-badge.projet {
-  background: #f3e8ff;
+  background: var(--purple-100);
   color: var(--violet-600);
 }
 
@@ -224,7 +224,7 @@ function truncateText(text, maxLength) {
 }
 
 .course-button:hover {
-  background: linear-gradient(135deg, var(--color-info-strong) 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, var(--color-info-strong) 0%, var(--color-info-stronger) 100%);
   transform: scale(1.02);
 }
 

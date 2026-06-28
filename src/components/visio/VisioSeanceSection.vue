@@ -69,7 +69,7 @@ defineEmits(['start', 'end', 'activate'])
 .pulse-indicator-large {
   width: 1rem;
   height: 1rem;
-  background: #22c55e;
+  background: var(--color-success);
   border-radius: 50%;
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);

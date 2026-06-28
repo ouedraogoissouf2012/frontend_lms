@@ -252,7 +252,7 @@ function formatTime(dateTimeStr) {
 .pulse-indicator {
   width: 1.25rem;
   height: 1.25rem;
-  background: #22c55e;
+  background: var(--color-success);
   border-radius: 50%;
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   flex-shrink: 0;

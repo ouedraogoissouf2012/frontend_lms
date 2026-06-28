@@ -108,7 +108,7 @@ defineProps({
   padding: 1rem;
   background: var(--bg-secondary);
   border-radius: 0.75rem;
-  border-left: 4px solid #d1d5db;
+  border-left: 4px solid var(--gray-300);
   transition: all 0.2s;
 }
 

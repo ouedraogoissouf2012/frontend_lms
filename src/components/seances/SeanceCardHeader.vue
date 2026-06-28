@@ -114,8 +114,8 @@ defineProps({
 }
 
 .status-finished {
-  background: #f3f4f6;
-  color: #4b5563;
+  background: var(--gray-100);
+  color: var(--gray-600);
 }
 
 .pulse-dot {

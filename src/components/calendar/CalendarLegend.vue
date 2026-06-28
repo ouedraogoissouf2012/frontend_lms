@@ -14,7 +14,7 @@
         <span>Visio active</span>
       </div>
       <div class="legend-item">
-        <div class="color-dot" style="background: #ea580c; /* LMS orange (évaluations) */"></div>
+        <div class="color-dot" style="background: var(--color-warning-strong); /* LMS orange (évaluations) */"></div>
         <span>Évaluations</span>
       </div>
       <div class="legend-item">

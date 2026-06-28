@@ -143,7 +143,7 @@ watch(() => props.isOpen, (newValue) => {
   width: 100%;
   max-width: 1400px;
   height: 90vh;
-  background: #1f2937;
+  background: var(--gray-800);
   border-radius: 0.5rem;
   display: flex;
   flex-direction: column;
@@ -157,8 +157,8 @@ watch(() => props.isOpen, (newValue) => {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  background: #111827;
-  border-bottom: 1px solid #374151;
+  background: var(--gray-900);
+  border-bottom: 1px solid var(--gray-700);
 }
 
 .close-button {
@@ -182,7 +182,7 @@ watch(() => props.isOpen, (newValue) => {
 .jitsi-modal-content {
   flex: 1;
   overflow: hidden;
-  background: #000;
+  background: var(--black);
 }
 
 /* Animations */
