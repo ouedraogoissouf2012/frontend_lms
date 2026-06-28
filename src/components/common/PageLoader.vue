@@ -101,7 +101,7 @@ defineProps({
 
 /* Lettre L - position 0deg (haut) */
 .letter-l {
-  color: #93c5fd;
+  color: var(--blue-300);
   transform: translate(-50%, -50%) rotate(0deg) translateY(-65px) rotate(0deg);
   animation: letter-scale-l 3s ease-in-out infinite;
 }
@@ -115,7 +115,7 @@ defineProps({
 
 /* Lettre S - position 240deg */
 .letter-s {
-  color: #60a5fa;
+  color: var(--blue-400);
   transform: translate(-50%, -50%) rotate(240deg) translateY(-65px) rotate(-240deg);
   animation: letter-scale-s 3s ease-in-out infinite;
 }
