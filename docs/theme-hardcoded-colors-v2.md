@@ -1485,3 +1485,73 @@ Les couleurs « besoin token #136 » les plus fréquentes (donc les meilleurs ca
 | src/components/widgets/NotificationsWidget.vue:135 | #f59e0b | (à créer) | besoin token #136 |
 | src/components/widgets/NotificationsWidget.vue:159 | #ef4444 | (à créer) | besoin token #136 |
 | src/components/widgets/NotificationsWidget.vue:275 | #2563eb | (à créer) | besoin token #136 |
+
+---
+
+## #150 — Résolution des valeurs hex SANS token
+
+> **Périmètre :** touche UNIQUEMENT `src/assets/styles/themes.css` (ajout de tokens) et le présent doc (mappings). **Aucun `.vue` modifié.** Les cibles ci-dessous seront appliquées dans une passe `.vue` ultérieure de #114.
+> **Méthode :** fréquences re-comptées sur `dev` courant par `rg -oiN -g 'src/**/*.vue'` (valeurs exactes, insensible à la casse). Décision avec jugement — pas de mécanique : un token n'est créé que si la palette est *réellement* réutilisée et absente ; sinon mapping documenté vers le token sémantique #136 le plus proche, sans dupliquer de valeur.
+
+### Tokens AJOUTÉS dans themes.css
+
+1. **`--purple-*` (échelle Tailwind « purple » complète, `:root`).** Justifié par une réutilisation multi-fichiers réelle : `#f3e8ff` (8 occ.) en fond de badge + `#6b21a8` (2) en texte (type « quiz / évaluation »), `#e9d5ff` (3), `#c084fc` (1), plus les pleins `#a855f7`/`#9333ea` des stats institutions (déjà relevés « à créer » dans l'audit admin/). Teinte distincte du `--violet-*` existant (purple est plus magenta) → pas de fusion. Le commentaire « recurring purple tones consolidate here » du bloc violet a été retiré (n'est plus vrai).
+2. **`--black` / `--white` (primitives neutres pures, `:root`).** `#000`/`#000000` (5 occ.) n'avaient aucun token : `--gray-900` vaut `#111827`, pas du noir pur. Ajout du couple invariant ; les surfaces doivent préférer `--bg-*`/`--text-*` adaptatifs.
+
+> **Theme light + dark :** comme `--emerald-*`, `--violet-*`, `--sky-*`, `--gray-*` déjà en place, ces accents/neutres bruts sont **theme-invariant** et déclarés une seule fois dans `:root` (cf. bloc « RAW ACCENT PALETTE », l.58-68). L'adaptation light/dark reste portée par les tokens de surface sémantiques (`--success-*`, `--error-*`…), donc aucun bloc dupliqué dans `[data-theme="dark"]`. C'est la convention du fichier, suivie ici à dessein.
+
+### Mappings documentés (aucun token créé — proche d'un sémantique #136)
+
+| valeur | occ. | famille | décision | cible |
+|---|---|---|---|---|
+| #22c55e | 8 | vert (green-500, = accent success dark) | mapping | --color-success |
+| #16a34a | 7 | vert (green-600) | mapping | --color-success-strong |
+| #15803d | 5 | vert (green-700) | mapping | --color-success-strong |
+| #4caf50 | 6 | vert (Material 500) | mapping | --color-success |
+| #8bc34a | 6 | vert clair (Material, barème de notes) | mapping | --color-success (≈) |
+| #f0fdf4 | 1 | vert (green-50, fond) | mapping | --color-success-bg |
+| #f3e8ff | 8 | purple-100 | **token ajouté** | --purple-100 |
+| #e9d5ff | 3 | purple-200 | **token ajouté** | --purple-200 |
+| #c084fc | 1 | purple-400 | **token ajouté** | --purple-400 |
+| #6b21a8 | 2 | purple-800 | **token ajouté** | --purple-800 |
+| #9c27b0 | 1 | purple (Material 500) | mapping | --purple-500 (≈) |
+| #673ab7 | 1 | deep purple (Material) | mapping | --violet-700 (≈) |
+| #ff9800 | 6 | orange (Material 500) | mapping | --color-warning |
+| #ff5722 | 5 | deep orange (Material, barème « insuffisant ») | mapping | --color-warning-strong (≈) |
+| #fb923c | 1 | orange-400 | mapping | --color-warning |
+| #ea580c | 1 | orange-600 | mapping | --color-warning-strong |
+| #ffedd5 | 2 | orange-50 (fond) | mapping | --color-warning-bg |
+| #fed7aa | 1 | orange-200 (fond) | mapping | --color-warning-bg |
+| #ffb81c | 1 | or (brand loader) | mapping | --color-warning (≈, marque) |
+| #f44336 | 7 | rouge (Material 500) | mapping | --color-danger |
+| #be123c | 1 | rose-700 | mapping | --color-danger-strong |
+| #06b6d4 | 3 | cyan-500 | mapping (pas de scale) | --sky-500 (≈) |
+| #009688 | 1 | teal (Material) | mapping (pas de scale) | --sky-600 (≈) |
+| #1e3a8a | 4 | navy (blue-900 TW) | mapping | --info-text (≈) |
+| #1e6fd9 | 2 | bleu | mapping | --color-info (≈) |
+| #1b3b6f | 2 | navy (brand loader) | mapping | --blue-700 (≈, marque) |
+| #5a9df2 | 1 | bleu clair | mapping | --blue-400 (≈) |
+| #4a90e2 | 1 | bleu | mapping | --blue-500 (≈) |
+| #2d5a9e | 1 | bleu (brand loader) | mapping | --blue-600 (≈, marque) |
+| #2196f3 | 1 | bleu (Material 500) | mapping | --color-info (≈) |
+| #ffff00 | 1 | jaune pur (surbrillance) | mapping | --color-warning (≈) |
+| #facc15 | 1 | yellow-400 | mapping | --color-warning |
+| #eab308 | 1 | yellow-500 | mapping | --color-warning-strong |
+| #a16207 | 1 | yellow-700 | mapping | --color-warning-text (≈) |
+| #000 / #000000 | 5 | noir pur | **token ajouté** | --black |
+| #ddd | 3 | gris clair | mapping | --gray-200 (≈) |
+| #ccc | 3 | gris clair | mapping | --gray-300 (≈) |
+| #2d3748 | 4 | gris foncé (ancien TW gray-800) | mapping | --gray-700 (≈) |
+| #fce7f3 | 1 | rose (pink-100) | **one-off, non résolu** | aucune famille rose ; à inliner ou future `--pink-*` si réutilisé |
+
+### Écarts de jugement (assumés, à challenger en revue)
+
+- **Pas de scale `--teal-*`/`--cyan-*`** malgré la suggestion de l'issue : les données montrent 4 occurrences seulement (`#06b6d4` ×3, surtout en dégradés d'`EventDot`/éval ; `#009688` ×1 Material), réparties sur ~2 fichiers — réutilisation insuffisante pour justifier 10 tokens quasi-redondants avec `--sky-*`. Mapping vers `--sky-*` (cyan/info-adjacent) à la place. Si une famille cyan distincte émerge, créer `--cyan-*` à ce moment-là.
+- **`#fce7f3` (pink-100, 1 occ.)** laissé non tokenisé : non récurrent, aucune famille rose et en créer une pour une occurrence serait de l'abstraction prématurée. Candidat à inliner ou à une famille `--pink-*` future.
+- **`#8bc34a` / `#ff5722`** (Material light-green / deep-orange des barèmes de notes) mappés au sémantique le plus proche (success / warning-strong) : la teinte exacte diffère légèrement ; un design ultérieur pourra introduire une rampe de barème dédiée si nécessaire.
+
+### Vérification #104 / #110 (faux positifs)
+
+Confirmé non-couleurs : `#104` = `// Source UNIQUE du menu (#104)` (référence d'issue en commentaire) ; `#110` ne matche aucune occurrence dans `src/**/*.vue`. **Ignorés**, conformément à l'issue.
+
+> **Note de comptage :** le titre de #150 annonce « 41 » valeurs ; le re-grep sur `dev` courant en identifie **40 distinctes** (toutes traitées ci-dessus). L'écart d'une unité vient probablement d'une valeur disparue depuis le relevé initial ou d'un double-comptage casse — aucune valeur récurrente n'est laissée sans résolution.
