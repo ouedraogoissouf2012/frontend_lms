@@ -268,6 +268,14 @@
   --blue-800: #172554;
   --blue-900: #0a1929;
 
+  /* Brand (KLASSCI) — couleurs d'identité des loaders de marque.
+     Theme-aware (cf. --blue-* ci-dessus) : la marque s'éclaircit en dark
+     pour rester lisible sur fond sombre (valeurs dark dans le bloc
+     [data-theme="dark"]). À utiliser via var(--brand-*), jamais en dur. */
+  --brand-navy: #1B3B6F;
+  --brand-gold: #FFB81C;
+  --brand-blue: #2D5A9E;
+
   /* Status Colors */
   --success-bg: #dcfce7;
   --success-border: #86efac;
@@ -363,6 +371,13 @@
   --blue-700: #bfdbfe;
   --blue-800: #dbeafe;
   --blue-900: #eff6ff;
+
+  /* Brand (KLASSCI) — variantes dark, alignées sur l'échelle --blue-*/--amber-*
+     du thème (source unique). Valeurs identiques au rendu dark actuel des
+     loaders : navy→bleu clair, gold→ambre, blue→bleu pâle. */
+  --brand-navy: var(--blue-500);
+  --brand-gold: var(--amber-400);
+  --brand-blue: var(--blue-600);
 
   /* Status Colors */
   --success-bg: rgba(34, 197, 94, 0.1);
