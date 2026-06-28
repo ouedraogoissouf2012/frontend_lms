@@ -163,12 +163,12 @@ defineProps({
 
 /* Mode sombre */
 :deep([data-theme="dark"]) .cap-center i {
-  color: #60a5fa;
+  color: var(--blue-500);
   filter: drop-shadow(0 2px 8px rgba(96, 165, 250, 0.5));
 }
 
 :deep([data-theme="dark"]) .letter-l {
-  color: #60a5fa;
+  color: var(--blue-500);
 }
 
 :deep([data-theme="dark"]) .letter-m {
@@ -176,10 +176,10 @@ defineProps({
 }
 
 :deep([data-theme="dark"]) .letter-s {
-  color: #93c5fd;
+  color: var(--blue-600);
 }
 
 :deep([data-theme="dark"]) .loader-text {
-  color: #cbd5e1;
+  color: var(--text-secondary);
 }
 </style>
