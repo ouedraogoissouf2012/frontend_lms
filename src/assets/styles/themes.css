@@ -113,7 +113,7 @@
   --indigo-800: #3730a3;
   --indigo-900: #312e81;
 
-  /* Violet — secondary accent (#8b5cf6 &c.); recurring purple tones consolidate here */
+  /* Violet — secondary accent (#8b5cf6 &c.) */
   --violet-50: #f5f3ff;
   --violet-100: #ede9fe;
   --violet-200: #ddd6fe;
@@ -124,6 +124,22 @@
   --violet-700: #6d28d9;
   --violet-800: #5b21b6;
   --violet-900: #4c1d95;
+
+  /* Purple (Tailwind « purple ») — accent distinct du violet, teinte plus
+     magenta. Récurrent dans les badges de type « quiz / évaluation » :
+     fond --purple-100 (#f3e8ff, 8 occ.) + texte --purple-800 (#6b21a8), plus
+     --purple-200/400 et les pleins --purple-500/600 des stats institutions.
+     Échelle Tailwind canonique, theme-invariant comme les autres accents. */
+  --purple-50: #faf5ff;
+  --purple-100: #f3e8ff;
+  --purple-200: #e9d5ff;
+  --purple-300: #d8b4fe;
+  --purple-400: #c084fc;
+  --purple-500: #a855f7;
+  --purple-600: #9333ea;
+  --purple-700: #7e22ce;
+  --purple-800: #6b21a8;
+  --purple-900: #581c87;
 
   /* Sky — cyan/info-adjacent accent (#0ea5e9 &c.); recurring sky tones
      (badges « visio/permissions », dégradés d'en-tête) sans équivalent
@@ -155,6 +171,14 @@
   --gray-700: #374151;
   --gray-800: #1f2937;
   --gray-900: #111827;
+
+  /* Pure neutral primitives — noir/blanc absolus, theme-invariant.
+     Pour les cas où une valeur littérale est requise (base d'ombre/overlay,
+     texte/fond pur) et qu'aucun token de surface adaptatif ne convient ;
+     --gray-900 (#111827) n'est PAS noir pur. Pour les surfaces, préférer
+     les tokens adaptatifs --bg-* / --text-* plutôt que --white / --black. */
+  --black: #000000;
+  --white: #ffffff;
 
   /* ========================================
      SEMANTIC COLOR NAMESPACE (--color-*)
