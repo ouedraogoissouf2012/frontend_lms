@@ -59,9 +59,43 @@ Réf : [Vue Router — Lazy Loading](https://router.vuejs.org/guide/advanced/laz
 ```bash
 npm run test          # tests unitaires (Vitest)
 npm run test:contract # contrat API (chemins backend figés)
+npm run lint:css      # garde anti-régression couleurs en dur (#161)
 npm run build         # build prod (vérifie le code splitting)
 ```
 
 > Note : un chunk reste > 500 kB (`LessonChapters`, éditeur riche embarqué).
 > Il est désormais **isolé dans son propre chunk lazy** ; son allègement
 > (import dynamique de l'éditeur / `manualChunks`) est une optimisation séparée.
+
+## 4. Couleurs : tokens uniquement, jamais en dur (#161)
+
+**Toute couleur DOIT passer par un token CSS** défini dans
+`src/assets/styles/themes.css`. Une couleur hex en dur (`color: #1e6fd9`) est
+**interdite** : elle casse le theming clair/sombre et la cohérence de marque.
+
+```css
+.btn { color: var(--color-primary); }            /* ✅ token */
+.btn { color: var(--color-primary, #1e6fd9); }   /* ✅ fallback toléré */
+.btn { color: #1e6fd9; }                          /* ❌ refusé par lint:css */
+```
+
+**Garde automatique** — `npm run lint:css` (Stylelint `color-no-hex`, exécuté en
+CI sur chaque PR vers `dev`/`main`) fait **échouer** toute couleur hex en dur
+introduite. Mécanisme :
+
+- **Ratchet sur baseline figée.** Les couleurs en dur déjà présentes (résidus
+  sans token, suivis dans #136) sont gelées dans `.stylelint-color-baseline.json`
+  et n'échouent pas. **Tout nouvel** hex (absent de la baseline, ou occurrence
+  surnuméraire dans un fichier) échoue. La baseline ne fait que se resserrer.
+- **Exceptions** : le fallback `var(--token, #hex)` est autorisé (y compris en
+  code neuf) ; les hex hors CSS (`:style` JS, `placeholder="#..."`, `value` d'un
+  input couleur, blocs `<template>`/`<script>`) ne sont pas analysés.
+- **`$scss-var: #hex` n'est PAS exempté** : ce sont des couleurs en dur comme les
+  autres (le système de tokens repose sur les custom properties CSS, pas sur les
+  variables SCSS). Préférer un token CSS.
+- **Source des tokens** : `themes.css` est exclu (`ignoreFiles`) — c'est là que
+  les couleurs hex *doivent* vivre.
+
+**Si une couleur n'a vraiment aucun token** (cas rare, gap #136) : justifie-le en
+PR puis exécute `npm run lint:css:baseline` pour l'inscrire explicitement dans la
+baseline. Ne jamais désactiver la règle globalement ni ignorer un fichier entier.

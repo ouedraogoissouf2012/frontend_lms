@@ -1,0 +1,30 @@
+name: Lint
+
+# Anti-regression guard for hardcoded colors (issue #161).
+# Fails any PR / push that introduces a hardcoded hex color not present in
+# the committed baseline (.stylelint-color-baseline.json).
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev]
+
+jobs:
+  lint-css:
+    name: Stylelint (hardcoded colors)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint CSS (no new hardcoded colors)
+        run: npm run lint:css
