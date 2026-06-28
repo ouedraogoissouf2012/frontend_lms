@@ -79,15 +79,15 @@ defineEmits(['toggle'])
 
 /* Logo colors - Dark mode */
 :global(.dark) .logo-bg {
-  fill: #3B82F6;
+  fill: var(--blue-400);
 }
 
 :global(.dark) .logo-frame {
-  fill: #1F2937;
+  fill: var(--gray-800);
 }
 
 :global(.dark) .logo-letter {
-  fill: #60A5FA;
+  fill: var(--blue-500);
 }
 
 .logo-text {
