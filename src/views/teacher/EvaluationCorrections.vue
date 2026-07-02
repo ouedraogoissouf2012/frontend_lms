@@ -137,8 +137,8 @@ const {
 
 /* Error State */
 .error-state {
-  background: #fee;
-  border: 1px solid #fcc;
+  background: var(--correction-red-100);
+  border: 1px solid var(--correction-red-200);
   border-radius: 0.75rem;
   padding: 1.5rem;
   display: flex;
@@ -162,13 +162,13 @@ const {
 .error-title {
   font-size: 1rem;
   font-weight: 600;
-  color: #c00;
+  color: var(--correction-red-600);
   margin: 0 0 0.25rem 0;
 }
 
 .error-message {
   font-size: 0.875rem;
-  color: #900;
+  color: var(--correction-red-700);
   margin: 0;
 }
 

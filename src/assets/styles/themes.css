@@ -245,6 +245,19 @@
   --admin-gradient-from: #667eea;
   --admin-gradient-to: #764ba2;
 
+  /* Cyan — accent « évaluation » du calendrier (mode sombre). Theme-invariant.
+     Le triplet -rgb alimente les rgba() Sass — rgba(var(--cyan-500-rgb), a) —
+     car color-mix() n'est pas garanti sur la cible de build (Safari 14+). */
+  --cyan-500: #06b6d4;
+  --cyan-500-rgb: 6, 182, 212;
+
+  /* Navy profond FIXE — en-tête du calendrier FullCalendar en mode sombre.
+     Theme-invariant : ces valeurs SONT l'apparence sombre voulue. --blue-900-fixed
+     est le pendant fixe de --blue-900 (cf. convention --blue-*-fixed) ; --navy-950
+     est un navy plus profond (famille --navy-* des bleus profonds fixes). */
+  --blue-900-fixed: #0a1929;
+  --navy-950: #001e3c;
+
   /* ========================================
      SEMANTIC COLOR NAMESPACE (--color-*)
      Intention-revealing aliases. Solid accents point at the raw scale
