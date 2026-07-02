@@ -145,7 +145,7 @@ const isContentEmpty = (chapter) => isChapterContentEmpty(chapter, !!props.quiz)
 }
 
 .chapter-type-badge.video { background: rgba(239, 68, 68, 0.1); color: var(--red-400); }
-.chapter-type-badge.powerpoint { background: rgba(249, 115, 22, 0.1); color: #fb923c; }
+.chapter-type-badge.powerpoint { background: rgba(249, 115, 22, 0.1); color: var(--orange-400); }
 .chapter-type-badge.word { background: rgba(59, 130, 246, 0.1); color: var(--blue-400); }
 .chapter-type-badge.pdf { background: rgba(220, 38, 38, 0.1); color: var(--red-400); }
 .chapter-type-badge.link { background: rgba(139, 92, 246, 0.1); color: var(--violet-400); }

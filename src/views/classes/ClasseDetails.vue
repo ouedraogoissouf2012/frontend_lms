@@ -105,7 +105,7 @@ const {
 /* Loading & Error States */
 div[class*="bg-red-50"] {
   background: #fef2f2 !important;
-  border: 1px solid #fca5a5;
+  border: 1px solid var(--error-border);
   border-radius: 0.75rem;
   padding: 1.5rem;
   text-align: center;
@@ -186,16 +186,16 @@ button[class*="bg-red-600"]:hover {
 }
 /* Badge styles */
 :deep(span[class*="bg-blue-100"]) {
-  background: #dbeafe !important;
-  color: #1e40af !important;
+  background: var(--blue-100) !important;
+  color: var(--info-text) !important;
   padding: 0.25rem 0.5rem;
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 600;
 }
 :deep(span[class*="bg-green-100"]) {
-  background: #dcfce7 !important;
-  color: #166534 !important;
+  background: var(--success-bg) !important;
+  color: var(--success-text) !important;
   padding: 0.25rem 0.5rem;
   border-radius: 9999px;
   font-size: 0.75rem;
@@ -217,8 +217,8 @@ button[class*="bg-red-600"]:hover {
   font-weight: 600;
 }
 :deep(span[class*="bg-yellow-100"]) {
-  background: #fef3c7 !important;
-  color: #92400e !important;
+  background: var(--warning-bg) !important;
+  color: var(--amber-800) !important;
 }
 /* Cards & Borders */
 :deep(div[class*="border-gray-200"]) {

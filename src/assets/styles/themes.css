@@ -203,8 +203,12 @@
   --green-500: #22c55e;
   --green-600: #16a34a;
 
-  /* Orange (Tailwind « orange ») — accent orange (#c2410c) des textes/badges
-     « text-orange-700 » du détail de séance. Theme-invariant. */
+  /* Orange (Tailwind « orange ») — accents orangés distincts de l'ambre.
+     400 (#fb923c) : pastille de type « PowerPoint » des chapitres, cohérente
+     avec les autres pastilles de type en --*-400.
+     700 (#c2410c) : textes/badges « text-orange-700 » du détail de séance.
+     Theme-invariant. */
+  --orange-400: #fb923c;
   --orange-700: #c2410c;
 
   /* Navy — bleus profonds FIXES de la bannière « lecture seule » des chapitres

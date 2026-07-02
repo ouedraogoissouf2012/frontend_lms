@@ -142,7 +142,7 @@ const {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--blue-500) 0%, #2563eb 100%);
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -170,7 +170,7 @@ const {
   gap: 1.5rem;
   padding: 1.5rem;
   background: #FEF2F2;
-  border: 1px solid #FCA5A5;
+  border: 1px solid var(--error-border);
   border-radius: 0.75rem;
   margin-bottom: 1.5rem;
 }
@@ -188,7 +188,7 @@ const {
 .error-title {
   font-size: 1.125rem;
   font-weight: 700;
-  color: #991B1B;
+  color: var(--error-text);
   margin: 0 0 0.5rem 0;
 }
 
