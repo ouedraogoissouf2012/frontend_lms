@@ -189,7 +189,7 @@ defineEmits(['show-participants', 'join'])
 }
 
 .open-jitsi-btn:hover {
-  background: #15803d;
+  background: var(--green-700);
 }
 
 .waiting-message {

@@ -181,7 +181,7 @@ defineEmits(['view'])
   margin-left: 0.5rem;
   font-size: 0.75rem;
   padding: 0.25rem 0.5rem;
-  background: linear-gradient(135deg, #4caf50, #8bc34a);
+  background: linear-gradient(135deg, var(--md-green-500), var(--md-light-green-500));
   color: white;
   border-radius: 12px;
   font-weight: 700;
@@ -199,37 +199,37 @@ defineEmits(['view'])
 }
 .type-devoir {
   background: rgba(33, 150, 243, 0.1);
-  color: #2196f3;
+  color: var(--md-blue-500);
 }
 .type-composition {
   background: rgba(156, 39, 176, 0.1);
-  color: #9c27b0;
+  color: var(--md-purple-500);
 }
 .type-interrogation {
   background: rgba(255, 152, 0, 0.1);
-  color: #ff9800;
+  color: var(--md-orange-500);
 }
 .type-examen {
   background: rgba(244, 67, 54, 0.1);
-  color: #f44336;
+  color: var(--md-red-500);
 }
 .type-tp, .type-td {
   background: rgba(0, 150, 136, 0.1);
-  color: #009688;
+  color: var(--md-teal-500);
 }
 .type-qcm {
   background: rgba(103, 58, 183, 0.1);
-  color: #673ab7;
+  color: var(--md-deep-purple-500);
 }
 .note-value {
   font-weight: 700;
   font-size: 1.125rem;
 }
-.note-excellent { color: #4caf50; }
-.note-good { color: #8bc34a; }
-.note-average { color: #ff9800; }
-.note-below-average { color: #ff5722; }
-.note-fail { color: #f44336; }
+.note-excellent { color: var(--md-green-500); }
+.note-good { color: var(--md-light-green-500); }
+.note-average { color: var(--md-orange-500); }
+.note-below-average { color: var(--md-deep-orange-500); }
+.note-fail { color: var(--md-red-500); }
 .coefficient-badge {
   display: inline-block;
   background: var(--bg-tertiary);
