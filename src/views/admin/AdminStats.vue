@@ -131,7 +131,7 @@ const { loading, error, stats, meta, loadStats, refreshData } = useAdminStats()
 
 /* Info Card */
 .info-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--admin-gradient-from) 0%, var(--admin-gradient-to) 100%);
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
   box-shadow: var(--shadow-sm);

@@ -13,23 +13,23 @@
 }
 
 .note-excellent {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--green-100);
+  color: var(--green-800);
 }
 
 .note-good {
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--blue-100-fixed);
+  color: var(--blue-800-fixed);
 }
 
 .note-average {
-  background: #fef3c7;
+  background: var(--amber-100);
   color: #92400e;
 }
 
 .note-low {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--red-100);
+  color: var(--red-800);
 }
 
 .note-empty {
@@ -47,17 +47,17 @@
 }
 
 .status-submitted {
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--blue-100-fixed);
+  color: var(--blue-800-fixed);
 }
 
 .status-corrected {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--green-100);
+  color: var(--green-800);
 }
 
 .status-ongoing {
-  background: #fef3c7;
+  background: var(--amber-100);
   color: #92400e;
 }
 
