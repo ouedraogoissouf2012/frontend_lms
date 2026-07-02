@@ -210,11 +210,11 @@ defineProps({
 }
 
 /* Classes couleur (appliquées via getMoyenneClass sur .summary-moyenne) */
-.note-excellent { color: #4caf50; }
-.note-good { color: #8bc34a; }
-.note-average { color: #ff9800; }
-.note-below-average { color: #ff5722; }
-.note-fail { color: #f44336; }
+.note-excellent { color: var(--md-green-500); }
+.note-good { color: var(--md-light-green-500); }
+.note-average { color: var(--md-orange-500); }
+.note-below-average { color: var(--md-deep-orange-500); }
+.note-fail { color: var(--md-red-500); }
 
 /* Progress Bar (réutilisée ici) */
 .progress-bar {
@@ -232,11 +232,11 @@ defineProps({
   transition: width 0.5s ease;
 }
 
-.progress-fill.note-excellent { background: #4caf50; }
-.progress-fill.note-good { background: #8bc34a; }
-.progress-fill.note-average { background: #ff9800; }
-.progress-fill.note-below-average { background: #ff5722; }
-.progress-fill.note-fail { background: #f44336; }
+.progress-fill.note-excellent { background: var(--md-green-500); }
+.progress-fill.note-good { background: var(--md-light-green-500); }
+.progress-fill.note-average { background: var(--md-orange-500); }
+.progress-fill.note-below-average { background: var(--md-deep-orange-500); }
+.progress-fill.note-fail { background: var(--md-red-500); }
 
 /* Responsive */
 @media (max-width: 768px) {
