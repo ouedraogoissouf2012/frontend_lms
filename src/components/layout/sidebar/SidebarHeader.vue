@@ -66,7 +66,7 @@ defineEmits(['toggle'])
 
 /* Logo colors - Light mode */
 .logo-bg {
-  fill: #1E6FD9;
+  fill: var(--brand-blue-600);
 }
 
 .logo-frame {
@@ -74,7 +74,7 @@ defineEmits(['toggle'])
 }
 
 .logo-letter {
-  fill: #1E6FD9;
+  fill: var(--brand-blue-600);
 }
 
 /* Logo colors - Dark mode */

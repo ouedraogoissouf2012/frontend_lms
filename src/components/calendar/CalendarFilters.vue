@@ -108,7 +108,7 @@ defineEmits(['reset', 'apply-preset'])
 // Variables LMS nécessaires à ce composant (copie locale du sous-ensemble utilisé ;
 // les couleurs « système » passent par les CSS custom properties globales var(--…)).
 $lms-blue: #2563eb;
-$lms-blue-dark: #1e3a8a;
+$lms-blue-dark: var(--navy-900);
 $white: #ffffff;
 $transition-fast: all 0.2s ease;
 $border-radius-md: 6px;
