@@ -108,7 +108,7 @@ const {
 
 .welcome-icon {
   font-size: 2.5rem;
-  color: #3b82f6;
+  color: var(--blue-500-fixed);
 }
 
 .page-title {
@@ -138,7 +138,7 @@ const {
 
 .btn-retry {
   padding: 0.625rem 1.5rem;
-  background: #3b82f6;
+  background: var(--blue-500-fixed);
   color: white;
   border: none;
   border-radius: 8px;
