@@ -236,6 +236,29 @@
      voisin des --amber-800/--emerald déjà theme-invariant. */
   --brand-gold-700: #a16207;
 
+  /* Lot 3 (#136) — badges de note/statut & marque admin.
+     Puces FIXES (theme-invariant) des badges de correction (_correction-badges.scss) :
+     gèlent la valeur CLAIRE des tokens de statut adaptatifs (--success-bg/-text,
+     --warning-bg, --error-bg/-text) pour garder une parité byte-identique clair ET
+     sombre (fond clair + texte foncé, lisible dans les deux modes ; le texte ambre
+     voisin #92400e/--amber-800 est lui-même fixe). Noms Tailwind ; suffixe « -fixed »
+     là où le slot --blue-* est déjà theme-varying (cf. --blue-100/500-fixed). */
+  --green-100: #dcfce7;      /* .note-excellent/.status-corrected — fond (= --success-bg clair) */
+  --green-800: #166534;      /* .note-excellent/.status-corrected — texte (= --success-text clair) */
+  --amber-100: #fef3c7;      /* .note-average/.status-ongoing — fond (= --warning-bg clair) */
+  --red-100: #fee2e2;        /* .note-low — fond (= --error-bg clair) */
+  --red-800: #991b1b;        /* .note-low — texte (= --error-text clair) */
+  --blue-800-fixed: #1e40af; /* .note-good/.status-submitted — texte (pair de --blue-100-fixed) */
+
+  /* Vert « pelouse » (Tailwind green-700) — texte du badge « actif » des cartes
+     enseignant (TeacherClassCard .active-badge). Theme-invariant. */
+  --green-700: #15803d;
+
+  /* Admin — dégradé de marque de la carte d'info des statistiques (indigo → violet).
+     Valeurs fixes de marque : theme-invariant (identité visuelle constante). */
+  --admin-gradient-from: #667eea;
+  --admin-gradient-to: #764ba2;
+
   /* Cyan — accent « évaluation » du calendrier (mode sombre). Theme-invariant.
      Le triplet -rgb alimente les rgba() Sass — rgba(var(--cyan-500-rgb), a) —
      car color-mix() n'est pas garanti sur la cible de build (Safari 14+). */

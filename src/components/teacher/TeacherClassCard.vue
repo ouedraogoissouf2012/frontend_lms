@@ -138,7 +138,7 @@ defineProps({
   gap: 0.5rem;
   padding: 0.375rem 0.75rem;
   background: var(--success-bg);
-  color: #15803d;
+  color: var(--green-700);
   border-radius: 0.5rem;
   font-size: 0.75rem;
   font-weight: 600;
