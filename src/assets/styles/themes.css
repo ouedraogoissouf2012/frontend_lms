@@ -266,7 +266,6 @@
   /* Cyan — accent « évaluation » du calendrier (mode sombre). Theme-invariant.
      Le triplet -rgb alimente les rgba() Sass — rgba(var(--cyan-500-rgb), a) —
      car color-mix() n'est pas garanti sur la cible de build (Safari 14+). */
-  --cyan-500: #06b6d4;
   --cyan-500-rgb: 6, 182, 212;
 
   /* Navy profond FIXE — en-tête du calendrier FullCalendar en mode sombre.
@@ -278,12 +277,9 @@
 
   /* Accents theme-invariant additionnels (#136, lot 10). Contextes chrome
      SANS surcharge [data-theme] (rendu identique clair/sombre aujourd'hui) :
-     - green-700 : texte du badge de statut « publié » des cartes de leçon
-       (pendant fixe de --amber-800 sur le badge « brouillon »).
      - brand-blue-300/400 : dégradé d'en-tête bleu vif des tables admin (marque).
      - border-neutral : piste OFF des toggles (gris neutre).
      - md-red-500 : rouge Material des icônes d'erreur (hors échelle --red-*). */
-  --green-700: #15803d;
   --brand-blue-300: #5a9df2;
   --brand-blue-400: #4a90e2;
   --border-neutral: #cccccc;
