@@ -194,7 +194,7 @@ onMounted(() => {
   font-size: 48px;
   display: block;
   margin: 0 auto 1rem;
-  color: #f44336;
+  color: var(--md-red-500);
 }
 
 .btn-refresh {

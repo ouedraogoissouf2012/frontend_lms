@@ -79,7 +79,7 @@ defineEmits(['view'])
 
 /* Table Header - Style bleu vif comme l'exemple */
 .modern-table thead {
-  background: linear-gradient(135deg, #4a90e2 0%, #5a9df2 100%);
+  background: linear-gradient(135deg, var(--brand-blue-400) 0%, var(--brand-blue-300) 100%);
 }
 
 .modern-table thead tr {

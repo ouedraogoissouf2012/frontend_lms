@@ -141,7 +141,7 @@ function formatDate(dateString) {
 
 .status-published {
   background: var(--success-bg);
-  color: #15803d;
+  color: var(--green-700);
 }
 
 .status-draft {

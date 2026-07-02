@@ -136,7 +136,7 @@ const emit = defineEmits(['save'])
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #ccc;
+  background-color: var(--border-neutral);
   transition: 0.3s;
   border-radius: 26px;
 }

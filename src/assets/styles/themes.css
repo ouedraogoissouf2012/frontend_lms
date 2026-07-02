@@ -272,6 +272,19 @@
   --blue-900-fixed: #0a1929;
   --navy-950: #001e3c;
 
+  /* Accents theme-invariant additionnels (#136, lot 10). Contextes chrome
+     SANS surcharge [data-theme] (rendu identique clair/sombre aujourd'hui) :
+     - green-700 : texte du badge de statut « publié » des cartes de leçon
+       (pendant fixe de --amber-800 sur le badge « brouillon »).
+     - brand-blue-300/400 : dégradé d'en-tête bleu vif des tables admin (marque).
+     - border-neutral : piste OFF des toggles (gris neutre).
+     - md-red-500 : rouge Material des icônes d'erreur (hors échelle --red-*). */
+  --green-700: #15803d;
+  --brand-blue-300: #5a9df2;
+  --brand-blue-400: #4a90e2;
+  --border-neutral: #cccccc;
+  --md-red-500: #f44336;
+
   /* ========================================
      SEMANTIC COLOR NAMESPACE (--color-*)
      Intention-revealing aliases. Solid accents point at the raw scale
