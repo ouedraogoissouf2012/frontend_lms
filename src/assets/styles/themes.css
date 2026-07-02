@@ -289,6 +289,30 @@
   --border-neutral: #cccccc;
   --md-red-500: #f44336;
 
+  /* Material Design palette (lot 6, #136) — accents « note/barème » des cartes
+     de résumé élève (GradesSummary). Échelle Material 500, theme-invariant
+     (--md-red-500 déjà déclaré plus haut pour les icônes d'erreur). */
+  --md-green-500: #4caf50;
+  --md-light-green-500: #8bc34a;
+  --md-deep-orange-500: #ff5722;
+  --md-orange-500: #ff9800;
+
+  /* Slate (Tailwind « slate », lot 6) — surfaces sombres fixes : fond de carte
+     propre au mode sombre (ForumTopic .bg-gray-750/.bg-gray-50) et fond de
+     scène visio (VideoConference). Theme-invariant. */
+  --slate-800: #2d3748;
+  --slate-900: #1a202c;
+
+  /* Rouge fixe (lot 6) — bordure de l'alerte .error-state de
+     SeanceAttendanceHistory (voisins codés en dur sans variante sombre ⇒ fixe,
+     pas --error-border adaptatif). Complète l'échelle avec --red-800 (déjà là). */
+  --red-300: #fca5a5;
+
+  /* Triplet RGB de --blue-500-fixed (#3b82f6), pour rgba(var(--blue-500-rgb), a)
+     dans le SCSS de CalendarNavigation (mode sombre) — même convention que
+     --cyan-500-rgb (color-mix non garanti sur la cible Safari 14+). */
+  --blue-500-rgb: 59, 130, 246;
+
   /* ========================================
      SEMANTIC COLOR NAMESPACE (--color-*)
      Intention-revealing aliases. Solid accents point at the raw scale

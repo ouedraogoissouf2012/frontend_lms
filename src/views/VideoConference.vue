@@ -187,6 +187,6 @@ export default {
 
 <style scoped>
 #jitsi-container {
-  background-color: #1a202c;
+  background-color: var(--slate-900);
 }
 </style>

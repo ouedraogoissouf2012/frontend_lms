@@ -77,7 +77,7 @@ html[data-theme="dark"] .light-mode-card {
 
 /* Custom background for better contrast in dark mode */
 html[data-theme="dark"] .bg-gray-750 {
-  background-color: #2d3748 !important;
+  background-color: var(--slate-800) !important;
 }
 
 /* Force backgrounds for response cards */
@@ -87,7 +87,7 @@ html:not([data-theme="dark"]) .bg-gray-50 {
 }
 
 html[data-theme="dark"] .bg-gray-50 {
-  background-color: #2d3748 !important;
+  background-color: var(--slate-800) !important;
 }
 
 /* Textarea styling - FORCE visible text in all modes */

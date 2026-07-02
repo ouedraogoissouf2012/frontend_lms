@@ -206,14 +206,13 @@ $border-radius-lg: 8px;
 
 <!-- Styles mode sombre non-scoped pour fonctionner avec data-theme -->
 <style lang="scss">
-$lms-blue-light: #3b82f6;
 $white: #ffffff;
 
 // ========== DARK MODE ==========
 html[data-theme="dark"] {
   .navigation-card {
     .nav-button {
-      border-color: rgba($lms-blue-light, 0.5);
+      border-color: rgba(var(--blue-500-rgb), 0.5);
       color: $white;
       background: transparent;
 
@@ -222,12 +221,12 @@ html[data-theme="dark"] {
       }
 
       &:hover {
-        background: rgba($lms-blue-light, 0.3);
-        border-color: $lms-blue-light;
-        color: $lms-blue-light;
+        background: rgba(var(--blue-500-rgb), 0.3);
+        border-color: var(--blue-500-fixed);
+        color: var(--blue-500-fixed);
 
         .material-icons {
-          color: $lms-blue-light !important;
+          color: var(--blue-500-fixed) !important;
         }
       }
     }
@@ -236,17 +235,17 @@ html[data-theme="dark"] {
       color: $white;
 
       .material-icons {
-        color: $lms-blue-light;
+        color: var(--blue-500-fixed);
       }
     }
 
     .today-button {
-      border-color: $lms-blue-light;
+      border-color: var(--blue-500-fixed);
       color: $white;
-      background: rgba($lms-blue-light, 0.2);
+      background: rgba(var(--blue-500-rgb), 0.2);
 
       &:hover {
-        background: $lms-blue-light;
+        background: var(--blue-500-fixed);
         color: $white;
 
         .material-icons {
