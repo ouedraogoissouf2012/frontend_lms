@@ -186,6 +186,42 @@
   --black: #000000;
   --white: #ffffff;
 
+  /* Green (Tailwind « green ») — accent vert distinct de l'emerald
+     (#16a34a/#22c55e) : boutons d'action « success » des cartes de séance.
+     Theme-invariant (sémantique d'action constante en clair/sombre). */
+  --green-500: #22c55e;
+  --green-600: #16a34a;
+
+  /* Orange (Tailwind « orange ») — accent orange (#c2410c) des textes/badges
+     « text-orange-700 » du détail de séance. Theme-invariant. */
+  --orange-700: #c2410c;
+
+  /* Navy — bleus profonds FIXES de la bannière « lecture seule » des chapitres
+     (valeurs Tailwind blue-800/blue-900). Gardés theme-invariant : la bannière
+     est un bloc cohérent (cf. --blue-*-fixed) dont le rendu ne doit pas changer
+     en sombre (texte foncé sur fond clair conservé). */
+  --navy-800: #1e40af;
+  --navy-900: #1e3a8a;
+
+  /* Bleus de marque FIXES — variantes theme-invariant du --blue-* adaptatif,
+     pour les contextes à sémantique de couleur constante : boutons primaires,
+     badges d'état, bannière « lecture seule ». (Convention « *-fixed »,
+     CONTRIBUTING §4.) */
+  --blue-100-fixed: #dbeafe;
+  --blue-500-fixed: #3b82f6;
+
+  /* Correction (rouge « stylo prof ») — palette FIXE de l'encart d'erreur des
+     séances enseignant : fond #fee, bordure #fcc, titre #c00, message #900.
+     Theme-invariant (alerte à sémantique constante). */
+  --correction-red-100: #ffeeee;
+  --correction-red-200: #ffcccc;
+  --correction-red-600: #cc0000;
+  --correction-red-700: #990000;
+
+  /* Or de marque foncé (#a16207) — message d'échec des résultats de quiz,
+     voisin des --amber-800/--emerald déjà theme-invariant. */
+  --brand-gold-700: #a16207;
+
   /* ========================================
      SEMANTIC COLOR NAMESPACE (--color-*)
      Intention-revealing aliases. Solid accents point at the raw scale
@@ -378,7 +414,7 @@
   --blue-800: #dbeafe;
   --blue-900: #eff6ff;
 
-  /* Brand (KLASSCI) — variantes dark, alignées sur l'échelle --blue-*/--amber-*
+  /* Brand (KLASSCI) — variantes dark, alignées sur l'échelle --blue-* / --amber-*
      du thème (source unique). Valeurs identiques au rendu dark actuel des
      loaders : navy→bleu clair, gold→ambre, blue→bleu pâle. */
   --brand-navy: var(--blue-500);

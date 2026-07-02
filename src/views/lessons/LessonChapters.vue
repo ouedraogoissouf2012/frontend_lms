@@ -86,8 +86,8 @@ const {
   align-items: flex-start;
   gap: 1rem;
   padding: 1rem 1.25rem;
-  background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
-  border: 2px solid #3b82f6;
+  background: linear-gradient(135deg, var(--blue-100-fixed) 0%, #e0e7ff 100%);
+  border: 2px solid var(--blue-500-fixed);
   border-radius: 12px;
   margin-bottom: 1.5rem;
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
@@ -104,7 +104,7 @@ const {
 
 .notice-content strong {
   display: block;
-  color: #1e40af;
+  color: var(--navy-800);
   font-size: 1rem;
   font-weight: 700;
   margin-bottom: 0.25rem;
@@ -112,7 +112,7 @@ const {
 
 .notice-content p {
   margin: 0;
-  color: #1e3a8a;
+  color: var(--navy-900);
   font-size: 0.875rem;
   line-height: 1.5;
 }

@@ -112,7 +112,7 @@ defineEmits(['retry', 'close'])
 }
 
 .results-message {
-  color: #a16207;
+  color: var(--brand-gold-700);
   margin: 0;
 }
 

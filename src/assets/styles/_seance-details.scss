@@ -64,7 +64,7 @@ button:disabled {
 .bg-blue-100,
 .bg-blue-50 {
   background: rgba(59, 130, 246, 0.1) !important;
-  color: #3b82f6 !important;
+  color: var(--blue-500-fixed) !important;
   border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
@@ -98,7 +98,7 @@ button:disabled {
 
 /* Text colors orange */
 .text-orange-700 {
-  color: #c2410c !important;
+  color: var(--orange-700) !important;
 }
 
 /* Borders */
