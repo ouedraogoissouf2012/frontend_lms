@@ -90,7 +90,7 @@ const { user, dashboardData, loading, error, loadDashboard } = useStudentDashboa
   gap: 1.5rem;
   padding: 1.5rem;
   background: #FEF2F2;
-  border: 1px solid #FCA5A5;
+  border: 1px solid var(--error-border);
   border-radius: 0.75rem;
   margin-bottom: 1.5rem;
 }

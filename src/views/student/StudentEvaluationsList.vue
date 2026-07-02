@@ -215,12 +215,12 @@ const {
 }
 
 .btn-start {
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  background: linear-gradient(135deg, var(--green-500) 0%, var(--green-600) 100%);
   color: white;
 }
 
 .btn-start:hover {
-  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  background: linear-gradient(135deg, var(--green-600) 0%, var(--green-700) 100%);
   transform: translateY(-1px);
 }
 

@@ -166,12 +166,12 @@ const {
    via :global, ils ciblent EnseignantDetailModal rendu dans cette vue). */
 :global(.dark) .badge-filiere {
   background: rgba(59, 130, 246, 0.2);
-  color: #93c5fd;
+  color: var(--info-text);
 }
 
 :global(.dark) .badge-niveau {
   background: rgba(251, 191, 36, 0.2);
-  color: #fde047;
+  color: var(--warning-text);
 }
 
 /* Responsive */
