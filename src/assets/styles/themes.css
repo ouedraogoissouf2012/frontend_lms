@@ -292,6 +292,14 @@
   --md-light-green-500: #8bc34a;
   --md-deep-orange-500: #ff5722;
   --md-orange-500: #ff9800;
+  --md-teal-500: #009688;
+  --md-blue-500: #2196f3;
+  --md-deep-purple-500: #673ab7;
+  --md-purple-500: #9c27b0;
+
+  /* Orange 200 (Tailwind, lot 2) — fond de puce d'alerte de presence
+     (AttendanceModalTable). Theme-invariant. */
+  --orange-200: #fed7aa;
 
   /* Slate (Tailwind « slate », lot 6) — surfaces sombres fixes : fond de carte
      propre au mode sombre (ForumTopic .bg-gray-750/.bg-gray-50) et fond de
@@ -308,6 +316,9 @@
      dans le SCSS de CalendarNavigation (mode sombre) — même convention que
      --cyan-500-rgb (color-mix non garanti sur la cible Safari 14+). */
   --blue-500-rgb: 59, 130, 246;
+  /* Triplet RGB de --navy-900 (#1e3a8a), pour rgba(var(--navy-900-rgb), a) dans
+     le SCSS de CalendarViewSelector (ombre de l'onglet actif, lot 2). */
+  --navy-900-rgb: 30, 58, 138;
 
   /* ========================================
      SEMANTIC COLOR NAMESPACE (--color-*)

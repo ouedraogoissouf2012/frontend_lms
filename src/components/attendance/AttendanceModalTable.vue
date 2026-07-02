@@ -184,7 +184,7 @@ function formatDuration(minutes) {
 
 /* Partiel - Orange (50-79%) */
 .status-badge.status-partial {
-  background: #FED7AA;
+  background: var(--orange-200);
   color: var(--amber-800);
 }
 
