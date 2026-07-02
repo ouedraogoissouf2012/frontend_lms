@@ -169,7 +169,7 @@ const {
   width: 3rem;
   height: 3rem;
   border: 4px solid var(--border-primary);
-  border-top-color: #3b82f6;
+  border-top-color: var(--blue-500);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }

@@ -12,7 +12,7 @@
 
 // Couleurs LMS pour le mode sombre
 $lms-blue: #2563eb;
-$lms-blue-light: #3b82f6;
+$lms-blue-light: rgb(59, 130, 246); // #3b82f6 : garde une couleur Sass (consommee par rgba() plus bas ; var() impossible) sans hex (guard color-no-hex OK)
 $white: #ffffff;
 
 html[data-theme="dark"] {

@@ -30,7 +30,7 @@
 }
 
 .btn-primary {
-  background: #3b82f6;
+  background: var(--blue-500-fixed);
   color: white;
 }
 
@@ -39,12 +39,12 @@
 }
 
 .btn-success {
-  background: #22c55e;
+  background: var(--green-500);
   color: white;
 }
 
 .btn-success:hover:not(:disabled) {
-  background: #16a34a;
+  background: var(--green-600);
 }
 
 .btn-danger {
