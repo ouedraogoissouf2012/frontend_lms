@@ -178,7 +178,7 @@ export default {
 }
 
 .progress-yellow {
-  background: linear-gradient(90deg, #facc15 0%, #eab308 100%);
+  background: linear-gradient(90deg, var(--yellow-400) 0%, var(--yellow-500) 100%);
 }
 
 .progress-red {
@@ -190,6 +190,6 @@ export default {
 }
 
 .progress-gradient {
-  background: linear-gradient(90deg, #06b6d4 0%, var(--blue-500) 50%, var(--violet-500) 100%);
+  background: linear-gradient(90deg, var(--cyan-500) 0%, var(--blue-500) 50%, var(--violet-500) 100%);
 }
 </style>

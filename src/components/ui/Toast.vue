@@ -155,7 +155,7 @@ export default {
 /* Success Toast */
 .toast-success {
   border-left-color: var(--emerald-500);
-  background: #F0FDF4;
+  background: var(--green-50);
 }
 
 .toast-success .toast-icon {
