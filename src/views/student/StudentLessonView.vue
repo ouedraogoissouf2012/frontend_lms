@@ -169,7 +169,7 @@ const {
 
 .progress-fill-top {
   height: 100%;
-  background: linear-gradient(90deg, var(--blue-500), #10b981);
+  background: linear-gradient(90deg, var(--blue-500), var(--emerald-500));
   border-radius: 3px;
   transition: width 0.5s ease;
 }
@@ -177,7 +177,7 @@ const {
 .progress-label {
   font-size: 0.8rem;
   font-weight: 700;
-  color: #10b981;
+  color: var(--emerald-500);
   min-width: 2.5rem;
   text-align: right;
 }

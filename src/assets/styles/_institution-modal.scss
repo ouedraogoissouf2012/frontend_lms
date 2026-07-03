@@ -90,7 +90,7 @@
   border: 1px solid var(--border-color);
 }
 .modal-btn-primary {
-  background: linear-gradient(135deg, var(--blue-500-fixed), #2563eb);
+  background: linear-gradient(135deg, var(--blue-500-fixed), var(--color-info-strong));
   color: white;
 }
 .modal-btn-primary:hover:not(:disabled) {
