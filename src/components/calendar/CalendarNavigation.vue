@@ -50,8 +50,6 @@ defineEmits(['previous', 'next', 'today', 'refresh', 'change-view'])
 
 <style lang="scss" scoped>
 // Variables LMS nécessaires à ce composant (copie locale du sous-ensemble utilisé).
-$lms-blue: #2563eb;
-$white: #ffffff;
 $transition-fast: all 0.2s ease;
 $border-radius-md: 6px;
 $border-radius-lg: 8px;
@@ -97,11 +95,11 @@ $border-radius-lg: 8px;
 
       &:hover {
         background: var(--bg-hover);
-        border-color: $lms-blue;
-        color: $lms-blue;
+        border-color: var(--color-info-strong);
+        color: var(--color-info-strong);
 
         .material-icons {
-          color: $lms-blue;
+          color: var(--color-info-strong);
         }
       }
     }
@@ -114,11 +112,11 @@ $border-radius-lg: 8px;
       gap: 0.75rem;
       font-size: 1.5rem;
       font-weight: 600;
-      color: $lms-blue;
+      color: var(--color-info-strong);
       text-transform: capitalize;
 
       .material-icons {
-        color: $lms-blue;
+        color: var(--color-info-strong);
       }
     }
 
@@ -126,8 +124,8 @@ $border-radius-lg: 8px;
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      border: 1px solid $lms-blue;
-      color: $lms-blue;
+      border: 1px solid var(--color-info-strong);
+      color: var(--color-info-strong);
       padding: 0.5rem 1rem;
       border-radius: $border-radius-md;
       background: transparent;
@@ -136,11 +134,11 @@ $border-radius-lg: 8px;
       cursor: pointer;
 
       &:hover {
-        background: $lms-blue;
-        color: $white;
+        background: var(--color-info-strong);
+        color: var(--white);
 
         .material-icons {
-          color: $white;
+          color: var(--white);
         }
       }
     }
@@ -160,10 +158,10 @@ $border-radius-lg: 8px;
 
       &:hover:not(:disabled) {
         background: var(--emerald-500);
-        color: $white;
+        color: var(--white);
 
         .material-icons {
-          color: $white;
+          color: var(--white);
         }
       }
 
@@ -206,18 +204,17 @@ $border-radius-lg: 8px;
 
 <!-- Styles mode sombre non-scoped pour fonctionner avec data-theme -->
 <style lang="scss">
-$white: #ffffff;
 
 // ========== DARK MODE ==========
 html[data-theme="dark"] {
   .navigation-card {
     .nav-button {
       border-color: rgba(var(--blue-500-rgb), 0.5);
-      color: $white;
+      color: var(--white);
       background: transparent;
 
       .material-icons {
-        color: $white !important;
+        color: var(--white) !important;
       }
 
       &:hover {
@@ -232,7 +229,7 @@ html[data-theme="dark"] {
     }
 
     .current-month {
-      color: $white;
+      color: var(--white);
 
       .material-icons {
         color: var(--blue-500-fixed);
@@ -241,15 +238,15 @@ html[data-theme="dark"] {
 
     .today-button {
       border-color: var(--blue-500-fixed);
-      color: $white;
+      color: var(--white);
       background: rgba(var(--blue-500-rgb), 0.2);
 
       &:hover {
         background: var(--blue-500-fixed);
-        color: $white;
+        color: var(--white);
 
         .material-icons {
-          color: $white;
+          color: var(--white);
         }
       }
     }

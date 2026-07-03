@@ -38,8 +38,6 @@ defineExpose({
 
 <style lang="scss" scoped>
 // Variables LMS nécessaires à ce composant (copie locale du sous-ensemble utilisé).
-$lms-blue: #2563eb;
-$white: #ffffff;
 $shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.1);
 $transition-fast: all 0.2s ease;
 $border-radius-lg: 8px;
@@ -72,7 +70,7 @@ $border-radius-lg: 8px;
 
   .material-icons {
     font-size: 3rem;
-    color: $lms-blue;
+    color: var(--color-info-strong);
     margin-bottom: 1rem;
 
     &.spin {
@@ -104,8 +102,8 @@ $border-radius-lg: 8px;
   }
 
   .fc-button-primary {
-    background: $lms-blue;
-    border-color: $lms-blue;
+    background: var(--color-info-strong);
+    border-color: var(--color-info-strong);
     transition: $transition-fast;
 
     &:hover:not(:disabled) {
@@ -114,7 +112,7 @@ $border-radius-lg: 8px;
     }
 
     &:focus {
-      box-shadow: 0 0 0 3px rgba($lms-blue, 0.2);
+      box-shadow: 0 0 0 3px rgba(var(--color-info-strong-rgb), 0.2);
     }
   }
 
@@ -124,7 +122,7 @@ $border-radius-lg: 8px;
     border-color: var(--blue-700);
 
     .fc-col-header-cell-cushion {
-      color: $white;
+      color: var(--white);
       font-weight: 600;
       padding: 0.75rem 0.5rem;
     }
@@ -146,23 +144,23 @@ $border-radius-lg: 8px;
 
   // Jour actuel (aujourd'hui)
   .fc-daygrid-day.fc-day-today {
-    background: linear-gradient(135deg, rgba($lms-blue, 0.15) 0%, rgba($lms-blue, 0.08) 100%);
-    border: 2px solid $lms-blue;
+    background: linear-gradient(135deg, rgba(var(--color-info-strong-rgb), 0.15) 0%, rgba(var(--color-info-strong-rgb), 0.08) 100%);
+    border: 2px solid var(--color-info-strong);
 
     .fc-daygrid-day-number {
-      color: $lms-blue;
+      color: var(--color-info-strong);
       font-weight: 700;
     }
   }
 
   // Ligne de l'heure actuelle (time grid)
   .fc-timegrid-now-indicator-line {
-    border-color: $lms-blue;
+    border-color: var(--color-info-strong);
     border-width: 2px;
   }
 
   .fc-timegrid-now-indicator-arrow {
-    border-color: $lms-blue;
+    border-color: var(--color-info-strong);
   }
 
   .fc-timegrid-slot {

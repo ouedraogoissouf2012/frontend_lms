@@ -107,9 +107,7 @@ defineEmits(['reset', 'apply-preset'])
 <style lang="scss" scoped>
 // Variables LMS nécessaires à ce composant (copie locale du sous-ensemble utilisé ;
 // les couleurs « système » passent par les CSS custom properties globales var(--…)).
-$lms-blue: #2563eb;
 $lms-blue-dark: var(--navy-900);
-$white: #ffffff;
 $transition-fast: all 0.2s ease;
 $border-radius-md: 6px;
 $border-radius-lg: 8px;
@@ -138,7 +136,7 @@ $border-radius-full: 9999px;
       gap: 0.75rem;
 
       .material-icons {
-        color: $lms-blue;
+        color: var(--color-info-strong);
         font-size: 1.5rem;
       }
 
@@ -146,7 +144,7 @@ $border-radius-full: 9999px;
         margin: 0;
         font-size: 1.1rem;
         font-weight: 600;
-        color: $lms-blue;
+        color: var(--color-info-strong);
       }
     }
 
@@ -165,7 +163,7 @@ $border-radius-full: 9999px;
 
       &:hover {
         background: var(--bg-hover);
-        color: $lms-blue;
+        color: var(--color-info-strong);
       }
     }
   }
@@ -191,7 +189,7 @@ $border-radius-full: 9999px;
 
         .icon-label {
           font-size: 1.125rem;
-          color: $lms-blue;
+          color: var(--color-info-strong);
         }
       }
 
@@ -216,8 +214,8 @@ $border-radius-full: 9999px;
 
         &:focus {
           outline: none;
-          border-color: $lms-blue;
-          box-shadow: 0 0 0 3px rgba($lms-blue, 0.1);
+          border-color: var(--color-info-strong);
+          box-shadow: 0 0 0 3px rgba(var(--color-info-strong-rgb), 0.1);
         }
       }
     }
@@ -229,13 +227,13 @@ $border-radius-full: 9999px;
       padding: 0.75rem 1.5rem;
       background: $lms-blue-dark;
       border-radius: $border-radius-full;
-      color: $white;
+      color: var(--white);
       font-weight: 600;
       white-space: nowrap;
       justify-self: end;
 
       .material-icons {
-        color: $white;
+        color: var(--white);
         font-size: 1.25rem;
       }
     }

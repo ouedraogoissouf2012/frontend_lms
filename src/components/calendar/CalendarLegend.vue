@@ -35,7 +35,6 @@
 
 <style lang="scss" scoped>
 // Variables LMS nécessaires à ce composant (copie locale du sous-ensemble utilisé).
-$lms-blue: #2563eb;
 $border-radius-lg: 8px;
 
 // ========== CARD BASE ==========
@@ -58,10 +57,10 @@ $border-radius-lg: 8px;
     margin: 0 0 1rem 0;
     font-size: 1.1rem;
     font-weight: 600;
-    color: $lms-blue;
+    color: var(--color-info-strong);
 
     .material-icons {
-      color: $lms-blue;
+      color: var(--color-info-strong);
       font-size: 1.5rem;
     }
   }
@@ -98,17 +97,15 @@ $border-radius-lg: 8px;
 
 <!-- Styles mode sombre non-scoped pour fonctionner avec data-theme -->
 <style lang="scss">
-$lms-blue-light: #3b82f6;
-$white: #ffffff;
 
 // ========== DARK MODE ==========
 html[data-theme="dark"] {
   .legend-card {
     h3 {
-      color: $white;
+      color: var(--white);
 
       .material-icons {
-        color: $lms-blue-light;
+        color: var(--blue-500-fixed);
       }
     }
 

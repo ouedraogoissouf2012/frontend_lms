@@ -324,6 +324,16 @@
   /* Triplet RGB de --navy-900 (#1e3a8a), pour rgba(var(--navy-900-rgb), a) dans
      le SCSS de CalendarViewSelector (ombre de l'onglet actif, lot 2). */
   --navy-900-rgb: 30, 58, 138;
+  /* Triplet RGB de --white (#ffffff), pour rgba(var(--white-rgb), a) dans le
+     SCSS mode sombre du calendrier (bloc A, #136). */
+  --white-rgb: 255, 255, 255;
+  /* Triplet RGB de --color-info-strong (#2563eb), pour
+     rgba(var(--color-info-strong-rgb), a) dans le SCSS mode sombre du
+     calendrier (bloc A, #136). */
+  --color-info-strong-rgb: 37, 99, 235;
+  /* Triplet RGB de --red-500 (#ef4444), pour rgba(var(--red-500-rgb), a) dans
+     le SCSS mode sombre du calendrier (bloc A, #136). */
+  --red-500-rgb: 239, 68, 68;
 
   /* ========================================
      SEMANTIC COLOR NAMESPACE (--color-*)

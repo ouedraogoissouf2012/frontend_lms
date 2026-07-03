@@ -9,17 +9,6 @@
 // FullCalendar). Aucune règle modifiée — relocalisation pure.
 // =============================================================================
 
-// Couleurs LMS pour le mode sombre.
-// NB (tokenisation #136) : ces deux accents restent des variables SCSS car ils
-// alimentent des fonctions de couleur Sass (rgba()/linear-gradient()) dans ce
-// bloc exclusivement sombre. Un token CSS (var(--blue-500-fixed)) ne peut pas
-// entrer dans un rgba() Sass, et le token adaptatif --blue-500 vaudrait #60a5fa
-// en sombre. $lms-blue (#2563eb) n'a de plus aucun token exact (lacune #136).
-// Le cyan/navy plus bas sont, eux, tokenises.
-$lms-blue: #2563eb;
-$lms-blue-light: #3b82f6;
-$white: #ffffff;
-
 html[data-theme="dark"] {
   // Calendrier en mode sombre
   .calendar-card {
@@ -27,33 +16,33 @@ html[data-theme="dark"] {
   }
 
   .loading-container {
-    color: rgba($white, 0.7);
+    color: rgba(var(--white-rgb), 0.7);
 
     .material-icons {
-      color: $lms-blue-light;
+      color: var(--blue-500-fixed);
     }
 
     p {
-      color: rgba($white, 0.7);
+      color: rgba(var(--white-rgb), 0.7);
     }
   }
 
   // FullCalendar en mode sombre
   .fc {
-    color: $white;
+    color: var(--white);
 
     .fc-button-primary {
-      background: linear-gradient(135deg, $lms-blue-light 0%, $lms-blue 100%);
-      border-color: $lms-blue-light;
-      color: $white;
+      background: linear-gradient(135deg, var(--blue-500-fixed) 0%, var(--color-info-strong) 100%);
+      border-color: var(--blue-500-fixed);
+      color: var(--white);
 
       &:hover:not(:disabled) {
-        background: $lms-blue;
-        border-color: $lms-blue;
+        background: var(--color-info-strong);
+        border-color: var(--color-info-strong);
       }
 
       &:focus {
-        box-shadow: 0 0 0 3px rgba($lms-blue-light, 0.3);
+        box-shadow: 0 0 0 3px rgba(var(--blue-500-rgb), 0.3);
       }
     }
 
@@ -62,7 +51,7 @@ html[data-theme="dark"] {
       border-color: var(--navy-950) !important;
 
       .fc-col-header-cell-cushion {
-        color: $white !important;
+        color: var(--white) !important;
         font-weight: 600;
       }
     }
@@ -79,11 +68,11 @@ html[data-theme="dark"] {
     }
 
     .fc-daygrid-day.fc-day-today {
-      background: linear-gradient(135deg, rgba($lms-blue-light, 0.3) 0%, rgba($lms-blue-light, 0.15) 100%) !important;
-      border: 2px solid $lms-blue-light !important;
+      background: linear-gradient(135deg, rgba(var(--blue-500-rgb), 0.3) 0%, rgba(var(--blue-500-rgb), 0.15) 100%) !important;
+      border: 2px solid var(--blue-500-fixed) !important;
 
       .fc-daygrid-day-number {
-        color: $lms-blue-light !important;
+        color: var(--blue-500-fixed) !important;
         font-weight: 700;
       }
     }
@@ -98,11 +87,11 @@ html[data-theme="dark"] {
     }
 
     .fc-timegrid-now-indicator-line {
-      border-color: $lms-blue-light;
+      border-color: var(--blue-500-fixed);
     }
 
     .fc-timegrid-now-indicator-arrow {
-      border-color: $lms-blue-light;
+      border-color: var(--blue-500-fixed);
     }
 
     // Événements en mode sombre
@@ -112,20 +101,20 @@ html[data-theme="dark"] {
     }
 
     .event-seance {
-      background: rgba($lms-blue, 0.9);
-      border-color: $lms-blue;
-      color: $white;
+      background: rgba(var(--color-info-strong-rgb), 0.9);
+      border-color: var(--color-info-strong);
+      color: var(--white);
 
       &:hover {
-        background: $lms-blue;
-        box-shadow: 0 2px 8px rgba($lms-blue, 0.5);
+        background: var(--color-info-strong);
+        box-shadow: 0 2px 8px rgba(var(--color-info-strong-rgb), 0.5);
       }
     }
 
     .event-evaluation {
       background: rgba(var(--cyan-500-rgb), 0.9);
       border-color: var(--cyan-500);
-      color: $white;
+      color: var(--white);
       font-weight: 600;
 
       &:hover {
@@ -135,13 +124,13 @@ html[data-theme="dark"] {
     }
 
     .event-urgent {
-      background: #ef4444 !important;
-      border-color: #ef4444 !important;
-      color: $white !important;
+      background: var(--red-500) !important;
+      border-color: var(--red-500) !important;
+      color: var(--white) !important;
       animation: pulse-urgent-dark 2s infinite;
 
       &:hover {
-        box-shadow: 0 2px 8px rgba(#ef4444, 0.5);
+        box-shadow: 0 2px 8px rgba(var(--red-500-rgb), 0.5);
       }
     }
 
