@@ -68,11 +68,11 @@ onMounted(init)
 /* Force proper backgrounds for BOTH modes - Using data-theme attribute */
 html[data-theme="light"] .light-mode-card,
 html:not([data-theme="dark"]) .light-mode-card {
-  background-color: #ffffff !important;
+  background-color: var(--white) !important;
 }
 
 html[data-theme="dark"] .light-mode-card {
-  background-color: #1f2937 !important;
+  background-color: var(--gray-800) !important;
 }
 
 /* Custom background for better contrast in dark mode */
@@ -83,7 +83,7 @@ html[data-theme="dark"] .bg-gray-750 {
 /* Force backgrounds for response cards */
 html[data-theme="light"] .bg-gray-50,
 html:not([data-theme="dark"]) .bg-gray-50 {
-  background-color: #f9fafb !important;
+  background-color: var(--gray-50) !important;
 }
 
 html[data-theme="dark"] .bg-gray-50 {
@@ -93,23 +93,23 @@ html[data-theme="dark"] .bg-gray-50 {
 /* Textarea styling - FORCE visible text in all modes */
 html[data-theme="light"] .forum-textarea,
 html:not([data-theme="dark"]) .forum-textarea {
-  background-color: #ffffff !important;
-  color: #1f2937 !important;
+  background-color: var(--white) !important;
+  color: var(--gray-800) !important;
 }
 
 html[data-theme="dark"] .forum-textarea {
-  background-color: #374151 !important;
-  color: #f3f4f6 !important;
+  background-color: var(--gray-700) !important;
+  color: var(--gray-100) !important;
 }
 
 html[data-theme="light"] .forum-textarea::placeholder,
 html:not([data-theme="dark"]) .forum-textarea::placeholder {
-  color: #9ca3af !important;
+  color: var(--gray-400) !important;
   opacity: 1;
 }
 
 html[data-theme="dark"] .forum-textarea::placeholder {
-  color: #9ca3af !important;
+  color: var(--gray-400) !important;
   opacity: 1;
 }
 
@@ -133,40 +133,40 @@ textarea:disabled {
 /* Text styling - FORCE visible text in all modes */
 html[data-theme="light"] .forum-title,
 html:not([data-theme="dark"]) .forum-title {
-  color: #1f2937 !important;
+  color: var(--gray-800) !important;
 }
 
 html[data-theme="dark"] .forum-title {
-  color: #ffffff !important;
+  color: var(--white) !important;
 }
 
 html[data-theme="light"] .forum-text,
 html:not([data-theme="dark"]) .forum-text {
-  color: #374151 !important;
+  color: var(--gray-700) !important;
 }
 
 html[data-theme="dark"] .forum-text {
-  color: #e5e7eb !important;
+  color: var(--gray-200) !important;
 }
 
 /* Light mode text colors */
 html[data-theme="light"] .text-gray-800,
 html:not([data-theme="dark"]) .text-gray-800 {
-  color: #1f2937 !important;
+  color: var(--gray-800) !important;
 }
 
 html[data-theme="light"] .text-gray-600,
 html:not([data-theme="dark"]) .text-gray-600 {
-  color: #4b5563 !important;
+  color: var(--gray-600) !important;
 }
 
 html[data-theme="light"] .text-gray-500,
 html:not([data-theme="dark"]) .text-gray-500 {
-  color: #6b7280 !important;
+  color: var(--gray-500) !important;
 }
 
 html[data-theme="light"] .text-gray-400,
 html:not([data-theme="dark"]) .text-gray-400 {
-  color: #9ca3af !important;
+  color: var(--gray-400) !important;
 }
 </style>
