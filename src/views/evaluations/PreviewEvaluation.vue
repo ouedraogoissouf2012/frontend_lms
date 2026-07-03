@@ -136,7 +136,7 @@ const {
 
 /* Bandeau prévisualisation */
 .preview-banner {
-  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  background: linear-gradient(135deg, var(--violet-500) 0%, var(--indigo-500) 100%);
   border-radius: var(--radius-lg);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
