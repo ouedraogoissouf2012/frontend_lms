@@ -89,7 +89,7 @@ const { user, dashboardData, loading, error, loadDashboard } = useStudentDashboa
   align-items: center;
   gap: 1.5rem;
   padding: 1.5rem;
-  background: #FEF2F2;
+  background: var(--red-50);
   border: 1px solid var(--error-border);
   border-radius: 0.75rem;
   margin-bottom: 1.5rem;
@@ -97,7 +97,7 @@ const { user, dashboardData, loading, error, loadDashboard } = useStudentDashboa
 
 .error-icon {
   font-size: 2rem;
-  color: #DC2626;
+  color: var(--red-600);
   flex-shrink: 0;
 }
 
@@ -113,13 +113,13 @@ const { user, dashboardData, loading, error, loadDashboard } = useStudentDashboa
 }
 
 .error-message {
-  color: #B91C1C;
+  color: var(--red-700);
   margin: 0;
 }
 
 .error-retry-btn {
   padding: 0.75rem 1.5rem;
-  background: #DC2626;
+  background: var(--red-600);
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -130,7 +130,7 @@ const { user, dashboardData, loading, error, loadDashboard } = useStudentDashboa
 }
 
 .error-retry-btn:hover {
-  background: #B91C1C;
+  background: var(--red-700);
   transform: scale(1.02);
 }
 

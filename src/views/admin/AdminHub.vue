@@ -208,10 +208,10 @@ const { loading, stats } = useAdminHub()
 }
 
 .text-orange-500 {
-  color: #f59e0b;
+  color: var(--amber-500);
 }
 
 .text-green-500 {
-  color: #10b981;
+  color: var(--emerald-500);
 }
 </style>

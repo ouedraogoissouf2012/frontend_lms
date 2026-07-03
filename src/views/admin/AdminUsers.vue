@@ -151,7 +151,7 @@ const {
 
 .error-icon {
   font-size: 3rem;
-  color: #ef4444;
+  color: var(--red-500);
   margin-bottom: var(--spacing-lg);
 }
 
