@@ -61,8 +61,8 @@ const statusBadge = computed(() => getStatusBadge(props.lesson.status))
 }
 
 .badge-projet {
-  background: #fce7f3;
-  color: #be123c;
+  background: var(--pink-100);
+  color: var(--rose-700);
 }
 
 .badge-autre {

@@ -152,6 +152,11 @@
   --purple-800: #6b21a8;
   --purple-900: #581c87;
 
+  /* Pink/Rose (Tailwind) — badge « projet » des LessonCard (fond pink-100,
+     texte rose-700). Theme-invariant comme les autres accents Tailwind. */
+  --pink-100: #fce7f3;
+  --rose-700: #be123c;
+
   /* Sky — cyan/info-adjacent accent (#0ea5e9 &c.); recurring sky tones
      (badges « visio/permissions », dégradés d'en-tête) sans équivalent
      dans le --blue-* de marque (azure). */

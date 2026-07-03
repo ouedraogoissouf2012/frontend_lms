@@ -251,7 +251,7 @@ defineEmits(['start', 'end', 'activate'])
 }
 
 .btn-join:hover {
-  background: linear-gradient(135deg, var(--color-success-strong) 0%, #15803d 100%);
+  background: linear-gradient(135deg, var(--color-success-strong) 0%, var(--green-700) 100%);
   transform: scale(1.02);
 }
 
