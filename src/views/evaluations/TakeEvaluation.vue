@@ -120,7 +120,7 @@ const {
 
 .error-icon {
   font-size: 3rem;
-  color: #ef4444;
+  color: var(--red-500);
   margin-bottom: 1rem;
 }
 
@@ -135,7 +135,7 @@ const {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: #ef4444;
+  background: var(--red-500);
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -145,6 +145,6 @@ const {
 }
 
 .btn-back-error:hover {
-  background: #dc2626;
+  background: var(--red-600);
 }
 </style>

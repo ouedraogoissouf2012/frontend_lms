@@ -24,7 +24,7 @@
 
 .note-average {
   background: var(--amber-100);
-  color: #92400e;
+  color: var(--amber-800);
 }
 
 .note-low {
@@ -58,12 +58,12 @@
 
 .status-ongoing {
   background: var(--amber-100);
-  color: #92400e;
+  color: var(--amber-800);
 }
 
 .status-not-taken {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--gray-100);
+  color: var(--gray-500);
 }
 
 .attempt-badge {

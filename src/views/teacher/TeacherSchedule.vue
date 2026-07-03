@@ -172,7 +172,7 @@ async function handleEventAction({ type, data }) {
   font-size: 2.5rem;
   line-height: 1;
   flex-shrink: 0;
-  color: #2563eb;
+  color: var(--color-info-strong);
 }
 
 .page-title {
