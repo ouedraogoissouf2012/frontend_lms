@@ -213,12 +213,12 @@ const {
 }
 
 .btn-danger {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--red-500) 0%, var(--red-600) 100%);
   color: white;
 }
 
 .btn-danger:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  background: linear-gradient(135deg, var(--red-600) 0%, var(--red-700) 100%);
   transform: scale(1.02);
 }
 
