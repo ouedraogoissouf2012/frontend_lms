@@ -43,7 +43,6 @@ defineEmits(['change-view'])
 
 <style lang="scss" scoped>
 // Variables LMS nécessaires à ce composant (copie locale du sous-ensemble utilisé).
-$white: #ffffff;
 $transition-fast: all 0.2s ease;
 $border-radius-md: 6px;
 $border-radius-lg: 8px;
@@ -77,12 +76,12 @@ $border-radius-lg: 8px;
 
     &.active {
       background: var(--navy-900);
-      color: $white;
+      color: var(--white);
       font-weight: 600;
       box-shadow: 0 2px 4px rgba(var(--navy-900-rgb), 0.2);
 
       .material-icons {
-        color: $white;
+        color: var(--white);
       }
     }
   }
@@ -98,8 +97,6 @@ $border-radius-lg: 8px;
 
 <!-- Styles mode sombre non-scoped pour fonctionner avec data-theme -->
 <style lang="scss">
-$lms-blue: #2563eb;
-$white: #ffffff;
 
 // ========== DARK MODE ==========
 html[data-theme="dark"] {
@@ -108,19 +105,19 @@ html[data-theme="dark"] {
     border-color: var(--border-primary);
 
     button {
-      color: rgba($white, 0.7);
+      color: rgba(var(--white-rgb), 0.7);
 
       &:hover {
         background: rgba(var(--blue-500-rgb), 0.3);
-        color: $white;
+        color: var(--white);
       }
 
       &.active {
-        background: linear-gradient(135deg, var(--blue-500-fixed) 0%, $lms-blue 100%);
-        color: $white;
+        background: linear-gradient(135deg, var(--blue-500-fixed) 0%, var(--color-info-strong) 100%);
+        color: var(--white);
 
         .material-icons {
-          color: $white;
+          color: var(--white);
         }
       }
     }
