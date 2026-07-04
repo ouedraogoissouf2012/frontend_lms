@@ -36,13 +36,14 @@ Exemples:
     </div>
 
     <div v-show="showPreview" class="preview-panel">
-      <div v-if="content" v-html="content" class="preview-content"></div>
+      <div v-if="content" v-html="safeContent" class="preview-content"></div>
       <div v-else class="preview-empty">Aucun contenu à prévisualiser</div>
     </div>
   </div>
 </template>
 
 <script setup>
+import { useSanitizedHtml } from '@/composables/useSanitizedHtml'
 /**
  * Éditeur de contenu HTML (texte/mixte) de LessonEditor (#H4 ≤300) : onglets
  * Éditer/Prévisualiser, textarea code + rendu v-html. Contenu en v-model (defineModel) ;
@@ -52,6 +53,8 @@ import { ref } from 'vue'
 
 const content = defineModel({ type: String, default: '' })
 const showPreview = ref(false)
+
+const safeContent = useSanitizedHtml(content)
 </script>
 
 <style scoped>

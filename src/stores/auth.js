@@ -18,9 +18,11 @@ import {
  * à ce store. Les getters d'autorisation dérivent de src/constants/roles.js (#18),
  * jamais réimplémentés.
  *
- * Persistance : sessionStorage (mécanisme unique, pas localStorage → atténuation XSS
- * #2/#6). sessionStorage survit au rechargement (F5) mais est effacé à la fermeture
- * de l'onglet et n'est pas partagé entre onglets — compromis de sécurité assumé.
+ * NB SECURITE : sessionStorage est LISIBLE par JavaScript — ce n'est PAS une
+ * attenuation XSS (un XSS lit le token comme en localStorage). La vraie
+ * protection est un cookie HttpOnly + Secure + SameSite emis par le backend
+ * (DETTE tracee : migration front+back). Choix actuel : sessionStorage, efface a
+ * la fermeture d'onglet, non partage entre onglets.
  *
  * Anti-cycle ESM : ce module importe UNIQUEMENT l'instance axios `default` de api.js
  * au top-level (utilisée seulement dans les actions, à l'exécution). api.js importe

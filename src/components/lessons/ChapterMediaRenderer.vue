@@ -14,7 +14,7 @@
         <div v-else class="video-fallback">
           <i class="fa fa-play-circle"></i>
           <p>Vidéo non intégrable</p>
-          <a :href="chapter.video_url" target="_blank" class="btn-external-video">
+          <a :href="safeUrl(chapter.video_url)" target="_blank" rel="noopener noreferrer" class="btn-external-video">
             <i class="fa fa-external-link"></i> Ouvrir la vidéo
           </a>
         </div>
@@ -47,7 +47,7 @@
           <h3>Ressource externe</h3>
           <p class="link-url">{{ chapter.external_link }}</p>
         </div>
-        <a :href="chapter.external_link" target="_blank" rel="noopener" class="btn-open-link">
+        <a :href="safeUrl(chapter.external_link)" target="_blank" rel="noopener noreferrer" class="btn-open-link">
           Ouvrir <i class="fa fa-arrow-right"></i>
         </a>
       </div>
@@ -56,6 +56,7 @@
 </template>
 
 <script setup>
+import { safeUrl } from '@/utils/security/safeUrl'
 /**
  * Rendu des chapitres média/ressource externe (#H4 ≤300) : vidéo (iframe embed),
  * PDF (viewer) et lien externe. Logique d'URL déléguée à utils/lessonContent.
