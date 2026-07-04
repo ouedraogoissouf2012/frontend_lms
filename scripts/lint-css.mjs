@@ -24,6 +24,9 @@ import process from 'node:process'
 import stylelint from 'stylelint'
 
 import { buildBaseline, diffAgainstBaseline } from './lib/colorRatchet.mjs'
+import {
+  extractColor, isFallbackHex, serializeBaseline, totalCount, assertValidBaseline,
+} from './lib/colorGuardHelpers.mjs'
 
 const REPO_ROOT = process.cwd()
 const BASELINE_FILE = path.join(REPO_ROOT, '.stylelint-color-baseline.json')
@@ -33,24 +36,6 @@ const RULE = 'color-no-hex'
 /** Repo-relative POSIX path so the committed baseline is OS-portable (CI is Linux). */
 function toRelPosix(absPath) {
   return path.relative(REPO_ROOT, absPath).split(path.sep).join('/')
-}
-
-/** Pull the offending hex out of a color-no-hex message: `Disallowed hex color "#abc"`. */
-function extractColor(text) {
-  const m = text.match(/"(#[0-9a-fA-F]{3,8})"/)
-  return m ? m[1] : null
-}
-
-const FALLBACK_RE = /var\(\s*--[A-Za-z0-9_-]+\s*,\s*(#[0-9a-fA-F]{3,8})/gd
-
-/** True when the hex at `column` (1-based) is the fallback value of a var(--token, #hex). */
-function isFallbackHex(sourceLine, column) {
-  if (!sourceLine) return false
-  const hexStart = column - 1
-  for (const match of sourceLine.matchAll(FALLBACK_RE)) {
-    if (match.indices?.[1]?.[0] === hexStart) return true
-  }
-  return false
 }
 
 async function collectViolations() {
@@ -85,28 +70,14 @@ async function collectViolations() {
   return violations
 }
 
-/** Deterministic, sorted JSON so the committed baseline diffs cleanly. */
-function serializeBaseline(baseline) {
-  const sorted = {}
-  for (const file of Object.keys(baseline).sort()) {
-    sorted[file] = {}
-    for (const color of Object.keys(baseline[file]).sort()) {
-      sorted[file][color] = baseline[file][color]
-    }
-  }
-  return JSON.stringify(sorted, null, 2) + '\n'
-}
-
 function loadBaseline() {
   if (!existsSync(BASELINE_FILE)) return null
-  return JSON.parse(readFileSync(BASELINE_FILE, 'utf8'))
-}
-
-function totalCount(baseline) {
-  return Object.values(baseline).reduce(
-    (sum, perFile) => sum + Object.values(perFile).reduce((s, n) => s + n, 0),
-    0,
-  )
+  // FAIL CLOSED: a corrupted baseline (bad JSON, wrong shape, non-integer
+  // counts) aborts the run with exit 1 instead of silently widening the
+  // allowance. assertValidBaseline throws with a precise reason.
+  const parsed = JSON.parse(readFileSync(BASELINE_FILE, 'utf8'))
+  assertValidBaseline(parsed)
+  return parsed
 }
 
 async function main() {
