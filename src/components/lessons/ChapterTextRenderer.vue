@@ -2,24 +2,27 @@
   <div>
     <!-- TEXT / MARKDOWN -->
     <div v-if="chapter.content_type === 'text' && chapter.content" class="content-block content-text">
-      <div class="rendered-html" v-html="chapter.content"></div>
+      <div class="rendered-html" v-html="safeContent"></div>
     </div>
 
     <!-- WORD (HTML content) -->
     <div v-if="chapter.content_type === 'word' && chapter.content" class="content-block content-word">
-      <div class="rendered-html word-document" v-html="chapter.content"></div>
+      <div class="rendered-html word-document" v-html="safeContent"></div>
     </div>
   </div>
 </template>
 
 <script setup>
+import { useSanitizedHtml } from '@/composables/useSanitizedHtml'
 /**
  * Rendu des chapitres texte / Word (#H4 ≤300) : HTML enrichi via v-html. Présentationnel,
  * données via la prop `chapter`. CSS rendered-html (:deep) déplacé verbatim.
  */
-defineProps({
+const props = defineProps({
   chapter: { type: Object, required: true }
 })
+
+const safeContent = useSanitizedHtml(() => props.chapter?.content)
 </script>
 
 <style scoped>

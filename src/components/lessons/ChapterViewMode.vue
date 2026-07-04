@@ -12,7 +12,7 @@
     </p>
 
     <!-- Affichage du contenu Word (HTML) -->
-    <div v-if="chapter.content && chapter.content_type === 'word'" class="chapter-word-content" v-html="chapter.content"></div>
+    <div v-if="chapter.content && chapter.content_type === 'word'" class="chapter-word-content" v-html="safeWordContent"></div>
 
     <!-- Affichage du Quiz -->
     <div v-if="chapter.content_type === 'quiz' && chapter.id" class="chapter-quiz-view">
@@ -60,6 +60,7 @@
 </template>
 
 <script setup>
+import { useSanitizedHtml } from '@/composables/useSanitizedHtml'
 /**
  * Mode lecture d'un chapitre (#28, tranche 2).
  * Sous-composant de présentation extrait de ChapterManager.vue (le mode édition,
@@ -69,7 +70,7 @@
 import { getChapterContentTypeLabel, getChapterContentPreview } from '@/utils/chapterContent'
 import knowledgeCheckService from '@/services/knowledgeCheck'
 
-defineProps({
+const props = defineProps({
   chapter: { type: Object, required: true },
   // Quiz du chapitre (ou null) — résolu par le parent depuis knowledgeChecks.
   quiz: { type: Object, default: null },
@@ -81,6 +82,8 @@ defineEmits(['open-quiz-player', 'open-quiz-editor'])
 function getQuizScoreBadge(q) {
   return knowledgeCheckService.getScoreBadge(q.user_best_score || 0, q.passing_score)
 }
+
+const safeWordContent = useSanitizedHtml(() => props.chapter?.content)
 </script>
 
 <style scoped>
