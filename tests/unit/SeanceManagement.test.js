@@ -21,9 +21,13 @@ vi.mock('@/stores/auth', () => ({
 }))
 vi.mock('@/services/toast', () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() } }))
 vi.mock('@/services/errorHandler', () => ({ normalizeError: () => ({ userMessage: 'err' }) }))
-vi.mock('@/constants/visio', () => ({ buildJitsiUrl: (r) => `jitsi://${r}` }))
-vi.mock('@/composables/useVisioParticipation', () => ({
-  useVisioParticipation: () => ({ joinVisio: vi.fn(), leaveVisio: vi.fn() })
+vi.mock('@/constants/visio', () => ({
+  buildJitsiUrl: (r) => `jitsi://${r}`,
+  getVisioRoomId: (source) => source?.visio_room_id || source?.room_id || source?.visio?.room_id || null,
+  requireVisioRoomId: (source) => source?.visio_room_id || source?.room_id || source?.visio?.room_id || 'room-test'
+}))
+vi.mock('@/composables/useTrackedVisioJoin', () => ({
+  useTrackedVisioJoin: () => ({ joinTrackedVisio: vi.fn() })
 }))
 
 import SeanceManagement from '@/views/coordinateur/SeanceManagement.vue'

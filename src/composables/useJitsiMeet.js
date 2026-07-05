@@ -1,6 +1,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import lmsService from '@/services/lms'
-import { jitsiExternalApiSrc, getJitsiDomain, VISIO_CONFIG } from '@/constants/visio'
+import { useVisioHeartbeat } from '@/composables/useVisioHeartbeat'
+import { jitsiExternalApiSrc, getJitsiDomain } from '@/constants/visio'
 
 /**
  * Couche logique de JitsiMeet (#h13 ≤300) : chargement dynamique du script
@@ -8,12 +9,8 @@ import { jitsiExternalApiSrc, getJitsiDomain, VISIO_CONFIG } from '@/constants/v
  * de conférence (join/leave/readyToClose/participants), heartbeat d'activité et
  * nettoyage au démontage. Le composant ne fait plus que câbler refs + overlays.
  *
- * Note de parité : le heartbeat reste un `setInterval` inline VERBATIM (mêmes
- * logs, même intervalle `VISIO_CONFIG.HEARTBEAT_INTERVAL_MS`). On ne réutilise
- * volontairement PAS `useVisioHeartbeat` ici : ce dernier instancie un Web
- * Worker et envoie un ping immédiat au démarrage, ce qui modifierait le
- * comportement observable. La parité stricte prime (dette : duplication assumée
- * du moteur de heartbeat, à mutualiser plus tard si parité revue).
+ * Le heartbeat utilise le moteur partagé `useVisioHeartbeat` pour éviter un
+ * second setInterval divergent entre l'iframe Jitsi et le flux popup/store.
  *
  * @param {Object} opts
  * @param {import('vue').Ref<number>}  opts.seanceId  - id de la séance (réactif via toRef côté vue)
@@ -35,6 +32,15 @@ export function useJitsiMeet({ seanceId, jitsiLink, userName, userEmail, emit })
   const isLoading = ref(true)
   const error = ref(null)
   const hasJoined = ref(false)
+
+  const { start: startHeartbeat, stop: stopHeartbeat } = useVisioHeartbeat({
+    getSeanceId: () => seanceId.value,
+    isActive: () => hasJoined.value,
+    onParticipationLost: () => {
+      hasJoined.value = false
+    },
+    logPrefix: '[JitsiMeet]'
+  })
 
   /**
    * Extraire le nom de la room depuis le lien Jitsi
@@ -203,47 +209,6 @@ export function useJitsiMeet({ seanceId, jitsiLink, userName, userEmail, emit })
     jitsiApi.value.addEventListener('participantLeft', (event) => {
       console.log('[JitsiMeet] 👋 Participant quitté:', event)
     })
-  }
-
-  /**
-   * Système de heartbeat automatique
-   */
-  let heartbeatInterval = null
-
-  const startHeartbeat = () => {
-    stopHeartbeat() // Arrêter tout heartbeat existant
-
-    // Heartbeat toutes les 30 secondes
-    heartbeatInterval = setInterval(async () => {
-      if (!hasJoined.value) {
-        stopHeartbeat()
-        return
-      }
-
-      try {
-        await lmsService.heartbeatVisio(seanceId.value)
-        console.log(`[JitsiMeet] 💓 Heartbeat envoyé (séance ${seanceId.value})`)
-      } catch (error) {
-        console.error('[JitsiMeet] Erreur heartbeat:', error)
-
-        // Si 404, la participation n'existe plus, arrêter le heartbeat
-        if (error.response?.status === 404) {
-          console.warn('[JitsiMeet] ⚠️ Participation non trouvée, arrêt heartbeat')
-          stopHeartbeat()
-          hasJoined.value = false
-        }
-      }
-    }, VISIO_CONFIG.HEARTBEAT_INTERVAL_MS)
-
-    console.log('[JitsiMeet] 💓 Heartbeat démarré (ping toutes les 30s)')
-  }
-
-  const stopHeartbeat = () => {
-    if (heartbeatInterval) {
-      clearInterval(heartbeatInterval)
-      heartbeatInterval = null
-      console.log('[JitsiMeet] 💔 Heartbeat arrêté')
-    }
   }
 
   /**

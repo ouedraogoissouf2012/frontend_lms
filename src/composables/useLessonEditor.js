@@ -167,15 +167,15 @@ export function useLessonEditor() {
   }
 
   const loadChapters = async () => {
+    if (!isEditMode.value) {
+      chapters.value = []
+      return
+    }
+
     try {
       loadingChapters.value = true
-      const params = {}
 
-      if (form.value.matiere_id) {
-        params.matiere_id = form.value.matiere_id
-      }
-
-      const response = await chapterService.getChapters(params)
+      const response = await chapterService.getChapters(route.params.id)
 
       if (response && response.success) {
         chapters.value = response.data || []

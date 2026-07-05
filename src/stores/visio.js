@@ -210,31 +210,18 @@ export const useVisioStore = defineStore('visio', () => {
    * Gérer la sortie de l'enseignant (appelé par watchVisioWindow)
    */
   const handleTeacherExit = () => {
+    const closedSeanceId = activeSeanceId.value
+
     // Se déconnecter d'abord
     leaveVisio()
 
-    // Si enseignant : proposer de fermer la séance pour tous (#19 : user via store)
+    // Le store reste sans UI native : les écrans dédiés exposent l'action
+    // "terminer pour tous" avec confirmation modale avant d'appeler endVisio().
     const role = useAuthStore().currentUser?.role
     if (role === 'enseignant' || role === 'teacher') {
-      // Utiliser setTimeout pour s'assurer que leaveVisio() est terminé
-      setTimeout(() => {
-        const shouldEnd = confirm(
-          '🎓 Voulez-vous terminer la séance pour tous les participants ?\n\n' +
-          '✅ OUI : La séance sera fermée pour tout le monde\n' +
-          '❌ NON : Vous êtes déconnecté mais la séance reste ouverte'
-        )
-
-        if (shouldEnd && activeSeanceId.value) {
-          console.log('[VisioStore] 🔚 Fermeture de la séance pour tous')
-          lmsService.endVisio(activeSeanceId.value)
-            .then(() => {
-              console.log('[VisioStore] ✅ Séance fermée avec succès')
-            })
-            .catch((error) => {
-              console.error('[VisioStore] ❌ Erreur fermeture séance:', error)
-            })
-        }
-      }, 500)
+      window.dispatchEvent(new CustomEvent('visio:teacher-left', {
+        detail: { seanceId: closedSeanceId }
+      }))
     }
   }
 

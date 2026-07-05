@@ -1,18 +1,21 @@
 /**
  * Test de MONTAGE de la vue TeacherClasses (G10 — script déjà < 300, vérif parité).
  *
- * Cache vide → fetch ; monte sans erreur et appelle getClasses() + getMatieres().
+ * Cache vide → fetch ; monte sans erreur et appelle le dashboard enseignant.
  */
 import { mount, flushPromises } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const getClasses = vi.fn()
 const getMatieres = vi.fn()
+const getTeacherDashboard = vi.fn()
+const getClasseEtudiants = vi.fn()
 vi.mock('@/services/klassci', () => ({
   klassciService: {
     getClasses: (...a) => getClasses(...a),
     getMatieres: (...a) => getMatieres(...a),
-    getClasseEtudiants: vi.fn().mockResolvedValue([])
+    getTeacherDashboard: (...a) => getTeacherDashboard(...a),
+    getClasseEtudiants: (...a) => getClasseEtudiants(...a)
   },
   default: {}
 }))
@@ -38,16 +41,22 @@ describe('TeacherClasses (G10) — montage', () => {
   beforeEach(() => {
     getClasses.mockReset()
     getMatieres.mockReset()
+    getTeacherDashboard.mockReset()
+    getClasseEtudiants.mockReset()
     getClasses.mockResolvedValue([])
     getMatieres.mockResolvedValue([])
+    getTeacherDashboard.mockResolvedValue({ classes: [], matieres: [] })
+    getClasseEtudiants.mockResolvedValue([])
   })
 
-  it('monte sans erreur et charge classes + matières au montage', async () => {
+  it('monte sans erreur et charge les classes rattachees au montage', async () => {
     const w = mountView()
     await flushPromises()
 
     expect(w.find('.classes-container').exists()).toBe(true)
-    expect(getClasses).toHaveBeenCalled()
-    expect(getMatieres).toHaveBeenCalled()
+    expect(getTeacherDashboard).toHaveBeenCalled()
+    expect(getClasses).not.toHaveBeenCalled()
+    expect(getMatieres).not.toHaveBeenCalled()
+    expect(getClasseEtudiants).not.toHaveBeenCalled()
   })
 })

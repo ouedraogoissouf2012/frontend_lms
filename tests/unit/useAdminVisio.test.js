@@ -105,6 +105,32 @@ describe('useAdminVisio (#G1)', () => {
     expect(v.formatTime(null)).toBe('N/A')
   })
 
+  it('normalise les variantes de room et ouvre Jitsi avec la room résolue', async () => {
+    const open = vi.fn()
+    vi.stubGlobal('open', open)
+    getSeances.mockResolvedValue({
+      success: true,
+      data: [{
+        id: 10,
+        visio_enabled: true,
+        matiere: { nom: 'SVT' },
+        classe: { name: '3e A' },
+        enseignant: { nom: 'Diallo', prenom: 'Awa' },
+        date_debut: iso(-3600 * 1000),
+        date_fin: iso(3600 * 1000),
+        visio: { room_id: 'nested-room' },
+      }]
+    })
+
+    const v = await setup()
+    const visio = v.visioconferences.value[0]
+
+    expect(visio.room_id).toBe('nested-room')
+    v.joinVisio(visio)
+    expect(open).toHaveBeenCalledWith(expect.stringContaining('/nested-room'), '_blank')
+    vi.unstubAllGlobals()
+  })
+
   it('expose une erreur quand le service échoue', async () => {
     getSeances.mockResolvedValue({ success: false, message: 'Boom' })
     const v = await setup()

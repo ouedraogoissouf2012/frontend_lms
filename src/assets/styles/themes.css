@@ -308,7 +308,7 @@
 
   /* Slate (Tailwind « slate », lot 6) — surfaces sombres fixes : fond de carte
      propre au mode sombre (ForumTopic .bg-gray-750/.bg-gray-50) et fond de
-     scène visio (VideoConference). Theme-invariant. */
+     scène visio Jitsi. Theme-invariant. */
   --slate-800: #2d3748;
   --slate-900: #1a202c;
 

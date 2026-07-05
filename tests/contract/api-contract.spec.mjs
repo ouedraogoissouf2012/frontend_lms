@@ -72,6 +72,12 @@ export const contractCases = [
     method: 'POST', url: '/lessons/3/chapters',
   },
   {
+    name: 'R9.1 — chapter.getChapters(lessonId) → GET /lessons/{lessonId}/chapters',
+    _req: 'R9.1', _ek: '#30',
+    run: () => chapterService.getChapters(3),
+    method: 'GET', url: '/lessons/3/chapters',
+  },
+  {
     name: 'R10 — chapter.reorderChapters(lessonId, chapters) → POST /lessons/{lessonId}/chapters/reorder',
     _req: 'R10', _ek: 'Ék-9',
     run: () => chapterService.reorderChapters(3, [{ id: 1, order: 0 }]),
@@ -148,6 +154,12 @@ export const edgeCases = [
     mustThrow: true,
   },
   {
+    name: 'R9.4 — getChapters(null) lève sans requête',
+    _req: 'R9.4', _ek: '#30',
+    run: () => chapterService.getChapters(null),
+    mustThrow: true,
+  },
+  {
     name: 'R10.2 — reorderChapters(undefined, list) lève sans requête',
     _req: 'R10.2', _ek: 'Ék-9',
     run: () => chapterService.reorderChapters(undefined, [{ id: 1, order: 0 }]),
@@ -164,7 +176,7 @@ const DEAD_PATH_MATCHERS = [
   { label: '/notifications/read-all', test: (u) => u === '/notifications/read-all' },
   { label: '/evaluations/{id}/sync-to-klassci', test: (u) => /\/sync-to-klassci$/.test(u) },
   { label: '/proxy/search', test: (u) => u === '/proxy/search' },
-  { label: '/chapters (sans segment leçon)', test: (u) => u === '/chapters' },
+  { label: '/chapters (sans segment leçon)', test: (u) => u === '/chapters' || u.startsWith('/chapters?') },
   { label: '/chapters/reorder (sans segment leçon)', test: (u) => u === '/chapters/reorder' },
 ]
 

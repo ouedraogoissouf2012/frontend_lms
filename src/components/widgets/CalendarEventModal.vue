@@ -1,65 +1,61 @@
 <template>
-  <div class="event-modal-overlay" @click="$emit('close')">
-    <div class="event-modal" @click.stop>
-      <div class="modal-header">
-        <h3 class="modal-title">{{ event.title }}</h3>
-        <button class="close-btn" @click="$emit('close')">
-          <XMarkIcon class="w-5 h-5" />
-        </button>
-      </div>
-      <div class="modal-body">
-        <div class="event-detail">
-          <ClockIcon class="detail-icon" />
-          <div>
-            <p class="detail-label">Horaire</p>
-            <p class="detail-value">
-              {{ formatEventTime(event.start) }}
-              <template v-if="event.end">
-                - {{ formatEventTime(event.end) }}
-              </template>
-            </p>
-          </div>
-        </div>
-
-        <div v-if="event.extendedProps.classe" class="event-detail">
-          <BuildingLibraryIcon class="detail-icon" />
-          <div>
-            <p class="detail-label">Classe</p>
-            <p class="detail-value">{{ event.extendedProps.classe }}</p>
-          </div>
-        </div>
-
-        <div v-if="event.extendedProps.matiere" class="event-detail">
-          <BookOpenIcon class="detail-icon" />
-          <div>
-            <p class="detail-label">Matière</p>
-            <p class="detail-value">{{ event.extendedProps.matiere }}</p>
-          </div>
-        </div>
-
-        <div v-if="event.extendedProps.enseignant" class="event-detail">
-          <UserIcon class="detail-icon" />
-          <div>
-            <p class="detail-label">Enseignant</p>
-            <p class="detail-value">{{ event.extendedProps.enseignant }}</p>
-          </div>
-        </div>
-
-        <div v-if="event.extendedProps.description" class="event-detail">
-          <InformationCircleIcon class="detail-icon" />
-          <div>
-            <p class="detail-label">Description</p>
-            <p class="detail-value">{{ event.extendedProps.description }}</p>
-          </div>
-        </div>
-      </div>
-      <div v-if="event.extendedProps.url" class="modal-footer">
-        <button class="action-btn primary" @click="$emit('go')">
-          Voir les détails
-        </button>
+  <Modal
+    :model-value="true"
+    :title="event.title"
+    size="md"
+    @close="$emit('close')"
+  >
+    <div class="event-detail">
+      <ClockIcon class="detail-icon" />
+      <div>
+        <p class="detail-label">Horaire</p>
+        <p class="detail-value">
+          {{ formatEventTime(event.start) }}
+          <template v-if="event.end">
+            - {{ formatEventTime(event.end) }}
+          </template>
+        </p>
       </div>
     </div>
-  </div>
+
+    <div v-if="event.extendedProps.classe" class="event-detail">
+      <BuildingLibraryIcon class="detail-icon" />
+      <div>
+        <p class="detail-label">Classe</p>
+        <p class="detail-value">{{ event.extendedProps.classe }}</p>
+      </div>
+    </div>
+
+    <div v-if="event.extendedProps.matiere" class="event-detail">
+      <BookOpenIcon class="detail-icon" />
+      <div>
+        <p class="detail-label">Matière</p>
+        <p class="detail-value">{{ event.extendedProps.matiere }}</p>
+      </div>
+    </div>
+
+    <div v-if="event.extendedProps.enseignant" class="event-detail">
+      <UserIcon class="detail-icon" />
+      <div>
+        <p class="detail-label">Enseignant</p>
+        <p class="detail-value">{{ event.extendedProps.enseignant }}</p>
+      </div>
+    </div>
+
+    <div v-if="event.extendedProps.description" class="event-detail">
+      <InformationCircleIcon class="detail-icon" />
+      <div>
+        <p class="detail-label">Description</p>
+        <p class="detail-value">{{ event.extendedProps.description }}</p>
+      </div>
+    </div>
+
+    <template v-if="event.extendedProps.url" #footer>
+      <BaseButton class="action-btn primary" @click="$emit('go')">
+        Voir les détails
+      </BaseButton>
+    </template>
+  </Modal>
 </template>
 
 <script setup>
@@ -69,13 +65,14 @@
  * émet `close` et `go` (navigation pilotée par le parent). Le formatage d'heure
  * (pur) reste local. CSS déplacé verbatim.
  */
+import Modal from '@/components/ui/Modal.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
 import {
   ClockIcon,
   BuildingLibraryIcon,
   BookOpenIcon,
   UserIcon,
-  InformationCircleIcon,
-  XMarkIcon
+  InformationCircleIcon
 } from '@heroicons/vue/24/outline'
 
 defineProps({
@@ -97,67 +94,6 @@ function formatEventTime(date) {
 </script>
 
 <style scoped>
-/* Event Modal */
-.event-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  padding: 1rem;
-}
-
-.event-modal {
-  background: var(--bg-primary);
-  border-radius: 1rem;
-  max-width: 500px;
-  width: 100%;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.modal-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.close-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  background: transparent;
-  border: none;
-  border-radius: 0.5rem;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.close-btn:hover {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-}
-
-.modal-body {
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
 .event-detail {
   display: flex;
   align-items: flex-start;
@@ -185,11 +121,6 @@ function formatEventTime(date) {
   font-size: 0.875rem;
   color: var(--text-primary);
   margin: 0;
-}
-
-.modal-footer {
-  padding: 1.5rem;
-  border-top: 1px solid var(--border-color);
 }
 
 .action-btn {

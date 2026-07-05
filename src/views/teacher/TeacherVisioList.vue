@@ -41,9 +41,9 @@
           variant="active"
           :seances="visioEnCours"
           :action-loading="actionLoading"
-          :build-jitsi-url="buildJitsiUrl"
           :format-date="formatDate"
           :format-time="formatTime"
+          @join="handleJoinVisio"
           @start="handleStartVisio"
           @end="handleEndVisio"
           @activate="handleActivateVisio"
@@ -56,7 +56,6 @@
           variant="scheduled"
           :seances="visioAVenir"
           :action-loading="actionLoading"
-          :build-jitsi-url="buildJitsiUrl"
           :format-date="formatDate"
           :format-time="formatTime"
           @start="handleStartVisio"
@@ -95,7 +94,6 @@ import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import VisioStatsCards from '@/components/visio/VisioStatsCards.vue'
 import VisioSeanceSection from '@/components/visio/VisioSeanceSection.vue'
-import { buildJitsiUrl } from '@/constants/visio'
 import { useTeacherVisioList } from '@/composables/useTeacherVisioList'
 import {
   VideoCameraIcon,
@@ -106,7 +104,7 @@ const {
   loading, error, actionLoading,
   visioEnCours, visioAVenir, stats,
   loadVisioConferences,
-  handleActivateVisio, handleStartVisio, handleEndVisio,
+  handleActivateVisio, handleStartVisio, handleEndVisio, handleJoinVisio,
   formatDate, formatTime,
 } = useTeacherVisioList()
 </script>

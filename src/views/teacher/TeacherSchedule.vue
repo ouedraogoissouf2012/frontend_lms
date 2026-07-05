@@ -30,10 +30,12 @@ import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import UniversalCalendar from '@/components/calendar/UniversalCalendar.vue'
 import { lmsService } from '@/services/lms'
 import { useAuthStore } from '@/stores/auth'
-import { buildJitsiUrl } from '@/constants/visio'
+import { useTrackedVisioJoin } from '@/composables/useTrackedVisioJoin'
+import { notifyVisioError } from '@/services/visioFeedback'
 
 const router = useRouter()
 const calendarRef = ref(null)
+const { joinTrackedVisio } = useTrackedVisioJoin('Enseignant')
 
 // Utilisateur courant réactif depuis le store (#19) — plus de localStorage('user')
 const currentUser = computed(() => useAuthStore().currentUser)
@@ -43,14 +45,13 @@ async function handleEventAction({ type, data }) {
 
   switch (type) {
     case 'joinVisio':
-      // Enseignant rejoint la visio active - ouvrir Jitsi directement
-      {
-        const roomId = data.visio?.room_id || data.visio_room_id || `seance_${data.id}`
-        const jitsiLink = buildJitsiUrl(roomId, {
+      try {
+        await joinTrackedVisio(data, {
           displayName: currentUser.value?.name || 'Enseignant',
-          prejoinDisabled: true,
         })
-        window.open(jitsiLink, '_blank')
+      } catch (error) {
+        console.error('[TeacherSchedule] Room visio absente:', error)
+        notifyVisioError(error, 'Erreur lors de la connexion a la visio')
       }
       break
 
@@ -59,24 +60,21 @@ async function handleEventAction({ type, data }) {
       try {
         const result = await lmsService.startVisio(data.id)
         if (result.success) {
-          console.log('[TeacherSchedule] Visio demarree:', data.id)
-          // Ouvrir Jitsi
-          const roomId = result.data?.visio_room_id || data.visio?.room_id || `seance_${data.id}`
-          const jitsiLink = buildJitsiUrl(roomId, {
+          await joinTrackedVisio(data, {
+            roomSource: result.data,
             displayName: currentUser.value?.name || 'Enseignant',
-            prejoinDisabled: true,
           })
-          window.open(jitsiLink, '_blank')
+          console.log('[TeacherSchedule] Visio demarree avec tracking:', data.id)
           // Rafraichir le calendrier
           if (calendarRef.value?.refreshEvents) {
             await calendarRef.value.refreshEvents()
           }
         } else {
-          alert('Erreur: ' + (result.message || 'Impossible de demarrer la visio'))
+          notifyVisioError(new Error(result.message || 'Impossible de demarrer la visio'))
         }
       } catch (error) {
         console.error('[TeacherSchedule] Erreur demarrage visio:', error)
-        alert('Erreur lors du demarrage de la visio')
+        notifyVisioError(error, 'Erreur lors du demarrage de la visio')
       }
       break
 
@@ -90,7 +88,7 @@ async function handleEventAction({ type, data }) {
         }
       } catch (error) {
         console.error('[TeacherSchedule] Erreur activation visio:', error)
-        alert('Erreur lors de l\'activation de la visio')
+        notifyVisioError(error, 'Erreur lors de l\'activation de la visio')
       }
       break
 
@@ -125,7 +123,7 @@ async function handleEventAction({ type, data }) {
         }
       } catch (error) {
         console.error('[TeacherSchedule] Erreur fin visio:', error)
-        alert('Erreur lors de la terminaison de la visio')
+        notifyVisioError(error, 'Erreur lors de la terminaison de la visio')
       }
       break
 

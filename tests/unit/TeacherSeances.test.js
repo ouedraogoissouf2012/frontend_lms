@@ -21,8 +21,8 @@ vi.mock('@/stores/auth', () => ({
 vi.mock('@/services/toast', () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() } }))
 vi.mock('@/services/errorHandler', () => ({ normalizeError: () => ({ userMessage: 'err' }) }))
 vi.mock('@/services/cache', () => ({ readCache: () => null, writeCache: vi.fn(), clearCache: vi.fn() }))
-vi.mock('@/composables/useVisioParticipation', () => ({
-  useVisioParticipation: () => ({ joinVisio: vi.fn(), leaveVisio: vi.fn() })
+vi.mock('@/composables/useTrackedVisioJoin', () => ({
+  useTrackedVisioJoin: () => ({ joinTrackedVisio: vi.fn() })
 }))
 
 import TeacherSeances from '@/views/TeacherSeances.vue'

@@ -5,23 +5,26 @@
  */
 import { mount, flushPromises } from '@vue/test-utils'
 import { defineComponent } from 'vue'
-import { describe, it, expect, vi } from 'vitest'
+import { beforeEach, describe, it, expect, vi } from 'vitest'
 
-const push = vi.fn()
-vi.mock('vue-router', () => ({ useRouter: () => ({ push }) }))
-vi.mock('@/services/cache', () => ({ readCache: () => null, writeCache: () => {} }))
+const h = vi.hoisted(() => ({
+  push: vi.fn(),
+  readCache: vi.fn(),
+  writeCache: vi.fn(),
+  getClasses: vi.fn(),
+  getMatieres: vi.fn(),
+  getStructure: vi.fn(),
+  getClasseEtudiants: vi.fn(),
+}))
+
+vi.mock('vue-router', () => ({ useRouter: () => ({ push: h.push }) }))
+vi.mock('@/services/cache', () => ({ readCache: h.readCache, writeCache: h.writeCache }))
 vi.mock('@/services/klassci', () => ({
   klassciService: {
-    getClasses: () => Promise.resolve([
-      { id: 1, name: '6e A', is_active: true, filiere: { id: 11 }, niveau: { id: 21 }, effectif_max: 40 },
-      { id: 2, name: '5e B', is_active: false, filiere: { id: 12 }, niveau: { id: 22 } },
-    ]),
-    getMatieres: () => Promise.resolve([{ id: 1 }, { id: 2 }, { id: 3 }]),
-    getStructure: () => Promise.resolve({
-      filieres: [{ id: 11, nom: 'Sciences' }, { id: 12, nom: 'Lettres' }],
-      niveaux: [{ id: 21, nom: 'Niv 1' }, { id: 22, nom: 'Niv 2' }],
-    }),
-    getClasseEtudiants: (id) => Promise.resolve(id === 1 ? [{ id: 100 }, { id: 101 }] : [{ id: 200 }]),
+    getClasses: h.getClasses,
+    getMatieres: h.getMatieres,
+    getStructure: h.getStructure,
+    getClasseEtudiants: h.getClasseEtudiants,
   },
 }))
 
@@ -36,6 +39,24 @@ async function setup() {
 }
 
 describe('useAdminClasses (#G1)', () => {
+  beforeEach(() => {
+    h.push.mockReset()
+    h.readCache.mockReset().mockReturnValue(null)
+    h.writeCache.mockReset()
+    h.getClasses.mockReset().mockResolvedValue([
+      { id: 1, name: '6e A', is_active: true, filiere: { id: 11 }, niveau: { id: 21 }, effectif_max: 40 },
+      { id: 2, name: '5e B', is_active: false, filiere: { id: 12 }, niveau: { id: 22 } },
+    ])
+    h.getMatieres.mockReset().mockResolvedValue([{ id: 1 }, { id: 2 }, { id: 3 }])
+    h.getStructure.mockReset().mockResolvedValue({
+      filieres: [{ id: 11, nom: 'Sciences' }, { id: 12, nom: 'Lettres' }],
+      niveaux: [{ id: 21, nom: 'Niv 1' }, { id: 22, nom: 'Niv 2' }],
+    })
+    h.getClasseEtudiants.mockReset().mockImplementation((id) =>
+      Promise.resolve(id === 1 ? [{ id: 100 }, { id: 101 }] : [{ id: 200 }])
+    )
+  })
+
   it('charge et enrichit les classes (compteurs étudiants/matières)', async () => {
     const c = await setup()
     expect(c.classes.value).toHaveLength(2)
@@ -86,6 +107,48 @@ describe('useAdminClasses (#G1)', () => {
   it('viewClasseDetails navigue vers classe-details', async () => {
     const c = await setup()
     c.viewClasseDetails({ id: 7 })
-    expect(push).toHaveBeenCalledWith({ name: 'classe-details', params: { id: 7 } })
+    expect(h.push).toHaveBeenCalledWith({ name: 'classe-details', params: { id: 7 } })
+  })
+
+  it('normalise les enveloppes API et ignore les éléments invalides (#13)', async () => {
+    h.getClasses.mockResolvedValue({ data: [
+      null,
+      { id: 1, name: '6e A', is_active: true, filiere: { id: 11 }, niveau: { id: 21 } },
+    ] })
+    h.getMatieres.mockResolvedValue({ matieres: [null, { id: 1 }, { id: 2 }] })
+    h.getStructure.mockResolvedValue({
+      filieres: [null, { id: 11, nom: 'Sciences' }],
+      niveaux_etude: [undefined, { id: 21, nom: 'Niv 1' }],
+    })
+    h.getClasseEtudiants.mockResolvedValue({ etudiants: [null, { id: 100 }] })
+
+    const c = await setup()
+    c.filters.value.statut = 'active'
+
+    expect(c.classes.value).toHaveLength(1)
+    expect(c.filteredClasses.value).toHaveLength(1)
+    expect(c.stats.value).toEqual({ total: 1, totalEtudiants: 1, totalMatieres: 2, actives: 1 })
+    expect(c.filieres.value).toEqual([{ id: 11, nom: 'Sciences' }])
+    expect(c.niveaux.value).toEqual([{ id: 21, nom: 'Niv 1' }])
+    expect(c.matieres.value).toEqual([{ id: 1 }, { id: 2 }])
+  })
+
+  it('normalise un cache non-tableau sans casser filteredClasses (#13)', async () => {
+    h.readCache.mockReturnValue({
+      classes: { id: 1 },
+      filieres: null,
+      niveaux: 'bad',
+      matieres: {},
+    })
+    h.getClasses.mockResolvedValue({})
+    h.getMatieres.mockResolvedValue(null)
+    h.getStructure.mockResolvedValue({ filieres: {}, niveaux: {} })
+
+    const c = await setup()
+    c.filters.value.filiere_id = '11'
+
+    expect(c.classes.value).toEqual([])
+    expect(c.filteredClasses.value).toEqual([])
+    expect(c.stats.value.total).toBe(0)
   })
 })

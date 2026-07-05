@@ -1,112 +1,104 @@
 <template>
-  <div
-    v-if="visible"
-    class="modal-overlay"
-    @click.self="$emit('close')"
+  <Modal
+    :model-value="visible"
+    title="Créer une nouvelle leçon"
+    size="lg"
+    @close="$emit('close')"
   >
-    <div class="modal-content">
-      <!-- Header -->
-      <div class="modal-header">
-        <h2 class="modal-title">Créer une nouvelle leçon</h2>
-        <button @click="$emit('close')" class="modal-close">✖</button>
+    <form id="create-lesson-modal-form" @submit.prevent="$emit('submit')" class="lesson-form">
+      <!-- Titre -->
+      <div class="form-group">
+        <label class="form-label required">Titre de la leçon</label>
+        <input
+          v-model="lesson.title"
+          type="text"
+          class="form-input"
+          placeholder="Ex: Introduction aux boucles"
+          required
+        />
       </div>
 
-      <!-- Body -->
-      <div class="modal-body">
-        <form @submit.prevent="$emit('submit')" class="lesson-form">
-          <!-- Titre -->
-          <div class="form-group">
-            <label class="form-label required">Titre de la leçon</label>
-            <input
-              v-model="lesson.title"
-              type="text"
-              class="form-input"
-              placeholder="Ex: Introduction aux boucles"
-              required
-            />
-          </div>
-
-          <!-- Description -->
-          <div class="form-group">
-            <label class="form-label">Description</label>
-            <textarea
-              v-model="lesson.description"
-              class="form-textarea"
-              rows="3"
-              placeholder="Décrivez brièvement le contenu de cette leçon..."
-            ></textarea>
-          </div>
-
-          <!-- Prérequis -->
-          <div class="form-group">
-            <label class="form-label">Prérequis</label>
-            <textarea
-              v-model="lesson.prerequis"
-              class="form-textarea"
-              rows="2"
-              placeholder="Connaissances nécessaires avant de suivre cette leçon..."
-            ></textarea>
-            <p class="form-help">Ex: Comprendre les variables, les types de données</p>
-          </div>
-
-          <!-- Niveau -->
-          <div class="form-group">
-            <label class="form-label required">Niveau de difficulté</label>
-            <select v-model="lesson.niveau_difficulte" class="form-select">
-              <option value="debutant">Débutant</option>
-              <option value="intermediaire">Intermédiaire</option>
-              <option value="avance">Avancé</option>
-            </select>
-          </div>
-
-          <!-- Objectifs pédagogiques -->
-          <div class="form-group">
-            <label class="form-label">Objectifs pédagogiques</label>
-            <textarea
-              v-model="lesson.objectifs_pedagogiques"
-              class="form-textarea"
-              rows="3"
-              placeholder="Que devront savoir faire les étudiants après cette leçon ?"
-            ></textarea>
-            <p class="form-help">Ex: Maîtriser les boucles while et for, Résoudre des problèmes d'itération</p>
-          </div>
-
-          <!-- Durée estimée -->
-          <div class="form-group">
-            <label class="form-label">Durée estimée (minutes)</label>
-            <input
-              v-model.number="lesson.duree_estimee_minutes"
-              type="number"
-              class="form-input"
-              placeholder="60"
-              min="5"
-              max="600"
-            />
-            <p class="form-help">Temps nécessaire pour compléter toute la leçon</p>
-          </div>
-
-          <!-- Actions -->
-          <div class="modal-actions">
-            <button
-              type="button"
-              @click="$emit('close')"
-              class="btn-secondary"
-              :disabled="creating"
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              class="btn-primary"
-              :disabled="creating || !lesson.title"
-            >
-              {{ creating ? 'Création...' : 'Créer la leçon' }}
-            </button>
-          </div>
-        </form>
+      <!-- Description -->
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea
+          v-model="lesson.description"
+          class="form-textarea"
+          rows="3"
+          placeholder="Décrivez brièvement le contenu de cette leçon..."
+        ></textarea>
       </div>
-    </div>
-  </div>
+
+      <!-- Prérequis -->
+      <div class="form-group">
+        <label class="form-label">Prérequis</label>
+        <textarea
+          v-model="lesson.prerequis"
+          class="form-textarea"
+          rows="2"
+          placeholder="Connaissances nécessaires avant de suivre cette leçon..."
+        ></textarea>
+        <p class="form-help">Ex: Comprendre les variables, les types de données</p>
+      </div>
+
+      <!-- Niveau -->
+      <div class="form-group">
+        <label class="form-label required">Niveau de difficulté</label>
+        <select v-model="lesson.niveau_difficulte" class="form-select">
+          <option value="debutant">Débutant</option>
+          <option value="intermediaire">Intermédiaire</option>
+          <option value="avance">Avancé</option>
+        </select>
+      </div>
+
+      <!-- Objectifs pédagogiques -->
+      <div class="form-group">
+        <label class="form-label">Objectifs pédagogiques</label>
+        <textarea
+          v-model="lesson.objectifs_pedagogiques"
+          class="form-textarea"
+          rows="3"
+          placeholder="Que devront savoir faire les étudiants après cette leçon ?"
+        ></textarea>
+        <p class="form-help">Ex: Maîtriser les boucles while et for, Résoudre des problèmes d'itération</p>
+      </div>
+
+      <!-- Durée estimée -->
+      <div class="form-group">
+        <label class="form-label">Durée estimée (minutes)</label>
+        <input
+          v-model.number="lesson.duree_estimee_minutes"
+          type="number"
+          class="form-input"
+          placeholder="60"
+          min="5"
+          max="600"
+        />
+        <p class="form-help">Temps nécessaire pour compléter toute la leçon</p>
+      </div>
+    </form>
+
+    <template #footer>
+      <BaseButton
+        type="button"
+        variant="secondary"
+        class="btn-secondary"
+        :disabled="creating"
+        @click="$emit('close')"
+      >
+        Annuler
+      </BaseButton>
+      <BaseButton
+        type="submit"
+        form="create-lesson-modal-form"
+        class="btn-primary"
+        :disabled="creating || !lesson.title"
+        :loading="creating"
+      >
+        {{ creating ? 'Création...' : 'Créer la leçon' }}
+      </BaseButton>
+    </template>
+  </Modal>
 </template>
 
 <script setup>
@@ -115,6 +107,9 @@
  * formulaire lié à l'objet `lesson` (mutation des propriétés, parité avec
  * l'ancien newLesson). Émet `close` et `submit`. CSS déplacé VERBATIM.
  */
+import Modal from '@/components/ui/Modal.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
+
 defineProps({
   visible: { type: Boolean, default: false },
   lesson: { type: Object, required: true },
@@ -124,71 +119,6 @@ defineEmits(['close', 'submit'])
 </script>
 
 <style scoped>
-/* MODAL STYLES */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  padding: 20px;
-}
-
-.modal-content {
-  background: var(--card-bg);
-  border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  max-width: 600px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px;
-  border-bottom: 1px solid var(--border-primary);
-}
-
-.modal-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  transition: all 0.2s;
-}
-
-.modal-close:hover {
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
-}
-
-.modal-body {
-  padding: 24px;
-}
-
 .lesson-form {
   display: flex;
   flex-direction: column;
@@ -248,13 +178,6 @@ defineEmits(['close', 'submit'])
   font-size: 0.75rem;
   color: var(--text-secondary);
   margin: 0;
-}
-
-.modal-actions {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-  padding-top: 8px;
 }
 
 .btn-primary,

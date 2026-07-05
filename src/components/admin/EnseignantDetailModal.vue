@@ -1,80 +1,79 @@
 <template>
-      <Teleport to="body">
-        <div v-if="enseignant" class="modal-overlay" @click="$emit('close')">
-          <div class="modal-content" @click.stop>
-            <!-- Modal Header -->
-            <div class="modal-header">
-              <div class="modal-title-section">
-                <div class="modal-avatar">
-                  <span>{{ getInitials(enseignant) }}</span>
-                </div>
-                <div>
-                  <h2 class="modal-title">{{ enseignant.nom }} {{ enseignant.prenom }}</h2>
-                  <p class="modal-subtitle">{{ enseignant.email }}</p>
-                </div>
-              </div>
-              <button @click="$emit('close')" class="close-btn">✕</button>
-            </div>
+  <Modal
+    :model-value="Boolean(enseignant)"
+    size="lg"
+    class="enseignant-detail-modal"
+    @close="$emit('close')"
+  >
+    <template #header>
+      <div v-if="enseignant" class="modal-title-section">
+        <div class="modal-avatar">
+          <span>{{ getInitials(enseignant) }}</span>
+        </div>
+        <div>
+          <h2 class="modal-title">{{ enseignant.nom }} {{ enseignant.prenom }}</h2>
+          <p class="modal-subtitle">{{ enseignant.email }}</p>
+        </div>
+      </div>
+    </template>
 
-            <!-- Modal Body -->
-            <div class="modal-body">
-              <!-- Informations Personnelles -->
-              <div class="info-section">
-                <h3 class="section-title"><i class="fa fa-user"></i> Informations Personnelles</h3>
-                <div class="info-grid">
-                  <div class="info-item">
-                    <span class="info-label">Email:</span>
-                    <span class="info-value">{{ enseignant.email || 'Non disponible' }}</span>
-                  </div>
-                  <div v-if="enseignant.matricule" class="info-item">
-                    <span class="info-label">Matricule:</span>
-                    <span class="info-value">{{ enseignant.matricule }}</span>
-                  </div>
-                  <div v-if="enseignant.specialization" class="info-item">
-                    <span class="info-label">Spécialisation:</span>
-                    <span class="info-value">{{ enseignant.specialization }}</span>
-                  </div>
-                  <div v-if="enseignant.status" class="info-item">
-                    <span class="info-label">Statut:</span>
-                    <span class="info-value">{{ enseignant.status }}</span>
-                  </div>
-                  <div v-if="enseignant.telephone" class="info-item">
-                    <span class="info-label">Téléphone:</span>
-                    <span class="info-value">{{ enseignant.telephone }}</span>
-                  </div>
-                  <div v-if="enseignant.teacher_id" class="info-item">
-                    <span class="info-label">Teacher ID:</span>
-                    <span class="info-value">{{ enseignant.teacher_id }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Statistiques globales (si disponibles) -->
-              <div v-if="enseignant.statistiques" class="info-section">
-                <h3 class="section-title"><i class="fa fa-bar-chart"></i> Statistiques Globales</h3>
-                <EnseignantStatsGrid :stats="enseignant.statistiques" />
-              </div>
-
-              <!-- Classes Assignées -->
-              <div class="info-section">
-                <h3 class="section-title"><i class="fa fa-users"></i> Classes Assignées ({{ getEnseignantUniqueClasses(enseignant).length }})</h3>
-                <EnseignantClassesList :classes="getEnseignantUniqueClasses(enseignant)" />
-              </div>
-
-              <!-- Matières Enseignées -->
-              <div class="info-section">
-                <h3 class="section-title"><i class="fa fa-book"></i> Matières Enseignées ({{ enseignant.matieres?.length || 0 }})</h3>
-                <EnseignantMatieresList :matieres="enseignant.matieres || []" />
-              </div>
-            </div>
-
-            <!-- Modal Footer -->
-            <div class="modal-footer">
-              <button @click="$emit('close')" class="modal-btn modal-btn-secondary">Fermer</button>
-            </div>
+    <template v-if="enseignant">
+      <!-- Informations Personnelles -->
+      <div class="info-section">
+        <h3 class="section-title"><i class="fa fa-user"></i> Informations Personnelles</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Email:</span>
+            <span class="info-value">{{ enseignant.email || 'Non disponible' }}</span>
+          </div>
+          <div v-if="enseignant.matricule" class="info-item">
+            <span class="info-label">Matricule:</span>
+            <span class="info-value">{{ enseignant.matricule }}</span>
+          </div>
+          <div v-if="enseignant.specialization" class="info-item">
+            <span class="info-label">Spécialisation:</span>
+            <span class="info-value">{{ enseignant.specialization }}</span>
+          </div>
+          <div v-if="enseignant.status" class="info-item">
+            <span class="info-label">Statut:</span>
+            <span class="info-value">{{ enseignant.status }}</span>
+          </div>
+          <div v-if="enseignant.telephone" class="info-item">
+            <span class="info-label">Téléphone:</span>
+            <span class="info-value">{{ enseignant.telephone }}</span>
+          </div>
+          <div v-if="enseignant.teacher_id" class="info-item">
+            <span class="info-label">Teacher ID:</span>
+            <span class="info-value">{{ enseignant.teacher_id }}</span>
           </div>
         </div>
-      </Teleport>
+      </div>
+
+      <!-- Statistiques globales (si disponibles) -->
+      <div v-if="enseignant.statistiques" class="info-section">
+        <h3 class="section-title"><i class="fa fa-bar-chart"></i> Statistiques Globales</h3>
+        <EnseignantStatsGrid :stats="enseignant.statistiques" />
+      </div>
+
+      <!-- Classes Assignées -->
+      <div class="info-section">
+        <h3 class="section-title"><i class="fa fa-users"></i> Classes Assignées ({{ getEnseignantUniqueClasses(enseignant).length }})</h3>
+        <EnseignantClassesList :classes="getEnseignantUniqueClasses(enseignant)" />
+      </div>
+
+      <!-- Matières Enseignées -->
+      <div class="info-section">
+        <h3 class="section-title"><i class="fa fa-book"></i> Matières Enseignées ({{ safeMatieres.length }})</h3>
+        <EnseignantMatieresList :matieres="safeMatieres" />
+      </div>
+    </template>
+
+    <template #footer>
+      <BaseButton variant="secondary" class="modal-btn modal-btn-secondary" @click="$emit('close')">
+        Fermer
+      </BaseButton>
+    </template>
+  </Modal>
 </template>
 
 <script setup>
@@ -84,54 +83,27 @@
  * Le shell (header/avatar/footer) et les sections de body sont composés depuis des
  * sous-composants présentationnels (Stats / Classes / Matières), chacun avec son CSS.
  */
+import { computed } from 'vue'
+import Modal from '@/components/ui/Modal.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
 import { getInitials } from '@/utils/formatters'
 import { getEnseignantUniqueClasses } from '@/utils/enseignants'
 import EnseignantStatsGrid from '@/components/admin/EnseignantStatsGrid.vue'
 import EnseignantClassesList from '@/components/admin/EnseignantClassesList.vue'
 import EnseignantMatieresList from '@/components/admin/EnseignantMatieresList.vue'
 
-defineProps({ enseignant: { type: Object, default: null } })
+const props = defineProps({ enseignant: { type: Object, default: null } })
 defineEmits(['close'])
+
+const safeMatieres = computed(() =>
+  Array.isArray(props.enseignant?.matieres)
+    ? props.enseignant.matieres.filter(matiere => matiere && typeof matiere === 'object')
+    : []
+)
 </script>
 
 <style scoped lang="scss">
 @use '../../assets/styles/admin-modal';
-
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: var(--spacing-lg);
-  backdrop-filter: blur(4px);
-}
-
-.modal-content {
-  background: var(--card-bg);
-  border-radius: var(--radius-xl);
-  max-width: 700px;
-  width: 100%;
-  max-height: 90vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  box-shadow: var(--shadow-xl);
-}
-
-.modal-header {
-  padding: var(--spacing-xl);
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
 
 .modal-title-section {
   display: flex;
@@ -165,24 +137,6 @@ defineEmits(['close'])
   font-size: var(--font-size-md);
   color: var(--text-secondary);
   margin: 0;
-}
-
-.close-btn {
-  background: transparent;
-  border: none;
-  font-size: 1.5rem;
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: var(--spacing-sm);
-  border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
-  line-height: 1;
-}
-
-.modal-body {
-  padding: var(--spacing-xl);
-  overflow-y: auto;
-  flex: 1;
 }
 
 .info-section {
@@ -222,14 +176,6 @@ defineEmits(['close'])
   font-size: var(--font-size-md);
   color: var(--text-primary);
   font-weight: 500;
-}
-
-.modal-footer {
-  padding: var(--spacing-xl);
-  border-top: 1px solid var(--border-color);
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--spacing-md);
 }
 
 .modal-btn {

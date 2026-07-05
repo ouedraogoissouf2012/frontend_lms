@@ -41,7 +41,7 @@ describe('EventDetailModal.vue (G8) — montage', () => {
 
   it('émet `close` au clic sur le bouton de fermeture', async () => {
     const w = mountModal()
-    await w.find('.close-btn').trigger('click')
+    await w.find('.modal-close-btn').trigger('click')
     expect(w.emitted('close')).toBeTruthy()
   })
 

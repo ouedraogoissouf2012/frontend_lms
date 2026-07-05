@@ -10,6 +10,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const getMyTeachingSeances = vi.fn()
 const activateVisio = vi.fn()
 const getTeacherDashboard = vi.fn()
+const joinTrackedVisio = vi.fn()
 
 vi.mock('@/services/lms', () => ({
   lmsService: {
@@ -28,9 +29,8 @@ vi.mock('@/services/toast', () => ({ toast: { success: vi.fn(), error: vi.fn(), 
 vi.mock('@/services/errorHandler', () => ({ normalizeError: () => ({ userMessage: 'err' }) }))
 const clearCache = vi.fn()
 vi.mock('@/services/cache', () => ({ readCache: () => null, writeCache: vi.fn(), clearCache: (...a) => clearCache(...a) }))
-vi.mock('@/constants/visio', () => ({ buildJitsiUrl: (r) => `jitsi://${r}` }))
-vi.mock('@/composables/useVisioParticipation', () => ({
-  useVisioParticipation: () => ({ joinVisio: vi.fn(), leaveVisio: vi.fn() })
+vi.mock('@/composables/useTrackedVisioJoin', () => ({
+  useTrackedVisioJoin: () => ({ joinTrackedVisio })
 }))
 
 import { useTeacherSeances } from '@/composables/useTeacherSeances'
@@ -55,6 +55,8 @@ describe('useTeacherSeances (#H6)', () => {
     activateVisio.mockReset()
     getTeacherDashboard.mockReset()
     clearCache.mockReset()
+    joinTrackedVisio.mockReset()
+    joinTrackedVisio.mockResolvedValue({ success: true })
     getTeacherDashboard.mockResolvedValue({ matieres: [{ id: 9, nom: 'Maths' }] })
   })
 

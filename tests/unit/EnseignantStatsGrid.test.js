@@ -32,4 +32,13 @@ describe('EnseignantStatsGrid (#G1) — rendu', () => {
     expect(html).toContain('60.5%')
     expect(html).toContain('5/8')
   })
+
+  it('rend des zéros si les statistiques numériques sont absentes (#13)', () => {
+    const w = mount(EnseignantStatsGrid, { props: { stats: {} } })
+    const html = w.html()
+
+    expect(w.findAll('.stat-detail-card')).toHaveLength(6)
+    expect(html).toContain('0.0%')
+    expect(html).toContain('0/0')
+  })
 })

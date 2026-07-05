@@ -1,6 +1,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { klassciService } from '@/services/klassci'
 import { readCache, writeCache } from '@/services/cache'
+import { buildJitsiUrl, getVisioRoomId } from '@/constants/visio'
+import { notifyVisioError } from '@/services/visioFeedback'
 
 /**
  * Couche données d'AdminVisio (#G1 ≤300) : dérive les visioconférences depuis les
@@ -93,17 +95,21 @@ export function useAdminVisio() {
     // Transformer les séances en données de visioconférence
     visioconferences.value = seances
       .filter(s => s.visio_enabled)
-      .map(s => ({
-        id: s.id,
-        matiere: s.matiere?.nom || 'N/A',
-        classe: s.classe?.name || 'N/A',
-        enseignant: `${s.enseignant?.nom || ''} ${s.enseignant?.prenom || ''}`.trim() || 'N/A',
-        date_debut: s.date_debut,
-        date_fin: s.date_fin,
-        status: getSeanceStatus(s),
-        room_name: s.room_name,
-        participants_count: s.participants_count || 0
-      }))
+      .map(s => {
+        const roomId = getVisioRoomId(s)
+        return {
+          id: s.id,
+          matiere: s.matiere?.nom || 'N/A',
+          classe: s.classe?.name || 'N/A',
+          enseignant: `${s.enseignant?.nom || ''} ${s.enseignant?.prenom || ''}`.trim() || 'N/A',
+          date_debut: s.date_debut,
+          date_fin: s.date_fin,
+          status: getSeanceStatus(s),
+          room_id: roomId,
+          room_name: s.room_name || roomId,
+          participants_count: s.participants_count || 0
+        }
+      })
   }
 
   async function refreshInBackground() {
@@ -171,10 +177,12 @@ export function useAdminVisio() {
   }
 
   function joinVisio(visio) {
-    // TODO: Rejoindre la visioconférence
     console.log('Rejoindre visio:', visio)
-    if (visio.room_name) {
-      window.open(`/video-conference/${visio.room_name}`, '_blank')
+    const roomId = getVisioRoomId(visio)
+    if (roomId) {
+      window.open(buildJitsiUrl(roomId), '_blank')
+    } else {
+      notifyVisioError(null, 'Identifiant de salle visio introuvable.')
     }
   }
 

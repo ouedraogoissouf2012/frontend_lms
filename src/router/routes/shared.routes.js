@@ -94,13 +94,6 @@ export const sharedRoutes = [
     component: () => import('@/views/ForumTopic.vue'),
     meta: { requiresAuth: true }
   },
-  // Visioconférence
-  {
-    path: '/video-conference/:roomName',
-    name: 'VideoConference',
-    component: () => import('@/views/VideoConference.vue'),
-    meta: { requiresAuth: true }
-  },
   // Évaluations - Enseignant
   {
     path: '/teacher/evaluations',

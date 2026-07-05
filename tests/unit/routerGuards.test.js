@@ -59,6 +59,14 @@ describe('navigationGuard (G9)', () => {
     expect(next).toHaveBeenCalledWith()
   })
 
+  it('rôle admin autorisé sur une route admin → laisse passer', () => {
+    isAuthenticated.mockReturnValue(true)
+    getUser.mockReturnValue({ role: 'admin' })
+    const next = vi.fn()
+    navigationGuard(route({ requiresAuth: true, roles: ['superAdmin', 'admin', 'coordinateur'] }), route(), next)
+    expect(next).toHaveBeenCalledWith()
+  })
+
   it('supradmin bypass : accède à une route à rôles restreints', () => {
     isAuthenticated.mockReturnValue(true)
     getUser.mockReturnValue({ role: 'supradmin' })

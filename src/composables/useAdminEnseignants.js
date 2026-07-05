@@ -4,6 +4,31 @@ import { readCache, writeCache, clearCache } from '@/services/cache'
 // #28 : logique métier pure extraite (testée dans tests/unit/enseignants.test.js)
 import { computeEnseignantsStats } from '@/utils/enseignants'
 
+const asArray = (value, keys = []) => {
+  if (Array.isArray(value)) return value
+  if (!value || typeof value !== 'object') return []
+
+  for (const key of keys) {
+    if (Array.isArray(value[key])) return value[key]
+  }
+  if (Array.isArray(value.data)) return value.data
+  for (const key of keys) {
+    if (Array.isArray(value.data?.[key])) return value.data[key]
+  }
+
+  return []
+}
+
+const hasArrayPayload = (value, keys = []) => {
+  if (Array.isArray(value)) return true
+  if (!value || typeof value !== 'object') return false
+  if (Array.isArray(value.data)) return true
+  return keys.some(key => Array.isArray(value[key]) || Array.isArray(value.data?.[key]))
+}
+
+const asObjectArray = (value, keys = []) =>
+  asArray(value, keys).filter(item => item && typeof item === 'object')
+
 /**
  * Couche données d'AdminEnseignants (#G1 ≤300) : charge les enseignants KLASSCI
  * (endpoint enrichi avec fallback simple), gère cache + rafraîchissement en
@@ -17,7 +42,7 @@ export function useAdminEnseignants() {
   const selectedEnseignant = ref(null)
 
   // Computed stats — délégués à la logique pure extraite (#28)
-  const stats = computed(() => computeEnseignantsStats(enseignants.value))
+  const stats = computed(() => computeEnseignantsStats(asObjectArray(enseignants.value)))
   const totalMatieres = computed(() => stats.value.totalMatieres)
   const totalClasses = computed(() => stats.value.totalClasses)
   const enseignantsActifs = computed(() => stats.value.actifs)
@@ -36,12 +61,15 @@ export function useAdminEnseignants() {
         // Check cache first
         const cached = readCache('admin_enseignants')
         if (cached) {
-          const cacheHasData = cached && cached.length > 0
-          const cacheHasDetails = cacheHasData && (cached.some(e => e.matieres?.length > 0 || e.classes?.length > 0))
+          const cachedList = asObjectArray(cached, ['enseignants'])
+          const cacheHasData = cachedList.length > 0
+          const cacheHasDetails = cacheHasData && cachedList.some(e =>
+            asObjectArray(e?.matieres).length > 0 || asObjectArray(e?.classes).length > 0
+          )
 
           if (cacheHasData) {
             console.log('fa-check-circle Loaded enseignants from cache')
-            enseignants.value = cached
+            enseignants.value = cachedList
             loading.value = false
 
             // Si le cache n'a pas de détails, forcer un refresh en background
@@ -69,22 +97,22 @@ export function useAdminEnseignants() {
         console.log('fa-bar-chart API Response:', response)
 
         // Process data
-        if (response.success) {
-          enseignants.value = Array.isArray(response.data) ? response.data : []
+        if (response?.success && hasArrayPayload(response.data, ['enseignants'])) {
+          enseignants.value = asObjectArray(response.data, ['enseignants'])
           console.log(`fa-check-circle Loaded ${enseignants.value.length} enseignants with full details`)
           console.log('fa-clipboard Sample enseignant:', enseignants.value[0])
         } else {
           // Fallback vers l'endpoint simple si l'enrichi retourne success=false
           console.warn('fa-exclamation-triangle️ Endpoint enrichi retourne success=false, utilisation endpoint simple')
           const fallbackData = await klassciService.getEnseignants()
-          enseignants.value = Array.isArray(fallbackData) ? fallbackData : []
+          enseignants.value = asObjectArray(fallbackData, ['enseignants'])
           console.log(`fa-check-circle Loaded ${enseignants.value.length} enseignants (format simple)`)
         }
       } catch (apiErr) {
         // Si erreur API (503, etc.), utiliser endpoint simple
         console.warn('fa-exclamation-triangle️ Endpoint enrichi en erreur, fallback vers endpoint simple:', apiErr.message)
         const fallbackData = await klassciService.getEnseignants()
-        enseignants.value = Array.isArray(fallbackData) ? fallbackData : []
+        enseignants.value = asObjectArray(fallbackData, ['enseignants'])
         console.log(`fa-check-circle Loaded ${enseignants.value.length} enseignants via fallback (format simple)`)
       }
 
@@ -111,8 +139,8 @@ export function useAdminEnseignants() {
       console.log('fa-bar-chart response.success:', response.success)
       console.log('fa-bar-chart response.data:', response.data)
 
-      if (response.success && response.data && Array.isArray(response.data)) {
-        enseignants.value = response.data
+      if (response?.success && hasArrayPayload(response.data, ['enseignants'])) {
+        enseignants.value = asObjectArray(response.data, ['enseignants'])
         console.log(`fa-check-circle Background refresh completed (enriched data) - ${enseignants.value.length} enseignants`)
       } else {
         // Fallback si réponse sans succès
@@ -120,7 +148,7 @@ export function useAdminEnseignants() {
         console.log('🔄 Calling fallback endpoint...')
         const fallbackData = await klassciService.getEnseignants()
         console.log('fa-bar-chart Fallback data received:', fallbackData)
-        enseignants.value = Array.isArray(fallbackData) ? fallbackData : []
+        enseignants.value = asObjectArray(fallbackData, ['enseignants'])
         console.log(`fa-check-circle Background refresh completed (simple data) - ${enseignants.value.length} enseignants`)
       }
 
@@ -135,7 +163,7 @@ export function useAdminEnseignants() {
         console.log('🔄 Calling fallback endpoint after error...')
         const fallbackData = await klassciService.getEnseignants()
         console.log('fa-bar-chart Fallback data after error:', fallbackData)
-        enseignants.value = Array.isArray(fallbackData) ? fallbackData : []
+        enseignants.value = asObjectArray(fallbackData, ['enseignants'])
 
         // Update cache avec données simple
         writeCache('admin_enseignants', enseignants.value)

@@ -54,6 +54,30 @@ const CONFIG = Object.freeze({
   ALLOW_DATA_ATTR: false,
 })
 
+const UNSAFE_CSS_VALUE = /(?:url\s*\(|expression\s*\(|@import|javascript:|vbscript:|data:|behavior\s*:|-moz-binding)/i
+
+function sanitizeInlineStyle(value) {
+  if (typeof value !== 'string' || value === '') return ''
+
+  return stripControlChars(value)
+    .split(';')
+    .map((declaration) => declaration.trim())
+    .filter(Boolean)
+    .map((declaration) => {
+      const separatorIndex = declaration.indexOf(':')
+      if (separatorIndex <= 0) return ''
+
+      const property = declaration.slice(0, separatorIndex).trim().toLowerCase()
+      const cssValue = declaration.slice(separatorIndex + 1).trim()
+      if (!/^[a-z-]+$/.test(property) || cssValue === '') return ''
+      if (UNSAFE_CSS_VALUE.test(cssValue)) return ''
+
+      return `${property}:${cssValue}`
+    })
+    .filter(Boolean)
+    .join(';')
+}
+
 // Hook global (idempotent) : durcit les liens et impose l'allowlist de schéma
 // sur href/src (fail-secure là où DOMPurify tolère data:).
 let hookInstalled = false
@@ -75,6 +99,11 @@ function installHooks() {
         const value = stripControlChars(node.getAttribute(attr) || '').trim()
         if (!ALLOWED_URI_REGEXP.test(value)) node.removeAttribute(attr)
       }
+    }
+    if (typeof node.hasAttribute === 'function' && node.hasAttribute('style')) {
+      const style = sanitizeInlineStyle(node.getAttribute('style') || '')
+      if (style) node.setAttribute('style', style)
+      else node.removeAttribute('style')
     }
   })
   hookInstalled = true

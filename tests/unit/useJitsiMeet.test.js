@@ -16,14 +16,24 @@ const { mockJoin, mockLeave, mockHeartbeat } = vi.hoisted(() => ({
   mockLeave: vi.fn(() => Promise.resolve()),
   mockHeartbeat: vi.fn(() => Promise.resolve())
 }))
+const { mockStartHeartbeat, mockStopHeartbeat } = vi.hoisted(() => ({
+  mockStartHeartbeat: vi.fn(),
+  mockStopHeartbeat: vi.fn(),
+}))
 
 vi.mock('@/services/lms', () => ({
   default: { joinVisio: mockJoin, leaveVisio: mockLeave, heartbeatVisio: mockHeartbeat }
 }))
+vi.mock('@/composables/useVisioHeartbeat', () => ({
+  useVisioHeartbeat: () => ({
+    start: mockStartHeartbeat,
+    stop: mockStopHeartbeat,
+    sendHeartbeat: vi.fn(),
+  })
+}))
 vi.mock('@/constants/visio', () => ({
   jitsiExternalApiSrc: () => 'https://meet.jit.si/external_api.js',
   getJitsiDomain: () => 'meet.jit.si',
-  VISIO_CONFIG: { HEARTBEAT_INTERVAL_MS: 30000 }
 }))
 
 import { useJitsiMeet } from '@/composables/useJitsiMeet'
@@ -65,6 +75,8 @@ describe('useJitsiMeet (#h13)', () => {
     mockJoin.mockClear()
     mockLeave.mockClear()
     mockHeartbeat.mockClear()
+    mockStartHeartbeat.mockClear()
+    mockStopHeartbeat.mockClear()
     window.JitsiMeetExternalAPI = JitsiCtor
   })
   afterEach(() => {
@@ -100,6 +112,7 @@ describe('useJitsiMeet (#h13)', () => {
     await flushPromises()
     await getInstance().handlers.videoConferenceJoined({ id: 'evt' })
     expect(mockJoin).toHaveBeenCalledWith(42)
+    expect(mockStartHeartbeat).toHaveBeenCalledOnce()
     expect(emit).toHaveBeenCalledWith('joined', { id: 'evt' })
   })
 
@@ -108,6 +121,7 @@ describe('useJitsiMeet (#h13)', () => {
     const { getInstance } = setup({ seanceId: 7, emit })
     await flushPromises()
     await getInstance().handlers.videoConferenceLeft({ id: 'bye' })
+    expect(mockStopHeartbeat).toHaveBeenCalledOnce()
     expect(mockLeave).toHaveBeenCalledWith(7)
     expect(emit).toHaveBeenCalledWith('left', { id: 'bye' })
     expect(emit).toHaveBeenCalledWith('close')
@@ -118,6 +132,7 @@ describe('useJitsiMeet (#h13)', () => {
     await flushPromises()
     const instance = getInstance()
     await api.cleanup()
+    expect(mockStopHeartbeat).toHaveBeenCalledOnce()
     expect(instance.dispose).toHaveBeenCalledOnce()
   })
 })

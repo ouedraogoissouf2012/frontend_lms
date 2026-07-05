@@ -24,12 +24,24 @@ clic extérieur / `Échap`.
 | `modelValue` | Boolean | `false`| Ouverture (`v-model`). |
 | `title`      | String  | `''`   | Titre optionnel. Si vide et pas de slot `header`, aucun en-tête textuel n'est rendu (le ✕ reste). |
 | `size`       | String  | `'md'` | `sm` \| `md` \| `lg` \| `xl`. L'alias historique `medium` est normalisé en `md`. |
+| `showClose` | Boolean | `true` | Affiche la croix de fermeture. |
+| `closeOnOverlay` | Boolean | `true` | Ferme la modale au clic sur l'overlay. |
+| `closeOnEsc` | Boolean | `true` | Ferme la modale avec `Échap`. |
+| `teleport` | Boolean | `false` | Rend la modale via `<Teleport>`, désactivé par défaut pour compatibilité. |
+| `teleportTo` | String | `'body'` | Cible du Teleport. |
+| `transitionName` | String | `'modal-fade'` | Nom de transition Vue. |
+| `overlayClass` | String/Array/Object | `''` | Classe additionnelle sur l'overlay. |
+| `containerClass` | String/Array/Object | `''` | Classe additionnelle sur le conteneur. |
+| `headerClass` | String/Array/Object | `''` | Classe additionnelle sur l'en-tête. |
+| `bodyClass` | String/Array/Object | `''` | Classe additionnelle sur le corps. |
+| `footerClass` | String/Array/Object | `''` | Classe additionnelle sur le footer. |
 
 ### Événements
 
 | Événement            | Charge   | Émis quand |
 |----------------------|----------|------------|
 | `update:modelValue`  | `false`  | Fermeture via ✕, clic sur l'overlay ou `Échap`. |
+| `close`              | -        | Après une demande de fermeture. |
 
 ### Slots
 
@@ -99,5 +111,38 @@ traversent jusqu'au `<button>`.
 ## Tests
 
 `tests/unit/Modal.test.js` et `tests/unit/BaseButton.test.js`
-(`@vue/test-utils` + Vitest) : slots, événements, états, `size`, traversée
-`$attrs`. Lancer : `npm run test`.
+(`@vue/test-utils` + Vitest) : slots, événements, états, `size`, Teleport,
+classes internes, traversée `$attrs`. Lancer : `npm run test`.
+
+---
+
+## Règles d'usage
+
+Ne pas copier-coller une modale ni réintroduire un overlay inline
+(`modal-overlay`, `modal-backdrop`, `fixed inset-0 ... bg-opacity-50`) pour un
+nouveau besoin standard. Utiliser `Modal.vue` avec ses slots
+`header` / défaut / `footer`, puis composer les actions avec `BaseButton.vue`.
+
+Un composant de base reste présentationnel : pas de store, pas d'appel API, pas
+de logique métier. Pour envelopper un élément natif, utiliser
+`inheritAttrs: false` et transmettre les attributs au bon élément interne avec
+`v-bind="$attrs"` au lieu de redéclarer tous les attributs natifs en props.
+
+Sources Vue : slots (`vuejs.org/guide/components/slots.html`), fallthrough
+attributes (`vuejs.org/guide/components/attrs.html`), composables et
+réutilisation (`vuejs.org/guide/reusability/composables.html`), convention des
+base components (`vuejs.org/style-guide/`).
+
+## Dette tracée
+
+`#25-FE-1` : soldé côté frontend. Les modales standard et les anciennes modales
+spécialisées (`GlobalSearch`, `Participants`, `Jitsi`, `TipTap`, quiz,
+création forum) passent par `Modal.vue`. Les variantes visuelles passent par les
+props de classes internes au lieu de recréer un overlay complet.
+
+La scène Jitsi plein écran est maintenant portée par le flux visio/Jitsi dédié,
+pas par une modale interactive : elle reste hors dette `#25-FE-1`.
+
+`#25-FE-2` : ne pas créer `BaseCard` ou `BaseInput` avant un besoin répété et
+concret. `BaseButton` pose le pattern actuel ; les autres composants de base se
+créent au moment où ils retirent une vraie duplication.

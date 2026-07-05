@@ -1,84 +1,80 @@
 <template>
-  <div v-if="show" class="modal-overlay" @click="$emit('close')">
-    <div class="modal-content" @click.stop>
-      <div class="modal-header">
-        <h2 class="modal-title">Créer version en ligne</h2>
-        <button @click="$emit('close')" class="modal-close">
-          <XMarkIcon class="w-6 h-6" />
-        </button>
-      </div>
-
-      <div class="modal-body">
-        <div class="modal-info">
-          <p class="info-text">
-            <strong>Évaluation KLASSCI:</strong> {{ evaluation?.titre }}
-          </p>
-          <p class="info-text">
-            <strong>Matière:</strong> {{ evaluation?.matiere?.nom || evaluation?.matiere?.name }}
-          </p>
-          <p class="info-text">
-            <strong>Classe:</strong> {{ evaluation?.classe?.nom || evaluation?.classe?.libelle }}
-          </p>
-        </div>
-
-        <form @submit.prevent="$emit('submit')" class="modal-form">
-          <div class="form-group">
-            <label class="form-label required">Type d'évaluation</label>
-            <select v-model="onlineForm.type" required class="form-select">
-              <option value="qcm">QCM uniquement</option>
-              <option value="reponse_courte">Réponses courtes</option>
-              <option value="dissertation">Dissertation</option>
-              <option value="mixte">Mixte (QCM + réponses courtes)</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label required">Durée (en minutes)</label>
-            <input
-              v-model.number="onlineForm.duree_minutes"
-              type="number"
-              min="5"
-              max="240"
-              required
-              class="form-input"
-              placeholder="60"
-            />
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Description / Consignes</label>
-            <textarea
-              v-model="onlineForm.description"
-              rows="3"
-              class="form-textarea"
-              placeholder="Instructions pour les étudiants..."
-            ></textarea>
-          </div>
-
-          <div class="modal-actions">
-            <button type="button" @click="$emit('close')" class="btn-cancel">
-              Annuler
-            </button>
-            <button type="submit" :disabled="creating" class="btn-submit">
-              <ArrowPathIcon v-if="creating" class="w-5 h-5 animate-spin" />
-              <PlusIcon v-else class="w-5 h-5" />
-              {{ creating ? 'Création...' : 'Créer et ajouter des questions' }}
-            </button>
-          </div>
-        </form>
-      </div>
+  <Modal
+    :model-value="show"
+    title="Créer version en ligne"
+    size="lg"
+    @close="$emit('close')"
+  >
+    <div class="modal-info">
+      <p class="info-text">
+        <strong>Évaluation KLASSCI:</strong> {{ evaluation?.titre }}
+      </p>
+      <p class="info-text">
+        <strong>Matière:</strong> {{ evaluation?.matiere?.nom || evaluation?.matiere?.name }}
+      </p>
+      <p class="info-text">
+        <strong>Classe:</strong> {{ evaluation?.classe?.nom || evaluation?.classe?.libelle }}
+      </p>
     </div>
-  </div>
+
+    <form @submit.prevent="$emit('submit')" class="modal-form">
+      <div class="form-group">
+        <label class="form-label required">Type d'évaluation</label>
+        <select v-model="onlineForm.type" required class="form-select">
+          <option value="qcm">QCM uniquement</option>
+          <option value="reponse_courte">Réponses courtes</option>
+          <option value="dissertation">Dissertation</option>
+          <option value="mixte">Mixte (QCM + réponses courtes)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label required">Durée (en minutes)</label>
+        <input
+          v-model.number="onlineForm.duree_minutes"
+          type="number"
+          min="5"
+          max="240"
+          required
+          class="form-input"
+          placeholder="60"
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Description / Consignes</label>
+        <textarea
+          v-model="onlineForm.description"
+          rows="3"
+          class="form-textarea"
+          placeholder="Instructions pour les étudiants..."
+        ></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <BaseButton type="button" variant="secondary" class="btn-cancel" @click="$emit('close')">
+          Annuler
+        </BaseButton>
+        <BaseButton type="submit" class="btn-submit" :loading="creating">
+          <template #icon>
+            <PlusIcon class="w-5 h-5" />
+          </template>
+          {{ creating ? 'Création...' : 'Créer et ajouter des questions' }}
+        </BaseButton>
+      </div>
+    </form>
+  </Modal>
 </template>
 
 <script setup>
 /**
  * Modale de création d'une version en ligne (H1, TeacherEvaluations). Le
  * formulaire est lié au modèle réactif `onlineForm` partagé (même référence) ;
- * émet `close` et `submit`. CSS déplacé verbatim depuis TeacherEvaluations
- * (styles de modale, de formulaire et animation `animate-spin`).
+ * émet `close` et `submit`. Les actions utilisent le bouton de base réutilisable.
  */
-import { XMarkIcon, PlusIcon, ArrowPathIcon } from '@heroicons/vue/24/outline'
+import Modal from '@/components/ui/Modal.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
+import { PlusIcon } from '@heroicons/vue/24/outline'
 
 defineProps({
   show: { type: Boolean, default: false },
@@ -91,82 +87,6 @@ defineEmits(['close', 'submit'])
 </script>
 
 <style scoped>
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Modal Styles */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
-}
-
-.modal-content {
-  background: var(--card-bg);
-  border-radius: 0.75rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  max-width: 600px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.modal-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.modal-close {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border: none;
-  background: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  border-radius: 0.375rem;
-  transition: all 0.2s;
-}
-
-.modal-close:hover {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-}
-
-.modal-body {
-  padding: 1.5rem;
-}
-
 .modal-info {
   background: var(--blue-50);
   border: 1px solid var(--blue-200);
@@ -275,4 +195,5 @@ defineEmits(['close', 'submit'])
   opacity: 0.5;
   cursor: not-allowed;
 }
+
 </style>

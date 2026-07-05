@@ -1,5 +1,6 @@
-// Routes Admin (#H12) — extraites verbatim de router/index.js, définitions et
-// métadonnées de rôles inchangées. Lazy loading systématique (#27).
+// Routes Admin (#H12) — lazy loading systématique (#27).
+// Les routes du périmètre admin acceptent le rôle canonique `admin` en plus des
+// alias historiques utilisés par KLASSCI ; `/admin/institutions` reste supradmin.
 export const adminRoutes = [
   // Dashboard Admin
   {
@@ -8,7 +9,7 @@ export const adminRoutes = [
     component: () => import('@/views/dashboards/AdminDashboard.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['superAdmin', 'coordinateur', 'secretaire']
+      roles: ['superAdmin', 'admin', 'coordinateur', 'secretaire']
     }
   },
   // Gestion Utilisateurs Admin
@@ -18,7 +19,7 @@ export const adminRoutes = [
     component: () => import('@/views/admin/AdminUsers.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['superAdmin', 'coordinateur']
+      roles: ['superAdmin', 'admin', 'coordinateur']
     }
   },
   // Espace Admin (Hub) - Classes, Matières, Enseignants
@@ -28,7 +29,7 @@ export const adminRoutes = [
     component: () => import('@/views/admin/AdminHub.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['superAdmin', 'coordinateur', 'secretaire']
+      roles: ['superAdmin', 'admin', 'coordinateur', 'secretaire']
     }
   },
   // Gestion Classes Admin
@@ -38,7 +39,7 @@ export const adminRoutes = [
     component: () => import('@/views/admin/AdminClasses.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['superAdmin', 'coordinateur']
+      roles: ['superAdmin', 'admin', 'coordinateur']
     }
   },
   // Gestion Matières Admin
@@ -48,7 +49,7 @@ export const adminRoutes = [
     component: () => import('@/views/admin/AdminMatieres.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['superAdmin', 'coordinateur']
+      roles: ['superAdmin', 'admin', 'coordinateur']
     }
   },
   // Gestion Enseignants Admin
@@ -58,7 +59,7 @@ export const adminRoutes = [
     component: () => import('@/views/admin/AdminEnseignants.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['superAdmin', 'coordinateur']
+      roles: ['superAdmin', 'admin', 'coordinateur']
     }
   },
   // Gestion Séances Admin
@@ -68,7 +69,7 @@ export const adminRoutes = [
     component: () => import('@/views/admin/AdminSeances.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['superAdmin', 'coordinateur']
+      roles: ['superAdmin', 'admin', 'coordinateur']
     }
   },
   // Gestion Visioconférences Admin
@@ -78,7 +79,7 @@ export const adminRoutes = [
     component: () => import('@/views/admin/AdminVisio.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['superAdmin', 'coordinateur']
+      roles: ['superAdmin', 'admin', 'coordinateur']
     }
   },
   // Statistiques Admin
@@ -88,7 +89,7 @@ export const adminRoutes = [
     component: () => import('@/views/admin/AdminStats.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['superAdmin', 'coordinateur']
+      roles: ['superAdmin', 'admin', 'coordinateur']
     }
   },
   // Résultats Évaluations Admin/Coordinateur
@@ -98,7 +99,7 @@ export const adminRoutes = [
     component: () => import('@/views/admin/AdminEvaluationResults.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['superAdmin', 'coordinateur']
+      roles: ['superAdmin', 'admin', 'coordinateur']
     }
   },
   // Détails résultats d'une évaluation (tous les étudiants)
@@ -108,7 +109,7 @@ export const adminRoutes = [
     component: () => import('@/views/admin/AdminEvaluationDetails.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['superAdmin', 'coordinateur']
+      roles: ['superAdmin', 'admin', 'coordinateur']
     }
   },
   // Profil - Admin
@@ -118,7 +119,7 @@ export const adminRoutes = [
     component: () => import('@/views/admin/AdminProfile.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['superAdmin', 'coordinateur'],
+      roles: ['superAdmin', 'admin', 'coordinateur'],
       title: 'Mon Profil'
     }
   },
@@ -129,7 +130,7 @@ export const adminRoutes = [
     component: () => import('@/views/admin/AdminSettings.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['superAdmin', 'coordinateur'],
+      roles: ['superAdmin', 'admin', 'coordinateur'],
       title: 'Paramètres'
     }
   },

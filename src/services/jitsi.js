@@ -30,7 +30,7 @@ export const jitsiService = {
   },
 
   /**
-   * Générer un Room ID unique pour la séance (format: lms_seance_{id}_{timestamp})
+   * Lire le Room ID fourni par l'API pour la séance.
    * @param {Object} seance
    * @returns {string}
    */

@@ -16,10 +16,16 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 vi.mock('@/services/lms', () => ({
   default: { joinVisio: vi.fn(() => Promise.resolve({ success: true })), leaveVisio: vi.fn(() => Promise.resolve()), heartbeatVisio: vi.fn(() => Promise.resolve()) }
 }))
+vi.mock('@/composables/useVisioHeartbeat', () => ({
+  useVisioHeartbeat: () => ({
+    start: vi.fn(),
+    stop: vi.fn(),
+    sendHeartbeat: vi.fn(),
+  })
+}))
 vi.mock('@/constants/visio', () => ({
   jitsiExternalApiSrc: () => 'https://meet.jit.si/external_api.js',
   getJitsiDomain: () => 'meet.jit.si',
-  VISIO_CONFIG: { HEARTBEAT_INTERVAL_MS: 30000 }
 }))
 
 import JitsiMeet from '@/components/visio/JitsiMeet.vue'

@@ -18,6 +18,7 @@ const createLesson = vi.fn().mockResolvedValue({ success: true })
 const updateLesson = vi.fn().mockResolvedValue({ success: true })
 const deleteLessonApi = vi.fn().mockResolvedValue({ success: true })
 const getLesson = vi.fn().mockResolvedValue({ success: true, data: { title: 'X', type: 'cours', status: 'draft' } })
+const getChapters = vi.fn().mockResolvedValue({ success: true, data: [] })
 vi.mock('@/services/lesson', () => ({
   default: {
     getLesson: (...a) => getLesson(...a),
@@ -26,7 +27,7 @@ vi.mock('@/services/lesson', () => ({
     deleteLesson: (...a) => deleteLessonApi(...a)
   }
 }))
-vi.mock('@/services/chapter', () => ({ default: { getChapters: vi.fn().mockResolvedValue({ success: true, data: [] }) } }))
+vi.mock('@/services/chapter', () => ({ default: { getChapters: (...a) => getChapters(...a) } }))
 vi.mock('@/services/klassci', () => ({
   klassciService: { getMatieres: vi.fn().mockResolvedValue([]), getClasses: vi.fn().mockResolvedValue([]) }
 }))
@@ -48,6 +49,7 @@ describe('useLessonEditor (#H4)', () => {
     routeParams = {}
     push.mockClear(); go.mockClear()
     createLesson.mockClear(); updateLesson.mockClear(); deleteLessonApi.mockClear()
+    getLesson.mockClear(); getChapters.mockClear()
     vi.stubGlobal('alert', vi.fn())
     vi.stubGlobal('confirm', vi.fn(() => true))
   })
@@ -55,6 +57,13 @@ describe('useLessonEditor (#H4)', () => {
   it('isEditMode = false sans id de route', async () => {
     const c = await setup()
     expect(c.isEditMode.value).toBe(false)
+    expect(getChapters).not.toHaveBeenCalled()
+  })
+
+  it('charge les chapitres avec le lessonId en mode édition', async () => {
+    routeParams = { id: '9' }
+    await setup()
+    expect(getChapters).toHaveBeenCalledWith('9')
   })
 
   it('addResource ajoute une ressource ordonnée et removeResource la retire', async () => {

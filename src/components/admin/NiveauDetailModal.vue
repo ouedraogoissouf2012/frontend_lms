@@ -1,103 +1,99 @@
 <template>
-  <Teleport to="body">
-    <div v-if="niveau" class="modal-overlay" @click="$emit('close')">
-      <div class="modal-container" @click.stop>
-        <div class="modal-header">
-          <div class="modal-header-content">
-            <AcademicCapIcon class="modal-icon" />
-            <div>
-              <h2 class="modal-title">
-                {{ niveau?.niveau.nom || niveau?.niveau.code }}
-              </h2>
-              <p class="modal-subtitle">
-                {{ niveau?.matieres.length }} matière(s) ·
-                {{ niveau?.totalHeures }}h ·
-                {{ niveau?.totalSeances }} séance(s)
-              </p>
-            </div>
-          </div>
-          <button @click="$emit('close')" class="modal-close">
-            <XMarkIcon class="w-6 h-6" />
-          </button>
-        </div>
-
-        <div class="modal-body">
-          <div class="table-wrapper">
-            <table class="matieres-table">
-              <thead>
-                <tr>
-                  <th></th>
-                  <th>Matière</th>
-                  <th>Filière(s)</th>
-                  <th>Code</th>
-                  <th>Coef.</th>
-                  <th>Heures</th>
-                  <th>Séances</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="matiere in niveau?.matieres"
-                  :key="matiere.id"
-                  class="table-row"
-                >
-                  <td>
-                    <div
-                      class="matiere-color"
-                      :style="{ backgroundColor: matiere.couleur || '#6366f1' }"
-                    ></div>
-                  </td>
-                  <td class="col-matiere">
-                    <div class="matiere-info">
-                      <span class="matiere-name">{{ matiere.nom }}</span>
-                      <span v-if="matiere.description" class="matiere-desc">
-                        {{ matiere.description.substring(0, 50) }}{{ matiere.description.length > 50 ? '...' : '' }}
-                      </span>
-                    </div>
-                  </td>
-                  <td class="col-filieres">
-                    <div class="filieres-badges">
-                      <span
-                        v-for="(filiere, idx) in getMatiereFilieres(matiere)"
-                        :key="idx"
-                        class="filiere-badge"
-                        :title="filiere"
-                      >
-                        {{ filiere }}
-                      </span>
-                      <span v-if="getMatiereFilieres(matiere).length === 0" class="no-data">-</span>
-                    </div>
-                  </td>
-                  <td>
-                    <span class="code-badge">{{ matiere.code || '-' }}</span>
-                  </td>
-                  <td class="col-center">
-                    <span class="coef-value">{{ matiere.coefficient || '-' }}</span>
-                  </td>
-                  <td class="col-center">
-                    <span class="hours-badge">{{ matiere.heures_total || 0 }}h</span>
-                  </td>
-                  <td class="col-center">
-                    <span class="seances-badge">{{ matiere.nb_seances_programmees || 0 }}</span>
-                  </td>
-                  <td class="col-actions">
-                    <button
-                      @click="$emit('view-matiere', matiere)"
-                      class="action-btn"
-                      title="Voir détails complets"
-                    >
-                      <EyeIcon class="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+  <Modal
+    :model-value="Boolean(niveau)"
+    size="xl"
+    class="niveau-detail-modal"
+    @close="$emit('close')"
+  >
+    <template #header>
+      <div v-if="niveau" class="modal-header-content">
+        <AcademicCapIcon class="modal-icon" />
+        <div>
+          <h2 class="modal-title">
+            {{ niveau?.niveau.nom || niveau?.niveau.code }}
+          </h2>
+          <p class="modal-subtitle">
+            {{ niveau?.matieres.length }} matière(s) ·
+            {{ niveau?.totalHeures }}h ·
+            {{ niveau?.totalSeances }} séance(s)
+          </p>
         </div>
       </div>
+    </template>
+
+    <div v-if="niveau" class="table-wrapper">
+      <table class="matieres-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Matière</th>
+            <th>Filière(s)</th>
+            <th>Code</th>
+            <th>Coef.</th>
+            <th>Heures</th>
+            <th>Séances</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="matiere in niveau?.matieres"
+            :key="matiere.id"
+            class="table-row"
+          >
+            <td>
+              <div
+                class="matiere-color"
+                :style="{ backgroundColor: matiere.couleur || '#6366f1' }"
+              ></div>
+            </td>
+            <td class="col-matiere">
+              <div class="matiere-info">
+                <span class="matiere-name">{{ matiere.nom }}</span>
+                <span v-if="matiere.description" class="matiere-desc">
+                  {{ matiere.description.substring(0, 50) }}{{ matiere.description.length > 50 ? '...' : '' }}
+                </span>
+              </div>
+            </td>
+            <td class="col-filieres">
+              <div class="filieres-badges">
+                <span
+                  v-for="(filiere, idx) in getMatiereFilieres(matiere)"
+                  :key="idx"
+                  class="filiere-badge"
+                  :title="filiere"
+                >
+                  {{ filiere }}
+                </span>
+                <span v-if="getMatiereFilieres(matiere).length === 0" class="no-data">-</span>
+              </div>
+            </td>
+            <td>
+              <span class="code-badge">{{ matiere.code || '-' }}</span>
+            </td>
+            <td class="col-center">
+              <span class="coef-value">{{ matiere.coefficient || '-' }}</span>
+            </td>
+            <td class="col-center">
+              <span class="hours-badge">{{ matiere.heures_total || 0 }}h</span>
+            </td>
+            <td class="col-center">
+              <span class="seances-badge">{{ matiere.nb_seances_programmees || 0 }}</span>
+            </td>
+            <td class="col-actions">
+              <button
+                @click="$emit('view-matiere', matiere)"
+                class="action-btn"
+                title="Voir détails complets"
+              >
+                <EyeIcon class="w-4 h-4" />
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-  </Teleport>
+  </Modal>
 </template>
 
 <script setup>
@@ -105,7 +101,8 @@
  * Modale détail Niveau (#G1 décompo) : table des matières d'un niveau. Demande
  * l'ouverture de la modale Matière via l'event view-matiere (orchestré au parent).
  */
-import { AcademicCapIcon, EyeIcon, XMarkIcon } from '@heroicons/vue/24/outline'
+import Modal from '@/components/ui/Modal.vue'
+import { AcademicCapIcon, EyeIcon } from '@heroicons/vue/24/outline'
 import { getMatiereFilieres } from '@/utils/matieres'
 
 defineProps({
@@ -118,6 +115,10 @@ defineEmits(['close', 'view-matiere'])
 /* Chrome de base (overlay/container/header/body + @media) : @use matiere-modal.
    Rendu identique à MatiereModals.vue ; ci-dessous, le spécifique à la table. */
 @use '../../assets/styles/matiere-modal';
+
+:deep(.niveau-detail-modal) {
+  max-width: 1200px;
+}
 
 .table-wrapper {
   overflow-x: auto;

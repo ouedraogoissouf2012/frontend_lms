@@ -3,6 +3,24 @@ import { useRouter } from 'vue-router'
 import { klassciService } from '@/services/klassci'
 import { readCache, writeCache } from '@/services/cache'
 
+const asArray = (value, keys = []) => {
+  if (Array.isArray(value)) return value
+  if (!value || typeof value !== 'object') return []
+
+  for (const key of keys) {
+    if (Array.isArray(value[key])) return value[key]
+  }
+  if (Array.isArray(value.data)) return value.data
+  for (const key of keys) {
+    if (Array.isArray(value.data?.[key])) return value.data[key]
+  }
+
+  return []
+}
+
+const asObjectArray = (value, keys = []) =>
+  asArray(value, keys).filter(item => item && typeof item === 'object')
+
 /**
  * Couche données d'AdminClasses (#G1 ≤300) : charge les classes KLASSCI, les
  * enrichit (étudiants/matières), gère filtres (filière/niveau/statut), stats et
@@ -26,7 +44,7 @@ export function useAdminClasses() {
 
   // Computed: Filtered classes
   const filteredClasses = computed(() => {
-    let result = classes.value
+    let result = asObjectArray(classes.value)
 
     if (filters.value.filiere_id) {
       result = result.filter(c => c.filiere?.id === parseInt(filters.value.filiere_id))
@@ -46,7 +64,7 @@ export function useAdminClasses() {
 
   // Computed: Statistics
   const stats = computed(() => {
-    const list = Array.isArray(classes.value) ? classes.value : []
+    const list = asObjectArray(classes.value)
     return {
       total: list.length,
       totalEtudiants: list.reduce((sum, c) => sum + (c.places_occupees || 0), 0),
@@ -60,10 +78,10 @@ export function useAdminClasses() {
     // Check cache
     const cached = readCache('admin_classes')
     if (cached) {
-      classes.value = cached.classes
-      filieres.value = cached.filieres
-      niveaux.value = cached.niveaux
-      matieres.value = cached.matieres
+      classes.value = asObjectArray(cached, ['classes'])
+      filieres.value = asObjectArray(cached, ['filieres'])
+      niveaux.value = asObjectArray(cached, ['niveaux_etude', 'niveaux'])
+      matieres.value = asObjectArray(cached, ['matieres'])
       loading.value = false
       refreshInBackground()
       return
@@ -82,10 +100,10 @@ export function useAdminClasses() {
         klassciService.getStructure()
       ])
 
-      const rawClasses = classesData || []
-      matieres.value = matieresData || []
-      filieres.value = structureData?.filieres || []
-      niveaux.value = structureData?.niveaux || []
+      const rawClasses = asObjectArray(classesData, ['classes'])
+      matieres.value = asObjectArray(matieresData, ['matieres'])
+      filieres.value = asObjectArray(structureData, ['filieres'])
+      niveaux.value = asObjectArray(structureData, ['niveaux_etude', 'niveaux'])
 
       console.log('[ADMIN] Classes:', rawClasses.length, 'Matières:', matieres.value.length)
 
@@ -94,7 +112,7 @@ export function useAdminClasses() {
         rawClasses.map(async (classe) => {
           try {
             const etudiants = await klassciService.getClasseEtudiants(classe.id)
-            const nbEtudiants = etudiants?.length || 0
+            const nbEtudiants = asObjectArray(etudiants, ['etudiants']).length
 
             // Count all matieres for this class (same logic as TeacherClasses)
             const nbMatieres = matieres.value.length
@@ -150,16 +168,16 @@ export function useAdminClasses() {
         klassciService.getStructure()
       ])
 
-      const rawClasses = classesData || []
-      matieres.value = matieresData || []
-      filieres.value = structureData?.filieres || []
-      niveaux.value = structureData?.niveaux || []
+      const rawClasses = asObjectArray(classesData, ['classes'])
+      matieres.value = asObjectArray(matieresData, ['matieres'])
+      filieres.value = asObjectArray(structureData, ['filieres'])
+      niveaux.value = asObjectArray(structureData, ['niveaux_etude', 'niveaux'])
 
       const enrichedClasses = await Promise.all(
         rawClasses.map(async (classe) => {
           try {
             const etudiants = await klassciService.getClasseEtudiants(classe.id)
-            const nbEtudiants = etudiants?.length || 0
+            const nbEtudiants = asObjectArray(etudiants, ['etudiants']).length
             const nbMatieres = matieres.value.length
             const placesTotales = classe.effectif_max || classe.capacite || (nbEtudiants > 0 ? Math.max(nbEtudiants, 30) : 30)
 

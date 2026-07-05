@@ -1,46 +1,59 @@
 <template>
   <div>
     <!-- Modal de confirmation soumission -->
-    <div v-if="showConfirmModal" class="modal-overlay" @click.self="$emit('close-confirm')">
-      <div class="modal-card">
-        <h3 class="modal-title">Confirmer la soumission</h3>
-        <p class="modal-text">
-          Vous avez répondu à <strong>{{ answeredCount }}</strong> question(s) sur <strong>{{ evaluation.questions.length }}</strong>.
-        </p>
-        <p class="modal-warning" v-if="answeredCount < evaluation.questions.length">
-          <i class="fa fa-exclamation-triangle"></i>
-          Certaines questions n'ont pas été répondues.
-        </p>
-        <p class="modal-text">Êtes-vous sûr de vouloir soumettre ? Cette action est irréversible.</p>
+    <Modal
+      :model-value="showConfirmModal"
+      title="Confirmer la soumission"
+      size="sm"
+      @close="$emit('close-confirm')"
+    >
+      <p class="modal-text">
+        Vous avez répondu à <strong>{{ answeredCount }}</strong> question(s) sur <strong>{{ evaluation.questions.length }}</strong>.
+      </p>
+      <p class="modal-warning" v-if="answeredCount < evaluation.questions.length">
+        <i class="fa fa-exclamation-triangle"></i>
+        Certaines questions n'ont pas été répondues.
+      </p>
+      <p class="modal-text">Êtes-vous sûr de vouloir soumettre ? Cette action est irréversible.</p>
+
+      <template #footer>
         <div class="modal-actions">
-          <button @click="$emit('close-confirm')" class="btn-cancel">Annuler</button>
-          <button @click="$emit('submit')" class="btn-submit">Confirmer</button>
+          <BaseButton variant="secondary" class="btn-cancel" @click="$emit('close-confirm')">
+            Annuler
+          </BaseButton>
+          <BaseButton class="btn-submit" @click="$emit('submit')">
+            Confirmer
+          </BaseButton>
         </div>
-      </div>
-    </div>
+      </template>
+    </Modal>
 
     <!-- Modal résultats -->
-    <div v-if="showResultsModal" class="modal-overlay">
-      <div class="modal-card modal-results">
-        <div class="results-icon">
-          <i class="fa fa-check-circle"></i>
-        </div>
-        <h3 class="modal-title">{{ isPractice ? 'Entraînement terminé !' : 'Évaluation soumise !' }}</h3>
-        <p class="modal-text">{{ isPractice ? 'Votre entraînement a été complété.' : 'Votre évaluation a été soumise avec succès.' }}</p>
-
-        <div v-if="results" class="results-score" :class="{ 'results-practice': isPractice }">
-          <p class="score-label">{{ isPractice ? 'Note indicative' : 'Votre note' }}</p>
-          <p class="score-value">{{ results.note_sur_20 }}<span class="score-unit">/20</span></p>
-          <p class="score-detail">Score: {{ results.score }} points</p>
-          <p v-if="isPractice" class="practice-note-info">Cette note n'est pas comptabilisée dans votre moyenne.</p>
-        </div>
-
-        <button @click="$emit('return')" class="btn-submit btn-full">
-          <i class="fa fa-arrow-left"></i>
-          Retour aux évaluations
-        </button>
+    <Modal
+      :model-value="showResultsModal"
+      :show-close="false"
+      :close-on-overlay="false"
+      size="sm"
+      class="modal-results"
+    >
+      <div class="results-icon">
+        <i class="fa fa-check-circle"></i>
       </div>
-    </div>
+      <h3 class="modal-title">{{ isPractice ? 'Entraînement terminé !' : 'Évaluation soumise !' }}</h3>
+      <p class="modal-text">{{ isPractice ? 'Votre entraînement a été complété.' : 'Votre évaluation a été soumise avec succès.' }}</p>
+
+      <div v-if="results" class="results-score" :class="{ 'results-practice': isPractice }">
+        <p class="score-label">{{ isPractice ? 'Note indicative' : 'Votre note' }}</p>
+        <p class="score-value">{{ results.note_sur_20 }}<span class="score-unit">/20</span></p>
+        <p class="score-detail">Score: {{ results.score }} points</p>
+        <p v-if="isPractice" class="practice-note-info">Cette note n'est pas comptabilisée dans votre moyenne.</p>
+      </div>
+
+      <BaseButton class="btn-submit btn-full" @click="$emit('return')">
+        <i class="fa fa-arrow-left"></i>
+        Retour aux évaluations
+      </BaseButton>
+    </Modal>
   </div>
 </template>
 
@@ -51,6 +64,9 @@
  * CSS déplacé verbatim depuis TakeEvaluation (`.btn-cancel`/`.btn-submit`
  * dupliqués car partagés avec le pied d'actions).
  */
+import Modal from '@/components/ui/Modal.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
+
 defineProps({
   showConfirmModal: { type: Boolean, default: false },
   showResultsModal: { type: Boolean, default: false },
@@ -126,27 +142,6 @@ defineEmits(['close-confirm', 'submit', 'return'])
   color: var(--violet-600);
   margin-top: 0.5rem;
   font-style: italic;
-}
-
-/* Modals */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 50;
-  padding: 1rem;
-}
-
-.modal-card {
-  background: var(--card-bg);
-  border-radius: 0.75rem;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-  max-width: 480px;
-  width: 100%;
-  padding: 2rem;
 }
 
 .modal-results {

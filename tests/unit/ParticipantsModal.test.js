@@ -6,7 +6,7 @@
  *  - @/services/toast et @/services/errorHandler (utilisés par les exports) → no-op
  *  - @/constants/http (apiBaseUrl) → no-op
  * Pinia est fourni (le store auth est utilisé dans les méthodes d'export, pas au montage).
- * Assertions : montage sans erreur (overlay racine), appel du service au montage,
+ * Assertions : montage sans erreur (overlay Modal), appel du service au montage,
  * émission de `close` au clic sur le bouton Fermer du footer.
  */
 import { mount } from '@vue/test-utils'
@@ -45,9 +45,9 @@ describe('ParticipantsModal.vue (G8) — montage', () => {
     vi.useRealTimers()
   })
 
-  it('monte sans erreur (overlay racine présent)', () => {
+  it('monte sans erreur (overlay Modal présent)', () => {
     const w = mountModal()
-    expect(w.find('.fixed').exists()).toBe(true)
+    expect(w.find('.participants-modal-overlay').exists()).toBe(true)
   })
 
   it('appelle getVisioParticipants au montage avec le seanceId', () => {

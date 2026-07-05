@@ -1,5 +1,5 @@
 import { auth } from '@/services/api'
-import { getJitsiDomain } from '@/constants/visio'
+import { getJitsiDomain, requireVisioRoomId } from '@/constants/visio'
 
 /**
  * Helpers purs de construction de salle / lien Jitsi (extraits de services/jitsi.js, G8).
@@ -24,18 +24,13 @@ export function sanitizeForUrl(str) {
 }
 
 /**
- * Room ID DÉTERMINISTE par séance.
- * Format: lms_seance_{id}
- *
- * Prof ET élèves d'une séance doivent rejoindre la MÊME salle. Un timestamp
- * (Date.now()) donnait une salle différente à chaque ouverture → les élèves
- * atterrissaient dans une autre salle que le prof (ne pouvaient pas suivre).
- * L'unicité par séance suffit (le nom de salle inclut déjà la séance).
+ * Room ID fourni par l'API.
+ * Le front ne devine plus de nom de salle : le backend est la source de vérité.
  * @param {Object} seance
  * @returns {string}
  */
 export function generateRoomId(seance) {
-  return `lms_seance_${seance.id}`
+  return requireVisioRoomId(seance)
 }
 
 /**
@@ -78,11 +73,7 @@ export function buildRoomName(seance, roomId) {
  * @returns {string} URL Jitsi
  */
 export function generateRoomLink(seance) {
-  // Utiliser visio_room_id si existant, sinon générer un ID unique
-  const roomId = seance.visio_room_id || generateRoomId(seance)
-
-  // Construire le nom de la salle
-  const roomName = buildRoomName(seance, roomId)
+  const roomId = requireVisioRoomId(seance)
 
   // URL Jitsi avec paramètres
   const user = auth.getUser()
@@ -99,7 +90,7 @@ export function generateRoomLink(seance) {
     'interfaceConfig.DEFAULT_WELCOME_PAGE_LOGO_URL': ''
   })
 
-  const jitsiUrl = `https://${getJitsiDomain()}/${roomName}#${params.toString()}`
+  const jitsiUrl = `https://${getJitsiDomain()}/${roomId}#${params.toString()}`
 
   console.log('[JitsiService] Lien généré:', jitsiUrl)
   console.log('[JitsiService] Room ID:', roomId)

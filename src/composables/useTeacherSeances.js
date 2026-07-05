@@ -1,23 +1,21 @@
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useVisioParticipation } from '@/composables/useVisioParticipation'
+import { useTrackedVisioJoin } from '@/composables/useTrackedVisioJoin'
 import { lmsService } from '@/services/lms'
 import { klassciService } from '@/services/klassci'
 import { useAuthStore } from '@/stores/auth'
 import { toast } from '@/services/toast'
 import { normalizeError } from '@/services/errorHandler'
 import { readCache, writeCache, clearCache } from '@/services/cache'
-import { buildJitsiUrl } from '@/constants/visio'
+import { confirmVisioAction } from '@/services/visioFeedback'
 // #28 : logique métier pure extraite (testée dans tests/unit/seances.test.js)
 import { filterSeances, computeSeancesStats } from '@/utils/seances'
 
 /**
  * Couche données/logique de la vue TeacherSeances (#H6 ≤300).
  *
- * Extraite VERBATIM du `<script setup>` d'origine : chargement séances/matières
- * (cache `teacher_seances` / `teacher_matieres` + rafraîchissement en arrière-
- * plan), filtres, statistiques (logique pure #28) et actions visio
- * (activer/démarrer/désactiver/rejoindre/terminer). Logs, clés de cache,
- * confirmations et appels services strictement identiques.
+ * Chargement séances/matières (cache `teacher_seances` / `teacher_matieres` +
+ * rafraîchissement en arrière-plan), filtres, statistiques (logique pure #28) et
+ * actions visio (activer/démarrer/désactiver/rejoindre/terminer).
  */
 export function useTeacherSeances() {
   const seances = ref([])
@@ -26,9 +24,7 @@ export function useTeacherSeances() {
   const error = ref(null)
   const actionLoading = ref(null)
 
-  // État de la modal Jitsi
-  // visioParticipation sera créé dynamiquement pour chaque séance
-  const visioParticipations = reactive({})
+  const { joinTrackedVisio } = useTrackedVisioJoin('Enseignant')
 
   // Get current user (#19 : via store, plus de localStorage('user'))
   const currentUser = useAuthStore().currentUser
@@ -158,7 +154,9 @@ export function useTeacherSeances() {
   async function handleDeactivateVisio(seance) {
     if (actionLoading.value) return
 
-    if (!confirm('Voulez-vous vraiment désactiver la visioconférence ?')) {
+    if (!await confirmVisioAction('Voulez-vous vraiment désactiver la visioconférence ?', {
+      variant: 'danger',
+    })) {
       return
     }
 
@@ -207,16 +205,9 @@ export function useTeacherSeances() {
     try {
       console.log('[VISIO] Rejoindre visio:', seance.id)
 
-      // Créer le composable pour cette séance si pas déjà créé
-      if (!visioParticipations[seance.id]) {
-        visioParticipations[seance.id] = useVisioParticipation(seance.id)
-      }
-
-      // Ouvrir window.open avec tracking
-      const roomId = seance.visio.room_id
-      const jitsiLink = buildJitsiUrl(roomId)
-
-      await visioParticipations[seance.id].joinVisio(jitsiLink)
+      await joinTrackedVisio(seance, {
+        displayName: currentUser?.name || 'Enseignant',
+      })
 
       console.log('[VISIO] Visio rejointe avec window.open + tracking Web Worker')
 
@@ -225,14 +216,17 @@ export function useTeacherSeances() {
       loadSeances()
     } catch (error) {
       console.error('[ERREUR] Join visio:', error)
-      toast.error(error.userMessage ?? normalizeError(error).userMessage)
+      toast.error(error.userMessage ?? error.message ?? normalizeError(error).userMessage)
     }
   }
 
   async function handleEndVisio(seance) {
     if (actionLoading.value) return
 
-    if (!confirm('Voulez-vous vraiment terminer cette visioconférence ?')) {
+    if (!await confirmVisioAction('Voulez-vous vraiment terminer cette visioconférence ?', {
+      confirmLabel: 'Terminer',
+      variant: 'danger',
+    })) {
       return
     }
 

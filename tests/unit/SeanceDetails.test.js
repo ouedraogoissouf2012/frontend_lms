@@ -23,8 +23,8 @@ vi.mock('@/services/lms', () => {
 vi.mock('@/services/api', () => ({ auth: { getUser: () => ({ role: 'coordinateur', name: 'X' }) } }))
 vi.mock('@/services/toast', () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() } }))
 vi.mock('@/services/errorHandler', () => ({ normalizeError: () => ({ userMessage: 'err' }) }))
-vi.mock('@/composables/useVisioParticipation', () => ({
-  useVisioParticipation: () => ({ joinVisio: vi.fn(), leaveVisio: vi.fn() })
+vi.mock('@/composables/useTrackedVisioJoin', () => ({
+  useTrackedVisioJoin: () => ({ joinTrackedVisio: vi.fn() })
 }))
 
 import SeanceDetails from '@/views/seances/SeanceDetails.vue'

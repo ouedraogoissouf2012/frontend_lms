@@ -5,9 +5,8 @@ import { VISIO_CONFIG } from '@/constants/visio'
 /**
  * Moteur de heartbeat visio partagé (#26).
  *
- * Mutualise la logique Web Worker (+ fallback setInterval) qui était
- * dupliquée à l'identique entre le store global (`stores/visio.js`) et le
- * composable de liaison composant (`composables/useVisioParticipation.js`).
+ * Mutualise la logique Web Worker (+ fallback setInterval) utilisée par le
+ * store global (`stores/visio.js`) et l'intégration Jitsi restante.
  *
  * Le Worker (`/heartbeat-worker.js`) émet un message `heartbeat` toutes les
  * `VISIO_CONFIG.HEARTBEAT_INTERVAL_MS` ms ; on relaie alors un ping serveur.

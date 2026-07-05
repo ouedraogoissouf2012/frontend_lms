@@ -1,38 +1,36 @@
 <template>
-      <!-- Connection Test Result Modal -->
-      <Teleport to="body">
-        <div v-if="connectionResult" class="modal-overlay" @click="$emit('close')">
-          <div class="modal-content modal-sm" @click.stop>
-            <div class="modal-header">
-              <h2 class="modal-title">Test de Connexion KLASSCI</h2>
-              <button @click="$emit('close')" class="close-btn">&times;</button>
-            </div>
-            <div class="modal-body">
-              <div :class="['connection-status', connectionResult.success ? 'connection-success' : 'connection-error']">
-                <i :class="connectionResult.success ? 'fa fa-check-circle' : 'fa fa-times-circle'" class="connection-icon"></i>
-                <p class="connection-message">{{ connectionResult.message }}</p>
-                <div v-if="connectionResult.data" class="connection-details">
-                  <div class="detail-item">
-                    <span class="detail-label">URL :</span>
-                    <span class="detail-value">{{ connectionResult.data.api_url }}</span>
-                  </div>
-                  <div v-if="connectionResult.data.status_code" class="detail-item">
-                    <span class="detail-label">Status :</span>
-                    <span class="detail-value">{{ connectionResult.data.status_code }}</span>
-                  </div>
-                  <div v-if="connectionResult.data.response_time_ms" class="detail-item">
-                    <span class="detail-label">Temps :</span>
-                    <span class="detail-value">{{ connectionResult.data.response_time_ms }}ms</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button @click="$emit('close')" class="modal-btn modal-btn-secondary">Fermer</button>
-            </div>
-          </div>
+  <Modal
+    :model-value="Boolean(connectionResult)"
+    title="Test de Connexion KLASSCI"
+    size="sm"
+    class="connection-result-modal"
+    @update:model-value="handleModelUpdate"
+  >
+    <div v-if="connectionResult" :class="['connection-status', connectionResult.success ? 'connection-success' : 'connection-error']">
+      <i :class="connectionResult.success ? 'fa fa-check-circle' : 'fa fa-times-circle'" class="connection-icon"></i>
+      <p class="connection-message">{{ connectionResult.message }}</p>
+      <div v-if="connectionResult.data" class="connection-details">
+        <div class="detail-item">
+          <span class="detail-label">URL :</span>
+          <span class="detail-value">{{ connectionResult.data.api_url }}</span>
         </div>
-      </Teleport>
+        <div v-if="connectionResult.data.status_code" class="detail-item">
+          <span class="detail-label">Status :</span>
+          <span class="detail-value">{{ connectionResult.data.status_code }}</span>
+        </div>
+        <div v-if="connectionResult.data.response_time_ms" class="detail-item">
+          <span class="detail-label">Temps :</span>
+          <span class="detail-value">{{ connectionResult.data.response_time_ms }}ms</span>
+        </div>
+      </div>
+    </div>
+
+    <template #footer>
+      <BaseButton variant="secondary" class="modal-btn modal-btn-secondary" @click="handleClose">
+        Fermer
+      </BaseButton>
+    </template>
+  </Modal>
 </template>
 
 <script setup>
@@ -40,10 +38,21 @@
  * Modale de résultat de test de connexion KLASSCI (#G1 décompo). Affiche succès/échec
  * et les détails de la réponse. Fermeture remontée par l'event close.
  */
+import Modal from '@/components/ui/Modal.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
+
 defineProps({
   connectionResult: { type: Object, default: null }
 })
-defineEmits(['close'])
+const emit = defineEmits(['close'])
+
+function handleClose() {
+  emit('close')
+}
+
+function handleModelUpdate(value) {
+  if (!value) handleClose()
+}
 </script>
 
 <style scoped lang="scss">
@@ -97,7 +106,7 @@ defineEmits(['close'])
 }
 
 @media (max-width: 768px) {
-  .modal-content {
+  .connection-result-modal {
     margin: var(--spacing-md);
   }
 }

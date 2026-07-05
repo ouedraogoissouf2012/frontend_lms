@@ -1,49 +1,58 @@
 <template>
   <!-- Modal fullscreen pour Jitsi -->
-  <Teleport to="body">
-    <Transition name="modal">
-      <div v-if="isOpen" class="jitsi-modal-overlay" @click.self="handleClose">
-        <div class="jitsi-modal-container">
-          <!-- Header avec bouton fermer -->
-          <div class="jitsi-modal-header">
-            <h3 class="text-lg font-semibold text-white">
-              Visioconférence - {{ seanceTitle }}
-            </h3>
-            <button
-              @click="handleClose"
-              class="close-button"
-              title="Quitter la visioconférence"
-            >
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          <!-- Composant Jitsi -->
-          <div class="jitsi-modal-content">
-            <JitsiMeet
-              v-if="isOpen && seanceId && jitsiLink"
-              ref="jitsiMeetRef"
-              :seance-id="seanceId"
-              :jitsi-link="jitsiLink"
-              :user-name="userName"
-              :user-email="userEmail"
-              @joined="handleJoined"
-              @left="handleLeft"
-              @close="handleClose"
-              @error="handleError"
-            />
-          </div>
-        </div>
+  <Modal
+    :model-value="isOpen"
+    teleport
+    :show-close="false"
+    size="xl"
+    overlay-class="jitsi-modal-overlay"
+    container-class="jitsi-modal-container"
+    header-class="jitsi-modal-header-shell"
+    body-class="jitsi-modal-body"
+    transition-name="modal"
+    @close="handleClose"
+  >
+    <template #header>
+      <!-- Header avec bouton fermer -->
+      <div class="jitsi-modal-header">
+        <h3 class="text-lg font-semibold text-white">
+          Visioconférence - {{ seanceTitle }}
+        </h3>
+        <button
+          @click="handleClose"
+          class="close-button"
+          title="Quitter la visioconférence"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
-    </Transition>
-  </Teleport>
+    </template>
+
+    <!-- Composant Jitsi -->
+    <div class="jitsi-modal-content">
+      <JitsiMeet
+        v-if="isOpen && seanceId && jitsiLink"
+        ref="jitsiMeetRef"
+        :seance-id="seanceId"
+        :jitsi-link="jitsiLink"
+        :user-name="userName"
+        :user-email="userEmail"
+        @joined="handleJoined"
+        @left="handleLeft"
+        @close="handleClose"
+        @error="handleError"
+      />
+    </div>
+  </Modal>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
+import Modal from '@/components/ui/Modal.vue'
 import JitsiMeet from './JitsiMeet.vue'
+import { confirmVisioAction } from '@/services/visioFeedback'
 
 const props = defineProps({
   isOpen: {
@@ -81,7 +90,10 @@ const jitsiMeetRef = ref(null)
  */
 const handleClose = async () => {
   // Confirmer la sortie
-  const confirmed = confirm('Voulez-vous vraiment quitter la visioconférence ?')
+  const confirmed = await confirmVisioAction('Voulez-vous vraiment quitter la visioconférence ?', {
+    confirmLabel: 'Quitter',
+    variant: 'danger',
+  })
   if (!confirmed) return
 
   // Cleanup du composant Jitsi
@@ -110,36 +122,18 @@ const handleError = (error) => {
   emit('error', error)
 }
 
-/**
- * Bloquer le scroll du body quand la modal est ouverte
- */
-watch(() => props.isOpen, (newValue) => {
-  if (newValue) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-})
 </script>
 
 <style scoped>
 /* Overlay fullscreen */
-.jitsi-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+:deep(.jitsi-modal-overlay) {
   background: rgba(0, 0, 0, 0.95);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   z-index: 9999;
   padding: 1rem;
 }
 
 /* Conteneur de la modal */
-.jitsi-modal-container {
+:deep(.jitsi-modal-container) {
   width: 100%;
   max-width: 1400px;
   height: 90vh;
@@ -149,6 +143,19 @@ watch(() => props.isOpen, (newValue) => {
   flex-direction: column;
   overflow: hidden;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+:deep(.jitsi-modal-header-shell) {
+  display: block;
+  padding: 0;
+  border-bottom: 0;
+}
+
+:deep(.jitsi-modal-body) {
+  display: flex;
+  padding: 0;
+  overflow: hidden;
+  background: var(--black);
 }
 
 /* Header */
@@ -196,23 +203,23 @@ watch(() => props.isOpen, (newValue) => {
   opacity: 0;
 }
 
-.modal-enter-active .jitsi-modal-container,
-.modal-leave-active .jitsi-modal-container {
+:deep(.modal-enter-active .jitsi-modal-container),
+:deep(.modal-leave-active .jitsi-modal-container) {
   transition: transform 0.3s ease;
 }
 
-.modal-enter-from .jitsi-modal-container,
-.modal-leave-to .jitsi-modal-container {
+:deep(.modal-enter-from .jitsi-modal-container),
+:deep(.modal-leave-to .jitsi-modal-container) {
   transform: scale(0.9);
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .jitsi-modal-overlay {
+  :deep(.jitsi-modal-overlay) {
     padding: 0;
   }
 
-  .jitsi-modal-container {
+  :deep(.jitsi-modal-container) {
     max-width: 100%;
     height: 100vh;
     border-radius: 0;

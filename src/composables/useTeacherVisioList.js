@@ -1,22 +1,21 @@
 import { ref, computed, onMounted } from 'vue'
 import { lmsService } from '@/services/lms'
 import { readCache, writeCache, clearCache } from '@/services/cache'
+import { useTrackedVisioJoin } from '@/composables/useTrackedVisioJoin'
+import { confirmVisioAction } from '@/services/visioFeedback'
 
 /**
  * Couche données de TeacherVisioList (#G1 ≤300) : charge les séances enseignant
  * (cache + rafraîchissement en arrière-plan), dérive les séances visio en cours /
  * à venir et les statistiques, et expose les handlers d'activation / démarrage /
  * fin de visioconférence. La vue ne fait plus que câbler données et actions.
- *
- * Comportement strictement identique à l'ancien TeacherVisioList.vue :
- * mêmes appels services (lmsService + cache), mêmes clés de cache ('teacher_visio'),
- * mêmes logs, mêmes règles de filtrage/statut, mêmes formats date/heure.
  */
 export function useTeacherVisioList() {
   const seances = ref([])
   const loading = ref(true)
   const error = ref(null)
   const actionLoading = ref(null)
+  const { joinTrackedVisio } = useTrackedVisioJoin('Enseignant')
 
   // Visio en cours
   const visioEnCours = computed(() => {
@@ -159,7 +158,10 @@ export function useTeacherVisioList() {
   async function handleEndVisio(seance) {
     if (actionLoading.value) return
 
-    if (!confirm('Voulez-vous vraiment terminer cette visioconférence ?')) {
+    if (!await confirmVisioAction('Voulez-vous vraiment terminer cette visioconférence ?', {
+      confirmLabel: 'Terminer',
+      variant: 'danger',
+    })) {
       return
     }
 
@@ -174,6 +176,22 @@ export function useTeacherVisioList() {
     } catch (err) {
       console.error('[ERREUR] Fin visio:', err)
       error.value = 'Erreur lors de la terminaison de la visio'
+    } finally {
+      actionLoading.value = null
+    }
+  }
+
+  async function handleJoinVisio(seance) {
+    if (actionLoading.value) return
+
+    actionLoading.value = seance.id
+
+    try {
+      console.log('[VISIO] Rejoindre visio:', seance.id)
+      await joinTrackedVisio(seance)
+    } catch (err) {
+      console.error('[ERREUR] Join visio:', err)
+      error.value = err.message || 'Erreur lors de la connexion à la visio'
     } finally {
       actionLoading.value = null
     }
@@ -205,7 +223,7 @@ export function useTeacherVisioList() {
     seances, loading, error, actionLoading,
     visioEnCours, visioAVenir, stats,
     loadVisioConferences, refreshInBackground,
-    handleActivateVisio, handleStartVisio, handleEndVisio,
+    handleActivateVisio, handleStartVisio, handleEndVisio, handleJoinVisio,
     formatDate, formatTime,
   }
 }

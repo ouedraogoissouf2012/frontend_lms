@@ -49,7 +49,7 @@ describe('UserDetailModal (#G1) — rendu', () => {
   it('émet close au clic sur Fermer, la croix et l\'overlay', async () => {
     const w = mountModal()
     await w.find('.modal-btn-secondary').trigger('click')
-    await w.find('.close-btn').trigger('click')
+    await w.find('.modal-close-btn').trigger('click')
     await w.find('.modal-overlay').trigger('click')
     expect(w.emitted('close')).toHaveLength(3)
   })

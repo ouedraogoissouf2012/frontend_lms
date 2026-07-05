@@ -1,6 +1,9 @@
 import { ref, onMounted } from 'vue'
 import { klassciService } from '@/services/klassci'
 import { readCache, writeCache } from '@/services/cache'
+import { enrichTeacherClasses } from '@/utils/classStats'
+
+const TEACHER_CLASSES_CACHE_KEY = 'teacher_classes_dashboard_v2'
 
 /**
  * Couche donnees de TeacherClasses (#H9 ≤300). Charge les classes de
@@ -14,7 +17,7 @@ export function useTeacherClasses() {
 
   async function loadClasses() {
     // Verifier le cache
-    const cachedData = readCache('teacher_classes')
+    const cachedData = readCache(TEACHER_CLASSES_CACHE_KEY)
     if (cachedData !== null) {
       console.log('[CACHE] Classes chargées depuis le cache')
       classes.value = cachedData
@@ -29,11 +32,9 @@ export function useTeacherClasses() {
 
     try {
       console.log('[CLASSES] Chargement des classes enseignant...')
-      // Utiliser getClasses() et getMatieres() pour support coordinateur
-      const [rawClasses, dashboardMatieres] = await Promise.all([
-        klassciService.getClasses(),
-        klassciService.getMatieres()
-      ])
+      const dashboard = await klassciService.getTeacherDashboard()
+      const rawClasses = Array.isArray(dashboard?.classes) ? dashboard.classes : []
+      const dashboardMatieres = Array.isArray(dashboard?.matieres) ? dashboard.matieres : []
 
       console.log('[CLASSES] Classes brutes:', rawClasses.length)
       console.log('[CLASSES] Matières disponibles:', dashboardMatieres.length)
@@ -46,50 +47,12 @@ export function useTeacherClasses() {
         console.log("[DEBUG] Structure d'une classe:", rawClasses[0])
       }
 
-      // Enrichir chaque classe avec les compteurs
-      const enrichedClasses = await Promise.all(
-        rawClasses.map(async (classe) => {
-          try {
-            // Récupérer les étudiants de la classe
-            const etudiants = await klassciService.getClasseEtudiants(classe.id)
-            const nbEtudiants = etudiants?.length || 0
-
-            // SOLUTION SIMPLE: teacher-dashboard retourne déjà les matières de l'enseignant
-            // Comme les matières KLASSCI n'ont pas de lien direct avec les classes,
-            // on affiche toutes les matières pour chaque classe
-            const nbMatieres = dashboardMatieres.length
-
-            // Déterminer places_totales
-            const placesTotales = classe.effectif_max ||
-                                  classe.capacite ||
-                                  classe.places_totales ||
-                                  classe.effectif ||
-                                  (nbEtudiants > 0 ? Math.max(nbEtudiants, 30) : 30)
-
-            console.log(`[CLASSE ${classe.id} "${classe.name}"] Étudiants: ${nbEtudiants}/${placesTotales}, Matières: ${nbMatieres}`)
-
-            return {
-              ...classe,
-              places_occupees: nbEtudiants,
-              places_totales: placesTotales,
-              nb_matieres: nbMatieres
-            }
-          } catch (err) {
-            console.warn(`[WARN] Impossible d'enrichir classe ${classe.id}:`, err.message)
-            return {
-              ...classe,
-              places_occupees: 0,
-              places_totales: 30,
-              nb_matieres: dashboardMatieres.length
-            }
-          }
-        })
-      )
+      const enrichedClasses = enrichTeacherClasses(rawClasses, dashboardMatieres)
 
       classes.value = enrichedClasses
 
       // Mettre en cache
-      writeCache('teacher_classes', classes.value)
+      writeCache(TEACHER_CLASSES_CACHE_KEY, classes.value)
 
       console.log('[OK] Classes enrichies:', classes.value)
     } catch (err) {
@@ -103,47 +66,15 @@ export function useTeacherClasses() {
   async function refreshInBackground() {
     try {
       console.log('[BACKGROUND] Rafraîchissement des classes...')
-      // Utiliser getClasses() et getMatieres() pour support coordinateur
-      const [rawClasses, dashboardMatieres] = await Promise.all([
-        klassciService.getClasses(),
-        klassciService.getMatieres()
-      ])
+      const dashboard = await klassciService.getTeacherDashboard()
+      const rawClasses = Array.isArray(dashboard?.classes) ? dashboard.classes : []
+      const dashboardMatieres = Array.isArray(dashboard?.matieres) ? dashboard.matieres : []
 
-      // Enrichir chaque classe avec les compteurs
-      const enrichedClasses = await Promise.all(
-        rawClasses.map(async (classe) => {
-          try {
-            const etudiants = await klassciService.getClasseEtudiants(classe.id)
-            const nbEtudiants = etudiants?.length || 0
-
-            const nbMatieres = dashboardMatieres.length
-
-            const placesTotales = classe.effectif_max ||
-                                  classe.capacite ||
-                                  classe.places_totales ||
-                                  classe.effectif ||
-                                  (nbEtudiants > 0 ? Math.max(nbEtudiants, 30) : 30)
-
-            return {
-              ...classe,
-              places_occupees: nbEtudiants,
-              places_totales: placesTotales,
-              nb_matieres: nbMatieres
-            }
-          } catch (err) {
-            return {
-              ...classe,
-              places_occupees: 0,
-              places_totales: 30,
-              nb_matieres: dashboardMatieres.length
-            }
-          }
-        })
-      )
+      const enrichedClasses = enrichTeacherClasses(rawClasses, dashboardMatieres)
 
       classes.value = enrichedClasses
 
-      writeCache('teacher_classes', classes.value)
+      writeCache(TEACHER_CLASSES_CACHE_KEY, classes.value)
 
       console.log('[BACKGROUND] Classes rafraîchies')
     } catch (error) {

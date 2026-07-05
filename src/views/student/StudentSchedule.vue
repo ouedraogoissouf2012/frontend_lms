@@ -23,15 +23,17 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import UniversalCalendar from '@/components/calendar/UniversalCalendar.vue'
 import { lmsService } from '@/services/lms'
 import { useAuthStore } from '@/stores/auth'
-import { buildJitsiUrl } from '@/constants/visio'
+import { useTrackedVisioJoin } from '@/composables/useTrackedVisioJoin'
+import { notifyVisioError, notifyVisioWarning } from '@/services/visioFeedback'
 
 const router = useRouter()
+const { joinTrackedVisio } = useTrackedVisioJoin('Etudiant')
 
 // Utilisateur courant réactif depuis le store (#19) — plus de localStorage('user')
 const currentUser = computed(() => useAuthStore().currentUser)
@@ -41,25 +43,20 @@ async function handleEventAction({ type, data }) {
 
   switch (type) {
     case 'joinVisio':
-      // Etudiant rejoint la visio - appeler API puis ouvrir Jitsi
       try {
-        // Appeler l'API pour enregistrer la participation
-        await lmsService.joinVisio(data.id)
-        console.log('[StudentSchedule] Rejoint visio:', data.id)
-        // Ouvrir Jitsi
-        const roomId = data.visio?.room_id || data.visio_room_id || `seance_${data.id}`
-        const jitsiLink = buildJitsiUrl(roomId, {
+        await joinTrackedVisio(data, {
           displayName: currentUser.value?.name || 'Etudiant',
-          prejoinDisabled: true,
         })
-        window.open(jitsiLink, '_blank')
+        console.log('[StudentSchedule] Rejoint visio avec tracking:', data.id)
       } catch (error) {
         console.error('[StudentSchedule] Erreur rejoindre visio:', error)
         // Si la visio n'est pas active, afficher message
         if (error.response?.status === 400) {
-          alert('La visio n\'est pas encore active. Attendez que l\'enseignant la demarre.')
+          notifyVisioWarning('La visio n\'est pas encore active. Attendez que l\'enseignant la demarre.')
+        } else if (error.message) {
+          notifyVisioError(error, error.message)
         } else {
-          alert('Erreur lors de la connexion a la visio')
+          notifyVisioError(error, 'Erreur lors de la connexion a la visio')
         }
       }
       break

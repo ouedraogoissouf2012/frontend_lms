@@ -4,15 +4,19 @@ import lmsService from '@/services/lms'
 import { auth } from '@/services/api'
 import { toast } from '@/services/toast'
 import { normalizeError } from '@/services/errorHandler'
-import { useVisioParticipation } from '@/composables/useVisioParticipation'
+import { useTrackedVisioJoin } from '@/composables/useTrackedVisioJoin'
+import {
+  confirmVisioAction,
+  notifyVisioError,
+  notifyVisioSuccess,
+  notifyVisioWarning,
+} from '@/services/visioFeedback'
 
 /**
  * Couche données/logique de la vue SeanceDetails (#H6 ≤300).
  *
- * Extraite VERBATIM du god-component Options API `SeanceDetails.vue` :
- * chargement des détails (LMS), démarrage/jonction visio (lien Jitsi),
- * masquage côté étudiant et formatage date/heure. Comportement, logs, alertes
- * et appels services strictement identiques.
+ * Couche de chargement des détails (LMS), démarrage/jonction visio (lien Jitsi),
+ * masquage côté étudiant et formatage date/heure.
  */
 export function useSeanceDetails() {
   const route = useRoute()
@@ -29,7 +33,7 @@ export function useSeanceDetails() {
   })
   const roomActive = ref(false) // Géré par le LMS (statut room)
   const joiningVisio = ref(false)
-  let visioParticipation = null  // Composable pour le tracking
+  const { joinTrackedVisio } = useTrackedVisioJoin('Utilisateur')
   // Dette pré-existante : `visioWindow` n'était jamais déclaré dans data() et
   // watchVisioWindow()/leaveVisio() ne sont appelés nulle part → code inerte,
   // conservé à l'identique (cf. commit) plutôt que supprimé.
@@ -96,7 +100,7 @@ export function useSeanceDetails() {
 
   async function startVisio() {
     if (!user.value) {
-      alert('Vous devez être connecté')
+      notifyVisioWarning('Vous devez être connecté.')
       return
     }
 
@@ -109,13 +113,15 @@ export function useSeanceDetails() {
       console.log('fa-check-circle Visio démarrée:', result)
 
       if (!result.success) {
-        alert(`Erreur: ${result.message}`)
+        notifyVisioError(new Error(result.message || 'Impossible de démarrer la visioconférence'))
         return
       }
 
-      // 2. Générer lien Jitsi avec modération
-      const roomId = result.data.visio_room_id || visio.value.room_id
-      const link = `https://meet.jit.si/${roomId}#config.prejoinConfig.enabled=false&userInfo.displayName=${encodeURIComponent(user.value.name)}`
+      // 2. Rejoindre avec tracking global (participation + heartbeat + beacon)
+      await joinTrackedVisio(seance.value || { id: seanceId.value }, {
+        roomSource: result.data,
+        displayName: user.value.name,
+      })
 
       // 3. Marquer comme active localement
       roomActive.value = true
@@ -123,30 +129,27 @@ export function useSeanceDetails() {
       // Recharger les détails pour voir le nouveau status
       await loadSeanceDetails()
 
-      // 4. Ouvrir Jitsi
-      window.open(link, '_blank')
-
-      alert('Visioconférence démarrée ! Les étudiants peuvent maintenant rejoindre.')
+      notifyVisioSuccess('Visioconférence démarrée. Les étudiants peuvent maintenant rejoindre.')
     } catch (err) {
       console.error('Erreur démarrage visio:', err)
-      alert('Erreur lors du démarrage de la visioconférence')
+      notifyVisioError(err, 'Erreur lors du démarrage de la visioconférence')
     }
   }
 
   async function joinVisio() {
     if (!user.value) {
-      alert('Vous devez être connecté')
+      notifyVisioWarning('Vous devez être connecté.')
       return
     }
 
     // Vérifier si la visio est activée ET active (status = 'active')
     if (!visio.value || !visio.value.enabled) {
-      alert('La visioconférence n\'est pas activée pour cette séance.')
+      notifyVisioWarning('La visioconférence n\'est pas activée pour cette séance.')
       return
     }
 
     if (visio.value.status !== 'active') {
-      alert('La visioconférence n\'est pas encore active. Veuillez attendre que l\'enseignant démarre le cours.')
+      notifyVisioWarning('La visioconférence n\'est pas encore active. Veuillez attendre que l\'enseignant démarre le cours.')
       return
     }
 
@@ -155,29 +158,17 @@ export function useSeanceDetails() {
     try {
       console.log('👨‍fa-graduation-cap Étudiant rejoint la visio...')
 
-      // Initialiser le composable si pas déjà fait
-      if (!visioParticipation) {
-        visioParticipation = useVisioParticipation(seanceId.value)
-      }
+      await joinTrackedVisio(seance.value || { id: seanceId.value }, {
+        roomSource: visio.value,
+        displayName: user.value.name,
+      })
 
-      // Récupérer le room_id depuis la visio
-      const roomId = visio.value?.room_id || `seance_${seanceId.value}`
-
-      // Générer lien Jitsi
-      const displayName = encodeURIComponent(user.value.name)
-      const link = `https://meet.jit.si/${roomId}#config.prejoinConfig.enabled=false&userInfo.displayName=${displayName}`
-
-      console.log('🔗 Lien Jitsi:', link)
-
-      // Utiliser le composable pour ouvrir et tracker
-      await visioParticipation.joinVisio(link)
-
-      console.log('fa-check-circle Étudiant a rejoint la visio avec Web Worker heartbeat')
+      console.log('fa-check-circle Utilisateur a rejoint la visio avec tracking global')
     } catch (err) {
       console.error('fa-times-circle Erreur rejoindre visio:', err)
 
       // Afficher un message d'erreur plus détaillé
-      let errorMessage = 'Erreur lors de la connexion à la visioconférence.'
+      let errorMessage = err.message || 'Erreur lors de la connexion à la visioconférence.'
 
       if (err.response && err.response.data) {
         const data = err.response.data
@@ -194,7 +185,7 @@ export function useSeanceDetails() {
         }
       }
 
-      alert(`fa-times-circle ${errorMessage}`)
+      notifyVisioError(new Error(errorMessage), 'Erreur lors de la connexion à la visioconférence')
     } finally {
       joiningVisio.value = false
     }
@@ -239,7 +230,10 @@ export function useSeanceDetails() {
   }
 
   async function hideSeance() {
-    if (!confirm('Voulez-vous vraiment masquer cette séance de votre liste ?')) {
+    if (!await confirmVisioAction('Voulez-vous vraiment masquer cette séance de votre liste ?', {
+      title: 'Masquer la séance',
+      confirmLabel: 'Masquer',
+    })) {
       return
     }
 
@@ -248,7 +242,7 @@ export function useSeanceDetails() {
       const response = await lmsService.hideSeance(id)
 
       if (response.success) {
-        alert('fa-check Séance masquée avec succès')
+        toast.success('Séance masquée avec succès')
         // Retourner à la page précédente
         router.back()
       }

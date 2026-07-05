@@ -41,10 +41,24 @@ describe('EnseignantDetailModal (#G1) — rendu', () => {
     expect(w.html()).toContain('Aucune matière assignée')
   })
 
+  it('gère statistiques incomplètes et matières non-tableau sans planter (#13)', () => {
+    const w = mountModal({
+      enseignant: {
+        ...baseEnseignant,
+        statistiques: {},
+        matieres: { id: 1 },
+      },
+    })
+
+    expect(w.html()).toContain('Matières Enseignées (0)')
+    expect(w.html()).toContain('0.0%')
+    expect(w.html()).toContain('Aucune matière assignée')
+  })
+
   it('émet close au clic sur Fermer, la croix et l\'overlay', async () => {
     const w = mountModal()
     await w.find('.modal-btn-secondary').trigger('click')
-    await w.find('.close-btn').trigger('click')
+    await w.find('.modal-close-btn').trigger('click')
     await w.find('.modal-overlay').trigger('click')
     expect(w.emitted('close')).toHaveLength(3)
   })

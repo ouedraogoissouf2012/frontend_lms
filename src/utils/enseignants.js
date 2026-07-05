@@ -6,6 +6,9 @@
  * globales. Fonctions pures → testables.
  */
 
+const asArray = (value) => Array.isArray(value) ? value : []
+const asObjectArray = (value) => asArray(value).filter(item => item && typeof item === 'object')
+
 /**
  * Nombre de classes d'un enseignant.
  * Priorité aux statistiques backend, sinon dérivé des classes des matières.
@@ -13,12 +16,15 @@
  * @returns {number}
  */
 export function getEnseignantClassesCount(enseignant) {
-  if (enseignant.statistiques?.total_classes) {
-    return enseignant.statistiques.total_classes
+  const totalClasses = Number(enseignant?.statistiques?.total_classes)
+  if (Number.isFinite(totalClasses)) {
+    return totalClasses
   }
   const classesSet = new Set()
-  enseignant.matieres?.forEach((matiere) => {
-    matiere.classes?.forEach((classe) => classesSet.add(classe.id))
+  asObjectArray(enseignant?.matieres).forEach((matiere) => {
+    asObjectArray(matiere?.classes).forEach((classe) => {
+      if (classe.id != null) classesSet.add(classe.id)
+    })
   })
   return classesSet.size
 }
@@ -29,11 +35,12 @@ export function getEnseignantClassesCount(enseignant) {
  * @returns {Array<Object>}
  */
 export function getEnseignantUniqueClasses(enseignant) {
-  if (!enseignant || !enseignant.matieres) return []
   const classesMap = new Map()
-  enseignant.matieres.forEach((matiere) => {
-    matiere.classes?.forEach((classe) => {
-      if (!classesMap.has(classe.id)) classesMap.set(classe.id, classe)
+  asObjectArray(enseignant?.matieres).forEach((matiere) => {
+    asObjectArray(matiere?.classes).forEach((classe) => {
+      if (classe.id != null && !classesMap.has(classe.id)) {
+        classesMap.set(classe.id, classe)
+      }
     })
   })
   return Array.from(classesMap.values())
@@ -45,10 +52,12 @@ export function getEnseignantUniqueClasses(enseignant) {
  * @returns {{ totalMatieres:number, totalClasses:number, actifs:number }}
  */
 export function computeEnseignantsStats(enseignants) {
-  const list = Array.isArray(enseignants) ? enseignants : []
+  const list = asObjectArray(enseignants)
   return {
-    totalMatieres: list.reduce((sum, ens) => sum + (ens.matieres?.length || 0), 0),
+    totalMatieres: list.reduce((sum, ens) => sum + asObjectArray(ens?.matieres).length, 0),
     totalClasses: list.reduce((sum, ens) => sum + getEnseignantClassesCount(ens), 0),
-    actifs: list.filter((ens) => ens.matieres?.length > 0 || ens.classes?.length > 0).length
+    actifs: list.filter((ens) =>
+      asObjectArray(ens?.matieres).length > 0 || asObjectArray(ens?.classes).length > 0
+    ).length
   }
 }

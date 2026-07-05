@@ -50,7 +50,7 @@ describe('MatiereDetailModal (#G1) — rendu', () => {
 
   it('émet close au clic sur le bouton de fermeture', async () => {
     const w = mountModal({ matiere })
-    await w.find('.modal-close').trigger('click')
+    await w.find('.modal-close-btn').trigger('click')
     expect(w.emitted('close')).toBeTruthy()
   })
 

@@ -1,70 +1,63 @@
 <template>
-  <!-- Modal Détails Matière (optional full details) -->
-  <Teleport to="body">
-    <div v-if="matiere" class="modal-overlay" @click="$emit('close')">
-      <div class="modal-container modal-matiere" @click.stop>
-        <!-- Modal Header -->
-        <div class="modal-header">
-          <div class="modal-header-content">
-            <BookOpenIcon class="modal-icon" />
-            <div>
-              <h2 class="modal-title">{{ matiere?.nom }}</h2>
-              <p class="modal-subtitle">{{ matiere?.code }}</p>
-            </div>
-          </div>
-          <button @click="$emit('close')" class="modal-close">
-            <XMarkIcon class="w-6 h-6" />
-          </button>
+  <Modal
+    :model-value="Boolean(matiere)"
+    size="lg"
+    class="modal-matiere"
+    @close="$emit('close')"
+  >
+    <template #header>
+      <div v-if="matiere" class="modal-header-content">
+        <BookOpenIcon class="modal-icon" />
+        <div>
+          <h2 class="modal-title">{{ matiere?.nom }}</h2>
+          <p class="modal-subtitle">{{ matiere?.code }}</p>
         </div>
+      </div>
+    </template>
 
-        <!-- Modal Body - Details -->
-        <div class="modal-body">
-          <div class="detail-grid">
-            <div class="detail-item">
-              <span class="detail-label">Coefficient</span>
-              <span class="detail-value">{{ matiere?.coefficient || '-' }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Heures totales</span>
-              <span class="detail-value">{{ matiere?.heures_total || 0 }}h</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Séances programmées</span>
-              <span class="detail-value">{{ matiere?.nb_seances_programmees || 0 }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Couleur</span>
-              <div class="color-preview" :style="{ backgroundColor: matiere?.couleur }"></div>
-            </div>
-          </div>
+    <div v-if="matiere" class="detail-grid">
+      <div class="detail-item">
+        <span class="detail-label">Coefficient</span>
+        <span class="detail-value">{{ matiere?.coefficient || '-' }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Heures totales</span>
+        <span class="detail-value">{{ matiere?.heures_total || 0 }}h</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Séances programmées</span>
+        <span class="detail-value">{{ matiere?.nb_seances_programmees || 0 }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Couleur</span>
+        <div class="color-preview" :style="{ backgroundColor: matiere?.couleur }"></div>
+      </div>
+    </div>
 
-          <div v-if="matiere?.description" class="detail-section">
-            <h3 class="detail-section-title">Description</h3>
-            <p class="detail-description">{{ matiere.description }}</p>
-          </div>
+    <div v-if="matiere?.description" class="detail-section">
+      <h3 class="detail-section-title">Description</h3>
+      <p class="detail-description">{{ matiere.description }}</p>
+    </div>
 
-          <div v-if="matiere?.combinaisons?.length > 0" class="detail-section">
-            <h3 class="detail-section-title">Combinaisons Filière/Niveau</h3>
-            <div class="combinaisons-list">
-              <div
-                v-for="(combi, idx) in matiere.combinaisons"
-                :key="idx"
-                class="combinaison-item"
-              >
-                <span class="combinaison-filiere">
-                  {{ combi.filiere?.nom || combi.filiere?.code || '-' }}
-                </span>
-                <span class="combinaison-separator">→</span>
-                <span class="combinaison-niveau">
-                  {{ combi.niveau?.nom || combi.niveau?.code || '-' }}
-                </span>
-              </div>
-            </div>
-          </div>
+    <div v-if="matiere?.combinaisons?.length > 0" class="detail-section">
+      <h3 class="detail-section-title">Combinaisons Filière/Niveau</h3>
+      <div class="combinaisons-list">
+        <div
+          v-for="(combi, idx) in matiere.combinaisons"
+          :key="idx"
+          class="combinaison-item"
+        >
+          <span class="combinaison-filiere">
+            {{ combi.filiere?.nom || combi.filiere?.code || '-' }}
+          </span>
+          <span class="combinaison-separator">→</span>
+          <span class="combinaison-niveau">
+            {{ combi.niveau?.nom || combi.niveau?.code || '-' }}
+          </span>
         </div>
       </div>
     </div>
-  </Teleport>
+  </Modal>
 </template>
 
 <script setup>
@@ -72,7 +65,8 @@
  * Modale détail Matière (#G1 décompo) : détails d'une matière (coef, heures,
  * séances, couleur, description, combinaisons filière/niveau).
  */
-import { BookOpenIcon, XMarkIcon } from '@heroicons/vue/24/outline'
+import Modal from '@/components/ui/Modal.vue'
+import { BookOpenIcon } from '@heroicons/vue/24/outline'
 
 defineProps({
   matiere: { type: Object, default: null }

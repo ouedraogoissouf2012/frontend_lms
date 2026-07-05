@@ -33,8 +33,6 @@ self.addEventListener('message', (e) => {
       self.postMessage({ type: 'heartbeat', timestamp: Date.now() });
     }, intervalMs);
 
-    console.log(`[Worker] Heartbeat démarré (intervalle: ${intervalMs}ms)`);
-
     // Envoyer une confirmation
     self.postMessage({ type: 'started', interval: intervalMs });
 
@@ -43,7 +41,6 @@ self.addEventListener('message', (e) => {
     if (heartbeatInterval) {
       clearInterval(heartbeatInterval);
       heartbeatInterval = null;
-      console.log('[Worker] Heartbeat arrêté');
 
       // Envoyer une confirmation
       self.postMessage({ type: 'stopped' });

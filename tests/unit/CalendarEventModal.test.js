@@ -31,7 +31,7 @@ describe('CalendarEventModal (H8)', () => {
 
   it('émet `close` (overlay et bouton) et `go` (footer)', async () => {
     const w = mountModal()
-    await w.find('.close-btn').trigger('click')
+    await w.find('.modal-close-btn').trigger('click')
     expect(w.emitted('close')).toBeTruthy()
     await w.find('.action-btn.primary').trigger('click')
     expect(w.emitted('go')).toBeTruthy()

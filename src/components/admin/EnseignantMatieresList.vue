@@ -1,7 +1,7 @@
 <template>
-  <div v-if="matieres.length > 0" class="matieres-detail-list">
+  <div v-if="safeMatieres.length > 0" class="matieres-detail-list">
     <div
-      v-for="matiere in matieres"
+      v-for="matiere in safeMatieres"
       :key="matiere.id"
       class="matiere-detail-card"
     >
@@ -41,11 +41,33 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+
 /**
  * Liste "Matières Enseignées" d'un enseignant (#G1 décompo — extraite d'EnseignantDetailModal).
  * Présentationnel pur : reçoit le tableau des matières, aucun état interne ni émission.
  */
-defineProps({ matieres: { type: Array, default: () => [] } })
+const props = defineProps({ matieres: { type: Array, default: () => [] } })
+
+const asObjectArray = (value) =>
+  Array.isArray(value) ? value.filter(item => item && typeof item === 'object') : []
+
+const numberOrZero = (value) => {
+  const number = Number(value)
+  return Number.isFinite(number) ? number : 0
+}
+
+const safeMatieres = computed(() =>
+  asObjectArray(props.matieres).map(matiere => ({
+    ...matiere,
+    classes: asObjectArray(matiere.classes),
+    heures_prevues: numberOrZero(matiere.heures_prevues),
+    heures_effectuees: numberOrZero(matiere.heures_effectuees),
+    taux_realisation: numberOrZero(matiere.taux_realisation),
+    nb_seances_effectuees: numberOrZero(matiere.nb_seances_effectuees),
+    nb_seances_total: numberOrZero(matiere.nb_seances_total),
+  }))
+)
 </script>
 
 <style scoped lang="scss">

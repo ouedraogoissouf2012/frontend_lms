@@ -33,9 +33,14 @@ async function setup() {
 describe('useTeacherHub (#H11)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    klassci.getClasses.mockResolvedValue([{ id: 1 }, { id: 2 }])
-    klassci.getMatieres.mockResolvedValue([{ id: 10 }, { id: 11 }, { id: 12 }])
-    klassci.getTeacherDashboard.mockResolvedValue({ nb_lecons: 7, nb_evaluations: 4 })
+    klassci.getClasses.mockResolvedValue([])
+    klassci.getMatieres.mockResolvedValue([])
+    klassci.getTeacherDashboard.mockResolvedValue({
+      classes: [{ id: 1, places_occupees: 3 }, { id: 2, nb_etudiants: 3 }],
+      matieres: [{ id: 10 }, { id: 11 }, { id: 12 }],
+      nb_lecons: 7,
+      nb_evaluations: 4
+    })
     klassci.getClasseEtudiants.mockResolvedValue([{ id: 1 }, { id: 2 }, { id: 3 }])
     lms.getMyTeachingSeances.mockResolvedValue({ data: [] })
   })
@@ -47,11 +52,40 @@ describe('useTeacherHub (#H11)', () => {
     expect(h.stats.value.lecons).toBe(7)
     expect(h.stats.value.evaluations).toBe(4)
     expect(h.loading.value).toBe(false)
+    expect(klassci.getClasses).not.toHaveBeenCalled()
+    expect(klassci.getMatieres).not.toHaveBeenCalled()
   })
 
   it('totalise les étudiants sur toutes les classes', async () => {
     const h = await setup()
-    expect(h.stats.value.etudiants).toBe(6) // 3 par classe × 2 classes
+    expect(h.stats.value.etudiants).toBe(6)
+    expect(klassci.getClasseEtudiants).not.toHaveBeenCalled()
+  })
+
+  it('prefere le total etudiants du dashboard quand il existe', async () => {
+    klassci.getTeacherDashboard.mockResolvedValue({
+      classes: [{ id: 1 }, { id: 2 }],
+      matieres: [{ id: 10 }],
+      statistiques: { total_etudiants: 42 }
+    })
+
+    const h = await setup()
+
+    expect(h.stats.value.etudiants).toBe(42)
+    expect(klassci.getClasseEtudiants).not.toHaveBeenCalled()
+  })
+
+  it('ignore un total dashboard vide et retombe sur les compteurs classes', async () => {
+    klassci.getTeacherDashboard.mockResolvedValue({
+      classes: [{ id: 1, nb_etudiants: 8 }],
+      matieres: [{ id: 10 }],
+      statistiques: { total_etudiants: null }
+    })
+
+    const h = await setup()
+
+    expect(h.stats.value.etudiants).toBe(8)
+    expect(klassci.getClasseEtudiants).not.toHaveBeenCalled()
   })
 
   it('ne compte que les séances à venir (date >= maintenant)', async () => {
@@ -65,7 +99,7 @@ describe('useTeacherHub (#H11)', () => {
   })
 
   it('reste robuste si un service échoue (catch → valeurs par défaut)', async () => {
-    klassci.getClasses.mockRejectedValue(new Error('boom'))
+    klassci.getTeacherDashboard.mockRejectedValue(new Error('boom'))
     const h = await setup()
     expect(h.stats.value.classes).toBe(0)
     expect(h.stats.value.etudiants).toBe(0)

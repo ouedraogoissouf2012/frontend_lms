@@ -1,130 +1,129 @@
 <template>
-      <Teleport to="body">
-        <div v-if="showForm" class="modal-overlay" @click="$emit('close')">
-          <div class="modal-content" @click.stop>
-            <div class="modal-header">
-              <div class="modal-title-section">
-                <i class="fa fa-university modal-icon"></i>
-                <h2 class="modal-title">{{ editing ? 'Modifier l\'Institution' : 'Nouvelle Institution' }}</h2>
-              </div>
-              <button @click="$emit('close')" class="close-btn">&times;</button>
-            </div>
+  <Modal
+    :model-value="showForm"
+    size="lg"
+    class="institution-form-modal"
+    @close="$emit('close')"
+  >
+    <template #header>
+      <div class="modal-title-section">
+        <i class="fa fa-university modal-icon"></i>
+        <h2 class="modal-title">{{ editing ? 'Modifier l\'Institution' : 'Nouvelle Institution' }}</h2>
+      </div>
+    </template>
 
-            <div class="modal-body">
-              <form @submit.prevent="$emit('save')">
-                <!-- Slug -->
-                <div class="form-group">
-                  <label class="form-label">Slug (identifiant unique)</label>
-                  <input
-                    v-model="form.slug"
-                    type="text"
-                    class="form-input"
-                    placeholder="ex: esbtp-abidjan"
-                    :readonly="!!editing"
-                    :class="{ 'input-readonly': !!editing }"
-                    pattern="[a-z0-9\-]+"
-                    required
-                  />
-                  <span class="form-hint">Minuscules, chiffres et tirets uniquement</span>
-                </div>
+    <form @submit.prevent="$emit('save')">
+      <!-- Slug -->
+      <div class="form-group">
+        <label class="form-label">Slug (identifiant unique)</label>
+        <input
+          v-model="form.slug"
+          type="text"
+          class="form-input"
+          placeholder="ex: esbtp-abidjan"
+          :readonly="!!editing"
+          :class="{ 'input-readonly': !!editing }"
+          pattern="[a-z0-9\-]+"
+          required
+        />
+        <span class="form-hint">Minuscules, chiffres et tirets uniquement</span>
+      </div>
 
-                <!-- Name -->
-                <div class="form-group">
-                  <label class="form-label">Nom de l'institution</label>
-                  <input
-                    v-model="form.name"
-                    type="text"
-                    class="form-input"
-                    placeholder="ex: ESBTP Abidjan"
-                    required
-                  />
-                </div>
+      <!-- Name -->
+      <div class="form-group">
+        <label class="form-label">Nom de l'institution</label>
+        <input
+          v-model="form.name"
+          type="text"
+          class="form-input"
+          placeholder="ex: ESBTP Abidjan"
+          required
+        />
+      </div>
 
-                <!-- KLASSCI API URL -->
-                <div class="form-group">
-                  <label class="form-label">URL API KLASSCI</label>
-                  <input
-                    v-model="form.klassci_api_url"
-                    type="url"
-                    class="form-input"
-                    placeholder="https://esbtp-abidjan.klassci.com/api/lms"
-                    required
-                  />
-                </div>
+      <!-- KLASSCI API URL -->
+      <div class="form-group">
+        <label class="form-label">URL API KLASSCI</label>
+        <input
+          v-model="form.klassci_api_url"
+          type="url"
+          class="form-input"
+          placeholder="https://esbtp-abidjan.klassci.com/api/lms"
+          required
+        />
+      </div>
 
-                <!-- KLASSCI API Token -->
-                <div class="form-group">
-                  <label class="form-label">Token API KLASSCI</label>
-                  <input
-                    v-model="form.klassci_api_token"
-                    type="password"
-                    class="form-input"
-                    :placeholder="editing ? 'Laisser vide pour conserver l\'existant' : 'Token d\'authentification'"
-                  />
-                </div>
+      <!-- KLASSCI API Token -->
+      <div class="form-group">
+        <label class="form-label">Token API KLASSCI</label>
+        <input
+          v-model="form.klassci_api_token"
+          type="password"
+          class="form-input"
+          :placeholder="editing ? 'Laisser vide pour conserver l\'existant' : 'Token d\'authentification'"
+        />
+      </div>
 
-                <!-- Two columns -->
-                <div class="form-row">
-                  <!-- Logo URL -->
-                  <div class="form-group">
-                    <label class="form-label">URL du Logo</label>
-                    <input
-                      v-model="form.logo_url"
-                      type="text"
-                      class="form-input"
-                      placeholder="https://..."
-                    />
-                  </div>
+      <!-- Two columns -->
+      <div class="form-row">
+        <!-- Logo URL -->
+        <div class="form-group">
+          <label class="form-label">URL du Logo</label>
+          <input
+            v-model="form.logo_url"
+            type="text"
+            class="form-input"
+            placeholder="https://..."
+          />
+        </div>
 
-                  <!-- Primary Color -->
-                  <div class="form-group">
-                    <label class="form-label">Couleur primaire</label>
-                    <div class="color-input-wrapper">
-                      <input
-                        v-model="form.primary_color"
-                        type="color"
-                        class="form-color-input"
-                      />
-                      <input
-                        v-model="form.primary_color"
-                        type="text"
-                        class="form-input form-color-text"
-                        placeholder="#3b82f6"
-                        maxlength="7"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Active Toggle -->
-                <div class="form-group">
-                  <label class="form-label">Statut</label>
-                  <label class="toggle-label">
-                    <input v-model="form.is_active" type="checkbox" class="toggle-input" />
-                    <span class="toggle-switch"></span>
-                    <span class="toggle-text">{{ form.is_active ? 'Active' : 'Inactive' }}</span>
-                  </label>
-                </div>
-              </form>
-
-              <!-- Validation errors -->
-              <div v-if="formErrors" class="form-errors">
-                <div v-for="(errors, field) in formErrors" :key="field" class="form-error-item">
-                  <strong>{{ field }} :</strong> {{ errors.join(', ') }}
-                </div>
-              </div>
-            </div>
-
-            <div class="modal-footer">
-              <button @click="$emit('close')" class="modal-btn modal-btn-secondary">Annuler</button>
-              <button @click="$emit('save')" class="modal-btn modal-btn-primary" :disabled="saving">
-                <i v-if="saving" class="fa fa-spinner fa-spin"></i>
-                {{ saving ? 'Enregistrement...' : 'Enregistrer' }}
-              </button>
-            </div>
+        <!-- Primary Color -->
+        <div class="form-group">
+          <label class="form-label">Couleur primaire</label>
+          <div class="color-input-wrapper">
+            <input
+              v-model="form.primary_color"
+              type="color"
+              class="form-color-input"
+            />
+            <input
+              v-model="form.primary_color"
+              type="text"
+              class="form-input form-color-text"
+              placeholder="#3b82f6"
+              maxlength="7"
+            />
           </div>
         </div>
-      </Teleport>
+      </div>
+
+      <!-- Active Toggle -->
+      <div class="form-group">
+        <label class="form-label">Statut</label>
+        <label class="toggle-label">
+          <input v-model="form.is_active" type="checkbox" class="toggle-input" />
+          <span class="toggle-switch"></span>
+          <span class="toggle-text">{{ form.is_active ? 'Active' : 'Inactive' }}</span>
+        </label>
+      </div>
+    </form>
+
+    <!-- Validation errors -->
+    <div v-if="formErrors" class="form-errors">
+      <div v-for="(errors, field) in formErrors" :key="field" class="form-error-item">
+        <strong>{{ field }} :</strong> {{ errors.join(', ') }}
+      </div>
+    </div>
+
+    <template #footer>
+      <BaseButton variant="secondary" class="modal-btn modal-btn-secondary" @click="$emit('close')">
+        Annuler
+      </BaseButton>
+      <BaseButton variant="primary" class="modal-btn modal-btn-primary" :loading="saving" @click="$emit('save')">
+        {{ saving ? 'Enregistrement...' : 'Enregistrer' }}
+      </BaseButton>
+    </template>
+  </Modal>
 </template>
 
 <script setup>
@@ -133,6 +132,9 @@
  * édités via v-model sur form.* — référence partagée avec le parent (mutation par
  * référence, identique à l'original). Actions remontées par events close/save.
  */
+import Modal from '@/components/ui/Modal.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
+
 defineProps({
   showForm: { type: Boolean, default: false },
   form: { type: Object, required: true },
@@ -269,7 +271,7 @@ defineEmits(['close', 'save'])
     grid-template-columns: 1fr;
   }
 
-  .modal-content {
+  :deep(.institution-form-modal) {
     margin: var(--spacing-md);
   }
 }

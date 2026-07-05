@@ -1,65 +1,63 @@
 <template>
-  <div v-if="attendance" class="modal-overlay" @click="$emit('close')">
-    <div class="modal-content" @click.stop>
-      <div class="modal-header">
-        <h3 class="modal-title">Détails de la Participation</h3>
-        <button @click="$emit('close')" class="btn-close">✕</button>
+  <Modal
+    :model-value="Boolean(attendance)"
+    title="Détails de la Participation"
+    size="lg"
+    @close="$emit('close')"
+  >
+    <div v-if="attendance" class="detail-grid">
+      <div class="detail-item">
+        <span class="detail-label">Participant</span>
+        <span class="detail-value">{{ attendance.user.name }}</span>
       </div>
-
-      <div class="modal-body">
-        <div class="detail-grid">
-          <div class="detail-item">
-            <span class="detail-label">Participant</span>
-            <span class="detail-value">{{ attendance.user.name }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Email</span>
-            <span class="detail-value">{{ attendance.user.email }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Séance ID</span>
-            <span class="detail-value">#{{ attendance.seance.klassci_seance_id }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Date Séance</span>
-            <span class="detail-value">{{ formatDate(attendance.seance.date) }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Heure de Connexion</span>
-            <span class="detail-value">{{ formatDateTime(attendance.joined_at) }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Dernier Heartbeat</span>
-            <span class="detail-value">
-              {{ attendance.last_seen_at ? formatDateTime(attendance.last_seen_at) : 'Aucun' }}
-            </span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Heure de Déconnexion</span>
-            <span class="detail-value">
-              {{ attendance.left_at ? formatDateTime(attendance.left_at) : 'En cours' }}
-            </span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Durée Totale</span>
-            <span class="detail-value">
-              {{ attendance.duration_minutes ? `${attendance.duration_minutes} minutes` : 'En cours' }}
-            </span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Statut</span>
-            <span :class="['detail-value', attendance.status === 'connected' ? 'text-green' : 'text-red']">
-              {{ attendance.status === 'connected' ? 'fa-circle Connecté' : 'fa-circle Déconnecté' }}
-            </span>
-          </div>
-        </div>
+      <div class="detail-item">
+        <span class="detail-label">Email</span>
+        <span class="detail-value">{{ attendance.user.email }}</span>
       </div>
-
-      <div class="modal-footer">
-        <button @click="$emit('close')" class="btn-secondary">Fermer</button>
+      <div class="detail-item">
+        <span class="detail-label">Séance ID</span>
+        <span class="detail-value">#{{ attendance.seance.klassci_seance_id }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Date Séance</span>
+        <span class="detail-value">{{ formatDate(attendance.seance.date) }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Heure de Connexion</span>
+        <span class="detail-value">{{ formatDateTime(attendance.joined_at) }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Dernier Heartbeat</span>
+        <span class="detail-value">
+          {{ attendance.last_seen_at ? formatDateTime(attendance.last_seen_at) : 'Aucun' }}
+        </span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Heure de Déconnexion</span>
+        <span class="detail-value">
+          {{ attendance.left_at ? formatDateTime(attendance.left_at) : 'En cours' }}
+        </span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Durée Totale</span>
+        <span class="detail-value">
+          {{ attendance.duration_minutes ? `${attendance.duration_minutes} minutes` : 'En cours' }}
+        </span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Statut</span>
+        <span :class="['detail-value', attendance.status === 'connected' ? 'text-green' : 'text-red']">
+          {{ attendance.status === 'connected' ? 'fa-circle Connecté' : 'fa-circle Déconnecté' }}
+        </span>
       </div>
     </div>
-  </div>
+
+    <template #footer>
+      <BaseButton variant="secondary" class="btn-secondary" @click="$emit('close')">
+        Fermer
+      </BaseButton>
+    </template>
+  </Modal>
 </template>
 
 <script setup>
@@ -70,6 +68,9 @@
  * participation sélectionnée + les formateurs date/heure LOCAUX du parent
  * (parité, #H7) ; émet close.
  */
+import Modal from '@/components/ui/Modal.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
+
 defineProps({
   attendance: { type: Object, default: null },
   formatDate: { type: Function, required: true },
@@ -80,71 +81,6 @@ defineEmits(['close'])
 </script>
 
 <style scoped>
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
-}
-
-.modal-content {
-  background: var(--bg-primary);
-  border-radius: 12px;
-  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
-  max-width: 600px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.modal-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.btn-close {
-  background: transparent;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: var(--text-secondary);
-  padding: 0;
-  width: 2rem;
-  height: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  transition: all 0.2s;
-}
-
-.btn-close:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-}
-
-.modal-body {
-  padding: 1.5rem;
-}
-
 .detail-grid {
   display: grid;
   gap: 1rem;
@@ -177,13 +113,6 @@ defineEmits(['close'])
 
 .text-red {
   color: var(--red-500);
-}
-
-.modal-footer {
-  padding: 1.5rem;
-  border-top: 1px solid var(--border-color);
-  display: flex;
-  justify-content: flex-end;
 }
 
 .btn-secondary {

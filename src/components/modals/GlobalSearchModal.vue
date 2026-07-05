@@ -1,49 +1,54 @@
 <template>
-  <Teleport to="body">
-    <Transition name="modal-fade">
-      <div v-if="isOpen" class="search-modal-overlay" @click="close">
-        <div class="search-modal" @click.stop>
-          <!-- Search Input -->
-          <SearchHeader
-            ref="searchInput"
-            v-model:query="query"
-            @input="handleInput"
-            @navigate-down="navigateDown"
-            @navigate-up="navigateUp"
-            @select-highlighted="selectHighlighted"
-            @close="close"
-          />
+  <Modal
+    :model-value="isOpen"
+    teleport
+    :show-close="false"
+    size="lg"
+    overlay-class="search-modal-overlay"
+    container-class="search-modal"
+    body-class="search-modal-body"
+    transition-name="modal-fade"
+    @update:model-value="isOpen = $event"
+    @close="close"
+  >
+    <!-- Search Input -->
+    <SearchHeader
+      ref="searchInput"
+      v-model:query="query"
+      @input="handleInput"
+      @navigate-down="navigateDown"
+      @navigate-up="navigateUp"
+      @select-highlighted="selectHighlighted"
+      @close="close"
+    />
 
-          <!-- Loading -->
-          <ContentLoader v-if="searching" text="Recherche en cours..." />
+    <!-- Loading -->
+    <ContentLoader v-if="searching" text="Recherche en cours..." />
 
-          <!-- Results -->
-          <SearchResultsList
-            v-else-if="hasResults"
-            :filtered-results="filteredResults"
-            :get-category-title="getCategoryTitle"
-            :get-icon="getIcon"
-            :is-highlighted="isHighlighted"
-            @select="selectResult"
-            @highlight="setHighlight"
-          />
+    <!-- Results -->
+    <SearchResultsList
+      v-else-if="hasResults"
+      :filtered-results="filteredResults"
+      :get-category-title="getCategoryTitle"
+      :get-icon="getIcon"
+      :is-highlighted="isHighlighted"
+      @select="selectResult"
+      @highlight="setHighlight"
+    />
 
-          <!-- No Results / History -->
-          <SearchEmptyState
-            v-else
-            :query="query"
-            :search-history="searchHistory"
-            :show-empty="query.length >= 2 && !searching"
-            :show-history="!query && searchHistory.length > 0"
-            @select-history="(q) => (query = q)"
-          />
+    <!-- No Results / History -->
+    <SearchEmptyState
+      v-else
+      :query="query"
+      :search-history="searchHistory"
+      :show-empty="query.length >= 2 && !searching"
+      :show-history="!query && searchHistory.length > 0"
+      @select-history="(q) => (query = q)"
+    />
 
-          <!-- Footer -->
-          <SearchFooter :total-results="totalResults" />
-        </div>
-      </div>
-    </Transition>
-  </Teleport>
+    <!-- Footer -->
+    <SearchFooter :total-results="totalResults" />
+  </Modal>
 </template>
 
 <script setup>
@@ -55,6 +60,7 @@
  */
 import { computed } from 'vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
+import Modal from '@/components/ui/Modal.vue'
 import SearchHeader from '@/components/search/SearchHeader.vue'
 import SearchResultsList from '@/components/search/SearchResultsList.vue'
 import SearchEmptyState from '@/components/search/SearchEmptyState.vue'
@@ -88,20 +94,16 @@ const {
 </script>
 
 <style scoped>
-.search-modal-overlay {
-  position: fixed;
-  inset: 0;
+:deep(.search-modal-overlay) {
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
-  display: flex;
   align-items: flex-start;
-  justify-content: center;
   padding: 5rem 1rem 1rem;
   z-index: 10000;
   overflow-y: auto;
 }
 
-.search-modal {
+:deep(.search-modal) {
   background: var(--bg-primary);
   border-radius: 1rem;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
@@ -110,6 +112,13 @@ const {
   max-height: calc(100vh - 10rem);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+
+:deep(.search-modal-body) {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
   overflow: hidden;
 }
 
@@ -147,24 +156,24 @@ const {
   opacity: 0;
 }
 
-.modal-fade-enter-active .search-modal,
-.modal-fade-leave-active .search-modal {
+:deep(.modal-fade-enter-active .search-modal),
+:deep(.modal-fade-leave-active .search-modal) {
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-.modal-fade-enter-from .search-modal,
-.modal-fade-leave-to .search-modal {
+:deep(.modal-fade-enter-from .search-modal),
+:deep(.modal-fade-leave-to .search-modal) {
   transform: scale(0.95);
   opacity: 0;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .search-modal-overlay {
+  :deep(.search-modal-overlay) {
     padding: 1rem;
   }
 
-  .search-modal {
+  :deep(.search-modal) {
     max-height: calc(100vh - 2rem);
   }
 }

@@ -5,29 +5,25 @@
  */
 import { mount, flushPromises } from '@vue/test-utils'
 import { defineComponent } from 'vue'
-import { describe, it, expect, vi } from 'vitest'
+import { beforeEach, describe, it, expect, vi } from 'vitest'
+
+const h = vi.hoisted(() => ({
+  readCache: vi.fn(),
+  writeCache: vi.fn(),
+  clearCache: vi.fn(),
+  getLmsEnseignants: vi.fn(),
+  getEnseignants: vi.fn(),
+}))
 
 vi.mock('@/services/cache', () => ({
-  readCache: () => null,
-  writeCache: () => {},
-  clearCache: () => {},
+  readCache: h.readCache,
+  writeCache: h.writeCache,
+  clearCache: h.clearCache,
 }))
 vi.mock('@/services/klassci', () => ({
   default: {
-    getLmsEnseignants: () => Promise.resolve({
-      success: true,
-      data: [
-        {
-          id: 1, nom: 'Zoé', prenom: 'Prof', email: 'zoe@e.com',
-          matieres: [{ id: 11, classes: [{ id: 100 }, { id: 101 }] }],
-        },
-        {
-          id: 2, nom: 'Sans', prenom: 'Cours', email: 'sans@e.com',
-          matieres: [],
-        },
-      ],
-    }),
-    getEnseignants: () => Promise.resolve([]),
+    getLmsEnseignants: h.getLmsEnseignants,
+    getEnseignants: h.getEnseignants,
   },
 }))
 
@@ -42,6 +38,26 @@ async function setup() {
 }
 
 describe('useAdminEnseignants (#G1)', () => {
+  beforeEach(() => {
+    h.readCache.mockReset().mockReturnValue(null)
+    h.writeCache.mockReset()
+    h.clearCache.mockReset()
+    h.getLmsEnseignants.mockReset().mockResolvedValue({
+      success: true,
+      data: [
+        {
+          id: 1, nom: 'Zoé', prenom: 'Prof', email: 'zoe@e.com',
+          matieres: [{ id: 11, classes: [{ id: 100 }, { id: 101 }] }],
+        },
+        {
+          id: 2, nom: 'Sans', prenom: 'Cours', email: 'sans@e.com',
+          matieres: [],
+        },
+      ],
+    })
+    h.getEnseignants.mockReset().mockResolvedValue([])
+  })
+
   it('charge les enseignants depuis l\'endpoint enrichi', async () => {
     const e = await setup()
     expect(e.enseignants.value).toHaveLength(2)
@@ -62,5 +78,36 @@ describe('useAdminEnseignants (#G1)', () => {
     expect(e.selectedEnseignant.value).toEqual({ id: 9 })
     e.closeModal()
     expect(e.selectedEnseignant.value).toBe(null)
+  })
+
+  it('ignore un cache non-tableau et normalise une réponse API non-tableau (#13)', async () => {
+    h.readCache.mockReturnValue({ stale: true })
+    h.getLmsEnseignants.mockResolvedValue({ success: true, data: { id: 1 } })
+
+    const e = await setup()
+
+    expect(e.enseignants.value).toEqual([])
+    expect(e.totalMatieres.value).toBe(0)
+    expect(e.totalClasses.value).toBe(0)
+    expect(e.enseignantsActifs.value).toBe(0)
+  })
+
+  it('accepte une enveloppe enseignants et ignore les éléments invalides (#13)', async () => {
+    h.getLmsEnseignants.mockResolvedValue({
+      success: true,
+      data: {
+        enseignants: [
+          null,
+          { id: 1, matieres: [{ id: 10, classes: [{ id: 100 }] }] },
+        ],
+      },
+    })
+
+    const e = await setup()
+
+    expect(e.enseignants.value).toHaveLength(1)
+    expect(e.totalMatieres.value).toBe(1)
+    expect(e.totalClasses.value).toBe(1)
+    expect(e.enseignantsActifs.value).toBe(1)
   })
 })

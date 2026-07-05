@@ -4,43 +4,48 @@
        contenu éditeur + footer (compteurs + indice Échap). Pilotée par v-model:show ;
        la fermeture (clic overlay / bouton / Échap parent) est émise via `close`.
        Markup, classes, textes et CSS conservés à l'identique pour parité stricte. -->
-  <teleport to="body">
-    <transition name="modal-fade">
-      <div v-if="show" class="modal-overlay" @click="$emit('close')">
-        <div class="modal-container" @click.stop>
-          <!-- Modal Header -->
-          <div class="modal-header">
-            <h2 class="modal-title">Édition du contenu</h2>
-            <button @click="$emit('close')" class="btn-close-modal" title="Fermer (Échap)">
-              <span class="close-icon">✕</span>
-              <span class="close-text">Fermer</span>
-            </button>
-          </div>
+  <Modal
+    :model-value="show"
+    teleport
+    :show-close="false"
+    size="xl"
+    overlay-class="tiptap-fullscreen-overlay"
+    container-class="tiptap-fullscreen-container"
+    header-class="tiptap-fullscreen-header"
+    body-class="tiptap-fullscreen-body"
+    footer-class="tiptap-fullscreen-footer"
+    @close="close"
+  >
+    <template #header>
+      <!-- Modal Header -->
+      <h2 class="modal-title">Édition du contenu</h2>
+      <button @click="close" class="btn-close-modal" title="Fermer (Échap)">
+        <span class="close-icon">✕</span>
+        <span class="close-text">Fermer</span>
+      </button>
+    </template>
 
-          <!-- Modal Toolbar (#28 : sous-composant partagé) -->
-          <div v-if="editor" class="modal-toolbar">
-            <EditorToolbar :editor="editor" />
-          </div>
+    <!-- Modal Toolbar (#28 : sous-composant partagé) -->
+    <div v-if="editor" class="modal-toolbar">
+      <EditorToolbar :editor="editor" />
+    </div>
 
-          <!-- Modal Content -->
-          <div class="modal-content-wrapper">
-            <editor-content :editor="editor" class="modal-editor-content" />
-          </div>
+    <!-- Modal Content -->
+    <div class="modal-content-wrapper">
+      <editor-content :editor="editor" class="modal-editor-content" />
+    </div>
 
-          <!-- Modal Footer -->
-          <div class="modal-footer">
-            <div class="footer-left">
-              <span class="word-count">{{ wordCount }} mots</span>
-              <span class="char-count">{{ characterCount }} caractères</span>
-            </div>
-            <div class="footer-right">
-              <span class="fullscreen-hint">Appuyez sur <kbd>Échap</kbd> pour fermer</span>
-            </div>
-          </div>
-        </div>
+    <template #footer>
+      <!-- Modal Footer -->
+      <div class="footer-left">
+        <span class="word-count">{{ wordCount }} mots</span>
+        <span class="char-count">{{ characterCount }} caractères</span>
       </div>
-    </transition>
-  </teleport>
+      <div class="footer-right">
+        <span class="fullscreen-hint">Appuyez sur <kbd>Échap</kbd> pour fermer</span>
+      </div>
+    </template>
+  </Modal>
 </template>
 
 <script setup>
@@ -52,6 +57,7 @@
  * isFullscreen et le verrou du scroll body restent gérés côté parent (useTipTapEditor).
  */
 import { EditorContent } from '@tiptap/vue-3'
+import Modal from '@/components/ui/Modal.vue'
 import EditorToolbar from '@/components/common/EditorToolbar.vue'
 
 defineProps({
@@ -73,7 +79,12 @@ defineProps({
   }
 })
 
-defineEmits(['update:show', 'close'])
+const emit = defineEmits(['update:show', 'close'])
+
+function close() {
+  emit('update:show', false)
+  emit('close')
+}
 </script>
 
 <style scoped lang="scss">

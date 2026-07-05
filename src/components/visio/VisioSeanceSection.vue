@@ -12,9 +12,9 @@
         :seance="seance"
         :variant="variant"
         :action-loading="actionLoading"
-        :build-jitsi-url="buildJitsiUrl"
         :format-date="formatDate"
         :format-time="formatTime"
+        @join="$emit('join', $event)"
         @start="$emit('start', $event)"
         @end="$emit('end', $event)"
         @activate="$emit('activate', $event)"
@@ -37,12 +37,11 @@ defineProps({
   variant: { type: String, default: 'scheduled' },
   seances: { type: Array, default: () => [] },
   actionLoading: { type: [String, Number, null], default: null },
-  buildJitsiUrl: { type: Function, required: true },
   formatDate: { type: Function, required: true },
   formatTime: { type: Function, required: true }
 })
 
-defineEmits(['start', 'end', 'activate'])
+defineEmits(['start', 'end', 'activate', 'join'])
 </script>
 
 <style scoped>

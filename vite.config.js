@@ -4,6 +4,9 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [vue()],
+  esbuild: {
+    pure: ['console.log', 'console.info', 'console.debug'],
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

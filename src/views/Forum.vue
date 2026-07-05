@@ -75,15 +75,13 @@
         Nouvelle discussion
       </button>
 
-      <!-- Modal nouveau topic (simple) -->
-      <div
-        v-if="showNewTopicModal"
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-        @click.self="showNewTopicModal = false"
+      <Modal
+        v-model="showNewTopicModal"
+        title="Nouvelle discussion"
+        size="lg"
+        class="forum-topic-modal"
       >
-        <div class="bg-white rounded-lg p-8 max-w-2xl w-full mx-4">
-          <h2 class="text-2xl font-bold mb-4">Nouvelle discussion</h2>
-
+        <form id="forum-new-topic-form" @submit.prevent="createTopic">
           <div class="mb-4">
             <label class="block text-gray-700 mb-2">Titre</label>
             <input
@@ -103,104 +101,94 @@
               placeholder="Votre message..."
             ></textarea>
           </div>
+        </form>
 
-          <div class="flex justify-end gap-4">
-            <button
-              @click="showNewTopicModal = false"
-              class="px-6 py-2 border rounded-lg hover:bg-gray-50"
-            >
-              Annuler
-            </button>
-            <button
-              @click="createTopic"
-              class="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg"
-            >
-              Publier
-            </button>
-          </div>
-        </div>
-      </div>
+        <template #footer>
+          <BaseButton variant="secondary" @click="showNewTopicModal = false">
+            Annuler
+          </BaseButton>
+          <BaseButton type="submit" form="forum-new-topic-form">
+            Publier
+          </BaseButton>
+        </template>
+      </Modal>
     </div>
   </DashboardLayout>
 </template>
 
-<script>
+<script setup>
+import { onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
+import Modal from '@/components/ui/Modal.vue'
 import { forum } from '@/services/api'
 
-export default {
-  name: 'Forum',
-  components: {
-    DashboardLayout
-  },
-  data() {
-    return {
-      loading: true,
-      topics: [],
-      showNewTopicModal: false,
-      newTopic: {
-        title: '',
-        content: ''
-      }
+defineOptions({ name: 'Forum' })
+
+const router = useRouter()
+const loading = ref(true)
+const topics = ref([])
+const showNewTopicModal = ref(false)
+const newTopic = reactive({
+  title: '',
+  content: ''
+})
+
+async function loadTopics() {
+  loading.value = true
+
+  try {
+    // Charger tous les topics (sans filtre)
+    const response = await forum.getTopics()
+
+    // Si c'est paginé, extraire les données
+    if (response.data && response.data.data) {
+      topics.value = Array.isArray(response.data.data) ? response.data.data : []
+    } else if (response.data) {
+      topics.value = Array.isArray(response.data) ? response.data : []
+    } else {
+      topics.value = []
     }
-  },
-  async mounted() {
-    await this.loadTopics()
-  },
-  methods: {
-    async loadTopics() {
-      this.loading = true
-
-      try {
-        // Charger tous les topics (sans filtre)
-        const response = await forum.getTopics()
-
-        // Si c'est paginé, extraire les données
-        if (response.data && response.data.data) {
-          this.topics = Array.isArray(response.data.data) ? response.data.data : []
-        } else if (response.data) {
-          this.topics = Array.isArray(response.data) ? response.data : []
-        } else {
-          this.topics = []
-        }
-      } catch (error) {
-        console.error('Erreur chargement forum:', error)
-        this.topics = []
-      } finally {
-        this.loading = false
-      }
-    },
-
-    viewTopic(id) {
-      this.$router.push(`/forum/topics/${id}`)
-    },
-
-    async createTopic() {
-      if (!this.newTopic.title || !this.newTopic.content) {
-        alert('Veuillez remplir tous les champs')
-        return
-      }
-
-      try {
-        await forum.createTopic(this.newTopic)
-        this.showNewTopicModal = false
-        this.newTopic = { title: '', content: '' }
-        await this.loadTopics()
-      } catch (error) {
-        console.error('Erreur création topic:', error)
-        alert('Erreur lors de la création de la discussion')
-      }
-    },
-
-    formatDate(date) {
-      return new Date(date).toLocaleDateString('fr-FR', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-      })
-    }
+  } catch (error) {
+    console.error('Erreur chargement forum:', error)
+    topics.value = []
+  } finally {
+    loading.value = false
   }
 }
+
+function viewTopic(id) {
+  router.push(`/forum/topics/${id}`)
+}
+
+async function createTopic() {
+  if (!newTopic.title || !newTopic.content) {
+    alert('Veuillez remplir tous les champs')
+    return
+  }
+
+  try {
+    await forum.createTopic({ ...newTopic })
+    showNewTopicModal.value = false
+    newTopic.title = ''
+    newTopic.content = ''
+    await loadTopics()
+  } catch (error) {
+    console.error('Erreur création topic:', error)
+    alert('Erreur lors de la création de la discussion')
+  }
+}
+
+function formatDate(date) {
+  return new Date(date).toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  })
+}
+
+onMounted(loadTopics)
 </script>
 
 <style scoped>

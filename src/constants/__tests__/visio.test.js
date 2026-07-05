@@ -4,6 +4,8 @@ import {
   HEARTBEAT_INTERVAL_MS,
   PARTICIPATION_EXPIRATION_MS,
   getJitsiDomain,
+  getVisioRoomId,
+  requireVisioRoomId,
   buildJitsiUrl,
   jitsiExternalApiSrc,
 } from '@/constants/visio'
@@ -51,5 +53,16 @@ describe('constants/visio (#24)', () => {
     expect(HEARTBEAT_INTERVAL_MS).toBe(30000)
     expect(PARTICIPATION_EXPIRATION_MS).toBe(604800000)
     expect(VISIO_CONFIG.HEARTBEAT_INTERVAL_MS).toBe(30000)
+  })
+
+  it('V9 — extrait uniquement une room fournie par API', () => {
+    expect(getVisioRoomId({ visio_room_id: 'room-api' })).toBe('room-api')
+    expect(getVisioRoomId({ visio: { room_id: 'room-nested' } })).toBe('room-nested')
+    expect(getVisioRoomId({ id: 42 })).toBe(null)
+  })
+
+  it('V10 — refuse une URL sans room explicite', () => {
+    expect(() => requireVisioRoomId({ id: 42 })).toThrow('Identifiant de salle visio')
+    expect(() => buildJitsiUrl('')).toThrow('Identifiant de salle visio')
   })
 })

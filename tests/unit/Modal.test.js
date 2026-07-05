@@ -7,7 +7,10 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach } from 'vitest'
 import Modal from '@/components/ui/Modal.vue'
 
-afterEach(() => { document.body.style.overflow = '' })
+afterEach(() => {
+  document.body.style.overflow = ''
+  document.body.innerHTML = ''
+})
 
 function mountModal(props = {}, slots = {}) {
   return mount(Modal, { props: { modelValue: true, ...props }, slots })
@@ -41,6 +44,7 @@ describe('ui/Modal (#25)', () => {
     const w = mountModal()
     await w.find('.modal-close-btn').trigger('click')
     expect(w.emitted('update:modelValue')[0]).toEqual([false])
+    expect(w.emitted('close')).toHaveLength(1)
   })
 
   it('clic sur l\'overlay émet false', async () => {
@@ -49,11 +53,37 @@ describe('ui/Modal (#25)', () => {
     expect(w.emitted('update:modelValue')[0]).toEqual([false])
   })
 
+  it('peut désactiver la fermeture overlay', async () => {
+    const w = mountModal({ closeOnOverlay: false })
+    await w.find('.modal-overlay').trigger('click')
+    expect(w.emitted('update:modelValue')).toBeFalsy()
+    expect(w.emitted('close')).toBeFalsy()
+  })
+
+  it('peut masquer la croix de fermeture', () => {
+    const w = mountModal({ showClose: false })
+    expect(w.find('.modal-close-btn').exists()).toBe(false)
+  })
+
+  it('ne rend pas d’en-tête vide sans title/header/close', () => {
+    const w = mountModal({ showClose: false })
+    expect(w.find('.modal-header').exists()).toBe(false)
+  })
+
   it('Échap émet false', async () => {
     const w = mountModal()
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
     await w.vm.$nextTick()
     expect(w.emitted('update:modelValue')[0]).toEqual([false])
+    w.unmount()
+  })
+
+  it('peut désactiver la fermeture Échap', async () => {
+    const w = mountModal({ closeOnEsc: false })
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    await w.vm.$nextTick()
+    expect(w.emitted('update:modelValue')).toBeFalsy()
+    expect(w.emitted('close')).toBeFalsy()
     w.unmount()
   })
 
@@ -71,5 +101,34 @@ describe('ui/Modal (#25)', () => {
   it('$attrs : une classe custom traverse vers .modal-container', () => {
     const w = mountModal({ class: 'ma-classe-custom' })
     expect(w.find('.modal-container').classes()).toContain('ma-classe-custom')
+  })
+
+  it('applique les classes personnalisées aux zones internes', () => {
+    const w = mountModal(
+      {
+        overlayClass: 'overlay-x',
+        containerClass: 'container-x',
+        headerClass: 'header-x',
+        bodyClass: 'body-x',
+        footerClass: 'footer-x'
+      },
+      { header: '<span>H</span>', footer: '<button>F</button>' }
+    )
+
+    expect(w.find('.modal-overlay').classes()).toContain('overlay-x')
+    expect(w.find('.modal-container').classes()).toContain('container-x')
+    expect(w.find('.modal-header').classes()).toContain('header-x')
+    expect(w.find('.modal-body').classes()).toContain('body-x')
+    expect(w.find('.modal-footer').classes()).toContain('footer-x')
+  })
+
+  it('peut téléporter le contenu dans le body', () => {
+    const w = mountModal(
+      { teleport: true },
+      { default: '<span class="teleported-content">OK</span>' }
+    )
+
+    expect(document.body.querySelector('.teleported-content')).not.toBeNull()
+    w.unmount()
   })
 })

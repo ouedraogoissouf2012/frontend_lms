@@ -63,4 +63,23 @@ describe('EnseignantMatieresList (#G1) — rendu', () => {
     expect(w.findAll('.matiere-classe-tag')).toHaveLength(2)
     expect(w.find('.matiere-classes').text()).toContain('L1')
   })
+
+  it('ignore les entrées invalides et remplace les stats absentes par zéro (#13)', () => {
+    const matieres = [
+      null,
+      {
+        id: 1,
+        nom: 'Algo',
+        heures_prevues: 30,
+        classes: [null, { id: 2, nom: 'L2' }],
+      },
+    ]
+    const w = mount(EnseignantMatieresList, { props: { matieres } })
+    const html = w.html()
+
+    expect(w.findAll('.matiere-detail-card')).toHaveLength(1)
+    expect(html).toContain('0h / 30h')
+    expect(html).toContain('0%')
+    expect(w.findAll('.matiere-classe-tag')).toHaveLength(1)
+  })
 })

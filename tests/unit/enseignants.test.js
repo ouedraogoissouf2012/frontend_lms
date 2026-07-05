@@ -54,4 +54,20 @@ describe('utils/enseignants — computeEnseignantsStats', () => {
   it('robuste si entrée non-array', () => {
     expect(computeEnseignantsStats(null)).toEqual({ totalMatieres: 0, totalClasses: 0, actifs: 0 })
   })
+
+  it('robuste si matières/classes imbriquées ne sont pas des tableaux (#13)', () => {
+    const enseignant = { matieres: { id: 1 }, classes: { id: 2 } }
+
+    expect(getEnseignantClassesCount(enseignant)).toBe(0)
+    expect(getEnseignantUniqueClasses(enseignant)).toEqual([])
+    expect(computeEnseignantsStats([enseignant])).toEqual({ totalMatieres: 0, totalClasses: 0, actifs: 0 })
+  })
+
+  it('ignore les classes nulles dans les matières (#13)', () => {
+    const enseignant = { matieres: [null, { classes: [null, { id: 7, nom: 'L1' }] }] }
+
+    expect(getEnseignantClassesCount(enseignant)).toBe(1)
+    expect(getEnseignantUniqueClasses(enseignant)).toEqual([{ id: 7, nom: 'L1' }])
+    expect(computeEnseignantsStats([null, enseignant])).toEqual({ totalMatieres: 1, totalClasses: 1, actifs: 1 })
+  })
 })

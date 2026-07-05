@@ -12,6 +12,8 @@ export const VISIO_CONFIG = Object.freeze({
   DEFAULT_JITSI_DOMAIN: 'meet.jit.si',
 })
 
+export const VISIO_ROOM_REQUIRED_MESSAGE = 'Identifiant de salle visio introuvable dans la réponse API.'
+
 export const HEARTBEAT_INTERVAL_MS = VISIO_CONFIG.HEARTBEAT_INTERVAL_MS
 export const PARTICIPATION_EXPIRATION_MS = VISIO_CONFIG.PARTICIPATION_EXPIRATION_MS
 
@@ -26,6 +28,43 @@ export function jitsiExternalApiSrc() {
   return `https://${getJitsiDomain()}/external_api.js`
 }
 
+export function getVisioRoomId(source) {
+  if (source === null || source === undefined) return null
+  if (typeof source !== 'object') {
+    const roomId = String(source).trim()
+    return roomId || null
+  }
+
+  const candidates = [
+    source.visio_room_id,
+    source.room_id,
+    source.room_name,
+    source.visio?.visio_room_id,
+    source.visio?.room_id,
+    source.visio?.room_name,
+    source.data?.visio_room_id,
+    source.data?.room_id,
+    source.data?.room_name,
+    source.data?.visio?.visio_room_id,
+    source.data?.visio?.room_id,
+    source.data?.visio?.room_name
+  ]
+
+  for (const candidate of candidates) {
+    if (candidate === null || candidate === undefined) continue
+    const roomId = String(candidate).trim()
+    if (roomId) return roomId
+  }
+
+  return null
+}
+
+export function requireVisioRoomId(source, message = VISIO_ROOM_REQUIRED_MESSAGE) {
+  const roomId = getVisioRoomId(source)
+  if (!roomId) throw new Error(message)
+  return roomId
+}
+
 /**
  * Construit une URL de salle Jitsi.
  * @param {string} roomId
@@ -33,7 +72,8 @@ export function jitsiExternalApiSrc() {
  * @returns {string} `https://{domaine}/{roomId}` ou avec fragment hash de config.
  */
 export function buildJitsiUrl(roomId, options = {}) {
-  const base = `https://${getJitsiDomain()}/${roomId}`
+  const safeRoomId = requireVisioRoomId(roomId)
+  const base = `https://${getJitsiDomain()}/${safeRoomId}`
   const { displayName, prejoinDisabled } = options
   if (!prejoinDisabled && displayName == null) return base
   const parts = []

@@ -3,8 +3,8 @@
  *
  * router/index.js assemble désormais coreRoutes + adminRoutes + teacherRoutes +
  * studentRoutes + sharedRoutes (définitions déplacées verbatim). Ce test verrouille
- * que l'assemblage produit EXACTEMENT les mêmes routes, dans le même ordre, avec
- * les mêmes name/meta que le tableau monolithique d'origine (67 entrées).
+ * que l'assemblage produit les routes attendues, dans le même ordre, avec
+ * les mêmes name/meta que le tableau monolithique hors route visio iframe legacy.
  */
 import { describe, it, expect, vi } from 'vitest'
 
@@ -48,7 +48,7 @@ const EXPECTED_PATHS = [
   // shared
   '/dashboard', '/lessons/:id', '/teacher/lessons/create', '/teacher/lessons/:id/edit',
   '/teacher/matieres', '/teacher/lessons', '/teacher/lessons/:id/chapters', '/quizzes',
-  '/quizzes/:id/take', '/forum', '/forum/topics/:id', '/video-conference/:roomName',
+  '/quizzes/:id/take', '/forum', '/forum/topics/:id',
   '/teacher/evaluations', '/teacher/evaluations/create', '/teacher/evaluations/create-questions',
   '/teacher/evaluations/:id/edit-questions', '/student/evaluations',
   '/student/evaluations/:id/take', '/student/evaluations/:id/results',
@@ -58,7 +58,7 @@ const EXPECTED_PATHS = [
 ]
 
 describe('router routes (#H12) — parité de l\'assemblage', () => {
-  it('produit les 67 routes dans l\'ordre exact d\'origine', () => {
+  it('produit les routes attendues dans l\'ordre exact', () => {
     expect(assembled.map(r => r.path)).toEqual(EXPECTED_PATHS)
   })
 
@@ -70,8 +70,10 @@ describe('router routes (#H12) — parité de l\'assemblage', () => {
   it('préserve name + meta.roles sur des routes représentatives', () => {
     const byPath = Object.fromEntries(assembled.map(r => [r.path, r]))
 
+    expect(byPath['/admin/dashboard'].meta.roles).toContain('admin')
+
     expect(byPath['/admin/users'].name).toBe('AdminUsers')
-    expect(byPath['/admin/users'].meta.roles).toEqual(['superAdmin', 'coordinateur'])
+    expect(byPath['/admin/users'].meta.roles).toEqual(['superAdmin', 'admin', 'coordinateur'])
 
     expect(byPath['/admin/institutions'].meta.roles).toEqual(['supradmin'])
 

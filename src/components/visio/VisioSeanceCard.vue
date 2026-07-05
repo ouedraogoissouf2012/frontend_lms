@@ -37,15 +37,14 @@
 
     <!-- Actions : variante "en cours" -->
     <div v-if="variant === 'active'" class="card-actions">
-      <a
-        v-if="seance.visio?.room_id"
-        :href="buildJitsiUrl(seance.visio.room_id)"
-        target="_blank"
+      <button
+        @click="$emit('join', seance)"
         class="btn-action btn-join"
+        :disabled="actionLoading === seance.id"
       >
         <VideoCameraIcon class="w-5 h-5" />
-        Rejoindre maintenant
-      </a>
+        {{ actionLoading === seance.id ? 'Connexion...' : 'Rejoindre maintenant' }}
+      </button>
       <button
         @click="$emit('end', seance)"
         class="btn-action btn-end"
@@ -92,7 +91,7 @@
 /**
  * Carte d'une séance avec visio (#G1 ≤300). Présentation pure : en-tête (matière /
  * badge), détails (date / horaire / classe) et actions selon `variant` :
- *  - 'active'  → bouton « Rejoindre » (lien Jitsi) + « Terminer ».
+ *  - 'active'  → bouton « Rejoindre » tracké par le parent + « Terminer ».
  *  - 'scheduled' (défaut) → « Démarrer » / « Terminer » / « Activer » selon l'état
  *    plat de la séance (visio_enabled / visio_active).
  * Émet start / end / activate avec la séance ; la logique vit dans le composable.
@@ -110,12 +109,11 @@ defineProps({
   seance: { type: Object, required: true },
   variant: { type: String, default: 'scheduled' },
   actionLoading: { type: [String, Number, null], default: null },
-  buildJitsiUrl: { type: Function, required: true },
   formatDate: { type: Function, required: true },
   formatTime: { type: Function, required: true }
 })
 
-defineEmits(['start', 'end', 'activate'])
+defineEmits(['start', 'end', 'activate', 'join'])
 </script>
 
 <style scoped>

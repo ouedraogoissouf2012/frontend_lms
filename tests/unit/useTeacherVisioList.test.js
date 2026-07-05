@@ -10,7 +10,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const {
   getMyTeachingSeances, activateVisio, startVisio, endVisio,
-  readCache, writeCache, clearCache,
+  readCache, writeCache, clearCache, confirmVisioAction, joinTrackedVisio,
 } = vi.hoisted(() => ({
   getMyTeachingSeances: vi.fn(),
   activateVisio: vi.fn(() => Promise.resolve()),
@@ -19,6 +19,8 @@ const {
   readCache: vi.fn(() => null),
   writeCache: vi.fn(),
   clearCache: vi.fn(),
+  confirmVisioAction: vi.fn(() => Promise.resolve(true)),
+  joinTrackedVisio: vi.fn(() => Promise.resolve({ success: true })),
 }))
 
 vi.mock('@/services/lms', () => ({
@@ -26,6 +28,10 @@ vi.mock('@/services/lms', () => ({
   default: { getMyTeachingSeances, activateVisio, startVisio, endVisio },
 }))
 vi.mock('@/services/cache', () => ({ readCache, writeCache, clearCache }))
+vi.mock('@/services/visioFeedback', () => ({ confirmVisioAction }))
+vi.mock('@/composables/useTrackedVisioJoin', () => ({
+  useTrackedVisioJoin: () => ({ joinTrackedVisio })
+}))
 
 import { useTeacherVisioList } from '@/composables/useTeacherVisioList'
 
@@ -59,6 +65,9 @@ async function setup(data) {
 beforeEach(() => {
   vi.clearAllMocks()
   readCache.mockReturnValue(null)
+  confirmVisioAction.mockResolvedValue(true)
+  joinTrackedVisio.mockReset()
+  joinTrackedVisio.mockResolvedValue({ success: true })
 })
 
 describe('useTeacherVisioList (#G1)', () => {
@@ -132,14 +141,19 @@ describe('useTeacherVisioList (#G1)', () => {
 
   it('handleEndVisio demande confirmation avant de terminer', async () => {
     const u = await setup([makeSeance()])
-    const confirmSpy = vi.spyOn(globalThis, 'confirm').mockReturnValue(false)
+    confirmVisioAction.mockResolvedValueOnce(false)
     await u.handleEndVisio({ id: 5 })
-    expect(confirmSpy).toHaveBeenCalled()
+    expect(confirmVisioAction).toHaveBeenCalled()
     expect(endVisio).not.toHaveBeenCalled()
-    confirmSpy.mockReturnValue(true)
+    confirmVisioAction.mockResolvedValueOnce(true)
     await u.handleEndVisio({ id: 5 })
     expect(endVisio).toHaveBeenCalledWith(5)
-    confirmSpy.mockRestore()
+  })
+
+  it('handleJoinVisio utilise le helper tracké', async () => {
+    const u = await setup([makeSeance({ id: 12, visio_room_id: 'room-12' })])
+    await u.handleJoinVisio({ id: 12, visio_room_id: 'room-12' })
+    expect(joinTrackedVisio).toHaveBeenCalledWith({ id: 12, visio_room_id: 'room-12' })
   })
 
   it('formatDate et formatTime suivent les formats d\'origine', async () => {

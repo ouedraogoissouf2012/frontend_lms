@@ -1,19 +1,23 @@
 import { ref } from 'vue'
 import lmsService from '@/services/lms'
 import { useAuthStore } from '@/stores/auth'
-import { toast } from '@/services/toast'
-import { normalizeError } from '@/services/errorHandler'
 import { useVisioStore } from '@/stores/visio'
-import { buildJitsiUrl } from '@/constants/visio'
+import { buildJitsiUrl, requireVisioRoomId } from '@/constants/visio'
 import { apiBaseUrl } from '@/constants/http'
+import {
+  confirmVisioAction,
+  notifyVisioError,
+  notifyVisioSuccess,
+  notifyVisioWarning,
+} from '@/services/visioFeedback'
 
 /**
  * Composable d'actions visio (extrait de VisioManager.vue, G8).
  *
  * Encapsule l'état `loading` / `participantCount` et l'orchestration des appels
  * (programmer / désactiver / démarrer / terminer / télécharger PDF / rejoindre /
- * charger le compteur). Comportement strictement identique : mêmes appels
- * services, mêmes payloads, mêmes alert/confirm/console, mêmes événements émis.
+ * charger le compteur). Les appels services et événements restent stables ; les
+ * retours utilisateur passent par les toasts et confirmations modales du projet.
  *
  * @param {{ seance: Object }} props - props réactives du composant (lit props.seance).
  * @param {(event: string, ...args: any[]) => void} emit - fonction emit du setup.
@@ -29,7 +33,7 @@ export function useVisioActions(props, emit) {
    * Coordinateur: Programmer la visio
    */
   async function programmerVisio() {
-    if (!confirm('Voulez-vous programmer une visioconférence Jitsi pour cette séance ?')) {
+    if (!await confirmVisioAction('Voulez-vous programmer une visioconférence Jitsi pour cette séance ?')) {
       return
     }
 
@@ -39,13 +43,13 @@ export function useVisioActions(props, emit) {
 
       if (response && response.success) {
         emit('visio-updated', response.data)
-        alert('Visioconférence programmée avec succès!')
+        notifyVisioSuccess('Visioconférence programmée avec succès.')
       } else {
         throw new Error(response?.message || 'Erreur lors de la programmation')
       }
     } catch (error) {
       console.error('[VisioManager] Erreur programmation visio:', error)
-      toast.error(error.userMessage ?? normalizeError(error).userMessage)
+      notifyVisioError(error, 'Erreur lors de la programmation')
     } finally {
       loading.value = false
     }
@@ -55,7 +59,9 @@ export function useVisioActions(props, emit) {
    * Coordinateur: Désactiver la visio
    */
   async function desactiverVisio() {
-    if (!confirm('Voulez-vous désactiver la visioconférence pour cette séance ?')) {
+    if (!await confirmVisioAction('Voulez-vous désactiver la visioconférence pour cette séance ?', {
+      variant: 'danger',
+    })) {
       return
     }
 
@@ -65,13 +71,13 @@ export function useVisioActions(props, emit) {
 
       if (response && response.success) {
         emit('visio-updated', response.data)
-        alert('Visioconférence désactivée avec succès!')
+        notifyVisioSuccess('Visioconférence désactivée avec succès.')
       } else {
         throw new Error(response?.message || 'Erreur lors de la désactivation')
       }
     } catch (error) {
       console.error('[VisioManager] Erreur désactivation visio:', error)
-      toast.error(error.userMessage ?? normalizeError(error).userMessage)
+      notifyVisioError(error, 'Erreur lors de la désactivation')
     } finally {
       loading.value = false
     }
@@ -89,12 +95,12 @@ export function useVisioActions(props, emit) {
       const result = await lmsService.startVisio(props.seance.id)
 
       if (!result.success) {
-        alert(`Erreur: ${result.message}`)
+        notifyVisioError(new Error(result.message || 'Impossible de démarrer la visio'))
         return
       }
 
       // 2. Récupérer le lien Jitsi
-      const roomId = result.data.visio_room_id || props.seance.visio?.room_id
+      const roomId = requireVisioRoomId(result.data)
       const jitsiLink = buildJitsiUrl(roomId)
 
       // 3. Utiliser le store pour ouvrir et tracker
@@ -107,7 +113,7 @@ export function useVisioActions(props, emit) {
 
     } catch (error) {
       console.error('[VisioManager] Erreur démarrage visio:', error)
-      toast.error(error.userMessage ?? normalizeError(error).userMessage)
+      notifyVisioError(error, 'Erreur lors du démarrage de la visio')
     } finally {
       loading.value = false
     }
@@ -118,10 +124,14 @@ export function useVisioActions(props, emit) {
    * Ferme immédiatement tous les participants avec leurs heures réelles
    */
   async function terminerPourTous() {
-    const confirmer = confirm(
+    const confirmer = await confirmVisioAction(
       '🔚 Voulez-vous vraiment terminer cette séance pour TOUS les participants ?\n\n' +
       '✅ Chaque participant sera déconnecté avec son heure réelle de départ.\n' +
-      '❌ Cette action est irréversible.'
+      '❌ Cette action est irréversible.',
+      {
+        confirmLabel: 'Terminer pour tous',
+        variant: 'danger',
+      }
     )
 
     if (!confirmer) return
@@ -135,7 +145,9 @@ export function useVisioActions(props, emit) {
 
       if (response.success) {
         console.log('✅ Séance fermée avec succès')
-        alert(`✅ Séance terminée !\n\n${response.data.participants_disconnected} participant(s) déconnecté(s) avec leurs heures réelles.`)
+        notifyVisioSuccess(
+          `Séance terminée : ${response.data.participants_disconnected} participant(s) déconnecté(s).`
+        )
 
         // Rafraîchir les données
         emit('visio-updated', { ...props.seance, visio_active: false })
@@ -144,7 +156,7 @@ export function useVisioActions(props, emit) {
       }
     } catch (error) {
       console.error('[VisioManager] Erreur fermeture séance:', error)
-      toast.error(error.userMessage ?? normalizeError(error).userMessage)
+      notifyVisioError(error, 'Erreur lors de la fermeture')
     } finally {
       loading.value = false
     }
@@ -192,7 +204,7 @@ export function useVisioActions(props, emit) {
       console.log('[VisioManager] ✅ PDF téléchargé avec succès')
     } catch (error) {
       console.error('[VisioManager] Erreur téléchargement PDF:', error)
-      toast.error(error.userMessage ?? normalizeError(error).userMessage)
+      notifyVisioError(error, 'Erreur lors du téléchargement du PDF')
     } finally {
       loading.value = false
     }
@@ -203,7 +215,7 @@ export function useVisioActions(props, emit) {
    */
   async function rejoindreVisio() {
     if (!props.seance.visio_active) {
-      alert('La visio n\'est pas encore démarrée par l\'enseignant')
+      notifyVisioWarning('La visio n\'est pas encore démarrée par l\'enseignant.')
       return
     }
 
@@ -212,12 +224,7 @@ export function useVisioActions(props, emit) {
       console.log('👨‍🎓 Étudiant rejoint la visio...')
 
       // Room ID depuis la séance
-      const roomId = props.seance.visio_room_id || props.seance.visio?.room_id
-
-      if (!roomId) {
-        alert('Erreur: Room ID introuvable')
-        return
-      }
+      const roomId = requireVisioRoomId(props.seance)
 
       // Utiliser le store pour ouvrir et tracker
       const jitsiLink = buildJitsiUrl(roomId)
@@ -230,8 +237,7 @@ export function useVisioActions(props, emit) {
 
     } catch (error) {
       console.error('[VisioManager] Erreur rejoindre visio:', error)
-      const errorMessage = error.response?.data?.message || error.message
-      alert('Erreur lors de la connexion à la visio: ' + errorMessage)
+      notifyVisioError(error, 'Erreur lors de la connexion à la visio')
     } finally {
       loading.value = false
     }

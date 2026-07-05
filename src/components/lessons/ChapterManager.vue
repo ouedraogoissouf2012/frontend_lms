@@ -26,39 +26,58 @@
     />
 
     <!-- Upload Progress Modal -->
-    <div v-if="uploadingFile" class="upload-overlay">
-      <div class="upload-modal-card">
-        <h3 class="upload-title">Upload en cours...</h3>
-        <div class="progress-bar-container">
-          <div class="progress-bar-fill" :style="{ width: uploadProgress + '%' }"></div>
-        </div>
-        <p class="upload-percentage">{{ uploadProgress }}%</p>
-        <p class="upload-message">{{ uploadStatus }}</p>
+    <Modal
+      :model-value="Boolean(uploadingFile)"
+      :show-close="false"
+      :close-on-overlay="false"
+      :close-on-esc="false"
+      size="sm"
+      overlay-class="chapter-upload-overlay"
+      container-class="upload-modal-card"
+      body-class="chapter-upload-body"
+    >
+      <h3 class="upload-title">Upload en cours...</h3>
+      <div class="progress-bar-container">
+        <div class="progress-bar-fill" :style="{ width: uploadProgress + '%' }"></div>
       </div>
-    </div>
+      <p class="upload-percentage">{{ uploadProgress }}%</p>
+      <p class="upload-message">{{ uploadStatus }}</p>
+    </Modal>
 
     <!-- Knowledge Check Editor Modal -->
-    <div v-if="showQuizEditor" class="quiz-modal-overlay" @click.self="closeQuizEditor">
-      <div class="quiz-modal-content">
-        <KnowledgeCheckEditor
-          :chapter-id="selectedChapterId"
-          :existing-quiz="editingQuiz"
-          @close="closeQuizEditor"
-          @saved="onQuizSaved"
-        />
-      </div>
-    </div>
+    <Modal
+      :model-value="showQuizEditor"
+      :show-close="false"
+      size="lg"
+      overlay-class="quiz-modal-overlay"
+      container-class="quiz-modal-content"
+      body-class="quiz-modal-body"
+      @close="closeQuizEditor"
+    >
+      <KnowledgeCheckEditor
+        :chapter-id="selectedChapterId"
+        :existing-quiz="editingQuiz"
+        @close="closeQuizEditor"
+        @saved="onQuizSaved"
+      />
+    </Modal>
 
     <!-- Knowledge Check Player Modal -->
-    <div v-if="showQuizPlayer" class="quiz-modal-overlay" @click.self="closeQuizPlayer">
-      <div class="quiz-modal-content quiz-player-modal">
-        <KnowledgeCheckPlayer
-          :quiz="selectedQuiz"
-          @close="closeQuizPlayer"
-          @completed="onQuizCompleted"
-        />
-      </div>
-    </div>
+    <Modal
+      :model-value="showQuizPlayer"
+      :show-close="false"
+      size="lg"
+      overlay-class="quiz-modal-overlay"
+      container-class="quiz-modal-content quiz-player-modal"
+      body-class="quiz-modal-body"
+      @close="closeQuizPlayer"
+    >
+      <KnowledgeCheckPlayer
+        :quiz="selectedQuiz"
+        @close="closeQuizPlayer"
+        @completed="onQuizCompleted"
+      />
+    </Modal>
   </div>
 </template>
 
@@ -72,6 +91,7 @@
  */
 import { toRef } from 'vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
+import Modal from '@/components/ui/Modal.vue'
 import KnowledgeCheckEditor from '@/components/lessons/KnowledgeCheckEditor.vue'
 import KnowledgeCheckPlayer from '@/components/lessons/KnowledgeCheckPlayer.vue'
 import ChapterList from '@/components/lessons/ChapterList.vue'
@@ -143,20 +163,12 @@ const {
 }
 
 /* Upload Modal */
-.upload-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+:deep(.chapter-upload-overlay) {
   background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   z-index: 10000;
 }
 
-.upload-modal-card {
+:deep(.upload-modal-card) {
   background: var(--card-bg);
   padding: 32px;
   border-radius: 12px;
@@ -164,6 +176,11 @@ const {
   max-width: 400px;
   width: 90%;
   border: 1px solid var(--border-color);
+}
+
+:deep(.chapter-upload-body) {
+  padding: 0;
+  overflow: visible;
 }
 
 .upload-title {
@@ -202,28 +219,25 @@ const {
 }
 
 /* Quiz Modal */
-.quiz-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+:deep(.quiz-modal-overlay) {
   background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   z-index: 10000;
   padding: 20px;
 }
 
-.quiz-modal-content {
+:deep(.quiz-modal-content) {
   width: 100%;
   max-width: 800px;
   max-height: 90vh;
   overflow: hidden;
 }
 
-.quiz-player-modal {
+:deep(.quiz-modal-body) {
+  padding: 0;
+  overflow: hidden;
+}
+
+:deep(.quiz-player-modal) {
   max-width: 700px;
 }
 
@@ -257,7 +271,7 @@ const {
     gap: 12px;
   }
 
-  .quiz-modal-content {
+  :deep(.quiz-modal-content) {
     max-height: 95vh;
   }
 }

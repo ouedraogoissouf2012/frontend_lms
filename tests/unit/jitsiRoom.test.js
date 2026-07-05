@@ -1,14 +1,20 @@
 /**
  * Tests des helpers purs de construction de salle/lien Jitsi (utils/jitsiRoom.js, G8).
- * Parité avec l'ancien services/jitsi.js : sanitation, format d'ID et de nom de salle,
- * et assemblage du lien avec les paramètres Jitsi.
+ * Le backend fournit l'identifiant de salle ; le front ne le devine pas.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 vi.mock('@/services/api', () => ({
   auth: { getUser: vi.fn(() => ({ name: 'Alice', role: 'etudiant' })) }
 }))
-vi.mock('@/constants/visio', () => ({ getJitsiDomain: () => 'meet.test' }))
+vi.mock('@/constants/visio', () => ({
+  getJitsiDomain: () => 'meet.test',
+  requireVisioRoomId: (source) => {
+    const roomId = source?.visio_room_id || source?.room_id || source?.visio?.room_id
+    if (!roomId) throw new Error('Identifiant de salle visio introuvable dans la réponse API.')
+    return roomId
+  }
+}))
 
 import { sanitizeForUrl, generateRoomId, buildRoomName, generateRoomLink } from '@/utils/jitsiRoom'
 import { auth } from '@/services/api'
@@ -24,10 +30,12 @@ describe('utils/jitsiRoom — sanitizeForUrl', () => {
 })
 
 describe('utils/jitsiRoom — generateRoomId', () => {
-  it('déterministe par séance : lms_seance_{id} (même salle prof + élèves)', () => {
-    expect(generateRoomId({ id: 7 })).toBe('lms_seance_7')
-    // Stable d'une ouverture à l'autre (sinon prof et élèves dans 2 salles).
-    expect(generateRoomId({ id: 7 })).toBe(generateRoomId({ id: 7 }))
+  it('retourne uniquement le visio_room_id fourni par API', () => {
+    expect(generateRoomId({ id: 7, visio_room_id: 'lms_seance_7_123456' })).toBe('lms_seance_7_123456')
+  })
+
+  it('refuse de fabriquer une salle locale sans visio_room_id', () => {
+    expect(() => generateRoomId({ id: 7 })).toThrow('Identifiant de salle visio')
   })
 })
 
@@ -52,8 +60,12 @@ describe('utils/jitsiRoom — generateRoomLink', () => {
 
   it('utilise visio_room_id existant et le domaine configuré', () => {
     const url = generateRoomLink({ id: 1, visio_room_id: 'room-xyz12345', matiere: { nom: 'Maths' } })
-    expect(url.startsWith('https://meet.test/LMS-Maths-')).toBe(true)
+    expect(url.startsWith('https://meet.test/room-xyz12345#')).toBe(true)
     expect(url).toContain('#')
+  })
+
+  it('échoue si la réponse ne contient pas visio_room_id', () => {
+    expect(() => generateRoomLink({ id: 1 })).toThrow('Identifiant de salle visio')
   })
 
   it('mute les étudiants par défaut (startWithAudioMuted=true)', () => {

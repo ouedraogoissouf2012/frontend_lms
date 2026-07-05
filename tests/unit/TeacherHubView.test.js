@@ -2,8 +2,8 @@
  * Test de MONTAGE de TeacherHub.vue (G9 — fichier déjà < 300, vérif de parité).
  *
  * Confirme que la vue monte sans erreur et déclenche au montage les appels
- * KLASSCI/LMS d'origine (getClasses, getMatieres, getTeacherDashboard,
- * getMyTeachingSeances). Aucune refacto sur ce fichier : on verrouille le câblage.
+ * utiles: dashboard enseignant rattache + séances LMS. Les listes KLASSCI
+ * globales ne doivent plus etre appelees pour eviter le N+1 #100.
  */
 import { mount, flushPromises } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -41,7 +41,12 @@ describe('TeacherHub.vue (G9) — montage', () => {
     lms.getMyTeachingSeances.mockReset()
     klassci.getClasses.mockResolvedValue([{ id: 1 }])
     klassci.getMatieres.mockResolvedValue([{ id: 2 }])
-    klassci.getTeacherDashboard.mockResolvedValue({ nb_lecons: 4, nb_evaluations: 3 })
+    klassci.getTeacherDashboard.mockResolvedValue({
+      classes: [{ id: 1, places_occupees: 2 }],
+      matieres: [{ id: 2 }],
+      nb_lecons: 4,
+      nb_evaluations: 3
+    })
     klassci.getClasseEtudiants.mockResolvedValue([{ id: 10 }, { id: 11 }])
     lms.getMyTeachingSeances.mockResolvedValue({ data: [] })
   })
@@ -51,9 +56,10 @@ describe('TeacherHub.vue (G9) — montage', () => {
     await flushPromises()
 
     expect(w.exists()).toBe(true)
-    expect(klassci.getClasses).toHaveBeenCalled()
-    expect(klassci.getMatieres).toHaveBeenCalled()
     expect(klassci.getTeacherDashboard).toHaveBeenCalled()
+    expect(klassci.getClasses).not.toHaveBeenCalled()
+    expect(klassci.getMatieres).not.toHaveBeenCalled()
+    expect(klassci.getClasseEtudiants).not.toHaveBeenCalled()
     expect(lms.getMyTeachingSeances).toHaveBeenCalled()
   })
 })

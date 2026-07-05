@@ -7,21 +7,17 @@ import { formatDuration as fmtDuration } from '../utils/formatters'
  */
 const chapterService = {
   /**
-   * Récupérer la liste des chapitres avec filtres
-   * @param {Object} params - Filtres (matiere_id, enseignant_id)
+   * Récupérer les chapitres d'une leçon.
+   * Le backend expose uniquement l'index leçon-scopé : GET /lessons/{id}/chapters.
+   * @param {Number|String} lessonId - Leçon parente (segment d'URL, obligatoire)
    * @returns {Promise}
    */
-  async getChapters(params = {}) {
+  async getChapters(lessonId) {
+    if (!lessonId) {
+      throw new Error('[ChapterService] lessonId requis pour charger les chapitres')
+    }
     try {
-      const queryParams = new URLSearchParams()
-
-      if (params.matiere_id) queryParams.append('matiere_id', params.matiere_id)
-      if (params.enseignant_id) queryParams.append('enseignant_id', params.enseignant_id)
-
-      const queryString = queryParams.toString()
-      const url = queryString ? `/chapters?${queryString}` : '/chapters'
-
-      const response = await api.get(url)
+      const response = await api.get(`/lessons/${lessonId}/chapters`)
       return response.data
     } catch (error) {
       console.error('[ChapterService] Erreur getChapters:', error)

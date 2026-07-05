@@ -48,6 +48,13 @@ describe('sanitizeHtml — vecteurs XSS neutralisés', () => {
     expect(out).toContain('x')
   })
 
+  it('neutralise les URLs dangereuses dans les styles inline', () => {
+    const out = sanitizeHtml('<p style="background:url(javascript:alert(1));color:red">x</p>')
+    expect(out).not.toMatch(/javascript:/i)
+    expect(out).not.toMatch(/alert/)
+    expect(out).toContain('color:red')
+  })
+
   it('résiste au mutation-XSS via SVG', () => {
     const out = sanitizeHtml('<svg><script>alert(1)</script></svg>')
     expect(out).not.toMatch(/<script/i)

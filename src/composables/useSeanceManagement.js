@@ -1,13 +1,14 @@
-import { ref, reactive, onMounted, getCurrentInstance } from 'vue'
+import { ref, onMounted, getCurrentInstance } from 'vue'
 import { useRouter } from 'vue-router'
-import { useVisioParticipation } from '@/composables/useVisioParticipation'
+import { useTrackedVisioJoin } from '@/composables/useTrackedVisioJoin'
 import { useAuthStore } from '@/stores/auth'
 import { toast } from '@/services/toast'
 import { normalizeError } from '@/services/errorHandler'
 import lmsService from '@/services/lms'
 import { clearCache } from '@/services/cache'
-import { buildJitsiUrl } from '@/constants/visio'
+import { getVisioRoomId } from '@/constants/visio'
 import { useCoordinatorSeances } from '@/composables/useCoordinatorSeances'
+import { confirmVisioAction } from '@/services/visioFeedback'
 
 /**
  * Couche logique/UI de la vue SeanceManagement (coordinateur) (#H6 ≤300).
@@ -48,9 +49,7 @@ export function useSeanceManagement() {
   // Get current user for Jitsi (#19 : via store, plus de localStorage('user'))
   const currentUser = useAuthStore().currentUser
 
-  // État de la modal Jitsi
-  // visioParticipation sera créé dynamiquement pour chaque séance
-  const visioParticipations = reactive({})
+  const { joinTrackedVisio } = useTrackedVisioJoin('Coordinateur')
 
   const toggleSeanceVisio = async (seance) => {
     const newState = !seance.visio_enabled
@@ -73,7 +72,7 @@ export function useSeanceManagement() {
           seance.visio_type = null
           seance.visio_room_id = null
         } else {
-          seance.visio_room_id = `seance_${seance.id}`
+          seance.visio_room_id = getVisioRoomId(response.data)
         }
 
         // Clear cache after update
@@ -99,16 +98,9 @@ export function useSeanceManagement() {
     try {
       console.log('[VISIO] Rejoindre visio coordinateur:', seance.id)
 
-      // Créer le composable pour cette séance si pas déjà créé
-      if (!visioParticipations[seance.id]) {
-        visioParticipations[seance.id] = useVisioParticipation(seance.id)
-      }
-
-      // Ouvrir window.open avec tracking
-      const roomId = seance.visio_room_id
-      const jitsiLink = buildJitsiUrl(roomId)
-
-      await visioParticipations[seance.id].joinVisio(jitsiLink)
+      await joinTrackedVisio(seance, {
+        displayName: currentUser?.name || 'Coordinateur',
+      })
 
       console.log('[VISIO] Coordinateur a rejoint avec window.open + tracking Web Worker')
 
@@ -116,7 +108,7 @@ export function useSeanceManagement() {
       await loadSeances()
     } catch (error) {
       console.error('[ERREUR] Join visio coordinateur:', error)
-      toast.error(error.userMessage ?? normalizeError(error).userMessage)
+      toast.error(error.userMessage ?? error.message ?? normalizeError(error).userMessage)
     }
   }
 
@@ -142,15 +134,7 @@ export function useSeanceManagement() {
         break
 
       case 'joinVisio':
-        // Coordinateur rejoint la visio
-        {
-          const roomId = data.visio?.room_id || data.visio_room_id || `seance_${data.id}`
-          const jitsiLink = buildJitsiUrl(roomId, {
-            displayName: currentUser?.name || 'Coordinateur',
-            prejoinDisabled: true,
-          })
-          window.open(jitsiLink, '_blank')
-        }
+        await handleJoinVisio(data)
         break
 
       case 'viewParticipants':
@@ -171,7 +155,11 @@ export function useSeanceManagement() {
 
       case 'delete':
         // Supprimer la seance
-        if (confirm('Voulez-vous vraiment supprimer cette seance ?')) {
+        if (await confirmVisioAction('Voulez-vous vraiment supprimer cette seance ?', {
+          title: 'Supprimer la séance',
+          confirmLabel: 'Supprimer',
+          variant: 'danger',
+        })) {
           try {
             await lmsService.deleteSeance(data.id)
             if (calendarRef.value?.refreshEvents) {

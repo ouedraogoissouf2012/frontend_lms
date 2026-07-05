@@ -95,7 +95,7 @@ describe('AttendanceParticipationModal (H7)', () => {
     expect(w.find('.modal-overlay').exists()).toBe(true)
     expect(w.text()).toContain('aline@e.com')
     expect(w.text()).toContain('En cours') // left_at null → "En cours"
-    await w.find('.btn-close').trigger('click')
+    await w.find('.modal-close-btn').trigger('click')
     expect(w.emitted('close')).toBeTruthy()
   })
 })

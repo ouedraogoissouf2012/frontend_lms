@@ -42,10 +42,11 @@ describe('ConnectionResultModal (#G1)', () => {
     expect(w.text()).toContain('Échec')
   })
 
-  it('émet close (overlay et bouton Fermer)', async () => {
+  it('émet close (overlay, croix et bouton Fermer)', async () => {
     const w = mountModal({ connectionResult: { success: true, message: 'OK' } })
+    await w.find('.modal-overlay').trigger('click')
+    await w.find('.modal-close-btn').trigger('click')
     await w.find('.modal-btn-secondary').trigger('click')
-    await w.find('.close-btn').trigger('click')
-    expect(w.emitted('close')).toHaveLength(2)
+    expect(w.emitted('close')).toHaveLength(3)
   })
 })

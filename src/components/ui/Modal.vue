@@ -1,91 +1,160 @@
 <template>
-  <transition name="modal-fade">
-    <div v-if="visible" class="modal-overlay" @click.self="close">
-      <!-- $attrs sur le conteneur visible (inheritAttrs:false) : class/id/aria-*/data-* traversent -->
-      <div class="modal-container" :class="`modal-${normalizedSize}`" v-bind="$attrs">
-        <div class="modal-header">
-          <!-- Slot header custom ; sinon title optionnelle. Le ✕ reste TOUJOURS rendu (hors slot). -->
-          <slot name="header">
-            <h3 v-if="title" class="modal-title">{{ title }}</h3>
-          </slot>
-          <button class="modal-close-btn" aria-label="Fermer" @click="close">✕</button>
-        </div>
-        <div class="modal-body">
-          <slot></slot>
-        </div>
-        <div class="modal-footer" v-if="$slots.footer">
-          <slot name="footer"></slot>
+  <Teleport :to="teleportTo" :disabled="!teleport">
+    <transition :name="transitionName">
+      <div
+        v-if="visible"
+        class="modal-overlay"
+        :class="overlayClass"
+        @click.self="handleOverlayClick"
+      >
+        <!-- $attrs sur le conteneur visible (inheritAttrs:false) : class/id/aria-*/data-* traversent -->
+        <div
+          class="modal-container"
+          :class="[`modal-${normalizedSize}`, containerClass]"
+          v-bind="$attrs"
+        >
+          <div
+            v-if="$slots.header || title || showClose"
+            class="modal-header"
+            :class="headerClass"
+          >
+            <!-- Slot header custom ; sinon title optionnelle. Le ✕ reste TOUJOURS rendu (hors slot). -->
+            <slot name="header">
+              <h3 v-if="title" class="modal-title">{{ title }}</h3>
+            </slot>
+            <button v-if="showClose" class="modal-close-btn" aria-label="Fermer" @click="close">✕</button>
+          </div>
+          <div class="modal-body" :class="bodyClass">
+            <slot></slot>
+          </div>
+          <div class="modal-footer" :class="footerClass" v-if="$slots.footer">
+            <slot name="footer"></slot>
+          </div>
         </div>
       </div>
-    </div>
-  </transition>
+    </transition>
+  </Teleport>
 </template>
 
-<script>
-export default {
+<script setup>
+import { computed, onBeforeUnmount, watch } from 'vue'
+
+defineOptions({
   name: 'Modal',
   // Les attributs non déclarés (class, aria-*, data-*) vont sur .modal-container, pas la racine transition.
-  inheritAttrs: false,
-  props: {
-    modelValue: {
-      type: Boolean,
-      default: false
-    },
-    title: {
-      type: String,
-      default: ''
-    },
-    size: {
-      type: String,
-      default: 'md',
-      validator: (v) => ['sm', 'md', 'lg', 'xl', 'medium'].includes(v)
-    }
+  inheritAttrs: false
+})
+
+const emit = defineEmits(['update:modelValue', 'close'])
+
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    default: false
   },
-  computed: {
-    visible: {
-      get() {
-        return this.modelValue
-      },
-      set(value) {
-        this.$emit('update:modelValue', value)
-      }
-    },
-    // Normalise l'alias 'medium' → 'md' et retombe sur 'md' si valeur inattendue.
-    normalizedSize() {
-      if (this.size === 'medium') return 'md'
-      return ['sm', 'md', 'lg', 'xl'].includes(this.size) ? this.size : 'md'
-    }
+  title: {
+    type: String,
+    default: ''
   },
-  methods: {
-    close() {
-      this.visible = false
-    },
-    onKeydown(e) {
-      if (e.key === 'Escape' && this.visible) {
-        this.close()
-      }
-    }
+  size: {
+    type: String,
+    default: 'md',
+    validator: (v) => ['sm', 'md', 'lg', 'xl', 'medium'].includes(v)
   },
-  watch: {
-    visible: {
-      immediate: true,
-      handler(newVal) {
-        if (typeof document === 'undefined') return
-        if (newVal) {
-          document.body.style.overflow = 'hidden'
-          document.addEventListener('keydown', this.onKeydown)
-        } else {
-          document.body.style.overflow = ''
-          document.removeEventListener('keydown', this.onKeydown)
-        }
-      }
-    }
+  showClose: {
+    type: Boolean,
+    default: true
   },
-  beforeUnmount() {
-    document.body.style.overflow = ''
-    document.removeEventListener('keydown', this.onKeydown)
+  closeOnOverlay: {
+    type: Boolean,
+    default: true
+  },
+  closeOnEsc: {
+    type: Boolean,
+    default: true
+  },
+  teleport: {
+    type: Boolean,
+    default: false
+  },
+  teleportTo: {
+    type: String,
+    default: 'body'
+  },
+  transitionName: {
+    type: String,
+    default: 'modal-fade'
+  },
+  overlayClass: {
+    type: [String, Array, Object],
+    default: ''
+  },
+  containerClass: {
+    type: [String, Array, Object],
+    default: ''
+  },
+  headerClass: {
+    type: [String, Array, Object],
+    default: ''
+  },
+  bodyClass: {
+    type: [String, Array, Object],
+    default: ''
+  },
+  footerClass: {
+    type: [String, Array, Object],
+    default: ''
+  }
+})
+
+const visible = computed({
+  get: () => props.modelValue,
+  set: (value) => emit('update:modelValue', value)
+})
+
+// Normalise l'alias 'medium' -> 'md' et retombe sur 'md' si valeur inattendue.
+const normalizedSize = computed(() => {
+  if (props.size === 'medium') return 'md'
+  return ['sm', 'md', 'lg', 'xl'].includes(props.size) ? props.size : 'md'
+})
+
+function close() {
+  if (!visible.value) return
+  visible.value = false
+  emit('close')
+}
+
+function handleOverlayClick() {
+  if (props.closeOnOverlay) {
+    close()
   }
 }
+
+function onKeydown(e) {
+  if (props.closeOnEsc && e.key === 'Escape' && visible.value) {
+    close()
+  }
+}
+
+watch(
+  visible,
+  (newVal) => {
+    if (typeof document === 'undefined') return
+    if (newVal) {
+      document.body.style.overflow = 'hidden'
+      document.addEventListener('keydown', onKeydown)
+    } else {
+      document.body.style.overflow = ''
+      document.removeEventListener('keydown', onKeydown)
+    }
+  },
+  { immediate: true }
+)
+
+onBeforeUnmount(() => {
+  document.body.style.overflow = ''
+  document.removeEventListener('keydown', onKeydown)
+})
 </script>
 
 <style scoped>
@@ -113,6 +182,22 @@ export default {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+}
+
+.modal-sm {
+  max-width: 400px;
+}
+
+.modal-md {
+  max-width: 500px;
+}
+
+.modal-lg {
+  max-width: 720px;
+}
+
+.modal-xl {
+  max-width: 960px;
 }
 
 .modal-header {

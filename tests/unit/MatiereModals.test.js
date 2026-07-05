@@ -45,7 +45,7 @@ describe('MatiereModals (#G1) — rendu', () => {
     const w = mountModals({ matiere })
     expect(w.find('.detail-grid').exists()).toBe(true)
     expect(w.html()).toContain('Cours de maths')
-    await w.find('.modal-close').trigger('click')
+    await w.find('.modal-close-btn').trigger('click')
     expect(w.emitted('close-matiere')).toBeTruthy()
   })
 
