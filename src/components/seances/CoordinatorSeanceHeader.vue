@@ -58,7 +58,7 @@ const viewMode = defineModel('viewMode', { default: 'list' })
 .page-icon {
   font-size: 3rem;
   line-height: 1;
-  color: var(--primary-color, #6366f1);
+  color: var(--primary-color);
   flex-shrink: 0;
 }
 
@@ -108,7 +108,7 @@ const viewMode = defineModel('viewMode', { default: 'list' })
 }
 
 .toggle-btn.active {
-  background: var(--primary-color, #6366f1);
+  background: var(--primary-color);
   color: white;
 }
 

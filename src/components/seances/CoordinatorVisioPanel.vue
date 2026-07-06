@@ -66,7 +66,7 @@ defineEmits(['show-participants', 'join'])
 .visio-panel {
   margin-top: 1rem;
   padding: 1rem;
-  background: var(--card-bg-dark, #1f2937);
+  background: var(--card-bg-dark);
   border: 1px solid var(--border-color);
   border-radius: 0.5rem;
 }
@@ -125,7 +125,7 @@ defineEmits(['show-participants', 'join'])
 
 .room-id {
   font-family: monospace;
-  background: var(--card-bg-dark, #1f2937);
+  background: var(--card-bg-dark);
   color: white;
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;

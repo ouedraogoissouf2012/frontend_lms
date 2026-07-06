@@ -107,7 +107,7 @@ defineEmits(['close-confirm', 'submit', 'return'])
   gap: 0.5rem;
   flex: 1;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, var(--primary-color, #3b82f6), var(--color-info-strong));
+  background: linear-gradient(135deg, var(--primary-color), var(--color-info-strong));
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -212,7 +212,7 @@ defineEmits(['close-confirm', 'submit', 'return'])
 .score-value {
   font-size: 3rem;
   font-weight: 700;
-  color: var(--primary-color, #3b82f6);
+  color: var(--primary-color);
   margin: 0;
 }
 

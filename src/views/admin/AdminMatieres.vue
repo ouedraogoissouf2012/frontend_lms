@@ -118,7 +118,7 @@ const {
 .page-icon {
   width: 3rem;
   height: 3rem;
-  color: var(--primary-color, #6366f1);
+  color: var(--primary-color);
   flex-shrink: 0;
 }
 

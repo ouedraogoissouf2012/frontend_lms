@@ -135,7 +135,7 @@ defineEmits(['close', 'export-pdf', 'export-excel', 'retry'])
 
 .btn-retry {
   padding: 0.625rem 1.5rem;
-  background: var(--primary-color, #3b82f6);
+  background: var(--primary-color);
   color: white;
   border: none;
   border-radius: 0.375rem;

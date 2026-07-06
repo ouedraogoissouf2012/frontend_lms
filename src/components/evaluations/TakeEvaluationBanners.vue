@@ -114,7 +114,7 @@ defineProps({
 .alert-info {
   padding: 1rem 1.5rem;
   background: var(--bg-secondary, #eff6ff);
-  border: 1px solid var(--primary-color, #3b82f6);
+  border: 1px solid var(--primary-color);
   border-radius: 0.75rem;
   margin-bottom: 1.5rem;
   color: var(--text-primary);
@@ -136,7 +136,7 @@ defineProps({
 .alert-info-time {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--primary-color, #3b82f6);
+  color: var(--primary-color);
 }
 
 /* Responsive */

@@ -423,6 +423,14 @@
   --blue-800: #172554;
   --blue-900: #0a1929;
 
+  /* Legacy brand aliases — source unique pour les composants encore migrés par
+     lots. --card-bg-dark reste une surface sombre car ses usages portent du
+     texte/icônes blancs en clair comme en sombre. */
+  --primary-color: var(--blue-500);
+  --primary-color-rgb: 59, 130, 246;
+  --secondary-color: var(--blue-600);
+  --card-bg-dark: var(--gray-800);
+
   /* Brand (KLASSCI) — couleurs d'identité des loaders de marque.
      Theme-aware (cf. --blue-* ci-dessus) : la marque s'éclaircit en dark
      pour rester lisible sur fond sombre (valeurs dark dans le bloc
@@ -526,6 +534,12 @@
   --blue-700: #bfdbfe;
   --blue-800: #dbeafe;
   --blue-900: #eff6ff;
+
+  /* Legacy brand aliases — voir le bloc light pour la justification. */
+  --primary-color: var(--blue-500);
+  --primary-color-rgb: 96, 165, 250;
+  --secondary-color: var(--blue-600);
+  --card-bg-dark: var(--gray-800);
 
   /* Brand (KLASSCI) — variantes dark, alignées sur l'échelle --blue-* / --amber-*
      du thème (source unique). Valeurs identiques au rendu dark actuel des

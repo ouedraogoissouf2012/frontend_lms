@@ -128,7 +128,7 @@ defineEmits(['toggle-multiple'])
 }
 
 .question-number {
-  background: var(--primary-color, #3b82f6);
+  background: var(--primary-color);
   color: white;
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
@@ -173,16 +173,16 @@ defineEmits(['toggle-multiple'])
 
 .option-item:hover {
   background: var(--bg-secondary, #f9fafb);
-  border-color: var(--primary-color, #3b82f6);
+  border-color: var(--primary-color);
 }
 
 .option-selected {
-  border-color: var(--primary-color, #3b82f6);
-  background: rgba(59, 130, 246, 0.08);
+  border-color: var(--primary-color);
+  background: rgba(var(--primary-color-rgb), 0.08);
 }
 
 .option-input {
-  accent-color: var(--primary-color, #3b82f6);
+  accent-color: var(--primary-color);
   width: 1.125rem;
   height: 1.125rem;
   flex-shrink: 0;
@@ -209,8 +209,8 @@ defineEmits(['toggle-multiple'])
 
 .text-input:focus {
   outline: none;
-  border-color: var(--primary-color, #3b82f6);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.15);
 }
 
 .textarea-input {

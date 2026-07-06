@@ -130,7 +130,7 @@ const {
   font-size: 3rem;
   line-height: 1;
   flex-shrink: 0;
-  color: var(--primary-color, #3b82f6);
+  color: var(--primary-color);
 }
 
 .page-title {

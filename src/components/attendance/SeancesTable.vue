@@ -227,7 +227,7 @@ defineEmits(['view-attendances', 'delete-seance', 'change-page'])
 
 .btn-view {
   padding: 0.5rem 1rem;
-  background: var(--primary-color, #3b82f6);
+  background: var(--primary-color);
   color: white;
   border: none;
   border-radius: 0.375rem;

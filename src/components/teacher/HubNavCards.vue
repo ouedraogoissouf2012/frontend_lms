@@ -95,11 +95,11 @@ defineProps({
 .hub-card:hover {
   transform: translateY(-6px);
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.18);
-  border-color: var(--primary-color, #3b82f6);
+  border-color: var(--primary-color);
 }
 
 .hub-card:hover .card-footer {
-  background: var(--primary-color, #3b82f6);
+  background: var(--primary-color);
   color: white;
 }
 
@@ -179,7 +179,7 @@ defineProps({
   padding: 0.875rem 1rem;
   background: var(--bg-secondary);
   border-radius: 0.5rem;
-  color: var(--primary-color, #3b82f6);
+  color: var(--primary-color);
   font-weight: 600;
   font-size: 0.875rem;
   transition: all 0.2s ease;

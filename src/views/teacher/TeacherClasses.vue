@@ -114,8 +114,8 @@ const { classes, loading, error, loadClasses } = useTeacherClasses()
 
 .btn-back:hover {
   background: var(--bg-hover);
-  border-color: var(--primary-color, var(--blue-500));
-  color: var(--primary-color, var(--blue-500));
+  border-color: var(--primary-color);
+  color: var(--primary-color);
 }
 
 .classes-grid {

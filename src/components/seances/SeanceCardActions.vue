@@ -151,12 +151,12 @@ function formatTime(dateTimeStr) {
 }
 
 .action-scheduled {
-  background: var(--card-bg-dark, #1f2937);
+  background: var(--card-bg-dark);
   border: 1px solid var(--border-color);
 }
 
 .action-active {
-  background: var(--card-bg-dark, #1f2937);
+  background: var(--card-bg-dark);
   border: 1px solid var(--border-color);
 }
 
@@ -241,7 +241,7 @@ function formatTime(dateTimeStr) {
 
 .room-id {
   font-family: monospace;
-  background: var(--card-bg-dark, #1f2937);
+  background: var(--card-bg-dark);
   color: white;
   padding: 0.25rem 0.625rem;
   border-radius: 0.375rem;
