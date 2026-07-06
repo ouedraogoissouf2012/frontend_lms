@@ -1,0 +1,111 @@
+/* ========================================
+   LIGHT MODE (AZURE PROFESSIONAL)
+   ======================================== */
+[data-theme="light"] {
+  --theme-mode: 'light';
+
+  /* Sidebar */
+  --sidebar-bg-start: #0052cc;
+  --sidebar-bg-end: #0747a6;
+  --sidebar-text: #ffffff;
+  --sidebar-text-secondary: rgba(255, 255, 255, 0.8);
+  --sidebar-hover: rgba(255, 255, 255, 0.15);
+  --sidebar-active: rgba(255, 255, 255, 0.25);
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+
+  /* Navbar */
+  --navbar-bg: #ffffff;
+  --navbar-text: #1e293b;
+  --navbar-border: #e2e8f0;
+  --navbar-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+
+  /* Background */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  --bg-hover: #f8fafc;
+
+  /* Text Colors */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #64748b;
+  --text-disabled: #94a3b8;
+
+  /* Border Colors */
+  --border-primary: #e2e8f0;
+  --border-secondary: #cbd5e1;
+  --border-focus: #0052cc;
+
+  /* Blue Accent */
+  --blue-50: #eff6ff;
+  --blue-100: #dbeafe;
+  --blue-200: #bfdbfe;
+  --blue-300: #93c5fd;
+  --blue-400: #60a5fa;
+  --blue-500: #3b82f6;
+  --blue-600: #0052cc;
+  --blue-700: #0747a6;
+  --blue-800: #172554;
+  --blue-900: #0a1929;
+
+  /* Legacy brand aliases — source unique pour les composants encore migrés par
+     lots. --card-bg-dark reste une surface sombre car ses usages portent du
+     texte/icônes blancs en clair comme en sombre. */
+  --primary-color: var(--blue-500);
+  --primary-color-rgb: 59, 130, 246;
+  --secondary-color: var(--blue-600);
+  --card-bg-dark: var(--gray-800);
+
+  /* Brand (KLASSCI) — couleurs d'identité des loaders de marque.
+     Theme-aware (cf. --blue-* ci-dessus) : la marque s'éclaircit en dark
+     pour rester lisible sur fond sombre (valeurs dark dans le bloc
+     [data-theme="dark"]). À utiliser via var(--brand-*), jamais en dur. */
+  --brand-navy: #1B3B6F;
+  --brand-gold: #FFB81C;
+  --brand-blue: #2D5A9E;
+
+  /* Status Colors */
+  --success-bg: #dcfce7;
+  --success-border: #86efac;
+  --success-text: #166534;
+  --warning-bg: #fef3c7;
+  --warning-border: #fde047;
+  --warning-text: #854d0e;
+  --error-bg: #fee2e2;
+  --error-border: #fca5a5;
+  --error-text: #991b1b;
+  --info-bg: #dbeafe;
+  --info-border: #93c5fd;
+  --info-text: #1e40af;
+
+  /* Cards */
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --card-hover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+  /* Inputs */
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
+  --input-border-focus: #0052cc;
+  --input-text: #0f172a;
+  --input-placeholder: #94a3b8;
+
+  /* Buttons */
+  --btn-primary-bg: linear-gradient(135deg, #0052cc 0%, #0747a6 100%);
+  --btn-primary-text: #ffffff;
+  --btn-primary-hover: linear-gradient(135deg, #0747a6 0%, #0052cc 100%);
+  --btn-secondary-bg: #f1f5f9;
+  --btn-secondary-text: #475569;
+  --btn-secondary-hover: #e2e8f0;
+
+  /* Table */
+  --table-header-bg: #f8fafc;
+  --table-row-hover: #f8fafc;
+  --table-border: #e2e8f0;
+
+  /* Scrollbar */
+  --scrollbar-track: #f1f5f9;
+  --scrollbar-thumb: #cbd5e1;
+  --scrollbar-thumb-hover: #94a3b8;
+}

@@ -4,11 +4,16 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
-const themesCss = readFileSync(new URL('../../src/assets/styles/themes.css', import.meta.url), 'utf8')
+const themesUrl = new URL('../../src/assets/styles/themes.css', import.meta.url)
+const themesCss = readFileSync(themesUrl, 'utf8')
+const expandedThemesCss = themesCss.replace(
+  /^@import ['"](.+)['"];$/gm,
+  (_, specifier) => readFileSync(new URL(specifier, themesUrl), 'utf8').trimEnd(),
+)
 const srcDir = fileURLToPath(new URL('../../src', import.meta.url))
 
 function themeBlock(name) {
-  const match = themesCss.match(new RegExp(`\\[data-theme="${name}"\\] \\{([\\s\\S]*?)\\n\\}`))
+  const match = expandedThemesCss.match(new RegExp(`\\[data-theme="${name}"\\] \\{([\\s\\S]*?)\\n\\}`))
   return match?.[1] || ''
 }
 

@@ -3,7 +3,8 @@
     "color-no-hex": true
   },
   "ignoreFiles": [
-    "src/assets/styles/themes.css"
+    "src/assets/styles/themes.css",
+    "src/assets/styles/theme/*.css"
   ],
   "overrides": [
     { "files": ["**/*.vue"], "customSyntax": "postcss-html" },

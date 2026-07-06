@@ -1,0 +1,108 @@
+/* ========================================
+   DARK MODE (MIDNIGHT PROFESSIONAL)
+   ======================================== */
+[data-theme="dark"] {
+  --theme-mode: 'dark';
+
+  /* Sidebar */
+  --sidebar-bg-start: #0a1929;
+  --sidebar-bg-end: #001e3c;
+  --sidebar-text: #e3f2fd;
+  --sidebar-text-secondary: rgba(227, 242, 253, 0.7);
+  --sidebar-hover: rgba(144, 202, 249, 0.08);
+  --sidebar-active: rgba(144, 202, 249, 0.16);
+  --sidebar-border: rgba(144, 202, 249, 0.12);
+
+  /* Navbar */
+  --navbar-bg: #0f172a;
+  --navbar-text: #e2e8f0;
+  --navbar-border: #1e293b;
+  --navbar-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+
+  /* Background */
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --bg-hover: #1e293b;
+
+  /* Text Colors */
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+  --text-disabled: #64748b;
+
+  /* Border Colors */
+  --border-primary: #334155;
+  --border-secondary: #475569;
+  --border-focus: #3b82f6;
+
+  /* Blue Accent */
+  --blue-50: #001e3c;
+  --blue-100: #0a1929;
+  --blue-200: #0747a6;
+  --blue-300: #0052cc;
+  --blue-400: #3b82f6;
+  --blue-500: #60a5fa;
+  --blue-600: #93c5fd;
+  --blue-700: #bfdbfe;
+  --blue-800: #dbeafe;
+  --blue-900: #eff6ff;
+
+  /* Legacy brand aliases — voir le bloc light pour la justification. */
+  --primary-color: var(--blue-500);
+  --primary-color-rgb: 96, 165, 250;
+  --secondary-color: var(--blue-600);
+  --card-bg-dark: var(--gray-800);
+
+  /* Brand (KLASSCI) — variantes dark, alignées sur l'échelle --blue-* / --amber-*
+     du thème (source unique). Valeurs identiques au rendu dark actuel des
+     loaders : navy→bleu clair, gold→ambre, blue→bleu pâle. */
+  --brand-navy: var(--blue-500);
+  --brand-gold: var(--amber-400);
+  --brand-blue: var(--blue-600);
+
+  /* Status Colors */
+  --success-bg: rgba(34, 197, 94, 0.1);
+  --success-border: rgba(34, 197, 94, 0.3);
+  --success-text: #86efac;
+  --warning-bg: rgba(251, 191, 36, 0.1);
+  --warning-border: rgba(251, 191, 36, 0.3);
+  --warning-text: #fde047;
+  --error-bg: rgba(239, 68, 68, 0.1);
+  --error-border: rgba(239, 68, 68, 0.3);
+  --error-text: #fca5a5;
+  --info-bg: rgba(59, 130, 246, 0.1);
+  --info-border: rgba(59, 130, 246, 0.3);
+  --info-text: #93c5fd;
+
+  /* Cards */
+  --card-bg: #1e293b;
+  --card-border: #334155;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --card-hover-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+
+  /* Inputs */
+  --input-bg: #1e293b;
+  --input-border: #334155;
+  --input-border-focus: #3b82f6;
+  --input-text: #f1f5f9;
+  --input-placeholder: #64748b;
+
+  /* Buttons */
+  --btn-primary-bg: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  --btn-primary-text: #ffffff;
+  --btn-primary-hover: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+  --btn-secondary-bg: #334155;
+  --btn-secondary-text: #cbd5e1;
+  --btn-secondary-hover: #475569;
+
+  /* Table */
+  --table-header-bg: #1e293b;
+  --table-row-hover: #334155;
+  --table-border: #334155;
+
+  /* Scrollbar */
+  --scrollbar-track: #1e293b;
+  --scrollbar-thumb: #475569;
+  --scrollbar-thumb-hover: #64748b;
+}

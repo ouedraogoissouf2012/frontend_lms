@@ -1,0 +1,276 @@
+:root {
+  /* ========================================
+     RAW ACCENT PALETTE (theme-invariant)
+     Tailwind-canonical scales recurring across components/ that the
+     surface-oriented --blue-* scale (defined per-theme below) does not
+     cover. Like the other tokens in :root (spacing, radius, shadows),
+     these accent hues are theme-invariant: a status accent keeps its
+     meaning in light and dark. Theme adaptation is handled by the
+     semantic surface tokens (--success-bg, --error-text, …).
+     Tones already tokenised as a status token are cross-referenced
+     rather than re-declared (no duplicate values).
+     ======================================== */
+
+  /* Emerald — success / positive accent (#10b981 &c.) */
+  --emerald-50: #ecfdf5;
+  --emerald-100: #d1fae5;
+  --emerald-200: #a7f3d0;
+  --emerald-300: #6ee7b7;
+  --emerald-400: #34d399;
+  --emerald-500: #10b981;
+  --emerald-600: #059669;
+  --emerald-700: #047857;
+  --emerald-800: #065f46;
+  --emerald-900: #064e3b;
+
+  /* Red — danger / destructive accent.
+     100 → --error-bg (#fee2e2) · 300 → --error-border (#fca5a5) · 800 → --error-text (#991b1b) */
+  --red-50: #fef2f2;
+  --red-200: #fecaca;
+  --red-400: #f87171;
+  --red-500: #ef4444;
+  --red-600: #dc2626;
+  --red-700: #b91c1c;
+  --red-900: #7f1d1d;
+
+  /* Amber — warning accent.
+     100 → --warning-bg (#fef3c7) */
+  --amber-50: #fffbeb;
+  --amber-200: #fde68a;
+  --amber-300: #fcd34d;
+  --amber-400: #fbbf24;
+  --amber-500: #f59e0b;
+  --amber-600: #d97706;
+  --amber-700: #b45309;
+  --amber-800: #92400e;
+  --amber-900: #78350f;
+
+  /* Yellow (Tailwind « yellow ») — jaune plus vert que l'amber ; sert le dégradé
+     de la variante « yellow » de ProgressBar (#facc15 → #eab308), byte-identical. */
+  --yellow-400: #facc15;
+  --yellow-500: #eab308;
+
+  /* Indigo — secondary accent (#6366f1 &c.) */
+  --indigo-50: #eef2ff;
+  --indigo-100: #e0e7ff;
+  --indigo-200: #c7d2fe;
+  --indigo-300: #a5b4fc;
+  --indigo-400: #818cf8;
+  --indigo-500: #6366f1;
+  --indigo-600: #4f46e5;
+  --indigo-700: #4338ca;
+  --indigo-800: #3730a3;
+  --indigo-900: #312e81;
+
+  /* Violet — secondary accent (#8b5cf6 &c.) */
+  --violet-50: #f5f3ff;
+  --violet-100: #ede9fe;
+  --violet-200: #ddd6fe;
+  --violet-300: #c4b5fd;
+  --violet-400: #a78bfa;
+  --violet-500: #8b5cf6;
+  --violet-600: #7c3aed;
+  --violet-700: #6d28d9;
+  --violet-800: #5b21b6;
+  --violet-900: #4c1d95;
+
+  /* Purple (Tailwind « purple ») — accent distinct du violet, teinte plus
+     magenta. Récurrent dans les badges de type « quiz / évaluation » :
+     fond --purple-100 (#f3e8ff, 8 occ.) + texte --purple-800 (#6b21a8), plus
+     --purple-200/400 et les pleins --purple-500/600 des stats institutions.
+     Échelle Tailwind canonique, theme-invariant comme les autres accents. */
+  --purple-50: #faf5ff;
+  --purple-100: #f3e8ff;
+  --purple-200: #e9d5ff;
+  --purple-300: #d8b4fe;
+  --purple-400: #c084fc;
+  --purple-500: #a855f7;
+  --purple-600: #9333ea;
+  --purple-700: #7e22ce;
+  --purple-800: #6b21a8;
+  --purple-900: #581c87;
+
+  /* Pink/Rose (Tailwind) — badge « projet » des LessonCard (fond pink-100,
+     texte rose-700). Theme-invariant comme les autres accents Tailwind. */
+  --pink-100: #fce7f3;
+  --rose-700: #be123c;
+
+  /* Sky — cyan/info-adjacent accent (#0ea5e9 &c.); recurring sky tones
+     (badges « visio/permissions », dégradés d'en-tête) sans équivalent
+     dans le --blue-* de marque (azure). */
+  --sky-50: #f0f9ff;
+  --sky-100: #e0f2fe;
+  --sky-200: #bae6fd;
+  --sky-300: #7dd3fc;
+  --sky-400: #38bdf8;
+  --sky-500: #0ea5e9;
+  --sky-600: #0284c7;
+  --sky-700: #0369a1;
+  --sky-800: #075985;
+  --sky-900: #0c4a6e;
+
+  /* Cyan (Tailwind « cyan ») — cyan vif du dégradé « gradient » de ProgressBar
+     (#06b6d4), distinct du sky (#0ea5e9) et du --blue-* de marque (azure). */
+  --cyan-500: #06b6d4;
+
+  /* Neutral gray (Tailwind « gray ») — tons gris one-off (fonds de badges
+     d'état « completed », textes secondaires, séparateurs) dont la valeur
+     exacte diffère de l'échelle slate des tokens --text-, --bg-, --border-.
+     Theme-invariant : migration à pixel identique sans toucher au gris
+     adaptatif du thème (une éventuelle bascule vers les tokens sémantiques
+     adaptatifs reste un choix de design ultérieur, pas une simple tokenisation). */
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+
+  /* Pure neutral primitives — noir/blanc absolus, theme-invariant.
+     Pour les cas où une valeur littérale est requise (base d'ombre/overlay,
+     texte/fond pur) et qu'aucun token de surface adaptatif ne convient ;
+     --gray-900 (#111827) n'est PAS noir pur. Pour les surfaces, préférer
+     les tokens adaptatifs --bg-* / --text-* plutôt que --white / --black. */
+  --black: #000000;
+  --white: #ffffff;
+
+  /* Green (Tailwind « green ») — accent vert distinct de l'emerald
+     (#16a34a/#22c55e) : boutons d'action « success » des cartes de séance.
+     --green-50 (#f0fdf4) : fond clair du toast de succès (Toast.vue), aligné
+     sur les fonds -50 fixes des toasts error/warning. Theme-invariant. */
+  --green-50: #f0fdf4;
+  --green-500: #22c55e;
+  --green-600: #16a34a;
+
+  /* Orange (Tailwind « orange ») — accents orangés distincts de l'ambre.
+     400 (#fb923c) : pastille de type « PowerPoint » des chapitres, cohérente
+     avec les autres pastilles de type en --*-400.
+     700 (#c2410c) : textes/badges « text-orange-700 » du détail de séance.
+     Theme-invariant. */
+  --orange-400: #fb923c;
+  --orange-700: #c2410c;
+
+  /* Navy — bleus profonds FIXES de la bannière « lecture seule » des chapitres
+     (valeurs Tailwind blue-800/blue-900). Gardés theme-invariant : la bannière
+     est un bloc cohérent (cf. --blue-*-fixed) dont le rendu ne doit pas changer
+     en sombre (texte foncé sur fond clair conservé). */
+  --navy-800: #1e40af;
+  --navy-900: #1e3a8a;
+
+  /* Bleus de marque FIXES — variantes theme-invariant du --blue-* adaptatif,
+     pour les contextes à sémantique de couleur constante : boutons primaires,
+     badges d'état, bannière « lecture seule ». (Convention « *-fixed »,
+     CONTRIBUTING §4.) */
+  --blue-100-fixed: #dbeafe;
+  --blue-500-fixed: #3b82f6;
+  /* Bleu de marque du logo KLASSCI (SidebarHeader) ; override dark dédié
+     dans le composant lui-même. */
+  --brand-blue-600: #1e6fd9;
+
+  /* Correction (rouge « stylo prof ») — palette FIXE de l'encart d'erreur des
+     séances enseignant : fond #fee, bordure #fcc, titre #c00, message #900.
+     Theme-invariant (alerte à sémantique constante). */
+  --correction-red-100: #ffeeee;
+  --correction-red-200: #ffcccc;
+  --correction-red-600: #cc0000;
+  --correction-red-700: #990000;
+
+  /* Or de marque foncé (#a16207) — message d'échec des résultats de quiz,
+     voisin des --amber-800/--emerald déjà theme-invariant. */
+  --brand-gold-700: #a16207;
+
+  /* Lot 3 (#136) — badges de note/statut & marque admin.
+     Puces FIXES (theme-invariant) des badges de correction (_correction-badges.scss) :
+     gèlent la valeur CLAIRE des tokens de statut adaptatifs (--success-bg/-text,
+     --warning-bg, --error-bg/-text) pour garder une parité byte-identique clair ET
+     sombre (fond clair + texte foncé, lisible dans les deux modes ; le texte ambre
+     voisin #92400e/--amber-800 est lui-même fixe). Noms Tailwind ; suffixe « -fixed »
+     là où le slot --blue-* est déjà theme-varying (cf. --blue-100/500-fixed). */
+  --green-100: #dcfce7;      /* .note-excellent/.status-corrected — fond (= --success-bg clair) */
+  --green-800: #166534;      /* .note-excellent/.status-corrected — texte (= --success-text clair) */
+  --amber-100: #fef3c7;      /* .note-average/.status-ongoing — fond (= --warning-bg clair) */
+  --red-100: #fee2e2;        /* .note-low — fond (= --error-bg clair) */
+  --red-800: #991b1b;        /* .note-low — texte (= --error-text clair) */
+  --blue-800-fixed: #1e40af; /* .note-good/.status-submitted — texte (pair de --blue-100-fixed) */
+
+  /* Vert « pelouse » (Tailwind green-700) — texte du badge « actif » des cartes
+     enseignant (TeacherClassCard .active-badge). Theme-invariant. */
+  --green-700: #15803d;
+
+  /* Admin — dégradé de marque de la carte d'info des statistiques (indigo → violet).
+     Valeurs fixes de marque : theme-invariant (identité visuelle constante). */
+  --admin-gradient-from: #667eea;
+  --admin-gradient-to: #764ba2;
+
+  /* Cyan — accent « évaluation » du calendrier (mode sombre). Theme-invariant.
+     Le triplet -rgb alimente les rgba() Sass — rgba(var(--cyan-500-rgb), a) —
+     car color-mix() n'est pas garanti sur la cible de build (Safari 14+). */
+  --cyan-500-rgb: 6, 182, 212;
+
+  /* Navy profond FIXE — en-tête du calendrier FullCalendar en mode sombre.
+     Theme-invariant : ces valeurs SONT l'apparence sombre voulue. --blue-900-fixed
+     est le pendant fixe de --blue-900 (cf. convention --blue-*-fixed) ; --navy-950
+     est un navy plus profond (famille --navy-* des bleus profonds fixes). */
+  --blue-900-fixed: #0a1929;
+  --navy-950: #001e3c;
+
+  /* Accents theme-invariant additionnels (#136, lot 10). Contextes chrome
+     SANS surcharge [data-theme] (rendu identique clair/sombre aujourd'hui) :
+     - brand-blue-300/400 : dégradé d'en-tête bleu vif des tables admin (marque).
+     - border-neutral : piste OFF des toggles (gris neutre).
+     - md-red-500 : rouge Material des icônes d'erreur (hors échelle --red-*). */
+  --brand-blue-300: #5a9df2;
+  --brand-blue-400: #4a90e2;
+  --border-neutral: #cccccc;
+  --md-red-500: #f44336;
+
+  /* Material Design palette (lot 6, #136) — accents « note/barème » des cartes
+     de résumé élève (GradesSummary). Échelle Material 500, theme-invariant
+     (--md-red-500 déjà déclaré plus haut pour les icônes d'erreur). */
+  --md-green-500: #4caf50;
+  --md-light-green-500: #8bc34a;
+  --md-deep-orange-500: #ff5722;
+  --md-orange-500: #ff9800;
+  --md-teal-500: #009688;
+  --md-blue-500: #2196f3;
+  --md-deep-purple-500: #673ab7;
+  --md-purple-500: #9c27b0;
+
+  /* Orange 200 (Tailwind, lot 2) — fond de puce d'alerte de presence
+     (AttendanceModalTable). Theme-invariant. */
+  --orange-200: #fed7aa;
+
+  /* Slate (Tailwind « slate », lot 6) — surfaces sombres fixes : fond de carte
+     propre au mode sombre (ForumTopic .bg-gray-750/.bg-gray-50) et fond de
+     scène visio Jitsi. Theme-invariant. */
+  --slate-800: #2d3748;
+  --slate-900: #1a202c;
+
+  /* Rouge fixe (lot 6) — bordure de l'alerte .error-state de
+     SeanceAttendanceHistory (voisins codés en dur sans variante sombre ⇒ fixe,
+     pas --error-border adaptatif). Complète l'échelle avec --red-800 (déjà là). */
+  --red-300: #fca5a5;
+
+  /* Triplet RGB de --blue-500-fixed (#3b82f6), pour rgba(var(--blue-500-rgb), a)
+     dans le SCSS de CalendarNavigation (mode sombre) — même convention que
+     --cyan-500-rgb (color-mix non garanti sur la cible Safari 14+). */
+  --blue-500-rgb: 59, 130, 246;
+  /* Triplet RGB de --navy-900 (#1e3a8a), pour rgba(var(--navy-900-rgb), a) dans
+     le SCSS de CalendarViewSelector (ombre de l'onglet actif, lot 2). */
+  --navy-900-rgb: 30, 58, 138;
+  /* Triplet RGB de --white (#ffffff), pour rgba(var(--white-rgb), a) dans le
+     SCSS mode sombre du calendrier (bloc A, #136). */
+  --white-rgb: 255, 255, 255;
+  /* Triplet RGB de --color-info-strong (#2563eb), pour
+     rgba(var(--color-info-strong-rgb), a) dans le SCSS mode sombre du
+     calendrier (bloc A, #136). */
+  --color-info-strong-rgb: 37, 99, 235;
+  /* Triplet RGB de --red-500 (#ef4444), pour rgba(var(--red-500-rgb), a) dans
+     le SCSS mode sombre du calendrier (bloc A, #136). */
+  --red-500-rgb: 239, 68, 68;
+
+}

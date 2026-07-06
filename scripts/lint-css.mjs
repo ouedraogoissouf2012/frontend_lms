@@ -8,10 +8,11 @@
  *     are frozen and do NOT fail the build;
  *   - ANY new hardcoded hex color fails the build (exit 1).
  *
- * The rule is never disabled and no source file is blanket-ignored, so the
- * guard stays effective everywhere. The only legitimate exception baked in is
- * the token fallback `var(--token, #hex)`, which is filtered out here so new
- * fallbacks are allowed too (matching the documented convention).
+ * The rule is never disabled. The only blanket-ignored CSS files are the theme
+ * token barrel/partials, which are the central source of color values. The
+ * other legitimate exception baked in is the token fallback `var(--token, #hex)`,
+ * which is filtered out here so new fallbacks are allowed too (matching the
+ * documented convention).
  *
  * Usage:
  *   node scripts/lint-css.mjs            # check; exit 1 on any new violation
