@@ -27,6 +27,43 @@
       </p>
     </div>
 
+    <div
+      v-if="recordingStatus"
+      class="mb-4 p-4 rounded-lg border"
+      :class="recordingStatus.containerClass"
+      role="status"
+      aria-live="polite"
+      data-test="recording-status"
+    >
+      <div
+        class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold"
+        :class="recordingStatus.badgeClass"
+      >
+        <i :class="recordingStatus.iconClass"></i>
+        {{ recordingStatus.label }}
+      </div>
+      <p class="mt-2 text-sm">
+        {{ recordingStatus.description }}
+      </p>
+      <p v-if="recording.isFailed && recording.errorMessage" class="mt-1 text-sm font-medium">
+        {{ recording.errorMessage }}
+      </p>
+    </div>
+
+    <div
+      v-if="recording.isRecording"
+      class="mb-4 p-4 rounded-lg border border-yellow-300 bg-yellow-50 text-yellow-900"
+      data-test="recording-consent"
+    >
+      <p class="font-semibold flex items-center gap-2">
+        <i class="fa fa-info-circle"></i>
+        Cette séance est enregistrée
+      </p>
+      <p class="mt-1 text-sm">
+        La vidéo pourra être rattachée au cours et consultée par les participants autorisés.
+      </p>
+    </div>
+
     <!-- Bouton Enseignant / Coordinateur -->
     <div v-if="isTeacher">
       <!-- Si le cours est déjà actif, permettre de rejoindre (pour coordinateur aussi) -->
@@ -121,7 +158,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { normalizeVisioRecording } from '@/utils/visioRecording'
+import { normalizeVisioRecording, recordingStatusPresentation } from '@/utils/visioRecording'
 
 /**
  * Section visioconférence de SeanceDetails (#H6 ≤300) : fenêtre temporelle,
@@ -141,6 +178,7 @@ const props = defineProps({
 defineEmits(['start', 'join'])
 
 const recording = computed(() => normalizeVisioRecording(props.visio))
+const recordingStatus = computed(() => recordingStatusPresentation(recording.value))
 </script>
 
 <style scoped lang="scss">

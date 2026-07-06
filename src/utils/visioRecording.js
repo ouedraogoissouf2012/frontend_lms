@@ -15,6 +15,44 @@ const PENDING_STATUSES = new Set([
   RECORDING_STATUSES.PROCESSING,
 ])
 
+const STATUS_PRESENTATION = Object.freeze({
+  [RECORDING_STATUSES.RECORDING]: {
+    label: 'Enregistrement en cours',
+    description: 'La séance est actuellement enregistrée.',
+    iconClass: 'fa fa-circle',
+    containerClass: 'bg-red-50 border-red-300 text-red-800',
+    badgeClass: 'bg-red-100 text-red-700',
+  },
+  [RECORDING_STATUSES.UPLOADING]: {
+    label: "Envoi de l'enregistrement",
+    description: 'La vidéo est en cours de transmission.',
+    iconClass: 'fa fa-upload',
+    containerClass: 'bg-blue-50 border-blue-300 text-blue-800',
+    badgeClass: 'bg-blue-100 text-blue-700',
+  },
+  [RECORDING_STATUSES.PROCESSING]: {
+    label: "Traitement de l'enregistrement",
+    description: 'La vidéo est en préparation avant publication.',
+    iconClass: 'fa fa-cog',
+    containerClass: 'bg-blue-50 border-blue-300 text-blue-800',
+    badgeClass: 'bg-blue-100 text-blue-700',
+  },
+  [RECORDING_STATUSES.READY]: {
+    label: 'Enregistrement disponible',
+    description: 'La vidéo de la séance est prête.',
+    iconClass: 'fa fa-play-circle',
+    containerClass: 'bg-green-50 border-green-300 text-green-800',
+    badgeClass: 'bg-green-100 text-green-700',
+  },
+  [RECORDING_STATUSES.FAILED]: {
+    label: "Échec de l'enregistrement",
+    description: "L'enregistrement n'a pas pu être finalisé.",
+    iconClass: 'fa fa-exclamation-triangle',
+    containerClass: 'bg-red-50 border-red-300 text-red-800',
+    badgeClass: 'bg-red-100 text-red-700',
+  },
+})
+
 function stringOrNull(value) {
   if (typeof value !== 'string') return null
   const trimmed = value.trim()
@@ -68,4 +106,9 @@ export function normalizeVisioRecording(visio) {
       visio?.recording_error
     ),
   }
+}
+
+export function recordingStatusPresentation(recording) {
+  const status = typeof recording === 'string' ? recording : recording?.status
+  return STATUS_PRESENTATION[status] ?? null
 }

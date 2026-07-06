@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   normalizeRecordingStatus,
   normalizeVisioRecording,
+  recordingStatusPresentation,
   RECORDING_STATUSES,
 } from '@/utils/visioRecording'
 
@@ -63,5 +64,19 @@ describe('utils/visioRecording — normalizeVisioRecording', () => {
     expect(recording.href).toBe('#')
     expect(recording.hasUrl).toBe(false)
     expect(recording.canOpen).toBe(false)
+  })
+})
+
+describe('utils/visioRecording — recordingStatusPresentation', () => {
+  it('retourne null pour idle ou statut absent', () => {
+    expect(recordingStatusPresentation(RECORDING_STATUSES.IDLE)).toBeNull()
+    expect(recordingStatusPresentation(null)).toBeNull()
+  })
+
+  it('retourne les libellés des statuts visibles', () => {
+    expect(recordingStatusPresentation(RECORDING_STATUSES.RECORDING).label).toBe('Enregistrement en cours')
+    expect(recordingStatusPresentation({ status: RECORDING_STATUSES.PROCESSING }).label).toBe("Traitement de l'enregistrement")
+    expect(recordingStatusPresentation(RECORDING_STATUSES.READY).label).toBe('Enregistrement disponible')
+    expect(recordingStatusPresentation(RECORDING_STATUSES.FAILED).label).toBe("Échec de l'enregistrement")
   })
 })

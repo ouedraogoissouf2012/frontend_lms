@@ -62,6 +62,68 @@ describe('SeanceDetailsVisio (#H6)', () => {
     expect(w.emitted('join')).toBeTruthy()
   })
 
+  it('recording en cours : affiche statut et bannière de consentement sans contrôles recording', () => {
+    const visio = {
+      enabled: true,
+      status: 'active',
+      recording: { status: 'recording' },
+      window: { has_started: true, is_in_window: true }
+    }
+    const w = mount(SeanceDetailsVisio, {
+      props: { visio, seance, isTeacher: false, isStudent: true }
+    })
+
+    expect(w.find('[data-test="recording-status"]').text()).toContain('Enregistrement en cours')
+    expect(w.find('[data-test="recording-consent"]').text()).toContain('Cette séance est enregistrée')
+    expect(w.text()).not.toContain("Démarrer l'enregistrement")
+    expect(w.text()).not.toContain("Arrêter l'enregistrement")
+  })
+
+  it('recording en traitement : affiche le statut sans bannière consentement', () => {
+    const visio = {
+      enabled: true,
+      status: 'active',
+      recording: { status: 'processing' },
+      window: { has_started: true, is_in_window: true }
+    }
+    const w = mount(SeanceDetailsVisio, {
+      props: { visio, seance, isTeacher: true, isStudent: false }
+    })
+
+    expect(w.find('[data-test="recording-status"]').text()).toContain("Traitement de l'enregistrement")
+    expect(w.find('[data-test="recording-consent"]').exists()).toBe(false)
+  })
+
+  it('recording prêt : affiche le statut disponible', () => {
+    const visio = {
+      enabled: true,
+      status: 'terminee',
+      recording: { status: 'ready', url: 'https://cdn.example.test/seance.mp4' },
+      window: { has_started: true, has_ended: true }
+    }
+    const w = mount(SeanceDetailsVisio, {
+      props: { visio, seance, isTeacher: false, isStudent: true }
+    })
+
+    expect(w.find('[data-test="recording-status"]').text()).toContain('Enregistrement disponible')
+  })
+
+  it('recording échoué : affiche le statut et le message backend', () => {
+    const visio = {
+      enabled: true,
+      status: 'terminee',
+      recording: { status: 'failed', error_message: 'Stockage indisponible' },
+      window: { has_started: true, has_ended: true }
+    }
+    const w = mount(SeanceDetailsVisio, {
+      props: { visio, seance, isTeacher: false, isStudent: true }
+    })
+
+    const status = w.find('[data-test="recording-status"]').text()
+    expect(status).toContain("Échec de l'enregistrement")
+    expect(status).toContain('Stockage indisponible')
+  })
+
   it('cours terminé : affiche recording_url legacy comme lien sécurisé', () => {
     const visio = {
       enabled: true,
