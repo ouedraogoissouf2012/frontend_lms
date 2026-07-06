@@ -60,6 +60,7 @@ Réf : [Vue Router — Lazy Loading](https://router.vuejs.org/guide/advanced/laz
 npm run test          # tests unitaires (Vitest)
 npm run test:contract # contrat API (chemins backend figés)
 npm run lint:css      # garde anti-régression couleurs en dur (#161)
+npm run lint:size     # garde anti-régression fichiers > 300 lignes (#195)
 npm run build         # build prod (vérifie le code splitting)
 ```
 
@@ -69,8 +70,9 @@ npm run build         # build prod (vérifie le code splitting)
 
 ## 4. Couleurs : tokens uniquement, jamais en dur (#161)
 
-**Toute couleur DOIT passer par un token CSS** défini dans
-`src/assets/styles/themes.css`. Une couleur hex en dur (`color: #1e6fd9`) est
+**Toute couleur DOIT passer par un token CSS** défini via le barrel
+`src/assets/styles/themes.css` et ses partials `src/assets/styles/theme/*.css`.
+Une couleur hex en dur (`color: #1e6fd9`) est
 **interdite** : elle casse le theming clair/sombre et la cohérence de marque.
 
 ```css
@@ -93,9 +95,25 @@ introduite. Mécanisme :
 - **`$scss-var: #hex` n'est PAS exempté** : ce sont des couleurs en dur comme les
   autres (le système de tokens repose sur les custom properties CSS, pas sur les
   variables SCSS). Préférer un token CSS.
-- **Source des tokens** : `themes.css` est exclu (`ignoreFiles`) — c'est là que
-  les couleurs hex *doivent* vivre.
+- **Source des tokens** : `themes.css` et `src/assets/styles/theme/*.css` sont
+  exclus (`ignoreFiles`) — c'est là que les couleurs hex *doivent* vivre.
 
 **Si une couleur n'a vraiment aucun token** (cas rare, gap #136) : justifie-le en
 PR puis exécute `npm run lint:css:baseline` pour l'inscrire explicitement dans la
 baseline. Ne jamais désactiver la règle globalement ni ignorer un fichier entier.
+
+## 5. Taille des fichiers : 300 lignes maximum (#195)
+
+Les fichiers source sous `src/**` (`.vue`, `.js`, `.ts`, `.scss`, `.css`) doivent
+rester à **300 lignes maximum**. Le but est d'éviter le retour des god-files et
+de forcer les découpages par composant, composable, helper ou partial CSS.
+
+**Garde automatique** — `npm run lint:size` échoue si :
+
+- un fichier source non listé dans `.file-size-baseline.json` dépasse 300 lignes ;
+- un fichier legacy déjà listé dans la baseline grossit encore.
+
+La baseline est un ratchet : réduire ou supprimer un fichier legacy est accepté,
+mais la CI ne l'élargit jamais automatiquement. Pour une exception temporaire et
+justifiée en PR, exécuter `npm run lint:size:baseline` puis expliquer pourquoi le
+découpage ne peut pas être fait dans la même tâche.

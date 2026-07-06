@@ -11,7 +11,9 @@
     "test:coverage": "vitest run --coverage",
     "test:contract": "node tests/contract/run-contract.mjs",
     "lint:css": "node scripts/lint-css.mjs",
-    "lint:css:baseline": "node scripts/lint-css.mjs --update"
+    "lint:css:baseline": "node scripts/lint-css.mjs --update",
+    "lint:size": "node scripts/check-file-size.mjs",
+    "lint:size:baseline": "node scripts/check-file-size.mjs --update"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.19",
