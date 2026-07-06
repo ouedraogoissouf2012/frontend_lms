@@ -94,10 +94,11 @@
         <div class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg">
           <i class="fa fa-check finished-icon"></i> Cours terminé
         </div>
-        <p v-if="visio.recording_url" class="mt-4">
+        <p v-if="recording.canOpen" class="mt-4">
           <a
-            :href="visio.recording_url"
+            :href="recording.href"
             target="_blank"
+            rel="noopener noreferrer"
             class="text-blue-600 hover:underline"
           >
             <i class="fa fa-play recording-icon"></i> Voir l'enregistrement
@@ -119,13 +120,16 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { normalizeVisioRecording } from '@/utils/visioRecording'
+
 /**
  * Section visioconférence de SeanceDetails (#H6 ≤300) : fenêtre temporelle,
  * commandes enseignant/coordinateur (démarrer/rejoindre), parcours étudiant
  * (en direct / attente / terminé) et infos room. Présentation pure extraite
  * VERBATIM ; émet `start` et `join`, la logique reste dans la vue parente.
  */
-defineProps({
+const props = defineProps({
   visio: { type: Object, required: true },
   seance: { type: Object, required: true },
   isTeacher: { type: Boolean, default: false },
@@ -135,6 +139,8 @@ defineProps({
 })
 
 defineEmits(['start', 'join'])
+
+const recording = computed(() => normalizeVisioRecording(props.visio))
 </script>
 
 <style scoped lang="scss">

@@ -61,4 +61,51 @@ describe('SeanceDetailsVisio (#H6)', () => {
     await w.find('button').trigger('click')
     expect(w.emitted('join')).toBeTruthy()
   })
+
+  it('cours terminé : affiche recording_url legacy comme lien sécurisé', () => {
+    const visio = {
+      enabled: true,
+      status: 'terminee',
+      recording_url: 'https://cdn.example.test/seance.mp4',
+      window: { has_started: true, has_ended: true }
+    }
+    const w = mount(SeanceDetailsVisio, {
+      props: { visio, seance, isTeacher: false, isStudent: true }
+    })
+
+    const link = w.find('a')
+    expect(link.exists()).toBe(true)
+    expect(link.text()).toContain("Voir l'enregistrement")
+    expect(link.attributes('href')).toBe('https://cdn.example.test/seance.mp4')
+    expect(link.attributes('rel')).toBe('noopener noreferrer')
+  })
+
+  it('cours terminé : affiche le futur objet recording prêt', () => {
+    const visio = {
+      enabled: true,
+      status: 'terminee',
+      recording: { status: 'ready', url: 'https://cdn.example.test/future.mp4' },
+      window: { has_started: true, has_ended: true }
+    }
+    const w = mount(SeanceDetailsVisio, {
+      props: { visio, seance, isTeacher: false, isStudent: true }
+    })
+
+    expect(w.find('a').attributes('href')).toBe('https://cdn.example.test/future.mp4')
+  })
+
+  it('cours terminé : ne rend pas un lien recording_url dangereux', () => {
+    const visio = {
+      enabled: true,
+      status: 'terminee',
+      recording_url: 'javascript:alert(1)',
+      window: { has_started: true, has_ended: true }
+    }
+    const w = mount(SeanceDetailsVisio, {
+      props: { visio, seance, isTeacher: false, isStudent: true }
+    })
+
+    expect(w.find('a').exists()).toBe(false)
+    expect(w.text()).not.toContain("Voir l'enregistrement")
+  })
 })
