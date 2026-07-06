@@ -1,0 +1,62 @@
+/* ========================================
+   CARDS - Mobile Responsive
+   ======================================== */
+
+@media (max-width: 768px) {
+  .card,
+  .stat-card,
+  .evaluation-card,
+  .seance-card,
+  .classe-card {
+    margin-bottom: 1rem !important;
+  }
+
+  /* Reduce card padding */
+  .card,
+  .stat-card,
+  .evaluation-card {
+    padding: 1rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .card,
+  .stat-card,
+  .evaluation-card,
+  .seance-card,
+  .classe-card {
+    margin-bottom: 0.75rem !important;
+    padding: 0.75rem !important;
+  }
+}
+
+/* ========================================
+   BUTTONS - Touch Friendly (min 44x44px)
+   ======================================== */
+
+@media (max-width: 768px) {
+  button,
+  .btn,
+  .btn-action,
+  .action-btn,
+  a.button {
+    min-height: 44px !important;
+    min-width: 44px !important;
+    font-size: 0.875rem !important;
+  }
+
+  /* Button groups stack vertically */
+  .btn-group,
+  .action-buttons,
+  .eval-actions {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+
+  .btn-group > *,
+  .action-buttons > *,
+  .eval-actions > * {
+    width: 100% !important;
+    margin: 0.25rem 0 !important;
+  }
+}

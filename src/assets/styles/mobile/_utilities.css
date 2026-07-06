@@ -1,0 +1,97 @@
+/* ========================================
+   SCROLLBAR - Hide on Mobile
+   ======================================== */
+
+@media (max-width: 768px) {
+  /* Hide scrollbar for cleaner mobile look */
+  *::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
+  }
+
+  * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+}
+
+/* ========================================
+   PREVENT TEXT SELECTION ON BUTTONS
+   ======================================== */
+
+@media (max-width: 768px) {
+  button,
+  .btn,
+  a {
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+  }
+}
+
+/* ========================================
+   SAFE AREA INSETS - iOS Notch Support
+   ======================================== */
+
+@supports (padding-top: env(safe-area-inset-top)) {
+  .mobile-header {
+    padding-top: max(1rem, env(safe-area-inset-top)) !important;
+    height: calc(56px + env(safe-area-inset-top)) !important;
+  }
+
+  .bottom-nav {
+    padding-bottom: max(0, env(safe-area-inset-bottom)) !important;
+    height: calc(56px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .main-container.mobile-layout {
+    padding-top: calc(56px + env(safe-area-inset-top)) !important;
+    padding-bottom: calc(56px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* ========================================
+   PERFORMANCE - Hardware Acceleration
+   ======================================== */
+
+@media (max-width: 768px) {
+  .mobile-sidebar,
+  .bottom-nav,
+  .mobile-header,
+  .sidebar-overlay {
+    transform: translateZ(0) !important;
+    will-change: transform !important;
+  }
+}
+
+/* ========================================
+   UTILITY CLASSES - Mobile Helpers
+   ======================================== */
+
+/* Hide on mobile */
+.hide-mobile {
+  display: none !important;
+}
+
+/* Show only on mobile */
+@media (min-width: 769px) {
+  .show-mobile {
+    display: none !important;
+  }
+}
+
+/* Full width on mobile */
+@media (max-width: 768px) {
+  .mobile-full-width {
+    width: 100% !important;
+  }
+}
+
+/* Stack on mobile */
+@media (max-width: 768px) {
+  .mobile-stack {
+    flex-direction: column !important;
+  }
+}

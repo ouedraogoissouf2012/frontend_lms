@@ -1,0 +1,74 @@
+/* ========================================
+   TYPOGRAPHY - Mobile Scaling
+   ======================================== */
+
+@media (max-width: 768px) {
+  .page-title,
+  h1 {
+    font-size: 1.5rem !important;
+  }
+
+  .page-subtitle,
+  h2 {
+    font-size: 1.125rem !important;
+  }
+
+  h3 {
+    font-size: 1rem !important;
+  }
+
+  .stat-value {
+    font-size: 1.75rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title,
+  h1 {
+    font-size: 1.25rem !important;
+  }
+
+  .page-subtitle,
+  h2 {
+    font-size: 1rem !important;
+  }
+
+  h3 {
+    font-size: 0.9375rem !important;
+  }
+
+  .stat-value {
+    font-size: 1.5rem !important;
+  }
+}
+
+/* ========================================
+   SPACING - Mobile Reduction
+   ======================================== */
+
+@media (max-width: 768px) {
+  .page-header {
+    margin-bottom: 1rem !important;
+  }
+
+  .section {
+    margin-bottom: 1.5rem !important;
+  }
+
+  /* Reduce margin/padding */
+  .container,
+  .dashboard-container,
+  .evaluations-container {
+    padding: 0 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header {
+    margin-bottom: 0.75rem !important;
+  }
+
+  .section {
+    margin-bottom: 1rem !important;
+  }
+}

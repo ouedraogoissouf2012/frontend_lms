@@ -1,0 +1,50 @@
+/* ========================================
+   GRID LAYOUTS - Mobile Responsive
+   ======================================== */
+
+/* Stats Grid - 4 columns → 2 columns → 1 column */
+@media (max-width: 768px) {
+  .stats-grid,
+  .stat-grid,
+  .statistics-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid,
+  .stat-grid,
+  .statistics-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+}
+
+/* Info Grid - Multiple columns → 1 column */
+@media (max-width: 768px) {
+  .info-grid,
+  .eval-info-grid,
+  .details-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .info-grid,
+  .eval-info-grid,
+  .details-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+}
+
+/* Filters Grid - Auto-fit → 1 column */
+@media (max-width: 768px) {
+  .filters-grid,
+  .filter-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+}

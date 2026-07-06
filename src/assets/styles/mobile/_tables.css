@@ -1,0 +1,29 @@
+/* ========================================
+   TABLES - Mobile Responsive
+   ======================================== */
+
+@media (max-width: 768px) {
+  .table-container {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  table {
+    min-width: 600px !important;
+  }
+
+  /* Reduce table padding */
+  table th,
+  table td {
+    padding: 0.5rem !important;
+    font-size: 0.8125rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  table th,
+  table td {
+    padding: 0.375rem !important;
+    font-size: 0.75rem !important;
+  }
+}
