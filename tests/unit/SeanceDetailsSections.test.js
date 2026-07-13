@@ -70,7 +70,7 @@ describe('SeanceDetailsVisio (#H6)', () => {
       window: { has_started: true, is_in_window: true }
     }
     const w = mount(SeanceDetailsVisio, {
-      props: { visio, seance, isTeacher: false, isStudent: true }
+      props: { visio, seance, isTeacher: false, isStudent: true, recordingProviderEnabled: true }
     })
 
     expect(w.find('[data-test="recording-status"]').text()).toContain('Enregistrement en cours')
@@ -82,7 +82,13 @@ describe('SeanceDetailsVisio (#H6)', () => {
   it('enseignant autorisé + cours actif : affiche le bouton start recording', async () => {
     const visio = { enabled: true, status: 'active', window: {} }
     const w = mount(SeanceDetailsVisio, {
-      props: { visio, seance, isTeacher: true, canManageRecording: true }
+      props: {
+        visio,
+        seance,
+        isTeacher: true,
+        canManageRecording: true,
+        recordingProviderEnabled: true
+      }
     })
 
     const button = w.find('[data-test="recording-start"]')
@@ -100,7 +106,13 @@ describe('SeanceDetailsVisio (#H6)', () => {
       window: {}
     }
     const w = mount(SeanceDetailsVisio, {
-      props: { visio, seance, isTeacher: true, canManageRecording: true }
+      props: {
+        visio,
+        seance,
+        isTeacher: true,
+        canManageRecording: true,
+        recordingProviderEnabled: true
+      }
     })
 
     const button = w.find('[data-test="recording-stop"]')
@@ -119,6 +131,51 @@ describe('SeanceDetailsVisio (#H6)', () => {
     expect(w.find('[data-test="recording-controls"]').exists()).toBe(false)
   })
 
+  it('provider recording désactivé : affiche un message et masque start/stop', () => {
+    const visio = { enabled: true, status: 'active', window: {} }
+    const w = mount(SeanceDetailsVisio, {
+      props: {
+        visio,
+        seance,
+        isTeacher: true,
+        canManageRecording: true,
+        recordingProviderEnabled: false
+      }
+    })
+
+    expect(w.find('[data-test="recording-controls"]').exists()).toBe(true)
+    expect(w.find('[data-test="recording-controls-unavailable"]').text()).toContain(
+      "L'enregistrement n'est pas activé"
+    )
+    expect(w.find('[data-test="recording-start"]').exists()).toBe(false)
+    expect(w.find('[data-test="recording-stop"]').exists()).toBe(false)
+  })
+
+  it("provider désactivé + statut recording : n'annonce pas un enregistrement en cours", () => {
+    const visio = {
+      enabled: true,
+      status: 'active',
+      recording: { status: 'recording' },
+      window: {}
+    }
+    const w = mount(SeanceDetailsVisio, {
+      props: {
+        visio,
+        seance,
+        isTeacher: false,
+        isStudent: true,
+        recordingProviderEnabled: false
+      }
+    })
+
+    expect(w.find('[data-test="recording-provider-unavailable"]').text()).toContain(
+      'Enregistrement indisponible'
+    )
+    expect(w.find('[data-test="recording-status"]').exists()).toBe(false)
+    expect(w.find('[data-test="recording-consent"]').exists()).toBe(false)
+    expect(w.text()).not.toContain('Enregistrement en cours')
+  })
+
   it('désactive les contrôles pendant une action recording', () => {
     const visio = { enabled: true, status: 'active', window: {} }
     const w = mount(SeanceDetailsVisio, {
@@ -127,6 +184,7 @@ describe('SeanceDetailsVisio (#H6)', () => {
         seance,
         isTeacher: true,
         canManageRecording: true,
+        recordingProviderEnabled: true,
         recordingActionLoading: true
       }
     })

@@ -5,6 +5,7 @@ import { auth } from '@/services/api'
 import { toast } from '@/services/toast'
 import { normalizeError } from '@/services/errorHandler'
 import { isTeacher as roleIsTeacher } from '@/constants/roles'
+import { isVisioRecordingProviderEnabled } from '@/constants/visio'
 import { useTrackedVisioJoin } from '@/composables/useTrackedVisioJoin'
 import { useVisioRecordingControls } from '@/composables/useVisioRecordingControls'
 import {
@@ -55,13 +56,19 @@ export function useSeanceDetails() {
   )
 
   const canManageRecording = computed(() => roleIsTeacher(user.value))
+  const recordingProviderEnabled = computed(() => isVisioRecordingProviderEnabled(visio.value))
 
   const {
     recordingActionLoading,
     recordingPolling,
     startRecording,
     stopRecording,
-  } = useVisioRecordingControls({ seanceId, visio, canManageRecording })
+  } = useVisioRecordingControls({
+    seanceId,
+    visio,
+    canManageRecording,
+    recordingProviderEnabled,
+  })
 
   async function loadSeanceDetails() {
     loading.value = true
@@ -280,7 +287,7 @@ export function useSeanceDetails() {
   return {
     loading, error, seance, visio, participants, roomActive, joiningVisio,
     recordingActionLoading, recordingPolling,
-    seanceId, user, isTeacher, isStudent, canManageRecording,
+    seanceId, user, isTeacher, isStudent, canManageRecording, recordingProviderEnabled,
     loadSeanceDetails, startVisio, joinVisio, watchVisioWindow, leaveVisio,
     startRecording, stopRecording, hideSeance, formatDate, formatTime
   }

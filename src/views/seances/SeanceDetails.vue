@@ -33,6 +33,7 @@
         :is-teacher="isTeacher"
         :is-student="isStudent"
         :can-manage-recording="canManageRecording"
+        :recording-provider-enabled="recordingProviderEnabled"
         :room-active="roomActive"
         :joining-visio="joiningVisio"
         :recording-action-loading="recordingActionLoading"
@@ -109,7 +110,7 @@ import { useSeanceDetails } from '@/composables/useSeanceDetails'
 const {
   loading, error, seance, visio, participants, roomActive, joiningVisio,
   recordingActionLoading, recordingPolling,
-  isTeacher, isStudent, canManageRecording,
+  isTeacher, isStudent, canManageRecording, recordingProviderEnabled,
   loadSeanceDetails, startVisio, joinVisio, startRecording, stopRecording, hideSeance,
 } = useSeanceDetails()
 </script>

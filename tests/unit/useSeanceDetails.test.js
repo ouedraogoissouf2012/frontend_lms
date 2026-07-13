@@ -111,6 +111,7 @@ describe('useSeanceDetails (#H6)', () => {
     getSeanceDetails.mockResolvedValue({ success: false, data: {} })
     const u = await setup()
     expect(u.canManageRecording.value).toBe(true)
+    expect(u.recordingProviderEnabled.value).toBe(false)
   })
 
   it('rôle étudiant accentué reconnu, participants par défaut', async () => {
@@ -214,6 +215,7 @@ describe('useSeanceDetails (#H6)', () => {
   })
 
   it('startRecording : refuse si la séance visio n’est pas active', async () => {
+    vi.stubEnv('VITE_VISIO_RECORDING_ENABLED', 'true')
     currentUser = { role: 'enseignant', name: 'Prof X' }
     getSeanceDetails.mockResolvedValue({
       success: true,
@@ -230,7 +232,48 @@ describe('useSeanceDetails (#H6)', () => {
     )
   })
 
+  it('startRecording : refuse si aucun provider recording n’est activé', async () => {
+    currentUser = { role: 'enseignant', name: 'Prof X' }
+    getSeanceDetails.mockResolvedValue({
+      success: true,
+      data: { seance: { id: 42 }, visio: { enabled: true, status: 'active' } }
+    })
+
+    const u = await setup()
+    await u.startRecording()
+
+    expect(startVisioRecording).not.toHaveBeenCalled()
+    expect(confirmDialog).not.toHaveBeenCalled()
+    expect(toast.warning).toHaveBeenCalledWith(
+      "L'enregistrement n'est pas activé sur cette plateforme.",
+      'Visio',
+    )
+  })
+
+  it('startRecording : respecte un signal backend provider false', async () => {
+    vi.stubEnv('VITE_VISIO_RECORDING_ENABLED', 'true')
+    currentUser = { role: 'enseignant', name: 'Prof X' }
+    getSeanceDetails.mockResolvedValue({
+      success: true,
+      data: {
+        seance: { id: 42 },
+        visio: { enabled: true, status: 'active', recording_provider_enabled: false }
+      }
+    })
+
+    const u = await setup()
+    expect(u.recordingProviderEnabled.value).toBe(false)
+    await u.startRecording()
+
+    expect(startVisioRecording).not.toHaveBeenCalled()
+    expect(toast.warning).toHaveBeenCalledWith(
+      "L'enregistrement n'est pas activé sur cette plateforme.",
+      'Visio',
+    )
+  })
+
   it('startRecording : appelle le backend et applique le statut retourné', async () => {
+    vi.stubEnv('VITE_VISIO_RECORDING_ENABLED', 'true')
     currentUser = { role: 'enseignant', name: 'Prof X' }
     getSeanceDetails.mockResolvedValue({
       success: true,
@@ -255,6 +298,7 @@ describe('useSeanceDetails (#H6)', () => {
   })
 
   it('stopRecording : appelle le backend et applique le statut retourné', async () => {
+    vi.stubEnv('VITE_VISIO_RECORDING_ENABLED', 'true')
     currentUser = { role: 'enseignant', name: 'Prof X' }
     getSeanceDetails.mockResolvedValue({
       success: true,
