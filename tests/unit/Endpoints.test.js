@@ -106,6 +106,9 @@ describe('endpoints — carte unique (#105)', () => {
       expect(l.visio.leave(5)).toBe('/lms/seances/5/leave')
       expect(l.visio.heartbeat(5)).toBe('/lms/seances/5/heartbeat')
       expect(l.visio.participants(5)).toBe('/lms/seances/5/visio-participants')
+      expect(l.visio.recordingStatus(5)).toBe('/lms/seances/5/recording')
+      expect(l.visio.recordingStart(5)).toBe('/lms/seances/5/recording/start')
+      expect(l.visio.recordingStop(5)).toBe('/lms/seances/5/recording/stop')
     })
     it('attendance / notifications', () => {
       expect(l.attendance.history).toBe('/lms/attendance/history')
@@ -176,6 +179,8 @@ describe('endpoints — carte unique (#105)', () => {
         '/lms/seances/:id/deactivate-visio', '/lms/seances/:id/start-visio',
         '/lms/seances/:id/end-visio', '/lms/seances/:id/join', '/lms/seances/:id/leave',
         '/lms/seances/:id/heartbeat', '/lms/seances/:id/visio-participants',
+        '/lms/seances/:id/recording', '/lms/seances/:id/recording/start',
+        '/lms/seances/:id/recording/stop',
         '/lms/attendance/history', '/lms/attendances/from-video-session',
         '/lms/notifications/preferences/:id', '/lms/notifications/send-session-reminder',
       ]

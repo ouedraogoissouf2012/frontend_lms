@@ -2,6 +2,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest'
 import {
   VISIO_CONFIG,
   HEARTBEAT_INTERVAL_MS,
+  RECORDING_POLL_INTERVAL_MS,
   PARTICIPATION_EXPIRATION_MS,
   getJitsiDomain,
   getVisioRoomId,
@@ -51,8 +52,10 @@ describe('constants/visio (#24)', () => {
 
   it('V8 — constantes de temps', () => {
     expect(HEARTBEAT_INTERVAL_MS).toBe(30000)
+    expect(RECORDING_POLL_INTERVAL_MS).toBe(5000)
     expect(PARTICIPATION_EXPIRATION_MS).toBe(604800000)
     expect(VISIO_CONFIG.HEARTBEAT_INTERVAL_MS).toBe(30000)
+    expect(VISIO_CONFIG.RECORDING_POLL_INTERVAL_MS).toBe(5000)
   })
 
   it('V9 — extrait uniquement une room fournie par API', () => {

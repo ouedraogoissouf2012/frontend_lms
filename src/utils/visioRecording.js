@@ -86,7 +86,7 @@ export function normalizeVisioRecording(visio) {
   const hasUrl = href !== '#'
   const status = normalizeRecordingStatus(
     recording.status ?? visio?.recording_status,
-    Boolean(url)
+    hasUrl
   )
 
   return {

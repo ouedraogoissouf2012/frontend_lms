@@ -31,7 +31,8 @@ const DOMAINS = {
     svc: lmsVisioService,
     methods: [
       'toggleVisio', 'activateVisio', 'deactivateVisio', 'startVisio', 'endVisio',
-      'joinVisio', 'leaveVisio', 'heartbeatVisio', 'getVisioParticipants'
+      'joinVisio', 'leaveVisio', 'heartbeatVisio', 'getVisioParticipants',
+      'getVisioRecording', 'startVisioRecording', 'stopVisioRecording'
     ]
   },
   notifications: {

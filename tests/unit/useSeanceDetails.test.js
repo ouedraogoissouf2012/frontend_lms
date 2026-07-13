@@ -5,12 +5,16 @@
  */
 import { mount, flushPromises } from '@vue/test-utils'
 import { defineComponent } from 'vue'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 const getSeanceDetails = vi.fn()
 const startVisio = vi.fn()
+const getVisioRecording = vi.fn()
+const startVisioRecording = vi.fn()
+const stopVisioRecording = vi.fn()
 const hideSeance = vi.fn()
 const storeJoinVisio = vi.fn()
+const confirmDialog = vi.fn()
 
 vi.mock('vue-router', () => ({
   useRoute: () => ({ params: { id: '42' }, query: {} }),
@@ -20,6 +24,9 @@ vi.mock('@/services/lms', () => {
   const def = {
     getSeanceDetails: (...a) => getSeanceDetails(...a),
     startVisio: (...a) => startVisio(...a),
+    getVisioRecording: (...a) => getVisioRecording(...a),
+    startVisioRecording: (...a) => startVisioRecording(...a),
+    stopVisioRecording: (...a) => stopVisioRecording(...a),
     hideSeance: (...a) => hideSeance(...a),
     leaveVisio: vi.fn()
   }
@@ -33,14 +40,17 @@ vi.mock('@/stores/visio', () => ({
 }))
 vi.mock('@/services/toast', () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), warning: vi.fn() } }))
 vi.mock('@/services/errorHandler', () => ({ normalizeError: () => ({ userMessage: 'err' }) }))
+vi.mock('@/services/confirmDialog', () => ({ confirmDialog: (...a) => confirmDialog(...a) }))
 
 import { useSeanceDetails } from '@/composables/useSeanceDetails'
 import { toast } from '@/services/toast'
 
+const mountedWrappers = []
+
 async function setup() {
   let api
   const Comp = defineComponent({ setup() { api = useSeanceDetails(); return () => null } })
-  mount(Comp)
+  mountedWrappers.push(mount(Comp))
   await flushPromises()
   return api
 }
@@ -50,14 +60,24 @@ describe('useSeanceDetails (#H6)', () => {
     vi.unstubAllEnvs()
     getSeanceDetails.mockReset()
     startVisio.mockReset()
+    getVisioRecording.mockReset()
+    startVisioRecording.mockReset()
+    stopVisioRecording.mockReset()
     hideSeance.mockReset()
     storeJoinVisio.mockReset()
+    confirmDialog.mockReset()
+    confirmDialog.mockResolvedValue(true)
     storeJoinVisio.mockResolvedValue({ success: true })
+    getVisioRecording.mockResolvedValue({ success: true, data: { recording: { status: 'ready' } } })
     toast.success.mockClear()
     toast.error.mockClear()
     toast.info.mockClear()
     toast.warning.mockClear()
     currentUser = { role: 'coordinateur', name: 'Prof X' }
+  })
+
+  afterEach(() => {
+    while (mountedWrappers.length) mountedWrappers.pop().unmount()
   })
 
   it('charge les détails au montage et expose seance/visio', async () => {
@@ -82,7 +102,15 @@ describe('useSeanceDetails (#H6)', () => {
     const u = await setup()
     expect(u.isTeacher.value).toBe(true)
     expect(u.isStudent.value).toBe(false)
+    expect(u.canManageRecording.value).toBe(false)
     expect(u.error.value).toBe('Séance non trouvée')
+  })
+
+  it('rôle enseignant : peut gérer l’enregistrement', async () => {
+    currentUser = { role: 'enseignant', name: 'Prof X' }
+    getSeanceDetails.mockResolvedValue({ success: false, data: {} })
+    const u = await setup()
+    expect(u.canManageRecording.value).toBe(true)
   })
 
   it('rôle étudiant accentué reconnu, participants par défaut', async () => {
@@ -183,5 +211,73 @@ describe('useSeanceDetails (#H6)', () => {
       42,
       'https://visio.ecole.test/room-api-join#config.prejoinConfig.enabled=false&userInfo.displayName=Eleve%20Test',
     )
+  })
+
+  it('startRecording : refuse si la séance visio n’est pas active', async () => {
+    currentUser = { role: 'enseignant', name: 'Prof X' }
+    getSeanceDetails.mockResolvedValue({
+      success: true,
+      data: { seance: { id: 42 }, visio: { enabled: true, status: 'programmee' } }
+    })
+
+    const u = await setup()
+    await u.startRecording()
+
+    expect(startVisioRecording).not.toHaveBeenCalled()
+    expect(toast.warning).toHaveBeenCalledWith(
+      "L'enregistrement est disponible uniquement pendant une séance active.",
+      'Visio',
+    )
+  })
+
+  it('startRecording : appelle le backend et applique le statut retourné', async () => {
+    currentUser = { role: 'enseignant', name: 'Prof X' }
+    getSeanceDetails.mockResolvedValue({
+      success: true,
+      data: { seance: { id: 42 }, visio: { enabled: true, status: 'active' } }
+    })
+    startVisioRecording.mockResolvedValue({
+      success: true,
+      data: { recording: { status: 'recording' } }
+    })
+    getVisioRecording.mockResolvedValue({
+      success: true,
+      data: { recording: { status: 'recording' } }
+    })
+
+    const u = await setup()
+    await u.startRecording()
+
+    expect(confirmDialog).toHaveBeenCalled()
+    expect(startVisioRecording).toHaveBeenCalledWith(42)
+    expect(u.visio.value.recording.status).toBe('recording')
+    expect(toast.success).toHaveBeenCalledWith('Enregistrement démarré.', 'Visio')
+  })
+
+  it('stopRecording : appelle le backend et applique le statut retourné', async () => {
+    currentUser = { role: 'enseignant', name: 'Prof X' }
+    getSeanceDetails.mockResolvedValue({
+      success: true,
+      data: {
+        seance: { id: 42 },
+        visio: { enabled: true, status: 'active', recording: { status: 'recording' } }
+      }
+    })
+    stopVisioRecording.mockResolvedValue({
+      success: true,
+      data: { recording: { status: 'processing' } }
+    })
+    getVisioRecording.mockResolvedValue({
+      success: true,
+      data: { recording: { status: 'processing' } }
+    })
+
+    const u = await setup()
+    await u.stopRecording()
+
+    expect(confirmDialog).toHaveBeenCalled()
+    expect(stopVisioRecording).toHaveBeenCalledWith(42)
+    expect(u.visio.value.recording.status).toBe('processing')
+    expect(toast.success).toHaveBeenCalledWith("Arrêt de l'enregistrement demandé.", 'Visio')
   })
 })

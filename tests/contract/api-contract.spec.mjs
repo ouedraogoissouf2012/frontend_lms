@@ -1,7 +1,8 @@
 /**
  * Module d'assertions de contrat — agnostique du runner (#17 — api-contract-sync).
  *
- * Vérifie, pour chaque méthode de service couverte par la spec (R1–R12, R15),
+ * Vérifie, pour chaque méthode de service couverte par la spec (R1–R12, R15,
+ * plus endpoints recording #198),
  * la MÉTHODE HTTP et le CHEMIN exacts émis, plus :
  *   - des assertions NÉGATIVES (chemins morts interdits) ;
  *   - des vérifications STRUCTURELLES (méthodes de code mort supprimées) ;
@@ -64,6 +65,24 @@ export const contractCases = [
     _req: 'R12.2', _ek: 'Ék-11',
     run: () => lmsService.getSeanceParticipants(5),
     method: 'GET', url: '/lms/seances/5/participants',
+  },
+  {
+    name: 'R16 — lms.getVisioRecording → GET /lms/seances/{id}/recording',
+    _req: 'R16', _ek: '#198',
+    run: () => lmsService.getVisioRecording(5),
+    method: 'GET', url: '/lms/seances/5/recording',
+  },
+  {
+    name: 'R17 — lms.startVisioRecording → POST /lms/seances/{id}/recording/start',
+    _req: 'R17', _ek: '#198',
+    run: () => lmsService.startVisioRecording(5),
+    method: 'POST', url: '/lms/seances/5/recording/start',
+  },
+  {
+    name: 'R18 — lms.stopVisioRecording → POST /lms/seances/{id}/recording/stop',
+    _req: 'R18', _ek: '#198',
+    run: () => lmsService.stopVisioRecording(5),
+    method: 'POST', url: '/lms/seances/5/recording/stop',
   },
   {
     name: 'R9 — chapter.createChapter(lessonId, data) → POST /lessons/{lessonId}/chapters',

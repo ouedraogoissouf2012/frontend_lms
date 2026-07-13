@@ -7,18 +7,72 @@
  */
 import { apiOrigin } from '@/constants/http'
 
+const WEB_URL_PATTERN = /^https?:\/\//i
+const SCHEME_RELATIVE_PATTERN = /^\/\//
+const EXPLICIT_SCHEME_PATTERN = /^[a-z][a-z0-9+.-]*:/i
+
+function stringOrEmpty(value) {
+  return typeof value === 'string' ? value.trim() : ''
+}
+
 /**
  * URL d'embed YouTube/Vimeo à partir d'une URL vidéo, ou null.
  * @param {string} url
  * @returns {string|null}
  */
 export function getVideoEmbedUrl(url) {
-  if (!url) return null
-  const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
-  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}?rel=0`
-  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/)
-  if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`
+  const rawUrl = stringOrEmpty(url)
+  if (!WEB_URL_PATTERN.test(rawUrl)) return null
+
+  let parsed
+  try {
+    parsed = new URL(rawUrl)
+  } catch {
+    return null
+  }
+
+  const host = parsed.hostname.toLowerCase().replace(/^www\./, '')
+  if (host === 'youtube.com' || host === 'm.youtube.com') {
+    const watchId = parsed.searchParams.get('v')
+    const embedId = parsed.pathname.match(/^\/embed\/([a-zA-Z0-9_-]{11})/)?.[1]
+    const videoId = watchId || embedId
+    return videoId ? `https://www.youtube.com/embed/${videoId}?rel=0` : null
+  }
+  if (host === 'youtu.be') {
+    const videoId = parsed.pathname.match(/^\/([a-zA-Z0-9_-]{11})/)?.[1]
+    return videoId ? `https://www.youtube.com/embed/${videoId}?rel=0` : null
+  }
+  if (host === 'vimeo.com') {
+    const videoId = parsed.pathname.match(/^\/(\d+)/)?.[1]
+    return videoId ? `https://player.vimeo.com/video/${videoId}` : null
+  }
   return null
+}
+
+/**
+ * URL média stockée côté backend : absolue telle quelle, sinon préfixée par le
+ * storage backend. Les schémas explicites non web sont rejetés.
+ * @param {string} path
+ * @returns {string}
+ */
+export function getStorageAssetUrl(path) {
+  const value = stringOrEmpty(path)
+  if (!value) return ''
+  if (WEB_URL_PATTERN.test(value) || SCHEME_RELATIVE_PATTERN.test(value)) return value
+  if (EXPLICIT_SCHEME_PATTERN.test(value)) return ''
+  if (value.startsWith('/storage/')) return `${apiOrigin()}${value}`
+  if (value.startsWith('storage/')) return `${apiOrigin()}/${value}`
+  if (value.startsWith('/')) return `${apiOrigin()}${value}`
+  return `${apiOrigin()}/storage/${value}`
+}
+
+/**
+ * URL ouvrable pour une vidéo non intégrable.
+ * @param {string} url
+ * @returns {string}
+ */
+export function getVideoOpenUrl(url) {
+  return getStorageAssetUrl(url)
 }
 
 /**
@@ -27,9 +81,7 @@ export function getVideoEmbedUrl(url) {
  * @returns {string}
  */
 export function getSlideUrl(slide) {
-  if (!slide) return ''
-  if (slide.startsWith('http')) return slide
-  return `${apiOrigin()}/storage/${slide}`
+  return getStorageAssetUrl(slide)
 }
 
 /**
@@ -39,9 +91,7 @@ export function getSlideUrl(slide) {
  */
 export function getPdfUrl(chapter) {
   const path = chapter.pdf_url || chapter.file_converted_path
-  if (!path) return ''
-  if (path.startsWith('http')) return path
-  return `${apiOrigin()}/storage/${path}`
+  return getStorageAssetUrl(path)
 }
 
 const CONTENT_TYPE_LABELS = {

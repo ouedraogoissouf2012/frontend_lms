@@ -7,8 +7,10 @@ vi.mock('@/constants/http', () => ({ apiOrigin: () => 'http://api.test' }))
 
 import {
   getVideoEmbedUrl,
+  getVideoOpenUrl,
   getSlideUrl,
   getPdfUrl,
+  getStorageAssetUrl,
   getContentTypeLabel,
   getContentTypeIcon,
   isChapterContentEmpty
@@ -26,18 +28,26 @@ describe('utils/lessonContent — getVideoEmbedUrl', () => {
     expect(getVideoEmbedUrl('')).toBeNull()
     expect(getVideoEmbedUrl('https://example.com/x')).toBeNull()
   })
+  it('ignore une URL dangereuse contenant un motif vidéo', () => {
+    expect(getVideoEmbedUrl('javascript:https://youtu.be/abc123DEF45')).toBeNull()
+  })
 })
 
 describe('utils/lessonContent — getSlideUrl / getPdfUrl', () => {
   it('slide absolue inchangée, relative préfixée storage', () => {
     expect(getSlideUrl('https://cdn/x.png')).toBe('https://cdn/x.png')
     expect(getSlideUrl('slides/x.png')).toBe('http://api.test/storage/slides/x.png')
+    expect(getSlideUrl('/storage/slides/x.png')).toBe('http://api.test/storage/slides/x.png')
     expect(getSlideUrl('')).toBe('')
   })
   it('pdf : pdf_url prioritaire, fallback file_converted_path, sinon vide', () => {
     expect(getPdfUrl({ pdf_url: 'https://cdn/a.pdf' })).toBe('https://cdn/a.pdf')
     expect(getPdfUrl({ file_converted_path: 'docs/a.pdf' })).toBe('http://api.test/storage/docs/a.pdf')
     expect(getPdfUrl({})).toBe('')
+  })
+  it('rejette les schémas explicites dangereux pour les médias storage', () => {
+    expect(getStorageAssetUrl('javascript:alert(1)')).toBe('')
+    expect(getVideoOpenUrl('recordings/seance.mp4')).toBe('http://api.test/storage/recordings/seance.mp4')
   })
 })
 
