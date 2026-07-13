@@ -76,6 +76,9 @@ export const endpoints = {
       leave: (id) => `${LMS}/seances/${id}/leave`,
       heartbeat: (id) => `${LMS}/seances/${id}/heartbeat`,
       participants: (id) => `${LMS}/seances/${id}/visio-participants`,
+      recordingStatus: (id) => `${LMS}/seances/${id}/recording`,
+      recordingStart: (id) => `${LMS}/seances/${id}/recording/start`,
+      recordingStop: (id) => `${LMS}/seances/${id}/recording/stop`,
     },
 
     attendance: {

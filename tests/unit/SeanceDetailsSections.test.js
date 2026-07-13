@@ -79,6 +79,63 @@ describe('SeanceDetailsVisio (#H6)', () => {
     expect(w.text()).not.toContain("Arrêter l'enregistrement")
   })
 
+  it('enseignant autorisé + cours actif : affiche le bouton start recording', async () => {
+    const visio = { enabled: true, status: 'active', window: {} }
+    const w = mount(SeanceDetailsVisio, {
+      props: { visio, seance, isTeacher: true, canManageRecording: true }
+    })
+
+    const button = w.find('[data-test="recording-start"]')
+    expect(button.exists()).toBe(true)
+    expect(button.text()).toContain("Démarrer l'enregistrement")
+    await button.trigger('click')
+    expect(w.emitted('start-recording')).toBeTruthy()
+  })
+
+  it('enseignant autorisé + recording en cours : affiche le bouton stop recording', async () => {
+    const visio = {
+      enabled: true,
+      status: 'active',
+      recording: { status: 'recording' },
+      window: {}
+    }
+    const w = mount(SeanceDetailsVisio, {
+      props: { visio, seance, isTeacher: true, canManageRecording: true }
+    })
+
+    const button = w.find('[data-test="recording-stop"]')
+    expect(button.exists()).toBe(true)
+    expect(button.text()).toContain("Arrêter l'enregistrement")
+    await button.trigger('click')
+    expect(w.emitted('stop-recording')).toBeTruthy()
+  })
+
+  it('coordinateur non autorisé recording : ne voit pas les contrôles', () => {
+    const visio = { enabled: true, status: 'active', window: {} }
+    const w = mount(SeanceDetailsVisio, {
+      props: { visio, seance, isTeacher: true, canManageRecording: false }
+    })
+
+    expect(w.find('[data-test="recording-controls"]').exists()).toBe(false)
+  })
+
+  it('désactive les contrôles pendant une action recording', () => {
+    const visio = { enabled: true, status: 'active', window: {} }
+    const w = mount(SeanceDetailsVisio, {
+      props: {
+        visio,
+        seance,
+        isTeacher: true,
+        canManageRecording: true,
+        recordingActionLoading: true
+      }
+    })
+
+    const button = w.find('[data-test="recording-start"]')
+    expect(button.attributes('disabled')).toBeDefined()
+    expect(button.text()).toContain('Action en cours')
+  })
+
   it('recording en traitement : affiche le statut sans bannière consentement', () => {
     const visio = {
       enabled: true,
@@ -106,6 +163,7 @@ describe('SeanceDetailsVisio (#H6)', () => {
     })
 
     expect(w.find('[data-test="recording-status"]').text()).toContain('Enregistrement disponible')
+    expect(w.find('[data-test="recording-link"]').attributes('href')).toBe('https://cdn.example.test/seance.mp4')
   })
 
   it('recording échoué : affiche le statut et le message backend', () => {
@@ -154,6 +212,22 @@ describe('SeanceDetailsVisio (#H6)', () => {
     })
 
     expect(w.find('a').attributes('href')).toBe('https://cdn.example.test/future.mp4')
+  })
+
+  it('enseignant : voit aussi le CTA recording quand la séance est terminée', () => {
+    const visio = {
+      enabled: true,
+      status: 'terminee',
+      recording: { status: 'ready', url: 'https://cdn.example.test/prof.mp4' },
+      window: { has_started: true, has_ended: true, can_start: false }
+    }
+    const w = mount(SeanceDetailsVisio, {
+      props: { visio, seance, isTeacher: true, isStudent: false }
+    })
+
+    const link = w.find('[data-test="recording-link"]')
+    expect(link.exists()).toBe(true)
+    expect(link.attributes('href')).toBe('https://cdn.example.test/prof.mp4')
   })
 
   it('cours terminé : ne rend pas un lien recording_url dangereux', () => {

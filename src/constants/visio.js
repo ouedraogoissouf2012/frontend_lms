@@ -8,6 +8,7 @@
 
 export const VISIO_CONFIG = Object.freeze({
   HEARTBEAT_INTERVAL_MS: 30000, // ping d'activité participant
+  RECORDING_POLL_INTERVAL_MS: 5000, // rafraîchissement du statut d'enregistrement
   PARTICIPATION_EXPIRATION_MS: 7 * 24 * 60 * 60 * 1000, // 7 jours
   DEFAULT_JITSI_DOMAIN: 'meet.jit.si',
 })
@@ -15,6 +16,7 @@ export const VISIO_CONFIG = Object.freeze({
 export const VISIO_ROOM_REQUIRED_MESSAGE = 'Identifiant de salle visio introuvable dans la réponse API.'
 
 export const HEARTBEAT_INTERVAL_MS = VISIO_CONFIG.HEARTBEAT_INTERVAL_MS
+export const RECORDING_POLL_INTERVAL_MS = VISIO_CONFIG.RECORDING_POLL_INTERVAL_MS
 export const PARTICIPATION_EXPIRATION_MS = VISIO_CONFIG.PARTICIPATION_EXPIRATION_MS
 
 /** Domaine Jitsi effectif (VITE_JITSI_DOMAIN ou défaut). */

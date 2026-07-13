@@ -32,10 +32,15 @@
         :seance="seance"
         :is-teacher="isTeacher"
         :is-student="isStudent"
+        :can-manage-recording="canManageRecording"
         :room-active="roomActive"
         :joining-visio="joiningVisio"
+        :recording-action-loading="recordingActionLoading"
+        :recording-polling="recordingPolling"
         @start="startVisio"
         @join="joinVisio"
+        @start-recording="startRecording"
+        @stop-recording="stopRecording"
       />
 
       <!-- Présentiel -->
@@ -103,8 +108,9 @@ import { useSeanceDetails } from '@/composables/useSeanceDetails'
 
 const {
   loading, error, seance, visio, participants, roomActive, joiningVisio,
-  isTeacher, isStudent,
-  loadSeanceDetails, startVisio, joinVisio, hideSeance,
+  recordingActionLoading, recordingPolling,
+  isTeacher, isStudent, canManageRecording,
+  loadSeanceDetails, startVisio, joinVisio, startRecording, stopRecording, hideSeance,
 } = useSeanceDetails()
 </script>
 

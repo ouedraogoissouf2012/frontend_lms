@@ -4,8 +4,8 @@
     <div v-if="chapter.content_type === 'video' && chapter.video_url" class="content-block content-video">
       <div class="video-container">
         <iframe
-          v-if="getEmbedUrl(chapter.video_url)"
-          :src="getEmbedUrl(chapter.video_url)"
+          v-if="videoEmbedUrl"
+          :src="videoEmbedUrl"
           frameborder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowfullscreen
@@ -14,22 +14,32 @@
         <div v-else class="video-fallback">
           <i class="fa fa-play-circle"></i>
           <p>Vidéo non intégrable</p>
-          <a :href="safeUrl(chapter.video_url)" target="_blank" rel="noopener noreferrer" class="btn-external-video">
+          <a
+            v-if="canOpenVideo"
+            :href="safeVideoUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn-external-video"
+            data-test="open-video"
+          >
             <i class="fa fa-external-link"></i> Ouvrir la vidéo
           </a>
+          <p v-else class="media-unavailable" data-test="video-unavailable">
+            Lien vidéo indisponible.
+          </p>
         </div>
       </div>
     </div>
 
     <!-- PDF -->
     <div v-if="chapter.content_type === 'pdf'" class="content-block content-pdf">
-      <div v-if="chapter.pdf_url || chapter.file_converted_path" class="pdf-viewer">
+      <div v-if="canOpenPdf" class="pdf-viewer">
         <iframe
-          :src="getPdfUrl(chapter)"
+          :src="safePdfUrl"
           class="pdf-iframe"
           frameborder="0"
         ></iframe>
-        <a :href="getPdfUrl(chapter)" target="_blank" class="btn-open-pdf">
+        <a :href="safePdfUrl" target="_blank" rel="noopener noreferrer" class="btn-open-pdf">
           <i class="fa fa-external-link"></i> Ouvrir le PDF en plein écran
         </a>
       </div>
@@ -47,28 +57,44 @@
           <h3>Ressource externe</h3>
           <p class="link-url">{{ chapter.external_link }}</p>
         </div>
-        <a :href="safeUrl(chapter.external_link)" target="_blank" rel="noopener noreferrer" class="btn-open-link">
+        <a
+          v-if="canOpenExternalLink"
+          :href="safeExternalLink"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn-open-link"
+        >
           Ouvrir <i class="fa fa-arrow-right"></i>
         </a>
+        <span v-else class="link-disabled" data-test="link-unavailable">
+          Lien indisponible
+        </span>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { safeUrl } from '@/utils/security/safeUrl'
 /**
  * Rendu des chapitres média/ressource externe (#H4 ≤300) : vidéo (iframe embed),
  * PDF (viewer) et lien externe. Logique d'URL déléguée à utils/lessonContent.
  */
-import { getVideoEmbedUrl, getPdfUrl as pdfUrl } from '@/utils/lessonContent'
+import { getVideoEmbedUrl, getPdfUrl, getVideoOpenUrl } from '@/utils/lessonContent'
 
-defineProps({
+const props = defineProps({
   chapter: { type: Object, required: true }
 })
 
-const getEmbedUrl = (url) => getVideoEmbedUrl(url)
-const getPdfUrl = (chapter) => pdfUrl(chapter)
+const videoEmbedUrl = computed(() => getVideoEmbedUrl(props.chapter.video_url))
+const safeVideoUrl = computed(() => safeUrl(getVideoOpenUrl(props.chapter.video_url)))
+const safePdfUrl = computed(() => safeUrl(getPdfUrl(props.chapter)))
+const safeExternalLink = computed(() => safeUrl(props.chapter.external_link))
+
+const canOpenVideo = computed(() => safeVideoUrl.value !== '#')
+const canOpenPdf = computed(() => safePdfUrl.value !== '#')
+const canOpenExternalLink = computed(() => safeExternalLink.value !== '#')
 </script>
 
 <style scoped>
@@ -208,5 +234,12 @@ const getPdfUrl = (chapter) => pdfUrl(chapter)
 
 .btn-open-link:hover {
   background: var(--violet-700);
+}
+
+.media-unavailable,
+.link-disabled {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 </style>

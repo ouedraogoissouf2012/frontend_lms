@@ -48,6 +48,17 @@
       <p v-if="recording.isFailed && recording.errorMessage" class="mt-1 text-sm font-medium">
         {{ recording.errorMessage }}
       </p>
+      <p v-if="recording.canOpen" class="mt-3">
+        <a
+          :href="recording.href"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 text-blue-700 hover:underline font-semibold"
+          data-test="recording-link"
+        >
+          <i class="fa fa-play recording-icon"></i> Voir l'enregistrement
+        </a>
+      </p>
     </div>
 
     <div
@@ -77,6 +88,39 @@
         >
           <i class="fa fa-dot-circle-o btn-icon"></i> Rejoindre le cours
         </button>
+
+        <div
+          v-if="canManageRecording"
+          class="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg"
+          data-test="recording-controls"
+        >
+          <button
+            v-if="recording.isRecording"
+            data-test="recording-stop"
+            type="button"
+            :disabled="recordingActionLoading"
+            @click="$emit('stop-recording')"
+            class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition disabled:opacity-50"
+          >
+            {{ recordingActionLoading ? 'Action en cours...' : "Arrêter l'enregistrement" }}
+          </button>
+          <button
+            v-else-if="recording.isIdle || recording.isFailed"
+            data-test="recording-start"
+            type="button"
+            :disabled="recordingActionLoading"
+            @click="$emit('start-recording')"
+            class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition disabled:opacity-50"
+          >
+            {{ recordingActionLoading ? 'Action en cours...' : "Démarrer l'enregistrement" }}
+          </button>
+          <p v-else class="text-sm text-gray-600 text-center">
+            Statut d'enregistrement suivi par le backend.
+          </p>
+          <p v-if="recordingPolling" class="mt-2 text-xs text-gray-500 text-center">
+            Mise à jour du statut en cours...
+          </p>
+        </div>
       </div>
       <!-- Sinon, afficher le bouton de démarrage (enseignant seulement) -->
       <div v-else>
@@ -131,16 +175,6 @@
         <div class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg">
           <i class="fa fa-check finished-icon"></i> Cours terminé
         </div>
-        <p v-if="recording.canOpen" class="mt-4">
-          <a
-            :href="recording.href"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-blue-600 hover:underline"
-          >
-            <i class="fa fa-play recording-icon"></i> Voir l'enregistrement
-          </a>
-        </p>
       </div>
 
       <!-- Fallback: en attente -->
@@ -171,11 +205,14 @@ const props = defineProps({
   seance: { type: Object, required: true },
   isTeacher: { type: Boolean, default: false },
   isStudent: { type: Boolean, default: false },
+  canManageRecording: { type: Boolean, default: false },
   roomActive: { type: Boolean, default: false },
-  joiningVisio: { type: Boolean, default: false }
+  joiningVisio: { type: Boolean, default: false },
+  recordingActionLoading: { type: Boolean, default: false },
+  recordingPolling: { type: Boolean, default: false }
 })
 
-defineEmits(['start', 'join'])
+defineEmits(['start', 'join', 'start-recording', 'stop-recording'])
 
 const recording = computed(() => normalizeVisioRecording(props.visio))
 const recordingStatus = computed(() => recordingStatusPresentation(recording.value))

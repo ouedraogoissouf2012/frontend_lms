@@ -138,6 +138,48 @@ export const lmsVisioService = {
       console.error('Erreur récupération participants:', error)
       throw error
     }
+  },
+
+  /**
+   * Récupérer le statut d'enregistrement d'une séance visio.
+   * @param {number|string} seanceId
+   * @returns {Promise<Object>}
+   */
+  async getVisioRecording(seanceId) {
+    try {
+      return await api.get(endpoints.lms.visio.recordingStatus(seanceId))
+    } catch (error) {
+      console.error('Erreur récupération statut enregistrement:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Démarrer l'enregistrement d'une séance visio (enseignant autorisé).
+   * @param {number|string} seanceId
+   * @returns {Promise<Object>}
+   */
+  async startVisioRecording(seanceId) {
+    try {
+      return await api.post(endpoints.lms.visio.recordingStart(seanceId))
+    } catch (error) {
+      console.error('Erreur démarrage enregistrement:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Arrêter l'enregistrement d'une séance visio (enseignant autorisé).
+   * @param {number|string} seanceId
+   * @returns {Promise<Object>}
+   */
+  async stopVisioRecording(seanceId) {
+    try {
+      return await api.post(endpoints.lms.visio.recordingStop(seanceId))
+    } catch (error) {
+      console.error('Erreur arrêt enregistrement:', error)
+      throw error
+    }
   }
 }
 

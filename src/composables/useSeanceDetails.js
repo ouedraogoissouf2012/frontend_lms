@@ -4,7 +4,9 @@ import lmsService from '@/services/lms'
 import { auth } from '@/services/api'
 import { toast } from '@/services/toast'
 import { normalizeError } from '@/services/errorHandler'
+import { isTeacher as roleIsTeacher } from '@/constants/roles'
 import { useTrackedVisioJoin } from '@/composables/useTrackedVisioJoin'
+import { useVisioRecordingControls } from '@/composables/useVisioRecordingControls'
 import {
   confirmVisioAction,
   notifyVisioError,
@@ -51,6 +53,15 @@ export function useSeanceDetails() {
   const isStudent = computed(() =>
     user.value && ['etudiant', 'étudiant', 'student'].includes(user.value.role)
   )
+
+  const canManageRecording = computed(() => roleIsTeacher(user.value))
+
+  const {
+    recordingActionLoading,
+    recordingPolling,
+    startRecording,
+    stopRecording,
+  } = useVisioRecordingControls({ seanceId, visio, canManageRecording })
 
   async function loadSeanceDetails() {
     loading.value = true
@@ -268,8 +279,9 @@ export function useSeanceDetails() {
 
   return {
     loading, error, seance, visio, participants, roomActive, joiningVisio,
-    seanceId, user, isTeacher, isStudent,
+    recordingActionLoading, recordingPolling,
+    seanceId, user, isTeacher, isStudent, canManageRecording,
     loadSeanceDetails, startVisio, joinVisio, watchVisioWindow, leaveVisio,
-    hideSeance, formatDate, formatTime
+    startRecording, stopRecording, hideSeance, formatDate, formatTime
   }
 }
