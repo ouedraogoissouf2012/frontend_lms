@@ -4,6 +4,28 @@ import { readCache, writeCache, clearCache } from '@/services/cache'
 import { useTrackedVisioJoin } from '@/composables/useTrackedVisioJoin'
 import { confirmVisioAction } from '@/services/visioFeedback'
 
+function parseLocalDateTime(dateStr, timeStr) {
+  if (!dateStr || !timeStr) return null
+
+  const [year, month, day] = String(dateStr).split('T')[0].split('-').map(Number)
+  const [hour = 0, minute = 0, second = 0] = String(timeStr).split(':').map(Number)
+  if ([year, month, day, hour, minute, second].some(Number.isNaN)) return null
+
+  return new Date(year, month - 1, day, hour, minute, second)
+}
+
+function getSeanceTimeWindow(programmation) {
+  const startDate = parseLocalDateTime(programmation?.date, programmation?.heure_debut)
+  const endDate = parseLocalDateTime(programmation?.date, programmation?.heure_fin)
+  if (!startDate || !endDate) return null
+
+  if (endDate < startDate) {
+    endDate.setDate(endDate.getDate() + 1)
+  }
+
+  return { startDate, endDate }
+}
+
 /**
  * Couche données de TeacherVisioList (#G1 ≤300) : charge les séances enseignant
  * (cache + rafraîchissement en arrière-plan), dérive les séances visio en cours /
@@ -24,16 +46,10 @@ export function useTeacherVisioList() {
       if (!s.visio_enabled || !s.visio_active) return false
 
       const now = new Date()
-      const dateStr = s.programmation?.date
-      const heureDebut = s.programmation?.heure_debut
-      const heureFin = s.programmation?.heure_fin
+      const window = getSeanceTimeWindow(s.programmation)
+      if (!window) return false
 
-      if (!dateStr || !heureDebut || !heureFin) return false
-
-      const startDate = new Date(`${dateStr} ${heureDebut}`)
-      const endDate = new Date(`${dateStr} ${heureFin}`)
-
-      return now >= startDate && now <= endDate
+      return now >= window.startDate && now <= window.endDate
     })
   })
 
@@ -46,12 +62,12 @@ export function useTeacherVisioList() {
       if (visioEnCours.value.includes(s)) return false
 
       const now = new Date()
-      const dateStr = s.programmation?.date
-      const heureDebut = s.programmation?.heure_debut
+      const startDate = parseLocalDateTime(
+        s.programmation?.date,
+        s.programmation?.heure_debut
+      )
+      if (!startDate) return false
 
-      if (!dateStr || !heureDebut) return false
-
-      const startDate = new Date(`${dateStr} ${heureDebut}`)
       return startDate > now
     })
   })

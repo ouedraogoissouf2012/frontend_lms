@@ -19,6 +19,12 @@ function canManage(canManageRecording) {
     : Boolean(canManageRecording?.value)
 }
 
+function providerReady(recordingProviderEnabled) {
+  return typeof recordingProviderEnabled === 'function'
+    ? Boolean(recordingProviderEnabled())
+    : Boolean(recordingProviderEnabled?.value)
+}
+
 function setRecording(visio, payload) {
   if (!payload || !visio.value) return null
   visio.value = { ...visio.value, recording: payload }
@@ -31,12 +37,17 @@ function setRecording(visio, payload) {
  * Le front ne déduit jamais seul un état actif : après start/stop, il applique
  * le payload backend, puis poll le statut tant que celui-ci est non terminal.
  */
-export function useVisioRecordingControls({ seanceId, visio, canManageRecording }) {
+export function useVisioRecordingControls({
+  seanceId,
+  visio,
+  canManageRecording,
+  recordingProviderEnabled,
+}) {
   const recordingActionLoading = ref(false)
 
   const polling = useVisioRecordingPolling({
     getSeanceId: () => seanceId.value,
-    isEnabled: () => Boolean(visio.value?.enabled),
+    isEnabled: () => Boolean(visio.value?.enabled) && providerReady(recordingProviderEnabled),
     onStatus: (_normalized, response) => {
       setRecording(visio, resolveVisioRecordingPayload(response))
     },
@@ -58,6 +69,10 @@ export function useVisioRecordingControls({ seanceId, visio, canManageRecording 
   function ensureCanRecord() {
     if (!canManage(canManageRecording)) {
       notifyVisioWarning("Vous n'êtes pas autorisé à gérer l'enregistrement.")
+      return false
+    }
+    if (!providerReady(recordingProviderEnabled)) {
+      notifyVisioWarning("L'enregistrement n'est pas activé sur cette plateforme.")
       return false
     }
     if (visio.value?.status !== 'active') {

@@ -28,6 +28,19 @@
     </div>
 
     <div
+      v-if="recordingProviderUnavailableStatus"
+      class="mb-4 p-4 rounded-lg border border-orange-300 bg-orange-50 text-orange-900"
+      role="status"
+      data-test="recording-provider-unavailable"
+    >
+      <p class="font-semibold flex items-center gap-2">
+        <i class="fa fa-exclamation-triangle"></i>
+        Enregistrement indisponible
+      </p>
+      <p class="mt-1 text-sm">{{ recordingUnavailableMessage }}</p>
+    </div>
+
+    <div
       v-if="recordingStatus"
       class="mb-4 p-4 rounded-lg border"
       :class="recordingStatus.containerClass"
@@ -62,7 +75,7 @@
     </div>
 
     <div
-      v-if="recording.isRecording"
+      v-if="recording.isRecording && recordingProviderEnabled"
       class="mb-4 p-4 rounded-lg border border-yellow-300 bg-yellow-50 text-yellow-900"
       data-test="recording-consent"
     >
@@ -94,29 +107,38 @@
           class="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg"
           data-test="recording-controls"
         >
-          <button
-            v-if="recording.isRecording"
-            data-test="recording-stop"
-            type="button"
-            :disabled="recordingActionLoading"
-            @click="$emit('stop-recording')"
-            class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition disabled:opacity-50"
+          <div
+            v-if="!recordingProviderEnabled"
+            class="text-sm text-orange-800 text-center"
+            data-test="recording-controls-unavailable"
           >
-            {{ recordingActionLoading ? 'Action en cours...' : "Arrêter l'enregistrement" }}
-          </button>
-          <button
-            v-else-if="recording.isIdle || recording.isFailed"
-            data-test="recording-start"
-            type="button"
-            :disabled="recordingActionLoading"
-            @click="$emit('start-recording')"
-            class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition disabled:opacity-50"
-          >
-            {{ recordingActionLoading ? 'Action en cours...' : "Démarrer l'enregistrement" }}
-          </button>
-          <p v-else class="text-sm text-gray-600 text-center">
-            Statut d'enregistrement suivi par le backend.
-          </p>
+            {{ recordingUnavailableMessage }}
+          </div>
+          <template v-else>
+            <button
+              v-if="recording.isRecording"
+              data-test="recording-stop"
+              type="button"
+              :disabled="recordingActionLoading"
+              @click="$emit('stop-recording')"
+              class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition disabled:opacity-50"
+            >
+              {{ recordingActionLoading ? 'Action en cours...' : "Arrêter l'enregistrement" }}
+            </button>
+            <button
+              v-else-if="recording.isIdle || recording.isFailed"
+              data-test="recording-start"
+              type="button"
+              :disabled="recordingActionLoading"
+              @click="$emit('start-recording')"
+              class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition disabled:opacity-50"
+            >
+              {{ recordingActionLoading ? 'Action en cours...' : "Démarrer l'enregistrement" }}
+            </button>
+            <p v-else class="text-sm text-gray-600 text-center">
+              Statut d'enregistrement suivi par le backend.
+            </p>
+          </template>
           <p v-if="recordingPolling" class="mt-2 text-xs text-gray-500 text-center">
             Mise à jour du statut en cours...
           </p>
@@ -193,6 +215,7 @@
 <script setup>
 import { computed } from 'vue'
 import { normalizeVisioRecording, recordingStatusPresentation } from '@/utils/visioRecording'
+import { VISIO_RECORDING_UNAVAILABLE_MESSAGE } from '@/constants/visio'
 
 /**
  * Section visioconférence de SeanceDetails (#H6 ≤300) : fenêtre temporelle,
@@ -206,6 +229,8 @@ const props = defineProps({
   isTeacher: { type: Boolean, default: false },
   isStudent: { type: Boolean, default: false },
   canManageRecording: { type: Boolean, default: false },
+  recordingProviderEnabled: { type: Boolean, default: false },
+  recordingUnavailableMessage: { type: String, default: VISIO_RECORDING_UNAVAILABLE_MESSAGE },
   roomActive: { type: Boolean, default: false },
   joiningVisio: { type: Boolean, default: false },
   recordingActionLoading: { type: Boolean, default: false },
@@ -215,7 +240,13 @@ const props = defineProps({
 defineEmits(['start', 'join', 'start-recording', 'stop-recording'])
 
 const recording = computed(() => normalizeVisioRecording(props.visio))
-const recordingStatus = computed(() => recordingStatusPresentation(recording.value))
+const recordingProviderUnavailableStatus = computed(() =>
+  !props.recordingProviderEnabled && recording.value.isRecording
+)
+const recordingStatus = computed(() => {
+  if (recordingProviderUnavailableStatus.value) return null
+  return recordingStatusPresentation(recording.value)
+})
 </script>
 
 <style scoped lang="scss">

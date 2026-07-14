@@ -9,11 +9,14 @@
 export const VISIO_CONFIG = Object.freeze({
   HEARTBEAT_INTERVAL_MS: 30000, // ping d'activité participant
   RECORDING_POLL_INTERVAL_MS: 5000, // rafraîchissement du statut d'enregistrement
+  RECORDING_PROVIDER_ENABLED: false, // fail-closed tant que Jibri/JaaS/provider n'est pas validé
   PARTICIPATION_EXPIRATION_MS: 7 * 24 * 60 * 60 * 1000, // 7 jours
   DEFAULT_JITSI_DOMAIN: 'meet.jit.si',
 })
 
 export const VISIO_ROOM_REQUIRED_MESSAGE = 'Identifiant de salle visio introuvable dans la réponse API.'
+export const VISIO_RECORDING_UNAVAILABLE_MESSAGE =
+  "L'enregistrement n'est pas activé sur cette plateforme : aucun moteur Jitsi/Jibri n'est configuré."
 
 export const HEARTBEAT_INTERVAL_MS = VISIO_CONFIG.HEARTBEAT_INTERVAL_MS
 export const RECORDING_POLL_INTERVAL_MS = VISIO_CONFIG.RECORDING_POLL_INTERVAL_MS
@@ -28,6 +31,52 @@ export function getJitsiDomain() {
 /** URL du script IFrame API Jitsi. */
 export function jitsiExternalApiSrc() {
   return `https://${getJitsiDomain()}/external_api.js`
+}
+
+function toBooleanOrNull(value) {
+  if (typeof value === 'boolean') return value
+  if (typeof value === 'number') {
+    if (value === 1) return true
+    if (value === 0) return false
+  }
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase()
+    if (['1', 'true', 'yes', 'on', 'enabled'].includes(normalized)) return true
+    if (['0', 'false', 'no', 'off', 'disabled'].includes(normalized)) return false
+  }
+  return null
+}
+
+function envFlag(name, fallback = false) {
+  return toBooleanOrNull(import.meta.env?.[name]) ?? fallback
+}
+
+function firstBoolean(...values) {
+  for (const value of values) {
+    const parsed = toBooleanOrNull(value)
+    if (parsed !== null) return parsed
+  }
+  return null
+}
+
+/**
+ * Capacité d'enregistrement réelle (#204), désactivée par défaut.
+ * Le front doit rester fail-closed tant que le provider Jitsi/Jibri n'est pas
+ * configuré. Un signal backend explicite à false garde la priorité.
+ */
+export function isVisioRecordingProviderEnabled(visio = null) {
+  const clientEnabled = envFlag('VITE_VISIO_RECORDING_ENABLED', VISIO_CONFIG.RECORDING_PROVIDER_ENABLED)
+  if (!clientEnabled) return false
+
+  const backendEnabled = firstBoolean(
+    visio?.recording_provider_enabled,
+    visio?.recording_enabled,
+    visio?.capabilities?.recording,
+    visio?.recording_capability?.enabled,
+    visio?.recording?.provider_enabled,
+    visio?.recording?.capability?.enabled,
+  )
+  return backendEnabled !== false
 }
 
 export function getVisioRoomId(source) {

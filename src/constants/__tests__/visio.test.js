@@ -4,11 +4,13 @@ import {
   HEARTBEAT_INTERVAL_MS,
   RECORDING_POLL_INTERVAL_MS,
   PARTICIPATION_EXPIRATION_MS,
+  VISIO_RECORDING_UNAVAILABLE_MESSAGE,
   getJitsiDomain,
   getVisioRoomId,
   requireVisioRoomId,
   buildJitsiUrl,
   jitsiExternalApiSrc,
+  isVisioRecordingProviderEnabled,
 } from '@/constants/visio'
 
 afterEach(() => vi.unstubAllEnvs())
@@ -56,6 +58,23 @@ describe('constants/visio (#24)', () => {
     expect(PARTICIPATION_EXPIRATION_MS).toBe(604800000)
     expect(VISIO_CONFIG.HEARTBEAT_INTERVAL_MS).toBe(30000)
     expect(VISIO_CONFIG.RECORDING_POLL_INTERVAL_MS).toBe(5000)
+  })
+
+  it('V8.1 — recording provider désactivé par défaut', () => {
+    expect(VISIO_CONFIG.RECORDING_PROVIDER_ENABLED).toBe(false)
+    expect(VISIO_RECORDING_UNAVAILABLE_MESSAGE).toContain("L'enregistrement n'est pas activé")
+    expect(isVisioRecordingProviderEnabled()).toBe(false)
+  })
+
+  it('V8.2 — VITE_VISIO_RECORDING_ENABLED active explicitement la capability', () => {
+    vi.stubEnv('VITE_VISIO_RECORDING_ENABLED', 'true')
+    expect(isVisioRecordingProviderEnabled()).toBe(true)
+  })
+
+  it('V8.3 — un signal backend false garde la priorité', () => {
+    vi.stubEnv('VITE_VISIO_RECORDING_ENABLED', 'true')
+    expect(isVisioRecordingProviderEnabled({ recording_provider_enabled: false })).toBe(false)
+    expect(isVisioRecordingProviderEnabled({ capabilities: { recording: 'disabled' } })).toBe(false)
   })
 
   it('V9 — extrait uniquement une room fournie par API', () => {
