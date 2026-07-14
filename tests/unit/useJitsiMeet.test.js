@@ -41,6 +41,7 @@ import { useJitsiMeet } from '@/composables/useJitsiMeet'
 const JitsiCtor = vi.fn(function () {
   this.handlers = {}
   this.addEventListener = vi.fn((name, cb) => { this.handlers[name] = cb })
+  this.executeCommand = vi.fn()
   this.dispose = vi.fn()
 })
 
@@ -50,6 +51,7 @@ function setup(propsOverride = {}) {
   JitsiCtor.mockImplementation(function () {
     this.handlers = {}
     this.addEventListener = vi.fn((name, cb) => { this.handlers[name] = cb })
+    this.executeCommand = vi.fn()
     this.dispose = vi.fn()
     lastInstance = this
   })
@@ -60,6 +62,8 @@ function setup(propsOverride = {}) {
         jitsiLink: ref(propsOverride.jitsiLink ?? 'https://meet.jit.si/RoomTest'),
         userName: ref('Alice'),
         userEmail: ref('alice@test.dev'),
+        recordingProviderEnabled: ref(propsOverride.recordingProviderEnabled ?? false),
+        recordingMode: ref(propsOverride.recordingMode ?? 'file'),
         emit: propsOverride.emit ?? vi.fn()
       })
       return () => null
@@ -134,5 +138,63 @@ describe('useJitsiMeet (#h13)', () => {
     await api.cleanup()
     expect(mockStopHeartbeat).toHaveBeenCalledOnce()
     expect(instance.dispose).toHaveBeenCalledOnce()
+  })
+
+  it('relaye les événements Jitsi recordingStatusChanged et recordingLinkAvailable', async () => {
+    const emit = vi.fn()
+    const { getInstance } = setup({ emit })
+    await flushPromises()
+
+    getInstance().handlers.recordingStatusChanged({
+      on: true,
+      mode: 'file',
+      transcription: false,
+    })
+    getInstance().handlers.recordingLinkAvailable({
+      link: 'https://cdn.test/recording.webm',
+      ttl: 3600,
+    })
+
+    expect(emit).toHaveBeenCalledWith('recording-status-changed', expect.objectContaining({
+      on: true,
+      mode: 'file',
+      error: null,
+      transcription: false,
+    }))
+    expect(emit).toHaveBeenCalledWith('recording-link-available', expect.objectContaining({
+      link: 'https://cdn.test/recording.webm',
+      ttl: 3600,
+    }))
+  })
+
+  it('refuse les commandes Jitsi recording si le provider n’est pas activé', async () => {
+    const { api, getInstance } = setup({ recordingProviderEnabled: false })
+    await flushPromises()
+
+    expect(api.startJitsiRecording()).toBe(false)
+    expect(api.stopJitsiRecording()).toBe(false)
+    expect(getInstance().executeCommand).not.toHaveBeenCalled()
+  })
+
+  it('émet les commandes startRecording / stopRecording quand le provider est activé', async () => {
+    const { api, getInstance } = setup({
+      seanceId: 99,
+      recordingProviderEnabled: true,
+      recordingMode: 'file',
+    })
+    await flushPromises()
+
+    expect(api.startJitsiRecording({ provider: 'jibri' })).toBe(true)
+    expect(api.stopJitsiRecording()).toBe(true)
+    expect(getInstance().executeCommand).toHaveBeenNthCalledWith(1, 'startRecording', {
+      mode: 'file',
+      shouldShare: true,
+      extraMetadata: {
+        seanceId: 99,
+        source: 'lms-frontend',
+        provider: 'jibri',
+      },
+    })
+    expect(getInstance().executeCommand).toHaveBeenNthCalledWith(2, 'stopRecording', 'file', false)
   })
 })

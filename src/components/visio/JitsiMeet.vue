@@ -40,23 +40,57 @@ const props = defineProps({
   userEmail: {
     type: String,
     default: ''
+  },
+  recordingProviderEnabled: {
+    type: Boolean,
+    default: false
+  },
+  recordingMode: {
+    type: String,
+    default: 'file'
   }
 })
 
-const emit = defineEmits(['close', 'joined', 'left', 'error'])
+const emit = defineEmits([
+  'close',
+  'joined',
+  'left',
+  'error',
+  'recording-status-changed',
+  'recording-link-available',
+  'recording-command-error',
+])
 
-const { seanceId, jitsiLink, userName, userEmail } = toRefs(props)
-
-const { jitsiContainer, isLoading, error, cleanup } = useJitsiMeet({
+const {
   seanceId,
   jitsiLink,
   userName,
   userEmail,
+  recordingProviderEnabled,
+  recordingMode,
+} = toRefs(props)
+
+const {
+  jitsiContainer,
+  isLoading,
+  error,
+  cleanup,
+  startJitsiRecording,
+  stopJitsiRecording,
+} = useJitsiMeet({
+  seanceId,
+  jitsiLink,
+  userName,
+  userEmail,
+  recordingProviderEnabled,
+  recordingMode,
   emit
 })
 
 // Exposer cleanup pour pouvoir l'appeler depuis le parent
 defineExpose({
+  startJitsiRecording,
+  stopJitsiRecording,
   cleanup
 })
 </script>

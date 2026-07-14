@@ -1,6 +1,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import lmsService from '@/services/lms'
 import { useVisioHeartbeat } from '@/composables/useVisioHeartbeat'
+import { useJitsiRecordingBridge } from '@/composables/useJitsiRecordingBridge'
 import { jitsiExternalApiSrc, getJitsiDomain } from '@/constants/visio'
 
 /**
@@ -17,21 +18,49 @@ import { jitsiExternalApiSrc, getJitsiDomain } from '@/constants/visio'
  * @param {import('vue').Ref<string>}  opts.jitsiLink - lien Jitsi de la salle
  * @param {import('vue').Ref<string>}  opts.userName  - nom affiché du participant
  * @param {import('vue').Ref<string>}  opts.userEmail - email du participant
+ * @param {import('vue').Ref<boolean>} opts.recordingProviderEnabled - capacité Jitsi/Jibri activée
+ * @param {import('vue').Ref<string>}  opts.recordingMode - mode recording Jitsi (`file` par défaut)
  * @param {(event: string, payload?: any) => void} opts.emit - relais d'événements vers le composant
  * @returns {{
  *   jitsiContainer: import('vue').Ref<HTMLElement|null>,
  *   isLoading: import('vue').Ref<boolean>,
  *   error: import('vue').Ref<string|null>,
+ *   startJitsiRecording: (extraMetadata?: Object) => boolean,
+ *   stopJitsiRecording: (options?: { transcription?: boolean }) => boolean,
  *   cleanup: () => Promise<void>
  * }}
  */
-export function useJitsiMeet({ seanceId, jitsiLink, userName, userEmail, emit }) {
+export function useJitsiMeet({
+  seanceId,
+  jitsiLink,
+  userName,
+  userEmail,
+  recordingProviderEnabled,
+  recordingMode,
+  emit,
+}) {
   // États
   const jitsiContainer = ref(null)
   const jitsiApi = ref(null)
   const isLoading = ref(true)
   const error = ref(null)
   const hasJoined = ref(false)
+
+  const {
+    canUseJitsiRecording,
+    lastRecordingStatus,
+    lastRecordingLink,
+    recordingCommandError,
+    setupJitsiRecordingEvents,
+    startJitsiRecording,
+    stopJitsiRecording,
+  } = useJitsiRecordingBridge({
+    jitsiApi,
+    seanceId,
+    recordingProviderEnabled,
+    recordingMode,
+    emit,
+  })
 
   const { start: startHeartbeat, stop: stopHeartbeat } = useVisioHeartbeat({
     getSeanceId: () => seanceId.value,
@@ -209,6 +238,8 @@ export function useJitsiMeet({ seanceId, jitsiLink, userName, userEmail, emit })
     jitsiApi.value.addEventListener('participantLeft', (event) => {
       console.log('[JitsiMeet] 👋 Participant quitté:', event)
     })
+
+    setupJitsiRecordingEvents()
   }
 
   /**
@@ -252,6 +283,12 @@ export function useJitsiMeet({ seanceId, jitsiLink, userName, userEmail, emit })
     jitsiContainer,
     isLoading,
     error,
+    canUseJitsiRecording,
+    lastRecordingStatus,
+    lastRecordingLink,
+    recordingCommandError,
+    startJitsiRecording,
+    stopJitsiRecording,
     cleanup
   }
 }
