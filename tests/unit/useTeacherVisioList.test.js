@@ -53,6 +53,10 @@ function dateStr(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+function timeStr(d) {
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:00`
+}
+
 async function setup(data) {
   getMyTeachingSeances.mockResolvedValue({ data })
   let api
@@ -85,14 +89,35 @@ describe('useTeacherVisioList (#G1)', () => {
     const seance = makeSeance({
       visio_active: true,
       programmation: {
-        date: dateStr(now),
-        heure_debut: `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}:00`,
-        heure_fin: `${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}:00`,
+        date: dateStr(start),
+        heure_debut: timeStr(start),
+        heure_fin: timeStr(end),
       },
     })
     const u = await setup([seance])
     expect(u.visioEnCours.value).toHaveLength(1)
     expect(u.visioAVenir.value).toHaveLength(0)
+  })
+
+  it('classe en cours une séance qui traverse minuit', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-07-14T23:40:00'))
+
+    try {
+      const seance = makeSeance({
+        visio_active: true,
+        programmation: {
+          date: '2026-07-14',
+          heure_debut: '23:10:00',
+          heure_fin: '00:10:00',
+        },
+      })
+      const u = await setup([seance])
+      expect(u.visioEnCours.value).toHaveLength(1)
+      expect(u.visioAVenir.value).toHaveLength(0)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('classe une séance future en "à venir" et l\'exclut si terminée', async () => {
