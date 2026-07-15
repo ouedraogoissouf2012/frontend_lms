@@ -147,8 +147,8 @@ export function useAdminDashboardData({
 
       calendarEvents.value = events
     } catch (error) {
-      console.error('❌ Erreur chargement événements calendrier:', error)
-      // En cas d'erreur, laisser le calendrier vide
+      // En cas d'erreur backend/proxy, le tableau de bord reste exploitable :
+      // l'intercepteur API journalise déjà l'échec, on évite un doublon ici.
       calendarEvents.value = []
     }
   }

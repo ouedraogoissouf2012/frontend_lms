@@ -30,13 +30,8 @@ export const klassciSeancesService = {
    * @returns {Promise<Array>} Liste des séances enrichies avec infos visio
    */
   async getUpcomingSeances(filters = {}) {
-    try {
-      const response = await api.get(endpoints.lms.seances.upcoming, { params: filters })
-      return response.success ? response.data : []
-    } catch (error) {
-      console.error('Erreur récupération séances à venir:', error)
-      throw error
-    }
+    const response = await api.get(endpoints.lms.seances.upcoming, { params: filters })
+    return response.success ? response.data : []
   },
 
   /**

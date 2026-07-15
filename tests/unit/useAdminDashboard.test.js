@@ -112,6 +112,14 @@ describe('useAdminDashboard (#H3)', () => {
     expect(ev.extendedProps.url).toBe('/coordinateur/seances')
   })
 
+  it('laisse le calendrier vide si les séances à venir échouent', async () => {
+    mockKlassci.getUpcomingSeances.mockRejectedValueOnce(new Error('backend down'))
+
+    const s = await setup()
+
+    expect(s.calendarEvents.value).toEqual([])
+  })
+
   it('expose les helpers de rôle et de titre', async () => {
     mockAuth.getUser.mockReturnValue({ role: 'coordinateur' })
     const s = await setup()

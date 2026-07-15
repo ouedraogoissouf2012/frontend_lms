@@ -6,6 +6,7 @@ import { hasRole as roleHasRole } from '../constants/roles'
 import { normalizeError, logError, shouldForceLogout } from './errorHandler'
 // Carte unique des chemins d'API (#105/#110) — source de vérité des URLs.
 import { endpoints } from './endpoints'
+import { apiBaseUrl } from '../constants/http'
 // useAuthStore : on importe la DÉFINITION au top-level (sûr) ; on n'APPELLE
 // useAuthStore() qu'à la volée dans les méthodes (Pinia actif à l'exécution).
 // Cycle api.js <-> auth.js sans danger : aucune des deux références n'est utilisée
@@ -13,10 +14,9 @@ import { endpoints } from './endpoints'
 import { useAuthStore } from '../stores/auth'
 
 const api = axios.create({
-  // Optional chaining : `import.meta.env` est injecté par Vite au build/dev, mais
-  // vaut `undefined` hors Vite (ex. exécution sous Node pour les tests de contrat).
-  // `?.` évite un crash au chargement du module sans changer le comportement Vite.
-  baseURL: import.meta.env?.VITE_API_URL,
+  // Base unique : en dev, `/api` passe par le proxy Vite et évite les faux CORS
+  // locaux ; en prod, VITE_API_URL reste obligatoire via apiBaseUrl().
+  baseURL: apiBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',

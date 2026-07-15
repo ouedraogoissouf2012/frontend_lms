@@ -20,4 +20,9 @@ describe('vite config — console production guard (#15)', () => {
     expect(worker).not.toMatch(/console\.(log|info|debug)\s*\(/)
     expect(worker).toMatch(/console\.error\s*\(/)
   })
+
+  it('proxyfie API et storage en développement pour éviter les CORS locaux', () => {
+    expect(viteConfig.server?.proxy?.['/api']?.target).toBe('http://localhost:8000')
+    expect(viteConfig.server?.proxy?.['/storage']?.target).toBe('http://localhost:8000')
+  })
 })

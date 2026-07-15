@@ -6,7 +6,7 @@
  * le défaut localhost est confiné au mode développement.
  */
 
-const DEV_API_URL = 'http://localhost:8000/api'
+const DEV_API_URL = '/api'
 
 /** Base de l'API (avec /api). Throw en prod si VITE_API_URL absent. */
 export function apiBaseUrl() {

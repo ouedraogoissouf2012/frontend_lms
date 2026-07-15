@@ -17,12 +17,12 @@ describe('constants/http (#24)', () => {
     expect(() => apiBaseUrl()).toThrow()
   })
 
-  it('H3 — absent + DEV → fallback localhost confiné au dev', () => {
+  it('H3 — absent + DEV → fallback proxy Vite confiné au dev', () => {
     vi.stubEnv('VITE_API_URL', '')
     vi.stubEnv('PROD', false)
     vi.stubEnv('DEV', true)
-    expect(apiBaseUrl()).toBe('http://localhost:8000/api')
-    expect(apiOrigin()).toBe('http://localhost:8000')
+    expect(apiBaseUrl()).toBe('/api')
+    expect(apiOrigin()).toBe('')
   })
 
   it('H4 — VITE_API_URL sans /api → origin inchangé', () => {

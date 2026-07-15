@@ -94,8 +94,6 @@ export default {
     // Initialize theme on mount
     onMounted(() => {
       window.addEventListener('resize', handleResize)
-      console.log('DashboardLayout: Système de notifications activé')
-      console.log('DashboardLayout: Mode mobile =', isMobile.value)
     })
 
     onUnmounted(() => {
