@@ -162,6 +162,7 @@ onBeforeUnmount(() => {
   position: fixed;
   top: 0;
   left: 0;
+  box-sizing: border-box;
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
@@ -173,6 +174,7 @@ onBeforeUnmount(() => {
 }
 
 .modal-container {
+  box-sizing: border-box;
   background: var(--card-bg);
   border-radius: 0.75rem;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
@@ -267,10 +269,32 @@ onBeforeUnmount(() => {
 
 /* Responsive */
 @media (max-width: 768px) {
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0.75rem 0.75rem 0;
+  }
+
   .modal-container {
     max-width: 100%;
+    max-height: calc(100vh - 0.75rem);
     border-radius: 0.75rem 0.75rem 0 0;
-    margin-top: auto;
+    margin-top: 0;
+  }
+
+  .modal-header {
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .modal-body {
+    padding: 1rem;
+  }
+
+  .modal-footer {
+    padding: 0.75rem 1rem;
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 </style>

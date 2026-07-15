@@ -61,6 +61,9 @@ $border-radius-lg: 8px;
 
 .calendar-wrapper {
   padding: 1rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .loading-container {
@@ -203,6 +206,32 @@ $border-radius-lg: 8px;
   }
   50% {
     opacity: 0.8;
+  }
+}
+
+@media (max-width: 640px) {
+  .calendar-wrapper {
+    padding: 0.75rem;
+  }
+
+  :deep(.fc) {
+    min-width: 640px;
+
+    .fc-col-header-cell-cushion {
+      padding: 0.5rem 0.25rem;
+      font-size: 0.75rem;
+    }
+
+    .fc-daygrid-day-number,
+    .fc-timegrid-slot-label {
+      padding: 0.35rem;
+      font-size: 0.75rem;
+    }
+
+    .fc-event {
+      font-size: 0.75rem;
+      white-space: normal;
+    }
   }
 }
 </style>

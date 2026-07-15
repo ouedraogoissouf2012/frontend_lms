@@ -93,6 +93,7 @@ const {
 <style scoped>
 .header-content {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -103,10 +104,12 @@ const {
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .status-badge {
   display: inline-block;
+  align-self: flex-start;
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
   font-size: 0.75rem;
