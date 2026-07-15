@@ -111,6 +111,10 @@ defineProps({
   gap: 0.75rem;
 }
 
+.detail-row > div {
+  min-width: 0;
+}
+
 .detail-icon {
   width: 1.25rem;
   height: 1.25rem;
@@ -130,6 +134,7 @@ defineProps({
   font-size: 0.875rem;
   color: var(--text-primary);
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .visio-section,
