@@ -9,14 +9,17 @@
 import api from './api'
 import { endpoints } from './endpoints'
 
+const getWithOptionalConfig = (url, config = {}) =>
+  Object.keys(config).length > 0 ? api.get(url, config) : api.get(url)
+
 export const klassciStructureService = {
   /**
    * Récupérer toutes les classes depuis KLASSCI
    * @returns {Promise<Array>} Liste des classes
    */
-  async getClasses() {
+  async getClasses(config = {}) {
     try {
-      const response = await api.get(endpoints.klassci.classes)
+      const response = await getWithOptionalConfig(endpoints.klassci.classes, config)
       return response.success ? response.data : []
     } catch (error) {
       console.error('Erreur récupération classes:', error)
@@ -28,9 +31,9 @@ export const klassciStructureService = {
    * Récupérer toutes les matières depuis KLASSCI
    * @returns {Promise<Array>} Liste des matières
    */
-  async getMatieres() {
+  async getMatieres(config = {}) {
     try {
-      const response = await api.get(endpoints.klassci.matieres)
+      const response = await getWithOptionalConfig(endpoints.klassci.matieres, config)
       return response.success ? response.data : []
     } catch (error) {
       console.error('Erreur récupération matières:', error)
@@ -87,9 +90,9 @@ export const klassciStructureService = {
    * @param {number} classeId - ID de la classe
    * @returns {Promise<Array>} Liste des étudiants
    */
-  async getClasseEtudiants(classeId) {
+  async getClasseEtudiants(classeId, config = {}) {
     try {
-      const response = await api.get(endpoints.klassci.classeEtudiants(classeId))
+      const response = await getWithOptionalConfig(endpoints.klassci.classeEtudiants(classeId), config)
       return response.success ? response.data : []
     } catch (error) {
       console.error(`Erreur récupération étudiants classe ${classeId}:`, error)
@@ -101,9 +104,9 @@ export const klassciStructureService = {
    * Récupérer la structure organisationnelle (filières, niveaux) depuis KLASSCI
    * @returns {Promise<Object>} Structure avec filieres et niveaux_etude
    */
-  async getStructure() {
+  async getStructure(config = {}) {
     try {
-      const response = await api.get(endpoints.klassci.structure)
+      const response = await getWithOptionalConfig(endpoints.klassci.structure, config)
       return response.success ? response.data : { filieres: [], niveaux_etude: [] }
     } catch (error) {
       console.error('Erreur récupération structure:', error)

@@ -8,6 +8,9 @@
 import api from './api'
 import { endpoints } from './endpoints'
 
+const getWithOptionalConfig = (url, config = {}) =>
+  Object.keys(config).length > 0 ? api.get(url, config) : api.get(url)
+
 export const klassciAdminService = {
   /**
    * Récupérer la liste des enseignants depuis le LMS (avec classes, matières, stats, etc.)
@@ -48,9 +51,9 @@ export const klassciAdminService = {
    * Récupérer toutes les matières avec combinaisons complètes (admin/coordinateur)
    * @returns {Promise<Object>} Liste des matières enrichies
    */
-  async getAdminMatieres() {
+  async getAdminMatieres(config = {}) {
     try {
-      const response = await api.get(endpoints.admin.matieres)
+      const response = await getWithOptionalConfig(endpoints.admin.matieres, config)
       return response
     } catch (error) {
       console.error('Erreur récupération matières admin:', error)

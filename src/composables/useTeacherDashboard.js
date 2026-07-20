@@ -1,8 +1,17 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { auth } from '@/services/api'
+import { auth, dashboard as dashboardService } from '@/services/api'
 import { klassciService } from '@/services/klassci'
-import { readCache, writeCache } from '@/services/cache'
+import lmsService from '@/services/lms'
+import { clearCache, readCache, writeCache } from '@/services/cache'
+import {
+  buildTeacherDashboardFallback,
+  hasDashboardContent,
+  normalizeTeacherDashboard,
+  normalizeTeacherDashboardPayload,
+} from '@/utils/teacherDashboard'
+
+const CACHE_NAME = 'teacher_dashboard'
 
 /**
  * Couche données du dashboard enseignant (#H11 ≤300) : utilisateur courant +
@@ -17,40 +26,55 @@ export function useTeacherDashboard() {
   const loading = ref(false)
   const error = ref(null)
 
+  async function loadFallbackDashboard() {
+    const localDashboard = normalizeTeacherDashboardPayload(
+      await dashboardService.getTeacherDashboard().catch(() => null)
+    )
+    if (hasDashboardContent(localDashboard)) return localDashboard
+    return await buildTeacherDashboardFallback(lmsService, user.value)
+  }
+
   async function loadDashboard(forceRefresh = false) {
     // Vérifier le cache si pas de force refresh
     if (!forceRefresh) {
-      const data = readCache('teacher_dashboard')
-      if (data !== null) {
-        console.log('📦 Dashboard enseignant chargé depuis le cache')
+      const data = normalizeTeacherDashboard(readCache(CACHE_NAME))
+      if (hasDashboardContent(data)) {
         dashboardData.value = data
         return
       }
+      clearCache(CACHE_NAME)
     }
 
     loading.value = true
     error.value = null
 
     try {
-      console.log('fa-bar-chart Chargement dashboard enseignant depuis KLASSCI...')
-      const data = await klassciService.getTeacherDashboard()
-      dashboardData.value = data
+      const data = normalizeTeacherDashboard(await klassciService.getTeacherDashboard())
+      if (hasDashboardContent(data)) {
+        dashboardData.value = data
+        writeCache(CACHE_NAME, data)
+        return
+      }
 
-      // Mettre en cache
-      writeCache('teacher_dashboard', data)
-
-      console.log('fa-check-circle Dashboard chargé:', data)
-
-      // Logs détaillés pour debug
-      if (data) {
-        console.log('fa-book Matières:', data.matieres)
-        console.log('🏫 Classes:', data.classes)
-        console.log('fa-pencil Évaluations:', data.evaluations)
-        console.log('fa-bar-chart Stats:', data.statistiques)
+      const apiFallback = await loadFallbackDashboard()
+      dashboardData.value = hasDashboardContent(apiFallback) ? apiFallback : data
+      if (hasDashboardContent(dashboardData.value)) {
+        writeCache(CACHE_NAME, dashboardData.value)
       }
     } catch (err) {
-      console.error('fa-times-circle Erreur chargement dashboard:', err)
-      error.value = 'Impossible de charger vos données. Veuillez réessayer.'
+      const cachedFallback = normalizeTeacherDashboard(readCache(CACHE_NAME))
+      if (hasDashboardContent(cachedFallback)) {
+        dashboardData.value = normalizeTeacherDashboard(cachedFallback)
+        error.value = null
+        return
+      }
+
+      const apiFallback = await loadFallbackDashboard()
+      dashboardData.value = apiFallback
+      if (hasDashboardContent(apiFallback)) {
+        writeCache(CACHE_NAME, apiFallback)
+      }
+      error.value = null
     } finally {
       loading.value = false
     }
@@ -67,26 +91,21 @@ export function useTeacherDashboard() {
   }
 
   function navigateToMatiere(matiere) {
-    console.log('fa-search Structure matière reçue:', matiere)
-
-    // Essayer différentes propriétés
+    // L'id peut arriver sous plusieurs formes selon la source (KLASSCI/LMS).
     const matiereId = matiere.matiere_id || matiere.id || matiere.matiere?.id
 
     if (matiereId) {
-      console.log('fa-book Navigation vers matière:', matiereId)
       router.push({
         name: 'matiere-details',
         params: { id: matiereId }
       })
     } else {
-      console.error('fa-times-circle ID matière non trouvé:', matiere)
       error.value = 'Impossible de naviguer vers cette matière'
     }
   }
 
   onMounted(() => {
     user.value = auth.getUser()
-    console.log('fa-user Teacher User:', user.value)
 
     // Charger le dashboard KLASSCI
     loadDashboard()

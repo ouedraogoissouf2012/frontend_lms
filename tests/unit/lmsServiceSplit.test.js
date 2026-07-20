@@ -4,7 +4,14 @@
  * méthodes des modules domaine, que chaque module porte sa responsabilité, et
  * que le doublon getClasses a bien été retiré.
  */
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+const getMock = vi.hoisted(() => vi.fn())
+
+vi.mock('@/services/api', () => ({
+  default: { get: (...args) => getMock(...args) }
+}))
+
 import lmsService, {
   lmsClassesService,
   lmsMatieresService,
@@ -42,6 +49,10 @@ const DOMAINS = {
 }
 
 describe('lms.js — split par domaine (#26)', () => {
+  beforeEach(() => {
+    getMock.mockReset()
+  })
+
   it('chaque module domaine porte exactement ses méthodes', () => {
     for (const [name, { svc, methods }] of Object.entries(DOMAINS)) {
       for (const m of methods) {
@@ -64,5 +75,14 @@ describe('lms.js — split par domaine (#26)', () => {
 
   it('le doublon getClasses a été retiré de lmsService (#26)', () => {
     expect(lmsService.getClasses).toBeUndefined()
+  })
+
+  it('getUpcomingSeances applique un timeout court sur l’endpoint lent', async () => {
+    getMock.mockResolvedValue({ success: true, data: [] })
+    await lmsService.getUpcomingSeances({ days: 30 })
+    expect(getMock).toHaveBeenCalledWith('/lms/seances/upcoming', {
+      params: { days: 30 },
+      timeout: 5000
+    })
   })
 })

@@ -1,6 +1,8 @@
 import api from './api'
 import { endpoints } from './endpoints'
 
+const UPCOMING_SEANCES_TIMEOUT_MS = 5000
+
 /**
  * Service LMS — domaine SÉANCES & PRÉSENCES (`/lms/seances/*`, `/lms/attendance*`).
  * Couvre le cycle de vie des séances (hors visio, cf. lmsVisioService) :
@@ -16,7 +18,10 @@ export const lmsSeancesService = {
    */
   async getUpcomingSeances(params = {}) {
     try {
-      return await api.get(endpoints.lms.seances.upcoming, { params })
+      return await api.get(endpoints.lms.seances.upcoming, {
+        params,
+        timeout: UPCOMING_SEANCES_TIMEOUT_MS
+      })
     } catch (error) {
       console.error('Erreur récupération séances à venir:', error)
       throw error
@@ -95,13 +100,8 @@ export const lmsSeancesService = {
    * @returns {Promise<Object>} { success, data: [...] }
    */
   async getMyTeachingSeances(forceRefresh = false) {
-    try {
-      const params = forceRefresh ? { refresh: true } : {}
-      return await api.get(endpoints.lms.seances.myTeaching, { params })
-    } catch (error) {
-      console.error('Erreur récupération mes séances enseignant:', error)
-      throw error
-    }
+    const params = forceRefresh ? { refresh: true } : {}
+    return await api.get(endpoints.lms.seances.myTeaching, { params })
   },
 
   /**
