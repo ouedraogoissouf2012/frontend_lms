@@ -12,15 +12,15 @@
           <div class="evaluation-meta">
             <span class="meta-badge meta-enseignant">
               <UserIcon class="w-3 h-3" />
-              {{ evaluation.enseignant_nom || 'Ens. inconnu' }}
+              {{ teacherName(evaluation) }}
             </span>
             <span class="meta-badge meta-matiere">
               <BookOpenIcon class="w-3 h-3" />
-              {{ evaluation.matiere?.nom || 'Matière inconnue' }}
+              {{ matiereName(evaluation) }}
             </span>
             <span class="meta-badge meta-classe">
               <UserGroupIcon class="w-3 h-3" />
-              {{ evaluation.classe?.nom || evaluation.classe?.libelle || 'Classe inconnue' }}
+              {{ classeName(evaluation) }}
             </span>
           </div>
         </div>
@@ -89,6 +89,7 @@ import {
   ChartBarIcon,
   EyeIcon
 } from '@heroicons/vue/24/outline'
+import { classeName, matiereName, teacherName } from '@/utils/evaluationDisplay'
 
 defineProps({
   evaluations: { type: Array, default: () => [] },

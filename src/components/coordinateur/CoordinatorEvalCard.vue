@@ -6,15 +6,15 @@
         <div class="evaluation-meta">
           <span class="meta-badge meta-enseignant">
             <UserIcon class="w-3 h-3" />
-            {{ evaluation.enseignant_nom || 'Ens. inconnu' }}
+            {{ teacherName(evaluation) }}
           </span>
           <span class="meta-badge meta-matiere">
             <BookOpenIcon class="w-3 h-3" />
-            {{ evaluation.matiere?.nom || 'Matière inconnue' }}
+            {{ matiereName(evaluation) }}
           </span>
           <span class="meta-badge meta-classe">
             <UserGroupIcon class="w-3 h-3" />
-            {{ evaluation.classe?.nom || evaluation.classe?.libelle || 'Classe inconnue' }}
+            {{ classeName(evaluation) }}
           </span>
         </div>
       </div>
@@ -65,12 +65,6 @@
 </template>
 
 <script setup>
-/**
- * Carte d'une évaluation (vue coordinateur, H2 ≤300). Section présentationnelle
- * extraite verbatim de CoordinatorEvaluations.vue : reçoit l'évaluation en prop,
- * émet `view-results` / `view-details` (avec l'id). Le statut « terminée » conditionne
- * l'accès aux détails (statut effectif backend, fallback status).
- */
 import {
   UserIcon,
   UserGroupIcon,
@@ -81,6 +75,7 @@ import {
   ChartBarIcon,
   EyeIcon
 } from '@heroicons/vue/24/outline'
+import { classeName, matiereName, teacherName } from '@/utils/evaluationDisplay'
 
 defineProps({
   evaluation: { type: Object, required: true }

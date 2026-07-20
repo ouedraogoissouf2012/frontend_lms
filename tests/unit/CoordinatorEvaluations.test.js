@@ -7,7 +7,7 @@
 import { mount, flushPromises } from '@vue/test-utils'
 import { describe, it, expect, vi } from 'vitest'
 
-const get = vi.fn().mockResolvedValue({ data: [] })
+const get = vi.hoisted(() => vi.fn().mockResolvedValue({ data: [] }))
 
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: vi.fn() })
@@ -16,27 +16,45 @@ vi.mock('vue-router', () => ({
 vi.mock('@/services/api', () => ({
   default: { get }
 }))
+vi.mock('@/services/cache', () => ({ readCache: vi.fn(() => null), writeCache: vi.fn() }))
 
-const stubs = {
-  DashboardLayout: { template: '<div><slot /></div>' },
-  ContentLoader: { template: '<div class="content-loader" />' }
-}
+vi.mock('@/components/layout/DashboardLayout.vue', () => ({
+  default: { name: 'DashboardLayout', template: '<div><slot /></div>' }
+}))
+
+vi.mock('@/components/common/ContentLoader.vue', () => ({
+  default: { name: 'ContentLoader', template: '<div class="content-loader" />' }
+}))
+
+vi.mock('@/components/coordinateur/CoordinatorEvalStats.vue', () => ({
+  default: { name: 'CoordinatorEvalStats', props: ['stats'], template: '<section />' }
+}))
+
+vi.mock('@/components/coordinateur/CoordinatorEvalFilters.vue', () => ({
+  default: {
+    name: 'CoordinatorEvalFilters',
+    props: ['filters', 'enseignants', 'classes', 'matieres'],
+    template: '<section />'
+  }
+}))
+
+vi.mock('@/components/coordinateur/CoordinatorEvalCard.vue', () => ({
+  default: { name: 'CoordinatorEvalCard', props: ['evaluation'], template: '<article />' }
+}))
+
+import CoordinatorEvaluations from '@/views/coordinateur/CoordinatorEvaluations.vue'
 
 describe('CoordinatorEvaluations (G3) — montage', () => {
   it('monte sans erreur et affiche le titre global', async () => {
-    const w = mount((await import('@/views/coordinateur/CoordinatorEvaluations.vue')).default, {
-      global: { stubs }
-    })
+    const w = mount(CoordinatorEvaluations)
     await flushPromises()
     expect(w.find('.page-title').text()).toBe('Toutes les Évaluations')
   })
 
   it('charge les évaluations via /evaluations et termine en loading=false', async () => {
-    const w = mount((await import('@/views/coordinateur/CoordinatorEvaluations.vue')).default, {
-      global: { stubs }
-    })
+    const w = mount(CoordinatorEvaluations)
     await flushPromises()
-    expect(get).toHaveBeenCalledWith('/evaluations')
+    expect(get).toHaveBeenCalledWith('/evaluations', { timeout: 15000 })
     expect(w.vm.loading).toBe(false)
   })
 })

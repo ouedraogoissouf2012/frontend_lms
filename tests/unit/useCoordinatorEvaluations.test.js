@@ -11,7 +11,13 @@ const push = vi.fn()
 vi.mock('vue-router', () => ({ useRouter: () => ({ push }) }))
 
 const get = vi.fn()
+const readCache = vi.fn()
+const writeCache = vi.fn()
 vi.mock('@/services/api', () => ({ default: { get: (...a) => get(...a) } }))
+vi.mock('@/services/cache', () => ({
+  readCache: (...a) => readCache(...a),
+  writeCache: (...a) => writeCache(...a)
+}))
 
 import { useCoordinatorEvaluations } from '@/composables/useCoordinatorEvaluations'
 
@@ -35,14 +41,21 @@ async function setup() {
   return api
 }
 
-beforeEach(() => { push.mockClear(); get.mockReset(); mockApi() })
+beforeEach(() => {
+  push.mockClear()
+  get.mockReset()
+  readCache.mockReset().mockReturnValue(null)
+  writeCache.mockReset()
+  mockApi()
+})
 
 describe('useCoordinatorEvaluations (H2)', () => {
   it('charge les évaluations et dérive les enseignants triés', async () => {
     const u = await setup()
-    expect(get).toHaveBeenCalledWith('/evaluations')
+    expect(get).toHaveBeenCalledWith('/evaluations', { timeout: 15000 })
     expect(u.evaluations.value).toHaveLength(2)
     expect(u.enseignants.value.map(e => e.name)).toEqual(['Ada', 'Zoé'])
+    expect(writeCache).toHaveBeenCalledWith('coordinator_evaluations', expect.any(Array))
     expect(u.loading.value).toBe(false)
   })
 
@@ -77,5 +90,118 @@ describe('useCoordinatorEvaluations (H2)', () => {
     const u = await setup()
     expect(u.error.value).toBe('Boom')
     expect(u.loading.value).toBe(false)
+  })
+
+  it('sert le cache des évaluations si /evaluations est trop lent ou échoue', async () => {
+    readCache.mockImplementation((key) => (key === 'coordinator_evaluations' ? EVALS : null))
+    get.mockReset()
+    get.mockRejectedValue(new Error('timeout'))
+
+    const u = await setup()
+
+    expect(u.evaluations.value).toHaveLength(2)
+    expect(u.error.value).toBe(null)
+    expect(u.loading.value).toBe(false)
+  })
+
+  it('termine le chargement même si classes/matières restent pendantes', async () => {
+    get.mockReset()
+    get.mockImplementation((url) => {
+      if (url === '/evaluations') return Promise.resolve({ data: EVALS })
+      return new Promise(() => {})
+    })
+
+    const u = await setup()
+
+    expect(u.loading.value).toBe(false)
+    expect(u.evaluations.value).toHaveLength(2)
+    expect(u.error.value).toBe(null)
+  })
+
+  it('normalise les enveloppes imbriquées pour évaluations/classes/matières', async () => {
+    get.mockReset()
+    get.mockImplementation((url) => {
+      if (url === '/evaluations') return Promise.resolve({ success: true, data: { data: EVALS } })
+      if (url === '/proxy/enseignants') return Promise.resolve({ success: true, data: { enseignants: [{ id: 10, nom: 'Zoé' }] } })
+      if (url === '/proxy/classes') return Promise.resolve({ success: true, data: { classes: [{ id: 5 }] } })
+      if (url === '/proxy/matieres') return Promise.resolve({ success: true, data: { matieres: [{ id: 7 }] } })
+      return Promise.resolve({ data: [] })
+    })
+
+    const u = await setup()
+    await flushPromises()
+
+    expect(u.evaluations.value).toHaveLength(2)
+    expect(u.classes.value).toEqual([{ id: 5 }])
+    expect(u.matieres.value).toEqual([{ id: 7 }])
+  })
+
+  it('enrichit les noms manquants depuis les références API et les persiste', async () => {
+    get.mockReset()
+    get.mockImplementation((url) => {
+      if (url === '/evaluations') {
+        return Promise.resolve({
+          data: [
+            {
+              id: 3,
+              titre: 'C',
+              enseignant_id: 21,
+              classe_id: 5,
+              matiere_id: 7,
+              status: 'planifiee'
+            }
+          ]
+        })
+      }
+      if (url === '/proxy/enseignants') return Promise.resolve({ data: [{ id: 21, nom: 'BEDE', prenom: 'ABEL TEST' }] })
+      if (url === '/proxy/classes') return Promise.resolve({ data: [{ id: 5, name: 'B2 COM' }] })
+      if (url === '/proxy/matieres') return Promise.resolve({ data: [{ id: 7, nom: 'Marketing digital' }] })
+      return Promise.resolve({ data: [] })
+    })
+
+    const u = await setup()
+    await flushPromises()
+
+    expect(u.evaluations.value[0]).toMatchObject({
+      enseignant_nom: 'BEDE ABEL TEST',
+      classe_nom: 'B2 COM',
+      matiere_nom: 'Marketing digital'
+    })
+    expect(writeCache).toHaveBeenCalledWith('coordinator_evaluation_references', {
+      enseignants: expect.arrayContaining([expect.objectContaining({ klassci_id: '21', name: 'BEDE ABEL TEST' })]),
+      classes: [{ id: 5, name: 'B2 COM' }],
+      matieres: [{ id: 7, nom: 'Marketing digital' }]
+    })
+  })
+
+  it('réutilise les références persistées pour corriger les cartes au rechargement', async () => {
+    readCache.mockImplementation((key) => {
+      if (key === 'coordinator_evaluation_references') {
+        return {
+          enseignants: [{ id: 21, nom: 'BEDE', prenom: 'ABEL TEST' }],
+          classes: [{ id: 5, name: 'B2 COM' }],
+          matieres: [{ id: 7, nom: 'Marketing digital' }]
+        }
+      }
+      return null
+    })
+    get.mockReset()
+    get.mockImplementation((url) => {
+      if (url === '/evaluations') {
+        return Promise.resolve({ data: [{ id: 3, enseignant_id: 21, classe_id: 5, matiere_id: 7, status: 'planifiee' }] })
+      }
+      return Promise.resolve({ data: [] })
+    })
+
+    const u = await setup()
+    await flushPromises()
+
+    expect(u.evaluations.value[0]).toMatchObject({
+      enseignant_nom: 'BEDE ABEL TEST',
+      classe_nom: 'B2 COM',
+      matiere_nom: 'Marketing digital'
+    })
+    expect(get).not.toHaveBeenCalledWith('/proxy/classes', expect.anything())
+    expect(get).not.toHaveBeenCalledWith('/proxy/matieres', expect.anything())
   })
 })
