@@ -85,6 +85,27 @@ describe('useNavbar (#H12)', () => {
     expect(api.breadcrumbs.value.at(-1).to).toBe('/teacher/lessons')
   })
 
+  it('redirige le breadcrumb admin évaluations vers la page résultats existante', () => {
+    getUser.mockReturnValue({ role: 'coordinateur' })
+    const { api } = run({ path: '/admin/evaluations/2/details', meta: {} })
+    const evaluationsCrumb = api.breadcrumbs.value.find(c => c.label === 'Évaluations')
+    expect(evaluationsCrumb.to).toBe('/admin/evaluations/results')
+  })
+
+  it('redirige le breadcrumb coordinateur vers le dashboard existant', () => {
+    getUser.mockReturnValue({ role: 'coordinateur' })
+    const { api } = run({ path: '/coordinateur/seances', meta: {} })
+    const coordinateurCrumb = api.breadcrumbs.value.find(c => c.label === 'Coordinateur')
+    expect(coordinateurCrumb.to).toBe('/admin/dashboard')
+  })
+
+  it('ne génère pas de liens invalides pour les parents purement structurels', () => {
+    getUser.mockReturnValue({ role: 'coordinateur' })
+    const { api } = run({ path: '/classes/12', meta: {} })
+    const classesCrumb = api.breadcrumbs.value.find(c => c.label === 'Classes')
+    expect(classesCrumb.to).toBe(null)
+  })
+
   it('dérive les URLs profil/paramètres selon le rôle (enseignant)', () => {
     getUser.mockReturnValue({ role: 'enseignant' })
     const { api } = run()

@@ -5,19 +5,23 @@
  */
 import { mount, flushPromises } from '@vue/test-utils'
 import { defineComponent } from 'vue'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+const klassciMock = vi.hoisted(() => ({
+  getClasses: vi.fn(),
+  getMatieres: vi.fn(),
+  getEnseignants: vi.fn(),
+}))
+const dashboardMock = vi.hoisted(() => ({
+  getStats: vi.fn(),
+}))
 
 vi.mock('@/services/klassci', () => ({
-  klassciService: {
-    getClasses: () => Promise.resolve([{ id: 1 }, { id: 2 }]),
-    getMatieres: () => Promise.resolve([{ id: 1 }, { id: 2 }, { id: 3 }]),
-    getEnseignants: () => Promise.resolve([{ id: 1 }]),
-    getAdminDashboard: () => Promise.resolve({
-      total_etudiants: 42,
-      nb_seances: 8,
-      total_evaluations: 5,
-    }),
-  },
+  klassciService: klassciMock,
+}))
+
+vi.mock('@/services/api', () => ({
+  dashboard: dashboardMock,
 }))
 
 import { useAdminHub } from '@/composables/useAdminHub'
@@ -31,6 +35,20 @@ async function setup() {
 }
 
 describe('useAdminHub (#G1)', () => {
+  beforeEach(() => {
+    klassciMock.getClasses.mockReset().mockResolvedValue([
+      { id: 1, places_occupees: 10 },
+      { id: 2, nb_etudiants: 5 },
+    ])
+    klassciMock.getMatieres.mockReset().mockResolvedValue([{ id: 1 }, { id: 2 }, { id: 3 }])
+    klassciMock.getEnseignants.mockReset().mockResolvedValue([{ id: 1 }])
+    dashboardMock.getStats.mockReset().mockResolvedValue({
+      quizzes: { total: 5 },
+      seances: { total: 8 },
+      users: { students: 42 },
+    })
+  })
+
   it('compte classes, matières et enseignants', async () => {
     const h = await setup()
     expect(h.stats.value.classes).toBe(2)
@@ -41,8 +59,24 @@ describe('useAdminHub (#G1)', () => {
 
   it('lit les stats dashboard avec tolérance des variantes de clés', async () => {
     const h = await setup()
-    expect(h.stats.value.etudiants).toBe(42) // total_etudiants
-    expect(h.stats.value.seances).toBe(8)    // nb_seances
-    expect(h.stats.value.evaluations).toBe(5) // total_evaluations
+    expect(h.stats.value.etudiants).toBe(15) // somme des classes KLASSCI prioritaire
+    expect(h.stats.value.seances).toBe(8)
+    expect(h.stats.value.evaluations).toBe(5)
+  })
+
+  it('retombe sur dashboard.users.students si les classes ne portent pas de compteur étudiants', async () => {
+    klassciMock.getClasses.mockResolvedValue([{ id: 1 }, { id: 2 }])
+    const h = await setup()
+    expect(h.stats.value.etudiants).toBe(42)
+  })
+
+  it('reste robuste si dashboard.getStats échoue', async () => {
+    dashboardMock.getStats.mockRejectedValueOnce(new Error('down'))
+    const h = await setup()
+    expect(h.stats.value.classes).toBe(2)
+    expect(h.stats.value.matieres).toBe(3)
+    expect(h.stats.value.enseignants).toBe(1)
+    expect(h.stats.value.evaluations).toBe(0)
+    expect(h.loading.value).toBe(false)
   })
 })
