@@ -46,7 +46,7 @@
           class="btn-reset"
           title="Réinitialiser tous les filtres"
         >
-          <ArrowPathIcon class="w-4 h-4" />
+          <i class="fa fa-rotate-right reset-icon" aria-hidden="true"></i>
           Réinitialiser
         </button>
       </div>
@@ -59,10 +59,6 @@
  * Barre de filtres d'AdminClasses (#G1 ≤300). Filière / niveau / statut en v-model
  * (defineModel) ; listes filieres/niveaux en props. Émet apply (au changement) et
  * reset. Aucun appel API.
- *
- * NB parité : <ArrowPathIcon> n'était PAS importé dans AdminClasses.vue d'origine
- * (ni globalement enregistré) → composant non résolu, rendu vide sans icône. On
- * conserve ce comportement à l'identique (bug préexistant tracé, non « corrigé »).
  */
 const filiereId = defineModel('filiereId', { default: '' })
 const niveauId = defineModel('niveauId', { default: '' })
@@ -161,6 +157,11 @@ defineEmits(['apply', 'reset'])
   background: var(--bg-hover);
   color: var(--text-primary);
   transform: translateY(-1px);
+}
+
+.reset-icon {
+  font-size: 0.875rem;
+  line-height: 1;
 }
 
 /* Responsive */

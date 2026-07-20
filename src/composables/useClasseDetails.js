@@ -1,7 +1,8 @@
 import { ref, computed, onMounted, getCurrentInstance } from 'vue'
 import lmsService from '@/services/lms'
-import klassciService from '@/services/klassci'
 import { auth } from '@/services/api'
+
+const asArray = (value) => Array.isArray(value) ? value : []
 
 /**
  * Couche données de ClasseDetails (#H9 ≤300) : charge la classe enrichie
@@ -56,13 +57,12 @@ export function useClasseDetails() {
         classe.value = data.data.classe
         evaluations.value = data.data.evaluations_programmees || []
         emploiTemps.value = data.data.emploi_temps_semaine || []
+        matieres.value = asArray(data.data.matieres_disponibles || data.data.matieres || classe.value?.matieres)
         statistiques.value = data.data.statistiques
 
         console.log('[ClasseDetails] Classe:', classe.value)
+        console.log('[ClasseDetails] Matières:', matieres.value.length)
         console.log('[ClasseDetails] Évaluations:', evaluations.value.length)
-
-        // Charger les matières directement depuis KLASSCI (comme AdminDashboard)
-        await loadMatieres()
 
         // Charger les étudiants
         await loadEtudiants()
@@ -89,18 +89,6 @@ export function useClasseDetails() {
       }
     } catch (err) {
       console.error('[ClasseDetails] Erreur chargement étudiants:', err)
-    }
-  }
-
-  async function loadMatieres() {
-    try {
-      // Charger toutes les matières depuis KLASSCI (comme AdminDashboard)
-      const matieresData = await klassciService.getMatieres()
-      matieres.value = matieresData || []
-      console.log('[ClasseDetails] Matières chargées depuis KLASSCI:', matieres.value.length)
-    } catch (err) {
-      console.error('[ClasseDetails] Erreur chargement matières:', err)
-      matieres.value = []
     }
   }
 

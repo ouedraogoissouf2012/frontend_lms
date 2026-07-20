@@ -3,11 +3,14 @@
     <div class="widget-header">
       <UserGroupIcon class="widget-icon text-blue-600" />
       <h2 class="widget-title">Utilisateurs Récents</h2>
-      <router-link to="/admin/users" class="view-all-link">Voir tout</router-link>
+      <span v-if="users.length > 0" class="widget-count">
+        {{ displayedUsers.length }}/{{ users.length }}
+      </span>
+      <router-link :to="viewAllTo" class="view-all-link">Voir tout</router-link>
     </div>
-    <div v-if="users.length > 0" class="users-list">
+    <div v-if="displayedUsers.length > 0" class="users-list">
       <div
-        v-for="recentUser in users"
+        v-for="recentUser in displayedUsers"
         :key="recentUser.id"
         class="user-item"
       >
@@ -26,7 +29,13 @@
         </div>
       </div>
     </div>
-    <div v-else class="empty-state-inline">
+    <div v-if="hiddenCount > 0" class="preview-footer">
+      <span>{{ hiddenCount }} autre{{ hiddenCount > 1 ? 's' : '' }} utilisateur{{ hiddenCount > 1 ? 's' : '' }} récent{{ hiddenCount > 1 ? 's' : '' }}</span>
+      <router-link :to="viewAllTo" class="preview-link">
+        Ouvrir la liste complète
+      </router-link>
+    </div>
+    <div v-if="displayedUsers.length === 0" class="empty-state-inline">
       <UserGroupIcon class="empty-icon" />
       <p class="empty-message">Aucun utilisateur récent</p>
     </div>
@@ -40,13 +49,23 @@
  * formatage partagé pour rester verbatim au rendu d'origine.
  */
 import { UserGroupIcon } from '@heroicons/vue/24/outline'
+import { computed } from 'vue'
 import { useDashboardFormatters } from '@/composables/useDashboardFormatters'
 
-defineProps({
+const props = defineProps({
   users: { type: Array, default: () => [] },
+  limit: { type: Number, default: 5 },
+  viewAllTo: { type: String, default: '/admin/users' },
 })
 
 const { getInitials, getRoleLabel, getRoleClass, formatDate } = useDashboardFormatters()
+
+const displayedUsers = computed(() => {
+  if (!props.limit || props.limit < 1) return props.users
+  return props.users.slice(0, props.limit)
+})
+
+const hiddenCount = computed(() => Math.max(props.users.length - displayedUsers.value.length, 0))
 </script>
 
 <style scoped>
@@ -76,6 +95,7 @@ const { getInitials, getRoleLabel, getRoleClass, formatDate } = useDashboardForm
   color: var(--text-primary);
   margin: 0;
   flex: 1;
+  min-width: 0;
 }
 
 /* Empty state inline */
@@ -106,6 +126,25 @@ const { getInitials, getRoleLabel, getRoleClass, formatDate } = useDashboardForm
 }
 
 .view-all-link:hover {
+  color: var(--color-info-strong);
+  text-decoration: underline;
+}
+
+.widget-count {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.preview-link {
+  font-size: 0.875rem;
+  color: var(--blue-500);
+  text-decoration: none;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.preview-link:hover {
   color: var(--color-info-strong);
   text-decoration: underline;
 }
@@ -213,6 +252,18 @@ const { getInitials, getRoleLabel, getRoleClass, formatDate } = useDashboardForm
   color: var(--text-tertiary);
 }
 
+.preview-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
 @media (max-width: 768px) {
   .user-item {
     padding: 0.75rem;
@@ -234,6 +285,12 @@ const { getInitials, getRoleLabel, getRoleClass, formatDate } = useDashboardForm
 
   .user-meta {
     display: none;
+  }
+
+  .widget-header,
+  .preview-footer {
+    align-items: flex-start;
+    flex-wrap: wrap;
   }
 }
 </style>
