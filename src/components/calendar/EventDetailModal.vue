@@ -2,6 +2,11 @@
   <Modal
     :model-value="true"
     size="lg"
+    teleport
+    overlay-class="calendar-event-modal-overlay"
+    container-class="calendar-event-modal-container"
+    body-class="calendar-event-modal-body"
+    footer-class="calendar-event-modal-footer"
     @close="$emit('close')"
   >
     <template #header>
@@ -133,4 +138,29 @@ const {
   color: var(--gray-500);
 }
 
+</style>
+
+<style>
+@media (max-width: 520px) {
+  .calendar-event-modal-overlay {
+    align-items: stretch;
+    padding: 0;
+  }
+
+  .calendar-event-modal-container {
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+
+  .calendar-event-modal-body {
+    padding: 1rem;
+    overflow-y: auto;
+  }
+
+  .calendar-event-modal-footer {
+    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
+  }
+}
 </style>

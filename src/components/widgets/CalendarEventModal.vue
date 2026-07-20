@@ -3,6 +3,11 @@
     :model-value="true"
     :title="event.title"
     size="md"
+    teleport
+    overlay-class="widget-calendar-event-modal-overlay"
+    container-class="widget-calendar-event-modal-container"
+    body-class="widget-calendar-event-modal-body"
+    footer-class="widget-calendar-event-modal-footer"
     @close="$emit('close')"
   >
     <div class="event-detail">
@@ -140,5 +145,30 @@ function formatEventTime(date) {
   background: var(--color-info-strong);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+</style>
+
+<style>
+@media (max-width: 520px) {
+  .widget-calendar-event-modal-overlay {
+    align-items: stretch;
+    padding: 0;
+  }
+
+  .widget-calendar-event-modal-container {
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+
+  .widget-calendar-event-modal-body {
+    padding: 1rem;
+    overflow-y: auto;
+  }
+
+  .widget-calendar-event-modal-footer {
+    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
+  }
 }
 </style>

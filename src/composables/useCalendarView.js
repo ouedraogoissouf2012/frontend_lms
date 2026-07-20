@@ -140,6 +140,7 @@ export function useCalendarView({ calendarRef, filteredEvents, onEventClick }) {
 
   return {
     currentView,
+    currentDate,
     currentMonthLabel,
     calendarOptions,
     changeView,

@@ -43,6 +43,7 @@ function mountCalendar(props = {}) {
         CalendarNavigation: true,
         CalendarFilters: true,
         CalendarView: true,
+        CalendarCompactAgenda: true,
         CalendarLegend: true,
         EventDetailModal: true
       }
@@ -59,5 +60,10 @@ describe('UniversalCalendar.vue (#28bis) — montage smoke', () => {
   it('déclenche loadEvents au montage', () => {
     mountCalendar()
     expect(loadEvents).toHaveBeenCalled()
+  })
+
+  it('monte aussi la surface agenda compacte', () => {
+    const w = mountCalendar()
+    expect(w.findComponent({ name: 'CalendarCompactAgenda' }).exists()).toBe(true)
   })
 })

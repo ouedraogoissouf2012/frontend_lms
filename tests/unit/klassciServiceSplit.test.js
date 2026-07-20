@@ -95,4 +95,23 @@ describe('klassci.js — split par domaine (G9)', () => {
     await klassciService.getMyCourses({ matiere_id: 5, enseignant_id: 7 })
     expect(getMock).toHaveBeenCalledWith('/lessons/my-courses?matiere_id=5&enseignant_id=7')
   })
+
+  it('getUpcomingSeances applique un timeout court pour ne pas bloquer le dashboard', async () => {
+    getMock.mockResolvedValue({ success: true, data: [] })
+    const data = await klassciService.getUpcomingSeances({ days: 30 })
+    expect(getMock).toHaveBeenCalledWith('/lms/seances/upcoming', {
+      params: { days: 30 },
+      timeout: 5000
+    })
+    expect(data).toEqual([])
+  })
+
+  it('getSeances applique aussi le timeout court sur l’endpoint lent', async () => {
+    getMock.mockResolvedValue({ success: true, data: [] })
+    await klassciService.getSeances({ days: 30 })
+    expect(getMock).toHaveBeenCalledWith('/lms/seances/upcoming', {
+      params: { days: 30 },
+      timeout: 5000
+    })
+  })
 })

@@ -31,10 +31,17 @@
     />
 
     <!-- ========== CALENDAR CARD (H8 : extraite en sous-composant) ========== -->
-    <CalendarView
-      ref="calendarViewRef"
-      :options="calendarOptions"
-      :loading="loading"
+    <div class="desktop-calendar-surface">
+      <CalendarView
+        ref="calendarViewRef"
+        :options="calendarOptions"
+        :loading="loading"
+      />
+    </div>
+
+    <CalendarCompactAgenda
+      :events="compactEvents"
+      @select="selectedEvent = $event"
     />
 
     <!-- ========== LEGEND CARD (H8 : extraite en sous-composant) ========== -->
@@ -68,6 +75,7 @@ import { useRouter } from 'vue-router'
 import CalendarNavigation from './CalendarNavigation.vue'
 import CalendarFilters from './CalendarFilters.vue'
 import CalendarView from './CalendarView.vue'
+import CalendarCompactAgenda from './CalendarCompactAgenda.vue'
 import CalendarLegend from './CalendarLegend.vue'
 import EventDetailModal from './EventDetailModal.vue'
 // #28bis : données + chargement extraits dans le composable (couleurs/urgence/bornes
@@ -150,10 +158,20 @@ const filteredEvents = computed(() => {
 })
 
 // État de la vue FullCalendar (options, navigation, sync) délégué au composable (H8)
-const { currentView, currentMonthLabel, calendarOptions, changeView, previousMonth, nextMonth, goToToday } = useCalendarView({
+const { currentView, currentDate, currentMonthLabel, calendarOptions, changeView, previousMonth, nextMonth, goToToday } = useCalendarView({
   calendarRef: calendarViewRef,
   filteredEvents,
   onEventClick: (event) => { selectedEvent.value = event }
+})
+
+const compactEvents = computed(() => {
+  const start = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth(), 1)
+  const end = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth() + 1, 1)
+
+  return filteredEvents.value.filter((event) => {
+    const timestamp = new Date(event.start).getTime()
+    return !Number.isNaN(timestamp) && timestamp >= start.getTime() && timestamp < end.getTime()
+  })
 })
 
 // Charger les données
@@ -218,6 +236,16 @@ defineExpose({
       justify-self: stretch;
       justify-content: center;
     }
+  }
+}
+
+@media (max-width: 520px) {
+  .calendar-container {
+    padding: 0.75rem;
+  }
+
+  .desktop-calendar-surface {
+    display: none;
   }
 }
 </style>

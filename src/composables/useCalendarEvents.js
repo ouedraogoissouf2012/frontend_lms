@@ -71,8 +71,7 @@ export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dat
           isUrgent: false
         }
       }))
-    } catch (error) {
-      console.error('Erreur chargement séances:', error)
+    } catch {
       return []
     }
   }
@@ -124,8 +123,7 @@ export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dat
           }
         }
       })
-    } catch (error) {
-      console.error('Erreur chargement évaluations:', error)
+    } catch {
       return []
     }
   }

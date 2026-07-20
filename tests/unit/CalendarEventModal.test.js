@@ -17,6 +17,11 @@ function mountModal(event = {}) {
         extendedProps: { classe: '6e A', url: '/seances/1' },
         ...event
       }
+    },
+    global: {
+      stubs: {
+        teleport: true
+      }
     }
   })
 }
