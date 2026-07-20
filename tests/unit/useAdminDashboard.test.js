@@ -103,6 +103,8 @@ describe('useAdminDashboard (#H3)', () => {
     ])
 
     const s = await setup()
+    await s.loadCalendarEvents()
+    await flushPromises()
 
     expect(s.calendarEvents.value).toHaveLength(1)
     const ev = s.calendarEvents.value[0]
@@ -116,8 +118,15 @@ describe('useAdminDashboard (#H3)', () => {
     mockKlassci.getUpcomingSeances.mockRejectedValueOnce(new Error('backend down'))
 
     const s = await setup()
+    await s.loadCalendarEvents()
+    await flushPromises()
 
     expect(s.calendarEvents.value).toEqual([])
+  })
+
+  it('ne charge pas les séances au montage du dashboard', async () => {
+    await setup()
+    expect(mockKlassci.getUpcomingSeances).not.toHaveBeenCalled()
   })
 
   it('expose les helpers de rôle et de titre', async () => {

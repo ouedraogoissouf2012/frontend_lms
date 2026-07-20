@@ -102,12 +102,28 @@ export function useNavbar() {
 
       crumbs.push({
         label: formatBreadcrumb(segment),
-        to: isLast ? null : currentPath
+        to: isLast ? null : normalizeBreadcrumbPath(currentPath)
       })
     })
 
     return crumbs
   })
+
+  const normalizeBreadcrumbPath = (path) => {
+    const aliases = {
+      '/admin': '/admin/dashboard',
+      '/admin/evaluations': '/admin/evaluations/results',
+      '/coordinateur': '/admin/dashboard',
+      '/teacher': '/teacher/dashboard',
+      '/student': '/student/dashboard',
+      '/attendance': '/attendance/seances',
+      '/classes': null,
+      '/matieres': null
+    }
+
+    if (Object.prototype.hasOwnProperty.call(aliases, path)) return aliases[path]
+    return path
+  }
 
   const formatBreadcrumb = (segment) => {
     const labels = {

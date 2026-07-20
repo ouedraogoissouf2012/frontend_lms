@@ -1,7 +1,7 @@
 /**
  * Tests de shouldForceLogout (#fix connexion) : un 401 ne doit déconnecter que
- * s'il invalide la session locale — PAS un 401 de proxy KLASSCI (« Token KLASSCI
- * non trouvé »), qui laisse la session Sanctum valide.
+ * s'il invalide explicitement la session locale via /auth/me — PAS un 401
+ * d'endpoint métier/proxy, qui peut seulement refuser un rôle ou KLASSCI.
  */
 import { describe, it, expect } from 'vitest'
 import { shouldForceLogout } from '@/services/errorHandler'
@@ -12,8 +12,12 @@ const err = (status, { url = '', message = '' } = {}) => ({
 })
 
 describe('errorHandler — shouldForceLogout', () => {
-  it('déconnecte sur un 401 de session classique', () => {
+  it('déconnecte sur un 401 de session /auth/me', () => {
     expect(shouldForceLogout(err(401, { url: '/api/auth/me' }))).toBe(true)
+  })
+
+  it('NE déconnecte PAS sur un 401 métier LMS', () => {
+    expect(shouldForceLogout(err(401, { url: '/api/lms/seances/my-teaching' }))).toBe(false)
   })
 
   it('NE déconnecte PAS sur un 401 de proxy KLASSCI (par URL)', () => {

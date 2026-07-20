@@ -77,8 +77,8 @@ export function useAdminDashboard() {
     // Charger les analytics
     loadAnalytics()
 
-    // Charger les événements du calendrier
-    loadCalendarEvents()
+    // Ne pas charger automatiquement les séances ici : l'endpoint
+    // /lms/seances/upcoming est coûteux et peut bloquer le serveur local.
   })
 
   return {
