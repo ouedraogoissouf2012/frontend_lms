@@ -11,15 +11,24 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const { klassci } = vi.hoisted(() => ({ klassci: { getTeacherDashboard: vi.fn() } }))
 vi.mock('@/services/klassci', () => ({ klassciService: klassci }))
 
+const { lms } = vi.hoisted(() => ({
+  lms: { getEnseignants: vi.fn(), getMyMatieres: vi.fn(), getMyTeachingSeances: vi.fn() }
+}))
+vi.mock('@/services/lms', () => ({ default: lms }))
+
+const clearCache = vi.fn()
 const readCache = vi.fn()
 const writeCache = vi.fn()
 vi.mock('@/services/cache', () => ({
+  clearCache: (...a) => clearCache(...a),
   readCache: (...a) => readCache(...a),
   writeCache: (...a) => writeCache(...a)
 }))
 
+const apiDashboard = vi.fn()
 vi.mock('@/services/api', () => ({
-  auth: { getUser: () => ({ role: 'enseignant', nom: 'Doe', prenom: 'Jane' }) }
+  auth: { getUser: () => ({ role: 'enseignant', nom: 'Doe', prenom: 'Jane' }) },
+  dashboard: { getTeacherDashboard: (...a) => apiDashboard(...a) },
 }))
 
 const pushMock = vi.fn()
@@ -41,6 +50,11 @@ function mountDash() {
 describe('TeacherDashboard.vue (G9) — montage', () => {
   beforeEach(() => {
     klassci.getTeacherDashboard.mockReset()
+    lms.getEnseignants.mockReset().mockResolvedValue({ success: true, data: [] })
+    lms.getMyMatieres.mockReset().mockResolvedValue({ success: true, data: [] })
+    lms.getMyTeachingSeances.mockReset().mockResolvedValue({ data: [] })
+    apiDashboard.mockReset().mockResolvedValue(null)
+    clearCache.mockReset()
     readCache.mockReset()
     writeCache.mockReset()
     pushMock.mockReset()
@@ -48,13 +62,30 @@ describe('TeacherDashboard.vue (G9) — montage', () => {
 
   it('cache vide → appelle getTeacherDashboard et écrit le cache', async () => {
     readCache.mockReturnValue(null)
+    klassci.getTeacherDashboard.mockResolvedValue({ matieres: [{ id: 1 }], classes: [] })
+    const w = mountDash()
+    await flushPromises()
+
+    expect(w.exists()).toBe(true)
+    expect(klassci.getTeacherDashboard).toHaveBeenCalled()
+    expect(writeCache).toHaveBeenCalledWith('teacher_dashboard', expect.objectContaining({
+      matieres: [{ id: 1 }],
+      classes: [],
+      evaluations: [],
+      seances: [],
+      statistiques: {},
+    }))
+  })
+
+  it('cache vide et réponse vide → ne cache pas un dashboard sans contenu', async () => {
+    readCache.mockReturnValue(null)
     klassci.getTeacherDashboard.mockResolvedValue({ matieres: [], classes: [] })
     const w = mountDash()
     await flushPromises()
 
     expect(w.exists()).toBe(true)
     expect(klassci.getTeacherDashboard).toHaveBeenCalled()
-    expect(writeCache).toHaveBeenCalledWith('teacher_dashboard', { matieres: [], classes: [] })
+    expect(writeCache).not.toHaveBeenCalled()
   })
 
   it('cache présent → ne rappelle pas l\'API', async () => {

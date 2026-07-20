@@ -17,6 +17,36 @@ function firstNumber(values) {
   return null
 }
 
+function collectIds(source, objectFields = [], arrayFields = [], scalarFields = []) {
+  const ids = new Set()
+
+  for (const field of objectFields) {
+    const id = toId(source?.[field])
+    if (id) ids.add(id)
+  }
+
+  for (const field of arrayFields) {
+    for (const entry of toArray(source?.[field])) {
+      const id = toId(entry)
+      if (id) ids.add(id)
+    }
+  }
+
+  for (const field of scalarFields) {
+    const id = toId(source?.[field])
+    if (id) ids.add(id)
+  }
+
+  return ids
+}
+
+function intersects(a, b) {
+  for (const value of a) {
+    if (b.has(value)) return true
+  }
+  return false
+}
+
 function classIdsFromMatiere(matiere) {
   const ids = new Set()
 
@@ -40,6 +70,52 @@ function classIdsFromMatiere(matiere) {
   }
 
   return ids
+}
+
+function relationIdsFromMatiere(matiere, config) {
+  const ids = collectIds(matiere, config.objectFields, config.arrayFields, config.scalarFields)
+
+  for (const combinaison of toArray(matiere?.combinaisons)) {
+    for (const id of collectIds(combinaison, config.objectFields, config.arrayFields, config.scalarFields)) {
+      ids.add(id)
+    }
+  }
+
+  return ids
+}
+
+function classFiliereIds(classe) {
+  return collectIds(
+    classe,
+    ['filiere', 'klassci_filiere'],
+    ['filieres', 'klassci_filieres'],
+    ['filiere_id', 'klassci_filiere_id']
+  )
+}
+
+function classNiveauIds(classe) {
+  return collectIds(
+    classe,
+    ['niveau', 'niveau_etude', 'klassci_niveau'],
+    ['niveaux', 'niveaux_etude', 'klassci_niveaux'],
+    ['niveau_id', 'niveau_etude_id', 'klassci_niveau_id']
+  )
+}
+
+function matiereFiliereIds(matiere) {
+  return relationIdsFromMatiere(matiere, {
+    objectFields: ['filiere', 'klassci_filiere'],
+    arrayFields: ['filieres', 'klassci_filieres'],
+    scalarFields: ['filiere_id', 'klassci_filiere_id']
+  })
+}
+
+function matiereNiveauIds(matiere) {
+  return relationIdsFromMatiere(matiere, {
+    objectFields: ['niveau', 'niveau_etude', 'klassci_niveau'],
+    arrayFields: ['niveaux', 'niveaux_etude', 'klassci_niveaux'],
+    scalarFields: ['niveau_id', 'niveau_etude_id', 'klassci_niveau_id']
+  })
 }
 
 export function getAssignedClassIds(matieres = []) {
@@ -72,6 +148,36 @@ export function getClassStudentCount(classe) {
   return firstNumber([classe?.effectif]) ?? 0
 }
 
+export function getClassMatiereCount(classe, matieres = []) {
+  if (Array.isArray(classe?.matieres)) return classe.matieres.length
+
+  const matiereList = toArray(matieres)
+  const classId = toId(classe)
+  const hasDirectClassLinks = matiereList.some(matiere => classIdsFromMatiere(matiere).size > 0)
+  if (hasDirectClassLinks) {
+    return matiereList.filter(matiere => classIdsFromMatiere(matiere).has(classId)).length
+  }
+
+  const filiereIds = classFiliereIds(classe)
+  const niveauIds = classNiveauIds(classe)
+  const hasCombinationLinks = filiereIds.size > 0 && niveauIds.size > 0 &&
+    matiereList.some((matiere) => matiereFiliereIds(matiere).size > 0 && matiereNiveauIds(matiere).size > 0)
+
+  if (hasCombinationLinks) {
+    return matiereList.filter((matiere) =>
+      intersects(matiereFiliereIds(matiere), filiereIds) &&
+      intersects(matiereNiveauIds(matiere), niveauIds)
+    ).length
+  }
+
+  return firstNumber([
+    classe?.nb_matieres,
+    classe?.matieres_count,
+    classe?.nombre_matieres,
+    classe?.total_matieres
+  ]) ?? 0
+}
+
 export function getClassCapacity(classe, studentCount = 0) {
   return firstNumber([
     classe?.places_totales,
@@ -96,15 +202,13 @@ export function enrichTeacherClasses(rawClasses = [], matieres = []) {
       return assignedClassIds.has(toId(classe))
     })
     .map((classe) => {
-      const classId = toId(classe)
-      const linkedMatieres = matiereList.filter((matiere) => classIdsFromMatiere(matiere).has(classId))
       const studentCount = getClassStudentCount(classe)
 
       return {
         ...classe,
         places_occupees: studentCount,
         places_totales: getClassCapacity(classe, studentCount),
-        nb_matieres: shouldFilterByAssignment ? linkedMatieres.length : matiereList.length
+        nb_matieres: shouldFilterByAssignment ? getClassMatiereCount(classe, matiereList) : matiereList.length
       }
     })
 }

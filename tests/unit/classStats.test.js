@@ -3,6 +3,7 @@ import {
   enrichTeacherClasses,
   getAssignedClassIds,
   getClassCapacity,
+  getClassMatiereCount,
   getClassStudentCount
 } from '@/utils/classStats'
 
@@ -52,5 +53,20 @@ describe('classStats (#100)', () => {
         nb_matieres: 2
       }
     ])
+  })
+
+  it('compte les matieres par combinaison filiere/niveau sans multiplier le total global', () => {
+    const classe = { id: 5, filiere: { id: 1 }, niveau: { id: 2 } }
+    const matieres = [
+      { id: 10, combinaisons: [{ filiere: { id: 1 }, niveau: { id: 2 } }] },
+      { id: 11, combinaisons: [{ filiere: { id: 1 }, niveau: { id: 3 } }] },
+      { id: 12, combinaisons: [{ filiere: { id: 9 }, niveau: { id: 2 } }] }
+    ]
+
+    expect(getClassMatiereCount(classe, matieres)).toBe(1)
+  })
+
+  it('retourne zero si aucune matiere ne porte de rattachement exploitable', () => {
+    expect(getClassMatiereCount({ id: 5 }, [{ id: 1 }, { id: 2 }])).toBe(0)
   })
 })

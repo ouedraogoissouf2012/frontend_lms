@@ -29,13 +29,8 @@ export const klassciDashboardService = {
    * @returns {Promise<Object>} Dashboard complet de l'enseignant
    */
   async getTeacherDashboard() {
-    try {
-      const response = await api.get(endpoints.klassci.teacherDashboard)
-      return response.success ? response.data : null
-    } catch (error) {
-      console.error('Erreur récupération dashboard enseignant:', error)
-      throw error
-    }
+    const response = await api.get(endpoints.klassci.teacherDashboard)
+    return response.success ? response.data : null
   },
 
   /**
