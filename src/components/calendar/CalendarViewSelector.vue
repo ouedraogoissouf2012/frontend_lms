@@ -93,6 +93,12 @@ $border-radius-lg: 8px;
     flex-basis: 100%;
   }
 }
+
+@media (max-width: 520px) {
+  .view-selector {
+    display: none;
+  }
+}
 </style>
 
 <!-- Styles mode sombre non-scoped pour fonctionner avec data-theme -->

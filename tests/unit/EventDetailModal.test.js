@@ -24,6 +24,11 @@ function mountModal(props = {}) {
       },
       userRole: 'student',
       ...props
+    },
+    global: {
+      stubs: {
+        teleport: true
+      }
     }
   })
 }

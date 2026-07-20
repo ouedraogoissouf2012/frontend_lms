@@ -8,6 +8,8 @@
 import api from './api'
 import { endpoints } from './endpoints'
 
+const UPCOMING_SEANCES_TIMEOUT_MS = 5000
+
 export const klassciSeancesService = {
   /**
    * Récupérer les séances depuis KLASSCI (admin/coordinateur)
@@ -16,7 +18,10 @@ export const klassciSeancesService = {
    */
   async getSeances(filters = {}) {
     try {
-      const response = await api.get(endpoints.lms.seances.upcoming, { params: filters })
+      const response = await api.get(endpoints.lms.seances.upcoming, {
+        params: filters,
+        timeout: UPCOMING_SEANCES_TIMEOUT_MS
+      })
       return response
     } catch (error) {
       console.error('Erreur récupération séances:', error)
@@ -30,7 +35,10 @@ export const klassciSeancesService = {
    * @returns {Promise<Array>} Liste des séances enrichies avec infos visio
    */
   async getUpcomingSeances(filters = {}) {
-    const response = await api.get(endpoints.lms.seances.upcoming, { params: filters })
+    const response = await api.get(endpoints.lms.seances.upcoming, {
+      params: filters,
+      timeout: UPCOMING_SEANCES_TIMEOUT_MS
+    })
     return response.success ? response.data : []
   },
 
