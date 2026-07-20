@@ -2,7 +2,6 @@
  * Test de RENDU du sous-composant ClassesFilters (#G1 ≤300).
  * Vérifie le montage, le rendu des options filière/niveau, l'émission apply au
  * changement, l'émission reset, et la mise à jour des v-model.
- * NB : ArrowPathIcon est volontairement non résolu (parité avec l'original) → stubé.
  */
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
@@ -18,7 +17,6 @@ function mountFilters(props = {}) {
       statut: '',
       ...props
     },
-    global: { stubs: { ArrowPathIcon: true } }
   })
 }
 

@@ -3,12 +3,18 @@
     <div class="widget-header">
       <BuildingLibraryIcon class="widget-icon text-purple-600" />
       <h2 class="widget-title">Classes KLASSCI</h2>
+      <span v-if="classes.length > 0" class="widget-count">
+        {{ displayedClasses.length }}/{{ classes.length }}
+      </span>
+      <router-link v-if="viewAllTo" :to="viewAllTo" class="view-all-link">
+        Voir tout
+      </router-link>
       <span v-if="loading" class="loading-indicator">Chargement...</span>
     </div>
 
-    <div v-if="classes.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div v-if="displayedClasses.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <div
-        v-for="classe in classes"
+        v-for="classe in displayedClasses"
         :key="classe.id"
         class="class-card"
       >
@@ -33,7 +39,14 @@
       </div>
     </div>
 
-    <div v-else-if="!loading" class="empty-state-inline">
+    <div v-if="hiddenCount > 0" class="preview-footer">
+      <span>{{ hiddenCount }} autre{{ hiddenCount > 1 ? 's' : '' }} classe{{ hiddenCount > 1 ? 's' : '' }} disponible{{ hiddenCount > 1 ? 's' : '' }}</span>
+      <router-link v-if="viewAllTo" :to="viewAllTo" class="preview-link">
+        Ouvrir la liste complète
+      </router-link>
+    </div>
+
+    <div v-if="displayedClasses.length === 0 && !loading" class="empty-state-inline">
       <BuildingLibraryIcon class="empty-icon" />
       <p class="empty-message">Aucune classe disponible</p>
     </div>
@@ -42,15 +55,25 @@
 
 <script setup>
 /** Widget Classes KLASSCI d'AdminDashboard (#H3 ≤300). Présentation pure. */
+import { computed } from 'vue'
 import {
   AcademicCapIcon,
   BuildingLibraryIcon
 } from '@heroicons/vue/24/outline'
 
-defineProps({
+const props = defineProps({
   classes: { type: Array, default: () => [] },
   loading: { type: Boolean, default: false },
+  limit: { type: Number, default: 6 },
+  viewAllTo: { type: String, default: '/admin/classes' },
 })
+
+const displayedClasses = computed(() => {
+  if (!props.limit || props.limit < 1) return props.classes
+  return props.classes.slice(0, props.limit)
+})
+
+const hiddenCount = computed(() => Math.max(props.classes.length - displayedClasses.value.length, 0))
 </script>
 
 <style scoped>
@@ -80,11 +103,33 @@ defineProps({
   color: var(--text-primary);
   margin: 0;
   flex: 1;
+  min-width: 0;
 }
 
 .loading-indicator {
   font-size: 0.875rem;
   color: var(--text-secondary);
+}
+
+.widget-count {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.view-all-link,
+.preview-link {
+  font-size: 0.875rem;
+  color: var(--blue-500);
+  text-decoration: none;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.view-all-link:hover,
+.preview-link:hover {
+  color: var(--color-info-strong);
+  text-decoration: underline;
 }
 
 /* Class card */
@@ -112,6 +157,7 @@ defineProps({
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .class-niveau {
@@ -154,6 +200,18 @@ defineProps({
   font-size: 0.75rem;
 }
 
+.preview-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
 /* Empty state inline */
 .empty-state-inline {
   padding: 3rem 2rem;
@@ -169,5 +227,13 @@ defineProps({
 
 .empty-message {
   color: var(--text-secondary);
+}
+
+@media (max-width: 640px) {
+  .widget-header,
+  .preview-footer {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
 }
 </style>

@@ -12,6 +12,13 @@
         </div>
       </div>
 
+      <!-- Année universitaire -->
+      <DashboardInfoBanner
+        v-if="meta?.annee_universitaire_courante"
+        :annee="meta.annee_universitaire_courante"
+        class="mb-6"
+      />
+
       <!-- Loading state -->
       <ContentLoader v-if="loading.stats || loading.classes || loading.matieres" text="Chargement du tableau de bord..." />
 
@@ -43,15 +50,16 @@
         />
 
         <!-- Classes KLASSCI -->
-        <DashboardClasses :classes="classes" :loading="loading.classes" />
+        <DashboardClasses
+          :classes="classes"
+          :loading="loading.classes"
+          :limit="6"
+          view-all-to="/admin/classes"
+        />
 
-        <!-- Grid: Utilisateurs Récents + Notifications -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <!-- Widget Utilisateurs Récents -->
-          <DashboardRecentUsers :users="recentUsers" />
-
-          <!-- Widget Notifications - Temporairement désactivé -->
-          <!-- <NotificationsWidget :limit="5" :autoRefresh="true" /> -->
+        <!-- Widget Utilisateurs Récents -->
+        <div class="mb-6">
+          <DashboardRecentUsers :users="recentUsers" :limit="5" />
         </div>
 
         <!-- Calendrier des événements -->
@@ -60,12 +68,11 @@
         </div>
 
         <!-- Matières KLASSCI -->
-        <DashboardMatieres :matieres="matieres" :loading="loading.matieres" />
-
-        <!-- Année universitaire -->
-        <DashboardInfoBanner
-          v-if="meta?.annee_universitaire_courante"
-          :annee="meta.annee_universitaire_courante"
+        <DashboardMatieres
+          :matieres="matieres"
+          :loading="loading.matieres"
+          :limit="12"
+          view-all-to="/admin/matieres"
         />
       </div>
     </div>

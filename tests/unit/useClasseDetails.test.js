@@ -32,7 +32,14 @@ async function setup(routeId = '5') {
 
 describe('useClasseDetails (#H9)', () => {
   it('charge la classe au montage avec id de route, puis matieres + etudiants', async () => {
-    getClasseDetails.mockResolvedValue({ success: true, data: { classe: { nom: '6e A' }, evaluations_programmees: [{ id: 1 }] } })
+    getClasseDetails.mockResolvedValue({
+      success: true,
+      data: {
+        classe: { nom: '6e A' },
+        matieres_disponibles: [{ id: 7 }, { id: 8 }],
+        evaluations_programmees: [{ id: 1 }]
+      }
+    })
     const { api } = await setup('5')
     expect(getClasseDetails).toHaveBeenCalledWith(5)
     expect(api.classeId.value).toBe(5)
@@ -43,10 +50,18 @@ describe('useClasseDetails (#H9)', () => {
   })
 
   it('expose les 4 onglets avec compteurs', async () => {
-    getClasseDetails.mockResolvedValue({ success: true, data: { classe: {}, evaluations_programmees: [{ id: 1 }, { id: 2 }] } })
+    getClasseDetails.mockResolvedValue({
+      success: true,
+      data: {
+        classe: {},
+        matieres_disponibles: [{ id: 7 }],
+        evaluations_programmees: [{ id: 1 }, { id: 2 }]
+      }
+    })
     const { api } = await setup('5')
     const ids = api.tabs.value.map(t => t.id)
     expect(ids).toEqual(['matieres', 'etudiants', 'evaluations', 'planning'])
+    expect(api.tabs.value[0].count).toBe(1)
     expect(api.tabs.value[2].count).toBe(2)
   })
 
