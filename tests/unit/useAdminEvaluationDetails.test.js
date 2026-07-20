@@ -35,15 +35,18 @@ describe('useAdminEvaluationDetails (#H3)', () => {
   })
 
   it('charge les résultats par classe et peuple state au montage', async () => {
-    getMock.mockResolvedValue({
-      success: true,
-      data: {
-        evaluation: { titre: 'Test 1' },
-        resultats: [{ etudiant_id: 1, etudiant_nom_complet: 'Aline' }],
-        statistiques: { total_etudiants: 30 },
-      },
-    })
+    getMock
+      .mockResolvedValueOnce({ success: true, data: { id: 42, titre: 'Test 1', submissions_count: 1 } })
+      .mockResolvedValueOnce({
+        success: true,
+        data: {
+          evaluation: { titre: 'Test 1' },
+          resultats: [{ etudiant_id: 1, etudiant_nom_complet: 'Aline' }],
+          statistiques: { total_etudiants: 30 },
+        },
+      })
     const c = await setup()
+    expect(getMock).toHaveBeenCalledWith('/evaluations/42')
     expect(getMock).toHaveBeenCalledWith('/evaluations/42/results-by-class')
     expect(c.loading.value).toBe(false)
     expect(c.evaluation.value.titre).toBe('Test 1')
@@ -53,7 +56,9 @@ describe('useAdminEvaluationDetails (#H3)', () => {
   })
 
   it('positionne error si la réponse est en échec', async () => {
-    getMock.mockResolvedValue({ success: false, message: 'Boom' })
+    getMock
+      .mockResolvedValueOnce({ success: true, data: { id: 42, submissions_count: 1 } })
+      .mockResolvedValueOnce({ success: false, message: 'Boom' })
     const c = await setup()
     expect(c.error.value).toBe('Boom')
     expect(c.loading.value).toBe(false)
@@ -66,15 +71,72 @@ describe('useAdminEvaluationDetails (#H3)', () => {
     expect(c.loading.value).toBe(false)
   })
 
+  it('retombe sur le détail évaluation si results-by-class renvoie 500', async () => {
+    getMock
+      .mockResolvedValueOnce({
+        success: true,
+        data: {
+          id: 42,
+          titre: 'Évaluation sans soumission',
+          submissions_count: 1,
+          questions_count: 1,
+        },
+      })
+      .mockRejectedValueOnce({ response: { data: { message: 'Erreur résultats' } } })
+      .mockResolvedValueOnce({
+        success: true,
+        data: {
+          id: 42,
+          titre: 'Évaluation sans soumission',
+          submissions_count: 0,
+          questions_count: 1,
+        },
+      })
+
+    const c = await setup()
+
+    expect(getMock).toHaveBeenCalledWith('/evaluations/42')
+    expect(getMock).toHaveBeenCalledWith('/evaluations/42/results-by-class')
+    expect(getMock).toHaveBeenCalledWith('/evaluations/42')
+    expect(c.error.value).toBe(null)
+    expect(c.evaluation.value.titre).toBe('Évaluation sans soumission')
+    expect(c.resultats.value).toEqual([])
+    expect(c.statistiques.value).toMatchObject({
+      total_etudiants: 0,
+      etudiants_soumis: 0,
+      taux_participation: 0,
+    })
+  })
+
+  it('n’appelle pas results-by-class quand aucune soumission n’existe', async () => {
+    getMock.mockResolvedValueOnce({
+      success: true,
+      data: {
+        id: 42,
+        titre: 'Évaluation planifiée',
+        submissions_count: 0,
+        questions_count: 1,
+      },
+    })
+
+    const c = await setup()
+
+    expect(getMock).toHaveBeenCalledTimes(1)
+    expect(getMock).toHaveBeenCalledWith('/evaluations/42')
+    expect(c.error.value).toBe(null)
+    expect(c.evaluation.value.titre).toBe('Évaluation planifiée')
+    expect(c.resultats.value).toEqual([])
+  })
+
   it('goBack délègue à router.back', async () => {
-    getMock.mockResolvedValue({ success: true, data: { evaluation: {}, resultats: [], statistiques: {} } })
+    getMock.mockResolvedValue({ success: true, data: { submissions_count: 0 } })
     const c = await setup()
     c.goBack()
     expect(backMock).toHaveBeenCalled()
   })
 
   it('mappe statut et note vers les bonnes classes/libellés', async () => {
-    getMock.mockResolvedValue({ success: true, data: { evaluation: {}, resultats: [], statistiques: {} } })
+    getMock.mockResolvedValue({ success: true, data: { submissions_count: 0 } })
     const c = await setup()
     expect(c.getStatusClass('soumis')).toBe('status-success')
     expect(c.getStatusClass('en_cours')).toBe('status-warning')
@@ -88,7 +150,7 @@ describe('useAdminEvaluationDetails (#H3)', () => {
   })
 
   it('formatDate / formatDateTime renvoient "-" sans valeur', async () => {
-    getMock.mockResolvedValue({ success: true, data: { evaluation: {}, resultats: [], statistiques: {} } })
+    getMock.mockResolvedValue({ success: true, data: { submissions_count: 0 } })
     const c = await setup()
     expect(c.formatDate(null)).toBe('-')
     expect(c.formatDateTime(undefined)).toBe('-')

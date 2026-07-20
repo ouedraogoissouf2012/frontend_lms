@@ -52,4 +52,22 @@ describe('EvalResultsList (#H3)', () => {
     expect(btns[0].classes()).toContain('btn-disabled') // en_cours -> désactivé
     expect(btns[1].classes()).not.toContain('btn-disabled') // terminee -> actif
   })
+
+  it('affiche les noms enrichis même sans relations imbriquées', () => {
+    const w = mountList({
+      evaluations: [{
+        id: 3,
+        titre: 'Eval C',
+        enseignant_nom: 'BEDE ABEL TEST',
+        matiere_nom: 'Marketing digital',
+        classe_nom: 'B2 COM',
+        status: 'terminee',
+        duree_minutes: 30
+      }]
+    })
+
+    expect(w.text()).toContain('BEDE ABEL TEST')
+    expect(w.text()).toContain('Marketing digital')
+    expect(w.text()).toContain('B2 COM')
+  })
 })

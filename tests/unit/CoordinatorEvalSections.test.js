@@ -51,4 +51,24 @@ describe('CoordinatorEvalCard (H2)', () => {
     expect(w.find('.btn-secondary').attributes('disabled')).toBeDefined()
     expect(w.find('.btn-secondary').classes()).toContain('btn-disabled')
   })
+
+  it('affiche les noms enrichis quand les relations imbriquées sont absentes', () => {
+    const w = mount(CoordinatorEvalCard, {
+      props: {
+        evaluation: {
+          id: 2,
+          titre: 'x',
+          status: 'terminee',
+          duree_minutes: 30,
+          enseignant_nom: 'BEDE ABEL TEST',
+          matiere_nom: 'Marketing digital',
+          classe_nom: 'B2 COM'
+        }
+      },
+    })
+
+    expect(w.text()).toContain('BEDE ABEL TEST')
+    expect(w.text()).toContain('Marketing digital')
+    expect(w.text()).toContain('B2 COM')
+  })
 })
