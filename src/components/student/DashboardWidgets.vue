@@ -51,7 +51,7 @@
         </div>
         <div class="stats-grid">
           <div class="stat-item">
-            <p class="stat-label">Cours Suivis</p>
+            <p class="stat-label">Matières suivies</p>
             <p class="stat-value text-purple-600">
               {{ dashboardData.cours?.length || 0 }}
             </p>

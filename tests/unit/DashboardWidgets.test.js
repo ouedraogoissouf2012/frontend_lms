@@ -36,7 +36,10 @@ describe('DashboardWidgets (#G1)', () => {
     const t = w.text()
     expect(t).toContain('14.5')   // moyenne générale
     expect(t).toContain('92%')    // taux de présence
-    expect(t).toContain('Cours Suivis')
+    // Le compteur reflète les matières inscrites (KLASSCI), pas les leçons LMS :
+    // le libellé doit dire « Matières suivies » et non « Cours Suivis » (#213).
+    expect(t).toContain('Matières suivies')
+    expect(t).not.toContain('Cours Suivis')
   })
 
   it('rend les notes récentes', () => {
