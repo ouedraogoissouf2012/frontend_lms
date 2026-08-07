@@ -111,7 +111,11 @@ function goBack() {
   padding: var(--spacing-sm) var(--spacing-md);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: var(--font-size-sm);
-  color: var(--text-tertiary);
+  /* --text-secondary et NON --text-tertiary : mesuré dans le navigateur, le
+     couple tertiary/bg-tertiary tombe à 4,34:1 en clair et 4,04:1 en sombre,
+     sous le seuil WCAG AA de 4,5:1 pour du texte normal (14 px, graisse 400).
+     Avec --text-secondary : 6,92:1 en clair, 6,97:1 en sombre. */
+  color: var(--text-secondary);
   background: var(--bg-tertiary);
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-md);
