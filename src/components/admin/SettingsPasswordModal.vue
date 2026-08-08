@@ -1,5 +1,7 @@
 <template>
   <Modal v-model="show" title="Changer le mot de passe">
+    <PasswordChangeUnavailableNotice />
+
     <form @submit.prevent="emit('submit')">
       <div class="form-group">
         <label class="form-label">Mot de passe actuel</label>
@@ -8,7 +10,7 @@
           v-model="form.currentPassword"
           class="form-input"
           placeholder="Entrez votre mot de passe actuel"
-          required
+          disabled
         />
       </div>
       <div class="form-group">
@@ -18,8 +20,7 @@
           v-model="form.newPassword"
           class="form-input"
           placeholder="Entrez votre nouveau mot de passe"
-          required
-          minlength="6"
+          disabled
         />
       </div>
       <div class="form-group">
@@ -29,17 +30,22 @@
           v-model="form.confirmPassword"
           class="form-input"
           placeholder="Confirmez votre nouveau mot de passe"
-          required
-          minlength="6"
+          disabled
         />
       </div>
     </form>
 
     <template #footer>
-      <button type="button" class="btn-cancel" @click="show = false" aria-label="Annuler le changement de mot de passe">
-        Annuler
+      <button type="button" class="btn-cancel" @click="show = false" aria-label="Fermer">
+        Fermer
       </button>
-      <button type="submit" class="btn-primary" @click="emit('submit')" aria-label="Confirmer le changement de mot de passe">
+      <button
+        type="submit"
+        class="btn-primary"
+        disabled
+        @click="emit('submit')"
+        aria-label="Changement de mot de passe indisponible depuis le LMS"
+      >
         Confirmer
       </button>
     </template>
@@ -50,10 +56,15 @@
 /**
  * Modale de changement de mot de passe d'AdminSettings (#H3 ≤300). Présentation
  * pure : l'ouverture est en v-model (defineModel `show`), le formulaire est l'objet
- * réactif `form` reçu en prop (mutation partagée, parité), et la validation/envoi
- * est déléguée au parent via l'événement `submit`. Aucun appel API ici.
+ * réactif `form` reçu en prop (mutation partagée, parité), et l'envoi est délégué
+ * au parent via l'événement `submit`.
+ *
+ * DETTE TRACÉE : aucun endpoint backend de changement de mot de passe n'existe
+ * (cf. `@/constants/passwordChange`) — champs et bouton désactivés, bannière
+ * explicative. Réactiver ici le jour où l'API existera.
  */
 import Modal from '@/components/ui/Modal.vue'
+import PasswordChangeUnavailableNotice from '@/components/ui/PasswordChangeUnavailableNotice.vue'
 
 defineProps({
   form: { type: Object, required: true },
@@ -98,6 +109,13 @@ const emit = defineEmits(['submit'])
   color: var(--text-tertiary);
 }
 
+/* Champs désactivés : la fonctionnalité n'existe pas côté backend. */
+.form-input:disabled {
+  background: var(--bg-secondary);
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+}
+
 .btn-primary, .btn-cancel {
   padding: 0.75rem 1.5rem;
   border-radius: 0.5rem;
@@ -113,9 +131,14 @@ const emit = defineEmits(['submit'])
   color: white;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   background: linear-gradient(135deg, var(--color-info-strong) 0%, var(--color-info-stronger) 100%);
   transform: scale(1.02);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-cancel {

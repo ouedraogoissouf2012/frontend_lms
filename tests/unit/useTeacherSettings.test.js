@@ -1,6 +1,6 @@
 /**
  * Test du composable useTeacherSettings (#H11 ≤300) : préférences persistées
- * (localStorage), validation du changement de mot de passe, déconnexion.
+ * (localStorage), indisponibilité du changement de mot de passe, déconnexion.
  * Services auth + toast + router mockés.
  */
 import { mount, flushPromises } from '@vue/test-utils'
@@ -9,7 +9,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const { authMock, toastMock, pushMock } = vi.hoisted(() => ({
   authMock: { getUser: vi.fn(), logout: vi.fn() },
-  toastMock: { success: vi.fn(), error: vi.fn() },
+  toastMock: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
   pushMock: vi.fn(),
 }))
 
@@ -19,6 +19,7 @@ vi.mock('vue-router', () => ({ useRouter: () => ({ push: pushMock }) }))
 
 import { useTeacherSettings } from '@/composables/useTeacherSettings'
 import { STORAGE_KEYS } from '@/constants/storageKeys'
+import { PASSWORD_CHANGE_UNAVAILABLE_MESSAGE } from '@/constants/passwordChange'
 
 async function setup() {
   let api
@@ -51,31 +52,14 @@ describe('useTeacherSettings (#H11)', () => {
     expect(toastMock.success).toHaveBeenCalled()
   })
 
-  it('refuse un mot de passe non concordant', async () => {
-    const s = await setup()
-    s.passwordForm.newPassword = 'abcdef'
-    s.passwordForm.confirmPassword = 'zzzzzz'
-    s.submitPasswordChange()
-    expect(toastMock.error).toHaveBeenCalledWith('Les mots de passe ne correspondent pas')
-  })
-
-  it('refuse un mot de passe trop court', async () => {
-    const s = await setup()
-    s.passwordForm.newPassword = '123'
-    s.passwordForm.confirmPassword = '123'
-    s.submitPasswordChange()
-    expect(toastMock.error).toHaveBeenCalledWith('Le mot de passe doit contenir au moins 6 caractères')
-  })
-
-  it('réinitialise et ferme la modale sur succès', async () => {
+  it('n\'annonce jamais de succès de changement de mot de passe', async () => {
     const s = await setup()
     s.showPasswordModal.value = true
     s.passwordForm.newPassword = 'secret1'
     s.passwordForm.confirmPassword = 'secret1'
     s.submitPasswordChange()
-    expect(toastMock.success).toHaveBeenCalledWith('Votre mot de passe a été changé avec succès')
-    expect(s.passwordForm.newPassword).toBe('')
-    expect(s.showPasswordModal.value).toBe(false)
+    expect(toastMock.success).not.toHaveBeenCalled()
+    expect(toastMock.info).toHaveBeenCalledWith(PASSWORD_CHANGE_UNAVAILABLE_MESSAGE)
   })
 
   it('déconnecte après confirmation', async () => {

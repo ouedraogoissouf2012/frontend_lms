@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import { auth } from '@/services/api'
 import { toast } from '@/services/toast'
 import { STORAGE_KEYS } from '@/constants/storageKeys'
+import { PASSWORD_CHANGE_UNAVAILABLE_MESSAGE } from '@/constants/passwordChange'
 
 const ROLE_LABELS = {
   etudiant: 'Étudiant',
@@ -20,9 +21,10 @@ const ROLE_LABELS = {
  * changement de mot de passe et déconnexion. La vue ne fait plus que câbler ces
  * éléments aux sous-composants présentationnels.
  *
- * Dette pré-existante conservée à l'identique :
- *  - `submitPasswordChange` est un stub (TODO API) : aucune requête réseau, succès
- *    simulé après validation locale — comportement inchangé.
+ * Dette pré-existante :
+ *  - `submitPasswordChange` n'appelle aucune API et n'en promet plus aucune : il
+ *    n'existe pas d'endpoint backend de changement de mot de passe
+ *    (cf. `@/constants/passwordChange`). Le faux message de succès a été retiré.
  *  - `logout` utilise `confirm()` natif et `console.log` reste dans
  *    `savePreferences` — conservés tels quels.
  */
@@ -62,27 +64,15 @@ export function useAdminSettings() {
     }
   }
 
+  /**
+   * Changement de mot de passe INDISPONIBLE : aucun endpoint backend à ce jour
+   * (dette tracée, cf. `@/constants/passwordChange`). On n'appelle rien et on
+   * n'annonce surtout aucun succès. Les champs et le bouton de la modale sont
+   * désactivés ; cette fonction reste le garde-fou du chemin `@submit`.
+   * REMPLACER ICI par l'appel API réel quand il existera.
+   */
   function submitPasswordChange() {
-    // Validation
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      toast.error('Les mots de passe ne correspondent pas')
-      return
-    }
-
-    if (passwordForm.newPassword.length < 6) {
-      toast.error('Le mot de passe doit contenir au moins 6 caractères')
-      return
-    }
-
-    // TODO: Appel API pour changer le mot de passe
-    // Pour l'instant, simulons le succès
-    toast.success('Votre mot de passe a été changé avec succès')
-
-    // Réinitialiser le formulaire et fermer le modal
-    passwordForm.currentPassword = ''
-    passwordForm.newPassword = ''
-    passwordForm.confirmPassword = ''
-    showPasswordModal.value = false
+    toast.info(PASSWORD_CHANGE_UNAVAILABLE_MESSAGE)
   }
 
   function logout() {

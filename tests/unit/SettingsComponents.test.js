@@ -4,6 +4,7 @@ import { describe, it, expect } from 'vitest'
 import SettingsPersonalInfo from '@/components/teacher/SettingsPersonalInfo.vue'
 import SettingsNotifications from '@/components/teacher/SettingsNotifications.vue'
 import PasswordChangeModal from '@/components/teacher/PasswordChangeModal.vue'
+import { PASSWORD_CHANGE_UNAVAILABLE_MESSAGE } from '@/constants/passwordChange'
 
 // Modal passe-plat : rend le contenu + le footer pour pouvoir cliquer dessus.
 const ModalStub = {
@@ -35,23 +36,27 @@ describe('SettingsNotifications (#H11)', () => {
   })
 })
 
+// Changement de mot de passe indisponible (aucun endpoint backend) : la modale
+// est en lecture seule et n'émet plus `submit`.
 describe('PasswordChangeModal (#H11)', () => {
-  it('émet submit depuis le bouton Confirmer', async () => {
-    const w = mount(PasswordChangeModal, {
-      props: { modelValue: true },
-      global: { stubs: { Modal: ModalStub } },
-    })
-    await w.find('.btn-primary').trigger('click')
-    expect(w.emitted('submit')).toBeTruthy()
+  const mountModal = () => mount(PasswordChangeModal, {
+    props: { modelValue: true },
+    global: { stubs: { Modal: ModalStub } },
   })
 
-  it('propage la saisie des champs via v-model', async () => {
-    const w = mount(PasswordChangeModal, {
-      props: { modelValue: true },
-      global: { stubs: { Modal: ModalStub } },
-    })
-    const inputs = w.findAll('.form-input')
-    await inputs[1].setValue('secret1')
-    expect(w.emitted('update:newPassword')[0]).toEqual(['secret1'])
+  it('annonce l\'indisponibilité du changement de mot de passe', () => {
+    expect(mountModal().text()).toContain(PASSWORD_CHANGE_UNAVAILABLE_MESSAGE)
+  })
+
+  it('désactive les champs et le bouton Confirmer', () => {
+    const w = mountModal()
+    w.findAll('.form-input').forEach((i) => expect(i.attributes('disabled')).toBeDefined())
+    expect(w.find('.btn-primary').attributes('disabled')).toBeDefined()
+  })
+
+  it('n\'émet pas submit depuis le bouton désactivé', async () => {
+    const w = mountModal()
+    await w.find('.btn-primary').trigger('click')
+    expect(w.emitted('submit')).toBeFalsy()
   })
 })

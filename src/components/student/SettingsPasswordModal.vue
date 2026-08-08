@@ -1,5 +1,7 @@
 <template>
   <Modal v-model="modelValue" title="Changer le mot de passe">
+    <PasswordChangeUnavailableNotice />
+
     <form @submit.prevent="submitPasswordChange">
       <div class="form-group">
         <label class="form-label">Mot de passe actuel</label>
@@ -8,7 +10,7 @@
           v-model="passwordForm.currentPassword"
           class="form-input"
           placeholder="Entrez votre mot de passe actuel"
-          required
+          disabled
         />
       </div>
       <div class="form-group">
@@ -18,8 +20,7 @@
           v-model="passwordForm.newPassword"
           class="form-input"
           placeholder="Entrez votre nouveau mot de passe"
-          required
-          minlength="6"
+          disabled
         />
       </div>
       <div class="form-group">
@@ -29,17 +30,22 @@
           v-model="passwordForm.confirmPassword"
           class="form-input"
           placeholder="Confirmez votre nouveau mot de passe"
-          required
-          minlength="6"
+          disabled
         />
       </div>
     </form>
 
     <template #footer>
-      <button type="button" class="btn-cancel" @click="modelValue = false" aria-label="Annuler le changement de mot de passe">
-        Annuler
+      <button type="button" class="btn-cancel" @click="modelValue = false" aria-label="Fermer">
+        Fermer
       </button>
-      <button type="submit" class="btn-primary" @click="submitPasswordChange" aria-label="Confirmer le changement de mot de passe">
+      <button
+        type="submit"
+        class="btn-primary"
+        disabled
+        @click="submitPasswordChange"
+        aria-label="Changement de mot de passe indisponible depuis le LMS"
+      >
         Confirmer
       </button>
     </template>
@@ -49,14 +55,20 @@
 <script setup>
 /**
  * Modale de changement de mot de passe de StudentSettings (#H10 ≤300).
- * Auto-contenue : visibilité en v-model, formulaire local, validations.
+ * Auto-contenue : visibilité en v-model, formulaire local.
  *
- * DETTE PRÉ-EXISTANTE CONSERVÉE VERBATIM : aucun appel API réel (TODO d'origine) —
- * le succès est simulé côté client. Comportement strictement identique à l'original.
+ * DETTE TRACÉE : il n'existe AUCUN endpoint backend de changement de mot de
+ * passe (cf. `@/constants/passwordChange`). L'ancien « succès » était simulé
+ * côté client — un mensonge à l'utilisateur, retiré. Les champs et le bouton
+ * sont désactivés et une bannière explique où faire la démarche.
+ * REMPLACER ICI par l'appel API réel (et réactiver champs, bouton et
+ * validations) le jour où l'endpoint existera.
  */
 import { ref } from 'vue'
 import Modal from '@/components/ui/Modal.vue'
+import PasswordChangeUnavailableNotice from '@/components/ui/PasswordChangeUnavailableNotice.vue'
 import { toast } from '@/services/toast'
+import { PASSWORD_CHANGE_UNAVAILABLE_MESSAGE } from '@/constants/passwordChange'
 
 const modelValue = defineModel({ type: Boolean, default: false })
 
@@ -66,29 +78,9 @@ const passwordForm = ref({
   confirmPassword: ''
 })
 
+/** Garde-fou : jamais d'appel réseau, jamais de succès annoncé. */
 function submitPasswordChange() {
-  // Validation
-  if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
-    toast.error('Les mots de passe ne correspondent pas')
-    return
-  }
-
-  if (passwordForm.value.newPassword.length < 6) {
-    toast.error('Le mot de passe doit contenir au moins 6 caractères')
-    return
-  }
-
-  // TODO: Appel API pour changer le mot de passe
-  // Pour l'instant, simulons le succès
-  toast.success('Votre mot de passe a été changé avec succès')
-
-  // Réinitialiser le formulaire et fermer le modal
-  passwordForm.value = {
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  }
-  modelValue.value = false
+  toast.info(PASSWORD_CHANGE_UNAVAILABLE_MESSAGE)
 }
 </script>
 
@@ -126,6 +118,13 @@ function submitPasswordChange() {
   color: var(--text-tertiary);
 }
 
+/* Champs désactivés : la fonctionnalité n'existe pas côté backend. */
+.form-input:disabled {
+  background: var(--bg-secondary);
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+}
+
 .btn-primary, .btn-cancel {
   padding: 0.75rem 1.5rem;
   border-radius: 0.5rem;
@@ -141,9 +140,14 @@ function submitPasswordChange() {
   color: white;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   background: linear-gradient(135deg, var(--color-info-strong) 0%, var(--color-info-stronger) 100%);
   transform: scale(1.02);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-cancel {

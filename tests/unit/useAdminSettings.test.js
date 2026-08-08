@@ -1,7 +1,7 @@
 /**
  * Test du composable useAdminSettings (#H3 ≤300) : utilisateur courant via auth,
- * libellé de rôle, persistance localStorage des préférences, validation du
- * changement de mot de passe (stub) et déconnexion. Services `auth`, `toast` et
+ * libellé de rôle, persistance localStorage des préférences, indisponibilité du
+ * changement de mot de passe et déconnexion. Services `auth`, `toast` et
  * le routeur sont mockés.
  */
 import { mount, flushPromises } from '@vue/test-utils'
@@ -21,15 +21,20 @@ vi.mock('@/services/api', () => ({
   auth: { getUser: () => mockUser, logout: () => logoutSpy() },
 }))
 
-const toastSpies = { success: vi.fn(), error: vi.fn() }
+const toastSpies = { success: vi.fn(), error: vi.fn(), info: vi.fn() }
 vi.mock('@/services/toast', () => ({
-  toast: { success: (m) => toastSpies.success(m), error: (m) => toastSpies.error(m) },
+  toast: {
+    success: (m) => toastSpies.success(m),
+    error: (m) => toastSpies.error(m),
+    info: (m) => toastSpies.info(m),
+  },
 }))
 
 const pushSpy = vi.fn()
 vi.mock('vue-router', () => ({ useRouter: () => ({ push: pushSpy }) }))
 
 import { useAdminSettings } from '@/composables/useAdminSettings'
+import { PASSWORD_CHANGE_UNAVAILABLE_MESSAGE } from '@/constants/passwordChange'
 
 async function setup() {
   let api
@@ -72,35 +77,15 @@ describe('useAdminSettings (#H3)', () => {
     expect(s.systemAlerts.value).toBe(false)
   })
 
-  it('submitPasswordChange refuse des mots de passe différents', async () => {
-    const s = await setup()
-    s.passwordForm.newPassword = 'abcdef'
-    s.passwordForm.confirmPassword = 'zzzzzz'
-    s.submitPasswordChange()
-    expect(toastSpies.error).toHaveBeenCalledWith('Les mots de passe ne correspondent pas')
-    expect(s.showPasswordModal.value).toBe(false)
-  })
-
-  it('submitPasswordChange refuse un mot de passe trop court', async () => {
-    const s = await setup()
-    s.passwordForm.newPassword = '123'
-    s.passwordForm.confirmPassword = '123'
-    s.submitPasswordChange()
-    expect(toastSpies.error).toHaveBeenCalledWith('Le mot de passe doit contenir au moins 6 caractères')
-  })
-
-  it('submitPasswordChange valide réinitialise le formulaire et ferme la modale', async () => {
+  it('submitPasswordChange n\'annonce jamais de succès et informe de l\'indisponibilité', async () => {
     const s = await setup()
     s.showPasswordModal.value = true
     s.passwordForm.currentPassword = 'old'
     s.passwordForm.newPassword = 'abcdef'
     s.passwordForm.confirmPassword = 'abcdef'
     s.submitPasswordChange()
-    expect(toastSpies.success).toHaveBeenCalledWith('Votre mot de passe a été changé avec succès')
-    expect(s.passwordForm.currentPassword).toBe('')
-    expect(s.passwordForm.newPassword).toBe('')
-    expect(s.passwordForm.confirmPassword).toBe('')
-    expect(s.showPasswordModal.value).toBe(false)
+    expect(toastSpies.success).not.toHaveBeenCalled()
+    expect(toastSpies.info).toHaveBeenCalledWith(PASSWORD_CHANGE_UNAVAILABLE_MESSAGE)
   })
 
   it('logout déconnecte et redirige après confirmation', async () => {

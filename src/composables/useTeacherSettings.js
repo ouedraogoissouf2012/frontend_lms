@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import { auth } from '@/services/api'
 import { toast } from '@/services/toast'
 import { STORAGE_KEYS } from '@/constants/storageKeys'
+import { PASSWORD_CHANGE_UNAVAILABLE_MESSAGE } from '@/constants/passwordChange'
 
 const ROLE_LABELS = {
   'etudiant': 'Étudiant',
@@ -17,6 +18,10 @@ const ROLE_LABELS = {
  * Couche données des paramètres enseignant (#H11 ≤300) : utilisateur courant,
  * préférences de notifications (persistées localStorage), modale + formulaire
  * de changement de mot de passe, déconnexion. La vue ne fait plus que câbler.
+ *
+ * Le changement de mot de passe n'est PAS implémentable côté LMS (aucun endpoint
+ * backend, cf. `@/constants/passwordChange`) : la modale est en lecture seule et
+ * n'affiche plus de faux succès.
  */
 export function useTeacherSettings() {
   const router = useRouter()
@@ -54,27 +59,15 @@ export function useTeacherSettings() {
     }
   }
 
+  /**
+   * Changement de mot de passe INDISPONIBLE : aucun endpoint backend à ce jour
+   * (dette tracée, cf. `@/constants/passwordChange`). Aucune requête réseau,
+   * aucun message de succès. Les champs et le bouton de la modale sont
+   * désactivés ; cette fonction reste le garde-fou du chemin `@submit`.
+   * REMPLACER ICI par l'appel API réel quand il existera.
+   */
   function submitPasswordChange() {
-    // Validation
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      toast.error('Les mots de passe ne correspondent pas')
-      return
-    }
-
-    if (passwordForm.newPassword.length < 6) {
-      toast.error('Le mot de passe doit contenir au moins 6 caractères')
-      return
-    }
-
-    // TODO: Appel API pour changer le mot de passe
-    // Pour l'instant, simulons le succès
-    toast.success('Votre mot de passe a été changé avec succès')
-
-    // Réinitialiser le formulaire et fermer le modal
-    passwordForm.currentPassword = ''
-    passwordForm.newPassword = ''
-    passwordForm.confirmPassword = ''
-    showPasswordModal.value = false
+    toast.info(PASSWORD_CHANGE_UNAVAILABLE_MESSAGE)
   }
 
   function logout() {

@@ -108,66 +108,70 @@
   </div>
 </template>
 
-<script>
+<script setup>
+/**
+ * Tableau de bord générique (route partagée `/dashboard`).
+ *
+ * Le backend renvoie le rôle BRUT, multi-alias (`student` / `étudiant` /
+ * `etudiant`, `teacher` / `enseignant`…) : la décision DOIT passer par les
+ * helpers normalisés de `@/constants/roles` (#18). L'ancienne comparaison
+ * littérale à `'étudiant'` (accentué) laissait silencieusement les étudiants
+ * sans aucune statistique.
+ *
+ * Migration Options API → `<script setup>` (CONTRIBUTING §1, opportuniste) :
+ * template inchangé, comportement identique hors correction du rôle.
+ */
+import { ref, onMounted } from 'vue'
 import Navbar from '@/components/Navbar.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import { dashboard, lessons as lessonsApi, notifications as notificationsApi, auth } from '@/services/api'
+import { isStudent, isTeacher } from '@/constants/roles'
 
-export default {
-  name: 'Dashboard',
-  components: {
-    Navbar,
-    ContentLoader
-  },
-  data() {
-    return {
-      user: null,
-      loading: true,
-      stats: {},
-      recentLessons: [],
-      notifications: []
+const user = ref(null)
+const loading = ref(true)
+const stats = ref({})
+const recentLessons = ref([])
+const notifications = ref([])
+
+async function loadDashboard() {
+  loading.value = true
+
+  try {
+    // Charger les stats selon le rôle NORMALISÉ (jamais la valeur brute).
+    // `|| {}` : ce chemin s'exécute enfin réellement pour un étudiant, une
+    // réponse vide ne doit pas casser le rendu des cartes.
+    if (isStudent(user.value)) {
+      stats.value = (await dashboard.getStudentDashboard()) || {}
+    } else if (isTeacher(user.value)) {
+      stats.value = (await dashboard.getTeacherDashboard()) || {}
     }
-  },
-  async mounted() {
-    this.user = auth.getUser()
-    await this.loadDashboard()
-  },
-  methods: {
-    async loadDashboard() {
-      this.loading = true
 
-      try {
-        // Charger les stats selon le rôle
-        const role = this.user?.role
-        if (role === 'étudiant') {
-          this.stats = await dashboard.getStudentDashboard()
-        } else if (role === 'enseignant') {
-          this.stats = await dashboard.getTeacherDashboard()
-        }
+    // Charger les leçons récentes
+    const lessonsData = await lessonsApi.getAll({ limit: 5 })
+    recentLessons.value = Array.isArray(lessonsData) ? lessonsData : []
 
-        // Charger les leçons récentes
-        const lessonsData = await lessonsApi.getAll({ limit: 5 })
-        this.recentLessons = Array.isArray(lessonsData) ? lessonsData : []
+    // Charger les notifications
+    const notifsData = await notificationsApi.getAll({ limit: 5 })
+    notifications.value = Array.isArray(notifsData) ? notifsData : []
 
-        // Charger les notifications
-        const notifsData = await notificationsApi.getAll({ limit: 5 })
-        this.notifications = Array.isArray(notifsData) ? notifsData : []
-
-      } catch (error) {
-        console.error('Erreur chargement dashboard:', error)
-      } finally {
-        this.loading = false
-      }
-    },
-
-    formatDate(date) {
-      return new Date(date).toLocaleDateString('fr-FR', {
-        day: 'numeric',
-        month: 'long',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    }
+  } catch (error) {
+    console.error('Erreur chargement dashboard:', error)
+  } finally {
+    loading.value = false
   }
 }
+
+function formatDate(date) {
+  return new Date(date).toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+onMounted(async () => {
+  user.value = auth.getUser()
+  await loadDashboard()
+})
 </script>
