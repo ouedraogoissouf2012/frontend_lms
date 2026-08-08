@@ -6,6 +6,17 @@ name: CI
 # 2) Anti-regression guard for source file size (issue #195): fails any PR /
 #    push that introduces a new source file > 300 lines or grows a baseline file.
 # 3) Unit tests (Vitest), including the guard's destructive suite.
+# 4) Contrat API via le runner natif Node (`npm run test:contract`) : le contrat
+#    frontend <-> backend Laravel est aussi joué sous Vitest
+#    (`tests/contract/api-contract.test.mjs`), mais par un chemin d'exécution
+#    DIFFÉRENT (Vite/jsdom + alias `@`). Le runner natif, lui, résout les imports
+#    avec `node-resolver.mjs` sans Vite : c'est la commande documentée dans
+#    CONTRIBUTING.md §3, et la seule qui garantisse qu'elle reste exécutable.
+#    Elle sort en code 1 dès qu'une assertion échoue (run-contract.mjs:38).
+# 5) Build de production (`npm run build`) : sans ce job, une PR qui casse le
+#    build (import mort, erreur de résolution d'alias, SFC invalide) passe au
+#    vert — les tests tournent sous Vitest/jsdom, pas sur le bundle réel.
+#    Vérifie aussi que le code splitting des routes (CONTRIBUTING.md §2) tient.
 on:
   pull_request:
     branches: [dev, main]
@@ -92,3 +103,45 @@ jobs:
       # il neutralise les timeouts ponctuels d'environnement.
       - name: Run unit tests
         run: npm run test -- --retry=2
+
+  contract:
+    name: Tests de contrat API (runner natif)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Aucun backend requis : `captureAdapter.mjs` remplace `api.defaults.adapter`
+      # de l'instance axios partagée — les requêtes sont capturées, jamais émises.
+      - name: Run API contract tests
+        run: npm run test:contract
+
+  build:
+    name: Build de production (Vite)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # L'avertissement « chunk > 500 kB » (LessonChapters) est connu et assumé
+      # (CONTRIBUTING.md §3) : c'est un warning Rollup, le build sort en code 0.
+      - name: Build production bundle
+        run: npm run build
