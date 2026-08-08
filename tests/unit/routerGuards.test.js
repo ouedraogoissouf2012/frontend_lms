@@ -83,3 +83,107 @@ describe('navigationGuard (G9)', () => {
     expect(next).toHaveBeenCalledWith()
   })
 })
+
+/**
+ * Anti-boucle de redirection.
+ *
+ * Un rôle non normalisable (absent de la table d'alias de constants/roles.js)
+ * fait renvoyer '/login' par getDashboardRoute (roles.js:141-144), repris comme
+ * `redirectTo` par canActivate (roles.js:168). Sans garde-fou, la règle 3
+ * redirige vers /login, puis la règle 2 (route `guest`) redirige /login vers
+ * '/login' → vue-router lève une erreur de redirection infinie.
+ */
+describe('navigationGuard — anti-boucle de redirection', () => {
+  const UNKNOWN_USER = { role: 'parent' }
+
+  beforeEach(() => {
+    isAuthenticated.mockReset()
+    getUser.mockReset()
+  })
+
+  it('rôle inconnu sur une route à rôles → redirige vers /login, jamais vers la route courante', () => {
+    isAuthenticated.mockReturnValue(true)
+    getUser.mockReturnValue(UNKNOWN_USER)
+    const next = vi.fn()
+    const target = { meta: { requiresAuth: true, roles: ['etudiant'] }, name: 'Forum', path: '/forum' }
+
+    navigationGuard(target, route(), next)
+
+    expect(next).toHaveBeenCalledWith('/login')
+    expect(next).not.toHaveBeenCalledWith('/forum')
+  })
+
+  it('rôle inconnu arrivant sur /login → next() sans argument (pas de next(\'/login\'))', () => {
+    isAuthenticated.mockReturnValue(true)
+    getUser.mockReturnValue(UNKNOWN_USER)
+    const next = vi.fn()
+    const login = { meta: { guest: true }, name: 'Login', path: '/login' }
+
+    navigationGuard(login, route(), next)
+
+    expect(next).toHaveBeenCalledWith()
+    expect(next).not.toHaveBeenCalledWith('/login')
+  })
+
+  it('la query string ne masque pas la détection (comparaison sur to.path)', () => {
+    isAuthenticated.mockReturnValue(true)
+    getUser.mockReturnValue(UNKNOWN_USER)
+    const next = vi.fn()
+    const login = { meta: { guest: true }, name: 'Login', path: '/login', fullPath: '/login?next=/forum' }
+
+    navigationGuard(login, route(), next)
+
+    expect(next).toHaveBeenCalledWith()
+  })
+
+  it('cible de repli == route refusée → laisse passer au lieu de boucler', () => {
+    // Cas d'incohérence de configuration : l'étudiant est refusé sur une route
+    // dont la cible de repli est son propre dashboard.
+    isAuthenticated.mockReturnValue(true)
+    getUser.mockReturnValue({ role: 'etudiant' })
+    const next = vi.fn()
+    const target = {
+      meta: { requiresAuth: true, roles: ['enseignant'] },
+      name: 'StudentDashboard',
+      path: '/student/dashboard'
+    }
+
+    navigationGuard(target, route(), next)
+
+    expect(next).toHaveBeenCalledWith()
+    expect(next).not.toHaveBeenCalledWith('/student/dashboard')
+  })
+
+  // --- Non-régression : les redirections légitimes sont inchangées ---
+
+  it('non-régression : étudiant sur route enseignant → /student/dashboard', () => {
+    isAuthenticated.mockReturnValue(true)
+    getUser.mockReturnValue({ role: 'etudiant' })
+    const next = vi.fn()
+
+    navigationGuard(route({ requiresAuth: true, roles: ['enseignant'] }, 'teacher-hub'), route(), next)
+
+    expect(next).toHaveBeenCalledWith('/student/dashboard')
+  })
+
+  it('non-régression : rôle connu sur /login → son dashboard', () => {
+    isAuthenticated.mockReturnValue(true)
+    getUser.mockReturnValue({ role: 'coordinateur' })
+    const next = vi.fn()
+    const login = { meta: { guest: true }, name: 'Login', path: '/login' }
+
+    navigationGuard(login, route(), next)
+
+    expect(next).toHaveBeenCalledWith('/admin/dashboard')
+  })
+
+  it('non-régression : non authentifié sur route protégée → /login', () => {
+    isAuthenticated.mockReturnValue(false)
+    getUser.mockReturnValue(null)
+    const next = vi.fn()
+
+    navigationGuard(route({ requiresAuth: true }, 'forum'), route(), next)
+
+    expect(next).toHaveBeenCalledWith('/login')
+  })
+})
