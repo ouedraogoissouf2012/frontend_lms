@@ -1,5 +1,28 @@
 # Plan d'Action - Intégration Frontend LMS ↔ KLASSCI
 
+> ## ⚠️ DOCUMENT HISTORIQUE — NE PAS SUIVRE COMME RÉFÉRENCE
+>
+> **Statut au 7 août 2026 : archive.** Ce document est le plan d'intégration
+> *initial*. L'intégration a été réalisée, puis refondue depuis. Ses chemins de
+> fichiers et ses extraits de code **ne décrivent plus le code réel** et
+> induiraient en erreur quiconque les recopierait.
+>
+> **Écarts connus entre ce plan et l'implémentation actuelle :**
+>
+> | Ce plan prescrit | Réalité du code (fait foi) |
+> |---|---|
+> | `src/utils/roles.js` (à créer) | **`src/constants/roles.js`** — enum gelé, table d'alias miroir de `App\Enums\Role`, helpers fail-secure. `src/utils/roles.js` a été supprimé (cf. `.claude/specs/roles-normalization/`) |
+> | `localStorage.setItem('token', …)` dans `src/services/api.js` | **`src/stores/auth.js`** (store Pinia) — persistance en **`sessionStorage`**, source de vérité unique de l'état d'auth |
+> | Routes ajoutées dans `src/router/index.js` | **`src/router/routes/*.js`** — routes découpées par domaine (`core`/`admin`/`teacher`/`student`/`shared`), gardes dans `src/router/guards.js` |
+>
+> **Les fichiers qui font foi aujourd'hui :** `src/constants/roles.js`,
+> `src/stores/auth.js`, `src/router/routes/`, `src/router/guards.js`.
+> Pour la table des rôles émis par KLASSCI, la source est le dépôt
+> `lms-backend`, `docs/INTEGRATION_KLASSCI.md`.
+>
+> Ce fichier est conservé pour la **traçabilité des décisions**, pas comme guide
+> d'implémentation.
+
 ## Vue d'ensemble
 
 Le frontend LMS doit s'authentifier via KLASSCI et rediriger les utilisateurs vers des dashboards spécifiques selon leur rôle.

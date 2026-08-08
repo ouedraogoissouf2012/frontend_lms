@@ -23,7 +23,10 @@ npm run dev
 
 ## 📚 DOCUMENTATION
 
-- **[GUIDE_DEBUTANT_VUE.md](./GUIDE_DEBUTANT_VUE.md)** - Pour débutants Vue.js (COMMENCEZ ICI !)
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - **Règles du dépôt : à lire avant toute PR**
+  (`<script setup>` obligatoire, lazy loading des routes, tokens de couleur, limite
+  de 300 lignes par fichier, vérifications avant PR)
+- **[GUIDE_DEBUTANT_VUE.md](./GUIDE_DEBUTANT_VUE.md)** - Pour débutants Vue.js
 - **[DEPLOIEMENT_CPANEL.md](./DEPLOIEMENT_CPANEL.md)** - Mettre en ligne sur cPanel
 
 ---
@@ -42,27 +45,45 @@ npm run dev
 
 ```
 src/
-├── views/           # Pages de l'application
+├── views/           # Pages, regroupées par domaine
 │   ├── Login.vue           # Page de connexion
-│   ├── Dashboard.vue       # Tableau de bord
-│   ├── Lessons.vue         # Liste des leçons
-│   ├── LessonView.vue      # Détails d'une leçon
-│   ├── Quizzes.vue         # Liste des quiz
-│   ├── QuizTake.vue        # Passer un quiz
-│   ├── Forum.vue           # Forum
-│   └── ForumTopic.vue      # Discussion forum
+│   ├── Dashboard.vue       # Tableau de bord générique
+│   ├── admin/              # Pages admin & coordinateur
+│   ├── teacher/            # Pages enseignant
+│   ├── student/            # Pages étudiant
+│   ├── lessons/            # Leçons et chapitres
+│   ├── evaluations/        # Évaluations
+│   ├── seances/, attendance/, classes/, matieres/, ...
 │
-├── components/      # Composants réutilisables
-│   └── Navbar.vue          # Barre de navigation
+├── components/      # Composants réutilisables, par domaine
+│   ├── ui/, common/, layout/, widgets/, modals/
+│   └── admin/, teacher/, student/, calendar/, visio/, forum/, ...
 │
-├── services/        # Logique backend
-│   └── api.js              # Connexion API (TOUT configuré !)
+├── composables/     # Logique réutilisable (`use*`), extraite des vues
+├── utils/           # Fonctions pures (formatage, calculs)
+├── constants/       # Valeurs figées — dont `roles.js` (autorisations)
 │
-├── router/          # Configuration des routes
-│   └── index.js
+├── stores/          # Stores Pinia
+│   └── auth.js             # Source de vérité unique de l'état d'auth
+│
+├── services/        # Accès API (axios) — un module par domaine backend
+│   ├── api.js              # Instance axios + intercepteurs
+│   └── lms*.js, klassci*.js, evaluation.js, cache.js, ...
+│
+├── router/          # Routes, découpées par domaine
+│   ├── index.js            # Assemblage + guard global
+│   ├── guards.js           # Logique de garde de navigation
+│   └── routes/             # core / admin / teacher / student / shared
+│
+├── assets/styles/   # Thème clair/sombre et tokens de couleur
+│   └── themes.css          # Barrel → theme/_tokens-*.css, _theme-{light,dark}.css
 │
 └── main.js          # Point d'entrée
 ```
+
+> Conventions structurantes (détail dans **CONTRIBUTING.md**) : un composant par
+> responsabilité, logique partagée en composable, **300 lignes maximum par fichier**
+> (garde CI `npm run lint:size`).
 
 ---
 
@@ -70,18 +91,26 @@ src/
 
 **Tout est déjà configuré !**
 
-Le fichier `src/services/api.js` contient toutes les fonctions pour appeler votre API Laravel :
+`src/services/api.js` expose l'instance axios (baseURL, token, gestion des erreurs)
+et des groupes de fonctions pour appeler l'API Laravel :
 
 ```javascript
 import { auth, lessons, quizzes, dashboard, forum } from '@/services/api'
 
 // Exemples d'utilisation :
-await auth.login(email, password)
+await auth.login(username, password)   // username OU email (auth KLASSCI)
 await lessons.getAll()
 await quizzes.startAttempt(quizId)
 await dashboard.getStudentDashboard()
 await forum.createTopic(data)
 ```
+
+Les domaines plus récents ont leur propre module (`services/lmsSeances.js`,
+`services/evaluation.js`, `services/klassci*.js`…) plutôt que d'alourdir `api.js`.
+
+> Le bloc `auth` de `api.js` n'est qu'une **façade** : l'état d'authentification
+> réel vit dans le store Pinia `src/stores/auth.js`. Dans un composant neuf,
+> préférez `useAuthStore()` directement.
 
 ---
 
@@ -104,24 +133,26 @@ VITE_API_URL=https://api.votre-domaine.com/api
 
 ### Changer les couleurs
 
-Éditez `tailwind.config.js` :
+Les couleurs sont des **tokens CSS**, définis dans `src/assets/styles/themes.css`
+et ses partials `src/assets/styles/theme/*.css` (une valeur par thème clair/sombre).
+On modifie le token, jamais la couleur au point d'usage :
 
-```javascript
-colors: {
-  primary: {
-    500: '#3b82f6',  // Couleur principale
-    600: '#2563eb',
-    700: '#1d4ed8',
-  },
-}
+```css
+.btn { color: var(--color-primary); }            /* ✅ token */
+.btn { color: var(--color-primary, #1e6fd9); }   /* ✅ fallback toléré */
+.btn { color: #1e6fd9; }                          /* ❌ refusé par lint:css */
 ```
+
+⚠️ **Une couleur hex en dur fait échouer la CI** (`npm run lint:css`) : elle casse
+le mode sombre. Voir CONTRIBUTING.md §4.
 
 ### Modifier les pages
 
 Les pages sont dans `src/views/`. Chaque fichier `.vue` contient :
 - `<template>` - Le HTML
-- `<script>` - La logique JavaScript
-- `<style>` - Les styles CSS
+- `<script setup>` - La logique JavaScript (Composition API, **obligatoire** pour
+  tout nouveau composant — cf. CONTRIBUTING.md §1)
+- `<style scoped>` - Les styles CSS
 
 ---
 
@@ -138,38 +169,69 @@ npm run build
 npm run preview
 ```
 
+### Qualité — à lancer avant toute PR
+
+```bash
+npm run test          # tests unitaires (Vitest)
+npm run test:watch    # idem, en mode watch
+npm run test:coverage # couverture (services / composables / utils)
+npm run test:contract # contrat API (chemins backend figés)
+npm run lint:css      # garde anti-régression : aucune couleur hex en dur (#161)
+npm run lint:size     # garde anti-régression : aucun fichier source > 300 lignes (#195)
+```
+
+`test`, `lint:css` et `lint:size` (plus `npm audit`) tournent **en CI sur chaque PR**
+vers `dev`/`main` (cf. `.github/workflows/lint.yml`) : une PR qui les casse est
+bloquée. `test:contract` n'est pas dans la CI — à lancer à la main quand vous
+touchez à un chemin d'API. Détail des règles et des baselines dans **CONTRIBUTING.md**.
+
 ---
 
-## ✅ PAGES INCLUSES
+## ✅ PRINCIPALES PAGES
 
-| Page | Route | Description |
-|------|-------|-------------|
-| Login | `/login` | Connexion avec KLASSCI |
-| Dashboard | `/` | Tableau de bord avec stats |
-| Leçons | `/lessons` | Liste des cours |
-| Détails leçon | `/lessons/:id` | Contenu d'un cours |
-| Quiz | `/quizzes` | Liste des quiz |
-| Passer quiz | `/quizzes/:id/take` | Interface de quiz avec timer |
-| Forum | `/forum` | Liste des discussions |
-| Topic forum | `/forum/topics/:id` | Discussion avec réponses |
+L'application compte une soixantaine de routes, définies par domaine dans
+`src/router/routes/`. Points d'entrée :
+
+| Route | Fichier de routes | Description |
+|-------|-------------------|-------------|
+| `/login` | `core.routes.js` | Connexion avec KLASSCI (username **ou** email) |
+| `/` | `core.routes.js` | **Redirection** vers le dashboard du rôle |
+| `/student/dashboard` | `student.routes.js` | Espace étudiant (cours, notes, agenda, évaluations) |
+| `/teacher/dashboard` | `teacher.routes.js` | Espace enseignant (séances, leçons, évaluations, stats) |
+| `/admin/dashboard` | `admin.routes.js` | Espace admin / coordinateur (classes, matières, enseignants) |
+| `/admin/institutions` | `admin.routes.js` | Gestion des institutions (supradmin) |
+| `/lessons/:id`, `/matieres/:id`, `/seances`, `/forum` | `shared.routes.js` | Pages partagées entre rôles |
+
+La destination de `/` est calculée par `getDashboardRoute()` dans
+`src/constants/roles.js` — **source unique** de la correspondance rôle → dashboard.
 
 ---
 
 ## 🔐 AUTHENTIFICATION
 
-L'authentification est automatique :
-- Le token est stocké dans `localStorage`
-- Chaque requête l'envoie automatiquement
-- Si le token expire → redirection vers `/login`
+L'état d'authentification est centralisé dans le store Pinia `src/stores/auth.js`
+(source de vérité unique) :
+
+- Le token et le profil sont persistés dans **`sessionStorage`** — la session est
+  donc effacée à la fermeture de l'onglet et n'est pas partagée entre onglets.
+- Chaque requête l'envoie automatiquement (intercepteur axios de `src/services/api.js`).
+- Si le token expire → redirection vers `/login`.
+- Les décisions d'accès (`isAdmin`, `isTeacher`, `isStudent`…) dérivent **toutes**
+  de `src/constants/roles.js`, qui normalise le rôle brut renvoyé par le backend.
+  Ne réimplémentez jamais un test de rôle ailleurs.
+
+> ⚠️ **Dette de sécurité tracée.** `sessionStorage` est lisible par JavaScript :
+> ce n'est **pas** une protection contre le XSS (un XSS y lit le token comme dans
+> `localStorage`). La vraie protection est un cookie `HttpOnly` + `Secure` +
+> `SameSite` émis par le backend — migration front + back à faire.
 
 ---
 
 ## 📱 RESPONSIVE
 
-Toutes les pages sont **automatiquement responsive** grâce à Tailwind CSS :
-- Mobile : 1 colonne
-- Tablette : 2 colonnes
-- Desktop : 3 colonnes
+Le responsive s'appuie sur les utilitaires Tailwind **et** sur la feuille dédiée
+`src/assets/styles/mobile-responsive.css` (partials `mobile/_*.css` : grilles,
+tableaux, navigation, formulaires et modales), qui adapte les écrans étroits.
 
 ---
 
@@ -206,45 +268,23 @@ taskkill /PID [le_numero] /F
 
 ---
 
-## 🎯 POUR LA PRÉSENTATION
-
-### Points forts à montrer :
-- ✅ Interface moderne et professionnelle
-- ✅ Authentification sécurisée
-- ✅ Données en temps réel depuis l'API
-- ✅ Design responsive (mobile + desktop)
-- ✅ Timer de quiz fonctionnel
-- ✅ Forum interactif
-
-### Démo suggérée :
-1. Login
-2. Dashboard avec stats
-3. Parcourir les leçons
-4. Démarrer un quiz
-5. Créer une discussion sur le forum
-
----
-
 ## 📈 FONCTIONNALITÉS
 
-### ✅ Implémentées
-- Authentification (Login/Logout)
-- Dashboard avec statistiques
-- Liste et détails des leçons
-- Système de quiz avec timer
-- Forum avec topics et réponses
-- Navigation responsive
-- Gestion automatique des tokens
-
-### 🔜 À ajouter (après présentation)
-- Upload de fichiers
-- Notifications en temps réel
-- Profil utilisateur
-- Recherche globale
-- Mode sombre
+- Authentification KLASSCI (login/logout) et redirection par rôle
+- Dashboards distincts étudiant / enseignant / admin-coordinateur, avec statistiques
+- Leçons et chapitres, avec éditeur de contenu riche (TipTap)
+- Évaluations : création, passage, correction, résultats
+- Séances, agenda/calendrier et émargement (présences)
+- Visioconférence intégrée (Jitsi) et suivi de participation
+- Forum (sujets et réponses)
+- Recherche, notifications, profil et réglages utilisateur
+- Thème clair / sombre (`src/composables/useTheme.js`) et design responsive
 
 ---
 
-**🎉 Développé avec ❤️ pour votre succès !**
+## 🤝 CONTRIBUER
 
-**Deadline : Dimanche → Vous avez tout ce qu'il faut ! 💪**
+Avant d'ouvrir une PR, lisez **[CONTRIBUTING.md](./CONTRIBUTING.md)** : il fixe les
+conventions non négociables du dépôt (Composition API, lazy loading des routes,
+tokens de couleur, 300 lignes maximum par fichier) et la liste des vérifications
+exécutées en CI.

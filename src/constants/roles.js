@@ -42,7 +42,8 @@ const ALIAS = Object.freeze({
   supradmin: ROLES.SUPRADMIN,
   superAdmin: ROLES.SUPRADMIN,
   // --- Divergence backend tracée #18-FE-1 (Décision C) ---
-  // `secretaire` est un rôle KLASSCI réellement émis (cf. docs/INTEGRATION_KLASSCI.md)
+  // `secretaire` est un rôle KLASSCI réellement émis (cf. dépôt lms-backend,
+  // `docs/INTEGRATION_KLASSCI.md:53` — table des rôles KLASSCI)
   // mais ABSENT de Role::tryFromString backend. On le mappe vers `coordinateur`
   // (moindre privilège préservant son accès admin observé). Retirable d'un seul
   // endroit le jour où le backend l'intègre.
