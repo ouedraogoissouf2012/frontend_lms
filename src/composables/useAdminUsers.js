@@ -1,6 +1,6 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import klassciService from '@/services/klassci'
-import { readCache, writeCache } from '@/services/cache'
+import { readCache, writeCache, invalidateEntity } from '@/services/cache'
 
 const PAGE_SIZE = 25
 
@@ -115,6 +115,13 @@ export function useAdminUsers() {
   async function loadAllUsers(forceReload = false) {
     try {
       loading.value = true; error.value = null; loadingProgress.value = ''
+      if (forceReload) {
+        // #237 : le force-reload re-fetche classes + enseignants (+ étudiants) ;
+        // on invalide leurs clés sœurs pour que les vues admin/coordinateur/
+        // enseignant ne servent plus une version périmée.
+        invalidateEntity('classes')
+        invalidateEntity('enseignants')
+      }
       if (!forceReload) {
         const cached = readCache('admin_users')
         if (cached && cached.etudiants?.length > 0) {

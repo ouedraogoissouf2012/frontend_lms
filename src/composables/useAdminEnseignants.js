@@ -1,6 +1,6 @@
 import { ref, computed, onMounted } from 'vue'
 import klassciService from '@/services/klassci'
-import { readCache, writeCache, clearCache } from '@/services/cache'
+import { readCache, writeCache, invalidateEntity } from '@/services/cache'
 // #28 : logique métier pure extraite (testée dans tests/unit/enseignants.test.js)
 import { computeEnseignantsStats } from '@/utils/enseignants'
 
@@ -55,8 +55,9 @@ export function useAdminEnseignants() {
 
       // Si force reload, ignorer le cache
       if (forceReload) {
-        console.log('🔄 Force reload demandé, vidage du cache...')
-        clearCache('admin_enseignants')
+        // #237 : invalide TOUTES les clés « enseignants » (admin_enseignants +
+        // admin_users groupé) pour que les autres vues restent cohérentes.
+        invalidateEntity('enseignants')
       } else {
         // Check cache first
         const cached = readCache('admin_enseignants')
