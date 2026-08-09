@@ -3,12 +3,18 @@ import { auth } from './api'
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
 /**
- * Returns a tenant-scoped localStorage cache key.
- * Uses the institution slug from session so each school gets its own key.
+ * Returns a cache key scoped par institution ET par utilisateur (#230).
+ *
+ * Le scope par institution seul ne suffit pas : sur un poste partagé (labo
+ * scolaire), l'utilisateur A ferme l'onglet sans se déconnecter (sessionStorage
+ * vidé, mais le cache localStorage persiste), puis B (même école) se connecte et
+ * lisait le cache encore valide de A. En incluant l'id utilisateur dans la clé,
+ * B ne peut plus lire le cache de A. `anon` avant authentification.
  */
 export function cacheKey(name) {
   const institution = auth.getInstitution() || 'default'
-  return `${name}_cache_${institution}`
+  const userId = auth.getUser()?.id ?? 'anon'
+  return `${name}_cache_${institution}_u${userId}`
 }
 
 /**

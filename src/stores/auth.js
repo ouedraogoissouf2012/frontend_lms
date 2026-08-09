@@ -71,6 +71,12 @@ export const useAuthStore = defineStore('auth', () => {
 
   /** Peuple l'état d'auth depuis la réponse de login et persiste en sessionStorage. */
   function setSession(data, metaPayload) {
+    // #230 — purge le cache localStorage du précédent utilisateur avant d'ouvrir
+    // la nouvelle session (poste partagé : évite l'accumulation + les clés au
+    // format pré-#230). Le scope par user de la clé empêche déjà la lecture
+    // croisée ; cette purge complète l'hygiène.
+    clearAllCache()
+
     user.value = data?.user ?? null
     token.value = data?.token ?? null
     sessionStorage.setItem(KEYS.token, token.value ?? '')
