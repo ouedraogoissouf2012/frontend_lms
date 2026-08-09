@@ -77,21 +77,34 @@ export function normalizeError(error) {
 /**
  * Décide si une erreur HTTP doit invalider la SESSION locale (déconnexion).
  *
- * Un 401 n'implique PAS toujours que le token de session (Sanctum) est invalide :
- * les endpoints métier peuvent refuser un rôle précis (ex. calendrier enseignant)
- * alors que la session locale reste valide. Déconnecter dans ce cas éjecterait
- * l'utilisateur à tort.
+ * Règle (#231) : côté LMS, un refus d'autorisation/rôle renvoie 403 (EnsureRole),
+ * jamais 401. Un 401 signifie donc que le token de session Sanctum est
+ * invalide/expiré/révoqué → il FAUT déconnecter et rediriger vers /login (sinon
+ * l'utilisateur reste bloqué sur une page cassée en boucle après expiration).
  *
- * Règle (fail-safe) : on ne force la déconnexion que lorsque l'endpoint de session
- * `/auth/me` répond 401. Fonction PURE, ne lève jamais.
+ * EXCEPTION : un 401 lié à la session KLASSCI (appels proxy, token KLASSCI
+ * manquant/expiré) ne doit PAS éjecter la session LMS — l'utilisateur peut se
+ * ré-authentifier auprès de KLASSCI sans perdre sa session LMS. On l'identifie
+ * par l'URL `/proxy/`, le `reason: 'klassci_session_expired'` ou un message KLASSCI.
+ *
+ * Fonction PURE, ne lève jamais.
  *
  * @param {unknown} error
  * @returns {boolean} true s'il faut déconnecter l'utilisateur.
  */
 export function shouldForceLogout(error) {
   if (error?.response?.status !== 401) return false
+
   const url = error.config?.url ?? ''
-  return url.includes('/auth/me')
+  const data = error.response?.data ?? {}
+
+  // Exceptions KLASSCI : ne pas éjecter la session LMS pour un souci KLASSCI.
+  if (url.includes('/proxy/')) return false
+  if (data.reason === 'klassci_session_expired') return false
+  if (/klassci/i.test(String(data.message ?? ''))) return false
+
+  // Tout autre 401 = session Sanctum invalide/expirée → déconnexion.
+  return true
 }
 
 /**
