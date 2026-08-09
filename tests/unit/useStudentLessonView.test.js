@@ -14,12 +14,17 @@ vi.mock('vue-router', () => ({
 
 const getLesson = vi.fn()
 const apiGet = vi.fn()
+const markAsCompleted = vi.fn()
+const toastError = vi.fn()
 vi.mock('@/services/lesson', () => ({
   default: { getLesson: (...a) => getLesson(...a), markComplete: vi.fn(), updateProgress: vi.fn() }
 }))
 vi.mock('@/services/api', () => ({ default: { get: (...a) => apiGet(...a) } }))
 vi.mock('@/services/chapterProgress', () => ({
-  default: { markAsCompleted: vi.fn(), updateTimeSpent: vi.fn() }
+  default: { markAsCompleted: (...a) => markAsCompleted(...a), updateTimeSpent: vi.fn() }
+}))
+vi.mock('@/services/toast', () => ({
+  toast: { error: (...a) => toastError(...a), success: vi.fn(), warning: vi.fn() }
 }))
 
 import { useStudentLessonView } from '@/composables/useStudentLessonView'
@@ -33,7 +38,10 @@ async function setup() {
 }
 
 describe('useStudentLessonView (#H4)', () => {
-  beforeEach(() => { getLesson.mockReset(); apiGet.mockReset(); push.mockClear() })
+  beforeEach(() => {
+    getLesson.mockReset(); apiGet.mockReset(); push.mockClear()
+    markAsCompleted.mockReset(); toastError.mockClear()
+  })
 
   it('charge leçon + chapitres par id de route', async () => {
     getLesson.mockResolvedValue({ success: true, data: { id: 5, title: 'L' } })
@@ -79,5 +87,32 @@ describe('useStudentLessonView (#H4)', () => {
     apiGet.mockResolvedValue({ success: true, data: [] })
     const c = await setup()
     expect(c.error.value).toBe("Cette leçon n'est pas encore disponible")
+  })
+
+  // #233 : l'UI ne doit JAMAIS afficher un chapitre « terminé » si le serveur a
+  // échoué (progression faussée, désynchronisée au rechargement).
+  it('#233 — échec API : ne marque PAS le chapitre complété et informe l\'utilisateur', async () => {
+    getLesson.mockResolvedValue({ success: true, data: {} })
+    apiGet.mockResolvedValue({ success: true, data: [{ id: 1 }, { id: 2 }] })
+    markAsCompleted.mockRejectedValue({ userMessage: 'Réseau indisponible' })
+    const c = await setup()
+
+    await c.markChapterComplete()
+
+    expect(c.isChapterCompleted(1)).toBe(false)
+    expect(c.completedChapters.value.has(1)).toBe(false)
+    expect(toastError).toHaveBeenCalledWith('Réseau indisponible')
+  })
+
+  it('#233 — succès API : marque le chapitre complété sans toast d\'erreur', async () => {
+    getLesson.mockResolvedValue({ success: true, data: {} })
+    apiGet.mockResolvedValue({ success: true, data: [{ id: 1 }, { id: 2 }] })
+    markAsCompleted.mockResolvedValue({ success: true })
+    const c = await setup()
+
+    await c.markChapterComplete()
+
+    expect(c.isChapterCompleted(1)).toBe(true)
+    expect(toastError).not.toHaveBeenCalled()
   })
 })
