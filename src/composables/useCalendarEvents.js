@@ -31,6 +31,7 @@ export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dat
   const enseignants = ref([])
   const loading = ref(true)
   const refreshing = ref(false)
+  const error = ref(null) // #238 : message d'erreur distinct d'un agenda vide
 
   async function loadSeances(forceRefresh = false) {
     try {
@@ -71,7 +72,9 @@ export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dat
           isUrgent: false
         }
       }))
-    } catch {
+    } catch (e) {
+      // #238 : ne pas masquer la panne — l'agenda ne doit pas paraître vide.
+      error.value = e?.userMessage || 'Impossible de charger les séances.'
       return []
     }
   }
@@ -123,7 +126,9 @@ export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dat
           }
         }
       })
-    } catch {
+    } catch (e) {
+      // #238 : ne pas masquer la panne — l'agenda ne doit pas paraître vide.
+      error.value = e?.userMessage || 'Impossible de charger les évaluations.'
       return []
     }
   }
@@ -164,6 +169,7 @@ export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dat
 
   async function loadEvents(forceRefresh = false) {
     loading.value = true
+    error.value = null // #238 : repart d'un état sain à chaque chargement
     try {
       const allEvents = []
       if (eventTypeFilter.value !== 'evaluations') {
@@ -193,5 +199,5 @@ export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dat
     }
   }
 
-  return { events, matieres, classes, enseignants, loading, refreshing, loadEvents, refreshData }
+  return { events, matieres, classes, enseignants, loading, refreshing, error, loadEvents, refreshData }
 }

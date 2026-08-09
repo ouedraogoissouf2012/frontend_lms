@@ -12,8 +12,13 @@
       <!-- Loading state -->
       <ContentLoader v-if="loading" text="Chargement..." />
 
+      <!-- #238 : chargement partiel (chiffres incomplets) — distinct d'un état vide -->
+      <div v-if="!loading && error" class="hub-error" role="alert">
+        {{ error }}
+      </div>
+
       <!-- Hub Grid -->
-      <div v-else class="hub-grid">
+      <div v-if="!loading" class="hub-grid">
         <!-- Section Classes -->
         <HubCard
           to="/admin/classes"
@@ -96,7 +101,7 @@ import {
   UsersIcon
 } from '@heroicons/vue/24/outline'
 
-const { loading, stats } = useAdminHub()
+const { loading, error, stats } = useAdminHub()
 </script>
 
 <style scoped>
@@ -104,6 +109,16 @@ const { loading, stats } = useAdminHub()
   max-width: 1280px;
   margin: 0 auto;
   padding: 0;
+}
+
+/* #238 : bannière de chargement partiel (distincte d'un état vide) */
+.hub-error {
+  margin-bottom: 1.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--error-bg);
+  color: var(--red-600);
+  border-radius: 0.5rem;
+  font-weight: 600;
 }
 
 .page-header {
