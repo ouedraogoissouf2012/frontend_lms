@@ -3,15 +3,20 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import viteConfig from '../../vite.config.js'
 
-describe('vite config — console production guard (#15)', () => {
-  it('retire les logs non essentiels du build sans supprimer warn/error', () => {
+describe('vite config — console production guard (#15, révisé #234)', () => {
+  it('retire TOUS les console.* du build prod (sécurité #234)', () => {
+    // #234 : l'intercepteur pose Authorization = Bearer … → l'objet erreur axios
+    // porte le token. Garder console.error/warn en prod le fuyait. La décision #15
+    // (garder warn/error pour le diagnostic) est donc RÉVISÉE : on les strippe au
+    // build (les erreurs à surfacer passent par errorHandler.logError / un toast),
+    // complété par un no-op runtime dans main.js (appels dynamiques + dépendances).
     expect(viteConfig.esbuild?.pure).toEqual([
       'console.log',
       'console.info',
       'console.debug',
+      'console.error',
+      'console.warn',
     ])
-    expect(viteConfig.esbuild?.pure).not.toContain('console.warn')
-    expect(viteConfig.esbuild?.pure).not.toContain('console.error')
   })
 
   it('ne laisse pas de log non essentiel dans le worker public copié tel quel', () => {
