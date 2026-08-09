@@ -61,6 +61,10 @@ describe('useAuthStore — login (T1, T2)', () => {
     expect(JSON.parse(sessionStorage.getItem('user'))).toEqual(LOGIN_RESPONSE.data.user)
     expect(JSON.parse(sessionStorage.getItem('meta'))).toEqual(LOGIN_RESPONSE.meta)
     expect(sessionStorage.getItem('institution')).toBe('esi')
+
+    // #230 : ouvrir une session purge le cache localStorage du précédent
+    // utilisateur (hygiène poste partagé).
+    expect(clearAllCache).toHaveBeenCalledTimes(1)
   })
 
   it('T2 — login échoué (success:false) ne mute rien', async () => {
@@ -82,6 +86,9 @@ describe('useAuthStore — logout (T3)', () => {
     const store = useAuthStore()
     await store.login('awa', 'secret')
 
+    // #230 : login purge déjà le cache (setSession). On isole ici l'assertion
+    // sur le purge PROPRE au logout.
+    clearAllCache.mockClear()
     store.logout()
 
     expect(store.isAuthenticated).toBe(false)
