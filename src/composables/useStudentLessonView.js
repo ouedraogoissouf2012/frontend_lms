@@ -3,6 +3,7 @@ import { useRoute, useRouter } from 'vue-router'
 import lessonService from '@/services/lesson'
 import chapterProgressService from '@/services/chapterProgress'
 import api from '@/services/api'
+import { toast } from '@/services/toast'
 
 /**
  * Couche données de StudentLessonView (#H4 ≤300) : charge leçon + chapitres +
@@ -157,9 +158,13 @@ export function useStudentLessonView() {
       }
     } catch (err) {
       console.error('[StudentLesson] Mark complete error:', err)
-      // Still mark locally even if API fails
-      completedChapters.value.add(activeChapter.value.id)
-      completedChapters.value = new Set(completedChapters.value)
+      // #233 : NE PAS marquer le chapitre complété si le serveur a échoué. Sinon
+      // l'UI affiche « terminé » alors que chapter_progress/lesson_progress n'ont
+      // rien enregistré → progression faussée et désynchronisée au rechargement.
+      // On informe l'étudiant (feedback non bloquant) pour qu'il réessaie.
+      toast.error(
+        err?.userMessage || 'La validation du chapitre a échoué. Veuillez réessayer.'
+      )
     } finally {
       markingComplete.value = false
     }
