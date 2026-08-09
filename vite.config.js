@@ -5,7 +5,11 @@ import path from 'path'
 export default defineConfig({
   plugins: [vue()],
   esbuild: {
-    pure: ['console.log', 'console.info', 'console.debug'],
+    // #234/#241 : retirer TOUS les console.* du bundle prod. console.error/warn
+    // recevaient l'objet erreur axios qui porte l'en-tête Authorization (Bearer)
+    // → fuite du token/PII en console. Les erreurs à surfacer passent par
+    // errorHandler.logError (prod-safe) ou par un toast utilisateur.
+    pure: ['console.log', 'console.info', 'console.debug', 'console.error', 'console.warn'],
   },
   resolve: {
     alias: {
