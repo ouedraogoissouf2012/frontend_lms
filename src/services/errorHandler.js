@@ -53,6 +53,21 @@ export function normalizeError(error) {
   if (!error || typeof error !== 'object') return fallback
 
   const status = error.response?.status
+
+  // #240 : erreurs du proxy KLASSCI distinguées par le back (RendersKlassciProxyErrors) :
+  //  - 401 { reason: 'klassci_session_expired' } : la session KLASSCI (pas la session
+  //    LMS Sanctum) a expiré → message actionnable, PAS de déconnexion (cf. shouldForceLogout).
+  //  - 503 (+ Retry-After) : KLASSCI temporairement indisponible → message « réessayez ».
+  // Sans cela, ces cas retombaient sur « auth »/« server » génériques et les
+  // dashboards KLASSCI restaient muets.
+  const reason = error.response?.data?.reason
+  if (reason === 'klassci_session_expired') {
+    return { category: 'klassciExpired', userMessage: ERROR_MESSAGES.klassciExpired, fieldErrors: null }
+  }
+  if (status === 503) {
+    return { category: 'klassciUnavailable', userMessage: ERROR_MESSAGES.klassciUnavailable, fieldErrors: null }
+  }
+
   if (status != null) {
     const category = categoryFromStatus(status)
     if (category === 'validation') {
