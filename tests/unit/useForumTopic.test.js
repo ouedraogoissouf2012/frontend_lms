@@ -78,6 +78,25 @@ describe('useForumTopic (#G1)', () => {
     expect(getTopic).toHaveBeenCalledTimes(2)
   })
 
+  it('#235 — submitReply ignore un second appel pendant l\'envoi (anti-doublon)', async () => {
+    let resolveReply
+    replyToTopic.mockImplementationOnce(() => new Promise((r) => { resolveReply = r }))
+    const f = setup()
+    await f.init()
+    f.replyContent.value = 'Ma réponse'
+
+    const first = f.submitReply()          // démarre l'envoi (promesse en attente)
+    expect(f.submitting.value).toBe(true)
+    await f.submitReply()                  // second clic pendant l'envoi → ignoré
+
+    expect(replyToTopic).toHaveBeenCalledTimes(1)
+
+    resolveReply({})
+    await first
+    await flushPromises()
+    expect(f.submitting.value).toBe(false) // libéré après l'envoi
+  })
+
   it('submitReply refuse un contenu vide (alerte, pas d\'appel)', async () => {
     const f = setup()
     await f.init()

@@ -107,7 +107,7 @@
           <BaseButton variant="secondary" @click="showNewTopicModal = false">
             Annuler
           </BaseButton>
-          <BaseButton type="submit" form="forum-new-topic-form">
+          <BaseButton type="submit" form="forum-new-topic-form" :loading="submitting">
             Publier
           </BaseButton>
         </template>
@@ -130,6 +130,7 @@ const router = useRouter()
 const loading = ref(true)
 const topics = ref([])
 const showNewTopicModal = ref(false)
+const submitting = ref(false) // #235 : garde anti double-soumission de topic
 const newTopic = reactive({
   title: '',
   content: ''
@@ -167,7 +168,9 @@ async function createTopic() {
     alert('Veuillez remplir tous les champs')
     return
   }
+  if (submitting.value) return // #235 : évite le doublon sur double-clic
 
+  submitting.value = true
   try {
     await forum.createTopic({ ...newTopic })
     showNewTopicModal.value = false
@@ -177,6 +180,8 @@ async function createTopic() {
   } catch (error) {
     console.error('Erreur création topic:', error)
     alert('Erreur lors de la création de la discussion')
+  } finally {
+    submitting.value = false
   }
 }
 
