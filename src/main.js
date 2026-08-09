@@ -36,11 +36,17 @@ if (initialTheme === 'dark') {
 }
 document.documentElement.setAttribute('data-theme', initialTheme)
 
-// Désactiver console.log en production (garder console.error et console.warn)
+// #234/#241 : neutraliser TOUS les console.* en production. console.error/warn
+// recevaient l'objet erreur axios porteur du token (Authorization) → fuite en
+// console prod. Défense d'exécution complétant le strip build-time (vite.config)
+// pour couvrir les appels dynamiques et les dépendances. Les erreurs à surfacer
+// passent par errorHandler.logError (prod-safe) ou par un toast utilisateur.
 if (!import.meta.env.DEV) {
   console.log = () => {}
   console.debug = () => {}
   console.info = () => {}
+  console.error = () => {}
+  console.warn = () => {}
 }
 
 const app = createApp(App)
