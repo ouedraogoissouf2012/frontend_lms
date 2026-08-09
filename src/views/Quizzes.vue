@@ -67,6 +67,7 @@
 <script>
 import Navbar from '@/components/Navbar.vue'
 import { quizzes } from '@/services/api'
+import { extractList } from '@/utils/apiList'
 import { toast } from '@/services/toast'
 import { normalizeError } from '@/services/errorHandler'
 
@@ -89,8 +90,9 @@ export default {
       this.loading = true
 
       try {
-        const data = await quizzes.getAll()
-        this.quizzes = Array.isArray(data) ? data : []
+        // #232 — le back renvoie un paginator sous `data` ; extractList gère
+        // les formes paginée / plate (cf. dette d'enveloppe #522).
+        this.quizzes = extractList(await quizzes.getAll())
       } catch (error) {
         console.error('Erreur chargement quiz:', error)
         this.quizzes = []
