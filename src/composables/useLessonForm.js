@@ -1,5 +1,6 @@
 import { ref, reactive } from 'vue'
 import { writeCache } from '@/services/cache'
+import lessonService from '@/services/lesson'
 
 /**
  * Couche formulaire de la modale leçon (#H4 ≤300), extraite de TeacherLessons.
@@ -58,37 +59,34 @@ export function useLessonForm(lessons) {
     saving.value = true
 
     try {
-      console.log('[SAVE] Sauvegarde leçon:', lessonForm)
-
       if (editingLesson.value) {
-        // Modification
+        // #236 : vraie mise à jour serveur (plus de mutation purement locale).
+        const response = await lessonService.updateLesson(editingLesson.value.id, { ...lessonForm })
+        if (!response?.success) {
+          alert('Erreur lors de la sauvegarde : ' + (response?.message || 'réessayez.'))
+          return
+        }
         const index = lessons.value.findIndex(l => l.id === editingLesson.value.id)
         if (index !== -1) {
-          lessons.value[index] = {
-            ...lessons.value[index],
-            ...lessonForm,
-            updated_at: new Date().toISOString()
-          }
+          lessons.value[index] = { ...lessons.value[index], ...(response.data || lessonForm) }
         }
       } else {
-        // Création
-        const newLesson = {
-          id: Date.now(),
-          ...lessonForm,
-          created_at: new Date().toISOString(),
-          views: 0
+        // #236 : vraie création serveur — on insère la leçon RENVOYÉE (id réel).
+        // Avant : leçon fabriquée (id: Date.now()) jamais persistée, mais écrite
+        // dans le cache lu par useTeacherLessons → « leçon fantôme ».
+        const response = await lessonService.createLesson({ ...lessonForm })
+        if (!response?.success || !response.data) {
+          alert('Erreur lors de la sauvegarde : ' + (response?.message || 'réessayez.'))
+          return
         }
-        lessons.value.unshift(newLesson)
+        lessons.value.unshift(response.data)
       }
 
-      // Mettre à jour le cache
+      // Rafraîchir le cache avec l'état réellement persisté.
       writeCache('teacher_lessons', lessons.value)
-
       closeModal()
-      console.log('[OK] Leçon sauvegardée')
     } catch (err) {
-      console.error('[ERREUR] Sauvegarde leçon:', err)
-      alert('Erreur lors de la sauvegarde')
+      alert('Erreur lors de la sauvegarde : ' + (err?.userMessage || 'réessayez.'))
     } finally {
       saving.value = false
     }
