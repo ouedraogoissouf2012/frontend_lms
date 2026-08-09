@@ -64,7 +64,9 @@ export function normalizeError(error) {
   if (reason === 'klassci_session_expired') {
     return { category: 'klassciExpired', userMessage: ERROR_MESSAGES.klassciExpired, fieldErrors: null }
   }
-  if (status === 503) {
+  // Le 503 KLASSCI porte TOUJOURS un en-tête Retry-After (RendersKlassciProxyErrors) ;
+  // c'est le marqueur distinctif. Un 503 générique (sans Retry-After) reste « server ».
+  if (status === 503 && error.response?.headers?.['retry-after'] != null) {
     return { category: 'klassciUnavailable', userMessage: ERROR_MESSAGES.klassciUnavailable, fieldErrors: null }
   }
 

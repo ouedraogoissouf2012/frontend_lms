@@ -57,10 +57,18 @@ describe('errorHandler — normalizeError (#240 proxy KLASSCI)', () => {
     expect(r.userMessage).toBe(ERROR_MESSAGES.klassciExpired)
   })
 
-  it('503 → message « KLASSCI indisponible » (pas « server » générique)', () => {
-    const r = normalizeError(err(503))
+  it('503 AVEC Retry-After → message « KLASSCI indisponible »', () => {
+    const r = normalizeError({
+      response: { status: 503, data: {}, headers: { 'retry-after': '30' } },
+      config: { url: '/api/proxy/x' },
+    })
     expect(r.category).toBe('klassciUnavailable')
     expect(r.userMessage).toBe(ERROR_MESSAGES.klassciUnavailable)
+  })
+
+  it('non-régression : 503 SANS Retry-After reste « server » générique', () => {
+    const r = normalizeError({ response: { status: 503, data: {} }, config: { url: '/x' } })
+    expect(r.category).toBe('server')
   })
 
   it('non-régression : un 401 LMS sans reason reste « auth »', () => {
