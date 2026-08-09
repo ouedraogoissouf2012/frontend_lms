@@ -30,6 +30,11 @@
       @apply-preset="applyDateRangePreset"
     />
 
+    <!-- #238 : erreur de chargement distincte d'un agenda vide -->
+    <div v-if="error" class="calendar-error" role="alert">
+      {{ error }}
+    </div>
+
     <!-- ========== CALENDAR CARD (H8 : extraite en sous-composant) ========== -->
     <div class="desktop-calendar-surface">
       <CalendarView
@@ -110,7 +115,7 @@ const selectedClasse = ref('')
 const selectedEnseignant = ref('')
 
 // Données + chargement délégués au composable (#28bis : script < 300)
-const { events, matieres, classes, enseignants, loading, refreshing, loadEvents, refreshData } = useCalendarEvents({
+const { events, matieres, classes, enseignants, loading, refreshing, error, loadEvents, refreshData } = useCalendarEvents({
   getUserRole: () => props.userRole,
   getUserId: () => props.userId,
   eventTypeFilter,
@@ -218,6 +223,16 @@ defineExpose({
   padding: 2rem;
   max-width: 1600px;
   margin: 0 auto;
+}
+
+// #238 : bannière d'erreur (état distinct d'un agenda vide)
+.calendar-error {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--error-bg);
+  color: var(--red-600);
+  border-radius: 0.5rem;
+  font-weight: 600;
 }
 
 // ========== RESPONSIVE ==========

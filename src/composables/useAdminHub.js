@@ -37,6 +37,7 @@ function countStudents(classes) {
  */
 export function useAdminHub() {
   const loading = ref(true)
+  const error = ref(null) // #238 : signale un chargement partiel (chiffres incomplets)
   const stats = ref({
     classes: 0,
     matieres: 0,
@@ -48,15 +49,23 @@ export function useAdminHub() {
 
   async function loadStats() {
     loading.value = true
+    error.value = null
 
     try {
-      // Charger les données en parallèle
+      // #238 : chaque source garde son fallback (une source en panne ne casse pas
+      // tout le hub), mais on RECENSE les échecs pour prévenir l'admin que les
+      // chiffres sont incomplets — au lieu d'afficher 0 en silence.
+      const failed = []
       const [classes, matieres, enseignants, dashboardStats] = await Promise.all([
-        klassciService.getClasses().catch(() => []),
-        klassciService.getMatieres().catch(() => []),
-        klassciService.getEnseignants().catch(() => []),
-        dashboard.getStats().catch(() => ({}))
+        klassciService.getClasses().catch(() => { failed.push('classes'); return [] }),
+        klassciService.getMatieres().catch(() => { failed.push('matières'); return [] }),
+        klassciService.getEnseignants().catch(() => { failed.push('enseignants'); return [] }),
+        dashboard.getStats().catch(() => { failed.push('statistiques'); return {} })
       ])
+
+      if (failed.length > 0) {
+        error.value = `Certaines données n'ont pas pu être chargées (${failed.join(', ')}). Les chiffres affichés peuvent être incomplets.`
+      }
 
       const etudiantsFromClasses = countStudents(classes)
 
@@ -97,5 +106,5 @@ export function useAdminHub() {
     loadStats()
   })
 
-  return { loading, stats, loadStats }
+  return { loading, error, stats, loadStats }
 }

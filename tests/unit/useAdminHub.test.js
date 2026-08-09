@@ -79,4 +79,17 @@ describe('useAdminHub (#G1)', () => {
     expect(h.stats.value.evaluations).toBe(0)
     expect(h.loading.value).toBe(false)
   })
+
+  it('#238 — signale un chargement partiel quand une source échoue', async () => {
+    dashboardMock.getStats.mockRejectedValueOnce(new Error('down'))
+    const h = await setup()
+    expect(h.error.value).toBeTruthy()
+    expect(h.error.value).toContain('statistiques') // source en échec nommée
+    expect(h.stats.value.classes).toBe(2) // les autres chiffres restent dispo
+  })
+
+  it('#238 — pas d\'erreur quand toutes les sources chargent', async () => {
+    const h = await setup()
+    expect(h.error.value).toBeNull()
+  })
 })
