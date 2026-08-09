@@ -145,3 +145,20 @@ jobs:
       # (CONTRIBUTING.md §3) : c'est un warning Rollup, le build sort en code 0.
       - name: Build production bundle
         run: npm run build
+
+  # 6) SAST (issue #241) : analyse statique de sécurité du code source front via
+  #    Semgrep (règles OSS security-audit + javascript), pour combler l'asymétrie
+  #    avec le backend (Semgrep déjà en CI). Bloque UNIQUEMENT sur les findings de
+  #    sévérité ERROR ; les WARNING/INFO restent visibles dans les logs sans casser
+  #    la CI (introduction progressive — cf. #241).
+  sast:
+    name: SAST (Semgrep)
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Semgrep scan (ERROR bloquant)
+        run: semgrep scan --config p/security-audit --config p/javascript --severity ERROR --error src/
