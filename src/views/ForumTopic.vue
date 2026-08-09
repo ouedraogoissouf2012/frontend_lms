@@ -27,6 +27,7 @@
 
         <ForumReplyForm
           :topic="topic"
+          :submitting="submitting"
           v-model="replyContent"
           @submit="submitReply"
         />
@@ -53,6 +54,7 @@ const {
   loading,
   topic,
   replyContent,
+  submitting,
   canMarkAsSolution,
   markAsSolution,
   submitReply,

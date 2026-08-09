@@ -20,6 +20,7 @@ export function useForumTopic() {
   const loading = ref(true)
   const topic = ref(null)
   const replyContent = ref('')
+  const submitting = ref(false) // #235 : garde anti double-soumission de réponse
   const currentUser = ref(null)
 
   function getCurrentUser() {
@@ -77,7 +78,9 @@ export function useForumTopic() {
       alert('Veuillez écrire une réponse')
       return
     }
+    if (submitting.value) return // #235 : évite le doublon sur double-clic
 
+    submitting.value = true
     try {
       const topicId = route.params.id
       await forum.replyToTopic(topicId, replyContent.value)
@@ -87,6 +90,8 @@ export function useForumTopic() {
     } catch (error) {
       console.error('Erreur publication réponse:', error)
       alert('Erreur lors de la publication de la réponse')
+    } finally {
+      submitting.value = false
     }
   }
 
@@ -109,6 +114,7 @@ export function useForumTopic() {
     loading,
     topic,
     replyContent,
+    submitting,
     currentUser,
     getCurrentUser,
     canMarkAsSolution,

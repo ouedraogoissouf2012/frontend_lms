@@ -16,15 +16,15 @@
       </p>
       <button
         @click="$emit('submit')"
-        :disabled="!replyContent.trim()"
+        :disabled="!replyContent.trim() || submitting"
         :class="[
           'px-6 py-2.5 rounded-lg font-semibold transition-colors',
-          replyContent.trim()
+          (replyContent.trim() && !submitting)
             ? 'bg-primary-600 hover:bg-primary-700 text-white'
             : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
         ]"
       >
-        Publier la réponse
+        {{ submitting ? 'Publication…' : 'Publier la réponse' }}
       </button>
     </div>
   </div>
@@ -49,6 +49,7 @@
  */
 defineProps({
   topic: { type: Object, required: true },
+  submitting: { type: Boolean, default: false }, // #235 : désactive pendant l'envoi
 })
 
 const replyContent = defineModel({ type: String, default: '' })
