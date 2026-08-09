@@ -5,7 +5,8 @@
  * doivent PAS éjecter la session LMS.
  */
 import { describe, it, expect } from 'vitest'
-import { shouldForceLogout } from '@/services/errorHandler'
+import { shouldForceLogout, normalizeError } from '@/services/errorHandler'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 const err = (status, { url = '', message = '', reason = undefined } = {}) => ({
   response: { status, data: { message, ...(reason !== undefined ? { reason } : {}) } },
@@ -46,5 +47,31 @@ describe('errorHandler — shouldForceLogout', () => {
     expect(shouldForceLogout(undefined)).toBe(false)
     expect(shouldForceLogout({})).toBe(false)
     expect(shouldForceLogout(new Error('boom'))).toBe(false)
+  })
+})
+
+describe('errorHandler — normalizeError (#240 proxy KLASSCI)', () => {
+  it('401 klassci_session_expired → message KLASSCI actionnable (pas « auth » générique)', () => {
+    const r = normalizeError(err(401, { url: '/api/proxy/x', reason: 'klassci_session_expired' }))
+    expect(r.category).toBe('klassciExpired')
+    expect(r.userMessage).toBe(ERROR_MESSAGES.klassciExpired)
+  })
+
+  it('503 → message « KLASSCI indisponible » (pas « server » générique)', () => {
+    const r = normalizeError(err(503))
+    expect(r.category).toBe('klassciUnavailable')
+    expect(r.userMessage).toBe(ERROR_MESSAGES.klassciUnavailable)
+  })
+
+  it('non-régression : un 401 LMS sans reason reste « auth »', () => {
+    const r = normalizeError(err(401, { url: '/api/auth/me' }))
+    expect(r.category).toBe('auth')
+  })
+
+  it('non-régression : 500 reste « server », 422 agrège la validation', () => {
+    expect(normalizeError(err(500)).category).toBe('server')
+    const v = normalizeError({ response: { status: 422, data: { errors: { nom: ['Le nom est requis.'] } } } })
+    expect(v.category).toBe('validation')
+    expect(v.userMessage).toContain('Le nom est requis.')
   })
 })
