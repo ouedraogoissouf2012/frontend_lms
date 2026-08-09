@@ -1,6 +1,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { klassciService } from '@/services/klassci'
-import { readCache, writeCache, clearCache } from '@/services/cache'
+import { readCache, writeCache, invalidateEntity } from '@/services/cache'
 // #28 : logique métier pure extraite (testée dans tests/unit/matieres.test.js)
 import {
   filterMatieres,
@@ -152,7 +152,10 @@ export function useAdminMatieres() {
 
   // Refresh data manually
   function refreshData() {
-    clearCache('admin_matieres')
+    // #237 : invalide TOUTES les clés « matières » (admin_matieres,
+    // admin_klassci_matieres, teacher_matieres) pour que les autres vues
+    // (coordinateur, dashboard, enseignant) ne servent plus une version périmée.
+    invalidateEntity('matieres')
     loadMatieres()
   }
 

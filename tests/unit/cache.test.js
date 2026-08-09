@@ -12,7 +12,7 @@ const { mockAuth } = vi.hoisted(() => ({
 }))
 vi.mock('@/services/api', () => ({ auth: mockAuth }))
 
-import { cacheKey, readCache, writeCache, clearAllCache } from '@/services/cache'
+import { cacheKey, readCache, writeCache, clearAllCache, invalidateEntity } from '@/services/cache'
 
 describe('cache — scope par institution ET par utilisateur (#230)', () => {
   beforeEach(() => {
@@ -41,6 +41,26 @@ describe('cache — scope par institution ET par utilisateur (#230)', () => {
   it('utilise `anon` avant authentification', () => {
     mockAuth.getUser.mockReturnValue(null)
     expect(cacheKey('x')).toBe('x_cache_schoolA_uanon')
+  })
+
+  it('invalidateEntity vide toutes les clés sœurs d\'une entité, pas les autres (#237)', () => {
+    writeCache('admin_matieres', 1)
+    writeCache('admin_klassci_matieres', 2)
+    writeCache('teacher_matieres', 3)
+    writeCache('admin_classes_v3', 'X') // autre entité → NE doit PAS être touchée
+
+    invalidateEntity('matieres')
+
+    expect(readCache('admin_matieres')).toBeNull()
+    expect(readCache('admin_klassci_matieres')).toBeNull()
+    expect(readCache('teacher_matieres')).toBeNull()
+    expect(readCache('admin_classes_v3')).toBe('X') // intacte
+  })
+
+  it('invalidateEntity ignore une entité inconnue sans lever (#237)', () => {
+    writeCache('admin_matieres', 1)
+    expect(() => invalidateEntity('inconnu')).not.toThrow()
+    expect(readCache('admin_matieres')).toBe(1)
   })
 
   it('clearAllCache purge toutes les entrées _cache_ (tous users)', () => {

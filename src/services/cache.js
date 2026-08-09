@@ -57,6 +57,32 @@ export function clearCache(name) {
 }
 
 /**
+ * #237 — Clés de cache par entité KLASSCI (lecture seule côté LMS).
+ *
+ * La MÊME donnée (classes/matières/enseignants) est mise en cache sous plusieurs
+ * clés par des composables différents, à TTL indépendants. Un « rafraîchir »
+ * depuis une vue ne vidait que SA clé → les autres vues servaient l'ancienne
+ * version jusqu'au TTL. `admin_users` regroupe classes + enseignants (+ étudiants).
+ */
+const ENTITY_CACHE_KEYS = Object.freeze({
+  classes: ['admin_classes_v3', 'admin_klassci_classes', 'admin_users', 'teacher_classes'],
+  matieres: ['admin_matieres', 'admin_klassci_matieres', 'teacher_matieres'],
+  enseignants: ['admin_enseignants', 'admin_users'],
+})
+
+/**
+ * Invalide TOUTES les clés de cache liées à une entité (#237), pour que le
+ * rafraîchissement d'une vue rende les autres vues cohérentes. Sans effet si
+ * l'entité est inconnue.
+ * @param {'classes'|'matieres'|'enseignants'} entity
+ */
+export function invalidateEntity(entity) {
+  const keys = ENTITY_CACHE_KEYS[entity]
+  if (!Array.isArray(keys)) return
+  keys.forEach((name) => clearCache(name))
+}
+
+/**
  * Clear ALL LMS cache entries (used on logout).
  * Matches any key containing '_cache_'.
  */
