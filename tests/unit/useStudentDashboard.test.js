@@ -10,7 +10,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const h = vi.hoisted(() => ({
   getUser: vi.fn(),
   getStudentDashboard: vi.fn(),
-  readCache: vi.fn(),
+  readCacheStale: vi.fn(),
   writeCache: vi.fn(),
 }))
 
@@ -18,8 +18,9 @@ vi.mock('@/services/api', () => ({ auth: { getUser: (...a) => h.getUser(...a) } 
 vi.mock('@/services/klassci', () => ({
   klassciService: { getStudentDashboard: (...a) => h.getStudentDashboard(...a) },
 }))
+// #224 : le composable passe par useCachedResource (SWR) → cache via readCacheStale.
 vi.mock('@/services/cache', () => ({
-  readCache: (...a) => h.readCache(...a),
+  readCacheStale: (...a) => h.readCacheStale(...a),
   writeCache: (...a) => h.writeCache(...a),
 }))
 
@@ -40,12 +41,12 @@ describe('useStudentDashboard (#G1)', () => {
   beforeEach(() => {
     h.getUser.mockReset().mockReturnValue({ id: 1, name: 'Élève' })
     h.getStudentDashboard.mockReset().mockResolvedValue(FRESH)
-    h.readCache.mockReset()
+    h.readCacheStale.mockReset()
     h.writeCache.mockReset()
   })
 
   it('cache miss : appelle le service et remplit dashboardData', async () => {
-    h.readCache.mockReturnValue(null)
+    h.readCacheStale.mockReturnValue({ data: null, fresh: false })
     const d = await setup()
     expect(h.getStudentDashboard).toHaveBeenCalled()
     expect(d.dashboardData.value).toEqual(FRESH)
@@ -54,17 +55,17 @@ describe('useStudentDashboard (#G1)', () => {
     expect(h.writeCache).toHaveBeenCalledWith('student_dashboard', FRESH)
   })
 
-  it('cache hit : sert le cache immédiatement puis rafraîchit en arrière-plan', async () => {
-    h.readCache.mockReturnValue(CACHED)
+  it('cache hit PÉRIMÉ : sert le cache (SWR) puis revalide en arrière-plan (#224)', async () => {
+    h.readCacheStale.mockReturnValue({ data: CACHED, fresh: false })
     const d = await setup()
-    // refreshInBackground a aussi appelé le service → données fraîches au final
+    // SWR : le cache périmé a été servi, puis la revalidation a mis à jour → FRESH.
     expect(h.getStudentDashboard).toHaveBeenCalled()
     expect(d.dashboardData.value).toEqual(FRESH)
     expect(d.loading.value).toBe(false)
   })
 
   it('loadDashboard(true) force le rafraîchissement (ignore le cache)', async () => {
-    h.readCache.mockReturnValue(CACHED)
+    h.readCacheStale.mockReturnValue({ data: CACHED, fresh: false })
     const d = await setup()
     h.getStudentDashboard.mockClear()
     await d.loadDashboard(true)
@@ -73,11 +74,11 @@ describe('useStudentDashboard (#G1)', () => {
     expect(d.dashboardData.value).toEqual(FRESH)
   })
 
-  it('erreur service : expose un message, ne jette pas', async () => {
-    h.readCache.mockReturnValue(null)
+  it('erreur service (chargement froid) : expose un message, ne jette pas', async () => {
+    h.readCacheStale.mockReturnValue({ data: null, fresh: false })
     h.getStudentDashboard.mockRejectedValue(new Error('boom'))
     const d = await setup()
-    expect(d.error.value).toBe('Impossible de charger vos données. Veuillez réessayer.')
+    expect(d.error.value).toBe('Impossible de charger les données.')
     expect(d.loading.value).toBe(false)
   })
 })

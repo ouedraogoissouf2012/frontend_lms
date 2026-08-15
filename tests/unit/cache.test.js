@@ -12,7 +12,7 @@ const { mockAuth } = vi.hoisted(() => ({
 }))
 vi.mock('@/services/api', () => ({ auth: mockAuth }))
 
-import { cacheKey, readCache, writeCache, clearAllCache, invalidateEntity } from '@/services/cache'
+import { cacheKey, readCache, writeCache, clearAllCache, invalidateEntity, readCacheStale } from '@/services/cache'
 
 describe('cache — scope par institution ET par utilisateur (#230)', () => {
   beforeEach(() => {
@@ -41,6 +41,27 @@ describe('cache — scope par institution ET par utilisateur (#230)', () => {
   it('utilise `anon` avant authentification', () => {
     mockAuth.getUser.mockReturnValue(null)
     expect(cacheKey('x')).toBe('x_cache_schoolA_uanon')
+  })
+
+  it('readCacheStale renvoie la donnée FRAÎCHE avec fresh=true (#224)', () => {
+    writeCache('dashboard', { a: 1 })
+    expect(readCacheStale('dashboard')).toEqual({ data: { a: 1 }, fresh: true })
+  })
+
+  it('readCacheStale renvoie la donnée PÉRIMÉE (fresh=false) sans la purger (#224)', () => {
+    // Écrit une entrée expirée (11 min > TTL 5 min) directement.
+    localStorage.setItem(
+      cacheKey('dashboard'),
+      JSON.stringify({ data: { a: 2 }, timestamp: Date.now() - 11 * 60 * 1000 }),
+    )
+    const out = readCacheStale('dashboard')
+    expect(out).toEqual({ data: { a: 2 }, fresh: false }) // servie même périmée
+    // readCache (exigeant) la considère expirée ; readCacheStale ne l'a PAS purgée.
+    expect(readCacheStale('dashboard').data).toEqual({ a: 2 })
+  })
+
+  it('readCacheStale sur entrée absente → { data: null, fresh: false } (#224)', () => {
+    expect(readCacheStale('inexistant')).toEqual({ data: null, fresh: false })
   })
 
   it('invalidateEntity vide toutes les clés sœurs d\'une entité, pas les autres (#237)', () => {
