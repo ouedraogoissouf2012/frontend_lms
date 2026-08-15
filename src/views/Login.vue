@@ -72,7 +72,7 @@
 
 <script>
 import { auth } from '@/services/api'
-import { getDashboardRoute, isSupradmin, logRoleDecision } from '@/constants/roles'
+import { getDashboardRoute, isSupradmin, logRoleDecision, hasLmsAccess } from '@/constants/roles'
 
 export default {
   name: 'Login',
@@ -95,6 +95,17 @@ export default {
 
         if (response.success) {
           const user = response.data.user
+
+          // #221 : compte KLASSCI valide mais SANS accès LMS (parent,
+          // serviceTechnique…) → refus EXPLICITE au lieu d'un renvoi muet vers
+          // /login (qui ferait croire à un échec). On ferme la session pour ne
+          // pas laisser un token sans route accessible.
+          if (!hasLmsAccess(user)) {
+            logRoleDecision('login_no_lms_access', {})
+            auth.logout()
+            this.error = "Votre compte n'a pas accès au LMS. Cet espace est réservé aux étudiants, enseignants et personnel pédagogique."
+            return
+          }
 
           // Redirection centralisée via le rôle normalisé (#18) — corrige la
           // divergence supradmin (envoyait /admin/dashboard au lieu de /admin/institutions).

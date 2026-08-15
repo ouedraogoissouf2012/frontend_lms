@@ -18,6 +18,7 @@ import {
   isAdminScope,
   isTeacher,
   isStudent,
+  hasLmsAccess,
   getDashboardRoute,
   getRoleDisplayName,
   canActivate,
@@ -181,6 +182,25 @@ describe('canActivate — décision partagée guard/tests (R6.3, R5.4)', () => {
     const d = canActivate({ role: 'hacker' }, ['etudiant'])
     expect(d.allowed).toBe(false)
     expect(d.redirectTo).toBe('/login')
+  })
+})
+
+describe('hasLmsAccess — refus explicite des comptes KLASSCI sans vocation LMS (#221)', () => {
+  it('refuse un compte parent et serviceTechnique (rôle non normalisable)', () => {
+    expect(hasLmsAccess({ role: 'parent' })).toBe(false)
+    expect(hasLmsAccess({ role: 'serviceTechnique' })).toBe(false)
+    expect(hasLmsAccess('parent')).toBe(false)
+    expect(hasLmsAccess(null)).toBe(false)
+  })
+
+  it('autorise les 5 rôles supportés (aucune régression)', () => {
+    for (const raw of ['etudiant', 'enseignant', 'coordinateur', 'admin', 'supradmin']) {
+      expect(hasLmsAccess({ role: raw })).toBe(true)
+    }
+    // Via alias reconnus.
+    expect(hasLmsAccess({ role: 'teacher' })).toBe(true)
+    expect(hasLmsAccess({ role: 'superAdmin' })).toBe(true)
+    expect(hasLmsAccess({ role: 'secretaire' })).toBe(true) // alias→coordinateur (#18-FE-1)
   })
 })
 

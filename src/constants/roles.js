@@ -134,6 +134,20 @@ export function isStudent(userOrRole) {
 }
 
 /**
+ * Vrai ssi le compte a accès au LMS, c.-à-d. si son rôle KLASSCI est normalisable
+ * vers l'un des 5 rôles supportés. #221 : un compte KLASSCI valide mais SANS
+ * vocation LMS (ex. `parent`, `serviceTechnique`) renvoie `false` — l'UI doit
+ * alors afficher un refus EXPLICITE au lieu d'un renvoi muet vers /login (qui
+ * ferait croire à un échec de connexion). NB : on ne mappe volontairement PAS
+ * ces rôles (le sujet est le message, pas l'accès).
+ * @param {object|string|null} userOrRole
+ * @returns {boolean}
+ */
+export function hasLmsAccess(userOrRole) {
+  return canonical(userOrRole) !== null
+}
+
+/**
  * Route du dashboard selon le rôle (objet user ou chaîne).
  * Rôle inconnu/null → `/login` (route neutre, fail-secure).
  * @param {object|string|null} userOrRole
