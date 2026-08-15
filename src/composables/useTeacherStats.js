@@ -1,6 +1,6 @@
-import { ref, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import { klassciService } from '@/services/klassci'
-import { readCache, writeCache } from '@/services/cache'
+import { useCachedResource } from '@/composables/useCachedResource'
 
 /**
  * Construit l'objet `stats` présenté à partir du dashboard enseignant KLASSCI.
@@ -27,57 +27,16 @@ function mapDashboardToStats(dashboardData) {
  * arrière-plan. La vue ne fait plus que câbler.
  */
 export function useTeacherStats() {
-  const stats = ref(null)
-  const loading = ref(false)
-  const error = ref(null)
+  // #224 : stale-while-revalidate (useCachedResource) — sert les stats en cache
+  // même périmées + revalide en arrière-plan (plus de blocage à l'expiration).
+  const { data: stats, loading, error, load } = useCachedResource(
+    'teacher_stats',
+    async () => mapDashboardToStats(await klassciService.getTeacherDashboard()),
+    { immediate: false },
+  )
 
-  async function loadStats() {
-    // Vérifier le cache
-    const cachedData = readCache('teacher_stats')
-    if (cachedData !== null) {
-      console.log('[CACHE] Stats chargées depuis le cache')
-      stats.value = cachedData
-      loading.value = false
-      // Rafraîchir en arrière-plan
-      refreshInBackground()
-      return
-    }
-
-    loading.value = true
-    error.value = null
-
-    try {
-      console.log('[STATS] Chargement des statistiques enseignant...')
-      const dashboardData = await klassciService.getTeacherDashboard()
-
-      // Construire l'objet stats à partir du dashboard
-      stats.value = mapDashboardToStats(dashboardData)
-
-      // Mettre en cache
-      writeCache('teacher_stats', stats.value)
-
-      console.log('[OK] Statistiques chargées:', stats.value)
-    } catch (err) {
-      console.error('[ERREUR] Erreur chargement statistiques:', err)
-      error.value = 'Impossible de charger vos statistiques. Veuillez réessayer.'
-    } finally {
-      loading.value = false
-    }
-  }
-
-  async function refreshInBackground() {
-    try {
-      console.log('[BACKGROUND] Rafraîchissement des stats...')
-      const dashboardData = await klassciService.getTeacherDashboard()
-
-      stats.value = mapDashboardToStats(dashboardData)
-
-      writeCache('teacher_stats', stats.value)
-
-      console.log('[BACKGROUND] Stats rafraîchies')
-    } catch (error) {
-      console.warn('[BACKGROUND] Erreur rafraîchissement:', error)
-    }
+  function loadStats() {
+    return load()
   }
 
   onMounted(() => {

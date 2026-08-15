@@ -9,11 +9,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const { klassciMock, cacheMock } = vi.hoisted(() => ({
   klassciMock: { getTeacherDashboard: vi.fn() },
-  cacheMock: { readCache: vi.fn(), writeCache: vi.fn() },
+  cacheMock: { readCacheStale: vi.fn(), writeCache: vi.fn() },
 }))
 
 vi.mock('@/services/klassci', () => ({ klassciService: klassciMock }))
-vi.mock('@/services/cache', () => ({ readCache: cacheMock.readCache, writeCache: cacheMock.writeCache }))
+// #224 : le composable passe par useCachedResource (SWR) → cache via readCacheStale.
+vi.mock('@/services/cache', () => ({ readCacheStale: cacheMock.readCacheStale, writeCache: cacheMock.writeCache }))
 
 import { useTeacherStats } from '@/composables/useTeacherStats'
 
@@ -36,7 +37,7 @@ const DASHBOARD = {
 describe('useTeacherStats (#H11)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    cacheMock.readCache.mockReturnValue(null)
+    cacheMock.readCacheStale.mockReturnValue({ data: null, fresh: false })
     klassciMock.getTeacherDashboard.mockResolvedValue(DASHBOARD)
   })
 
@@ -51,12 +52,12 @@ describe('useTeacherStats (#H11)', () => {
     expect(cacheMock.writeCache).toHaveBeenCalledWith('teacher_stats', expect.any(Object))
   })
 
-  it('utilise le cache puis rafraîchit en arrière-plan', async () => {
-    cacheMock.readCache.mockReturnValue({ nb_matieres: 99, par_matiere: [], par_classe: [] })
+  it('cache PÉRIMÉ : sert le cache (SWR) puis revalide en arrière-plan (#224)', async () => {
+    cacheMock.readCacheStale.mockReturnValue({ data: { nb_matieres: 99, par_matiere: [], par_classe: [] }, fresh: false })
     const s = await setup()
-    // Affichage immédiat depuis le cache
+    // Affichage immédiat sans blocage
     expect(s.loading.value).toBe(false)
-    // Le rafraîchissement appelle le service et réécrit le cache
+    // La revalidation appelle le service et met à jour
     expect(klassciMock.getTeacherDashboard).toHaveBeenCalled()
     expect(s.stats.value.nb_matieres).toBe(1)
   })
@@ -64,7 +65,7 @@ describe('useTeacherStats (#H11)', () => {
   it('expose une erreur si le chargement échoue', async () => {
     klassciMock.getTeacherDashboard.mockRejectedValue(new Error('boom'))
     const s = await setup()
-    expect(s.error.value).toBe('Impossible de charger vos statistiques. Veuillez réessayer.')
+    expect(s.error.value).toBe('Impossible de charger les données.')
     expect(s.loading.value).toBe(false)
   })
 })
