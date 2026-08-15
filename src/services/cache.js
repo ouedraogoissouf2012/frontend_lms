@@ -38,6 +38,27 @@ export function readCache(name) {
 }
 
 /**
+ * #224 (SWR) — Lit une entrée SANS l'exigence de fraîcheur : renvoie la donnée
+ * même PÉRIMÉE (sans la purger), avec un drapeau `fresh` (dans le TTL ou non).
+ * Permet le stale-while-revalidate : servir immédiatement le cache (même vieux)
+ * puis revalider en arrière-plan. Une entrée corrompue est purgée → { null, false }.
+ * @param {string} name
+ * @returns {{ data: any, fresh: boolean }} `data` vaut null si absent/corrompu.
+ */
+export function readCacheStale(name) {
+  const key = cacheKey(name)
+  try {
+    const raw = localStorage.getItem(key)
+    if (!raw) return { data: null, fresh: false }
+    const { data, timestamp } = JSON.parse(raw)
+    return { data, fresh: Date.now() - timestamp <= CACHE_TTL }
+  } catch {
+    localStorage.removeItem(key)
+    return { data: null, fresh: false }
+  }
+}
+
+/**
  * Write a cache entry with the current timestamp.
  */
 export function writeCache(name, data) {
