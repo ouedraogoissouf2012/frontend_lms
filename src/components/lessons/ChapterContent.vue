@@ -21,7 +21,7 @@
     <ChapterMediaRenderer :chapter="chapter" />
 
     <!-- POWERPOINT (slides images) — #28 : diaporama extrait en sous-composant -->
-    <div v-if="chapter.content_type === 'powerpoint'" class="content-block content-slides">
+    <div v-if="showsSlides" class="content-block content-slides">
       <SlidesViewer :slides="chapter.slides_images" />
     </div>
 
@@ -84,10 +84,12 @@ import SlidesViewer from '@/components/lessons/SlidesViewer.vue'
 import ChapterTextRenderer from '@/components/lessons/ChapterTextRenderer.vue'
 import ChapterMediaRenderer from '@/components/lessons/ChapterMediaRenderer.vue'
 import ChapterQuizRenderer from '@/components/lessons/ChapterQuizRenderer.vue'
+import { computed } from 'vue'
 import {
   getContentTypeLabel as contentTypeLabel,
   getContentTypeIcon as contentTypeIcon,
-  isChapterContentEmpty
+  isChapterContentEmpty,
+  hasRenderedSlides
 } from '@/utils/lessonContent'
 
 const props = defineProps({
@@ -103,6 +105,7 @@ defineEmits(['mark-complete', 'prev', 'next', 'quiz-completed', 'quiz-close'])
 
 const getContentTypeLabel = (type) => contentTypeLabel(type)
 const getContentTypeIcon = (type) => contentTypeIcon(type)
+const showsSlides = computed(() => hasRenderedSlides(props.chapter))
 const isContentEmpty = (chapter) => isChapterContentEmpty(chapter, !!props.quiz)
 </script>
 

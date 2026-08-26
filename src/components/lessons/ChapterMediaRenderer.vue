@@ -32,7 +32,7 @@
     </div>
 
     <!-- PDF -->
-    <div v-if="chapter.content_type === 'pdf'" class="content-block content-pdf">
+    <div v-if="chapter.content_type === 'pdf' && canOpenPdf" class="content-block content-pdf">
       <div v-if="canOpenPdf" class="pdf-viewer">
         <iframe
           :src="safePdfUrl"

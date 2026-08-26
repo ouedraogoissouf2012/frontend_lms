@@ -10,6 +10,7 @@ import {
   getVideoOpenUrl,
   getSlideUrl,
   getPdfUrl,
+  hasRenderedSlides,
   getStorageAssetUrl,
   getContentTypeLabel,
   getContentTypeIcon,
@@ -40,10 +41,15 @@ describe('utils/lessonContent — getSlideUrl / getPdfUrl', () => {
     expect(getSlideUrl('/storage/slides/x.png')).toBe('http://api.test/storage/slides/x.png')
     expect(getSlideUrl('')).toBe('')
   })
-  it('pdf : pdf_url prioritaire, fallback file_converted_path, sinon vide', () => {
+  it('pdf : pdf_url publique seulement, jamais file_converted_path (#623)', () => {
     expect(getPdfUrl({ pdf_url: 'https://cdn/a.pdf' })).toBe('https://cdn/a.pdf')
-    expect(getPdfUrl({ file_converted_path: 'docs/a.pdf' })).toBe('http://api.test/storage/docs/a.pdf')
+    expect(getPdfUrl({ file_converted_path: 'docs/a.pdf' })).toBe('')
     expect(getPdfUrl({})).toBe('')
+  })
+  it('hasRenderedSlides : true seulement si le tableau a des pages', () => {
+    expect(hasRenderedSlides({ slides_images: ['https://api/slide/1'] })).toBe(true)
+    expect(hasRenderedSlides({ slides_images: [] })).toBe(false)
+    expect(hasRenderedSlides({})).toBe(false)
   })
   it('rejette les schémas explicites dangereux pour les médias storage', () => {
     expect(getStorageAssetUrl('javascript:alert(1)')).toBe('')
@@ -71,7 +77,8 @@ describe('utils/lessonContent — isChapterContentEmpty', () => {
     expect(isChapterContentEmpty({ content_type: 'text', content: 'x' })).toBe(false)
     expect(isChapterContentEmpty({ content_type: 'video', video_url: 'u' })).toBe(false)
     expect(isChapterContentEmpty({ content_type: 'powerpoint', slides_images: [] })).toBe(true)
-    expect(isChapterContentEmpty({ content_type: 'pdf', pdf_url: null, file_converted_path: 'p' })).toBe(false)
+    expect(isChapterContentEmpty({ content_type: 'pdf', pdf_url: null, file_converted_path: 'p' })).toBe(true)
+    expect(isChapterContentEmpty({ content_type: 'pdf', slides_images: ['s1.png'] })).toBe(false)
     expect(isChapterContentEmpty({ content_type: 'link', external_link: '' })).toBe(true)
   })
   it('quiz : dépend de hasQuiz', () => {
