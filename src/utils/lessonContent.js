@@ -85,13 +85,25 @@ export function getSlideUrl(slide) {
 }
 
 /**
- * URL du PDF d'un chapitre (pdf_url ou file_converted_path).
+ * URL publique d'un PDF uniquement si le backend en expose une.
+ * #623 / #598 : `file_converted_path` est sur le disque privé — ne plus
+ * le préfixer par `/storage/` (404 + réouverture de la fuite).
  * @param {Object} chapter
  * @returns {string}
  */
 export function getPdfUrl(chapter) {
-  const path = chapter.pdf_url || chapter.file_converted_path
+  const path = stringOrEmpty(chapter?.pdf_url)
+  if (!path) return ''
   return getStorageAssetUrl(path)
+}
+
+/**
+ * Diapositives rendues (PDF/PPTX) — URLs signées #620 ou chemins storage.
+ * @param {Object} chapter
+ * @returns {boolean}
+ */
+export function hasRenderedSlides(chapter) {
+  return Array.isArray(chapter?.slides_images) && chapter.slides_images.length > 0
 }
 
 const CONTENT_TYPE_LABELS = {
@@ -135,9 +147,9 @@ export function isChapterContentEmpty(chapter, hasQuiz = false) {
   switch (chapter.content_type) {
     case 'text': return !chapter.content
     case 'video': return !chapter.video_url
-    case 'powerpoint': return !chapter.slides_images || chapter.slides_images.length === 0
-    case 'word': return !chapter.content
-    case 'pdf': return !chapter.pdf_url && !chapter.file_converted_path
+     case 'powerpoint': return !hasRenderedSlides(chapter)
+     case 'word': return !chapter.content
+     case 'pdf': return !hasRenderedSlides(chapter) && !stringOrEmpty(chapter.pdf_url)
     case 'link': return !chapter.external_link
     case 'quiz': return !hasQuiz
     default: return true
