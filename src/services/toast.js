@@ -1,72 +1,37 @@
-import { createApp } from 'vue'
-import Toast from '@/components/ui/Toast.vue'
+import { useToast } from '@/composables/useToast'
 
-class ToastService {
-  constructor() {
-    this.toasts = []
-    this.containerId = 'toast-container'
-    this.ensureContainer()
-  }
+/**
+ * Service de toasts — ADAPTATEUR de compatibilité vers useToast (source UNIQUE).
+ *
+ * Historique : cette classe montait un `<Toast>` par `createApp().mount()` dans son
+ * propre conteneur DOM (#toast-container), EN PARALLÈLE du hack `window.$toast` et
+ * du composable useToast → TROIS mécanismes de toast concurrents (un par-ci, un
+ * par-là), chacun avec son propre rendu et ses propres bugs.
+ *
+ * On unifie SANS casser les appelants : l'API publique (`success/error/warning/info`
+ * + `show`, 15 consommateurs) est conservée à l'identique, mais chaque appel délègue
+ * désormais à useToast → rendu par l'UNIQUE `<ToastContainer>` monté dans App.vue.
+ * Fini le createApp par toast et le conteneur DOM dupliqué.
+ *
+ * DETTE tracée (Lot F3) : migrer les 15 consommateurs vers `useToast()` directement,
+ * puis supprimer cet adaptateur. Cf. [[useToast]].
+ *
+ * NB durée : l'ancien service posait 3000 ms par défaut ; on le préserve ici pour
+ * ne PAS changer le ressenti des écrans existants (useToast, lui, vaut 5000 ms par
+ * défaut pour les nouveaux appelants directs).
+ */
+const LEGACY_DURATION = 3000
 
-  ensureContainer() {
-    // Créer le conteneur global si il n'existe pas
-    if (!document.getElementById(this.containerId)) {
-      const container = document.createElement('div')
-      container.id = this.containerId
-      container.className = 'toast-container'
-      document.body.appendChild(container)
-    }
-  }
-
-  show(options) {
-    const {
-      message,
-      title = '',
-      type = 'info',
-      duration = 3000
-    } = options
-
-    // Assurer que le conteneur existe
-    this.ensureContainer()
-    const mainContainer = document.getElementById(this.containerId)
-
-    // Créer un wrapper pour ce toast
-    const wrapper = document.createElement('div')
-    wrapper.className = 'toast-wrapper'
-    mainContainer.appendChild(wrapper)
-
-    // Créer le toast
-    const app = createApp(Toast, {
-      message,
-      title,
-      type,
-      duration,
-      onClose: () => {
-        app.unmount()
-        if (wrapper && wrapper.parentNode) {
-          wrapper.parentNode.removeChild(wrapper)
-        }
-      }
-    })
-
-    app.mount(wrapper)
-  }
-
-  success(message, title = 'Succès') {
-    this.show({ message, title, type: 'success' })
-  }
-
-  error(message, title = 'Erreur') {
-    this.show({ message, title, type: 'error' })
-  }
-
-  warning(message, title = 'Attention') {
-    this.show({ message, title, type: 'warning' })
-  }
-
-  info(message, title = 'Information') {
-    this.show({ message, title, type: 'info' })
-  }
+export const toast = {
+  show: (options = {}) => useToast().show({ duration: LEGACY_DURATION, ...options }),
+  success: (message, title = 'Succès') =>
+    useToast().show({ message, title, type: 'success', duration: LEGACY_DURATION }),
+  error: (message, title = 'Erreur') =>
+    useToast().show({ message, title, type: 'error', duration: LEGACY_DURATION }),
+  warning: (message, title = 'Attention') =>
+    useToast().show({ message, title, type: 'warning', duration: LEGACY_DURATION }),
+  info: (message, title = 'Information') =>
+    useToast().show({ message, title, type: 'info', duration: LEGACY_DURATION }),
 }
 
-export const toast = new ToastService()
+export default toast

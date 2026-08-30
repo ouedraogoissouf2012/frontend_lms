@@ -2,6 +2,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { auth } from '@/services/api'
 import { toast } from '@/services/toast'
+import { useConfirm } from '@/composables/useConfirm'
 import { STORAGE_KEYS } from '@/constants/storageKeys'
 
 /**
@@ -51,12 +52,12 @@ export function useStudentSettings() {
     }
   }
 
-  function logout() {
-    if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
-      auth.logout()
-      toast.success('Vous avez été déconnecté avec succès')
-      router.push('/login')
-    }
+  async function logout() {
+    const ok = await useConfirm().confirm('Êtes-vous sûr de vouloir vous déconnecter ?')
+    if (!ok) return
+    auth.logout()
+    toast.success('Vous avez été déconnecté avec succès')
+    router.push('/login')
   }
 
   onMounted(() => {

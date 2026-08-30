@@ -2,6 +2,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { auth } from '@/services/api'
 import { toast } from '@/services/toast'
+import { useConfirm } from '@/composables/useConfirm'
 import { STORAGE_KEYS } from '@/constants/storageKeys'
 import { PASSWORD_CHANGE_UNAVAILABLE_MESSAGE } from '@/constants/passwordChange'
 import { getRoleDisplayName } from '@/constants/roles'
@@ -72,12 +73,12 @@ export function useAdminSettings() {
     toast.info(PASSWORD_CHANGE_UNAVAILABLE_MESSAGE)
   }
 
-  function logout() {
-    if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
-      auth.logout()
-      toast.success('Vous avez été déconnecté avec succès')
-      router.push('/login')
-    }
+  async function logout() {
+    const ok = await useConfirm().confirm('Êtes-vous sûr de vouloir vous déconnecter ?')
+    if (!ok) return
+    auth.logout()
+    toast.success('Vous avez été déconnecté avec succès')
+    router.push('/login')
   }
 
   onMounted(() => {

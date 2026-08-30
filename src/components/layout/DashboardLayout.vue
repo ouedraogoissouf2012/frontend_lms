@@ -30,8 +30,6 @@
     <!-- Global Search Modal (Cmd+K) -->
     <GlobalSearchModal v-model="showSearch" @result-selected="handleSearchResult" />
 
-    <!-- Toast Container for notifications -->
-    <ToastContainer />
   </div>
 </template>
 
@@ -43,7 +41,6 @@ import MobileHeader from './MobileHeader.vue'
 import MobileSidebar from './MobileSidebar.vue'
 import BottomNavigation from './BottomNavigation.vue'
 import GlobalSearchModal from '@/components/modals/GlobalSearchModal.vue'
-import ToastContainer from '@/components/ui/ToastContainer.vue'
 import { useNotifications } from '@/composables/useNotifications'
 
 export default {
@@ -56,7 +53,6 @@ export default {
     MobileSidebar,
     BottomNavigation,
     GlobalSearchModal,
-    ToastContainer
   },
 
   setup() {
