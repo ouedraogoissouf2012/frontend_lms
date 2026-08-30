@@ -90,3 +90,56 @@ describe('mapWithConcurrency', () => {
     expect(maxInFlight).toBe(2)
   })
 })
+
+/**
+ * Arret anticipe sur echec DETERMINISTE.
+ *
+ * Motif : l'ecran Utilisateurs lancait 17 requetes de roster ; toutes recevaient
+ * un 403 d'autorisation. Un refus de droits est deterministe — il ne changera pas
+ * a la 2e classe. Poursuivre, c'est 16 allers-retours garantis perdants, 16 erreurs
+ * en console et 16 lignes de log, pour un resultat connu d'avance.
+ */
+describe('mapWithConcurrency — arret anticipe', () => {
+  it('cesse de lancer de nouvelles taches quand stopWhen est satisfait', async () => {
+    let started = 0
+    const res = await mapWithConcurrency([1, 2, 3, 4, 5, 6, 7, 8], 2, async (n) => {
+      started++
+      await new Promise(r => setTimeout(r, 2))
+      throw Object.assign(new Error('forbidden'), { status: 403, item: n })
+    }, { stopWhen: (reason) => reason?.status === 403 })
+
+    // Les taches deja en vol vont a leur terme ; aucune NOUVELLE n'est ouverte.
+    expect(started).toBeLessThan(8)
+    expect(res).toHaveLength(8)
+  })
+
+  it('marque « skipped » les elements jamais tentes, sans les confondre avec un echec', async () => {
+    const res = await mapWithConcurrency([1, 2, 3, 4, 5, 6], 1, async (n) => {
+      if (n === 1) throw Object.assign(new Error('forbidden'), { status: 403 })
+      return n
+    }, { stopWhen: (reason) => reason?.status === 403 })
+
+    expect(res[0].status).toBe('rejected')
+    expect(res.slice(1).every(r => r.status === 'skipped')).toBe(true)
+  })
+
+  it('ne s’arrete PAS sur un echec transitoire non retenu par stopWhen', async () => {
+    let started = 0
+    const res = await mapWithConcurrency([1, 2, 3, 4], 1, async (n) => {
+      started++
+      if (n === 1) throw Object.assign(new Error('timeout'), { status: 503 })
+      return n
+    }, { stopWhen: (reason) => reason?.status === 403 })
+
+    expect(started).toBe(4)
+    expect(res.filter(r => r.status === 'fulfilled')).toHaveLength(3)
+  })
+
+  it('se comporte comme avant sans stopWhen (retro-compatible)', async () => {
+    const res = await mapWithConcurrency([1, 2, 3], 2, async (n) => {
+      if (n === 1) throw new Error('boom')
+      return n
+    })
+    expect(res.map(r => r.status)).toEqual(['rejected', 'fulfilled', 'fulfilled'])
+  })
+})

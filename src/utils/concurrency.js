@@ -20,10 +20,18 @@
  * @param {number} limit - Nombre maximum de tâches simultanées ; toute valeur
  *   non finie ou < 1 est ramenée à 1 (jamais de concurrence infinie par accident).
  * @param {(item: T, index: number) => Promise<R>} fn - Traitement d'un élément.
- * @returns {Promise<Array<{status:'fulfilled',value:R}|{status:'rejected',reason:unknown}>>}
- *   Résultats DANS L'ORDRE des `items` (et non dans l'ordre d'achèvement).
+ * @param {{stopWhen?: (reason: unknown) => boolean}} [options]
+ *   `stopWhen` qualifie un échec de DÉTERMINISTE : dès qu'il renvoie `true`, plus
+ *   aucune tâche n'est lancée. Sert aux refus qui ne changeront pas d'un élément à
+ *   l'autre — un 403 d'autorisation, typiquement : insister sur les N-1 éléments
+ *   restants, c'est N-1 allers-retours perdus d'avance, autant d'erreurs en console
+ *   et de lignes de log. Les échecs TRANSITOIRES (503, délai dépassé) ne doivent PAS
+ *   y être qualifiés : eux méritent que les autres éléments soient tentés.
+ * @returns {Promise<Array<{status:'fulfilled',value:R}|{status:'rejected',reason:unknown}|{status:'skipped'}>>}
+ *   Résultats DANS L'ORDRE des `items` (et non dans l'ordre d'achèvement). Les
+ *   éléments jamais tentés valent `{status:'skipped'}` — distinct d'un échec.
  */
-export async function mapWithConcurrency(items, limit, fn) {
+export async function mapWithConcurrency(items, limit, fn, { stopWhen } = {}) {
   const list = Array.isArray(items) ? items : []
   if (list.length === 0) return []
 
@@ -32,7 +40,10 @@ export async function mapWithConcurrency(items, limit, fn) {
   const ceiling = Number.isFinite(limit) ? Math.floor(limit) : 1
   const workers = Math.min(list.length, Math.max(1, ceiling))
 
-  const results = new Array(list.length)
+  // `skipped` par défaut : un élément jamais tenté n'est pas un élément en échec,
+  // et l'appelant doit pouvoir faire la différence.
+  const results = new Array(list.length).fill(null).map(() => ({ status: 'skipped' }))
+  let stopped = false
 
   // Curseur partagé : chaque worker prend l'index suivant dès qu'il se libère.
   // L'incrément est atomique ici car JavaScript est mono-thread — aucun `await`
@@ -40,12 +51,14 @@ export async function mapWithConcurrency(items, limit, fn) {
   let cursor = 0
 
   async function worker() {
-    while (cursor < list.length) {
+    while (!stopped && cursor < list.length) {
       const index = cursor++
       try {
         results[index] = { status: 'fulfilled', value: await fn(list[index], index) }
       } catch (reason) {
         results[index] = { status: 'rejected', reason }
+        // Les tâches DÉJÀ en vol vont à leur terme ; on cesse seulement d'en ouvrir.
+        if (typeof stopWhen === 'function' && stopWhen(reason)) stopped = true
       }
     }
   }
@@ -53,5 +66,3 @@ export async function mapWithConcurrency(items, limit, fn) {
   await Promise.all(Array.from({ length: workers }, worker))
   return results
 }
-
-export default mapWithConcurrency

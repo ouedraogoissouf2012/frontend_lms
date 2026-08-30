@@ -2,19 +2,47 @@ import { ref, computed, onMounted, watch } from 'vue'
 import klassciService from '@/services/klassci'
 import { readCache, writeCache, invalidateEntity } from '@/services/cache'
 import { logError } from '@/services/errorHandler'
-import { mapWithConcurrency } from '@/utils/concurrency'
+import { fetchClassRosters } from '@/services/klassciRoster'
+import { deriveInstitutionCounters } from '@/utils/classStats'
+import { getFullName } from '@/utils/formatters'
+import { ROLES } from '@/constants/roles'
 
 const PAGE_SIZE = 25
 
-// Plafond de requêtes simultanées vers /proxy/classes/{id}/etudiants. Borné à
-// dessein : le backend proxifie KLASSCI derrière un quota (`x-ratelimit-limit`),
-// un fan-out non borné le ferait tomber en 429 sur un gros établissement.
-const CLASSES_FETCH_CONCURRENCY = 4
+/** Aucune ressource mesurée — état initial et repli d'échec. */
+const noCounts = () => ({ classes: null, enseignants: null, etudiants: null, classesOk: null })
+
+/**
+ * Compteurs décrivant un jeu restauré depuis le cache.
+ *
+ * Ce qui est AFFICHÉ est, par définition, mesuré : annoncer « — » en montrant la
+ * liste correspondante serait incohérent. Les entrées écrites avant l'introduction
+ * de `counts` n'en portent pas — on les dérive donc du contenu restauré. Les
+ * étudiants font exception : un tableau vide ne distingue pas « aucun » de
+ * « jamais chargés », et `classesOk` reste `null` tant que la revalidation n'a
+ * pas mesuré ce chargement (sinon on accuserait la liste d'être incomplète sans
+ * rien en savoir).
+ */
+const countsFromCache = (cached) => cached.counts ?? {
+  classes: cached.classes?.length ?? null,
+  enseignants: cached.enseignants?.length ?? null,
+  etudiants: cached.etudiants?.length ? cached.etudiants.length : null,
+  classesOk: null,
+}
 
 /**
  * Couche données d'AdminUsers (#G1 ≤300) : agrège étudiants + enseignants KLASSCI
  * en une liste unifiée, gère filtres (rôle/classe/recherche), tri et pagination,
  * avec cache + rafraîchissement en arrière-plan. La vue ne fait plus que câbler.
+ *
+ * Sémantique d'échec : chaque ressource est MESURÉE séparément dans `counts`
+ * (`null` = non mesuré, jamais un 0 fabriqué), et les avertissements en sont
+ * DÉRIVÉS (`notices`). Il n'y a donc plus d'arbitrage « quel échec tue la page ? » :
+ * un échec total des étudiants n'est qu'un échec partiel à zéro classe chargée, et
+ * les enseignants déjà obtenus restent affichés. C'est ce qui remplace l'ancien
+ * couple `error`/`partialWarning`, où une exception faisait disparaître tout
+ * l'écran — y compris des données saines — pendant que les compteurs du haut
+ * continuaient d'afficher des valeurs, contredisant l'erreur.
  */
 export function useAdminUsers() {
   // Données
@@ -23,11 +51,10 @@ export function useAdminUsers() {
   const classes = ref([])
   const loading = ref(true)
   const loadingProgress = ref('')
-  const error = ref(null)
-  // Échec PARTIEL : quelques classes n'ont pas répondu. Distinct de `error`, qui
-  // remplace tout l'écran ; ici la liste obtenue reste affichée et utile, mais
-  // l'utilisateur doit savoir qu'elle est incomplète.
-  const partialWarning = ref(null)
+  const counts = ref(noCounts())
+  // Le listing nominatif est refusé à ce compte par KLASSCI (403). Distinct d'un
+  // échec de chargement : il ne sert à rien de proposer « Réessayer ».
+  const rosterForbidden = ref(false)
   const selectedUser = ref(null)
 
   // Filtres / tri / pagination
@@ -40,14 +67,48 @@ export function useAdminUsers() {
 
   watch([searchQuery, filterRole, filterClasse], () => { currentPage.value = 1 })
 
+  /** Avertissements DÉRIVÉS de la mesure — aucun état d'erreur stocké. */
+  const notices = computed(() => {
+    const { classes: nbClasses, enseignants: nbEnseignants, classesOk } = counts.value
+    const out = []
+
+    if (nbClasses === null) {
+      out.push(classes.value.length
+        ? 'Classes : actualisation impossible, la liste peut être périmée.'
+        : "Les classes n'ont pas pu être chargées : le filtre par classe est indisponible.")
+    }
+    if (nbEnseignants === null) {
+      out.push(enseignants.value.length
+        ? 'Enseignants : actualisation impossible, la liste peut être périmée.'
+        : "Les enseignants n'ont pas pu être chargés.")
+    }
+    // Refus de droits : cause distincte d'un échec, et sans issue par un réessai.
+    if (rosterForbidden.value) {
+      out.push(
+        "Vous n'avez pas les droits de consulter la liste nominative des étudiants. "
+        + "L'effectif ci-dessus reste exact ; demandez cet accès à l'administrateur KLASSCI."
+      )
+      return out
+    }
+
+    // Échec TOTAL et PARTIEL sont la même phrase, à un chiffre près.
+    // `classesOk === null` = chargement non encore mesuré : on ne dit rien.
+    if (nbClasses !== null && nbClasses > 0 && classesOk !== null && classesOk < nbClasses) {
+      out.push(
+        `Étudiants : ${classesOk} classe(s) sur ${nbClasses} chargée(s) — la liste nominative `
+        + "est incomplète. L'effectif affiché ci-dessus, lui, reste exact."
+      )
+    }
+    return out
+  })
+
   // Liste unifiée étudiants + enseignants
   const allUsers = computed(() => {
     const users = []
     etudiants.value.forEach(e => {
       users.push({
         _uid: `etu-${e.id}`, klassci_id: e.id,
-        name: e.name || e.nom || `${e.prenom || ''} ${e.nom || ''}`.trim(),
-        email: e.email, role: 'etudiant',
+        name: getFullName(e), email: e.email, role: ROLES.ETUDIANT,
         classe_id: e.classe_id, classe_nom: e.classe_nom,
         matricule: e.matricule, telephone: e.telephone,
       })
@@ -55,8 +116,10 @@ export function useAdminUsers() {
     enseignants.value.forEach(e => {
       users.push({
         _uid: `ens-${e.id || e.teacher_id}`, klassci_id: e.id || e.teacher_id,
-        name: e.nom || e.name || `${e.prenom || ''} ${e.nom || ''}`.trim(),
-        email: e.email, role: 'enseignant',
+        // Rôle FORCÉ : /proxy/enseignants renvoie `"role":"etudiant"` pour un
+        // professeur (donnée amont fausse, vérifiée contre l'API). La source de
+        // vérité est ici l'endpoint interrogé, pas le champ.
+        name: getFullName(e), email: e.email, role: ROLES.ENSEIGNANT,
         classe_id: null, classe_nom: null,
         matricule: e.matricule, telephone: e.telephone, specialization: e.specialization,
       })
@@ -74,15 +137,17 @@ export function useAdminUsers() {
       const q = searchQuery.value.toLowerCase().trim()
       result = result.filter(u =>
         (u.name && u.name.toLowerCase().includes(q)) ||
-        (u.email && u.email.toLowerCase().includes(q)))
+        (u.email && u.email.toLowerCase().includes(q)) ||
+        (u.matricule && String(u.matricule).toLowerCase().includes(q)))
     }
-    result.sort((a, b) => {
+    // COPIE avant tri : sans filtre actif, `result` EST le tableau mémoïsé
+    // d'`allUsers` — le trier en place corrompait le cache d'un autre computed.
+    return [...result].sort((a, b) => {
       const valA = (a[sortField.value] || '').toString().toLowerCase()
       const valB = (b[sortField.value] || '').toString().toLowerCase()
       const cmp = valA.localeCompare(valB)
       return sortAsc.value ? cmp : -cmp
     })
-    return result
   })
 
   const totalPages = computed(() => Math.max(1, Math.ceil(filteredUsers.value.length / PAGE_SIZE)))
@@ -98,104 +163,103 @@ export function useAdminUsers() {
   const selectUser = (user) => { selectedUser.value = user }
   const closeModal = () => { selectedUser.value = null }
 
-  // Récupère classes + enseignants + étudiants (par classe) depuis KLASSCI
+  /**
+   * Applique une liste racine ; en échec, conserve l'affichage existant et renvoie
+   * `null` pour que la ressource soit comptée comme NON MESURÉE.
+   */
+  function applyRoot(outcome, target, label) {
+    if (outcome.status === 'fulfilled') {
+      target.value = Array.isArray(outcome.value) ? outcome.value : []
+      return target.value
+    }
+    logError(outcome.reason, `[useAdminUsers] ${label}`)
+    return null
+  }
+
+  /** Récupère classes + enseignants (en parallèle) puis les étudiants. */
   async function fetchAll(onProgress) {
-    const classesData = await klassciService.getClasses()
-    classes.value = Array.isArray(classesData) ? classesData : []
-    const enseignantsData = await klassciService.getEnseignants()
-    enseignants.value = Array.isArray(enseignantsData) ? enseignantsData : []
-    // Les étudiants ne sont exposés par KLASSCI que classe par classe : le N+1 est
-    // imposé par l'API amont. On le borne en parallèle au lieu de le sérialiser
-    // (17 classes = 17 RTT en file avant ce correctif). DETTE TRACÉE : la vraie
-    // correction est un endpoint d'agrégation côté backend — le front ne peut pas
-    // ramener ce coût sous O(nb_classes) à lui seul.
-    const classeList = classes.value
-    let done = 0
-    const settled = await mapWithConcurrency(classeList, CLASSES_FETCH_CONCURRENCY, async (classe) => {
-      const etudiantsData = await klassciService.getClasseEtudiants(classe.id)
-      onProgress?.(`Chargement des étudiants… ${++done}/${classeList.length} classes`)
-      return etudiantsData
+    const [classesOutcome, enseignantsOutcome] = await Promise.allSettled([
+      klassciService.getClasses(),
+      klassciService.getEnseignants(),
+    ])
+
+    const loadedClasses = applyRoot(classesOutcome, classes, 'classes')
+    const loadedEnseignants = applyRoot(enseignantsOutcome, enseignants, 'enseignants')
+
+    const classeList = loadedClasses ?? []
+    const { collected, ok, forbidden } = await fetchClassRosters(classeList, onProgress)
+    rosterForbidden.value = forbidden
+    if (ok > 0 || classeList.length === 0) etudiants.value = collected
+
+    // Dérivation PARTAGÉE avec le tableau de bord et l'écran Statistiques : les
+    // trois écrans ne peuvent plus annoncer des effectifs différents.
+    //
+    // `nb_etudiants` est l'EFFECTIF INSCRIT, somme des `places_occupees` publiées
+    // par KLASSCI sur chaque classe. Il ne dépend PAS du listing nominatif
+    // (/proxy/classes/{id}/etudiants), qui peut être en panne : un établissement
+    // qui compte des étudiants doit annoncer son effectif, même quand leurs fiches
+    // sont temporairement inaccessibles. Afficher « — » ou « 0 » serait faux.
+    const derived = deriveInstitutionCounters({
+      classes: loadedClasses,
+      enseignants: loadedEnseignants,
     })
 
-    const allEtudiants = []
-    let failed = 0
-    settled.forEach((outcome, i) => {
-      const classe = classeList[i]
-      if (outcome.status === 'rejected') {
-        failed++
-        // logError (prod-safe) et non console.warn : les console.* sont neutralisés
-        // en production (main.js), l'échec ne laissait donc AUCUNE trace en prod.
-        logError(outcome.reason, `[useAdminUsers] étudiants de la classe ${classe?.id}`)
-        return
-      }
-      const arr = Array.isArray(outcome.value) ? outcome.value : []
-      arr.forEach(etu => {
-        etu.classe_id = classe.id
-        etu.classe_nom = classe.name || classe.libelle || classe.nom || `Classe ${classe.id}`
-        allEtudiants.push(etu)
-      })
-    })
-
-    // Échec TOTAL : on refuse de présenter une liste vide comme la vérité. Sans
-    // cette levée, une panne complète s'affichait « 0 étudiant » — un admin en
-    // concluait que son établissement n'a aucun élève.
-    if (classeList.length > 0 && failed === classeList.length) {
-      throw new Error(
-        `Impossible de charger les étudiants : aucune des ${classeList.length} classes n'a répondu. `
-        + 'Réessayez dans quelques instants.'
-      )
+    counts.value = {
+      classes: derived.nb_classes_actives,
+      enseignants: derived.nb_enseignants,
+      etudiants: derived.nb_etudiants,
+      classesOk: ok,
     }
 
-    etudiants.value = allEtudiants
-    partialWarning.value = failed > 0
-      ? `${failed} classe(s) sur ${classeList.length} n'ont pas pu être chargées : la liste des étudiants est incomplète.`
-      : null
-    writeCache('admin_users', { etudiants: etudiants.value, enseignants: enseignants.value, classes: classes.value })
+    writeCache('admin_users', {
+      etudiants: etudiants.value, enseignants: enseignants.value,
+      classes: classes.value, counts: counts.value,
+    })
   }
 
   async function loadAllUsers(forceReload = false) {
+    loading.value = true
+    loadingProgress.value = ''
+    if (forceReload) {
+      // #237 : le force-reload re-fetche classes + enseignants (+ étudiants) ;
+      // on invalide leurs clés sœurs pour que les vues admin/coordinateur/
+      // enseignant ne servent plus une version périmée.
+      invalidateEntity('classes')
+      invalidateEntity('enseignants')
+    }
+
+    // Le cache sert dès qu'il porte QUELQUE CHOSE : l'exiger non vide en étudiants
+    // le rendait inatteignable précisément quand leur endpoint est en panne.
+    const cached = forceReload ? null : readCache('admin_users')
+    if (cached && (cached.etudiants?.length || cached.enseignants?.length || cached.classes?.length)) {
+      etudiants.value = cached.etudiants || []
+      enseignants.value = cached.enseignants || []
+      classes.value = cached.classes || []
+      counts.value = countsFromCache(cached)
+      loading.value = false
+      // Revalidation d'arrière-plan : on garde l'affichage en cache et on trace.
+      fetchAll().catch((err) => logError(err, '[useAdminUsers] revalidation'))
+      return
+    }
+
+    loadingProgress.value = 'Chargement des données...'
     try {
-      loading.value = true; error.value = null; partialWarning.value = null; loadingProgress.value = ''
-      if (forceReload) {
-        // #237 : le force-reload re-fetche classes + enseignants (+ étudiants) ;
-        // on invalide leurs clés sœurs pour que les vues admin/coordinateur/
-        // enseignant ne servent plus une version périmée.
-        invalidateEntity('classes')
-        invalidateEntity('enseignants')
-      }
-      if (!forceReload) {
-        const cached = readCache('admin_users')
-        if (cached && cached.etudiants?.length > 0) {
-          etudiants.value = cached.etudiants
-          enseignants.value = cached.enseignants || []
-          classes.value = cached.classes || []
-          loading.value = false
-          // Rafraîchissement en arrière-plan : on garde la donnée en cache affichée
-          // (pas d'écran d'erreur pour une revalidation), mais on TRACE l'échec au
-          // lieu de l'avaler, et on signale que l'affichage peut être périmé.
-          fetchAll().catch((err) => {
-            logError(err, '[useAdminUsers] revalidation en arrière-plan')
-            partialWarning.value = 'Actualisation impossible : les données affichées peuvent être périmées.'
-          })
-          return
-        }
-      }
-      loadingProgress.value = 'Chargement des données...'
       await fetchAll((p) => { loadingProgress.value = p })
-      loading.value = false; loadingProgress.value = ''
     } catch (err) {
+      // fetchAll absorbe déjà chaque échec de ressource : n'atterrit ici qu'un
+      // imprévu, qui ne doit pas laisser l'écran en chargement perpétuel.
       logError(err, '[useAdminUsers] chargement')
-      // `userMessage` vient de l'intercepteur axios (message SÛR, sans détail
-      // technique) ; `err.message` couvre les erreurs levées ici même.
-      error.value = err.userMessage || err.message || 'Erreur lors du chargement des utilisateurs'
-      loading.value = false; loadingProgress.value = ''
+      counts.value = noCounts()
+    } finally {
+      loading.value = false
+      loadingProgress.value = ''
     }
   }
 
   onMounted(() => { loadAllUsers() })
 
   return {
-    etudiants, enseignants, classes, loading, loadingProgress, error, partialWarning, selectedUser,
+    etudiants, enseignants, classes, loading, loadingProgress, counts, notices, rosterForbidden, selectedUser,
     searchQuery, filterRole, filterClasse, currentPage, sortField, sortAsc,
     totalUsers, filteredUsers, totalPages, paginatedUsers,
     sortBy, selectUser, closeModal, loadAllUsers,
