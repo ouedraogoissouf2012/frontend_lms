@@ -137,14 +137,14 @@
 
 <script>
 import { auth } from '@/services/api'
-// Import conservé pour son EFFET DE BORD au chargement du module :
-// services/jitsi.js exécute jitsiService.cleanupExpiredParticipations() à l'import,
-// et VisioManager est son seul importeur vivant. Ne pas retirer (parité).
-import '@/services/jitsi'
+import { cleanupExpiredVisioParticipations } from '@/utils/visioParticipationCleanup'
 import ParticipantsModal from './ParticipantsModal.vue'
 import { VISIO_CONFIG } from '@/constants/visio'
 import { formatVisioTime, isInTimeWindow, timeWindowMessage } from '@/utils/visioTimeWindow'
 import { useVisioActions } from '@/composables/useVisioActions'
+
+// Purge des participations visio expirées, au chargement du module (parité, ex-services/jitsi.js).
+cleanupExpiredVisioParticipations()
 
 export default {
   name: 'VisioManager',

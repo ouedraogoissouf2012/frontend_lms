@@ -17,8 +17,7 @@ import lmsService, {
   lmsMatieresService,
   lmsTeachersService,
   lmsSeancesService,
-  lmsVisioService,
-  lmsNotificationsService
+  lmsVisioService
 } from '@/services/lms'
 
 const DOMAINS = {
@@ -41,10 +40,6 @@ const DOMAINS = {
       'joinVisio', 'leaveVisio', 'heartbeatVisio', 'getVisioParticipants',
       'getVisioRecording', 'startVisioRecording', 'stopVisioRecording'
     ]
-  },
-  notifications: {
-    svc: lmsNotificationsService,
-    methods: ['getNotificationPreferences', 'sendSessionReminder']
   }
 }
 

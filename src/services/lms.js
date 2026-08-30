@@ -9,7 +9,6 @@
  *   - lmsTeachers.js       — enseignants / dashboard
  *   - lmsSeances.js        — séances & présences
  *   - lmsVisio.js          — cycle de vie visio
- *   - lmsNotifications.js  — préférences & rappels de séance
  *
  * Frontière (#26) : lms* = données ENRICHIES `/lms/*` ; klassciService
  * (src/services/klassci.js) = proxy BRUT KLASSCI `/proxy/*`.
@@ -27,7 +26,6 @@ import { lmsMatieresService } from './lmsMatieres'
 import { lmsTeachersService } from './lmsTeachers'
 import { lmsSeancesService } from './lmsSeances'
 import { lmsVisioService } from './lmsVisio'
-import { lmsNotificationsService } from './lmsNotifications'
 
 // Réexport des services de domaine (imports granulaires recommandés à terme).
 export { lmsClassesService } from './lmsClasses'
@@ -35,7 +33,6 @@ export { lmsMatieresService } from './lmsMatieres'
 export { lmsTeachersService } from './lmsTeachers'
 export { lmsSeancesService } from './lmsSeances'
 export { lmsVisioService } from './lmsVisio'
-export { lmsNotificationsService } from './lmsNotifications'
 
 /**
  * Façade rétro-compatible : agrège les méthodes de tous les domaines.
@@ -46,8 +43,7 @@ export const lmsService = {
   ...lmsMatieresService,
   ...lmsTeachersService,
   ...lmsSeancesService,
-  ...lmsVisioService,
-  ...lmsNotificationsService
+  ...lmsVisioService
 }
 
 export default lmsService

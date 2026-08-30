@@ -85,13 +85,6 @@ export const endpoints = {
       history: `${LMS}/attendance/history`,
       fromVideoSession: `${LMS}/attendances/from-video-session`,
     },
-
-    // Notifications LIÉES aux séances (préférences, rappels). Le client
-    // notifications général (cloche) reste src/services/notifications.js.
-    notifications: {
-      preferences: (userId) => `${LMS}/notifications/preferences/${userId}`,
-      sendSessionReminder: `${LMS}/notifications/send-session-reminder`,
-    },
   },
 
   // ── ADMIN (/admin/*) ────────────────────────────────────────────────────

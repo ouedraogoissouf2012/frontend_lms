@@ -110,11 +110,9 @@ describe('endpoints — carte unique (#105)', () => {
       expect(l.visio.recordingStart(5)).toBe('/lms/seances/5/recording/start')
       expect(l.visio.recordingStop(5)).toBe('/lms/seances/5/recording/stop')
     })
-    it('attendance / notifications', () => {
+    it('attendance', () => {
       expect(l.attendance.history).toBe('/lms/attendance/history')
       expect(l.attendance.fromVideoSession).toBe('/lms/attendances/from-video-session')
-      expect(l.notifications.preferences(42)).toBe('/lms/notifications/preferences/42')
-      expect(l.notifications.sendSessionReminder).toBe('/lms/notifications/send-session-reminder')
     })
   })
 
@@ -182,7 +180,6 @@ describe('endpoints — carte unique (#105)', () => {
         '/lms/seances/:id/recording', '/lms/seances/:id/recording/start',
         '/lms/seances/:id/recording/stop',
         '/lms/attendance/history', '/lms/attendances/from-video-session',
-        '/lms/notifications/preferences/:id', '/lms/notifications/send-session-reminder',
       ]
       const missing = EXPECTED.filter((p) => !resolved.has(p))
       expect(missing, `chemins manquants : ${missing.join(', ')}`).toEqual([])

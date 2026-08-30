@@ -26,25 +26,6 @@ export const lessonRoutes = [
       roles: ['etudiant', 'enseignant', 'teacher', 'coordinateur', 'superAdmin']
     }
   },
-  // Leçons - Enseignant
-  {
-    path: '/teacher/lessons/create',
-    name: 'LessonCreate',
-    component: () => import('@/views/lessons/LessonEditor.vue'),
-    meta: {
-      requiresAuth: true,
-      roles: ['enseignant', 'teacher']
-    }
-  },
-  {
-    path: '/teacher/lessons/:id/edit',
-    name: 'LessonEdit',
-    component: () => import('@/views/lessons/LessonEditor.vue'),
-    meta: {
-      requiresAuth: true,
-      roles: ['enseignant', 'teacher']
-    }
-  },
   {
     path: '/teacher/matieres',
     name: 'TeacherMatieres',
