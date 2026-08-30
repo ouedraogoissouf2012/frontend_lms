@@ -1,7 +1,19 @@
 /** Test de rendu DashboardStatsCards (#H3 ≤300) : 4 cartes KPI et fallback 0. */
 import { mount } from '@vue/test-utils'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import DashboardStatsCards from '@/components/dashboard/DashboardStatsCards.vue'
+
+// Les valeurs sont animées (count-up). Sous « mouvement réduit », le composable
+// pose la valeur finale dès le 1er rendu → assertions synchrones déterministes.
+const originalMatchMedia = window.matchMedia
+beforeEach(() => {
+  window.matchMedia = vi.fn(() => ({
+    matches: true, media: '', addEventListener() {}, removeEventListener() {},
+  }))
+})
+afterEach(() => {
+  window.matchMedia = originalMatchMedia
+})
 
 describe('DashboardStatsCards (#H3)', () => {
   it('rend les 4 cartes KPI avec leurs libellés', () => {

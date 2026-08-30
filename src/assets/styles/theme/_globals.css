@@ -141,3 +141,32 @@ body {
   background: rgba(30, 41, 59, 0.7);
   border: 1px solid rgba(71, 85, 105, 0.3);
 }
+
+/* Reveal on scroll (directive v-reveal) — apparition fondu + montée, en cascade.
+   La directive bascule .reveal-pending -> .is-revealed ; le délai de cascade
+   éventuel arrive via la variable inline --reveal-delay. */
+.reveal-pending {
+  opacity: 0;
+  transform: translateY(12px);
+  will-change: opacity, transform;
+}
+
+.is-revealed {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--motion-slow) var(--motion-spring) var(--reveal-delay, 0ms),
+    transform var(--motion-slow) var(--motion-spring) var(--reveal-delay, 0ms);
+}
+
+/* Accessibilité : aucun mouvement si l'utilisateur le demande. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-pending {
+    opacity: 1;
+    transform: none;
+  }
+
+  .is-revealed {
+    transition: none;
+  }
+}

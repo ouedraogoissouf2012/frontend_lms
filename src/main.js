@@ -6,6 +6,7 @@ import './style.css'
 import './assets/styles/themes.css'
 import './assets/styles/mobile-responsive.css'
 import { themeKey } from '@/constants/storageKeys'
+import { reveal } from '@/directives/reveal'
 
 // Initialiser le thème AVANT de monter l'application.
 // Avant le montage, Pinia n'est pas hydraté : on lit le slug d'institution
@@ -53,5 +54,8 @@ const app = createApp(App)
 
 app.use(createPinia())
 app.use(router)
+
+// Directive globale d'apparition au défilement (finitions design, accessible).
+app.directive('reveal', reveal)
 
 app.mount('#app')

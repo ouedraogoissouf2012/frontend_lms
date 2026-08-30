@@ -6,7 +6,7 @@
         <p class="stat-label">Enseignants</p>
       </div>
       <p class="stat-value text-blue-600">
-        {{ stats?.nb_enseignants || 0 }}
+        {{ nbEnseignants }}
       </p>
     </div>
 
@@ -16,7 +16,7 @@
         <p class="stat-label">Étudiants</p>
       </div>
       <p class="stat-value text-green-600">
-        {{ stats?.nb_etudiants || 0 }}
+        {{ nbEtudiants }}
       </p>
     </div>
 
@@ -26,7 +26,7 @@
         <p class="stat-label">Classes actives</p>
       </div>
       <p class="stat-value text-purple-600">
-        {{ stats?.nb_classes_actives || 0 }}
+        {{ nbClasses }}
       </p>
     </div>
 
@@ -36,24 +36,38 @@
         <p class="stat-label">Matières</p>
       </div>
       <p class="stat-value text-orange-600">
-        {{ stats?.nb_matieres_actives || 0 }}
+        {{ nbMatieres }}
       </p>
     </div>
   </div>
 </template>
 
 <script setup>
-/** Cartes KPI d'AdminDashboard (#H3 ≤300). Présentation pure : 4 compteurs. */
+/** Cartes KPI d'AdminDashboard (#H3 ≤300). Présentation : 4 compteurs animés
+ *  (count-up) qui respectent le mouvement réduit. */
+import { computed } from 'vue'
 import {
   UserGroupIcon,
   AcademicCapIcon,
   BuildingLibraryIcon,
   BookOpenIcon
 } from '@heroicons/vue/24/outline'
+import { useCountUp } from '@/composables/useCountUp'
 
-defineProps({
+const props = defineProps({
   stats: { type: Object, default: () => ({}) },
 })
+
+/** Compteur animé (arrondi) pour un getter numérique. */
+function counter(getter) {
+  const { value } = useCountUp(getter)
+  return computed(() => Math.round(value.value))
+}
+
+const nbEnseignants = counter(() => Number(props.stats?.nb_enseignants) || 0)
+const nbEtudiants = counter(() => Number(props.stats?.nb_etudiants) || 0)
+const nbClasses = counter(() => Number(props.stats?.nb_classes_actives) || 0)
+const nbMatieres = counter(() => Number(props.stats?.nb_matieres_actives) || 0)
 </script>
 
 <style scoped>
@@ -64,6 +78,33 @@ defineProps({
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border-left: 4px solid transparent;
+  transition:
+    transform var(--motion-base) var(--motion-spring),
+    box-shadow var(--motion-base) var(--motion-spring);
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--card-hover-shadow);
+}
+
+.stat-icon {
+  transition: transform var(--motion-base) var(--motion-spring);
+}
+
+.stat-card:hover .stat-icon {
+  transform: scale(1.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stat-card,
+  .stat-icon {
+    transition: none;
+  }
+
+  .stat-card:hover {
+    transform: none;
+  }
 }
 
 .border-l-blue {
