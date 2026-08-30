@@ -69,7 +69,6 @@ describe('endpoints — carte unique (#105)', () => {
       expect(k.teacherDashboard).toBe('/proxy/me/teacher-dashboard')
     })
     it('chemins paramétrés', () => {
-      expect(k.classeDetails(7)).toBe('/proxy/classes/7')
       expect(k.classeEtudiants(7)).toBe('/proxy/classes/7/etudiants')
     })
   })
@@ -162,7 +161,7 @@ describe('endpoints — carte unique (#105)', () => {
         '/admin/institutions/:id', '/admin/institutions/:id/toggle',
         '/admin/institutions/:id/test-connection',
         // klassci.js (/proxy/* + chemins partagés)
-        '/proxy/classes', '/proxy/classes/:id', '/proxy/classes/:id/etudiants',
+        '/proxy/classes', '/proxy/classes/:id/etudiants',
         '/proxy/matieres', '/proxy/enseignants', '/proxy/emploi-temps', '/proxy/structure',
         '/proxy/evaluations', '/proxy/me/dashboard', '/proxy/me/teacher-dashboard',
         '/lessons/my-courses', '/admin/matieres', '/evaluations/student',

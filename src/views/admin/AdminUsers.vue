@@ -13,11 +13,13 @@
         </button>
       </div>
 
+      <!-- Compteurs MESURÉS : `null` quand la ressource n'a pas répondu, jamais
+           un `.length` de tableau vide qui ferait passer une panne pour un fait. -->
       <UsersStatsCards
-        :total="totalUsers"
-        :etudiants="etudiants.length"
-        :enseignants="enseignants.length"
-        :classes="classes.length"
+        :total="measuredTotal"
+        :etudiants="counts.etudiants"
+        :enseignants="counts.enseignants"
+        :classes="counts.classes"
       />
 
       <UsersFilters
@@ -34,22 +36,14 @@
         <p v-if="loadingProgress" class="loading-progress">{{ loadingProgress }}</p>
       </div>
 
-      <!-- Error State -->
-      <div v-else-if="error" class="error-state">
-        <div class="error-icon"><i class="fa fa-exclamation-triangle"></i></div>
-        <h3 class="error-title">Erreur de Chargement</h3>
-        <p class="error-message">{{ error }}</p>
-        <button @click="loadAllUsers()" class="retry-btn">Réessayer</button>
-      </div>
-
-      <!-- Chargement réussi (au moins partiellement) -->
+      <!-- Chargement terminé. Il n'y a PLUS d'écran d'erreur plein cadre : une
+           ressource en panne ne doit pas emporter celles qui ont abouti (un échec
+           total des étudiants effaçait les enseignants pourtant chargés). Chaque
+           ressource manquante se signale par sa propre bannière, sans rien cacher. -->
       <template v-else>
-        <!-- Échec PARTIEL : bannière NON bloquante. La liste obtenue reste
-             affichée (elle est utile), mais on dit explicitement qu'elle est
-             incomplète au lieu de la faire passer pour exhaustive. -->
-        <div v-if="partialWarning" class="partial-warning" role="status">
+        <div v-for="notice in notices" :key="notice" class="partial-warning" role="alert">
           <i class="fa fa-exclamation-circle" aria-hidden="true"></i>
-          <span>{{ partialWarning }}</span>
+          <span>{{ notice }}</span>
           <button @click="loadAllUsers(true)" class="partial-retry">Réessayer</button>
         </div>
 
@@ -95,14 +89,22 @@ import UserDetailModal from '@/components/admin/UserDetailModal.vue'
 import UsersStatsCards from '@/components/admin/UsersStatsCards.vue'
 import UsersFilters from '@/components/admin/UsersFilters.vue'
 import UsersTable from '@/components/admin/UsersTable.vue'
+import { computed } from 'vue'
 import { useAdminUsers } from '@/composables/useAdminUsers'
 
 const {
-  etudiants, enseignants, classes, loading, loadingProgress, error, partialWarning, selectedUser,
+  classes, loading, loadingProgress, counts, notices, selectedUser,
   searchQuery, filterRole, filterClasse, currentPage, sortField, sortAsc,
-  totalUsers, filteredUsers, totalPages, paginatedUsers,
+  filteredUsers, totalPages, paginatedUsers,
   sortBy, selectUser, closeModal, loadAllUsers,
 } = useAdminUsers()
+
+/** Total affichable : non mesuré tant qu'AUCUNE des deux populations ne l'est. */
+const measuredTotal = computed(() => {
+  const { etudiants, enseignants } = counts.value
+  if (etudiants === null && enseignants === null) return null
+  return (etudiants ?? 0) + (enseignants ?? 0)
+})
 </script>
 
 <style scoped lang="scss">
@@ -151,8 +153,7 @@ const {
   margin-top: var(--spacing-xs);
 }
 
-/* Error / Empty States */
-.error-state,
+/* Empty State (les règles .error-* ont disparu avec l'écran d'erreur plein cadre) */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -161,13 +162,6 @@ const {
   text-align: center;
 }
 
-.error-icon {
-  font-size: 3rem;
-  color: var(--red-500);
-  margin-bottom: var(--spacing-lg);
-}
-
-.error-title,
 .empty-title {
   font-size: var(--font-size-xl);
   font-weight: 600;
@@ -175,26 +169,7 @@ const {
   margin-bottom: var(--spacing-sm);
 }
 
-.error-message {
-  color: var(--text-secondary);
-  margin-bottom: var(--spacing-lg);
-}
-
-.retry-btn {
-  padding: var(--spacing-md) var(--spacing-xl);
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.retry-btn:hover {
-  opacity: 0.9;
-}
-
-/* Bannière d'échec partiel : triplet de tokens ADAPTATIF (bg/border/text varient
+/* Bannière d'avertissement : triplet de tokens ADAPTATIF (bg/border/text varient
    ensemble par thème) — jamais un token de palette figée apparié à un token
    sémantique, ce qui produit un contraste illisible en thème sombre. */
 .partial-warning {

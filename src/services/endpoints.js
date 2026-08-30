@@ -14,7 +14,7 @@
  * apparaître sous `endpoints.lms`, ni l'inverse (garde-fou testé, #26).
  *
  * Convention : chemin statique = chaîne ; chemin paramétré = fonction pure
- * (ex. `classeDetails: (id) => `/proxy/classes/${id}``). Les query strings
+ * (ex. `classeEtudiants: (id) => `/proxy/classes/${id}/etudiants``). Les query strings
  * (?with_details, ?page…) restent à la charge des appelants (orthogonaux).
  */
 
@@ -26,7 +26,6 @@ export const endpoints = {
   // ── KLASSCI — BRUT (/proxy/*) ───────────────────────────────────────────
   klassci: {
     classes: `${KLASSCI}/classes`,
-    classeDetails: (id) => `${KLASSCI}/classes/${id}`,
     classeEtudiants: (id) => `${KLASSCI}/classes/${id}/etudiants`,
     matieres: `${KLASSCI}/matieres`,
     enseignants: `${KLASSCI}/enseignants`,

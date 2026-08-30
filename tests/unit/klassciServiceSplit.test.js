@@ -26,7 +26,7 @@ const DOMAINS = {
   structure: {
     svc: klassciStructureService,
     methods: ['getClasses', 'getMatieres', 'getEnseignants', 'getEmploiTemps',
-      'getClasseDetails', 'getClasseEtudiants', 'getStructure', 'getTeachers']
+      'getClasseEtudiants', 'getStructure', 'getTeachers']
   },
   dashboard: {
     svc: klassciDashboardService,
@@ -44,7 +44,8 @@ const DOMAINS = {
   admin: { svc: klassciAdminService, methods: ['getLmsEnseignants', 'getAdminMatieres'] }
 }
 
-// API publique complète attendue (19 méthodes de l'original klassciService).
+// API publique complète attendue (18 méthodes ; getClasseDetails a été retiré,
+// sans appelant et pointant vers /proxy/classes/{id}, une route qui renvoie 404).
 const PUBLIC_API = Object.values(DOMAINS).flatMap((d) => d.methods)
 
 describe('klassci.js — split par domaine (G9)', () => {
@@ -62,7 +63,7 @@ describe('klassci.js — split par domaine (G9)', () => {
     for (const m of PUBLIC_API) {
       expect(typeof klassciService[m], `klassciService.${m}`).toBe('function')
     }
-    expect(PUBLIC_API).toHaveLength(19)
+    expect(PUBLIC_API).toHaveLength(18)
   })
 
   it('aucune collision de nom entre domaines', () => {

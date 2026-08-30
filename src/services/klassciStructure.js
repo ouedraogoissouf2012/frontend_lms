@@ -71,21 +71,6 @@ export const klassciStructureService = {
   },
 
   /**
-   * Récupérer les détails d'une classe spécifique
-   * @param {number} classeId - ID de la classe
-   * @returns {Promise<Object>} Détails de la classe
-   */
-  async getClasseDetails(classeId) {
-    try {
-      const response = await api.get(endpoints.klassci.classeDetails(classeId))
-      return response.success ? response.data : null
-    } catch (error) {
-      console.error(`Erreur récupération classe ${classeId}:`, error)
-      throw error
-    }
-  },
-
-  /**
    * Récupérer les étudiants d'une classe
    * @param {number} classeId - ID de la classe
    * @returns {Promise<Array>} Liste des étudiants

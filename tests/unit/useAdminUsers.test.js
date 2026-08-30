@@ -1,25 +1,29 @@
 /**
  * Test du composable useAdminUsers (#G1 ≤300) : agrégation étudiants+enseignants,
- * filtres (rôle/recherche), tri et pagination. Services KLASSCI + cache mockés.
+ * filtres (rôle/recherche/classe), tri et pagination. Services KLASSCI + cache mockés.
  *
- * Couvre aussi la SÉMANTIQUE D'ÉCHEC du chargement par classe : un échec total
- * doit remonter une erreur (et non « 0 étudiant » présenté comme la vérité), un
- * échec partiel doit conserver les données obtenues tout en le signalant.
+ * Les fixtures de classe reproduisent la forme RÉELLE de `/proxy/classes`
+ * (`{id, name, libelle:null}`) : l'ancien jeu d'essai inventait un champ `nom`
+ * que l'API ne renvoie pas, ce qui verdissait un chemin inexistant en production.
+ *
+ * Sémantique d'échec vérifiée ici : chaque ressource est MESURÉE indépendamment
+ * (`counts`), et les avertissements en découlent (`notices`). Un échec, même
+ * total, sur les étudiants ne doit JAMAIS détruire les enseignants déjà chargés.
  */
 import { mount, flushPromises } from '@vue/test-utils'
 import { defineComponent } from 'vue'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// Implémentations mutables : chaque test décide du comportement des appels KLASSCI.
 const impl = {
-  getClasses: () => Promise.resolve([{ id: 1, nom: '6e A' }]),
+  getClasses: () => Promise.resolve([{ id: 1, name: '6e A', libelle: null, places_occupees: 1 }]),
   getEnseignants: () => Promise.resolve([{ id: 10, nom: 'Zoé Prof', email: 'zoe@e.com' }]),
   getClasseEtudiants: () => Promise.resolve([{ id: 100, nom: 'Aline Eleve', email: 'aline@e.com' }]),
 }
 
+let cacheStore = null
 vi.mock('@/services/cache', () => ({
-  readCache: () => null,
-  writeCache: () => {},
+  readCache: () => cacheStore,
+  writeCache: (_k, v) => { cacheStore = v },
   invalidateEntity: () => {},
 }))
 vi.mock('@/services/klassci', () => ({
@@ -37,12 +41,13 @@ async function setup() {
   const Comp = defineComponent({ setup() { api = useAdminUsers(); return () => null } })
   mount(Comp)
   await flushPromises()
+  await flushPromises()
   return api
 }
 
-/** Réinitialise les mocks au cas nominal (1 classe, 1 prof, 1 élève). */
 beforeEach(() => {
-  impl.getClasses = () => Promise.resolve([{ id: 1, nom: '6e A' }])
+  cacheStore = null
+  impl.getClasses = () => Promise.resolve([{ id: 1, name: '6e A', libelle: null, places_occupees: 1 }])
   impl.getEnseignants = () => Promise.resolve([{ id: 10, nom: 'Zoé Prof', email: 'zoe@e.com' }])
   impl.getClasseEtudiants = () => Promise.resolve([{ id: 100, nom: 'Aline Eleve', email: 'aline@e.com' }])
 })
@@ -68,11 +73,35 @@ describe('useAdminUsers (#G1)', () => {
     expect(u.filteredUsers.value[0].name).toContain('Aline')
   })
 
-  it('trie par nom (asc/desc via sortBy)', async () => {
+  it('filtre par matricule', async () => {
+    impl.getEnseignants = () => Promise.resolve([
+      { id: 10, nom: 'Zoé Prof', email: 'zoe@e.com', matricule: 'ENS-2025-0001' },
+    ])
     const u = await setup()
+    u.searchQuery.value = '2025-0001'
+    expect(u.filteredUsers.value).toHaveLength(1)
+    expect(u.filteredUsers.value[0].name).toBe('Zoé Prof')
+  })
+
+  it('filtre par classe, sur le libellé réel du payload', async () => {
+    const u = await setup()
+    expect(u.etudiants.value[0].classe_nom).toBe('6e A') // et non « Classe 1 »
+    u.filterClasse.value = 1
+    expect(u.filteredUsers.value).toHaveLength(1)
+    expect(u.filteredUsers.value[0].role).toBe('etudiant')
+  })
+
+  it('trie par nom (asc/desc via sortBy) SANS muter la liste source', async () => {
+    const u = await setup()
+    const sourceOrder = u.etudiants.value.map(e => e.id)
+
     expect(u.filteredUsers.value[0].name).toBe('Aline Eleve') // asc
     u.sortBy('name') // bascule desc
     expect(u.filteredUsers.value[0].name).toBe('Zoé Prof')
+
+    // `filteredUsers` triait le tableau d'`allUsers` EN PLACE : le tri d'un
+    // computed corrompait ainsi le cache d'un autre.
+    expect(u.etudiants.value.map(e => e.id)).toEqual(sourceOrder)
   })
 
   it('select/closeModal pilotent selectedUser', async () => {
@@ -83,47 +112,185 @@ describe('useAdminUsers (#G1)', () => {
     expect(u.selectedUser.value).toBe(null)
   })
 
-  it('ne signale ni erreur ni avertissement quand tout réussit', async () => {
+  it('ne signale rien quand tout réussit', async () => {
     const u = await setup()
-    expect(u.error.value).toBe(null)
-    expect(u.partialWarning.value).toBe(null)
+    expect(u.notices.value).toEqual([])
+    expect(u.counts.value).toEqual({ classes: 1, enseignants: 1, etudiants: 1, classesOk: 1 })
   })
 
-  describe('sémantique d’échec du chargement par classe', () => {
-    it('remonte une ERREUR quand TOUTES les classes échouent (jamais « 0 étudiant » muet)', async () => {
-      impl.getClasses = () => Promise.resolve([{ id: 1, nom: '6e A' }, { id: 2, nom: '5e B' }])
+  describe('mesure par ressource et avertissements', () => {
+    it('CONSERVE les enseignants quand TOUTES les classes échouent', async () => {
+      impl.getClasses = () => Promise.resolve([
+        { id: 1, name: '6e A', places_occupees: 6 }, { id: 2, name: '5e B', places_occupees: 5 },
+      ])
       impl.getClasseEtudiants = () => Promise.reject(new Error('boom'))
 
       const u = await setup()
 
-      // Le cœur du défaut : sans erreur, l'écran affiche « 0 étudiant » comme une
-      // donnée valide alors que la totalité des appels a échoué.
-      expect(u.error.value).toBeTruthy()
-      expect(u.etudiants.value).toHaveLength(0)
+      // Le cœur du correctif : la panne des étudiants ne doit pas emporter
+      // l'écran. Les enseignants chargés restent consultables.
+      expect(u.enseignants.value).toHaveLength(1)
+      expect(u.totalUsers.value).toBe(1)
       expect(u.loading.value).toBe(false)
     })
 
-    it('conserve les données PARTIELLES et signale l’échec sans détruire la liste', async () => {
-      impl.getClasses = () => Promise.resolve([{ id: 1, nom: '6e A' }, { id: 2, nom: '5e B' }])
+    it('dit explicitement que la liste des étudiants est indisponible', async () => {
+      impl.getClasses = () => Promise.resolve([
+        { id: 1, name: '6e A', places_occupees: 6 }, { id: 2, name: '5e B', places_occupees: 5 },
+      ])
+      impl.getClasseEtudiants = () => Promise.reject(new Error('boom'))
+
+      const u = await setup()
+
+      expect(u.notices.value.join(' ')).toContain('0 classe(s) sur 2')
+
+      // L'EFFECTIF reste connu : KLASSCI le publie sur chaque classe
+      // (`places_occupees`), indépendamment du listing nominatif qui, lui, est en
+      // panne. Afficher « — » ici serait aussi faux qu'afficher « 0 » : un
+      // établissement qui a des étudiants doit annoncer son effectif.
+      expect(u.counts.value.etudiants).toBe(11)
+    })
+
+    it('traite l’échec PARTIEL comme le total, à un chiffre près', async () => {
+      impl.getClasses = () => Promise.resolve([
+        { id: 1, name: '6e A', places_occupees: 6 }, { id: 2, name: '5e B', places_occupees: 5 },
+      ])
       impl.getClasseEtudiants = (id) => id === 1
-        ? Promise.resolve([{ id: 100, nom: 'Aline Eleve', email: 'aline@e.com' }])
+        ? Promise.resolve([{ id: 100, nom: 'Aline Eleve' }])
         : Promise.reject(new Error('boom'))
 
       const u = await setup()
 
-      expect(u.error.value).toBe(null) // pas d'écran d'erreur bloquant
-      expect(u.etudiants.value).toHaveLength(1) // la donnée obtenue est conservée
-      expect(u.partialWarning.value).toBeTruthy() // mais l'échec est dit
-      expect(u.partialWarning.value).toContain('1')
+      expect(u.etudiants.value).toHaveLength(1) // une seule classe listée
+      expect(u.notices.value.join(' ')).toContain('1 classe(s) sur 2')
+      expect(u.counts.value.etudiants).toBe(11) // mais l'effectif total reste connu
     })
 
-    it('n’érige pas « aucune classe » en erreur (établissement réellement vide)', async () => {
+    it('CESSE d’interroger les classes dès le premier refus de droits (403)', async () => {
+      const tried = []
+      impl.getClasses = () => Promise.resolve(
+        Array.from({ length: 17 }, (_, i) => ({ id: i + 1, name: `C${i + 1}`, places_occupees: 10 }))
+      )
+      impl.getClasseEtudiants = (id) => {
+        tried.push(id)
+        return Promise.reject(Object.assign(new Error('forbidden'), { response: { status: 403 } }))
+      }
+
+      const u = await setup()
+
+      // Un 403 est un refus DÉTERMINISTE : il sera identique sur les 16 classes
+      // suivantes. Les marteler ne produit que des erreurs et du bruit de log.
+      expect(tried.length).toBeLessThan(17)
+      expect(u.notices.value.join(' ')).toMatch(/droit|autoris/i)
+    })
+
+    it('N’interrompt PAS le parcours sur un échec transitoire', async () => {
+      const tried = []
+      impl.getClasses = () => Promise.resolve([
+        { id: 1, name: 'A', places_occupees: 3 },
+        { id: 2, name: 'B', places_occupees: 4 },
+        { id: 3, name: 'C', places_occupees: 5 },
+      ])
+      impl.getClasseEtudiants = (id) => {
+        tried.push(id)
+        return id === 1
+          ? Promise.reject(Object.assign(new Error('indispo'), { response: { status: 503 } }))
+          : Promise.resolve([{ id: 100 + id, nom: `E${id}` }])
+      }
+
+      const u = await setup()
+
+      expect(tried).toHaveLength(3) // une panne passagère ne condamne pas les autres
+      expect(u.etudiants.value).toHaveLength(2)
+    })
+
+    it('distingue un établissement RÉELLEMENT vide d’une panne', async () => {
       impl.getClasses = () => Promise.resolve([])
 
       const u = await setup()
 
-      expect(u.error.value).toBe(null)
-      expect(u.partialWarning.value).toBe(null)
+      expect(u.notices.value).toEqual([])
+      expect(u.counts.value.classes).toBe(0)
+      expect(u.counts.value.etudiants).toBe(0) // mesuré, vraiment nul
+    })
+
+    it('signale la panne des CLASSES et l’indisponibilité du filtre', async () => {
+      impl.getClasses = () => Promise.reject(new Error('proxy down'))
+
+      const u = await setup()
+
+      expect(u.counts.value.classes).toBe(null)
+      expect(u.counts.value.etudiants).toBe(null)
+      expect(u.notices.value.join(' ')).toContain('filtre par classe')
+      // Un échec sur les classes ne doit pas empêcher le chargement des enseignants.
+      expect(u.enseignants.value).toHaveLength(1)
+    })
+
+    it('signale la panne des ENSEIGNANTS sans bloquer les étudiants', async () => {
+      impl.getEnseignants = () => Promise.reject(new Error('proxy down'))
+
+      const u = await setup()
+
+      expect(u.counts.value.enseignants).toBe(null)
+      expect(u.notices.value.join(' ')).toContain('enseignants')
+      expect(u.etudiants.value).toHaveLength(1)
+    })
+  })
+
+  describe('cache', () => {
+    it('sert un jeu en cache même SANS étudiant (cas du backend étudiants cassé)', async () => {
+      cacheStore = {
+        etudiants: [],
+        enseignants: [{ id: 10, nom: 'Zoé Prof' }],
+        classes: [{ id: 1, name: '6e A' }],
+        counts: { classes: 1, enseignants: 1, etudiants: null, classesOk: 0 },
+      }
+      // Le réseau reste cassé : seul le cache peut peupler l'écran immédiatement.
+      impl.getClasseEtudiants = () => Promise.reject(new Error('boom'))
+
+      const u = await setup()
+
+      // La garde `cached.etudiants?.length > 0` rendait le cache inatteignable
+      // précisément quand il servait le plus.
+      expect(u.enseignants.value).toHaveLength(1)
+      expect(u.classes.value).toHaveLength(1)
+    })
+
+    it('compte ce qui est AFFICHÉ quand le cache est d’un format antérieur à `counts`', async () => {
+      // Entrée écrite avant l'introduction de `counts` : sans dérivation, l'écran
+      // affichait 1 classe et 1 enseignant tout en annonçant « — » pour les deux.
+      cacheStore = {
+        etudiants: [],
+        enseignants: [{ id: 10, nom: 'Zoé Prof' }],
+        classes: [{ id: 1, name: '6e A' }],
+      }
+      // Revalidation GELÉE : on observe l'état servi par le cache seul, avant
+      // qu'un rechargement réseau ne le remplace.
+      impl.getClasses = () => new Promise(() => {})
+      impl.getEnseignants = () => new Promise(() => {})
+
+      const u = await setup()
+
+      expect(u.counts.value.classes).toBe(1)
+      expect(u.counts.value.enseignants).toBe(1)
+      // L'ancien format ne portait pas l'effectif : on ne l'invente pas.
+      expect(u.counts.value.etudiants).toBe(null)
+    })
+
+    it('n’accuse pas les étudiants d’être incomplets sans mesure de ce chargement', async () => {
+      cacheStore = {
+        etudiants: [],
+        enseignants: [{ id: 10, nom: 'Zoé Prof' }],
+        classes: [{ id: 1, name: '6e A' }],
+      }
+      // `getClasseEtudiants` ne répond jamais : la revalidation reste en vol, donc
+      // aucune mesure du chargement des étudiants n'existe encore.
+      impl.getClasseEtudiants = () => new Promise(() => {})
+
+      const u = await setup()
+
+      expect(u.counts.value.classesOk).toBe(null)
+      expect(u.notices.value).toEqual([])
     })
   })
 })

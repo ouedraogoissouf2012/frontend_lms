@@ -5,19 +5,19 @@
       <input
         v-model="search"
         type="text"
-        placeholder="Rechercher par nom ou email..."
+        placeholder="Rechercher par nom, email ou matricule…"
         class="search-input"
       />
     </div>
     <div class="filter-group">
       <select v-model="role" class="filter-select">
         <option value="all">Tous les rôles</option>
-        <option value="etudiant">Étudiants</option>
-        <option value="enseignant">Enseignants</option>
+        <option :value="ROLES.ETUDIANT">Étudiants</option>
+        <option :value="ROLES.ENSEIGNANT">Enseignants</option>
       </select>
       <select v-model="classe" class="filter-select">
         <option value="all">Toutes les classes</option>
-        <option v-for="c in classes" :key="c.id" :value="c.id">{{ c.nom }}</option>
+        <option v-for="c in classes" :key="c.id" :value="c.id">{{ classeLabel(c) }}</option>
       </select>
     </div>
   </div>
@@ -28,6 +28,9 @@
  * Barre de filtres d'AdminUsers (#G1 ≤300). Recherche + rôle + classe en v-model
  * (defineModel) ; la liste des classes est une prop. Aucun appel API.
  */
+import { classeLabel } from '@/utils/classes'
+import { ROLES } from '@/constants/roles'
+
 const search = defineModel('search', { type: String, default: '' })
 const role = defineModel('role', { type: String, default: 'all' })
 const classe = defineModel('classe', { default: 'all' })
