@@ -13,6 +13,12 @@ vi.mock('vue-router', () => ({ useRoute: () => ({ params: {} }) }))
 const getSeancesHistory = vi.fn()
 const getSeanceAttendances = vi.fn()
 const deleteSeanceSvc = vi.fn()
+// confirm() natif -> useConfirm().confirm() async (F3). Défini AVANT l'import du
+// composable (ligne ~30) pour être initialisé quand la factory du mock s'exécute.
+const confirmMock = vi.fn(() => Promise.resolve(true))
+vi.mock('@/composables/useConfirm', () => ({
+  useConfirm: () => ({ confirm: confirmMock, accept: vi.fn(), cancel: vi.fn(), state: {} }),
+}))
 vi.mock('@/services/lms', () => ({
   default: {
     getSeancesHistory: (...a) => getSeancesHistory(...a),
@@ -48,6 +54,7 @@ describe('useSeanceAttendanceHistory (H7)', () => {
     getSeancesHistory.mockReset().mockResolvedValue(SEANCES)
     getSeanceAttendances.mockReset().mockResolvedValue({ success: true, attendances: [], statistics: {}, seance: {} })
     deleteSeanceSvc.mockReset().mockResolvedValue({})
+    confirmMock.mockResolvedValue(true)
   })
 
   it('charge les séances au montage', async () => {
@@ -109,10 +116,9 @@ describe('useSeanceAttendanceHistory (H7)', () => {
 
   it('deleteSeance respecte le garde de confirmation (annulation → aucun appel)', async () => {
     const u = await setup()
-    const spy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    confirmMock.mockResolvedValue(false) // l'utilisateur annule
     await u.deleteSeance(SEANCES.data[0])
     expect(deleteSeanceSvc).not.toHaveBeenCalled()
-    spy.mockRestore()
   })
 
   it('formateurs locaux : durée et repli date (parité)', async () => {

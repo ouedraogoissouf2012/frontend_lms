@@ -1,6 +1,7 @@
 import { ref, watch, onMounted } from 'vue'
 import api from '@/services/api'
 import { toast } from '@/services/toast'
+import { useConfirm } from '@/composables/useConfirm'
 import { normalizeError } from '@/services/errorHandler'
 import knowledgeCheckService from '@/services/knowledgeCheck'
 import { createEmptyChapter, buildChapterPayload } from '@/utils/chapterManager'
@@ -77,7 +78,7 @@ export function useChapterManager(lessonId) {
 
   async function saveChapter(chapter) {
     if (!chapter.title) {
-      alert('Le titre est obligatoire')
+      toast.warning('Le titre est obligatoire')
       return
     }
 
@@ -98,7 +99,7 @@ export function useChapterManager(lessonId) {
         }
 
         await loadChapters()
-        alert(chapter.id ? 'Chapitre mis à jour!' : 'Chapitre créé!')
+        toast.success(chapter.id ? 'Chapitre mis à jour!' : 'Chapitre créé!')
       }
     } catch (error) {
       console.error('[ChapterManager] Erreur sauvegarde:', error)
@@ -140,7 +141,7 @@ export function useChapterManager(lessonId) {
   }
 
   async function deleteChapter(chapter) {
-    if (!confirm(`Supprimer le chapitre "${chapter.title}" ?`)) {
+    if (!(await useConfirm().confirm({ message: `Supprimer le chapitre "${chapter.title}" ?`, variant: 'danger', confirmLabel: 'Supprimer' }))) {
       return
     }
 
@@ -148,7 +149,7 @@ export function useChapterManager(lessonId) {
       const response = await api.delete(`/chapters/${chapter.id}`)
       if (response.success) {
         await loadChapters()
-        alert('Chapitre supprimé!')
+        toast.success('Chapitre supprimé!')
       }
     } catch (error) {
       console.error('[ChapterManager] Erreur suppression:', error)
@@ -217,7 +218,7 @@ export function useChapterManager(lessonId) {
   }
 
   async function deleteKnowledgeCheck(quiz) {
-    if (!confirm(`Supprimer le quiz "${quiz.title}" ?`)) {
+    if (!(await useConfirm().confirm({ message: `Supprimer le quiz "${quiz.title}" ?`, variant: 'danger', confirmLabel: 'Supprimer' }))) {
       return
     }
 
@@ -225,7 +226,7 @@ export function useChapterManager(lessonId) {
       const response = await knowledgeCheckService.delete(quiz.id)
       if (response.success) {
         await loadKnowledgeChecks(quiz.chapter_id)
-        alert('Quiz supprime!')
+        toast.success('Quiz supprime!')
       }
     } catch (error) {
       console.error('[ChapterManager] Erreur suppression quiz:', error)

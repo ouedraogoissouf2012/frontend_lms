@@ -10,7 +10,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const h = vi.hoisted(() => ({
   preview: vi.fn(),
   publish: vi.fn(),
-  push: vi.fn()
+  push: vi.fn(),
+  confirm: vi.fn(() => Promise.resolve(true)), // confirm() natif -> useConfirm().confirm() async (F3)
 }))
 
 vi.mock('vue-router', () => ({
@@ -19,6 +20,9 @@ vi.mock('vue-router', () => ({
 }))
 vi.mock('@/services/evaluation', () => ({
   default: { previewEvaluation: h.preview, publishEvaluation: h.publish }
+}))
+vi.mock('@/composables/useConfirm', () => ({
+  useConfirm: () => ({ confirm: h.confirm, accept: vi.fn(), cancel: vi.fn(), state: {} }),
 }))
 
 import { usePreviewEvaluation } from '@/composables/usePreviewEvaluation'
@@ -34,8 +38,7 @@ async function setup() {
 describe('usePreviewEvaluation (H1)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.stubGlobal('alert', vi.fn())
-    vi.stubGlobal('confirm', vi.fn(() => true))
+    h.confirm.mockResolvedValue(true)
     h.preview.mockResolvedValue({
       success: true,
       data: { id: 7, titre: 'T', questions_count: 2, questions: [{ id: 'a' }, { id: 'b' }] }
@@ -71,7 +74,7 @@ describe('usePreviewEvaluation (H1)', () => {
   })
 
   it('publishEvaluation annulé si confirm refuse', async () => {
-    vi.stubGlobal('confirm', vi.fn(() => false))
+    h.confirm.mockResolvedValue(false)
     const c = await setup()
     await c.publishEvaluation()
     expect(h.publish).not.toHaveBeenCalled()

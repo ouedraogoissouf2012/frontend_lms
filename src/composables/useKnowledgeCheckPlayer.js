@@ -1,5 +1,6 @@
 import { ref, computed, onUnmounted } from 'vue'
 import knowledgeCheckService from '@/services/knowledgeCheck'
+import { toast } from '@/services/toast'
 
 /**
  * Couche données de KnowledgeCheckPlayer (#G6 ; éclaté sous 300 lignes en H5).
@@ -59,7 +60,7 @@ export function useKnowledgeCheckPlayer(props, emit) {
       }
     } catch (error) {
       console.error('Erreur demarrage quiz:', error)
-      alert('Erreur lors du demarrage du quiz')
+      toast.error('Erreur lors du demarrage du quiz')
     } finally {
       loading.value = false
     }
@@ -135,7 +136,7 @@ export function useKnowledgeCheckPlayer(props, emit) {
       }
     } catch (error) {
       console.error('Erreur soumission quiz:', error)
-      alert('Erreur lors de la soumission du quiz')
+      toast.error('Erreur lors de la soumission du quiz')
     } finally {
       submitting.value = false
     }

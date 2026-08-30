@@ -1,5 +1,6 @@
 import { ref, computed, onMounted } from 'vue'
 import knowledgeCheckService from '@/services/knowledgeCheck'
+import { toast } from '@/services/toast'
 
 /**
  * Couche données de KnowledgeCheckEditor (#G6 ; éclaté sous 300 lignes en H5).
@@ -80,7 +81,7 @@ export function useKnowledgeCheckEditor(props, emit) {
       emit('saved', response.data)
     } catch (error) {
       console.error('Erreur sauvegarde quiz:', error)
-      alert('Erreur lors de la sauvegarde du quiz')
+      toast.error('Erreur lors de la sauvegarde du quiz')
     } finally {
       saving.value = false
     }

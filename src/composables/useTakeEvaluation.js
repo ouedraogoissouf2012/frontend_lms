@@ -2,6 +2,8 @@ import { ref, computed, onMounted, onBeforeUnmount, getCurrentInstance } from 'v
 import { useRoute, useRouter } from 'vue-router'
 import evaluationService from '@/services/evaluation'
 import { auth } from '@/services/api'
+import { toast } from '@/services/toast'
+import { useConfirm } from '@/composables/useConfirm'
 
 /**
  * Couche données de TakeEvaluation (H1 ≤300) : chargement de l'évaluation,
@@ -91,7 +93,7 @@ export function useTakeEvaluation() {
       timeRemaining.value--
       if (timeRemaining.value <= 0) {
         clearInterval(timer.value)
-        alert('Temps écoulé ! Votre évaluation va être soumise automatiquement.')
+        toast.info('Temps écoulé ! Votre évaluation va être soumise automatiquement.')
         submitEvaluation()
       }
     }, 1000)
@@ -127,7 +129,7 @@ export function useTakeEvaluation() {
         if (window.has_ended && !submitting.value) {
           clearInterval(timeCheckInterval.value)
           clearInterval(timer.value)
-          alert('La fenêtre d\'évaluation est fermée. Soumission automatique de vos réponses...')
+          toast.error('La fenêtre d\'évaluation est fermée. Soumission automatique de vos réponses...')
           await submitEvaluation()
         }
       }
@@ -158,8 +160,8 @@ export function useTakeEvaluation() {
     }
   }
 
-  function confirmCancel() {
-    if (confirm('Êtes-vous sûr de vouloir annuler ? Vos réponses ne seront pas sauvegardées.')) {
+  async function confirmCancel() {
+    if (await useConfirm().confirm({ message: 'Êtes-vous sûr de vouloir annuler ? Vos réponses ne seront pas sauvegardées.' })) {
       router.push('/student/evaluations-list')
     }
   }
@@ -188,7 +190,7 @@ export function useTakeEvaluation() {
       }
     } catch (error_) {
       console.error('Erreur soumission évaluation:', error_)
-      alert('Erreur lors de la soumission de l\'évaluation')
+      toast.error('Erreur lors de la soumission de l\'évaluation')
     } finally {
       submitting.value = false
     }

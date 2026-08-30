@@ -2,6 +2,8 @@ import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { forum } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
+import { toast } from '@/services/toast'
+import { useConfirm } from '@/composables/useConfirm'
 
 /**
  * Couche données de ForumTopic (#G1 ≤300). Déplace toute la logique de la vue :
@@ -40,14 +42,14 @@ export function useForumTopic() {
   }
 
   async function markAsSolution(postId) {
-    if (!confirm('Marquer cette réponse comme solution?')) return
+    if (!(await useConfirm().confirm({ message: 'Marquer cette réponse comme solution?' }))) return
 
     try {
       await forum.markAsSolution(postId)
       await loadTopic()
     } catch (error) {
       console.error('Erreur marquage solution:', error)
-      alert('Erreur lors du marquage de la solution')
+      toast.error('Erreur lors du marquage de la solution')
     }
   }
 
@@ -66,7 +68,7 @@ export function useForumTopic() {
       }
     } catch (error) {
       console.error('Erreur chargement topic:', error)
-      alert('Impossible de charger la discussion')
+      toast.error('Impossible de charger la discussion')
       router.push('/forum')
     } finally {
       loading.value = false
@@ -75,7 +77,7 @@ export function useForumTopic() {
 
   async function submitReply() {
     if (!replyContent.value.trim()) {
-      alert('Veuillez écrire une réponse')
+      toast.warning('Veuillez écrire une réponse')
       return
     }
     if (submitting.value) return // #235 : évite le doublon sur double-clic
@@ -89,7 +91,7 @@ export function useForumTopic() {
       await loadTopic()
     } catch (error) {
       console.error('Erreur publication réponse:', error)
-      alert('Erreur lors de la publication de la réponse')
+      toast.error('Erreur lors de la publication de la réponse')
     } finally {
       submitting.value = false
     }

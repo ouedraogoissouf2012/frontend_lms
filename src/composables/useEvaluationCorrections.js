@@ -2,6 +2,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import evaluationService from '@/services/evaluation'
 import { formatDateTime, getStatusLabel } from '@/utils/evaluationCorrectionsFormat'
+import { toast } from '@/services/toast'
 
 /**
  * Couche données de EvaluationCorrections (H2 ≤300) : charge les résultats d'une
@@ -69,7 +70,7 @@ export function useEvaluationCorrections() {
   // Export to Excel
   function exportToExcel() {
     if (!evaluation.value || resultats.value.length === 0) {
-      alert('Aucune donnée à exporter')
+      toast.warning('Aucune donnée à exporter')
       return
     }
 

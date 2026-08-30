@@ -1,4 +1,4 @@
-import { ref, onMounted, getCurrentInstance } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTrackedVisioJoin } from '@/composables/useTrackedVisioJoin'
 import { useAuthStore } from '@/stores/auth'
@@ -22,10 +22,6 @@ import { confirmVisioAction } from '@/services/visioFeedback'
  */
 export function useSeanceManagement() {
   const router = useRouter()
-
-  // Instance pour accéder à $toast
-  const instance = getCurrentInstance()
-  const $toast = instance?.appContext.config.globalProperties.$toast
 
   // Données + appels API (état séances/classes/enseignants/filtres + loaders)
   const {
@@ -78,13 +74,13 @@ export function useSeanceManagement() {
         // Clear cache after update
         clearCache('seances_management')
 
-        $toast?.success(response.message || 'Visioconférence mise à jour')
+        toast.success(response.message || 'Visioconférence mise à jour')
       } else {
-        $toast?.error('Erreur lors de la mise à jour')
+        toast.error('Erreur lors de la mise à jour')
       }
     } catch (err) {
       console.error('[ERREUR] Toggle visio:', err)
-      $toast?.error('Erreur lors de l\'activation/désactivation de la visio')
+      toast.error('Erreur lors de l\'activation/désactivation de la visio')
     }
   }
 
@@ -126,10 +122,10 @@ export function useSeanceManagement() {
           if (calendarRef.value?.refreshEvents) {
             await calendarRef.value.refreshEvents()
           }
-          $toast?.success(newState ? 'Visio activee' : 'Visio desactivee')
+          toast.success(newState ? 'Visio activee' : 'Visio desactivee')
         } catch (error) {
           console.error('[CoordinatorSeances] Erreur toggle visio:', error)
-          $toast?.error('Erreur lors de la modification')
+          toast.error('Erreur lors de la modification')
         }
         break
 
@@ -165,10 +161,10 @@ export function useSeanceManagement() {
             if (calendarRef.value?.refreshEvents) {
               await calendarRef.value.refreshEvents()
             }
-            $toast?.success('Seance supprimee')
+            toast.success('Seance supprimee')
           } catch (error) {
             console.error('[CoordinatorSeances] Erreur suppression:', error)
-            $toast?.error('Erreur lors de la suppression')
+            toast.error('Erreur lors de la suppression')
           }
         }
         break

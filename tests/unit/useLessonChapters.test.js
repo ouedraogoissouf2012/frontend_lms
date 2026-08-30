@@ -16,6 +16,8 @@ vi.mock('vue-router', () => ({
 
 const getLesson = vi.fn(() => Promise.resolve({ success: true, data: { id: 7, title: 'Leçon 7' } }))
 const publishLessonApi = vi.fn(() => Promise.resolve({ success: true }))
+// confirm() natif -> useConfirm().confirm() (async) résolu de façon déterministe (Lot F3).
+const confirmMock = vi.fn(() => Promise.resolve(true))
 
 vi.mock('@/services/lesson', () => ({
   default: {
@@ -23,7 +25,8 @@ vi.mock('@/services/lesson', () => ({
     publishLesson: (...a) => publishLessonApi(...a)
   }
 }))
-vi.mock('@/services/toast', () => ({ toast: { error: vi.fn() } }))
+vi.mock('@/services/toast', () => ({ toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn(), show: vi.fn() } }))
+vi.mock('@/composables/useConfirm', () => ({ useConfirm: () => ({ confirm: confirmMock, accept: vi.fn(), cancel: vi.fn(), state: {} }) }))
 vi.mock('@/services/errorHandler', () => ({ normalizeError: () => ({ userMessage: 'err' }) }))
 
 import { useLessonChapters } from '@/composables/useLessonChapters'
@@ -37,7 +40,7 @@ async function setup() {
 }
 
 describe('useLessonChapters (#H4)', () => {
-  beforeEach(() => { push.mockClear(); back.mockClear(); getLesson.mockClear(); publishLessonApi.mockClear() })
+  beforeEach(() => { push.mockClear(); back.mockClear(); getLesson.mockClear(); publishLessonApi.mockClear(); confirmMock.mockResolvedValue(true) })
 
   it('charge la leçon au montage et expose lessonId depuis la route', async () => {
     const c = await setup()
@@ -63,8 +66,7 @@ describe('useLessonChapters (#H4)', () => {
   })
 
   it('publishLesson publie après confirmation et redirige', async () => {
-    vi.stubGlobal('confirm', () => true)
-    vi.stubGlobal('alert', () => {})
+    confirmMock.mockResolvedValue(true)
     const c = await setup()
     c.lesson.value = { matiere_id: 5 }
     await c.publishLesson()
@@ -74,7 +76,7 @@ describe('useLessonChapters (#H4)', () => {
   })
 
   it('publishLesson annulé ne publie pas', async () => {
-    vi.stubGlobal('confirm', () => false)
+    confirmMock.mockResolvedValue(false)
     const c = await setup()
     await c.publishLesson()
     expect(publishLessonApi).not.toHaveBeenCalled()

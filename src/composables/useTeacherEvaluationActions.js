@@ -1,6 +1,8 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import evaluationService from '@/services/evaluation'
+import { toast } from '@/services/toast'
+import { useConfirm } from '@/composables/useConfirm'
 
 /**
  * Actions enseignant de TeacherEvaluations (H1 ≤300). Complète le composable de
@@ -52,7 +54,7 @@ export function useTeacherEvaluationActions({ evaluationsLMS, loadEvaluationsLMS
       e => e.klassci_evaluation_id === selectedEvaluation.value.id
     )
     if (alreadyExists) {
-      alert('⚠ Une version en ligne existe déjà pour cette évaluation.')
+      toast.error('Une version en ligne existe déjà pour cette évaluation.')
       closeCreateModal()
       return
     }
@@ -78,7 +80,7 @@ export function useTeacherEvaluationActions({ evaluationsLMS, loadEvaluationsLMS
 
       if (result.success) {
         console.log('[SUCCESS] Évaluation créée:', result.data)
-        alert('✓ Version en ligne créée! Vous pouvez maintenant ajouter des questions.')
+        toast.success('Version en ligne créée! Vous pouvez maintenant ajouter des questions.')
 
         // Reload evaluations
         await loadEvaluationsLMS()
@@ -92,11 +94,11 @@ export function useTeacherEvaluationActions({ evaluationsLMS, loadEvaluationsLMS
     } catch (err) {
       console.error('[ERREUR] Création évaluation:', err)
       if (err.response?.status === 409) {
-        alert('⚠ Une version en ligne existe déjà pour cette évaluation.')
+        toast.error('Une version en ligne existe déjà pour cette évaluation.')
         await loadEvaluationsLMS()
         closeCreateModal()
       } else {
-        alert('⚠ Erreur lors de la création de la version en ligne')
+        toast.error('Erreur lors de la création de la version en ligne')
       }
     } finally {
       creating.value = false
@@ -132,11 +134,11 @@ export function useTeacherEvaluationActions({ evaluationsLMS, loadEvaluationsLMS
 
     const submissionsCount = evaluation.online_version.submissions_count || 0
     if (submissionsCount === 0) {
-      alert('Aucune soumission à synchroniser')
+      toast.warning('Aucune soumission à synchroniser')
       return
     }
 
-    if (!confirm(`Synchroniser ${submissionsCount} note(s) vers KLASSCI ?`)) {
+    if (!(await useConfirm().confirm({ message: `Synchroniser ${submissionsCount} note(s) vers KLASSCI ?` }))) {
       return
     }
 
@@ -144,12 +146,12 @@ export function useTeacherEvaluationActions({ evaluationsLMS, loadEvaluationsLMS
     try {
       const result = await evaluationService.syncToKlassci(evaluation.online_version.id)
       if (result.success) {
-        alert('✓ Notes synchronisées avec succès vers KLASSCI !')
+        toast.success('Notes synchronisées avec succès vers KLASSCI !')
         await loadEvaluationsLMS()
       }
     } catch (err) {
       console.error('[ERREUR] Synchronisation:', err)
-      alert('⚠ Erreur lors de la synchronisation')
+      toast.error('Erreur lors de la synchronisation')
     } finally {
       syncing.value = null
     }
@@ -161,24 +163,24 @@ export function useTeacherEvaluationActions({ evaluationsLMS, loadEvaluationsLMS
 
     const questionsCount = evaluation.online_version.questions_count || 0
     if (questionsCount === 0) {
-      alert('Impossible de publier : ajoutez d\'abord des questions à cette évaluation.')
+      toast.error('Impossible de publier : ajoutez d\'abord des questions à cette évaluation.')
       return
     }
 
-    if (!confirm(`Publier "${evaluation.titre}" ? Les étudiants pourront la voir.`)) {
+    if (!(await useConfirm().confirm({ message: `Publier "${evaluation.titre}" ? Les étudiants pourront la voir.` }))) {
       return
     }
 
     try {
       const result = await evaluationService.publishEvaluation(evaluation.online_version.id)
       if (result.success) {
-        alert('Évaluation publiée avec succès !')
+        toast.success('Évaluation publiée avec succès !')
         await loadEvaluationsLMS()
       }
     } catch (err) {
       console.error('[ERREUR] Publication:', err)
       const message = err.response?.data?.message || 'Erreur lors de la publication'
-      alert(message)
+      toast.error(message)
     }
   }
 
@@ -196,20 +198,20 @@ export function useTeacherEvaluationActions({ evaluationsLMS, loadEvaluationsLMS
   async function deleteEvaluation(evaluation) {
     if (!evaluation.online_version) return
 
-    if (!confirm(`Supprimer la version en ligne de "${evaluation.titre}" ? Cette action est irréversible.`)) {
+    if (!(await useConfirm().confirm({ message: `Supprimer la version en ligne de "${evaluation.titre}" ? Cette action est irréversible.`, variant: 'danger', confirmLabel: 'Supprimer' }))) {
       return
     }
 
     try {
       const result = await evaluationService.deleteEvaluation(evaluation.online_version.id)
       if (result.success) {
-        alert('Version en ligne supprimée.')
+        toast.success('Version en ligne supprimée.')
         await loadEvaluationsLMS()
       }
     } catch (err) {
       console.error('[ERREUR] Suppression:', err)
       const message = err.response?.data?.message || 'Erreur lors de la suppression'
-      alert(message)
+      toast.error(message)
     }
   }
 
