@@ -16,6 +16,10 @@ export const ERROR_MESSAGES = Object.freeze({
   rateLimit: 'Trop de requêtes en peu de temps. Veuillez patienter quelques instants.',
   server: 'Une erreur est survenue côté serveur. Veuillez réessayer plus tard.',
   network: 'Connexion impossible. Vérifiez votre connexion internet et réessayez.',
+  // Distinct de `network` : la connexion fonctionne, c'est le serveur qui n'a pas
+  // répondu dans le délai imparti. L'action utile n'est pas la même (réessayer
+  // plus tard, vs vérifier sa connexion).
+  timeout: 'Le serveur met trop de temps à répondre. Veuillez réessayer.',
   // #240 : erreurs spécifiques du proxy KLASSCI, distinguées par le back
   // (RendersKlassciProxyErrors) — messages actionnables (sans quoi les dashboards
   // KLASSCI restaient muets après expiration du token ou indisponibilité).

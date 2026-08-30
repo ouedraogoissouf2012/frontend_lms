@@ -17,7 +17,7 @@ function mountIt(props) {
 
 describe('DashboardRoleActions (#H3)', () => {
   it('enseignant : voit Cours + Évaluations mais pas Séances', () => {
-    const w = mountIt({ isTeacher: true, isCoordinateur: false, isSuperAdmin: false })
+    const w = mountIt({ isTeacher: true, isCoordinateur: false, isAdmin: false })
     expect(w.findAll('.action-card')).toHaveLength(2)
     expect(w.text()).toContain('Gestion Cours LMS')
     expect(w.text()).toContain('Quiz & Évaluations LMS')
@@ -25,19 +25,19 @@ describe('DashboardRoleActions (#H3)', () => {
   })
 
   it('coordinateur : voit uniquement la carte Séances & Visio', () => {
-    const w = mountIt({ isTeacher: false, isCoordinateur: true, isSuperAdmin: false })
+    const w = mountIt({ isTeacher: false, isCoordinateur: true, isAdmin: false })
     expect(w.findAll('.action-card')).toHaveLength(1)
     expect(w.text()).toContain('Gestion Séances & Visio')
     expect(w.find('.highlighted').exists()).toBe(true)
   })
 
-  it('superAdmin : voit les 3 cartes', () => {
-    const w = mountIt({ isTeacher: false, isCoordinateur: false, isSuperAdmin: true })
+  it('périmètre admin (admin d’établissement OU supradmin plateforme) : voit les 3 cartes', () => {
+    const w = mountIt({ isTeacher: false, isCoordinateur: false, isAdmin: true })
     expect(w.findAll('.action-card')).toHaveLength(3)
   })
 
   it('aucun rôle : aucune carte', () => {
-    const w = mountIt({ isTeacher: false, isCoordinateur: false, isSuperAdmin: false })
+    const w = mountIt({ isTeacher: false, isCoordinateur: false, isAdmin: false })
     expect(w.findAll('.action-card')).toHaveLength(0)
   })
 })

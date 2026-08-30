@@ -99,3 +99,49 @@ describe('normalizeError — déterminisme et pureté', () => {
     expect(e).toEqual(snapshot)
   })
 })
+
+/**
+ * Dépassement de délai — catégorie propre.
+ *
+ * Sans timeout configuré, axios attend INDÉFINIMENT : un backend lent laissait
+ * l'écran sur son spinner pour toujours, sans issue ni message. Une fois le
+ * timeout en place, l'erreur doit être distinguée d'une panne réseau : l'action
+ * utilisateur n'est pas la même (« réessayer » vs « vérifiez votre connexion »).
+ */
+describe('normalizeError — dépassement de délai', () => {
+  it('classe ECONNABORTED en « timeout » et non en « network »', () => {
+    const err = {
+      isAxiosError: true,
+      code: 'ECONNABORTED',
+      message: 'timeout of 30000ms exceeded',
+      config: { url: '/admin/matieres' },
+    }
+    const r = normalizeError(err)
+    expect(r.category).toBe('timeout')
+    expect(r.userMessage).toBe(ERROR_MESSAGES.timeout)
+  })
+
+  it('classe ETIMEDOUT en « timeout »', () => {
+    const r = normalizeError({ isAxiosError: true, code: 'ETIMEDOUT', config: { url: '/x' } })
+    expect(r.category).toBe('timeout')
+  })
+
+  it('ne fuit aucun détail technique dans le message (pas de « 30000ms »)', () => {
+    const r = normalizeError({
+      isAxiosError: true,
+      code: 'ECONNABORTED',
+      message: 'timeout of 30000ms exceeded',
+    })
+    expect(r.userMessage).not.toMatch(/\d+\s*ms|ECONNABORTED|axios/i)
+  })
+
+  it('laisse les autres erreurs réseau en « network »', () => {
+    const r = normalizeError({ isAxiosError: true, code: 'ERR_NETWORK', config: { url: '/x' } })
+    expect(r.category).toBe('network')
+  })
+
+  it('un timeout ne déclenche JAMAIS de déconnexion', async () => {
+    const { shouldForceLogout } = await import('@/services/errorHandler')
+    expect(shouldForceLogout({ isAxiosError: true, code: 'ECONNABORTED' })).toBe(false)
+  })
+})

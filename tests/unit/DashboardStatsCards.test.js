@@ -32,9 +32,6 @@ describe('DashboardStatsCards (#H3)', () => {
     const values = w.findAll('.stat-value').map(v => v.text())
     expect(values).toEqual(['7', '42', '3', '9'])
   })
-
-  it('affiche 0 par défaut pour les valeurs manquantes', () => {
-    const w = mount(DashboardStatsCards, { props: { stats: {} } })
-    expect(w.findAll('.stat-value').every(v => v.text() === '0')).toBe(true)
-  })
+  // Le cas « valeurs manquantes » (→ « — », plus « 0 ») est couvert exhaustivement
+  // par DashboardStatsCardsMeasured.test.js (mesuré vs non mesuré).
 })

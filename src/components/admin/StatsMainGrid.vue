@@ -9,15 +9,15 @@
       <div class="stat-body">
         <div class="stat-row">
           <span class="stat-label">Enseignants</span>
-          <span class="stat-value">{{ stats.nb_enseignants || 0 }}</span>
+          <span class="stat-value">{{ formatCount(stats.nb_enseignants) }}</span>
         </div>
         <div class="stat-row">
           <span class="stat-label">Étudiants</span>
-          <span class="stat-value">{{ stats.nb_etudiants || 0 }}</span>
+          <span class="stat-value">{{ formatCount(stats.nb_etudiants) }}</span>
         </div>
         <div class="stat-row total">
           <span class="stat-label">Total</span>
-          <span class="stat-value">{{ (stats.nb_enseignants || 0) + (stats.nb_etudiants || 0) }}</span>
+          <span class="stat-value">{{ formatCount(totalUtilisateurs) }}</span>
         </div>
       </div>
     </div>
@@ -31,19 +31,19 @@
       <div class="stat-body">
         <div class="stat-row">
           <span class="stat-label">Classes actives</span>
-          <span class="stat-value">{{ stats.nb_classes_actives || 0 }}</span>
+          <span class="stat-value">{{ formatCount(stats.nb_classes_actives) }}</span>
         </div>
         <div class="stat-row">
           <span class="stat-label">Matières actives</span>
-          <span class="stat-value">{{ stats.nb_matieres_actives || 0 }}</span>
+          <span class="stat-value">{{ formatCount(stats.nb_matieres_actives) }}</span>
         </div>
         <div class="stat-row">
           <span class="stat-label">Filières</span>
-          <span class="stat-value">{{ stats.nb_filieres || 0 }}</span>
+          <span class="stat-value">{{ formatCount(stats.nb_filieres) }}</span>
         </div>
         <div class="stat-row">
           <span class="stat-label">Niveaux</span>
-          <span class="stat-value">{{ stats.nb_niveaux || 0 }}</span>
+          <span class="stat-value">{{ formatCount(stats.nb_niveaux) }}</span>
         </div>
       </div>
     </div>
@@ -57,15 +57,15 @@
       <div class="stat-body">
         <div class="stat-row">
           <span class="stat-label">Séances actives</span>
-          <span class="stat-value">{{ stats.nb_seances_actives || 0 }}</span>
+          <span class="stat-value">{{ formatCount(stats.nb_seances_actives) }}</span>
         </div>
         <div class="stat-row">
           <span class="stat-label">Visios en cours</span>
-          <span class="stat-value">{{ stats.nb_visios_actives || 0 }}</span>
+          <span class="stat-value">{{ formatCount(stats.nb_visios_actives) }}</span>
         </div>
         <div class="stat-row">
           <span class="stat-label">Visios planifiées</span>
-          <span class="stat-value">{{ stats.nb_visios_scheduled || 0 }}</span>
+          <span class="stat-value">{{ formatCount(stats.nb_visios_scheduled) }}</span>
         </div>
       </div>
     </div>
@@ -79,15 +79,15 @@
       <div class="stat-body">
         <div class="stat-row">
           <span class="stat-label">Total évaluations</span>
-          <span class="stat-value">{{ stats.nb_evaluations || 0 }}</span>
+          <span class="stat-value">{{ formatCount(stats.nb_evaluations) }}</span>
         </div>
         <div class="stat-row">
           <span class="stat-label">En cours</span>
-          <span class="stat-value">{{ stats.nb_evaluations_actives || 0 }}</span>
+          <span class="stat-value">{{ formatCount(stats.nb_evaluations_actives) }}</span>
         </div>
         <div class="stat-row">
           <span class="stat-label">Terminées</span>
-          <span class="stat-value">{{ stats.nb_evaluations_terminees || 0 }}</span>
+          <span class="stat-value">{{ formatCount(stats.nb_evaluations_terminees) }}</span>
         </div>
       </div>
     </div>
@@ -99,15 +99,28 @@
  * Grille principale d'AdminStats (#H3 ≤300). Présentation pure : 4 cartes larges
  * (utilisateurs, classes/matières, séances/visio, évaluations). Données en prop.
  */
+import { computed } from 'vue'
 import {
   UserGroupIcon,
   BuildingLibraryIcon,
   CalendarIcon,
   DocumentTextIcon
 } from '@heroicons/vue/24/outline'
+import { formatCount } from '@/utils/formatters'
 
-defineProps({
+const props = defineProps({
   stats: { type: Object, default: () => ({}) },
+})
+
+/**
+ * Total utilisateurs : `null` (non mesuré) dès qu'UN des deux termes manque.
+ * L'ancien `(a || 0) + (b || 0)` transformait une donnée absente en 0 et
+ * publiait donc une somme fausse comme si elle avait été comptée.
+ */
+const totalUtilisateurs = computed(() => {
+  const t = Number(props.stats?.nb_enseignants)
+  const e = Number(props.stats?.nb_etudiants)
+  return Number.isFinite(t) && Number.isFinite(e) ? t + e : null
 })
 </script>
 

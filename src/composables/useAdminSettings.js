@@ -4,16 +4,7 @@ import { auth } from '@/services/api'
 import { toast } from '@/services/toast'
 import { STORAGE_KEYS } from '@/constants/storageKeys'
 import { PASSWORD_CHANGE_UNAVAILABLE_MESSAGE } from '@/constants/passwordChange'
-
-const ROLE_LABELS = {
-  etudiant: 'Étudiant',
-  student: 'Étudiant',
-  enseignant: 'Enseignant',
-  teacher: 'Enseignant',
-  coordinateur: 'Coordinateur',
-  superAdmin: 'Super Administrateur',
-  admin: 'Administrateur',
-}
+import { getRoleDisplayName } from '@/constants/roles'
 
 /**
  * Couche données d'AdminSettings (#H3 ≤300) : utilisateur courant (auth.getUser),
@@ -41,8 +32,14 @@ export function useAdminSettings() {
     confirmPassword: '',
   })
 
+  /**
+   * Libellé du rôle NORMALISÉ (#18/#659). Une table locale intitulait
+   * `superAdmin` « Super Administrateur », promouvant l'admin d'ÉTABLISSEMENT au
+   * rang de gestionnaire de PLATEFORME ; et son repli `|| role` faisait fuir la
+   * valeur brute du backend dans l'UI pour tout rôle inconnu.
+   */
   function getRoleLabel(role) {
-    return ROLE_LABELS[role] || role
+    return getRoleDisplayName(role)
   }
 
   function savePreferences() {

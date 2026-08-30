@@ -1,6 +1,13 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { auth } from '@/services/api'
+import {
+  ROLES,
+  getRoleDisplayName,
+  hasRole,
+  isAdmin as roleIsAdmin,
+  isTeacher as roleIsTeacher,
+} from '@/constants/roles'
 import { useAdminDashboardData } from '@/composables/useAdminDashboardData'
 import { useDashboardFormatters } from '@/composables/useDashboardFormatters'
 
@@ -23,6 +30,9 @@ export function useAdminDashboard() {
   const pendingTasks = ref(null)
   const recentUsers = ref([])
   const calendarEvents = ref([])
+  // Échec du chargement des données d'établissement, à AFFICHER : sans lui, une
+  // panne KLASSCI laissait le tableau de bord muet, garni de zéros.
+  const loadError = ref(null)
   const showGenerateReportModal = ref(false)
   const loading = ref({
     stats: false,
@@ -32,7 +42,7 @@ export function useAdminDashboard() {
   })
 
   const { loadKlassciData, loadAnalytics, loadCalendarEvents } = useAdminDashboardData({
-    stats, classes, matieres, activityData, pendingTasks, recentUsers, calendarEvents, loading,
+    stats, classes, matieres, activityData, pendingTasks, recentUsers, calendarEvents, loading, loadError,
   })
 
   const { getInitials, getRoleLabel, getRoleClass, formatDate } = useDashboardFormatters()
@@ -46,24 +56,35 @@ export function useAdminDashboard() {
     // Pas besoin de recharger les données pour les rapports
   }
 
+  /**
+   * Titre du tableau de bord, dérivé du rôle NORMALISÉ (#18/#659).
+   *
+   * Comparait auparavant le rôle BRUT : `superAdmin` — super-admin d'ÉTABLISSEMENT
+   * KLASSCI, donc un simple admin LMS — s'affichait « Super Administrateur »,
+   * c.-à-d. au rang de gestionnaire de PLATEFORME. C'est exactement la confusion
+   * que #659 a dissociée côté backend. `getRoleDisplayName` réserve ce libellé au
+   * seul `supradmin`. Rôle inconnu → repli neutre (jamais de valeur brute en UI).
+   */
   function getDashboardTitle() {
-    if (!user.value?.role) return 'Administrateur'
-    if (user.value.role === 'coordinateur') return 'Coordinateur'
-    if (user.value.role === 'superAdmin') return 'Super Administrateur'
-    if (user.value.role === 'enseignant' || user.value.role === 'teacher') return 'Enseignant'
-    return 'Administrateur'
+    return getRoleDisplayName(user.value) || 'Administrateur'
   }
 
   function isCoordinateur() {
-    return user.value?.role === 'coordinateur'
+    return hasRole(user.value, ROLES.COORDINATEUR)
   }
 
   function isTeacher() {
-    return user.value?.role === 'enseignant' || user.value?.role === 'teacher'
+    return roleIsTeacher(user.value)
   }
 
-  function isSuperAdmin() {
-    return user.value?.role === 'superAdmin'
+  /**
+   * Périmètre administratif (admin d'établissement OU supradmin plateforme),
+   * aligné sur `Role::isAdmin()` backend. Remplace l'ancien `isSuperAdmin()` qui
+   * testait le rôle brut `=== 'superAdmin'` : le supradmin PLATEFORME n'y était
+   * pas reconnu et perdait les actions d'administration du tableau de bord.
+   */
+  function isAdmin() {
+    return roleIsAdmin(user.value)
   }
 
   onMounted(() => {
@@ -84,10 +105,10 @@ export function useAdminDashboard() {
   return {
     user, meta, stats, classes, matieres,
     activityData, pendingTasks, recentUsers, calendarEvents,
-    showGenerateReportModal, loading,
+    showGenerateReportModal, loading, loadError,
     loadKlassciData, loadAnalytics, loadCalendarEvents,
     navigateTo, handleReportGenerated, getDashboardTitle,
-    isCoordinateur, isTeacher, isSuperAdmin,
+    isCoordinateur, isTeacher, isAdmin,
     getInitials, getRoleLabel, getRoleClass, formatDate,
   }
 }

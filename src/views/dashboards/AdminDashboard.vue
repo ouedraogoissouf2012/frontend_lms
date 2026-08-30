@@ -22,6 +22,20 @@
       <!-- Loading state -->
       <ContentLoader v-if="loading.stats || loading.classes || loading.matieres" text="Chargement du tableau de bord..." />
 
+      <!-- Échec du chargement des données d'établissement. Bannière NON bloquante :
+           le reste du tableau de bord (analytics, actions) demeure exploitable, mais
+           la panne est DITE — sans elle, l'écran restait muet, garni de compteurs à
+           zéro qui se lisaient comme un établissement vide. -->
+      <div
+        v-if="loadError && !loading.stats && !loading.classes && !loading.matieres"
+        class="dashboard-error"
+        role="alert"
+      >
+        <ExclamationTriangleIcon class="dashboard-error-icon" />
+        <span>{{ loadError }}</span>
+        <button class="dashboard-error-retry" @click="loadKlassciData()">Réessayer</button>
+      </div>
+
       <!-- Dashboard Content -->
       <div v-if="!loading.stats && !loading.classes && !loading.matieres">
         <!-- Statistiques Admin depuis KLASSCI -->
@@ -48,7 +62,7 @@
           v-reveal
           :is-teacher="isTeacher()"
           :is-coordinateur="isCoordinateur()"
-          :is-super-admin="isSuperAdmin()"
+          :is-admin="isAdmin()"
         />
 
         <!-- Classes KLASSCI -->
@@ -111,21 +125,57 @@ import DashboardClasses from '@/components/dashboard/DashboardClasses.vue'
 import DashboardRecentUsers from '@/components/dashboard/DashboardRecentUsers.vue'
 import DashboardMatieres from '@/components/dashboard/DashboardMatieres.vue'
 import DashboardInfoBanner from '@/components/dashboard/DashboardInfoBanner.vue'
-import { ShieldCheckIcon } from '@heroicons/vue/24/outline'
+import { ShieldCheckIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
 import { useAdminDashboard } from '@/composables/useAdminDashboard'
 
 const {
   user, meta, stats, classes, matieres,
   activityData, pendingTasks, recentUsers, calendarEvents,
-  showGenerateReportModal, loading,
+  showGenerateReportModal, loading, loadError,
   navigateTo, handleReportGenerated, getDashboardTitle,
-  isCoordinateur, isTeacher, isSuperAdmin,
+  isCoordinateur, isTeacher, isAdmin, loadKlassciData,
 } = useAdminDashboard()
 </script>
 
 <style scoped>
 .dashboard-content {
   padding: 2rem;
+}
+
+/* Bannière d'erreur : paire de tokens adaptative (fond ET texte basculent
+   ensemble par thème), même règle que les badges de rôle. */
+.dashboard-error {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.25rem;
+  margin-bottom: 1.5rem;
+  background: var(--error-bg);
+  border: 1px solid var(--error-border);
+  border-radius: 0.75rem;
+  color: var(--error-text);
+}
+
+.dashboard-error-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.dashboard-error-retry {
+  margin-left: auto;
+  padding: 0.25rem 0.75rem;
+  background: transparent;
+  border: 1px solid var(--error-border);
+  border-radius: 0.5rem;
+  color: var(--error-text);
+  cursor: pointer;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.dashboard-error-retry:hover {
+  opacity: 0.85;
 }
 
 .welcome-header {

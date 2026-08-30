@@ -1,8 +1,8 @@
 <template>
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-    <!-- Gestion Cours - Uniquement pour enseignants et superAdmin -->
+    <!-- Gestion Cours - Enseignants et périmètre admin (admin d'établissement ou supradmin) -->
     <router-link
-      v-if="isTeacher || isSuperAdmin"
+      v-if="isTeacher || isAdmin"
       to="/teacher/lessons"
       class="action-card"
     >
@@ -11,9 +11,9 @@
       <p class="action-description">Créer et gérer le contenu pédagogique</p>
     </router-link>
 
-    <!-- Quiz & Evaluations - Uniquement pour enseignants et superAdmin -->
+    <!-- Quiz & Evaluations - Enseignants et périmètre admin (admin d'établissement ou supradmin) -->
     <router-link
-      v-if="isTeacher || isSuperAdmin"
+      v-if="isTeacher || isAdmin"
       to="/teacher/evaluations"
       class="action-card"
     >
@@ -22,9 +22,9 @@
       <p class="action-description">Créer et gérer les quiz en ligne</p>
     </router-link>
 
-    <!-- Gestion Séances & Visio - Pour coordinateurs et superAdmin -->
+    <!-- Gestion Séances & Visio - Coordinateurs et périmètre admin -->
     <router-link
-      v-if="isCoordinateur || isSuperAdmin"
+      v-if="isCoordinateur || isAdmin"
       to="/coordinateur/seances"
       class="action-card highlighted"
     >
@@ -49,7 +49,10 @@ import {
 defineProps({
   isTeacher: { type: Boolean, default: false },
   isCoordinateur: { type: Boolean, default: false },
-  isSuperAdmin: { type: Boolean, default: false },
+  // Périmètre administratif = admin d'établissement OU supradmin plateforme (roles.js).
+  // Remplace isSuperAdmin, qui testait le rôle BRUT 'superAdmin' et excluait donc
+  // le supradmin PLATEFORME de ses propres actions d'administration (#659).
+  isAdmin: { type: Boolean, default: false },
 })
 </script>
 

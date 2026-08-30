@@ -42,30 +42,42 @@
         <button @click="loadAllUsers()" class="retry-btn">Réessayer</button>
       </div>
 
-      <!-- Empty State -->
-      <div v-else-if="filteredUsers.length === 0 && !loading" class="empty-state">
-        <i class="fa fa-users empty-icon"></i>
-        <h3 class="empty-title">Aucun Utilisateur Trouvé</h3>
-        <p class="empty-message" v-if="searchQuery || filterRole !== 'all' || filterClasse !== 'all'">
-          Aucun résultat pour les filtres sélectionnés. Essayez de modifier vos critères.
-        </p>
-        <p class="empty-message" v-else>
-          Aucun utilisateur n'a été trouvé dans le système KLASSCI.
-        </p>
-      </div>
+      <!-- Chargement réussi (au moins partiellement) -->
+      <template v-else>
+        <!-- Échec PARTIEL : bannière NON bloquante. La liste obtenue reste
+             affichée (elle est utile), mais on dit explicitement qu'elle est
+             incomplète au lieu de la faire passer pour exhaustive. -->
+        <div v-if="partialWarning" class="partial-warning" role="status">
+          <i class="fa fa-exclamation-circle" aria-hidden="true"></i>
+          <span>{{ partialWarning }}</span>
+          <button @click="loadAllUsers(true)" class="partial-retry">Réessayer</button>
+        </div>
 
-      <!-- Users Table -->
-      <UsersTable
-        v-else
-        :users="paginatedUsers"
-        :sort-field="sortField"
-        :sort-asc="sortAsc"
-        v-model:current-page="currentPage"
-        :total-pages="totalPages"
-        :filtered-count="filteredUsers.length"
-        @sort="sortBy"
-        @select="selectUser"
-      />
+        <!-- Empty State -->
+        <div v-if="filteredUsers.length === 0" class="empty-state">
+          <i class="fa fa-users empty-icon"></i>
+          <h3 class="empty-title">Aucun Utilisateur Trouvé</h3>
+          <p class="empty-message" v-if="searchQuery || filterRole !== 'all' || filterClasse !== 'all'">
+            Aucun résultat pour les filtres sélectionnés. Essayez de modifier vos critères.
+          </p>
+          <p class="empty-message" v-else>
+            Aucun utilisateur n'a été trouvé dans le système KLASSCI.
+          </p>
+        </div>
+
+        <!-- Users Table -->
+        <UsersTable
+          v-else
+          :users="paginatedUsers"
+          :sort-field="sortField"
+          :sort-asc="sortAsc"
+          v-model:current-page="currentPage"
+          :total-pages="totalPages"
+          :filtered-count="filteredUsers.length"
+          @sort="sortBy"
+          @select="selectUser"
+        />
+      </template>
 
       <UserDetailModal :user="selectedUser" @close="closeModal" />
     </div>
@@ -86,7 +98,7 @@ import UsersTable from '@/components/admin/UsersTable.vue'
 import { useAdminUsers } from '@/composables/useAdminUsers'
 
 const {
-  etudiants, enseignants, classes, loading, loadingProgress, error, selectedUser,
+  etudiants, enseignants, classes, loading, loadingProgress, error, partialWarning, selectedUser,
   searchQuery, filterRole, filterClasse, currentPage, sortField, sortAsc,
   totalUsers, filteredUsers, totalPages, paginatedUsers,
   sortBy, selectUser, closeModal, loadAllUsers,
@@ -180,6 +192,38 @@ const {
 
 .retry-btn:hover {
   opacity: 0.9;
+}
+
+/* Bannière d'échec partiel : triplet de tokens ADAPTATIF (bg/border/text varient
+   ensemble par thème) — jamais un token de palette figée apparié à un token
+   sémantique, ce qui produit un contraste illisible en thème sombre. */
+.partial-warning {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+  border-radius: var(--radius-lg);
+  color: var(--warning-text);
+  font-size: 0.9375rem;
+}
+
+.partial-retry {
+  margin-left: auto;
+  padding: var(--spacing-xs) var(--spacing-md);
+  background: transparent;
+  border: 1px solid var(--warning-border);
+  border-radius: var(--radius-md);
+  color: var(--warning-text);
+  cursor: pointer;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.partial-retry:hover {
+  opacity: 0.85;
 }
 
 .empty-icon {

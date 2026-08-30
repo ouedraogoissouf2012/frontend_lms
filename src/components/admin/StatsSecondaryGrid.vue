@@ -4,7 +4,7 @@
       <BookOpenIcon class="stat-card-icon" />
       <div class="stat-card-content">
         <p class="stat-card-label">Leçons créées</p>
-        <p class="stat-card-value">{{ stats.nb_lessons || 0 }}</p>
+        <p class="stat-card-value">{{ formatCount(stats.nb_lessons) }}</p>
       </div>
     </div>
 
@@ -12,7 +12,7 @@
       <ChatBubbleLeftRightIcon class="stat-card-icon" />
       <div class="stat-card-content">
         <p class="stat-card-label">Discussions actives</p>
-        <p class="stat-card-value">{{ stats.nb_forum_topics || 0 }}</p>
+        <p class="stat-card-value">{{ formatCount(stats.nb_forum_topics) }}</p>
       </div>
     </div>
 
@@ -20,7 +20,7 @@
       <ClockIcon class="stat-card-icon" />
       <div class="stat-card-content">
         <p class="stat-card-label">Heures de cours</p>
-        <p class="stat-card-value">{{ stats.nb_heures_cours || 0 }}</p>
+        <p class="stat-card-value">{{ formatCount(stats.nb_heures_cours) }}</p>
       </div>
     </div>
 
@@ -28,7 +28,7 @@
       <CheckCircleIcon class="stat-card-icon" />
       <div class="stat-card-content">
         <p class="stat-card-label">Taux de présence</p>
-        <p class="stat-card-value">{{ stats.taux_presence || 0 }}%</p>
+        <p class="stat-card-value">{{ formatCount(stats.taux_presence, { suffix: '%' }) }}</p>
       </div>
     </div>
   </div>
@@ -45,6 +45,7 @@ import {
   ClockIcon,
   CheckCircleIcon
 } from '@heroicons/vue/24/outline'
+import { formatCount } from '@/utils/formatters'
 
 defineProps({
   stats: { type: Object, default: () => ({}) },

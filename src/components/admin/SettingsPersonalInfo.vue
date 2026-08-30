@@ -8,7 +8,7 @@
       <div class="info-grid">
         <div class="info-item">
           <label class="info-label">Nom complet</label>
-          <p class="info-value">{{ user?.nom }} {{ user?.prenom }}</p>
+          <p class="info-value">{{ getFullName(user, { fallback: 'Non renseigné' }) }}</p>
         </div>
         <div class="info-item">
           <label class="info-label">Email</label>
@@ -33,6 +33,9 @@
  * pure : affiche l'utilisateur et le libellé de rôle reçus en props. Aucun appel API.
  */
 import { UserIcon } from '@heroicons/vue/24/outline'
+// Le payload de login n'expose que `name` : composer `nom` + `prenom` rendait un
+// simple espace. getFullName accepte les deux formes.
+import { getFullName } from '@/utils/formatters'
 
 defineProps({
   user: { type: Object, default: null },

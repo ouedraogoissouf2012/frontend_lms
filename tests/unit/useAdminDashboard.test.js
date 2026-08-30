@@ -20,6 +20,7 @@ const mockAnalytics = vi.hoisted(() => ({
   getActivityTrends: vi.fn(),
   getPendingTasks: vi.fn(),
   getRecentUsers: vi.fn(),
+  getSystemMetrics: vi.fn(),
 }))
 
 vi.mock('vue-router', () => ({ useRouter: () => ({ push: mockPush }) }))
@@ -50,6 +51,7 @@ describe('useAdminDashboard (#H3)', () => {
     mockAnalytics.getActivityTrends.mockReset().mockResolvedValue(null)
     mockAnalytics.getPendingTasks.mockReset().mockResolvedValue(null)
     mockAnalytics.getRecentUsers.mockReset().mockResolvedValue([])
+    mockAnalytics.getSystemMetrics.mockReset().mockResolvedValue(null)
     mockAuth.getUser.mockReturnValue({})
     mockAuth.getMeta.mockReturnValue(null)
   })
@@ -134,8 +136,134 @@ describe('useAdminDashboard (#H3)', () => {
     const s = await setup()
     expect(s.isCoordinateur()).toBe(true)
     expect(s.isTeacher()).toBe(false)
-    expect(s.isSuperAdmin()).toBe(false)
+    expect(s.isAdmin()).toBe(false)
     expect(s.getDashboardTitle()).toBe('Coordinateur')
+  })
+
+  describe('stats non fournies par le backend (défaut : figées à 0)', () => {
+    it('dérive nb_filieres / nb_niveaux des CLASSES chargées', async () => {
+      mockKlassci.getClasses.mockResolvedValue([
+        { id: 1, filiere: { id: 7 }, niveau: { id: 1 } },
+        { id: 2, filiere: { id: 7 }, niveau: { id: 2 } },
+        { id: 3, filiere: { id: 9 }, niveau: { id: 2 } },
+      ])
+
+      const s = await setup()
+
+      // Avant : lus depuis `stats.value` — l'objet en cours de remplacement —
+      // donc toujours undefined → 0. Le dashboard affichait « Filières 0 »
+      // alors que la page Classes en dérivait 11 des mêmes données.
+      expect(s.stats.value.nb_filieres).toBe(2)
+      expect(s.stats.value.nb_niveaux).toBe(2)
+    })
+
+    it('renseigne nb_evaluations depuis les métriques système', async () => {
+      mockAnalytics.getSystemMetrics.mockResolvedValue({
+        evaluations: { total: 42 },
+      })
+
+      const s = await setup()
+
+      expect(s.stats.value.nb_evaluations).toBe(42)
+    })
+
+    it('distingue « non mesuré » (null) de « mesuré à zéro » (0)', async () => {
+      mockAnalytics.getSystemMetrics.mockResolvedValue({ evaluations: { total: 0 } })
+      const s = await setup()
+
+      // Mesuré et réellement nul → 0.
+      expect(s.stats.value.nb_evaluations).toBe(0)
+      // Aucune source chargée pour les séances actives → null, jamais un 0
+      // fabriqué qui se lirait comme une mesure.
+      expect(s.stats.value.nb_seances_actives).toBe(null)
+    })
+
+    it('reste exploitable si les métriques système échouent', async () => {
+      mockAnalytics.getSystemMetrics.mockRejectedValue(new Error('500'))
+      mockKlassci.getClasses.mockResolvedValue([{ id: 1, filiere: { id: 7 } }])
+
+      const s = await setup()
+
+      expect(s.stats.value.nb_filieres).toBe(1) // les dérivations locales tiennent
+      expect(s.stats.value.nb_evaluations).toBe(null) // non mesuré, pas 0
+    })
+  })
+
+  describe('échec de chargement KLASSCI : jamais des zéros muets', () => {
+    it('marque les compteurs NON MESURÉS (null) au lieu de les laisser à zéro', async () => {
+      mockKlassci.getClasses.mockRejectedValue(new Error('proxy down'))
+
+      const s = await setup()
+
+      // L'écran affichait « Enseignants 0 / Étudiants 0 / Classes 0 / Matières 0 »
+      // alors qu'aucun comptage n'avait abouti : la panne se lisait comme un fait.
+      expect(s.stats.value.nb_enseignants).toBe(null)
+      expect(s.stats.value.nb_etudiants).toBe(null)
+      expect(s.stats.value.nb_classes_actives).toBe(null)
+      expect(s.stats.value.nb_matieres_actives).toBe(null)
+    })
+
+    it('expose une erreur affichable (le tableau de bord était muet)', async () => {
+      mockKlassci.getClasses.mockRejectedValue(new Error('proxy down'))
+
+      const s = await setup()
+
+      expect(s.loadError.value).toBeTruthy()
+      expect(s.loading.value.stats).toBe(false)
+    })
+
+    it('n’affiche aucune erreur quand le chargement réussit', async () => {
+      const s = await setup()
+      expect(s.loadError.value).toBe(null)
+    })
+  })
+
+  describe('rôles : décision déléguée à constants/roles.js (#659)', () => {
+    it('n’intitule PAS « Super Administrateur » un admin d’ÉTABLISSEMENT', async () => {
+      // `superAdmin` = super-admin d'école KLASSCI (intra-tenant) → rôle LMS admin.
+      // Le titre le promouvait au rang de gestionnaire de plateforme.
+      mockAuth.getUser.mockReturnValue({ role: 'superAdmin' })
+      const s = await setup()
+      expect(s.getDashboardTitle()).toBe('Administrateur')
+    })
+
+    it('intitule « Super Administrateur » le seul supradmin PLATEFORME', async () => {
+      mockAuth.getUser.mockReturnValue({ role: 'supradmin' })
+      const s = await setup()
+      expect(s.getDashboardTitle()).toBe('Super Administrateur')
+    })
+
+    it('accorde le périmètre admin au supradmin plateforme (actions perdues avant)', async () => {
+      mockAuth.getUser.mockReturnValue({ role: 'supradmin' })
+      const s = await setup()
+      expect(s.isAdmin()).toBe(true)
+    })
+
+    it('accorde le périmètre admin à l’admin d’établissement', async () => {
+      mockAuth.getUser.mockReturnValue({ role: 'superAdmin' })
+      const s = await setup()
+      expect(s.isAdmin()).toBe(true)
+    })
+
+    it('reconnaît les ALIAS de rôle de roles.js (coordinator, secretaire, teacher)', async () => {
+      mockAuth.getUser.mockReturnValue({ role: 'coordinator' })
+      expect((await setup()).isCoordinateur()).toBe(true)
+
+      mockAuth.getUser.mockReturnValue({ role: 'secretaire' })
+      expect((await setup()).isCoordinateur()).toBe(true)
+
+      mockAuth.getUser.mockReturnValue({ role: 'teacher' })
+      expect((await setup()).isTeacher()).toBe(true)
+    })
+
+    it('est fail-secure sur un rôle inconnu', async () => {
+      mockAuth.getUser.mockReturnValue({ role: 'chef_cuisinier' })
+      const s = await setup()
+      expect(s.isAdmin()).toBe(false)
+      expect(s.isCoordinateur()).toBe(false)
+      expect(s.isTeacher()).toBe(false)
+      expect(s.getDashboardTitle()).toBe('Administrateur') // repli neutre
+    })
   })
 
   it('navigateTo pousse la route demandée', async () => {

@@ -83,6 +83,16 @@ export function normalizeError(error) {
     return { category, userMessage: ERROR_MESSAGES[category] ?? ERROR_MESSAGES.unknown, fieldErrors: null }
   }
 
+  // Dépassement de délai : la connexion FONCTIONNE, c'est le serveur qui n'a pas
+  // répondu à temps. On le sépare de `network` pour ne pas envoyer l'utilisateur
+  // vérifier une connexion qui n'est pas en cause. `ECONNABORTED` est le code
+  // qu'axios pose sur un timeout côté client ; `ETIMEDOUT` vient de la couche
+  // système. Le message du catalogue est utilisé tel quel — jamais `error.message`,
+  // qui expose le délai configuré (« timeout of 30000ms exceeded »).
+  if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+    return { category: 'timeout', userMessage: ERROR_MESSAGES.timeout, fieldErrors: null }
+  }
+
   // Pas de réponse HTTP : erreur réseau si axios (request/code), sinon inconnue.
   if (error.request || error.code || error.isAxiosError) {
     return { category: 'network', userMessage: ERROR_MESSAGES.network, fieldErrors: null }
