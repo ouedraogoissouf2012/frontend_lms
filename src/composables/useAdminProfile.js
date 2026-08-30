@@ -17,8 +17,9 @@ const ROLE_LABELS = {
  * formatée et les statistiques système. La vue ne fait plus que câbler ces
  * éléments aux sous-composants présentationnels.
  *
- * Dette pré-existante conservée à l'identique : `loadStats` est un stub
- * (TODO API) renvoyant des valeurs fictives — comportement inchangé.
+ * `loadStats` lit les vraies statistiques déjà présentes dans
+ * `auth.getUser().admin_data.statistics` (source KLASSCI, même donnée que le
+ * tableau de bord admin) — plus de valeurs fictives.
  */
 export function useAdminProfile() {
   const user = ref(null)
@@ -53,14 +54,15 @@ export function useAdminProfile() {
   const roleLabel = computed(() => getRoleLabel(user.value?.role))
   const memberSince = computed(() => formatDate(user.value?.created_at))
 
-  async function loadStats() {
-    // TODO: Charger les statistiques depuis l'API
-    // Pour l'instant, valeurs fictives
+  function loadStats() {
+    // Vraies stats déjà fournies par KLASSCI au login (admin_data.statistics),
+    // identiques au tableau de bord admin ; fallback 0 si absentes.
+    const s = auth.getUser()?.admin_data?.statistics
     stats.value = {
-      enseignants: 25,
-      etudiants: 350,
-      classes: 15,
-      matieres: 30,
+      enseignants: s?.nb_enseignants ?? 0,
+      etudiants: s?.nb_etudiants ?? 0,
+      classes: s?.nb_classes_actives ?? 0,
+      matieres: s?.nb_matieres_actives ?? 0,
     }
   }
 

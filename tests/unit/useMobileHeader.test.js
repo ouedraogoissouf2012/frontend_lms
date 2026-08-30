@@ -47,15 +47,26 @@ describe('useMobileHeader (#H12)', () => {
     expect(api.userInitials.value).toBe('JD')
   })
 
-  it('dérive le chemin profil selon le rôle', () => {
+  it('dérive profil ET paramètres selon le rôle (chemins EXISTANTS, alignés sur useNavbar)', () => {
     getUser.mockReturnValue({ role: 'etudiant', name: 'A B' })
-    expect(run().api.profilePath.value).toBe('/student/profile')
+    let api = run().api
+    expect(api.profilePath.value).toBe('/student/settings') // pas de page profil étudiant
+    expect(api.settingsPath.value).toBe('/student/settings')
 
     getUser.mockReturnValue({ role: 'enseignant', name: 'A B' })
-    expect(run().api.profilePath.value).toBe('/teacher/profile')
+    api = run().api
+    expect(api.profilePath.value).toBe('/teacher/profile')
+    expect(api.settingsPath.value).toBe('/teacher/settings')
 
     getUser.mockReturnValue({ role: 'coordinateur', name: 'A B' })
-    expect(run().api.profilePath.value).toBe('/coordinateur/profile')
+    api = run().api
+    expect(api.profilePath.value).toBe('/admin/profile') // coordinateur → espace admin
+    expect(api.settingsPath.value).toBe('/admin/settings')
+
+    getUser.mockReturnValue({ role: 'admin', name: 'A B' })
+    api = run().api
+    expect(api.profilePath.value).toBe('/admin/profile')
+    expect(api.settingsPath.value).toBe('/admin/settings')
   })
 
   it('bascule les panneaux de façon exclusive', () => {

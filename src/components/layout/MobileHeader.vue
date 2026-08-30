@@ -31,6 +31,7 @@
       :user-name="userName"
       :user-role-label="userRoleLabel"
       :profile-path="profilePath"
+      :settings-path="settingsPath"
       @close="toggleUserMenu"
       @logout="handleLogout"
     />
@@ -64,6 +65,7 @@ const {
   userInitials,
   userRoleLabel,
   profilePath,
+  settingsPath,
   toggleSidebar,
   toggleNotifications,
   toggleUserMenu,

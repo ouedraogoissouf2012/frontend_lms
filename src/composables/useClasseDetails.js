@@ -109,7 +109,7 @@ export function useClasseDetails() {
   }
 
   function viewEvaluation(evaluationId) {
-    inst.proxy.$router.push({ name: 'evaluation-details', params: { id: evaluationId } })
+    inst.proxy.$router.push({ name: 'AdminEvaluationDetails', params: { id: evaluationId } })
   }
 
   function goBack() {

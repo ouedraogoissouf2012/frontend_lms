@@ -1,7 +1,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { auth } from '@/services/api'
-import { getRoleDisplayName, isStudent, isTeacher, hasRole, ROLES } from '@/constants/roles'
+import { getRoleDisplayName, isStudent, isTeacher, isAdminScope } from '@/constants/roles'
 
 /**
  * Couche logique du header mobile (#H12 ≤300) : détection mobile (resize), état
@@ -51,12 +51,22 @@ export function useMobileHeader(emit) {
   // Libellé unique centralisé (#18 R4.3)
   const userRoleLabel = computed(() => getRoleDisplayName(user.value))
 
+  // Chemins ALIGNÉS sur useNavbar (routes existantes) : l'étudiant n'a pas de page
+  // profil dédiée (→ settings), le coordinateur passe par l'espace admin.
   const profilePath = computed(() => {
     const u = user.value
-    if (isStudent(u)) return '/student/profile'
+    if (isStudent(u)) return '/student/settings'
     if (isTeacher(u)) return '/teacher/profile'
-    if (hasRole(u, ROLES.COORDINATEUR)) return '/coordinateur/profile'
-    return '/profile'
+    if (isAdminScope(u)) return '/admin/profile'
+    return '/dashboard'
+  })
+
+  const settingsPath = computed(() => {
+    const u = user.value
+    if (isStudent(u)) return '/student/settings'
+    if (isTeacher(u)) return '/teacher/settings'
+    if (isAdminScope(u)) return '/admin/settings'
+    return '/dashboard'
   })
 
   // Bascules
@@ -99,6 +109,7 @@ export function useMobileHeader(emit) {
     userInitials,
     userRoleLabel,
     profilePath,
+    settingsPath,
     toggleSidebar,
     toggleNotifications,
     toggleUserMenu,
