@@ -108,8 +108,11 @@ describe('useAuthStore — getters d\'autorisation dérivés de roles.js (T4)', 
     const store = useAuthStore()
 
     store.setSession({ token: 't', user: { role: 'superAdmin' } })
-    expect(store.isSupradmin).toBe(true)
-    expect(store.isAdmin).toBe(true) // admin|supradmin
+    expect(store.isSupradmin).toBe(false) // admin d'école KLASSCI ≠ supradmin plateforme (#659)
+    expect(store.isAdmin).toBe(true) // superAdmin → admin (périmètre admin strict)
+
+    store.setSession({ token: 't', user: { role: 'supradmin' } })
+    expect(store.isSupradmin).toBe(true) // supradmin plateforme
 
     store.setSession({ token: 't', user: { role: 'teacher' } })
     expect(store.isTeacher).toBe(true)
@@ -208,6 +211,7 @@ describe('façade api.js — délégation au store (T10)', () => {
     expect(authFacade.getUser()).toEqual(LOGIN_RESPONSE.data.user)
     expect(authFacade.getInstitution()).toBe('esi')
     expect(authFacade.isAuthenticated()).toBe(true)
-    expect(authFacade.isSupradmin()).toBe(true)
+    // LOGIN_RESPONSE.user.role = 'superAdmin' (admin d'école), pas supradmin plateforme (#659)
+    expect(authFacade.isSupradmin()).toBe(false)
   })
 })

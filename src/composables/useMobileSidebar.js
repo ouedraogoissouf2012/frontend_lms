@@ -79,9 +79,18 @@ export function useMobileSidebar(props, emit) {
   })
 
   const adminNavItems = computed(() => {
-    // Super admin plateforme uniquement (coordinateur a tout dans secondaryNavItems).
-    // isSupradmin couvre les deux variantes 'superAdmin'/'supradmin' (#18, corrige #8).
-    if (isSupradmin(user.value)) {
+    const u = user.value
+    // Supradmin PLATEFORME : gère les institutions (tenants), pas le contenu intra-école
+    // (les écrans intra-école lui renvoient 403 : institution_id NULL). #659.
+    if (isSupradmin(u)) {
+      return [
+        { path: '/admin/institutions', icon: 'fa-university', label: 'Institutions', badge: null }
+      ]
+    }
+    // Admin d'ÉTABLISSEMENT (rôle LMS 'admin', inclut le 'superAdmin' d'école KLASSCI) :
+    // raccourcis d'administration intra-école. Le coordinateur a les siens dans
+    // secondaryNavItems ; on cible donc l'admin strict (hasRole ADMIN).
+    if (hasRole(u, ROLES.ADMIN)) {
       return [
         { path: '/admin/classes', icon: 'fa-building', label: 'Classes', badge: null },
         { path: '/admin/matieres', icon: 'fa-book', label: 'Matières', badge: null },

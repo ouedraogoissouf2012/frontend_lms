@@ -85,9 +85,9 @@ describe('NAV_SECTIONS — filtrage par rôle reproduit le Sidebar source', () =
 })
 
 describe('Réutilisation de la couche rôles (alias backend, fail-secure)', () => {
-  it('accepte les alias backend (teacher → enseignant, superAdmin → supradmin)', () => {
+  it('accepte les alias backend (teacher → enseignant ; superAdmin → admin d\'école, #659)', () => {
     expect(shape(filterSectionsByRole(NAV_SECTIONS, 'teacher'))).toEqual(EXPECTED.enseignant)
-    expect(shape(filterSectionsByRole(NAV_SECTIONS, 'superAdmin'))).toEqual(EXPECTED.supradmin)
+    expect(shape(filterSectionsByRole(NAV_SECTIONS, 'superAdmin'))).toEqual(EXPECTED.admin)
   })
 
   it('mappe secretaire → coordinateur (divergence tracée #18-FE-1)', () => {

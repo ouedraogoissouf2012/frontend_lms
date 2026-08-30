@@ -5,8 +5,9 @@
  * Role::tryFromString + divergence tracée secretaire→coordinateur), helpers
  * fail-secure, getDashboardRoute, getRoleDisplayName, canActivate (partagée
  * runtime/tests). Inclut les régressions #8 (supradmin ne voit pas le menu
- * enseignant) et #12 (coordinateur refusé sur route supradmin) et le multi-variant
- * superAdmin/supradmin. Vitest (#21), import via l'alias `@`.
+ * enseignant) et #12 (coordinateur refusé sur route supradmin) et la DISSOCIATION
+ * superAdmin (admin d'école → admin) vs supradmin (plateforme) (#659). Vitest (#21),
+ * import via l'alias `@`.
  */
 import { describe, it, expect } from 'vitest'
 import {
@@ -46,7 +47,7 @@ describe('ROLES — enum canonique gelé (R1)', () => {
 describe('normalizeRole — table d\'alias miroir du backend (R2)', () => {
   it.each([
     ['supradmin', 'supradmin'],
-    ['superAdmin', 'supradmin'],
+    ['superAdmin', 'admin'], // admin d'établissement KLASSCI, PAS plateforme (#659)
     ['etudiant', 'etudiant'],
     ['student', 'etudiant'],
     ['étudiant', 'etudiant'],
@@ -71,16 +72,16 @@ describe('normalizeRole — table d\'alias miroir du backend (R2)', () => {
 
 describe('helpers — fondés sur le rôle normalisé, fail-secure (R3, R8)', () => {
   it('hasRole compare canonique↔canonique et accepte les alias des deux côtés', () => {
-    expect(hasRole({ role: 'superAdmin' }, ['supradmin'])).toBe(true)
+    expect(hasRole({ role: 'superAdmin' }, ['admin'])).toBe(true)
     expect(hasRole({ role: 'teacher' }, 'enseignant')).toBe(true)
     expect(hasRole({ role: 'etudiant' }, ['enseignant', 'teacher'])).toBe(false)
     expect(hasRole(null, 'etudiant')).toBe(false)
     expect(hasRole({ role: 'hacker' }, ['admin'])).toBe(false)
   })
 
-  it('isSupradmin (=== supradmin) reconnaît les deux variantes (R3.3, R5.1)', () => {
+  it('isSupradmin (=== supradmin plateforme) exclut superAdmin (admin d\'école) (R3.3, #659)', () => {
     expect(isSupradmin({ role: 'supradmin' })).toBe(true)
-    expect(isSupradmin({ role: 'superAdmin' })).toBe(true)
+    expect(isSupradmin({ role: 'superAdmin' })).toBe(false) // admin d'établissement, pas plateforme
     expect(isSupradmin({ role: 'admin' })).toBe(false)
   })
 
@@ -124,7 +125,7 @@ describe('helpers — fondés sur le rôle normalisé, fail-secure (R3, R8)', ()
 describe('getDashboardRoute — objet ou chaîne, fail-secure (R3.7, R3.9, R8.2)', () => {
   it.each([
     ['supradmin', '/admin/institutions'],
-    ['superAdmin', '/admin/institutions'],
+    ['superAdmin', '/admin/dashboard'], // admin d'école → dashboard admin (#659)
     ['admin', '/admin/dashboard'],
     ['coordinateur', '/admin/dashboard'],
     ['secretaire', '/admin/dashboard'], // alias→coordinateur (non-régression accès admin)
@@ -143,8 +144,8 @@ describe('getDashboardRoute — objet ou chaîne, fail-secure (R3.7, R3.9, R8.2)
 
 describe('getRoleDisplayName — libellé unique par canonique (R4.3)', () => {
   it('un même rôle a un libellé stable quelle que soit la variante', () => {
-    expect(getRoleDisplayName('supradmin')).toBe(getRoleDisplayName('superAdmin'))
     expect(getRoleDisplayName('supradmin')).toBe('Super Administrateur')
+    expect(getRoleDisplayName('superAdmin')).toBe('Administrateur') // admin d'école ≠ plateforme (#659)
     expect(getRoleDisplayName('admin')).toBe('Administrateur')
     expect(getRoleDisplayName('coordinateur')).toBe('Coordinateur')
     expect(getRoleDisplayName('enseignant')).toBe('Enseignant')
@@ -163,13 +164,13 @@ describe('canActivate — décision partagée guard/tests (R6.3, R5.4)', () => {
   })
 
   it('autorise si le rôle normalisé appartient aux rôles requis normalisés (R5.5)', () => {
-    expect(canActivate({ role: 'superAdmin' }, ['supradmin']).allowed).toBe(true)
+    expect(canActivate({ role: 'superAdmin' }, ['admin']).allowed).toBe(true)
     expect(canActivate({ role: 'enseignant' }, ['enseignant', 'coordinateur']).allowed).toBe(true)
   })
 
-  it('bypass supradmin normalisé (R5.4)', () => {
+  it('bypass réservé au supradmin PLATEFORME ; superAdmin (admin d\'école) ne bypasse pas (R5.4, #659)', () => {
     expect(canActivate({ role: 'supradmin' }, ['enseignant']).allowed).toBe(true)
-    expect(canActivate({ role: 'superAdmin' }, ['etudiant']).allowed).toBe(true)
+    expect(canActivate({ role: 'superAdmin' }, ['etudiant']).allowed).toBe(false)
   })
 
   it('régression #12 — coordinateur refusé sur route supradmin, redirigé vers son dashboard', () => {
@@ -204,11 +205,23 @@ describe('hasLmsAccess — refus explicite des comptes KLASSCI sans vocation LMS
   })
 })
 
-describe('multi-variant — même décision superAdmin/supradmin (R9.6)', () => {
-  it('superAdmin et supradmin produisent la même route et la même décision', () => {
-    expect(getDashboardRoute({ role: 'superAdmin' })).toBe(getDashboardRoute({ role: 'supradmin' }))
-    expect(canActivate({ role: 'superAdmin' }, ['supradmin']).allowed)
-      .toBe(canActivate({ role: 'supradmin' }, ['supradmin']).allowed)
-    expect(isTeacher({ role: 'superAdmin' })).toBe(isTeacher({ role: 'supradmin' })) // #8
+describe('dissociation superAdmin (admin d\'école) ≠ supradmin (plateforme) — #659', () => {
+  it('un super-admin d\'école KLASSCI est un ADMIN, jamais un supradmin plateforme', () => {
+    expect(normalizeRole('superAdmin')).toBe('admin')
+    expect(isSupradmin({ role: 'superAdmin' })).toBe(false)
+    expect(isAdmin({ role: 'superAdmin' })).toBe(true)
+  })
+
+  it('routes de dashboard distinctes : école → /admin/dashboard, plateforme → /admin/institutions', () => {
+    expect(getDashboardRoute({ role: 'superAdmin' })).toBe('/admin/dashboard')
+    expect(getDashboardRoute({ role: 'supradmin' })).toBe('/admin/institutions')
+    expect(getDashboardRoute({ role: 'superAdmin' }))
+      .not.toBe(getDashboardRoute({ role: 'supradmin' }))
+  })
+
+  it('un admin d\'école n\'atteint JAMAIS la plateforme : refusé sur route supradmin, renvoyé à son dashboard', () => {
+    const d = canActivate({ role: 'superAdmin' }, ['supradmin'])
+    expect(d.allowed).toBe(false)
+    expect(d.redirectTo).toBe('/admin/dashboard')
   })
 })
