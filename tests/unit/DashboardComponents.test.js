@@ -1,6 +1,6 @@
 /** Tests de rendu/interaction des composants du dashboard enseignant (#H11 ≤300). */
 import { mount } from '@vue/test-utils'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import DashboardStatCards from '@/components/teacher/DashboardStatCards.vue'
 import DashboardActivityWidgets from '@/components/teacher/DashboardActivityWidgets.vue'
 import DashboardMatieresList from '@/components/teacher/DashboardMatieresList.vue'
@@ -9,6 +9,19 @@ import DashboardEvaluationsList from '@/components/teacher/DashboardEvaluationsL
 import DashboardQuickActions from '@/components/teacher/DashboardQuickActions.vue'
 
 const stubs = { RouterLink: { template: '<a><slot /></a>' } }
+
+// Les compteurs du dashboard enseignant sont animés (count-up). Sous « mouvement
+// réduit », le composable pose la valeur finale dès le 1er rendu → assertions
+// synchrones déterministes.
+const originalMatchMedia = window.matchMedia
+beforeEach(() => {
+  window.matchMedia = vi.fn(() => ({
+    matches: true, media: '', addEventListener() {}, removeEventListener() {},
+  }))
+})
+afterEach(() => {
+  window.matchMedia = originalMatchMedia
+})
 
 describe('DashboardStatCards (#H11)', () => {
   it('affiche les 4 compteurs depuis dashboardData', () => {

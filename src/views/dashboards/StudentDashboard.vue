@@ -2,7 +2,7 @@
   <DashboardLayout>
     <div class="dashboard-content">
       <!-- Header -->
-      <div class="welcome-header">
+      <div v-reveal class="welcome-header">
         <AcademicCapIcon class="welcome-icon" />
         <div>
           <h1 class="page-title">Dashboard Étudiant</h1>
@@ -28,7 +28,7 @@
       </div>
 
       <!-- Dashboard Content -->
-      <DashboardWidgets v-if="!loading && dashboardData" :dashboard-data="dashboardData" />
+      <DashboardWidgets v-if="!loading && dashboardData" v-reveal="70" :dashboard-data="dashboardData" />
     </div>
   </DashboardLayout>
 </template>
