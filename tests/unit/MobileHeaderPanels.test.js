@@ -32,7 +32,8 @@ describe('MobileUserMenuPanel', () => {
     userInitials: 'JD',
     userName: 'Jane Doe',
     userRoleLabel: 'Enseignant',
-    profilePath: '/teacher/profile'
+    profilePath: '/teacher/profile',
+    settingsPath: '/teacher/settings'
   }
 
   it('affiche infos user + liens et émet close/logout', async () => {
@@ -45,7 +46,7 @@ describe('MobileUserMenuPanel', () => {
     expect(w.find('.user-role').text()).toBe('Enseignant')
 
     const hrefs = w.findAll('a.menu-item').map(a => a.attributes('href'))
-    expect(hrefs).toEqual(['/teacher/profile', '/settings'])
+    expect(hrefs).toEqual(['/teacher/profile', '/teacher/settings'])
 
     await w.find('.close-btn').trigger('click')
     expect(w.emitted('close')).toBeTruthy()

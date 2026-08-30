@@ -77,7 +77,7 @@ describe('useClasseDetails (#H9)', () => {
     api.viewMatiere(42)
     expect(push).toHaveBeenCalledWith({ name: 'matiere-details', params: { id: 42 } })
     api.viewEvaluation(99)
-    expect(push).toHaveBeenCalledWith({ name: 'evaluation-details', params: { id: 99 } })
+    expect(push).toHaveBeenCalledWith({ name: 'AdminEvaluationDetails', params: { id: 99 } })
     api.goBack()
     expect(back).toHaveBeenCalled()
   })

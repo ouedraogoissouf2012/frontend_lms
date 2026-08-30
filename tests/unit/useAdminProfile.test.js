@@ -14,6 +14,14 @@ const mockUser = {
   role: 'admin',
   created_at: '2024-01-15T10:00:00Z',
   permissions: ['users:read'],
+  admin_data: {
+    statistics: {
+      nb_enseignants: 25,
+      nb_etudiants: 350,
+      nb_classes_actives: 15,
+      nb_matieres_actives: 30,
+    },
+  },
 }
 
 vi.mock('@/services/api', () => ({
@@ -51,7 +59,7 @@ describe('useAdminProfile (#H3)', () => {
     expect(u.memberSince.value).toBe('15 janvier 2024')
   })
 
-  it('charge des statistiques système non nulles', async () => {
+  it('mappe les vraies statistiques depuis admin_data.statistics', async () => {
     const u = await setup()
     expect(u.stats.value.enseignants).toBe(25)
     expect(u.stats.value.etudiants).toBe(350)

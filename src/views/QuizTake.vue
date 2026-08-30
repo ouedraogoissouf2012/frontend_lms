@@ -91,14 +91,7 @@
         </div>
 
         <!-- Boutons d'action -->
-        <div class="mt-8 flex justify-between">
-          <button
-            @click="saveProgress"
-            class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold"
-          >
-            Sauvegarder le brouillon
-          </button>
-
+        <div class="mt-8 flex justify-end">
           <button
             @click="submitQuiz"
             class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-semibold"
@@ -179,11 +172,6 @@ export default {
     formatTime(seconds) {
       // Durée écoulée mm:ss — délègue au formatter centralisé (#23)
       return formatElapsed(seconds)
-    },
-
-    async saveProgress() {
-      // TODO: Implémenter la sauvegarde automatique
-      alert('Brouillon sauvegardé ! (Fonction à implémenter)')
     },
 
     async submitQuiz() {

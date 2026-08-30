@@ -16,7 +16,7 @@
           <i class="fa fa-circle menu-icon"></i>
           <span>Mon Profil</span>
         </router-link>
-        <router-link to="/settings" @click="$emit('close')" class="menu-item">
+        <router-link :to="settingsPath" @click="$emit('close')" class="menu-item">
           <i class="fa fa-cog menu-icon"></i>
           <span>Paramètres</span>
         </router-link>
@@ -40,7 +40,8 @@ defineProps({
   userInitials: { type: String, default: '' },
   userName: { type: String, default: 'Utilisateur' },
   userRoleLabel: { type: String, default: '' },
-  profilePath: { type: String, default: '/profile' }
+  profilePath: { type: String, default: '/dashboard' },
+  settingsPath: { type: String, default: '/dashboard' }
 })
 
 defineEmits(['close', 'logout'])
