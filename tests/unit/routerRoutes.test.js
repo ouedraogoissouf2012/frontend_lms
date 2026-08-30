@@ -51,7 +51,7 @@ const EXPECTED_PATHS = [
   '/student/evaluations-list', '/student/grades', '/student/visio-list', '/student/settings',
   '/student/schedule', '/student/seances',
   // shared
-  '/dashboard', '/lessons/:id', '/teacher/lessons/create', '/teacher/lessons/:id/edit',
+  '/dashboard', '/lessons/:id',
   '/teacher/matieres', '/teacher/lessons', '/teacher/lessons/:id/chapters', '/quizzes',
   '/quizzes/:id/take', '/forum', '/forum/topics/:id',
   '/teacher/evaluations', '/teacher/evaluations/create', '/teacher/evaluations/create-questions',

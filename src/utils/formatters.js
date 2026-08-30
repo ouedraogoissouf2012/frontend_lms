@@ -4,7 +4,7 @@
  * Source unique de formatage (dates, heure, durées, initiales, troncature) qui
  * remplace les dizaines de redéfinitions locales (DRY, PRODUCTION_STANDARDS Q5).
  * AUCUN import Vue (pas de ref/reactive/computed) : ce sont des utilitaires purs,
- * pas un composable (paradigme Vue — la logique stateful va dans useDateRange).
+ * pas un composable (paradigme Vue — la logique stateful vit dans un composable).
  *
  * Repli fail-safe : valeur nulle/invalide → `'—'` (surchargeable via `{ fallback }`)
  * pour préserver les replis spécifiques des sites migrés ; jamais `'Invalid Date'`/`'NaN'`.
@@ -65,7 +65,7 @@ export function formatTime(value, opts) {
 
 /**
  * YYYY-MM-DD en heure LOCALE (getters locaux, PAS toISOString qui décale le jour
- * près de minuit). Réutilisé par useDateRange pour des bornes locales correctes.
+ * près de minuit).
  * @returns {string} '' si la date est invalide.
  */
 export function formatDateInput(value) {

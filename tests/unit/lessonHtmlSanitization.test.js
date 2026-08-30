@@ -2,7 +2,6 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
 import ChapterTextRenderer from '@/components/lessons/ChapterTextRenderer.vue'
 import ChapterViewMode from '@/components/lessons/ChapterViewMode.vue'
-import LessonRichTextEditor from '@/components/lessons/LessonRichTextEditor.vue'
 
 const dangerousLessonHtml = [
   '<h2>Titre</h2>',
@@ -63,15 +62,5 @@ describe('contenu de leçon rendu via v-html', () => {
     })
 
     expectSafeLessonHtml(wrapper.find('.chapter-word-content').html())
-  })
-
-  it('LessonRichTextEditor assainit la prévisualisation', async () => {
-    const wrapper = mount(LessonRichTextEditor, {
-      props: { modelValue: dangerousLessonHtml },
-    })
-
-    await wrapper.findAll('.tab-btn')[1].trigger('click')
-
-    expectSafeLessonHtml(wrapper.find('.preview-content').html())
   })
 })
