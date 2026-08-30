@@ -9,14 +9,14 @@
       <div class="stats-grid">
         <div class="stat-item">
           <p class="stat-label">Séances Actives</p>
-          <p class="stat-value text-purple-600">
-            {{ stats?.nb_seances_actives || 0 }}
+          <p class="stat-value text-purple-600" :title="notMeasuredHint(stats?.nb_seances_actives)">
+            {{ display(stats?.nb_seances_actives) }}
           </p>
         </div>
         <div class="stat-item">
           <p class="stat-label">Évaluations Totales</p>
-          <p class="stat-value text-orange-600">
-            {{ stats?.nb_evaluations || 0 }}
+          <p class="stat-value text-orange-600" :title="notMeasuredHint(stats?.nb_evaluations)">
+            {{ display(stats?.nb_evaluations) }}
           </p>
         </div>
       </div>
@@ -31,14 +31,14 @@
       <div class="stats-grid">
         <div class="stat-item">
           <p class="stat-label">Filières</p>
-          <p class="stat-value text-blue-600">
-            {{ stats?.nb_filieres || 0 }}
+          <p class="stat-value text-blue-600" :title="notMeasuredHint(stats?.nb_filieres)">
+            {{ display(stats?.nb_filieres) }}
           </p>
         </div>
         <div class="stat-item">
           <p class="stat-label">Niveaux</p>
-          <p class="stat-value text-green-600">
-            {{ stats?.nb_niveaux || 0 }}
+          <p class="stat-value text-green-600" :title="notMeasuredHint(stats?.nb_niveaux)">
+            {{ display(stats?.nb_niveaux) }}
           </p>
         </div>
       </div>
@@ -56,6 +56,22 @@ import {
 defineProps({
   stats: { type: Object, default: () => ({}) },
 })
+
+const NOT_MEASURED = '—'
+
+/**
+ * Affiche la valeur si elle a été MESURÉE, sinon un tiret.
+ *
+ * L'ancien `{{ stats?.x || 0 }}` rendait `0` aussi bien pour « mesuré à zéro »
+ * que pour « jamais mesuré » (et même pour « donnée absente ») : une métrique
+ * qu'aucune source n'alimente s'affichait comme un zéro crédible. Un compteur
+ * réellement nul reste bien rendu « 0 » — seul l'inconnu devient « — ».
+ */
+const display = (value) => (Number.isFinite(value) ? value : NOT_MEASURED)
+
+/** Infobulle expliquant le tiret (vide quand la valeur est mesurée). */
+const notMeasuredHint = (value) =>
+  Number.isFinite(value) ? '' : 'Donnée non disponible pour le moment'
 </script>
 
 <style scoped>

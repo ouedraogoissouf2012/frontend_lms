@@ -1,79 +1,117 @@
 /**
  * Test du composable useAdminProfile (#H3 ≤300) : utilisateur courant via auth,
  * initiales, libellé de rôle, date d'inscription formatée et stats système.
- * Service `auth` mocké.
+ *
+ * Le payload d'utilisateur mocké ici REPRODUIT celui que le backend renvoie
+ * réellement au login : il ne contient PAS de `admin_data`. L'ancien test en
+ * fabriquait un, ce qui verdissait un chemin que la production n'emprunte jamais —
+ * l'écran affichait donc quatre zéros pendant que le test passait.
  */
 import { mount, flushPromises } from '@vue/test-utils'
 import { defineComponent } from 'vue'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const mockUser = {
+const mockAuth = vi.hoisted(() => ({ getUser: vi.fn(), getMeta: vi.fn() }))
+const mockKlassci = vi.hoisted(() => ({
+  getClasses: vi.fn(), getMatieres: vi.fn(), getEnseignants: vi.fn(),
+}))
+
+vi.mock('@/services/api', () => ({ auth: mockAuth }))
+vi.mock('@/services/klassci', () => ({ klassciService: mockKlassci, default: mockKlassci }))
+
+import { useAdminProfile } from '@/composables/useAdminProfile'
+
+/** Payload réel du login : ni `admin_data`, ni statistiques embarquées. */
+const realUser = {
   nom: 'Dupont',
   prenom: 'Marie',
   email: 'marie@e.com',
   role: 'admin',
   created_at: '2024-01-15T10:00:00Z',
   permissions: ['users:read'],
-  admin_data: {
-    statistics: {
-      nb_enseignants: 25,
-      nb_etudiants: 350,
-      nb_classes_actives: 15,
-      nb_matieres_actives: 30,
-    },
-  },
 }
-
-vi.mock('@/services/api', () => ({
-  auth: { getUser: () => mockUser },
-}))
-
-import { useAdminProfile } from '@/composables/useAdminProfile'
 
 async function setup() {
   let api
   const Comp = defineComponent({ setup() { api = useAdminProfile(); return () => null } })
   mount(Comp)
   await flushPromises()
+  await flushPromises()
   return api
 }
 
+beforeEach(() => {
+  mockAuth.getUser.mockReset().mockReturnValue(realUser)
+  mockAuth.getMeta.mockReset().mockReturnValue(null)
+  mockKlassci.getClasses.mockReset().mockResolvedValue([])
+  mockKlassci.getMatieres.mockReset().mockResolvedValue([])
+  mockKlassci.getEnseignants.mockReset().mockResolvedValue([])
+})
+
 describe('useAdminProfile (#H3)', () => {
-  it('charge l\'utilisateur courant au montage', async () => {
-    const u = await setup()
-    expect(u.user.value).toEqual(mockUser)
+  it('expose l’utilisateur courant et ses initiales', async () => {
+    const p = await setup()
+    expect(p.user.value.email).toBe('marie@e.com')
+    expect(p.userInitials.value).toBe('MD')
   })
 
-  it('calcule les initiales (prénom + nom, majuscules)', async () => {
-    const u = await setup()
-    expect(u.userInitials.value).toBe('MD')
+  it('formate la date d’inscription, et son absence', async () => {
+    const p = await setup()
+    expect(p.memberSince.value).toContain('2024')
+    expect(p.formatDate(null)).toBe('Non disponible')
   })
 
-  it('expose le libellé de rôle traduit', async () => {
-    const u = await setup()
-    expect(u.roleLabel.value).toBe('Administrateur')
+  describe('statistiques système', () => {
+    it('charge de VRAIES statistiques malgré l’absence de admin_data', async () => {
+      mockKlassci.getClasses.mockResolvedValue([
+        { id: 1, places_occupees: 6 }, { id: 2, places_occupees: 5 },
+      ])
+      mockKlassci.getMatieres.mockResolvedValue([{ id: 1 }, { id: 2 }, { id: 3 }])
+      mockKlassci.getEnseignants.mockResolvedValue([{ id: 1 }, { id: 2 }])
+
+      const p = await setup()
+
+      expect(p.stats.value.enseignants).toBe(2)
+      expect(p.stats.value.etudiants).toBe(11)
+      expect(p.stats.value.classes).toBe(2)
+      expect(p.stats.value.matieres).toBe(3)
+    })
+
+    it('marque NON MESURÉ (null) plutôt que zéro quand le chargement échoue', async () => {
+      mockKlassci.getClasses.mockRejectedValue(new Error('down'))
+      mockKlassci.getMatieres.mockRejectedValue(new Error('down'))
+      mockKlassci.getEnseignants.mockRejectedValue(new Error('down'))
+
+      const p = await setup()
+
+      expect(p.stats.value.enseignants).toBe(null)
+      expect(p.stats.value.etudiants).toBe(null)
+      expect(p.stats.value.classes).toBe(null)
+      expect(p.stats.value.matieres).toBe(null)
+    })
   })
 
-  it('formate la date d\'inscription en français', async () => {
-    const u = await setup()
-    expect(u.memberSince.value).toBe('15 janvier 2024')
-  })
+  describe('libellé de rôle : délégué à constants/roles.js (#659)', () => {
+    it('n’intitule PAS « Super Administrateur » un admin d’ÉTABLISSEMENT', async () => {
+      mockAuth.getUser.mockReturnValue({ ...realUser, role: 'superAdmin' })
+      const p = await setup()
+      expect(p.roleLabel.value).toBe('Administrateur')
+    })
 
-  it('mappe les vraies statistiques depuis admin_data.statistics', async () => {
-    const u = await setup()
-    expect(u.stats.value.enseignants).toBe(25)
-    expect(u.stats.value.etudiants).toBe(350)
-    expect(u.stats.value.classes).toBe(15)
-    expect(u.stats.value.matieres).toBe(30)
-  })
+    it('réserve « Super Administrateur » au supradmin PLATEFORME', async () => {
+      mockAuth.getUser.mockReturnValue({ ...realUser, role: 'supradmin' })
+      const p = await setup()
+      expect(p.roleLabel.value).toBe('Super Administrateur')
+    })
 
-  it('getRoleLabel renvoie le rôle brut si inconnu', async () => {
-    const u = await setup()
-    expect(u.getRoleLabel('inconnu')).toBe('inconnu')
-  })
+    it('reconnaît les alias de roles.js', async () => {
+      mockAuth.getUser.mockReturnValue({ ...realUser, role: 'coordinator' })
+      expect((await setup()).roleLabel.value).toBe('Coordinateur')
+    })
 
-  it('formatDate renvoie "Non disponible" sans date', async () => {
-    const u = await setup()
-    expect(u.formatDate(null)).toBe('Non disponible')
+    it('ne laisse pas fuir un rôle brut inconnu dans l’UI', async () => {
+      mockAuth.getUser.mockReturnValue({ ...realUser, role: 'chef_cuisinier' })
+      expect((await setup()).roleLabel.value).toBe('')
+    })
   })
 })

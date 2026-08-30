@@ -58,16 +58,33 @@ const props = defineProps({
   stats: { type: Object, default: () => ({}) },
 })
 
-/** Compteur animé (arrondi) pour un getter numérique. */
-function counter(getter) {
-  const { value } = useCountUp(getter)
-  return computed(() => Math.round(value.value))
+const NOT_MEASURED = '—'
+
+/**
+ * Compteur animé pour une statistique, ou « — » si elle n'a pas été MESURÉE.
+ *
+ * L'ancien `Number(...) || 0` rendait `0` aussi bien pour un établissement
+ * réellement vide que pour un chargement en échec : une panne KLASSCI affichait
+ * « Enseignants 0, Étudiants 0 » et se lisait comme un fait. On ne fabrique plus
+ * de zéro — seul un comptage effectif produit un nombre.
+ */
+function counter(key) {
+  const measured = computed(() => {
+    const raw = props.stats?.[key]
+    // Écarté AVANT la conversion : `Number(null)` et `Number('')` valent 0, donc
+    // une absence de valeur se serait présentée comme un comptage nul.
+    if (raw === null || raw === undefined || raw === '') return null
+    const n = Number(raw)
+    return Number.isFinite(n) ? n : null
+  })
+  const { value } = useCountUp(() => measured.value ?? 0)
+  return computed(() => (measured.value === null ? NOT_MEASURED : Math.round(value.value)))
 }
 
-const nbEnseignants = counter(() => Number(props.stats?.nb_enseignants) || 0)
-const nbEtudiants = counter(() => Number(props.stats?.nb_etudiants) || 0)
-const nbClasses = counter(() => Number(props.stats?.nb_classes_actives) || 0)
-const nbMatieres = counter(() => Number(props.stats?.nb_matieres_actives) || 0)
+const nbEnseignants = counter('nb_enseignants')
+const nbEtudiants = counter('nb_etudiants')
+const nbClasses = counter('nb_classes_actives')
+const nbMatieres = counter('nb_matieres_actives')
 </script>
 
 <style scoped>

@@ -222,29 +222,33 @@ const hiddenCount = computed(() => Math.max(props.users.length - displayedUsers.
   font-weight: 600;
 }
 
+/* Fond et texte viennent de la MÊME paire adaptative (--X-bg / --X-text). Apparier
+   un token de palette (valeur unique) à un token sémantique ne fait basculer qu'un
+   côté en thème sombre : .role-admin tombait à 1,31:1, sous le minimum WCAG AA de
+   4,5:1. Règle verrouillée par tests/unit/roleBadgeTokenPairing.test.js. */
 .role-student {
   background: var(--info-bg);
   color: var(--info-text);
 }
 
 .role-teacher {
-  background: var(--emerald-100);
-  color: var(--emerald-800);
+  background: var(--success-bg);
+  color: var(--success-text);
 }
 
 .role-coordinator {
   background: var(--warning-bg);
-  color: var(--amber-800);
+  color: var(--warning-text);
 }
 
 .role-admin {
-  background: var(--red-200);
+  background: var(--error-bg);
   color: var(--error-text);
 }
 
 .role-default {
-  background: var(--gray-200);
-  color: var(--gray-700);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
 }
 
 .user-date {

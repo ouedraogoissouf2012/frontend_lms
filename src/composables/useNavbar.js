@@ -29,7 +29,10 @@ export function useNavbar() {
     markAsRead: markNotificationAsRead,
     markAllAsRead: markAllNotificationsAsRead,
     loadNotifications
-  } = useNotifications(false)
+    // Objet d'options — pas le booléen `false` d'origine, que la déstructuration
+    // boxait en silence et qui laissait donc `autoCheck` à son défaut `true`.
+    // La navbar consomme l'état PARTAGÉ ; le polling est porté par DashboardLayout.
+  } = useNotifications({ autoCheck: false })
 
   // Initiales utilisateur
   const userInitials = computed(() => {

@@ -9,7 +9,7 @@
         <div class="stat-box">
           <UserGroupIcon class="stat-icon text-blue-500" />
           <div class="stat-content">
-            <p class="stat-value">{{ stats.enseignants || 0 }}</p>
+            <p class="stat-value">{{ formatCount(stats.enseignants) }}</p>
             <p class="stat-label">Enseignants</p>
           </div>
         </div>
@@ -17,7 +17,7 @@
         <div class="stat-box">
           <AcademicCapIcon class="stat-icon text-green-500" />
           <div class="stat-content">
-            <p class="stat-value">{{ stats.etudiants || 0 }}</p>
+            <p class="stat-value">{{ formatCount(stats.etudiants) }}</p>
             <p class="stat-label">Étudiants</p>
           </div>
         </div>
@@ -25,7 +25,7 @@
         <div class="stat-box">
           <BuildingLibraryIcon class="stat-icon text-purple-500" />
           <div class="stat-content">
-            <p class="stat-value">{{ stats.classes || 0 }}</p>
+            <p class="stat-value">{{ formatCount(stats.classes) }}</p>
             <p class="stat-label">Classes actives</p>
           </div>
         </div>
@@ -33,7 +33,7 @@
         <div class="stat-box">
           <BookOpenIcon class="stat-icon text-orange-500" />
           <div class="stat-content">
-            <p class="stat-value">{{ stats.matieres || 0 }}</p>
+            <p class="stat-value">{{ formatCount(stats.matieres) }}</p>
             <p class="stat-label">Matières</p>
           </div>
         </div>
@@ -54,11 +54,14 @@ import {
   AcademicCapIcon,
   BuildingLibraryIcon,
 } from '@heroicons/vue/24/outline'
+import { formatCount } from '@/utils/formatters'
 
 defineProps({
   stats: {
     type: Object,
-    default: () => ({ enseignants: 0, etudiants: 0, classes: 0, matieres: 0 }),
+    // Défaut NON MESURÉ (null), et non zéro : sans données chargées, l'ancien
+    // défaut affichait « 0 Enseignants » comme un comptage effectif.
+    default: () => ({ enseignants: null, etudiants: null, classes: null, matieres: null }),
   },
 })
 </script>

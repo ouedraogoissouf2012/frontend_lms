@@ -18,9 +18,9 @@ describe('StatsMainGrid (#H3)', () => {
     expect(w.find('.stat-row.total .stat-value').text()).toBe('8')
   })
 
-  it('affiche 0 par défaut pour les valeurs manquantes', () => {
+  it('affiche « — » pour les valeurs NON mesurées (plus de zéros muets)', () => {
     const w = mount(StatsMainGrid, { props: { stats: {} } })
     const values = w.findAll('.stat-value').map(v => v.text())
-    expect(values.every(v => v === '0')).toBe(true)
+    expect(values.every(v => v === '—')).toBe(true)
   })
 })

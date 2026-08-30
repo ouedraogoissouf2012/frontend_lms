@@ -1,6 +1,17 @@
 import { klassciService } from '@/services/klassci'
 import { analyticsService } from '@/services/analytics'
 import { readCache, writeCache } from '@/services/cache'
+import { logError } from '@/services/errorHandler'
+import { deriveInstitutionCounters } from '@/utils/classStats'
+
+/**
+ * Nombre fini, ou `null` si la valeur n'a pas été MESURÉE.
+ *
+ * La distinction est le cœur du correctif : afficher `0` pour une métrique dont
+ * aucune source n'a été chargée présente une absence de mesure comme une mesure
+ * nulle — l'utilisateur lit « il n'y a rien » là où il faut lire « on ne sait pas ».
+ */
+const measured = (value) => (Number.isFinite(value) ? value : null)
 
 /**
  * Couche chargement de données d'AdminDashboard (#H3 ≤300) : récupère les données
@@ -12,12 +23,13 @@ import { readCache, writeCache } from '@/services/cache'
  * extraite verbatim de la vue d'origine pour garantir la parité de comportement.
  */
 export function useAdminDashboardData({
-  stats, classes, matieres, activityData, pendingTasks, recentUsers, calendarEvents, loading,
+  stats, classes, matieres, activityData, pendingTasks, recentUsers, calendarEvents, loading, loadError,
 }) {
   async function loadKlassciData() {
     loading.value.classes = true
     loading.value.matieres = true
     loading.value.stats = true
+    loadError.value = null
 
     // Lire les caches existants
     const classesCached = readCache('admin_klassci_classes')
@@ -47,21 +59,51 @@ export function useAdminDashboardData({
         writeCache('admin_klassci_matieres', matieresData)
       }
 
-      const nbEtudiants = (classes.value || []).reduce((sum, c) => sum + (c.places_occupees || 0), 0)
+      // Les métriques système portent le total d'évaluations. Chargées ici (et non
+      // dans loadAnalytics) pour que les stats soient publiées d'un seul bloc, et
+      // en tolérance de panne : leur échec ne doit pas priver le tableau de bord
+      // des compteurs KLASSCI, qui eux sont déjà en main.
+      const metrics = await analyticsService.getSystemMetrics().catch((err) => {
+        logError(err, '[useAdminDashboardData] métriques système')
+        return null
+      })
+
       stats.value = {
-        nb_enseignants: enseignants?.length || 0,
-        nb_etudiants: nbEtudiants,
-        nb_classes_actives: classes.value?.length || 0,
-        nb_matieres_actives: matieres.value?.length || 0,
-        nb_filieres: stats.value?.nb_filieres || 0,
-        nb_niveaux: stats.value?.nb_niveaux || 0,
-        nb_seances_actives: stats.value?.nb_seances_actives || 0,
-        nb_evaluations: stats.value?.nb_evaluations || 0
+        // Dérivation PARTAGÉE (utils/classStats) avec l'écran Statistiques et le
+        // profil. `nb_filieres`/`nb_niveaux` étaient auparavant lus depuis
+        // `stats.value` — l'objet même que cette affectation remplace, et qu'aucune
+        // source ne peuplait : les deux compteurs étaient figés à 0 pour toujours.
+        ...deriveInstitutionCounters({
+          classes: classes.value,
+          matieres: matieres.value,
+          enseignants,
+        }),
+        // Aucune source n'est chargée pour les séances actives : /lms/seances/upcoming
+        // est délibérément écarté du montage (coûteux, cf. useAdminDashboard).
+        // DETTE TRACÉE : à alimenter le jour où une métrique dédiée existe.
+        // `null` = non mesuré → l'UI affiche « — », pas un 0 fabriqué.
+        nb_seances_actives: null,
+        nb_evaluations: measured(metrics?.evaluations?.total),
       }
     } catch (error) {
-      console.error('❌ Erreur chargement données KLASSCI:', error)
+      logError(error, '[useAdminDashboardData] chargement KLASSCI')
       if (needClasses) classes.value = []
       if (needMatieres) matieres.value = []
+      // Aucun comptage n'a abouti : on marque les compteurs NON MESURÉS (null)
+      // plutôt que de laisser l'écran afficher quatre zéros, qui se lisent comme
+      // un établissement vide. Et on remonte l'erreur, jusqu'ici totalement muette.
+      stats.value = {
+        nb_enseignants: null,
+        nb_etudiants: null,
+        nb_classes_actives: null,
+        nb_matieres_actives: null,
+        nb_filieres: null,
+        nb_niveaux: null,
+        nb_seances_actives: null,
+        nb_evaluations: null,
+      }
+      loadError.value = error?.userMessage
+        || 'Impossible de charger les données de l’établissement. Les compteurs sont indisponibles.'
     } finally {
       loading.value.classes = false
       loading.value.matieres = false

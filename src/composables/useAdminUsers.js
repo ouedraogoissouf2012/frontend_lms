@@ -1,8 +1,15 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import klassciService from '@/services/klassci'
 import { readCache, writeCache, invalidateEntity } from '@/services/cache'
+import { logError } from '@/services/errorHandler'
+import { mapWithConcurrency } from '@/utils/concurrency'
 
 const PAGE_SIZE = 25
+
+// Plafond de requêtes simultanées vers /proxy/classes/{id}/etudiants. Borné à
+// dessein : le backend proxifie KLASSCI derrière un quota (`x-ratelimit-limit`),
+// un fan-out non borné le ferait tomber en 429 sur un gros établissement.
+const CLASSES_FETCH_CONCURRENCY = 4
 
 /**
  * Couche données d'AdminUsers (#G1 ≤300) : agrège étudiants + enseignants KLASSCI
@@ -17,6 +24,10 @@ export function useAdminUsers() {
   const loading = ref(true)
   const loadingProgress = ref('')
   const error = ref(null)
+  // Échec PARTIEL : quelques classes n'ont pas répondu. Distinct de `error`, qui
+  // remplace tout l'écran ; ici la liste obtenue reste affichée et utile, mais
+  // l'utilisateur doit savoir qu'elle est incomplète.
+  const partialWarning = ref(null)
   const selectedUser = ref(null)
 
   // Filtres / tri / pagination
@@ -93,28 +104,58 @@ export function useAdminUsers() {
     classes.value = Array.isArray(classesData) ? classesData : []
     const enseignantsData = await klassciService.getEnseignants()
     enseignants.value = Array.isArray(enseignantsData) ? enseignantsData : []
+    // Les étudiants ne sont exposés par KLASSCI que classe par classe : le N+1 est
+    // imposé par l'API amont. On le borne en parallèle au lieu de le sérialiser
+    // (17 classes = 17 RTT en file avant ce correctif). DETTE TRACÉE : la vraie
+    // correction est un endpoint d'agrégation côté backend — le front ne peut pas
+    // ramener ce coût sous O(nb_classes) à lui seul.
+    const classeList = classes.value
+    let done = 0
+    const settled = await mapWithConcurrency(classeList, CLASSES_FETCH_CONCURRENCY, async (classe) => {
+      const etudiantsData = await klassciService.getClasseEtudiants(classe.id)
+      onProgress?.(`Chargement des étudiants… ${++done}/${classeList.length} classes`)
+      return etudiantsData
+    })
+
     const allEtudiants = []
-    for (const classe of classes.value) {
-      try {
-        onProgress?.(`Chargement des étudiants de ${classe.nom || 'classe ' + classe.id}...`)
-        const etudiantsData = await klassciService.getClasseEtudiants(classe.id)
-        const arr = Array.isArray(etudiantsData) ? etudiantsData : []
-        arr.forEach(etu => {
-          etu.classe_id = classe.id
-          etu.classe_nom = classe.name || classe.libelle || classe.nom || `Classe ${classe.id}`
-          allEtudiants.push(etu)
-        })
-      } catch (err) {
-        console.warn(`Impossible de charger les étudiants de la classe ${classe.id}:`, err.message)
+    let failed = 0
+    settled.forEach((outcome, i) => {
+      const classe = classeList[i]
+      if (outcome.status === 'rejected') {
+        failed++
+        // logError (prod-safe) et non console.warn : les console.* sont neutralisés
+        // en production (main.js), l'échec ne laissait donc AUCUNE trace en prod.
+        logError(outcome.reason, `[useAdminUsers] étudiants de la classe ${classe?.id}`)
+        return
       }
+      const arr = Array.isArray(outcome.value) ? outcome.value : []
+      arr.forEach(etu => {
+        etu.classe_id = classe.id
+        etu.classe_nom = classe.name || classe.libelle || classe.nom || `Classe ${classe.id}`
+        allEtudiants.push(etu)
+      })
+    })
+
+    // Échec TOTAL : on refuse de présenter une liste vide comme la vérité. Sans
+    // cette levée, une panne complète s'affichait « 0 étudiant » — un admin en
+    // concluait que son établissement n'a aucun élève.
+    if (classeList.length > 0 && failed === classeList.length) {
+      throw new Error(
+        `Impossible de charger les étudiants : aucune des ${classeList.length} classes n'a répondu. `
+        + 'Réessayez dans quelques instants.'
+      )
     }
+
     etudiants.value = allEtudiants
+    partialWarning.value = failed > 0
+      ? `${failed} classe(s) sur ${classeList.length} n'ont pas pu être chargées : la liste des étudiants est incomplète.`
+      : null
     writeCache('admin_users', { etudiants: etudiants.value, enseignants: enseignants.value, classes: classes.value })
   }
 
   async function loadAllUsers(forceReload = false) {
     try {
-      loading.value = true; error.value = null; loadingProgress.value = ''
+      loading.value = true; error.value = null; partialWarning.value = null; loadingProgress.value = ''
       if (forceReload) {
         // #237 : le force-reload re-fetche classes + enseignants (+ étudiants) ;
         // on invalide leurs clés sœurs pour que les vues admin/coordinateur/
@@ -129,7 +170,13 @@ export function useAdminUsers() {
           enseignants.value = cached.enseignants || []
           classes.value = cached.classes || []
           loading.value = false
-          fetchAll().catch(() => {}) // rafraîchissement en arrière-plan
+          // Rafraîchissement en arrière-plan : on garde la donnée en cache affichée
+          // (pas d'écran d'erreur pour une revalidation), mais on TRACE l'échec au
+          // lieu de l'avaler, et on signale que l'affichage peut être périmé.
+          fetchAll().catch((err) => {
+            logError(err, '[useAdminUsers] revalidation en arrière-plan')
+            partialWarning.value = 'Actualisation impossible : les données affichées peuvent être périmées.'
+          })
           return
         }
       }
@@ -137,8 +184,10 @@ export function useAdminUsers() {
       await fetchAll((p) => { loadingProgress.value = p })
       loading.value = false; loadingProgress.value = ''
     } catch (err) {
-      console.error('Erreur chargement utilisateurs:', err)
-      error.value = err.message || 'Erreur lors du chargement des utilisateurs'
+      logError(err, '[useAdminUsers] chargement')
+      // `userMessage` vient de l'intercepteur axios (message SÛR, sans détail
+      // technique) ; `err.message` couvre les erreurs levées ici même.
+      error.value = err.userMessage || err.message || 'Erreur lors du chargement des utilisateurs'
       loading.value = false; loadingProgress.value = ''
     }
   }
@@ -146,7 +195,7 @@ export function useAdminUsers() {
   onMounted(() => { loadAllUsers() })
 
   return {
-    etudiants, enseignants, classes, loading, loadingProgress, error, selectedUser,
+    etudiants, enseignants, classes, loading, loadingProgress, error, partialWarning, selectedUser,
     searchQuery, filterRole, filterClasse, currentPage, sortField, sortAsc,
     totalUsers, filteredUsers, totalPages, paginatedUsers,
     sortBy, selectUser, closeModal, loadAllUsers,

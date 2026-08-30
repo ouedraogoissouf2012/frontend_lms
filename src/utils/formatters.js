@@ -99,6 +99,28 @@ export function formatElapsed(seconds) {
 }
 
 /**
+ * Compteur MESURÉ (nombre fini) → sa valeur ; NON MESURÉ → repli « — ».
+ *
+ * `{{ x || 0 }}` affichait `0` aussi bien pour un vrai zéro que pour une donnée
+ * jamais chargée (une panne se lisait « 0 étudiant »). Seule une valeur numérique
+ * effective (nombre fini, ou chaîne numérique d'un payload API) produit un nombre ;
+ * le suffixe éventuel n'est appliqué qu'à une valeur mesurée.
+ *
+ * @param {*} value Valeur brute (nombre, chaîne numérique, null/undefined…).
+ * @param {{ fallback?: string, suffix?: string }} [opts]
+ * @returns {string}
+ */
+export function formatCount(value, { fallback = '—', suffix = '' } = {}) {
+  let n = value
+  if (typeof value === 'string') {
+    if (value.trim() === '') return fallback
+    n = Number(value)
+  }
+  if (typeof n !== 'number' || !Number.isFinite(n)) return fallback
+  return `${n}${suffix}`
+}
+
+/**
  * Initiales (max 2 lettres, majuscules) — polymorphe :
  * chaîne `'Jean Dupont'`, objet `{prenom, nom}` ou `{name}`. Vide → '?'.
  */
@@ -122,6 +144,33 @@ export function getInitials(input) {
   return name.substring(0, 2).toUpperCase()
 }
 
+/**
+ * Nom affichable d'un utilisateur, tolérant aux DEUX formes de payload.
+ *
+ * Le backend renvoie un unique champ `name` au login, tandis que plusieurs
+ * gabarits composaient `{{ user.nom }} {{ user.prenom }}` : les deux champs
+ * étant absents, l'écran n'affichait qu'un espace. `name` prime, les champs
+ * séparés servent de repli, et un seul des deux suffit (pas d'espace parasite).
+ *
+ * @param {{name?: string, prenom?: string, nom?: string}|null|undefined} user
+ * @param {{fallback?: string}} [opts] - Repli quand aucun nom n'est disponible ('' par défaut).
+ * @returns {string}
+ */
+export function getFullName(user, opts) {
+  const fallback = opts?.fallback ?? ''
+  if (!user || typeof user !== 'object') return fallback
+
+  const direct = String(user.name ?? '').trim()
+  if (direct) return direct
+
+  const composed = [user.prenom, user.nom]
+    .map((part) => String(part ?? '').trim())
+    .filter(Boolean)
+    .join(' ')
+
+  return composed || fallback
+}
+
 /** Tronque `text` à `maxLength` caractères et ajoute une ellipse. Vide → ''. */
 export function truncate(text, maxLength) {
   if (!text) return ''
@@ -131,3 +180,4 @@ export function truncate(text, maxLength) {
 
 /** Alias de `truncate` (compat sites migrés). */
 export { truncate as truncateText }
+

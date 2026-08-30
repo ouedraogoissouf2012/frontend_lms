@@ -7,7 +7,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 const { tokenRef } = vi.hoisted(() => ({ tokenRef: { value: 'TOK' } }))
 vi.mock('@/stores/auth', () => ({ useAuthStore: () => ({ token: tokenRef.value }) }))
-vi.mock('@/constants/http', () => ({ apiBaseUrl: () => 'http://api.test/api' }))
+vi.mock('@/constants/http', () => ({ apiBaseUrl: () => 'http://api.test/api', API_TIMEOUT_MS: 30000 }))
 
 import { sendVisioLeaveBeacon } from '@/services/visioLeave'
 

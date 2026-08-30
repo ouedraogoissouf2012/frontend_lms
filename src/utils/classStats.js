@@ -118,6 +118,72 @@ function matiereNiveauIds(matiere) {
   })
 }
 
+/**
+ * Compte les identifiants DISTINCTS produits par `extractIds` sur un ensemble de
+ * classes. Fonction interne factorisée : filières et niveaux ne diffèrent que par
+ * l'extracteur, tous deux déjà tolérants aux variantes de nommage KLASSCI
+ * (`filiere` / `filieres` / `filiere_id` / `klassci_*`).
+ */
+function countDistinct(classes, extractIds) {
+  const seen = new Set()
+  for (const classe of toArray(classes)) {
+    for (const id of extractIds(classe)) seen.add(id)
+  }
+  return seen.size
+}
+
+/**
+ * Nombre de filières distinctes couvertes par un ensemble de classes.
+ * @param {unknown} classes - Liste de classes KLASSCI (toute autre valeur → 0).
+ * @returns {number}
+ */
+export function countDistinctFilieres(classes) {
+  return countDistinct(classes, classFiliereIds)
+}
+
+/**
+ * Nombre de niveaux distincts couverts par un ensemble de classes.
+ * @param {unknown} classes - Liste de classes KLASSCI (toute autre valeur → 0).
+ * @returns {number}
+ */
+export function countDistinctNiveaux(classes) {
+  return countDistinct(classes, classNiveauIds)
+}
+
+/**
+ * Compteurs d'établissement dérivés des données KLASSCI déjà chargées — source
+ * UNIQUE, pure, partagée par le tableau de bord, l'écran Statistiques et le profil.
+ *
+ * Ces trois écrans calculaient les mêmes six compteurs de trois façons, dont deux
+ * lisaient un `admin_data.statistics` absent de la réponse de login et rendaient
+ * donc des zéros — une panne ou une absence de source s'y présentait comme un
+ * établissement vide. Ici, une source absente vaut `null` (« non mesuré ») ;
+ * seule une liste réellement vide produit `0`.
+ *
+ * @param {{classes?: unknown, matieres?: unknown, enseignants?: unknown}} sources
+ *   Chaque entrée est la liste chargée, ou `null`/absente si son chargement a échoué.
+ * @returns {{nb_enseignants:number|null, nb_etudiants:number|null,
+ *   nb_classes_actives:number|null, nb_matieres_actives:number|null,
+ *   nb_filieres:number|null, nb_niveaux:number|null}}
+ */
+export function deriveInstitutionCounters({ classes, matieres, enseignants } = {}) {
+  const classeList = Array.isArray(classes) ? classes : null
+  const matiereList = Array.isArray(matieres) ? matieres : null
+  const enseignantList = Array.isArray(enseignants) ? enseignants : null
+
+  return {
+    nb_enseignants: enseignantList ? enseignantList.length : null,
+    // `places_occupees` non numérique est ignoré plutôt que propagé en NaN.
+    nb_etudiants: classeList
+      ? classeList.reduce((sum, c) => sum + (Number(c?.places_occupees) || 0), 0)
+      : null,
+    nb_classes_actives: classeList ? classeList.length : null,
+    nb_matieres_actives: matiereList ? matiereList.length : null,
+    nb_filieres: classeList ? countDistinctFilieres(classeList) : null,
+    nb_niveaux: classeList ? countDistinctNiveaux(classeList) : null,
+  }
+}
+
 export function getAssignedClassIds(matieres = []) {
   const ids = new Set()
   for (const matiere of toArray(matieres)) {

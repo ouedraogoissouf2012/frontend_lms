@@ -55,10 +55,18 @@ describe('useAdminSettings (#H3)', () => {
     expect(s.user.value).toEqual(mockUser)
   })
 
-  it('expose le libellé de rôle traduit, brut si inconnu', async () => {
+  it('expose le libellé de rôle NORMALISÉ, sans fuite de la valeur brute', async () => {
     const s = await setup()
     expect(s.getRoleLabel('admin')).toBe('Administrateur')
-    expect(s.getRoleLabel('inconnu')).toBe('inconnu')
+
+    // `superAdmin` = admin d'ÉTABLISSEMENT KLASSCI, pas le supradmin PLATEFORME :
+    // la table locale l'intitulait « Super Administrateur » (#659).
+    expect(s.getRoleLabel('superAdmin')).toBe('Administrateur')
+    expect(s.getRoleLabel('supradmin')).toBe('Super Administrateur')
+
+    // Rôle inconnu → '' et non la chaîne brute du backend : `roles.js` proscrit
+    // l'affichage d'une valeur brute en UI. L'ancien repli `|| role` l'exposait.
+    expect(s.getRoleLabel('inconnu')).toBe('')
   })
 
   it('savePreferences persiste en localStorage et notifie', async () => {

@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 vi.mock('@/stores/auth', () => ({ useAuthStore: () => ({ token: 'TEST_TOKEN' }) }))
-vi.mock('@/constants/http', () => ({ apiBaseUrl: () => 'http://api.test/api' }))
+vi.mock('@/constants/http', () => ({ apiBaseUrl: () => 'http://api.test/api', API_TIMEOUT_MS: 30000 }))
 
 import attendanceExportService from '@/services/attendanceExport'
 
