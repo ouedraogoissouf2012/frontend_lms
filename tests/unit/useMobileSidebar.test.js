@@ -63,8 +63,20 @@ describe('useMobileSidebar (#H12)', () => {
     expect(api.adminNavItems.value).toEqual([])
   })
 
-  it('supradmin : items administration (classes, matières, enseignants)', () => {
+  it('supradmin plateforme : lien Institutions (jamais les écrans intra-école) — #659', () => {
     getUser.mockReturnValue({ role: 'supradmin' })
+    const paths = run().api.adminNavItems.value.map(i => i.path)
+    expect(paths).toEqual(['/admin/institutions'])
+  })
+
+  it('admin d\'établissement : Classes / Matières / Enseignants (pas Institutions) — #659', () => {
+    getUser.mockReturnValue({ role: 'admin' })
+    const paths = run().api.adminNavItems.value.map(i => i.path)
+    expect(paths).toEqual(['/admin/classes', '/admin/matieres', '/admin/enseignants'])
+  })
+
+  it('superAdmin (admin d\'école KLASSCI) : mêmes items admin qu\'un admin — #659', () => {
+    getUser.mockReturnValue({ role: 'superAdmin' })
     const paths = run().api.adminNavItems.value.map(i => i.path)
     expect(paths).toEqual(['/admin/classes', '/admin/matieres', '/admin/enseignants'])
   })
