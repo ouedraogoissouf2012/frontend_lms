@@ -2,7 +2,7 @@
   <DashboardLayout>
     <div class="dashboard-content">
       <!-- Header -->
-      <div class="welcome-header">
+      <div v-reveal class="welcome-header">
         <ShieldCheckIcon class="welcome-icon" />
         <div>
           <h1 class="page-title">Dashboard {{ getDashboardTitle() }}</h1>
@@ -25,25 +25,27 @@
       <!-- Dashboard Content -->
       <div v-if="!loading.stats && !loading.classes && !loading.matieres">
         <!-- Statistiques Admin depuis KLASSCI -->
-        <DashboardStatsCards v-if="stats" :stats="stats" />
+        <DashboardStatsCards v-if="stats" v-reveal="70" :stats="stats" />
 
         <!-- Widget Graphe Activité (30 jours) -->
-        <DashboardActivityChart v-if="activityData" :data="activityData" />
+        <DashboardActivityChart v-if="activityData" v-reveal="140" :data="activityData" />
 
         <!-- Widget Tâches en Attente -->
-        <DashboardPendingTasks v-if="pendingTasks" :pending-tasks="pendingTasks" />
+        <DashboardPendingTasks v-if="pendingTasks" v-reveal="210" :pending-tasks="pendingTasks" />
 
         <!-- Widgets Activité et Système -->
-        <DashboardSystemWidgets :stats="stats" />
+        <DashboardSystemWidgets v-reveal :stats="stats" />
 
         <!-- Widget Actions Rapides -->
         <DashboardQuickActions
+          v-reveal
           @navigate="navigateTo"
           @generate-report="showGenerateReportModal = true"
         />
 
         <!-- Actions Admin (Navigation) - Conditionnelles selon role -->
         <DashboardRoleActions
+          v-reveal
           :is-teacher="isTeacher()"
           :is-coordinateur="isCoordinateur()"
           :is-super-admin="isSuperAdmin()"
@@ -51,6 +53,7 @@
 
         <!-- Classes KLASSCI -->
         <DashboardClasses
+          v-reveal
           :classes="classes"
           :loading="loading.classes"
           :limit="6"
@@ -58,17 +61,18 @@
         />
 
         <!-- Widget Utilisateurs Récents -->
-        <div class="mb-6">
+        <div v-reveal class="mb-6">
           <DashboardRecentUsers :users="recentUsers" :limit="5" />
         </div>
 
         <!-- Calendrier des événements -->
-        <div class="mb-6">
+        <div v-reveal class="mb-6">
           <CalendarWidget :events="calendarEvents" height="500px" />
         </div>
 
         <!-- Matières KLASSCI -->
         <DashboardMatieres
+          v-reveal
           :matieres="matieres"
           :loading="loading.matieres"
           :limit="12"

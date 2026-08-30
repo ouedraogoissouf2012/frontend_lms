@@ -61,7 +61,10 @@ export default {
 <style scoped>
 .modern-navbar {
   height: 64px;
-  background: var(--navbar-bg);
+  /* Effet verre : translucide + flou du contenu qui défile dessous. */
+  background: rgba(var(--navbar-bg-rgb), 0.8);
+  backdrop-filter: blur(12px) saturate(1.4);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
   border-bottom: 1px solid var(--navbar-border);
   box-shadow: var(--navbar-shadow);
   display: flex;
@@ -72,6 +75,13 @@ export default {
   top: 0;
   z-index: var(--z-sticky);
   transition: all var(--transition-base);
+}
+
+/* Repli opaque si le navigateur ne sait pas flouter (sinon fond semi-transparent). */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .modern-navbar {
+    background: var(--navbar-bg);
+  }
 }
 
 /* Right Section */
