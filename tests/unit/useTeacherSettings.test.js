@@ -20,6 +20,7 @@ vi.mock('vue-router', () => ({ useRouter: () => ({ push: pushMock }) }))
 import { useTeacherSettings } from '@/composables/useTeacherSettings'
 import { STORAGE_KEYS } from '@/constants/storageKeys'
 import { PASSWORD_CHANGE_UNAVAILABLE_MESSAGE } from '@/constants/passwordChange'
+import { useConfirm } from '@/composables/useConfirm'
 
 async function setup() {
   let api
@@ -63,19 +64,19 @@ describe('useTeacherSettings (#H11)', () => {
   })
 
   it('déconnecte après confirmation', async () => {
-    vi.stubGlobal('confirm', () => true)
     const s = await setup()
-    s.logout()
+    const p = s.logout() // ouvre la boîte de confirmation (asynchrone)
+    useConfirm().accept() // l'utilisateur confirme
+    await p
     expect(authMock.logout).toHaveBeenCalled()
     expect(pushMock).toHaveBeenCalledWith('/login')
-    vi.unstubAllGlobals()
   })
 
   it('ne déconnecte pas si l\'utilisateur annule', async () => {
-    vi.stubGlobal('confirm', () => false)
     const s = await setup()
-    s.logout()
+    const p = s.logout()
+    useConfirm().cancel() // l'utilisateur annule
+    await p
     expect(authMock.logout).not.toHaveBeenCalled()
-    vi.unstubAllGlobals()
   })
 })

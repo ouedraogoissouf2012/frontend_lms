@@ -35,6 +35,7 @@ vi.mock('vue-router', () => ({ useRouter: () => ({ push: pushSpy }) }))
 
 import { useAdminSettings } from '@/composables/useAdminSettings'
 import { PASSWORD_CHANGE_UNAVAILABLE_MESSAGE } from '@/constants/passwordChange'
+import { useConfirm } from '@/composables/useConfirm'
 
 async function setup() {
   let api
@@ -97,20 +98,20 @@ describe('useAdminSettings (#H3)', () => {
   })
 
   it('logout déconnecte et redirige après confirmation', async () => {
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
     const s = await setup()
-    s.logout()
+    const p = s.logout() // ouvre la boîte de confirmation (asynchrone)
+    useConfirm().accept() // l'utilisateur confirme
+    await p
     expect(logoutSpy).toHaveBeenCalled()
     expect(pushSpy).toHaveBeenCalledWith('/login')
-    confirmSpy.mockRestore()
   })
 
   it('logout annulé ne déconnecte pas', async () => {
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
     const s = await setup()
-    s.logout()
+    const p = s.logout()
+    useConfirm().cancel() // l'utilisateur annule
+    await p
     expect(logoutSpy).not.toHaveBeenCalled()
     expect(pushSpy).not.toHaveBeenCalled()
-    confirmSpy.mockRestore()
   })
 })

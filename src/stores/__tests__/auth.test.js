@@ -20,7 +20,9 @@ const { mockPost, mockGet } = vi.hoisted(() => ({ mockPost: vi.fn(), mockGet: vi
 // l'instance axios `default` par un double contrôlable (pas de réseau).
 vi.mock('@/services/api', async (importActual) => {
   const actual = await importActual()
-  return { ...actual, default: { post: mockPost, get: mockGet } }
+  // revokeSession neutralisé : logout() ne doit émettre AUCUN réseau réel ici
+  // (le comportement de révocation est couvert par authLogoutRevoke.test.js).
+  return { ...actual, default: { post: mockPost, get: mockGet }, revokeSession: vi.fn(() => Promise.resolve()) }
 })
 vi.mock('@/services/cache', () => ({ clearAllCache: vi.fn() }))
 

@@ -7,53 +7,19 @@
       :title="toast.title"
       :type="toast.type"
       :duration="toast.duration"
-      @close="removeToast(toast.id)"
+      @close="remove(toast.id)"
     />
   </div>
 </template>
 
-<script>
-import { ref } from 'vue'
+<script setup>
+// Rend la file de toasts pilotée par le composable useToast (source unique).
+// Monté UNE seule fois au niveau App → les toasts s'affichent sur TOUTE page
+// (fin du hack `window.$toast`, jusqu'ici muet hors DashboardLayout).
 import Toast from './Toast.vue'
+import { useToast } from '@/composables/useToast'
 
-export default {
-  name: 'ToastContainer',
-  components: {
-    Toast
-  },
-  setup() {
-    const toasts = ref([])
-
-    const addToast = (options) => {
-      const id = Date.now() + Math.random()
-      toasts.value.push({
-        id,
-        message: options.message || '',
-        title: options.title || '',
-        type: options.type || 'info',
-        duration: options.duration || 5000
-      })
-      return id
-    }
-
-    const removeToast = (id) => {
-      const index = toasts.value.findIndex(t => t.id === id)
-      if (index > -1) {
-        toasts.value.splice(index, 1)
-      }
-    }
-
-    // Exposer la fonction globalement
-    if (typeof window !== 'undefined') {
-      window.$toast = addToast
-    }
-
-    return {
-      toasts,
-      removeToast
-    }
-  }
-}
+const { toasts, remove } = useToast()
 </script>
 
 <style scoped>

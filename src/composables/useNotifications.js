@@ -1,6 +1,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { notificationsService } from '@/services/notifications'
 import { logError } from '@/services/errorHandler'
+import { useToast } from '@/composables/useToast'
 
 /**
  * Notifications de l'utilisateur courant — SOURCE PARTAGÉE unique.
@@ -121,9 +122,10 @@ async function checkNewNotifications(showToast) {
       return false
     })
 
-    if (showToast && newNotifications.length > 0 && typeof window !== 'undefined' && window.$toast) {
+    if (showToast && newNotifications.length > 0) {
+      const toast = useToast()
       newNotifications.forEach(notif => {
-        window.$toast({
+        toast.show({
           title: notif.title,
           message: notif.message,
           type: getNotificationType(notif.type),

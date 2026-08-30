@@ -64,7 +64,9 @@ api.interceptors.response.use(
     // Déconnexion seulement si le 401 invalide vraiment la session locale (décision
     // pure et testée). Un 401 de proxy KLASSCI ne doit PAS éjecter l'utilisateur.
     if (shouldForceLogout(error)) {
-      useAuthStore().logout()
+      // Session déjà morte côté serveur (c'est la cause du 401) : purge locale
+      // seule, sans tenter une révocation vouée à re-401.
+      useAuthStore().logout({ revoke: false })
 
       // Ne rediriger que si on n'est pas déjà sur la page de login
       if (!window.location.pathname.includes('/login')) {
@@ -75,6 +77,29 @@ api.interceptors.response.use(
     return Promise.reject(error)
   }
 )
+
+// Client NU (sans intercepteurs) réservé à la révocation de session. Passer par
+// `api` déclencherait, sur un 401 (token déjà mort côté serveur), le force-logout
+// de l'intercepteur de réponse → récursion logout() → POST /auth/logout → 401 → …
+// Ce client court-circuite les intercepteurs : un échec est simplement rejeté.
+const revokeClient = axios.create({
+  baseURL: apiBaseUrl(),
+  timeout: API_TIMEOUT_MS,
+  headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+})
+
+/**
+ * Révoque le token Sanctum côté serveur (POST /auth/logout). Best-effort : le
+ * store purge l'état local sans attendre et ignore l'échec (réseau coupé / token
+ * déjà invalide). Le token est capturé AVANT la purge locale et passé explicitement.
+ * @param {string} token Token à révoquer.
+ * @returns {Promise} Résolue si révoqué, rejetée sinon (à ignorer côté appelant).
+ */
+export function revokeSession(token) {
+  return revokeClient.post('/auth/logout', null, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+}
 
 // Façade d'authentification — délègue au store Pinia useAuthStore (#19).
 // L'état (user/token/meta/institution) vit DANS le store ; cette façade conserve

@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import api from '../services/api'
+import api, { revokeSession } from '../services/api'
 import { clearAllCache } from '../services/cache'
 import {
   normalizeRole,
@@ -107,8 +107,24 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.setItem(KEYS.institution, slug)
   }
 
-  /** Purge complète : state + sessionStorage + cache tenant-scopé. */
-  function logout() {
+  /**
+   * Purge complète de la session : état + sessionStorage + cache tenant-scopé,
+   * ET révocation du token côté serveur (best-effort).
+   *
+   * La purge locale est SYNCHRONE et immédiate : l'UI se déconnecte sans attendre
+   * le réseau (appelants `await`ants comme non-`await`ants inchangés). La révocation
+   * part ensuite en arrière-plan avec le token CAPTURÉ avant la purge (l'intercepteur
+   * ne l'attacherait plus, `token` étant déjà nul) et ignore tout échec.
+   *
+   * Avant, aucune révocation : le token Sanctum restait VALIDE après déconnexion
+   * (rejouable jusqu'à expiration). Cf. api.js::revokeSession (hors intercepteurs).
+   *
+   * @param {{ revoke?: boolean }} [opts] revoke=false sur le chemin force-logout
+   *   (api.js), où la session est déjà invalidée côté serveur.
+   */
+  function logout({ revoke = true } = {}) {
+    const staleToken = token.value
+
     user.value = null
     token.value = null
     meta.value = null
@@ -119,6 +135,12 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.removeItem(KEYS.meta)
     sessionStorage.removeItem(KEYS.institution)
     clearAllCache()
+
+    if (revoke && staleToken) {
+      revokeSession(staleToken).catch(() => {
+        // Réseau coupé / token déjà invalide : la session locale est déjà purgée.
+      })
+    }
   }
 
   /** Profil courant (GET /auth/me) — ne mute pas l'état. */
