@@ -47,6 +47,32 @@ describe('MobileSidebar.vue (G9) — montage', () => {
     expect(hrefs).toContain('/teacher/settings')
   })
 
+  it('admin : expose les raccourcis d\'administration intra-école, jamais Institutions (#659)', () => {
+    getUser.mockReturnValue({ role: 'admin' })
+    const w = mountSidebar(true)
+    const hrefs = w.findAll('a.nav-link').map((a) => a.attributes('href'))
+    expect(hrefs).toContain('/admin/classes')
+    expect(hrefs).toContain('/admin/matieres')
+    expect(hrefs).toContain('/admin/enseignants')
+    expect(hrefs).not.toContain('/admin/institutions')
+  })
+
+  it('superAdmin (admin d\'école KLASSCI) : mêmes raccourcis admin, jamais Institutions (#659)', () => {
+    getUser.mockReturnValue({ role: 'superAdmin' })
+    const w = mountSidebar(true)
+    const hrefs = w.findAll('a.nav-link').map((a) => a.attributes('href'))
+    expect(hrefs).toContain('/admin/classes')
+    expect(hrefs).not.toContain('/admin/institutions')
+  })
+
+  it('supradmin (plateforme) : expose Institutions, pas les écrans intra-école (#659)', () => {
+    getUser.mockReturnValue({ role: 'supradmin' })
+    const w = mountSidebar(true)
+    const hrefs = w.findAll('a.nav-link').map((a) => a.attributes('href'))
+    expect(hrefs).toContain('/admin/institutions')
+    expect(hrefs).not.toContain('/admin/classes')
+  })
+
   it('fermé : ne rend pas le drawer', () => {
     getUser.mockReturnValue({ role: 'enseignant' })
     const w = mountSidebar(false)

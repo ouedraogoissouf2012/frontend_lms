@@ -12,7 +12,8 @@ import { ROLES } from '@/constants/roles'
  * `superAdmin`, `secretaire`) : `canActivate` → `hasRole` normalise les DEUX
  * côtés via `normalizeRole` (constants/roles.js:99-106). Un utilisateur dont le
  * backend renvoie `teacher`, `superAdmin` ou `secretaire` est donc déjà couvert
- * par `enseignant`, `supradmin` et `coordinateur` respectivement. Les routes
+ * par `enseignant`, `admin` et `coordinateur` respectivement (superAdmin = admin
+ * d'établissement depuis #659). Les routes
  * historiques listent les alias en clair ; on ne les recopie pas ici pour éviter
  * une liste à maintenir en double.
  */

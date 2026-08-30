@@ -7,9 +7,12 @@
  * frontend, expose un enum GELÉ des 5 rôles canoniques, et des helpers fail-secure
  * qui ne raisonnent QUE sur le rôle normalisé. Toute décision d'accès passe par ici.
  *
- * Correspondance 1:1 avec `app/Enums/Role.php` (backend, lecture seule — AUCUNE
- * modification backend autorisée). La seule divergence est l'alias `secretaire`
- * (cf. table d'alias, dette #18-FE-1).
+ * Alignement avec `app/Enums/Role.php` (backend, lecture seule). Depuis le split
+ * #659, le backend distingue `SuperAdmin` (admin d'établissement, intra-tenant) de
+ * `Supradmin` (plateforme, cross-tenant). Le périmètre UI d'un admin d'établissement
+ * étant identique à celui d'un admin, le front mappe `superAdmin` → ADMIN (5 rôles
+ * canoniques) et réserve SUPRADMIN au seul `supradmin` plateforme. Autre divergence
+ * tracée : l'alias `secretaire` → coordinateur (dette #18-FE-1).
  */
 
 /**
@@ -39,8 +42,12 @@ const ALIAS = Object.freeze({
   coordinator: ROLES.COORDINATEUR,
   admin: ROLES.ADMIN,
   administrateur: ROLES.ADMIN,
+  // 'superAdmin' = super-admin d'ÉTABLISSEMENT KLASSCI (intra-tenant) → rôle LMS ADMIN.
+  // À NE PAS confondre avec 'supradmin' = super-admin PLATEFORME (cross-tenant) → SUPRADMIN.
+  // Rôles séparés côté backend depuis #659 (App\Enums\Role::SuperAdmin vs Supradmin) ;
+  // les fusionner élèverait un admin d'école au rang de gestionnaire de plateforme.
+  superAdmin: ROLES.ADMIN,
   supradmin: ROLES.SUPRADMIN,
-  superAdmin: ROLES.SUPRADMIN,
   // --- Divergence backend tracée #18-FE-1 (Décision C) ---
   // `secretaire` est un rôle KLASSCI réellement émis (cf. dépôt lms-backend,
   // `docs/INTEGRATION_KLASSCI.md:53` — table des rôles KLASSCI)

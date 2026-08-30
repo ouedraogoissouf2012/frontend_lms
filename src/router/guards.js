@@ -35,7 +35,8 @@ export function navigationGuard(to, from, next) {
 
   // 3. Route à rôles requis : décision unique, normalisée, fail-secure.
   //    canActivate est la MÊME fonction que celle testée (pas de logique dupliquée) ;
-  //    le bypass supradmin y est appliqué sur le rôle normalisé (superAdmin == supradmin).
+  //    le bypass est réservé au supradmin PLATEFORME (rôle normalisé 'supradmin').
+  //    'superAdmin' (admin d'établissement) normalise vers 'admin' et ne bypasse pas (#659).
   if (to.meta.roles && user) {
     const decision = canActivate(user, to.meta.roles)
     if (!decision.allowed) {
