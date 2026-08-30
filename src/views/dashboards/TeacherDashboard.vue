@@ -2,7 +2,7 @@
   <DashboardLayout>
     <div class="dashboard-content">
       <!-- Header -->
-      <div class="welcome-header">
+      <div v-reveal class="welcome-header">
         <UserIcon class="welcome-icon" />
         <div>
           <h1 class="page-title">Dashboard Enseignant</h1>
@@ -29,16 +29,17 @@
 
       <!-- Dashboard Content -->
       <div v-if="!loading && !error && dashboardData">
-        <DashboardStatCards :dashboard-data="dashboardData" />
-        <DashboardActivityWidgets :dashboard-data="dashboardData" />
-        <DashboardMatieresList :matieres="dashboardData.matieres" @navigate="navigateToMatiere" />
-        <DashboardClassesList :classes="dashboardData.classes" />
+        <DashboardStatCards v-reveal="70" :dashboard-data="dashboardData" />
+        <DashboardActivityWidgets v-reveal="140" :dashboard-data="dashboardData" />
+        <DashboardMatieresList v-reveal :matieres="dashboardData.matieres" @navigate="navigateToMatiere" />
+        <DashboardClassesList v-reveal :classes="dashboardData.classes" />
         <DashboardEvaluationsList
           v-if="dashboardData.evaluations && dashboardData.evaluations.length > 0"
+          v-reveal
           :evaluations="dashboardData.evaluations"
           :format-date="formatDate"
         />
-        <DashboardQuickActions />
+        <DashboardQuickActions v-reveal />
       </div>
     </div>
   </DashboardLayout>

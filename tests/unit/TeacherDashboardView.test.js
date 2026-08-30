@@ -42,7 +42,8 @@ function mountDash() {
       stubs: {
         DashboardLayout: { template: '<div><slot /></div>' },
         ContentLoader: { template: '<div><slot /></div>' }
-      }
+      },
+      directives: { reveal: {} } // directive globale v-reveal (no-op en test)
     }
   })
 }
@@ -58,6 +59,8 @@ describe('TeacherDashboard.vue (G9) — montage', () => {
     readCache.mockReset()
     writeCache.mockReset()
     pushMock.mockReset()
+    // count-up des stat cards : mouvement réduit → valeurs finales, aucune animation en test
+    window.matchMedia = vi.fn(() => ({ matches: true, media: '', addEventListener() {}, removeEventListener() {} }))
   })
 
   it('cache vide → appelle getTeacherDashboard et écrit le cache', async () => {
