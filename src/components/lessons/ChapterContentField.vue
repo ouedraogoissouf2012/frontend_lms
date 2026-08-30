@@ -63,6 +63,7 @@
 import { computed } from 'vue'
 import TipTapEditor from '@/components/common/TipTapEditor.vue'
 import { UPLOAD_CONFIG, ACCEPTED_FILE_TYPES } from '@/constants/upload'
+import { toast } from '@/services/toast'
 
 const props = defineProps({
   chapter: { type: Object, required: true }
@@ -79,7 +80,7 @@ function handleFileSelect(event) {
   const file = event.target.files[0]
   if (file) {
     if (file.size > UPLOAD_CONFIG.MAX_FILE_SIZE_BYTES) {
-      alert(`Fichier trop volumineux! Max: ${UPLOAD_CONFIG.MAX_FILE_SIZE_LABEL}`)
+      toast.warning(`Fichier trop volumineux! Max: ${UPLOAD_CONFIG.MAX_FILE_SIZE_LABEL}`)
       event.target.value = ''
       return
     }

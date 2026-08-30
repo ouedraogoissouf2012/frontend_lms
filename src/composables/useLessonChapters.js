@@ -1,6 +1,7 @@
 import { ref, computed, onMounted, getCurrentInstance } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from '@/services/toast'
+import { useConfirm } from '@/composables/useConfirm'
 import { normalizeError } from '@/services/errorHandler'
 import lessonService from '@/services/lesson'
 
@@ -55,7 +56,7 @@ export function useLessonChapters() {
   }
 
   async function publishLesson() {
-    if (!confirm('Publier cette leçon ? Elle sera visible par les étudiants.')) {
+    if (!(await useConfirm().confirm({ message: 'Publier cette leçon ? Elle sera visible par les étudiants.' }))) {
       return
     }
 
@@ -63,7 +64,7 @@ export function useLessonChapters() {
     try {
       const response = await lessonService.publishLesson(lessonId.value)
       if (response.success) {
-        alert('Leçon publiée avec succès!')
+        toast.success('Leçon publiée avec succès!')
 
         // Rediriger vers la page de la matière
         if (lesson.value?.matiere_id) {

@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import evaluationService from '@/services/evaluation'
 import api, { auth } from '@/services/api'
 import { isExpired } from '@/utils/studentEvaluationStatus'
+import { toast } from '@/services/toast'
 
 /**
  * Couche données de StudentEvaluationsList (H2 ≤300) : charge les évaluations de
@@ -96,12 +97,12 @@ export function useStudentEvaluationsList() {
           query
         })
       } else {
-        alert(result.message || 'Impossible de démarrer l\'évaluation')
+        toast.error(result.message || 'Impossible de démarrer l\'évaluation')
       }
     } catch (err) {
       console.error('Erreur démarrage évaluation:', err)
       const message = err.response?.data?.message || 'Impossible de démarrer l\'évaluation'
-      alert(message)
+      toast.error(message)
     }
   }
 

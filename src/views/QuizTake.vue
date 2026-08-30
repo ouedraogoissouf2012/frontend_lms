@@ -108,6 +108,8 @@
 import Navbar from '@/components/Navbar.vue'
 import { quizzes } from '@/services/api'
 import { formatElapsed } from '@/utils/formatters'
+import { toast } from '@/services/toast'
+import { useConfirm } from '@/composables/useConfirm'
 
 export default {
   name: 'QuizTake',
@@ -150,7 +152,7 @@ export default {
         this.timeRemaining = this.quiz.duration_minutes * 60
       } catch (error) {
         console.error('Erreur chargement quiz:', error)
-        alert('Impossible de charger le quiz')
+        toast.error('Impossible de charger le quiz')
         this.$router.push('/quizzes')
       } finally {
         this.loading = false
@@ -163,7 +165,7 @@ export default {
 
         if (this.timeRemaining <= 0) {
           clearInterval(this.timer)
-          alert('Temps écoulé ! Le quiz va être soumis automatiquement.')
+          toast.info('Temps écoulé ! Le quiz va être soumis automatiquement.')
           this.submitQuiz()
         }
       }, 1000)
@@ -175,7 +177,7 @@ export default {
     },
 
     async submitQuiz() {
-      if (!confirm('Êtes-vous sûr de vouloir soumettre le quiz ?')) {
+      if (!(await useConfirm().confirm({ message: 'Êtes-vous sûr de vouloir soumettre le quiz ?' }))) {
         return
       }
 
@@ -188,11 +190,11 @@ export default {
 
         await quizzes.submitAttempt(this.attemptId, formattedAnswers)
 
-        alert('Quiz soumis avec succès !')
+        toast.success('Quiz soumis avec succès !')
         this.$router.push('/quizzes')
       } catch (error) {
         console.error('Erreur soumission quiz:', error)
-        alert('Erreur lors de la soumission du quiz')
+        toast.error('Erreur lors de la soumission du quiz')
       }
     }
   }

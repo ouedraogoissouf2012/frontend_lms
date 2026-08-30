@@ -123,6 +123,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import Modal from '@/components/ui/Modal.vue'
 import { forum } from '@/services/api'
+import { toast } from '@/services/toast'
 
 defineOptions({ name: 'Forum' })
 
@@ -165,7 +166,7 @@ function viewTopic(id) {
 
 async function createTopic() {
   if (!newTopic.title || !newTopic.content) {
-    alert('Veuillez remplir tous les champs')
+    toast.warning('Veuillez remplir tous les champs')
     return
   }
   if (submitting.value) return // #235 : évite le doublon sur double-clic
@@ -179,7 +180,7 @@ async function createTopic() {
     await loadTopics()
   } catch (error) {
     console.error('Erreur création topic:', error)
-    alert('Erreur lors de la création de la discussion')
+    toast.error('Erreur lors de la création de la discussion')
   } finally {
     submitting.value = false
   }

@@ -14,6 +14,7 @@ const h = vi.hoisted(() => ({
   getTimeStatus: vi.fn(),
   getUser: vi.fn(),
   push: vi.fn(),
+  confirm: vi.fn(() => Promise.resolve(true)), // confirm() natif -> useConfirm().confirm() async (F3)
   query: { submission_id: 'sub-1', practice: '0' }
 }))
 
@@ -30,6 +31,9 @@ vi.mock('@/services/evaluation', () => ({
 }))
 vi.mock('@/services/api', () => ({
   auth: { getUser: h.getUser }
+}))
+vi.mock('@/composables/useConfirm', () => ({
+  useConfirm: () => ({ confirm: h.confirm, accept: vi.fn(), cancel: vi.fn(), state: {} }),
 }))
 
 import { useTakeEvaluation } from '@/composables/useTakeEvaluation'
@@ -56,8 +60,7 @@ describe('useTakeEvaluation (H1)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.useFakeTimers()
-    vi.stubGlobal('alert', vi.fn())
-    vi.stubGlobal('confirm', vi.fn(() => true))
+    h.confirm.mockResolvedValue(true)
     h.query = { submission_id: 'sub-1', practice: '0' }
     h.getUser.mockReturnValue({ id: 1 })
     h.getEvaluation.mockResolvedValue({ success: true, data: JSON.parse(JSON.stringify(sampleEval)) })
@@ -120,7 +123,7 @@ describe('useTakeEvaluation (H1)', () => {
 
   it('confirmCancel redirige si confirmé', async () => {
     const c = await setup()
-    c.confirmCancel()
+    await c.confirmCancel() // désormais asynchrone (useConfirm)
     expect(h.push).toHaveBeenCalledWith('/student/evaluations-list')
     vi.useRealTimers()
   })

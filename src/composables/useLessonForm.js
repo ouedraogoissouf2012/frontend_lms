@@ -1,6 +1,7 @@
 import { ref, reactive } from 'vue'
 import { writeCache } from '@/services/cache'
 import lessonService from '@/services/lesson'
+import { toast } from '@/services/toast'
 
 /**
  * Couche formulaire de la modale leçon (#H4 ≤300), extraite de TeacherLessons.
@@ -52,7 +53,7 @@ export function useLessonForm(lessons) {
 
   async function saveLesson() {
     if (!lessonForm.matiere_id || !lessonForm.title) {
-      alert('La matière et le titre sont obligatoires')
+      toast.warning('La matière et le titre sont obligatoires')
       return
     }
 
@@ -63,7 +64,7 @@ export function useLessonForm(lessons) {
         // #236 : vraie mise à jour serveur (plus de mutation purement locale).
         const response = await lessonService.updateLesson(editingLesson.value.id, { ...lessonForm })
         if (!response?.success) {
-          alert('Erreur lors de la sauvegarde : ' + (response?.message || 'réessayez.'))
+          toast.error('Erreur lors de la sauvegarde : ' + (response?.message || 'réessayez.'))
           return
         }
         const index = lessons.value.findIndex(l => l.id === editingLesson.value.id)
@@ -76,7 +77,7 @@ export function useLessonForm(lessons) {
         // dans le cache lu par useTeacherLessons → « leçon fantôme ».
         const response = await lessonService.createLesson({ ...lessonForm })
         if (!response?.success || !response.data) {
-          alert('Erreur lors de la sauvegarde : ' + (response?.message || 'réessayez.'))
+          toast.error('Erreur lors de la sauvegarde : ' + (response?.message || 'réessayez.'))
           return
         }
         lessons.value.unshift(response.data)
@@ -86,7 +87,7 @@ export function useLessonForm(lessons) {
       writeCache('teacher_lessons', lessons.value)
       closeModal()
     } catch (err) {
-      alert('Erreur lors de la sauvegarde : ' + (err?.userMessage || 'réessayez.'))
+      toast.error('Erreur lors de la sauvegarde : ' + (err?.userMessage || 'réessayez.'))
     } finally {
       saving.value = false
     }

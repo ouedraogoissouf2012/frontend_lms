@@ -2,6 +2,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import evaluationService from '@/services/evaluation'
 import klassciService from '@/services/klassci'
+import { toast } from '@/services/toast'
 
 /**
  * Couche données de CreateQuestions (H1 ≤300) : chargement de l'évaluation
@@ -36,7 +37,7 @@ export function useCreateQuestions() {
         evaluationKlassci.value = result.data.find(e => e.id === parseInt(klassciId))
 
         if (!evaluationKlassci.value) {
-          alert('Évaluation KLASSCI non trouvée')
+          toast.error('Évaluation KLASSCI non trouvée')
           router.back()
         }
       }
@@ -50,18 +51,18 @@ export function useCreateQuestions() {
           evaluationKlassci.value = dashboard.evaluations.find(e => e.id === parseInt(klassciId))
 
           if (!evaluationKlassci.value) {
-            alert('Évaluation KLASSCI non trouvée dans le dashboard')
+            toast.error('Évaluation KLASSCI non trouvée dans le dashboard')
             router.back()
           } else {
             console.log('✅ Évaluation récupérée depuis le dashboard')
           }
         } else {
-          alert('Impossible de charger l\'évaluation')
+          toast.error('Impossible de charger l\'évaluation')
           router.back()
         }
       } catch (dashboardError) {
         console.error('Erreur chargement depuis dashboard:', dashboardError)
-        alert('Impossible de charger l\'évaluation')
+        toast.error('Impossible de charger l\'évaluation')
         router.back()
       }
     }
@@ -98,11 +99,11 @@ export function useCreateQuestions() {
         }
       } else {
         console.error('❌ Erreur chargement évaluation LMS')
-        alert('Impossible de charger l\'évaluation existante')
+        toast.error('Impossible de charger l\'évaluation existante')
       }
     } catch (error) {
       console.error('❌ Erreur loadExistingEvaluation:', error)
-      alert('Erreur lors du chargement de l\'évaluation')
+      toast.error('Erreur lors du chargement de l\'évaluation')
     }
   }
 
@@ -169,7 +170,7 @@ export function useCreateQuestions() {
 
   async function saveQuestions() {
     if (!isValid.value) {
-      alert('Veuillez ajouter au moins une question')
+      toast.warning('Veuillez ajouter au moins une question')
       return
     }
 
@@ -184,7 +185,7 @@ export function useCreateQuestions() {
       }
     } catch (error) {
       console.error('Erreur saveQuestions:', error)
-      alert('Erreur lors de l\'enregistrement des questions')
+      toast.error('Erreur lors de l\'enregistrement des questions')
     } finally {
       loading.value = false
     }
@@ -217,7 +218,7 @@ export function useCreateQuestions() {
       // Publier immédiatement
       await evaluationService.publishEvaluation(result.data.id)
 
-      alert('Questions enregistrées et évaluation activée avec succès !')
+      toast.success('Questions enregistrées et évaluation activée avec succès !')
       router.push('/teacher/evaluations')
     }
   }
@@ -238,7 +239,7 @@ export function useCreateQuestions() {
     const result = await evaluationService.updateEvaluation(evaluationLMS.value.id, data)
 
     if (result.success) {
-      alert('Évaluation mise à jour avec succès !')
+      toast.success('Évaluation mise à jour avec succès !')
       router.push('/teacher/evaluations')
     }
   }
@@ -248,7 +249,7 @@ export function useCreateQuestions() {
   onMounted(async () => {
     const klassciId = route.query.klassci_id
     if (!klassciId) {
-      alert('ID évaluation KLASSCI manquant')
+      toast.error('ID évaluation KLASSCI manquant')
       router.back()
       return
     }

@@ -1,5 +1,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { institutions as institutionsApi } from '@/services/api'
+import { toast } from '@/services/toast'
 
 /**
  * Couche données d'AdminInstitutions (#G1 ≤300) : état (liste + overview),
@@ -130,7 +131,7 @@ export function useAdminInstitutions() {
       await institutionsApi.toggle(inst.id)
       await loadInstitutions()
     } catch (err) {
-      alert(err.response?.data?.message || 'Erreur lors du changement de statut')
+      toast.error(err.response?.data?.message || 'Erreur lors du changement de statut')
     }
   }
 

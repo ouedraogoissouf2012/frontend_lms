@@ -2,6 +2,7 @@ import { ref, computed, onMounted, getCurrentInstance } from 'vue'
 import lmsService from '@/services/lms'
 import lessonService from '@/services/lesson'
 import { auth } from '@/services/api'
+import { useConfirm } from '@/composables/useConfirm'
 import { createEmptyLesson, buildLessonPayload, resolveEvaluationRoute } from '@/utils/matiereDetails'
 
 /**
@@ -158,7 +159,7 @@ export function useMatiereDetails() {
   }
 
   async function confirmDeleteLesson(lessonId) {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette leçon ?')) {
+    if (!(await useConfirm().confirm({ message: 'Êtes-vous sûr de vouloir supprimer cette leçon ?', variant: 'danger', confirmLabel: 'Supprimer' }))) {
       return
     }
 

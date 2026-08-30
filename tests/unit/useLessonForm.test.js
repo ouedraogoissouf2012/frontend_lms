@@ -16,13 +16,17 @@ const lessonMock = vi.hoisted(() => ({
 }))
 vi.mock('@/services/lesson', () => ({ default: lessonMock }))
 
+// alert() -> toast (Lot F3) : les validations passent par toast.warning/error.
+const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn(), show: vi.fn() }))
+vi.mock('@/services/toast', () => ({ toast: toastMock }))
+
 import { useLessonForm } from '@/composables/useLessonForm'
 
 describe('useLessonForm (#H4 / #236)', () => {
   beforeEach(() => {
-    vi.stubGlobal('alert', vi.fn())
     lessonMock.createLesson.mockReset()
     lessonMock.updateLesson.mockReset()
+    Object.values(toastMock).forEach((fn) => fn.mockClear())
   })
 
   it('refuse de sauvegarder sans matière ni titre (pas d\'appel service)', async () => {
@@ -31,7 +35,7 @@ describe('useLessonForm (#H4 / #236)', () => {
     await f.saveLesson()
     expect(lessons.value).toHaveLength(0)
     expect(lessonMock.createLesson).not.toHaveBeenCalled()
-    expect(globalThis.alert).toHaveBeenCalled()
+    expect(toastMock.warning).toHaveBeenCalled()
   })
 
   it('crée via l\'API et insère la leçon RENVOYÉE par le serveur (id réel)', async () => {
@@ -60,7 +64,7 @@ describe('useLessonForm (#H4 / #236)', () => {
     await f.saveLesson()
 
     expect(lessons.value).toHaveLength(1) // rien ajouté
-    expect(globalThis.alert).toHaveBeenCalled()
+    expect(toastMock.error).toHaveBeenCalled()
     expect(f.showCreateModal.value).toBe(false) // état initial inchangé (modale non ouverte ici)
   })
 

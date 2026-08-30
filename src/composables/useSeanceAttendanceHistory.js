@@ -4,6 +4,8 @@ import lmsService from '@/services/lms'
 import attendanceExportService from '@/services/attendanceExport'
 // #28 : logique métier pure extraite (testée dans tests/unit/attendance.test.js)
 import { getPeriodDates as computePeriodDates } from '@/utils/attendance'
+import { toast } from '@/services/toast'
+import { useConfirm } from '@/composables/useConfirm'
 
 /**
  * Couche données de l'historique des séances + présences (H7, ≤300) extraite de
@@ -14,22 +16,20 @@ import { getPeriodDates as computePeriodDates } from '@/utils/attendance'
  * (chargement par séance, y compris ouverture directe par route), les exports
  * PDF/Excel et la suppression. La vue ne fait plus que câbler les sous-composants.
  *
+ * Notifications (Lot F3) : toasts via le service unifié `@/services/toast` (rendu
+ * par l'unique <ToastContainer> de App.vue). Remplace l'ancien `$toast`
+ * (globalProperties jamais enregistré → deleteSeance levait : bug latent corrigé).
+ *
  * Parité (#H7) :
- * - $toast résolu via getCurrentInstance comme dans le reste du code converti
- *   (SeanceManagement.vue) ; il n'est PAS enregistré globalement (cf. main.js),
- *   donc `$toast` vaut `undefined`. Les appels NON optionnels de deleteSeance
- *   (`$toast.success/.error`) lèvent donc quand on les atteint — bug latent
- *   PRÉEXISTANT conservé à l'identique. Les exports gardent l'appel optionnel.
  * - formatDate/formatTime/formatDuration restent LOCAUX (non convergés vers
  *   @/utils/formatters) pour un rendu strictement inchangé.
  * - getInitials et formatDateInput : méthodes MORTES d'origine conservées (dette documentée).
  */
 export function useSeanceAttendanceHistory() {
-  // Instance pour le pont route + $toast (non enregistré → undefined, cf. parité supra).
+  // Instance pour le pont route (proxy.$route ci-dessous). Toasts via `toast` (cf. supra).
   const instance = getCurrentInstance()
   // Pont route double source (proxy.$route + repli useRoute()/sûr) — voir specs decomposition-300.
   const route = instance?.proxy?.$route ?? useRoute() ?? { params: {}, query: {} }
-  const $toast = instance?.appContext.config.globalProperties.$toast
 
   const loading = ref(false)
   const error = ref(null)
@@ -196,7 +196,7 @@ export function useSeanceAttendanceHistory() {
       await attendanceExportService.exportPdf(selectedSeance.value.klassci_seance_id)
     } catch (error) {
       console.error('[SeanceHistory] Erreur export PDF:', error)
-      $toast?.error('Erreur lors de l\'export PDF : ' + error.message)
+      toast.error('Erreur lors de l\'export PDF : ' + error.message)
     } finally {
       exporting.value = false
     }
@@ -209,23 +209,22 @@ export function useSeanceAttendanceHistory() {
       await attendanceExportService.exportExcel(selectedSeance.value.klassci_seance_id)
     } catch (error) {
       console.error('[SeanceHistory] Erreur export Excel:', error)
-      $toast?.error('Erreur lors de l\'export Excel : ' + error.message)
+      toast.error('Erreur lors de l\'export Excel : ' + error.message)
     } finally {
       exporting.value = false
     }
   }
 
   async function deleteSeance(seance) {
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer la séance ${seance.klassci_seance_id} ?`)) {
-      return
-    }
+    const msg = `Êtes-vous sûr de vouloir supprimer la séance ${seance.klassci_seance_id} ?`
+    if (!(await useConfirm().confirm({ message: msg, variant: 'danger', confirmLabel: 'Supprimer' }))) return
 
     try {
       await lmsService.deleteSeance(seance.id)
-      $toast.success('Séance supprimée avec succès')
+      toast.success('Séance supprimée avec succès')
       loadSeances() // Recharger la liste
     } catch (err) {
-      $toast.error(err.message || 'Erreur lors de la suppression de la séance')
+      toast.error(err.message || 'Erreur lors de la suppression de la séance')
     }
   }
 

@@ -1,6 +1,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import evaluationService from '@/services/evaluation'
+import { toast } from '@/services/toast'
+import { useConfirm } from '@/composables/useConfirm'
 
 /**
  * Couche données de PreviewEvaluation (H1 ≤300) : chargement de la
@@ -68,7 +70,7 @@ export function usePreviewEvaluation() {
 
   // Publier l'évaluation
   async function publishEvaluation() {
-    if (!confirm('Voulez-vous publier cette évaluation maintenant ? Elle deviendra visible aux étudiants.')) {
+    if (!(await useConfirm().confirm({ message: 'Voulez-vous publier cette évaluation maintenant ? Elle deviendra visible aux étudiants.' }))) {
       return
     }
 
@@ -76,14 +78,14 @@ export function usePreviewEvaluation() {
     try {
       const result = await evaluationService.publishEvaluation(evaluation.value.id)
       if (result.success) {
-        alert('✅ Évaluation publiée avec succès !')
+        toast.success('Évaluation publiée avec succès !')
         router.push({ name: 'TeacherEvaluations' })
       } else {
-        alert('❌ Erreur lors de la publication')
+        toast.error('Erreur lors de la publication')
       }
     } catch (err) {
       console.error('[PUBLISH ERROR]', err)
-      alert('❌ Erreur lors de la publication')
+      toast.error('Erreur lors de la publication')
     } finally {
       publishing.value = false
     }
