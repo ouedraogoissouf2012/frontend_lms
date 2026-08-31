@@ -48,7 +48,7 @@ describe('endpoints — carte unique (#105)', () => {
     })
 
     it('aucun chemin /proxy/ ne fuit hors de endpoints.klassci', () => {
-      for (const group of ['lms', 'admin', 'lessons', 'quizzes', 'dashboard', 'forum', 'teacher', 'evaluations']) {
+      for (const group of ['lms', 'admin', 'lessons', 'dashboard', 'forum', 'teacher', 'evaluations']) {
         for (const [path, url] of flatten(endpoints[group], group)) {
           expect(url.startsWith('/proxy/'), `${path} → ${url}`).toBe(false)
         }
@@ -123,14 +123,10 @@ describe('endpoints — carte unique (#105)', () => {
       expect(endpoints.admin.institutions.toggle(2)).toBe('/admin/institutions/2/toggle')
       expect(endpoints.admin.institutions.testConnection(2)).toBe('/admin/institutions/2/test-connection')
     })
-    it('lessons / quizzes', () => {
+    it('lessons', () => {
       expect(endpoints.lessons.list).toBe('/lessons')
       expect(endpoints.lessons.details(1)).toBe('/lessons/1')
       expect(endpoints.lessons.myCourses).toBe('/lessons/my-courses')
-      expect(endpoints.quizzes.list).toBe('/quizzes')
-      expect(endpoints.quizzes.details(1)).toBe('/quizzes/1')
-      expect(endpoints.quizzes.start(1)).toBe('/quizzes/1/start')
-      expect(endpoints.quizzes.submitAttempt(8)).toBe('/quiz-attempts/8/submit')
     })
     it('dashboard / forum / teacher / evaluations', () => {
       expect(endpoints.dashboard.student).toBe('/dashboard/student')
@@ -153,8 +149,7 @@ describe('endpoints — carte unique (#105)', () => {
       const resolved = new Set(flatten(endpoints).map(([, url]) => url))
       const EXPECTED = [
         // api.js
-        '/lessons', '/lessons/:id', '/quizzes', '/quizzes/:id', '/quizzes/:id/start',
-        '/quiz-attempts/:id/submit', '/dashboard/student', '/dashboard/teacher',
+        '/lessons', '/lessons/:id', '/dashboard/student', '/dashboard/teacher',
         '/dashboard/stats', '/forum/topics', '/forum/topics/:id', '/forum/topics/:id/posts',
         '/forum/topics/:id/close', '/forum/topics/:id/pin', '/forum/posts/:id',
         '/forum/posts/:id/solution', '/teacher/stats', '/admin/institutions',

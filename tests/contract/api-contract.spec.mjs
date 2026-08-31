@@ -17,7 +17,7 @@ import { setActivePinia, createPinia } from 'pinia'
 import { installCapture } from './captureAdapter.mjs'
 
 // Services réels (import = le vrai code testé, pas un double).
-import { quizzes, notifications as apiNotifications } from '../../src/services/api.js'
+import { notifications as apiNotifications } from '../../src/services/api.js'
 import evaluationService from '../../src/services/evaluation.js'
 import chapterService from '../../src/services/chapter.js'
 import lmsService from '../../src/services/lms.js'
@@ -35,19 +35,8 @@ const IDOR_PATTERN = /^\/evaluations\/student\/.+/
  * `_req` = requirement tracé, `_ek` = écart tracé.
  */
 export const contractCases = [
-  {
-    name: 'R1 — quizzes.startAttempt → POST /quizzes/{id}/start',
-    _req: 'R1', _ek: 'Ék-1',
-    run: () => quizzes.startAttempt(42),
-    method: 'POST', url: '/quizzes/42/start',
-  },
-  {
-    name: 'R2 — quizzes.submitAttempt → POST /quiz-attempts/{id}/submit (corps { answers })',
-    _req: 'R2', _ek: 'Ék-2',
-    run: () => quizzes.submitAttempt(7, [{ question_id: 1, answer: 'a' }]),
-    method: 'POST', url: '/quiz-attempts/7/submit',
-    body: (d) => d && Array.isArray(d.answers),
-  },
+  // R1/R2 (quizzes.startAttempt / submitAttempt) retirés — F2 : module quiz
+  // hérité supprimé (remplacé par le système Évaluations).
   {
     name: 'R8 — evaluation.syncToKlassci → POST /evaluations/{id}/sync-klassci (sans corps)',
     _req: 'R8', _ek: 'Ék-7',
@@ -135,11 +124,6 @@ export const contractCases = [
  */
 export const structuralChecks = [
   {
-    name: 'R3 — quizzes.getMyAttempts supprimée (code mort)',
-    _req: 'R3', _ek: 'Ék-3',
-    ok: () => typeof quizzes.getMyAttempts === 'undefined',
-  },
-  {
     name: 'R11 — klassciService.search supprimée (route /proxy/search inexistante)',
     _req: 'R11', _ek: 'Ék-10',
     ok: () => typeof klassciService.search === 'undefined',
@@ -188,9 +172,6 @@ export const edgeCases = [
 
 /** Chemins morts qui ne doivent JAMAIS être émis (assertions négatives). */
 const DEAD_PATH_MATCHERS = [
-  { label: '/quizzes/{id}/attempts', test: (u) => /^\/quizzes\/\d+\/attempts$/.test(u) },
-  { label: '/quizzes/attempts/{id}/submit', test: (u) => /^\/quizzes\/attempts\//.test(u) },
-  { label: '/quizzes/{id}/my-attempts', test: (u) => /^\/quizzes\/\d+\/my-attempts$/.test(u) },
   { label: '/notifications/{id}/read', test: (u) => /^\/notifications\/\d+\/read$/.test(u) },
   { label: '/notifications/read-all', test: (u) => u === '/notifications/read-all' },
   { label: '/evaluations/{id}/sync-to-klassci', test: (u) => /\/sync-to-klassci$/.test(u) },

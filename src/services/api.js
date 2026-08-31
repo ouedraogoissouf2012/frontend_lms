@@ -148,28 +148,6 @@ export const lessons = {
   }
 }
 
-// Fonctions pour les quiz
-export const quizzes = {
-  async getAll() {
-    return await api.get(endpoints.quizzes.list)
-  },
-
-  async getOne(id) {
-    return await api.get(endpoints.quizzes.details(id))
-  },
-
-  async startAttempt(quizId) {
-    return await api.post(endpoints.quizzes.start(quizId))
-  },
-
-  async submitAttempt(attemptId, answers) {
-    // Backend : POST /quiz-attempts/{id}/submit, corps { answers } (SubmitQuizAttemptRequest)
-    return await api.post(endpoints.quizzes.submitAttempt(attemptId), { answers })
-  }
-  // getMyAttempts supprimée (#17 Ék-3) : route /quizzes/{id}/my-attempts inexistante,
-  // aucun consommateur. La consultation d'une tentative est GET /quiz-attempts/{id}.
-}
-
 // Fonctions pour le dashboard
 export const dashboard = {
   async getStudentDashboard() {

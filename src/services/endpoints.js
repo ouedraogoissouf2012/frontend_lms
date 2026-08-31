@@ -106,14 +106,6 @@ export const endpoints = {
     myCourses: '/lessons/my-courses',
   },
 
-  // ── QUIZZES & tentatives ────────────────────────────────────────────────
-  quizzes: {
-    list: '/quizzes',
-    details: (id) => `/quizzes/${id}`,
-    start: (id) => `/quizzes/${id}/start`,
-    submitAttempt: (attemptId) => `/quiz-attempts/${attemptId}/submit`,
-  },
-
   // ── DASHBOARD LMS local (/dashboard/*) — distinct des dashboards KLASSCI
   //    /proxy/me/* ci-dessus, qu'on conserve séparément (#26). ─────────────
   dashboard: {

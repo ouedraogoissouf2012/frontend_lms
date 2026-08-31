@@ -21,7 +21,7 @@ describe('errorHandler — shouldForceLogout', () => {
   it('déconnecte sur un 401 LMS générique (token Sanctum invalide/expiré)', () => {
     // #231 : le refus de rôle est un 403 (EnsureRole) ; un 401 = session invalide.
     expect(shouldForceLogout(err(401, { url: '/api/lms/seances/my-teaching' }))).toBe(true)
-    expect(shouldForceLogout(err(401, { url: '/api/quizzes', message: 'Unauthenticated.' }))).toBe(true)
+    expect(shouldForceLogout(err(401, { url: '/api/evaluations', message: 'Unauthenticated.' }))).toBe(true)
   })
 
   it('NE déconnecte PAS sur un 401 de proxy KLASSCI (par URL)', () => {

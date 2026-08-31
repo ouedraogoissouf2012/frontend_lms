@@ -28,7 +28,9 @@ vi.mock('@/services/api', () => ({
 import Dashboard from '@/views/Dashboard.vue'
 
 const stubs = {
-  Navbar: { template: '<nav />' },
+  // La vue est désormais enveloppée dans DashboardLayout (F2, fin de la Navbar
+  // legacy) : on le stube au rendu de son slot pour isoler le contenu testé.
+  DashboardLayout: { template: '<div><slot /></div>' },
   ContentLoader: { template: '<div class="loader" />' },
 }
 

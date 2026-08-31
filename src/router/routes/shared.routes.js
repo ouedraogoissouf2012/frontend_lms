@@ -1,11 +1,11 @@
 import { lessonRoutes } from './lessons.routes'
-import { quizRoutes } from './quiz.routes'
 import { forumRoutes } from './forum.routes'
 import { evaluationRoutes } from './evaluation.routes'
 import { academicRoutes } from './academic.routes'
 
-// Routes transverses (#H12) — leçons, quiz, forum, évaluations, matières,
+// Routes transverses (#H12) — leçons, forum, évaluations, matières,
 // classes, séances, présences et coordinateur.
+// (Module quiz hérité `/quizzes` supprimé — F2, remplacé par les Évaluations.)
 //
 // #226 : ce fichier atteignait 280 lignes (limite dure 300, cliquet CI). Les
 // définitions sont désormais réparties par domaine (chaque fichier ≤200 lignes).
@@ -19,7 +19,6 @@ import { academicRoutes } from './academic.routes'
 // pour la sémantique des deux groupes (AUTHENTICATED_ROLES / STAFF_ROLES).
 export const sharedRoutes = [
   ...lessonRoutes,
-  ...quizRoutes,
   ...forumRoutes,
   ...evaluationRoutes,
   ...academicRoutes,
