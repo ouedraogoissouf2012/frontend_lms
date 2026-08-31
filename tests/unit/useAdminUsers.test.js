@@ -292,5 +292,57 @@ describe('useAdminUsers (#G1)', () => {
       expect(u.counts.value.classesOk).toBe(null)
       expect(u.notices.value).toEqual([])
     })
+
+    it('régression (:192) — un échec des CLASSES en revalidation NE détruit PAS le roster servi par le cache', async () => {
+      cacheStore = {
+        etudiants: [{ id: 100, nom: 'Aline', email: 'aline@e.com', classe_id: 1, classe_nom: '6e A' }],
+        enseignants: [{ id: 10, nom: 'Zoé Prof', email: 'zoe@e.com' }],
+        classes: [{ id: 1, name: '6e A', places_occupees: 1 }],
+        counts: { classes: 1, enseignants: 1, etudiants: 1, classesOk: 1 },
+      }
+      // Revalidation d'arrière-plan : les CLASSES tombent (endpoint sans rapport
+      // avec le listing des étudiants) ; les enseignants passent.
+      impl.getClasses = () => Promise.reject(new Error('proxy 500'))
+
+      const u = await setup()
+      await flushPromises()
+      await flushPromises()
+
+      // Le roster servi par le cache est PRÉSERVÉ (pas d'effacement par un tiers)…
+      expect(u.etudiants.value).toHaveLength(1)
+      expect(u.etudiants.value[0].email).toBe('aline@e.com')
+      // …le cache n'est pas empoisonné avec une liste vide…
+      expect(cacheStore.etudiants).toHaveLength(1)
+      // …et le compteur reste cohérent avec la liste affichée (pas de « — »).
+      expect(u.counts.value.etudiants).toBe(1)
+    })
+
+    it('race (:241) — une revalidation périmée n’écrase pas un force-reload frais', async () => {
+      cacheStore = {
+        etudiants: [{ id: 1, nom: 'Vieux', email: 'v@e.com', classe_id: 9, classe_nom: 'Vieux' }],
+        enseignants: [], classes: [{ id: 9, name: 'Vieux', places_occupees: 1 }],
+        counts: { classes: 1, enseignants: 0, etudiants: 1, classesOk: 1 },
+      }
+      // La revalidation d'arrière-plan reste BLOQUÉE sur getClasses (promesse en vol).
+      let resolveSlow
+      impl.getClasses = () => new Promise((res) => { resolveSlow = res })
+      const u = await setup() // sert le cache + lance la revalidation (bloquée)
+
+      // Force-reload FRAIS et rapide (génération plus récente) — termine en premier.
+      impl.getClasses = () => Promise.resolve([{ id: 2, name: 'Neuf', places_occupees: 5 }])
+      impl.getEnseignants = () => Promise.resolve([{ id: 20, nom: 'NeufProf', email: 'n@e.com' }])
+      impl.getClasseEtudiants = () => Promise.resolve([{ id: 200, nom: 'NeufEleve', email: 'ne@e.com' }])
+      await u.loadAllUsers(true)
+      await flushPromises()
+      expect(u.classes.value[0].name).toBe('Neuf') // le frais est bien appliqué
+
+      // On débloque la revalidation PÉRIMÉE : elle doit être JETÉE (génération obsolète).
+      resolveSlow([{ id: 9, name: 'Vieux', places_occupees: 1 }])
+      await flushPromises()
+      await flushPromises()
+
+      expect(u.classes.value[0].name).toBe('Neuf') // pas écrasé par le périmé
+      expect(cacheStore.classes[0].name).toBe('Neuf') // cache non empoisonné
+    })
   })
 })

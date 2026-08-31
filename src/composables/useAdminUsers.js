@@ -1,4 +1,4 @@
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import klassciService from '@/services/klassci'
 import { readCache, writeCache, invalidateEntity } from '@/services/cache'
 import { logError } from '@/services/errorHandler'
@@ -164,51 +164,70 @@ export function useAdminUsers() {
   const closeModal = () => { selectedUser.value = null }
 
   /**
-   * Applique une liste racine ; en échec, conserve l'affichage existant et renvoie
-   * `null` pour que la ressource soit comptée comme NON MESURÉE.
+   * Résout une liste racine : le tableau chargé (fulfilled), ou `null` en échec
+   * (tracé), pour que la ressource soit comptée NON MESURÉE. N'écrit PAS la ref :
+   * l'application est différée en fin de fetchAll, sous garde de génération.
    */
-  function applyRoot(outcome, target, label) {
-    if (outcome.status === 'fulfilled') {
-      target.value = Array.isArray(outcome.value) ? outcome.value : []
-      return target.value
-    }
+  function resolveRoot(outcome, label) {
+    if (outcome.status === 'fulfilled') return Array.isArray(outcome.value) ? outcome.value : []
     logError(outcome.reason, `[useAdminUsers] ${label}`)
     return null
   }
 
+  // Jeton de génération : deux chargements peuvent se chevaucher (revalidation
+  // d'arrière-plan + bouton Actualiser). Seul le PLUS RÉCENT applique son résultat ;
+  // un chargement périmé qui se termine après est jeté (sinon il écraserait des
+  // données fraîches et empoisonnerait le cache). `disposed` neutralise de même tout
+  // chargement encore en vol après démontage.
+  let loadGeneration = 0
+  let disposed = false
+  onUnmounted(() => { disposed = true })
+
   /** Récupère classes + enseignants (en parallèle) puis les étudiants. */
   async function fetchAll(onProgress) {
+    const generation = ++loadGeneration
+
     const [classesOutcome, enseignantsOutcome] = await Promise.allSettled([
       klassciService.getClasses(),
       klassciService.getEnseignants(),
     ])
-
-    const loadedClasses = applyRoot(classesOutcome, classes, 'classes')
-    const loadedEnseignants = applyRoot(enseignantsOutcome, enseignants, 'enseignants')
+    const loadedClasses = resolveRoot(classesOutcome, 'classes')
+    const loadedEnseignants = resolveRoot(enseignantsOutcome, 'enseignants')
 
     const classeList = loadedClasses ?? []
     const { collected, ok, forbidden } = await fetchClassRosters(classeList, onProgress)
+
+    // Un chargement plus récent a démarré (ou on a démonté) pendant nos await :
+    // ce résultat est périmé, on le jette — ni écrasement de frais, ni cache empoisonné.
+    if (disposed || generation !== loadGeneration) return
+
+    // Application ATOMIQUE (après la garde). Une ressource en échec (null) ne touche
+    // pas sa liste : un endpoint en panne n'efface pas les données d'un autre.
+    if (loadedClasses !== null) classes.value = loadedClasses
+    if (loadedEnseignants !== null) enseignants.value = loadedEnseignants
     rosterForbidden.value = forbidden
-    if (ok > 0 || classeList.length === 0) etudiants.value = collected
 
-    // Dérivation PARTAGÉE avec le tableau de bord et l'écran Statistiques : les
-    // trois écrans ne peuvent plus annoncer des effectifs différents.
-    //
-    // `nb_etudiants` est l'EFFECTIF INSCRIT, somme des `places_occupees` publiées
-    // par KLASSCI sur chaque classe. Il ne dépend PAS du listing nominatif
-    // (/proxy/classes/{id}/etudiants), qui peut être en panne : un établissement
-    // qui compte des étudiants doit annoncer son effectif, même quand leurs fiches
-    // sont temporairement inaccessibles. Afficher « — » ou « 0 » serait faux.
-    const derived = deriveInstitutionCounters({
-      classes: loadedClasses,
-      enseignants: loadedEnseignants,
-    })
+    // Roster nominatif : on n'applique le résultat frais que s'il fait AUTORITÉ —
+    // au moins une classe chargée (ok>0), ou établissement RÉELLEMENT vide (classes
+    // chargées à 0). Sinon (échec des classes, ou échec TOTAL des rosters) AVEC un
+    // roster déjà affiché, on le conserve : une panne ne vide pas une liste saine.
+    const genuinelyEmpty = loadedClasses?.length === 0
+    const preserveCached = ok === 0 && !genuinelyEmpty && etudiants.value.length > 0
+    if (!preserveCached) etudiants.value = collected
 
+    // `nb_etudiants` = EFFECTIF INSCRIT (somme des places_occupees), indépendant du
+    // listing nominatif (qui peut être en panne). On ne REMESURE une ressource que si
+    // son fetch a réussi ; sinon on conserve la mesure précédente — jamais un « — »
+    // par-dessus une liste qu'on continue d'afficher. Dérivation PARTAGÉE avec le
+    // dashboard et l'écran Statistiques (mêmes effectifs partout).
+    const derived = deriveInstitutionCounters({ classes: loadedClasses, enseignants: loadedEnseignants })
     counts.value = {
-      classes: derived.nb_classes_actives,
-      enseignants: derived.nb_enseignants,
-      etudiants: derived.nb_etudiants,
-      classesOk: ok,
+      classes: loadedClasses ? derived.nb_classes_actives : counts.value.classes,
+      enseignants: loadedEnseignants ? derived.nb_enseignants : counts.value.enseignants,
+      etudiants: loadedClasses ? derived.nb_etudiants : counts.value.etudiants,
+      // classesOk décrit le roster AFFICHÉ : mesuré (ok) si on vient de l'appliquer,
+      // sinon la mesure précédente (on montre le cache, pas une liste « incomplète »).
+      classesOk: preserveCached ? counts.value.classesOk : ok,
     }
 
     writeCache('admin_users', {
