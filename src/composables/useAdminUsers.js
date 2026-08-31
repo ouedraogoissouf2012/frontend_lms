@@ -6,6 +6,7 @@ import { fetchClassRosters } from '@/services/klassciRoster'
 import { deriveInstitutionCounters } from '@/utils/classStats'
 import { getFullName } from '@/utils/formatters'
 import { ROLES } from '@/constants/roles'
+import { buildUsersNotices } from '@/utils/usersNotices'
 import { lmsTeachersService } from '@/services/lmsTeachers'
 import { getEnseignantClassesLabel, getEnseignantUniqueClasses } from '@/utils/enseignants'
 
@@ -68,39 +69,12 @@ export function useAdminUsers() {
   watch([searchQuery, filterRole, filterClasse], () => { currentPage.value = 1 })
 
   /** Avertissements DÉRIVÉS de la mesure — aucun état d'erreur stocké. */
-  const notices = computed(() => {
-    const { classes: nbClasses, enseignants: nbEnseignants, classesOk } = counts.value
-    const out = []
-
-    if (nbClasses === null) {
-      out.push(classes.value.length
-        ? 'Classes : actualisation impossible, la liste peut être périmée.'
-        : "Les classes n'ont pas pu être chargées : le filtre par classe est indisponible.")
-    }
-    if (nbEnseignants === null) {
-      out.push(enseignants.value.length
-        ? 'Enseignants : actualisation impossible, la liste peut être périmée.'
-        : "Les enseignants n'ont pas pu être chargés.")
-    }
-    // Refus de droits : cause distincte d'un échec, et sans issue par un réessai.
-    if (rosterForbidden.value) {
-      out.push(
-        "Vous n'avez pas les droits de consulter la liste nominative des étudiants. "
-        + "L'effectif ci-dessus reste exact ; demandez cet accès à l'administrateur KLASSCI."
-      )
-      return out
-    }
-
-    // Échec TOTAL et PARTIEL sont la même phrase, à un chiffre près.
-    // `classesOk === null` = chargement non encore mesuré : on ne dit rien.
-    if (nbClasses !== null && nbClasses > 0 && classesOk !== null && classesOk < nbClasses) {
-      out.push(
-        `Étudiants : ${classesOk} classe(s) sur ${nbClasses} chargée(s) — la liste nominative `
-        + "est incomplète. L'effectif affiché ci-dessus, lui, reste exact."
-      )
-    }
-    return out
-  })
+  const notices = computed(() => buildUsersNotices({
+    counts: counts.value,
+    hasClasses: classes.value.length > 0,
+    hasEnseignants: enseignants.value.length > 0,
+    rosterForbidden: rosterForbidden.value,
+  }))
 
   // Liste unifiée étudiants + enseignants
   const allUsers = computed(() => {
