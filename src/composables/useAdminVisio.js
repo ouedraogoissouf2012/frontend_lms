@@ -3,6 +3,7 @@ import { klassciService } from '@/services/klassci'
 import { readCache, writeCache } from '@/services/cache'
 import { buildJitsiUrl, getVisioRoomId } from '@/constants/visio'
 import { notifyVisioError } from '@/services/visioFeedback'
+import { extractList } from '@/utils/apiList'
 
 /**
  * Couche données d'AdminVisio (#G1 ≤300) : dérive les visioconférences depuis les
@@ -75,7 +76,7 @@ export function useAdminVisio() {
       })
 
       if (response.success) {
-        const seances = response.data || []
+        const seances = extractList(response)
         processVisioData(seances)
 
         // Mettre en cache
@@ -119,7 +120,7 @@ export function useAdminVisio() {
       })
 
       if (response.success) {
-        const seances = response.data || []
+        const seances = extractList(response)
         processVisioData(seances)
 
         writeCache('admin_visio', seances)

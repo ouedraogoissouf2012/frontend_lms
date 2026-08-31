@@ -1,11 +1,7 @@
+import { toId } from './toId'
+
 function toArray(value) {
   return Array.isArray(value) ? value : []
-}
-
-function toId(value) {
-  if (value === null || value === undefined) return null
-  if (typeof value === 'object') return toId(value.id ?? value.klassci_id ?? value.classe_id ?? value.class_id)
-  return String(value)
 }
 
 function firstNumber(values) {

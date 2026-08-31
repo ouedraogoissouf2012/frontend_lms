@@ -88,6 +88,7 @@ import EventDetailModal from './EventDetailModal.vue'
 import { useCalendarEvents } from '@/composables/useCalendarEvents'
 // H8 : état de la vue (options FullCalendar, navigation, sync impérative)
 import { useCalendarView } from '@/composables/useCalendarView'
+import { toId } from '@/utils/toId'
 
 const props = defineProps({
   userRole: {
@@ -146,17 +147,17 @@ const filteredEvents = computed(() => {
 
   // Filtre par matière
   if (selectedMatiere.value) {
-    filtered = filtered.filter(event => event.extendedProps.matiereId === parseInt(selectedMatiere.value))
+    filtered = filtered.filter(event => toId(event.extendedProps.matiereId) === toId(selectedMatiere.value))
   }
 
   // Filtre par classe
   if (selectedClasse.value) {
-    filtered = filtered.filter(event => event.extendedProps.classeId === parseInt(selectedClasse.value))
+    filtered = filtered.filter(event => toId(event.extendedProps.classeId) === toId(selectedClasse.value))
   }
 
   // Filtre par enseignant
   if (selectedEnseignant.value) {
-    filtered = filtered.filter(event => event.extendedProps.enseignantId === parseInt(selectedEnseignant.value))
+    filtered = filtered.filter(event => toId(event.extendedProps.enseignantId) === toId(selectedEnseignant.value))
   }
 
   return filtered

@@ -1,6 +1,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import lmsService from '@/services/lms'
+import { extractList } from '@/utils/apiList'
 
 /**
  * Couche donnees de TeacherMatieres (#H9 ≤300). Charge les matieres de
@@ -23,7 +24,7 @@ export function useTeacherMatieres() {
       console.log('[TeacherMatieres] Response reçue:', response)
 
       if (response && response.success) {
-        matieres.value = response.data || []
+        matieres.value = extractList(response)
         console.log('[TeacherMatieres] Matières chargées:', matieres.value.length)
 
         // Log détaillé pour debug

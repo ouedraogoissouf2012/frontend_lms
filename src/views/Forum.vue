@@ -124,6 +124,7 @@ import BaseButton from '@/components/ui/BaseButton.vue'
 import Modal from '@/components/ui/Modal.vue'
 import { forum } from '@/services/api'
 import { toast } from '@/composables/useToast'
+import { extractList } from '@/utils/apiList'
 
 defineOptions({ name: 'Forum' })
 
@@ -143,15 +144,7 @@ async function loadTopics() {
   try {
     // Charger tous les topics (sans filtre)
     const response = await forum.getTopics()
-
-    // Si c'est paginé, extraire les données
-    if (response.data && response.data.data) {
-      topics.value = Array.isArray(response.data.data) ? response.data.data : []
-    } else if (response.data) {
-      topics.value = Array.isArray(response.data) ? response.data : []
-    } else {
-      topics.value = []
-    }
+    topics.value = extractList(response)
   } catch (error) {
     console.error('Erreur chargement forum:', error)
     topics.value = []

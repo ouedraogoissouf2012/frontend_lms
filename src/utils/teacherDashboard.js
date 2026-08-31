@@ -1,4 +1,6 @@
+import { extractList } from './apiList'
 import { enrichTeacherClasses } from './classStats'
+import { toId } from './toId'
 
 const EMPTY_TEACHER_DASHBOARD = {
   matieres: [],
@@ -28,24 +30,6 @@ export function normalizeTeacherDashboardPayload(response = {}) {
 
   const payload = candidates.find(candidate => candidate && typeof candidate === 'object') || {}
   return normalizeTeacherDashboard(payload)
-}
-
-function unwrapArray(response, keys = []) {
-  if (Array.isArray(response)) return response
-  if (Array.isArray(response?.data)) return response.data
-  if (Array.isArray(response?.data?.data)) return response.data.data
-
-  for (const key of keys) {
-    if (Array.isArray(response?.[key])) return response[key]
-    if (Array.isArray(response?.data?.[key])) return response.data[key]
-  }
-
-  return []
-}
-
-function normalizeId(value) {
-  if (value === null || value === undefined || value === '') return null
-  return String(value)
 }
 
 function normalizeText(value) {
@@ -80,7 +64,7 @@ function matchesCurrentTeacher(enseignant, currentUser) {
     currentUser.enseignant_id,
     currentUser.user_id,
     currentUser.id,
-  ].map(normalizeId).filter(Boolean))
+  ].map(toId).filter(Boolean))
 
   const enseignantIds = [
     enseignant.klassci_id,
@@ -88,7 +72,7 @@ function matchesCurrentTeacher(enseignant, currentUser) {
     enseignant.enseignant_id,
     enseignant.user_id,
     enseignant.id,
-  ].map(normalizeId).filter(Boolean)
+  ].map(toId).filter(Boolean)
 
   if (enseignantIds.some(id => currentIds.has(id))) return true
 
@@ -117,12 +101,13 @@ function collectClassesFromMatieres(matieres = []) {
     if (matiere?.klassci_classe && typeof matiere.klassci_classe === 'object') linkedClasses.push(matiere.klassci_classe)
 
     for (const classe of linkedClasses) {
-      const id = classe?.id ?? classe?.klassci_id ?? classe?.classe_id
-      if (id !== null && id !== undefined) byId.set(String(id), classe)
+      const id = toId(classe)
+      if (id) byId.set(id, classe)
     }
 
-    for (const id of [matiere?.classe_id, matiere?.klassci_classe_id]) {
-      if (id !== null && id !== undefined && !byId.has(String(id))) byId.set(String(id), { id })
+    for (const idValue of [matiere?.classe_id, matiere?.klassci_classe_id]) {
+      const id = toId(idValue)
+      if (id && !byId.has(id)) byId.set(id, { id })
     }
   }
 
@@ -149,15 +134,15 @@ function isTodaySeance(seance) {
 }
 
 function buildDashboardFromTeacher(enseignant) {
-  const matieres = unwrapArray(enseignant, ['matieres'])
-  const rawClasses = unwrapArray(enseignant, ['classes'])
+  const matieres = extractList(enseignant, ['matieres'])
+  const rawClasses = extractList(enseignant, ['classes'])
   const classes = enrichTeacherClasses(
     rawClasses.length > 0 ? rawClasses : collectClassesFromMatieres(matieres),
     matieres
   )
-  const seances = unwrapArray(enseignant, ['seances'])
-  const evaluations = unwrapArray(enseignant, ['evaluations'])
-  const lessons = unwrapArray(enseignant, ['lessons', 'lecons'])
+  const seances = extractList(enseignant, ['seances'])
+  const evaluations = extractList(enseignant, ['evaluations'])
+  const lessons = extractList(enseignant, ['lessons', 'lecons'])
   const statistiques = enseignant?.statistiques || enseignant?.stats || {}
 
   return normalizeTeacherDashboard({
@@ -205,7 +190,7 @@ export function hasDashboardContent(data) {
 
 export async function buildTeacherDashboardFallback(lmsService, currentUser) {
   const enseignantsResponse = await lmsService.getEnseignants(true).catch(() => null)
-  const currentTeacher = findCurrentTeacher(unwrapArray(enseignantsResponse, ['enseignants']), currentUser)
+  const currentTeacher = findCurrentTeacher(extractList(enseignantsResponse, ['enseignants']), currentUser)
   if (currentTeacher) {
     const teacherDashboard = buildDashboardFromTeacher(currentTeacher)
     if (hasDashboardContent(teacherDashboard)) return teacherDashboard
@@ -216,10 +201,10 @@ export async function buildTeacherDashboardFallback(lmsService, currentUser) {
     lmsService.getMyTeachingSeances().catch(() => null),
   ])
 
-  const matieres = unwrapArray(matieresResponse, ['matieres'])
+  const matieres = extractList(matieresResponse, ['matieres'])
   const rawClasses = collectClassesFromMatieres(matieres)
   const classes = enrichTeacherClasses(rawClasses, matieres)
-  const seances = unwrapArray(seancesResponse, ['seances'])
+  const seances = extractList(seancesResponse, ['seances'])
 
   return normalizeTeacherDashboard({
     matieres,

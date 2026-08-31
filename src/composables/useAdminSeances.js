@@ -1,6 +1,7 @@
 import { ref, onMounted } from 'vue'
 import { klassciService } from '@/services/klassci'
 import { readCache, writeCache } from '@/services/cache'
+import { extractList } from '@/utils/apiList'
 
 /**
  * Couche données d'AdminSeances (#G1 ≤300) : charge les séances de visioconférence
@@ -46,7 +47,7 @@ export function useAdminSeances() {
       })
 
       if (response.success) {
-        seances.value = response.data || []
+        seances.value = extractList(response)
 
         // Mettre en cache si aucun filtre actif
         if (!filters.value.teacher_id && !filters.value.classe_id) {
@@ -70,7 +71,7 @@ export function useAdminSeances() {
       })
 
       if (response.success) {
-        seances.value = response.data || []
+        seances.value = extractList(response)
         writeCache('admin_seances', seances.value)
         console.log('[CACHE] Séances admin rafraîchies en arrière-plan')
       }

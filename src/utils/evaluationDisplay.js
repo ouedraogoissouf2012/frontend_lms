@@ -1,22 +1,10 @@
+import { extractList } from './apiList'
+import { toId } from './toId'
+
+export { toId }
+
 export const firstValue = (...values) =>
   values.find(value => value !== null && value !== undefined && value !== '')
-
-export const toId = (value) => {
-  if (value === null || value === undefined || value === '') return ''
-  if (typeof value === 'object') {
-    return toId(
-      value.id ??
-      value.klassci_id ??
-      value.teacher_id ??
-      value.enseignant_id ??
-      value.user_id ??
-      value.professeur_id ??
-      value.classe_id ??
-      value.matiere_id
-    )
-  }
-  return String(value)
-}
 
 export const displayName = (entity) => {
   if (!entity) return ''
@@ -36,18 +24,8 @@ export const displayName = (entity) => {
   )
 }
 
-export const unwrapArray = (response, envelopeKeys = []) => {
-  if (Array.isArray(response)) return response
-  if (Array.isArray(response?.data)) return response.data
-  if (Array.isArray(response?.data?.data)) return response.data.data
-
-  for (const key of envelopeKeys) {
-    if (Array.isArray(response?.[key])) return response[key]
-    if (Array.isArray(response?.data?.[key])) return response.data[key]
-  }
-
-  return []
-}
+export const unwrapArray = (response, envelopeKeys = []) =>
+  extractList(response, envelopeKeys)
 
 export const nonEmptyArray = (value, envelopeKeys = []) => {
   const list = unwrapArray(value, envelopeKeys)

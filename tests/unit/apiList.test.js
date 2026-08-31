@@ -38,4 +38,12 @@ describe('extractList — extraction depuis l\'enveloppe API', () => {
   it('renvoie [] si data.data n\'est pas un tableau', () => {
     expect(extractList({ success: true, data: { data: 'oops' } })).toEqual([])
   })
+
+  it('extrait un tableau nommé { classes: [...] }', () => {
+    expect(extractList({ classes: [{ id: 5 }] }, ['classes'])).toEqual([{ id: 5 }])
+  })
+
+  it('extrait un tableau nommé sous data { data: { matieres: [...] } }', () => {
+    expect(extractList({ success: true, data: { matieres: [{ id: 6 }] } }, ['matieres'])).toEqual([{ id: 6 }])
+  })
 })

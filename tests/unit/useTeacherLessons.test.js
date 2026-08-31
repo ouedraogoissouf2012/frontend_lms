@@ -21,13 +21,18 @@ const lessonsPayload = [
   { id: 3, title: 'C', status: 'archived', type: 'tp', matiere_id: 8 }
 ]
 
+const h = vi.hoisted(() => ({
+  getLessons: vi.fn(),
+  getMatieres: vi.fn(),
+}))
+
 vi.mock('@/services/lesson', () => ({
   default: {
-    getLessons: () => Promise.resolve({ success: true, data: { data: lessonsPayload } })
+    getLessons: (...a) => h.getLessons(...a)
   }
 }))
 vi.mock('@/services/klassci', () => ({
-  klassciService: { getMatieres: () => Promise.resolve([{ id: 7, name: 'Maths' }]) }
+  klassciService: { getMatieres: (...a) => h.getMatieres(...a) }
 }))
 
 import { useTeacherLessons } from '@/composables/useTeacherLessons'
@@ -41,12 +46,36 @@ async function setup() {
 }
 
 describe('useTeacherLessons (#H4)', () => {
-  beforeEach(() => { cacheStore = {}; push.mockClear() })
+  beforeEach(() => {
+    cacheStore = {}
+    push.mockClear()
+    h.getLessons.mockReset().mockResolvedValue({ success: true, data: { data: lessonsPayload } })
+    h.getMatieres.mockReset().mockResolvedValue([{ id: 7, name: 'Maths' }])
+  })
 
   it('charge les leçons depuis la structure paginée et calcule les stats', async () => {
     const c = await setup()
     expect(c.lessons.value).toHaveLength(3)
     expect(c.stats.value).toEqual({ total: 3, published: 1, draft: 1, archived: 1 })
+  })
+
+  it('charge les leçons depuis une enveloppe plate { data: [...] }', async () => {
+    h.getLessons.mockResolvedValue({ success: true, data: lessonsPayload })
+    const c = await setup()
+    expect(c.lessons.value).toHaveLength(3)
+  })
+
+  it('charge une liste vide si l\'enveloppe n\'a pas de tableau', async () => {
+    h.getLessons.mockResolvedValue({ success: true })
+    const c = await setup()
+    expect(c.lessons.value).toEqual([])
+  })
+
+  it('charge les matières depuis l\'enveloppe nommée { matieres: [...] }', async () => {
+    h.getMatieres.mockResolvedValue({ matieres: [{ id: 7, name: 'Maths' }, { id: 8, name: 'Physique' }] })
+    const c = await setup()
+    expect(c.matieres.value).toHaveLength(2)
+    expect(cacheStore.teacher_matieres).toHaveLength(2)
   })
 
   it('filtre par statut et par matière', async () => {

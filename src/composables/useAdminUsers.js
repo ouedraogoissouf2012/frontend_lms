@@ -9,6 +9,7 @@ import { ROLES } from '@/constants/roles'
 import { buildUsersNotices } from '@/utils/usersNotices'
 import { lmsTeachersService } from '@/services/lmsTeachers'
 import { getEnseignantClassesLabel, getEnseignantUniqueClasses } from '@/utils/enseignants'
+import { toId } from '@/utils/toId'
 
 const PAGE_SIZE = 25
 
@@ -113,10 +114,10 @@ export function useAdminUsers() {
     // CHAÎNE (ids KLASSCI number vs string selon l'endpoint, cf. classStats::toId
     // — sinon un `===` strict laisserait tomber l'enseignant en silence).
     if (filterClasse.value !== 'all') {
-      const target = String(filterClasse.value)
+      const target = toId(filterClasse.value)
       result = result.filter(u =>
-        String(u.classe_id) === target
-        || (u.classe_ids ?? []).some((id) => String(id) === target))
+        toId(u.classe_id) === target
+        || (u.classe_ids ?? []).some((id) => toId(id) === target))
     }
     if (searchQuery.value.trim()) {
       const q = searchQuery.value.toLowerCase().trim()

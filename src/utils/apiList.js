@@ -7,14 +7,16 @@
  *  - plate           : `{ success, data: [...] }` → renvoie `response.data`
  *  - déjà un tableau : `[...]` → renvoyé tel quel (défensif)
  *  - toute autre forme / null → `[]`
+ *  - named keys (optionnel) : `{ classes: [...] }` ou `{ data: { classes: [...] } }`
  *
  * L'intercepteur axios renvoie déjà le CORPS (`response.data`), donc `response`
  * ici est `{ success, data, meta? }`.
  *
  * @param {*} response
+ * @param {string[]} [keys]
  * @returns {Array<*>}
  */
-export function extractList(response) {
+export function extractList(response, keys = []) {
   if (Array.isArray(response)) {
     return response
   }
@@ -27,6 +29,11 @@ export function extractList(response) {
 
   if (Array.isArray(payload?.data)) {
     return payload.data
+  }
+
+  for (const key of keys) {
+    if (Array.isArray(response?.[key])) return response[key]
+    if (Array.isArray(payload?.[key])) return payload[key]
   }
 
   return []

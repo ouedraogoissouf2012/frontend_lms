@@ -2,6 +2,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { klassciService } from '@/services/klassci'
 import { toast } from '@/composables/useToast'
+import { extractList } from '@/utils/apiList'
 
 /**
  * Couche données de StudentCourses (#G1 ≤300) : charge les cours de l'élève via
@@ -34,7 +35,7 @@ export function useStudentCourses() {
       const response = await klassciService.getMyCourses(filters)
       console.log('[OK] Cours chargés:', response)
 
-      courses.value = response.data || []
+      courses.value = extractList(response)
 
       // Sauvegarder les filtres disponibles (seulement si pas de filtre actif)
       if (!selectedMatiere.value && !selectedEnseignant.value && response.filters) {

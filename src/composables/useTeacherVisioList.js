@@ -3,6 +3,7 @@ import { lmsService } from '@/services/lms'
 import { readCache, writeCache, clearCache } from '@/services/cache'
 import { useTrackedVisioJoin } from '@/composables/useTrackedVisioJoin'
 import { confirmVisioAction } from '@/services/visioFeedback'
+import { extractList } from '@/utils/apiList'
 
 function parseLocalDateTime(dateStr, timeStr) {
   if (!dateStr || !timeStr) return null
@@ -102,7 +103,7 @@ export function useTeacherVisioList() {
       console.log('[API] Chargement des visioconférences...')
       const response = await lmsService.getMyTeachingSeances()
 
-      seances.value = response.data || []
+      seances.value = extractList(response)
 
       // Save to cache
       writeCache('teacher_visio', seances.value)
@@ -122,7 +123,7 @@ export function useTeacherVisioList() {
     try {
       console.log('[BACKGROUND] Rafraîchissement visio...')
       const response = await lmsService.getMyTeachingSeances()
-      seances.value = response.data || []
+      seances.value = extractList(response)
 
       writeCache('teacher_visio', seances.value)
 
