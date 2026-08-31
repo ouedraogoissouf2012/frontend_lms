@@ -160,7 +160,9 @@ export function getFullName(user, opts) {
   const fallback = opts?.fallback ?? ''
   if (!user || typeof user !== 'object') return fallback
 
-  const direct = String(user.name ?? '').trim()
+  // `nom_complet` est la forme renvoyée par KLASSCI dans le roster d'une classe
+  // (`/lms/classes/{id}` → data.etudiants), aux côtés de matricule et email.
+  const direct = String(user.name ?? user.nom_complet ?? '').trim()
   if (direct) return direct
 
   const composed = [user.prenom, user.nom]

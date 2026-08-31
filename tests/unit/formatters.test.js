@@ -94,6 +94,12 @@ describe('getFullName', () => {
     expect(getFullName({ name: 'N’GUESSAN Marcel' })).toBe('N’GUESSAN Marcel')
   })
 
+  it('accepte `nom_complet`, la forme du roster KLASSCI', () => {
+    expect(getFullName({ nom_complet: 'Issouf Ouedraogo' })).toBe('Issouf Ouedraogo')
+    // `name` reste prioritaire s'il est présent.
+    expect(getFullName({ name: 'A B', nom_complet: 'C D' })).toBe('A B')
+  })
+
   it('compose « prenom nom » quand les champs séparés existent', () => {
     expect(getFullName({ prenom: 'Marie', nom: 'Dupont' })).toBe('Marie Dupont')
   })

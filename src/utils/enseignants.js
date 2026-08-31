@@ -47,6 +47,20 @@ export function getEnseignantUniqueClasses(enseignant) {
 }
 
 /**
+ * Libellé des classes d'un enseignant, prêt à afficher — `null` si aucune n'est
+ * connue. `null` signifie « non renseigné », jamais « aucune classe » : l'appelant
+ * doit le rendre « — » plutôt qu'une cellule vide.
+ * @param {Object} enseignant
+ * @returns {string|null}
+ */
+export function getEnseignantClassesLabel(enseignant) {
+  const noms = getEnseignantUniqueClasses(enseignant)
+    .map((classe) => classe?.nom)
+    .filter(Boolean)
+  return noms.length ? noms.join(', ') : null
+}
+
+/**
  * Statistiques globales d'une liste d'enseignants.
  * @param {Array<Object>} enseignants
  * @returns {{ totalMatieres:number, totalClasses:number, actifs:number }}
