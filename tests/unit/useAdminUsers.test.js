@@ -106,6 +106,32 @@ describe('useAdminUsers (#G1)', () => {
     expect(u.filteredUsers.value[0].role).toBe('etudiant')
   })
 
+  it('filtre par classe : un enseignant apparaît via SES classes (dérivées des matières)', async () => {
+    // Un enseignant qui enseigne la classe 1 (via matieres->classes) DOIT ressortir
+    // quand on filtre par la classe 1 — comportement central du changeset.
+    impl.getEnseignants = () => Promise.resolve([
+      { id: 10, nom: 'Zoé Prof', email: 'zoe@e.com', matieres: [{ classes: [{ id: 1, nom: '6e A' }, { id: 2, nom: '5e B' }] }] },
+    ])
+    const u = await setup()
+    u.filterClasse.value = 1
+    expect(u.filteredUsers.value.some(x => x.role === 'enseignant')).toBe(true) // le prof de la classe 1
+    // Filtrer par une classe qu'il n'enseigne pas → il disparaît.
+    u.filterClasse.value = 99
+    expect(u.filteredUsers.value.some(x => x.role === 'enseignant')).toBe(false)
+  })
+
+  it('filtre par classe : tolère un id de classe en CHAÎNE (types KLASSCI incohérents)', async () => {
+    // Les ids de matieres->classes peuvent arriver en chaîne selon l'endpoint ;
+    // l'option de filtre porte un number. Sans normalisation en chaîne, le `===`
+    // strict laisserait tomber l'enseignant en silence.
+    impl.getEnseignants = () => Promise.resolve([
+      { id: 11, nom: 'Prof String', email: 'ps@e.com', matieres: [{ classes: [{ id: '1', nom: '6e A' }] }] },
+    ])
+    const u = await setup()
+    u.filterClasse.value = 1 // number, alors que l'id enseignant est '1' (string)
+    expect(u.filteredUsers.value.some(x => x.role === 'enseignant')).toBe(true)
+  })
+
   it('trie par nom (asc/desc via sortBy) SANS muter la liste source', async () => {
     const u = await setup()
     const sourceOrder = u.etudiants.value.map(e => e.id)
