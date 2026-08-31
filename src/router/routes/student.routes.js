@@ -64,7 +64,7 @@ export const studentRoutes = [
   // Visioconférences - Étudiant (ANCIEN - redirige vers /student/schedule?filter=visio)
   {
     path: '/student/visio-list',
-    redirect: to => {
+    redirect: _to => {
       return { path: '/student/schedule', query: { filter: 'visio' } }
     }
   },
@@ -93,7 +93,7 @@ export const studentRoutes = [
   // Séances étudiant - Emploi du temps (ANCIEN - redirige vers /student/schedule)
   {
     path: '/student/seances',
-    redirect: to => {
+    redirect: _to => {
       return { path: '/student/schedule', query: { filter: 'all' } }
     }
   }

@@ -4,7 +4,7 @@ import lmsService from '@/services/lms'
 import { auth } from '@/services/api'
 import { toast } from '@/composables/useToast'
 import { normalizeError } from '@/services/errorHandler'
-import { isTeacher as roleIsTeacher } from '@/constants/roles'
+import { hasRole, isStudent as roleIsStudent, isTeacher as roleIsTeacher, ROLES } from '@/constants/roles'
 import { isVisioRecordingProviderEnabled } from '@/constants/visio'
 import { useTrackedVisioJoin } from '@/composables/useTrackedVisioJoin'
 import { useVisioRecordingControls } from '@/composables/useVisioRecordingControls'
@@ -46,14 +46,8 @@ export function useSeanceDetails() {
 
   const user = computed(() => auth.getUser())
 
-  const isTeacher = computed(() =>
-    user.value && ['enseignant', 'coordinateur', 'teacher'].includes(user.value.role)
-  )
-
-  // Accepter à la fois 'etudiant' (sans accent) et 'étudiant' (avec accent)
-  const isStudent = computed(() =>
-    user.value && ['etudiant', 'étudiant', 'student'].includes(user.value.role)
-  )
+  const isTeacher = computed(() => hasRole(user.value, [ROLES.ENSEIGNANT, ROLES.COORDINATEUR]))
+  const isStudent = computed(() => roleIsStudent(user.value))
 
   const canManageRecording = computed(() => roleIsTeacher(user.value))
   const recordingProviderEnabled = computed(() => isVisioRecordingProviderEnabled(visio.value))

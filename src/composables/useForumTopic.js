@@ -4,6 +4,7 @@ import { forum } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
 import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
+import { isAdminScope, isTeacher } from '@/constants/roles'
 
 /**
  * Couche données de ForumTopic (#G1 ≤300). Déplace toute la logique de la vue :
@@ -30,15 +31,12 @@ export function useForumTopic() {
     currentUser.value = useAuthStore().currentUser
   }
 
-  function canMarkAsSolution(post) {
+  function canMarkAsSolution(_post) {
     // Seul l'auteur du topic, un enseignant ou un admin peut marquer une solution
     if (!currentUser.value) return false
 
     const isTopicAuthor = topic.value.user_id === currentUser.value.id
-    const isTeacher = currentUser.value.role === 'enseignant' || currentUser.value.role === 'teacher'
-    const isAdmin = currentUser.value.role === 'coordinateur' || currentUser.value.role === 'admin' || currentUser.value.role === 'superAdmin'
-
-    return isTopicAuthor || isTeacher || isAdmin
+    return isTopicAuthor || isTeacher(currentUser.value) || isAdminScope(currentUser.value)
   }
 
   async function markAsSolution(postId) {

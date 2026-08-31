@@ -4,6 +4,7 @@ import lessonService from '@/services/lesson'
 import { auth } from '@/services/api'
 import { useConfirm } from '@/composables/useConfirm'
 import { createEmptyLesson, buildLessonPayload, resolveEvaluationRoute } from '@/utils/matiereDetails'
+import { hasRole, ROLES } from '@/constants/roles'
 
 /**
  * Couche données/logique de MatiereDetails (#H9 ≤300). Charge le détail matière
@@ -43,12 +44,12 @@ export function useMatiereDetails() {
   // Conservé à l'identique (dette pré-existante : non référencé dans le template).
   const canManageVisio = computed(() => {
     const user = lmsService.auth?.getUser?.() || {}
-    return user && ['coordinateur', 'superAdmin'].includes(user.role)
+    return hasRole(user, [ROLES.COORDINATEUR, ROLES.ADMIN])
   })
 
   const isTeacher = computed(() => {
     const user = auth.getUser()
-    return user && ['enseignant', 'teacher', 'coordinateur'].includes(user.role)
+    return hasRole(user, [ROLES.ENSEIGNANT, ROLES.COORDINATEUR])
   })
 
   async function loadMatiereDetails() {
