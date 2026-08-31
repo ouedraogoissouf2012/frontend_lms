@@ -129,9 +129,27 @@ export const endpoints = {
   teacher: {
     stats: '/teacher/stats',
   },
+  // ── ÉVALUATIONS LMS (/evaluations/*) — enrichi, ≠ /proxy/evaluations brut KLASSCI ──
   evaluations: {
-    // Évaluations de l'étudiant connecté (≠ /proxy/evaluations brut KLASSCI).
+    list: '/evaluations',
+    // Évaluations de l'étudiant CONNECTÉ (anti-IDOR #17 Ék-6 : aucun id client, l'identité
+    // vient du token ; ne JAMAIS réintroduire /evaluations/student/{id}).
     student: '/evaluations/student',
+    details: (id) => `/evaluations/${id}`,
+    publish: (id) => `/evaluations/${id}/publish`,
+    start: (id) => `/evaluations/${id}/start`,
+    submit: (id) => `/evaluations/${id}/submit`,
+    syncKlassci: (id) => `/evaluations/${id}/sync-klassci`,
+    timeStatus: (id) => `/evaluations/${id}/time-status`,
+    resultsByClass: (id) => `/evaluations/${id}/results-by-class`,
+    preview: (id) => `/evaluations/${id}/preview`,
+  },
+
+  // ── CHAPITRES (index leçon-scopé /lessons/{id}/chapters + /chapters/{id}) ──
+  chapters: {
+    ofLesson: (lessonId) => `/lessons/${lessonId}/chapters`,
+    reorder: (lessonId) => `/lessons/${lessonId}/chapters/reorder`,
+    details: (chapterId) => `/chapters/${chapterId}`,
   },
 }
 

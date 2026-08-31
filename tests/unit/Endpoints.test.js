@@ -48,7 +48,7 @@ describe('endpoints — carte unique (#105)', () => {
     })
 
     it('aucun chemin /proxy/ ne fuit hors de endpoints.klassci', () => {
-      for (const group of ['lms', 'admin', 'lessons', 'dashboard', 'forum', 'teacher', 'evaluations']) {
+      for (const group of ['lms', 'admin', 'lessons', 'dashboard', 'forum', 'teacher', 'evaluations', 'chapters']) {
         for (const [path, url] of flatten(endpoints[group], group)) {
           expect(url.startsWith('/proxy/'), `${path} → ${url}`).toBe(false)
         }
@@ -142,6 +142,20 @@ describe('endpoints — carte unique (#105)', () => {
       expect(endpoints.teacher.stats).toBe('/teacher/stats')
       expect(endpoints.evaluations.student).toBe('/evaluations/student')
     })
+    it('evaluations (LMS enrichi) / chapters', () => {
+      expect(endpoints.evaluations.list).toBe('/evaluations')
+      expect(endpoints.evaluations.details(5)).toBe('/evaluations/5')
+      expect(endpoints.evaluations.publish(5)).toBe('/evaluations/5/publish')
+      expect(endpoints.evaluations.start(5)).toBe('/evaluations/5/start')
+      expect(endpoints.evaluations.submit(5)).toBe('/evaluations/5/submit')
+      expect(endpoints.evaluations.syncKlassci(5)).toBe('/evaluations/5/sync-klassci')
+      expect(endpoints.evaluations.timeStatus(5)).toBe('/evaluations/5/time-status')
+      expect(endpoints.evaluations.resultsByClass(5)).toBe('/evaluations/5/results-by-class')
+      expect(endpoints.evaluations.preview(5)).toBe('/evaluations/5/preview')
+      expect(endpoints.chapters.ofLesson(3)).toBe('/lessons/3/chapters')
+      expect(endpoints.chapters.reorder(3)).toBe('/lessons/3/chapters/reorder')
+      expect(endpoints.chapters.details(7)).toBe('/chapters/7')
+    })
   })
 
   describe('couverture — tous les chemins en dur recensés (api.js/klassci.js/lms*.js)', () => {
@@ -174,6 +188,11 @@ describe('endpoints — carte unique (#105)', () => {
         '/lms/seances/:id/recording', '/lms/seances/:id/recording/start',
         '/lms/seances/:id/recording/stop',
         '/lms/attendance/history', '/lms/attendances/from-video-session',
+        // evaluation.js + chapter.js (F4 — frontière LMS enrichie /evaluations/*, /chapters/*)
+        '/evaluations', '/evaluations/:id', '/evaluations/:id/publish',
+        '/evaluations/:id/start', '/evaluations/:id/submit', '/evaluations/:id/sync-klassci',
+        '/evaluations/:id/time-status', '/evaluations/:id/results-by-class', '/evaluations/:id/preview',
+        '/lessons/:id/chapters', '/lessons/:id/chapters/reorder', '/chapters/:id',
       ]
       const missing = EXPECTED.filter((p) => !resolved.has(p))
       expect(missing, `chemins manquants : ${missing.join(', ')}`).toEqual([])
