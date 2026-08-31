@@ -3,25 +3,14 @@ import { useRouter } from 'vue-router'
 import { klassciService } from '@/services/klassci'
 import { readCache, writeCache } from '@/services/cache'
 import { getClassCapacity, getClassMatiereCount, getClassStudentCount } from '@/utils/classStats'
+import { extractList } from '@/utils/apiList'
+import { toId } from '@/utils/toId'
 
 const ADMIN_CLASSES_CACHE_KEY = 'admin_classes_v3'
 const ADMIN_CLASSES_TIMEOUT_MS = 20000
 const ADMIN_CLASSES_METADATA_TIMEOUT_MS = 25000
 
-const asArray = (value, keys = []) => {
-  if (Array.isArray(value)) return value
-  if (!value || typeof value !== 'object') return []
-
-  for (const key of keys) {
-    if (Array.isArray(value[key])) return value[key]
-  }
-  if (Array.isArray(value.data)) return value.data
-  for (const key of keys) {
-    if (Array.isArray(value.data?.[key])) return value.data[key]
-  }
-
-  return []
-}
+const asArray = (value, keys = []) => extractList(value, keys)
 
 const asObjectArray = (value, keys = []) =>
   asArray(value, keys).filter(item => item && typeof item === 'object')
@@ -47,9 +36,9 @@ const enrichClassSummary = (classe, matieresList) => {
 const uniqueObjectsById = (items) => {
   const byId = new Map()
   for (const item of items) {
-    const id = item?.id
-    if (id !== null && id !== undefined && !byId.has(String(id))) {
-      byId.set(String(id), item)
+    const id = toId(item)
+    if (id && !byId.has(id)) {
+      byId.set(id, item)
     }
   }
   return Array.from(byId.values())
@@ -96,11 +85,11 @@ export function useAdminClasses() {
     let result = asObjectArray(classes.value)
 
     if (filters.value.filiere_id) {
-      result = result.filter(c => c.filiere?.id === parseInt(filters.value.filiere_id))
+      result = result.filter(c => toId(c.filiere) === toId(filters.value.filiere_id))
     }
 
     if (filters.value.niveau_id) {
-      result = result.filter(c => c.niveau?.id === parseInt(filters.value.niveau_id))
+      result = result.filter(c => toId(c.niveau) === toId(filters.value.niveau_id))
     }
 
     if (filters.value.statut) {

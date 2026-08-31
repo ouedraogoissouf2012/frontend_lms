@@ -2,6 +2,7 @@ import { ref, reactive } from 'vue'
 import lmsService from '@/services/lms'
 import { klassciService } from '@/services/klassci'
 import { readCache, writeCache } from '@/services/cache'
+import { extractList } from '@/utils/apiList'
 
 /**
  * Composable de données des séances côté coordinateur (G7).
@@ -42,7 +43,7 @@ export function useCoordinatorSeances() {
       const response = await lmsService.getEnseignants()
 
       if (response && response.success) {
-        enseignants.value = response.data || []
+        enseignants.value = extractList(response)
         console.log(`[OK] ${enseignants.value.length} enseignants chargés`)
       }
     } catch (err) {

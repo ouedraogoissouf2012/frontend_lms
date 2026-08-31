@@ -9,6 +9,7 @@ import { readCache, writeCache, clearCache } from '@/services/cache'
 import { confirmVisioAction } from '@/services/visioFeedback'
 // #28 : logique métier pure extraite (testée dans tests/unit/seances.test.js)
 import { filterSeances, computeSeancesStats } from '@/utils/seances'
+import { extractList } from '@/utils/apiList'
 
 /**
  * Couche données/logique de la vue TeacherSeances (#H6 ≤300).
@@ -64,7 +65,7 @@ export function useTeacherSeances() {
       const response = await lmsService.getMyTeachingSeances()
 
       console.log('[API] Réponse séances:', response)
-      seances.value = response.data || []
+      seances.value = extractList(response)
 
       // Save to cache
       writeCache('teacher_seances', seances.value)
@@ -83,7 +84,7 @@ export function useTeacherSeances() {
     try {
       console.log('[BACKGROUND] Rafraîchissement des séances...')
       const response = await lmsService.getMyTeachingSeances()
-      seances.value = response.data || []
+      seances.value = extractList(response)
 
       writeCache('teacher_seances', seances.value)
 

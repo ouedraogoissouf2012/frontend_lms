@@ -65,6 +65,15 @@ describe('useCreateQuestions (H1)', () => {
     expect(c.isEditMode.value).toBe(false)
   })
 
+  it('retrouve l\'évaluation si l\'id KLASSCI est une chaîne', async () => {
+    h.getEvaluations.mockResolvedValue({
+      success: true,
+      data: [{ id: '5', titre: 'Éval T', matiere: { id: 1 }, classe: { id: 2 } }]
+    })
+    const c = await setup()
+    expect(c.evaluationKlassci.value.titre).toBe('Éval T')
+  })
+
   it('gère les questions (add/remove/option/correct)', async () => {
     const c = await setup()
     c.addQuestion()

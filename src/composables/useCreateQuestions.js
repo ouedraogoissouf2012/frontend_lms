@@ -3,6 +3,8 @@ import { useRouter, useRoute } from 'vue-router'
 import evaluationService from '@/services/evaluation'
 import klassciService from '@/services/klassci'
 import { toast } from '@/composables/useToast'
+import { extractList } from '@/utils/apiList'
+import { toId } from '@/utils/toId'
 
 /**
  * Couche données de CreateQuestions (H1 ≤300) : chargement de l'évaluation
@@ -33,8 +35,8 @@ export function useCreateQuestions() {
   async function loadEvaluationKlassci(klassciId) {
     try {
       const result = await klassciService.getEvaluations()
-      if (result.success && result.data) {
-        evaluationKlassci.value = result.data.find(e => e.id === parseInt(klassciId))
+      if (result.success) {
+        evaluationKlassci.value = extractList(result).find(e => toId(e) === toId(klassciId))
 
         if (!evaluationKlassci.value) {
           toast.error('Évaluation KLASSCI non trouvée')
@@ -48,7 +50,7 @@ export function useCreateQuestions() {
       try {
         const dashboard = await klassciService.getTeacherDashboard()
         if (dashboard && dashboard.evaluations) {
-          evaluationKlassci.value = dashboard.evaluations.find(e => e.id === parseInt(klassciId))
+          evaluationKlassci.value = extractList(dashboard.evaluations).find(e => toId(e) === toId(klassciId))
 
           if (!evaluationKlassci.value) {
             toast.error('Évaluation KLASSCI non trouvée dans le dashboard')

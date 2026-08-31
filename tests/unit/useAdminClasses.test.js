@@ -107,6 +107,17 @@ describe('useAdminClasses (#G1)', () => {
     expect(c.filteredClasses.value[0].id).toBe(1)
   })
 
+  it('filtre par filière malgré un id chaîne (types KLASSCI incohérents)', async () => {
+    h.getClasses.mockResolvedValue([
+      { id: 1, name: '6e A', is_active: true, filiere: { id: '11' }, niveau: { id: 21 }, places_occupees: 2 },
+      { id: 2, name: '5e B', is_active: false, filiere: { id: 12 }, niveau: { id: 22 }, nb_etudiants: 1 },
+    ])
+    const c = await setup()
+    c.filters.value.filiere_id = 11
+    expect(c.filteredClasses.value).toHaveLength(1)
+    expect(c.filteredClasses.value[0].id).toBe(1)
+  })
+
   it('filtre par niveau', async () => {
     const c = await setup()
     c.filters.value.niveau_id = '22'

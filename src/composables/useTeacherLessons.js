@@ -4,6 +4,7 @@ import { klassciService } from '@/services/klassci'
 import lessonService from '@/services/lesson'
 import { readCache, writeCache } from '@/services/cache'
 import { useLessonForm } from '@/composables/useLessonForm'
+import { extractList } from '@/utils/apiList'
 
 /**
  * Couche données de TeacherLessons (#H4 ≤300) : charge leçons + matières (cache +
@@ -78,32 +79,7 @@ export function useTeacherLessons() {
     try {
       console.log('[LESSONS] Chargement des leçons via API...')
       const response = await lessonService.getLessons()
-
-      console.log('[DEBUG] Response complète:', response)
-      console.log('[DEBUG] response.success:', response.success)
-      console.log('[DEBUG] response.data:', response.data)
-      console.log('[DEBUG] response.data?.data:', response.data?.data)
-
-      if (response && response.success && response.data) {
-        // L'API retourne une structure paginée : response.data.data contient le tableau de leçons
-        if (response.data.data && Array.isArray(response.data.data)) {
-          lessons.value = response.data.data
-          console.log('[OK] Leçons chargées depuis response.data.data:', lessons.value.length, 'leçons')
-        } else if (Array.isArray(response.data)) {
-          lessons.value = response.data
-          console.log('[OK] Leçons chargées depuis response.data:', lessons.value.length, 'leçons')
-        } else {
-          lessons.value = []
-          console.warn('[WARN] response.data existe mais n\'est pas un tableau')
-        }
-      } else {
-        lessons.value = []
-        console.warn('[WARN] Structure de réponse invalide')
-        console.warn('[WARN] response:', response)
-        console.warn('[WARN] response.success:', response?.success)
-        console.warn('[WARN] response.data:', response?.data)
-      }
-
+      lessons.value = extractList(response)
       writeCache('teacher_lessons', lessons.value)
     } catch (err) {
       console.error('[ERREUR] Erreur chargement leçons:', err)
@@ -124,9 +100,10 @@ export function useTeacherLessons() {
     try {
       // Utiliser getMatieres() au lieu de getTeacherDashboard() pour support coordinateur
       const matieresData = await klassciService.getMatieres()
-      matieres.value = matieresData || []
-
-      writeCache('teacher_matieres', matieres.value)
+      matieres.value = extractList(matieresData, ['matieres'])
+      if (matieres.value.length > 0 || Array.isArray(matieresData) || Array.isArray(matieresData?.matieres)) {
+        writeCache('teacher_matieres', matieres.value)
+      }
     } catch (err) {
       console.error('[ERREUR] Chargement matières:', err)
     }
@@ -138,7 +115,7 @@ export function useTeacherLessons() {
       const response = await lessonService.getLessons()
 
       if (response && response.success) {
-        lessons.value = response.data.data || response.data || []
+        lessons.value = extractList(response)
         writeCache('teacher_lessons', lessons.value)
       }
     } catch (error) {

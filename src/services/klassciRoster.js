@@ -2,6 +2,7 @@ import { lmsClassesService } from '@/services/lmsClasses'
 import { logError } from '@/services/errorHandler'
 import { mapWithConcurrency } from '@/utils/concurrency'
 import { classeLabel } from '@/utils/classes'
+import { toId } from '@/utils/toId'
 
 // Plafond de requêtes simultanées vers /proxy/classes/{id}/etudiants. Borné à
 // dessein : le backend proxifie KLASSCI derrière un quota (`x-ratelimit-limit`),
@@ -53,7 +54,7 @@ export async function fetchClassRosters(classeList, onProgress) {
     ok++
     const arr = Array.isArray(outcome.value) ? outcome.value : []
     arr.forEach(etu => {
-      etu.classe_id = classe.id
+      etu.classe_id = toId(classe)
       etu.classe_nom = classeLabel(classe)
       collected.push(etu)
     })
