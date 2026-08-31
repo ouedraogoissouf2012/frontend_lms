@@ -6,6 +6,8 @@ import { fetchClassRosters } from '@/services/klassciRoster'
 import { deriveInstitutionCounters } from '@/utils/classStats'
 import { getFullName } from '@/utils/formatters'
 import { ROLES } from '@/constants/roles'
+import { lmsTeachersService } from '@/services/lmsTeachers'
+import { getEnseignantClassesLabel, getEnseignantUniqueClasses } from '@/utils/enseignants'
 
 const PAGE_SIZE = 25
 
@@ -120,7 +122,10 @@ export function useAdminUsers() {
         // professeur (donnée amont fausse, vérifiée contre l'API). La source de
         // vérité est ici l'endpoint interrogé, pas le champ.
         name: getFullName(e), email: e.email, role: ROLES.ENSEIGNANT,
-        classe_id: null, classe_nom: null,
+        // Classes DÉRIVÉES des matières (helper canonique), jamais un `null` en dur.
+        classe_id: null,
+        classe_ids: getEnseignantUniqueClasses(e).map(c => c.id),
+        classe_nom: getEnseignantClassesLabel(e),
         matricule: e.matricule, telephone: e.telephone, specialization: e.specialization,
       })
     })
@@ -132,7 +137,11 @@ export function useAdminUsers() {
   const filteredUsers = computed(() => {
     let result = allUsers.value
     if (filterRole.value !== 'all') result = result.filter(u => u.role === filterRole.value)
-    if (filterClasse.value !== 'all') result = result.filter(u => u.classe_id === filterClasse.value)
+    // Un étudiant a UNE classe, un enseignant plusieurs : on teste l'appartenance.
+    if (filterClasse.value !== 'all') {
+      result = result.filter(u => u.classe_id === filterClasse.value
+        || (u.classe_ids?.includes(filterClasse.value) ?? false))
+    }
     if (searchQuery.value.trim()) {
       const q = searchQuery.value.toLowerCase().trim()
       result = result.filter(u =>
@@ -169,7 +178,11 @@ export function useAdminUsers() {
    * l'application est différée en fin de fetchAll, sous garde de génération.
    */
   function resolveRoot(outcome, label) {
-    if (outcome.status === 'fulfilled') return Array.isArray(outcome.value) ? outcome.value : []
+    if (outcome.status === 'fulfilled') {
+      // Tableau nu OU enveloppe `{success, data}` : les deux formes coexistent.
+      const v = outcome.value
+      return Array.isArray(v) ? v : (Array.isArray(v?.data) ? v.data : [])
+    }
     logError(outcome.reason, `[useAdminUsers] ${label}`)
     return null
   }
@@ -189,7 +202,8 @@ export function useAdminUsers() {
 
     const [classesOutcome, enseignantsOutcome] = await Promise.allSettled([
       klassciService.getClasses(),
-      klassciService.getEnseignants(),
+      // `with_details` : seule cette variante porte les matières, donc les classes.
+      lmsTeachersService.getEnseignants(true),
     ])
     const loadedClasses = resolveRoot(classesOutcome, 'classes')
     const loadedEnseignants = resolveRoot(enseignantsOutcome, 'enseignants')

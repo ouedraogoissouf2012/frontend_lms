@@ -30,7 +30,22 @@ vi.mock('@/services/klassci', () => ({
   default: {
     getClasses: (...a) => impl.getClasses(...a),
     getEnseignants: (...a) => impl.getEnseignants(...a),
-    getClasseEtudiants: (...a) => impl.getClasseEtudiants(...a),
+  },
+}))
+// Le roster vient des DÉTAILS de classe : /proxy/classes/{id}/etudiants est refusé
+// par KLASSCI (403), tandis que /lms/classes/{id} livre déjà `data.etudiants`.
+vi.mock('@/services/lmsClasses', () => ({
+  lmsClassesService: {
+    getClasseDetails: (...a) => impl.getClasseEtudiants(...a)
+      .then((etudiants) => ({ success: true, data: { etudiants } })),
+  },
+}))
+
+// Les enseignants viennent désormais de la liste ENRICHIE (`with_details`), seule
+// à porter leurs matières — donc leurs classes.
+vi.mock('@/services/lmsTeachers', () => ({
+  lmsTeachersService: {
+    getEnseignants: (...a) => impl.getEnseignants(...a).then((data) => ({ success: true, data })),
   },
 }))
 

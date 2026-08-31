@@ -1,4 +1,4 @@
-import klassciService from '@/services/klassci'
+import { lmsClassesService } from '@/services/lmsClasses'
 import { logError } from '@/services/errorHandler'
 import { mapWithConcurrency } from '@/utils/concurrency'
 import { classeLabel } from '@/utils/classes'
@@ -17,17 +17,24 @@ const CLASSES_FETCH_CONCURRENCY = 4
 export const isForbidden = (reason) => reason?.response?.status === 403
 
 /**
- * Charge les étudiants classe par classe. Le N+1 est imposé par KLASSCI, qui ne
- * les expose pas autrement ; on le borne en parallèle plutôt que de le sérialiser.
- * DETTE TRACÉE : seul un endpoint d'agrégation backend ramènera ce coût sous
- * O(nb_classes).
+ * Charge les étudiants classe par classe, via les DÉTAILS de classe.
+ *
+ * `/proxy/classes/{id}/etudiants` est refusé par KLASSCI (403 « Accès non autorisé
+ * à cette classe »), alors que `/lms/classes/{id}` répond 200 et contient DÉJÀ le
+ * roster dans `data.etudiants` — vérifié sur les 17 classes : 210 étudiants listés
+ * pour 210 déclarés. On lit donc là où la donnée est réellement disponible.
+ *
+ * Le N+1 reste imposé par KLASSCI, qui n'expose le roster que par classe ; on le
+ * borne en parallèle plutôt que de le sérialiser. DETTE TRACÉE : seul un endpoint
+ * d'agrégation backend ramènerait ce coût sous O(nb_classes).
  */
 export async function fetchClassRosters(classeList, onProgress) {
   let done = 0
   const settled = await mapWithConcurrency(classeList, CLASSES_FETCH_CONCURRENCY, async (classe) => {
-    const data = await klassciService.getClasseEtudiants(classe.id)
+    const response = await lmsClassesService.getClasseDetails(classe.id)
     onProgress?.(`Chargement des étudiants… ${++done}/${classeList.length} classes`)
-    return data
+    // Le roster vit dans l'enveloppe des détails, pas à la racine de la réponse.
+    return response?.data?.etudiants ?? []
   }, { stopWhen: isForbidden })
 
   const collected = []
