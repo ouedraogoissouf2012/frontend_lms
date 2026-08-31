@@ -1,7 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <Navbar />
-
+  <DashboardLayout>
     <div class="max-w-7xl mx-auto px-4 py-8">
       <!-- En-tête -->
       <div class="mb-8">
@@ -105,7 +103,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </DashboardLayout>
 </template>
 
 <script setup>
@@ -122,7 +120,7 @@
  * template inchangé, comportement identique hors correction du rôle.
  */
 import { ref, onMounted } from 'vue'
-import Navbar from '@/components/Navbar.vue'
+import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import { dashboard, lessons as lessonsApi, notifications as notificationsApi, auth } from '@/services/api'
 import { isStudent, isTeacher } from '@/constants/roles'

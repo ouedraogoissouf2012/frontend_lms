@@ -52,8 +52,8 @@ const EXPECTED_PATHS = [
   '/student/schedule', '/student/seances',
   // shared
   '/dashboard', '/lessons/:id',
-  '/teacher/matieres', '/teacher/lessons', '/teacher/lessons/:id/chapters', '/quizzes',
-  '/quizzes/:id/take', '/forum', '/forum/topics/:id',
+  '/teacher/matieres', '/teacher/lessons', '/teacher/lessons/:id/chapters',
+  '/forum', '/forum/topics/:id',
   '/teacher/evaluations', '/teacher/evaluations/create', '/teacher/evaluations/create-questions',
   '/teacher/evaluations/:id/edit-questions', '/student/evaluations',
   '/student/evaluations/:id/take', '/student/evaluations/:id/results',
@@ -173,10 +173,11 @@ describe('meta.roles — invariant sur les routes protégées', () => {
     expect(byPath['/dashboard'].meta.roles).toBeUndefined()
   })
 
-  it('les 9 autres routes du reliquat #12 portent un périmètre explicite', () => {
+  it('les 7 autres routes du reliquat #12 portent un périmètre explicite', () => {
     const byPath = Object.fromEntries(assembled.map(r => [r.path, r]))
+    // /quizzes + /quizzes/:id/take retirés (F2 : module quiz hérité supprimé).
     const RELIQUAT_12 = [
-      '/quizzes', '/quizzes/:id/take', '/forum', '/forum/topics/:id',
+      '/forum', '/forum/topics/:id',
       '/matieres/:id', '/classes/:id', '/seances/:id',
       '/attendance/seances', '/attendance/seances/:seanceId'
     ]
