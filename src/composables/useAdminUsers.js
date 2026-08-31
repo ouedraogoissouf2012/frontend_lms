@@ -138,9 +138,16 @@ export function useAdminUsers() {
     let result = allUsers.value
     if (filterRole.value !== 'all') result = result.filter(u => u.role === filterRole.value)
     // Un étudiant a UNE classe, un enseignant plusieurs : on teste l'appartenance.
+    // Comparaison en CHAÎNE : `classe_id` étudiant vient des classes (/proxy) mais
+    // `classe_ids` enseignant vient de matieres[].classes (/lms) — endpoints aux
+    // types d'id KLASSCI potentiellement différents (number vs string). Sans
+    // normalisation, un `===` strict laisserait tomber l'enseignant en silence
+    // (même raison que utils/classStats.js::toId).
     if (filterClasse.value !== 'all') {
-      result = result.filter(u => u.classe_id === filterClasse.value
-        || (u.classe_ids?.includes(filterClasse.value) ?? false))
+      const target = String(filterClasse.value)
+      result = result.filter(u =>
+        String(u.classe_id) === target
+        || (u.classe_ids ?? []).some((id) => String(id) === target))
     }
     if (searchQuery.value.trim()) {
       const q = searchQuery.value.toLowerCase().trim()
