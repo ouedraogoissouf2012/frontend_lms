@@ -63,7 +63,7 @@
 import { computed } from 'vue'
 import TipTapEditor from '@/components/common/TipTapEditor.vue'
 import { UPLOAD_CONFIG, ACCEPTED_FILE_TYPES } from '@/constants/upload'
-import { toast } from '@/services/toast'
+import { toast } from '@/composables/useToast'
 
 const props = defineProps({
   chapter: { type: Object, required: true }

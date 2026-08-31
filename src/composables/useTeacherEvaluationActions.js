@@ -1,7 +1,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import evaluationService from '@/services/evaluation'
-import { toast } from '@/services/toast'
+import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
 
 /**

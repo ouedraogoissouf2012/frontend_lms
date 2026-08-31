@@ -2,7 +2,7 @@ import { ref, computed, onMounted, onBeforeUnmount, getCurrentInstance } from 'v
 import { useRoute, useRouter } from 'vue-router'
 import evaluationService from '@/services/evaluation'
 import { auth } from '@/services/api'
-import { toast } from '@/services/toast'
+import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
 
 /**

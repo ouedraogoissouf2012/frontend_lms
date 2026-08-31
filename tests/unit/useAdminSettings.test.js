@@ -22,7 +22,7 @@ vi.mock('@/services/api', () => ({
 }))
 
 const toastSpies = { success: vi.fn(), error: vi.fn(), info: vi.fn() }
-vi.mock('@/services/toast', () => ({
+vi.mock('@/composables/useToast', () => ({
   toast: {
     success: (m) => toastSpies.success(m),
     error: (m) => toastSpies.error(m),

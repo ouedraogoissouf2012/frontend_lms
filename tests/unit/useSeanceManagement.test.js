@@ -34,7 +34,7 @@ vi.mock('@/stores/auth', () => ({
 vi.mock('@/stores/visio', () => ({
   useVisioStore: () => ({ joinVisio: (...a) => storeJoinVisio(...a) })
 }))
-vi.mock('@/services/toast', () => ({ toast: { success: vi.fn(), error: (...a) => toastError(...a), info: vi.fn() } }))
+vi.mock('@/composables/useToast', () => ({ toast: { success: vi.fn(), error: (...a) => toastError(...a), info: vi.fn() } }))
 vi.mock('@/services/errorHandler', () => ({ normalizeError: () => ({ userMessage: 'err' }) }))
 vi.mock('@/services/visioFeedback', () => ({ confirmVisioAction: (...a) => confirmVisioAction(...a) }))
 vi.mock('@/constants/visio', () => ({

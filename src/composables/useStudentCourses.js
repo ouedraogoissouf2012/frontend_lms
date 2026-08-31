@@ -1,7 +1,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { klassciService } from '@/services/klassci'
-import { toast } from '@/services/toast'
+import { toast } from '@/composables/useToast'
 
 /**
  * Couche données de StudentCourses (#G1 ≤300) : charge les cours de l'élève via

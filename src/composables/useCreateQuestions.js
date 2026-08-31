@@ -2,7 +2,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import evaluationService from '@/services/evaluation'
 import klassciService from '@/services/klassci'
-import { toast } from '@/services/toast'
+import { toast } from '@/composables/useToast'
 
 /**
  * Couche données de CreateQuestions (H1 ≤300) : chargement de l'évaluation

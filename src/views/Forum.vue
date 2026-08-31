@@ -123,7 +123,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import Modal from '@/components/ui/Modal.vue'
 import { forum } from '@/services/api'
-import { toast } from '@/services/toast'
+import { toast } from '@/composables/useToast'
 
 defineOptions({ name: 'Forum' })
 

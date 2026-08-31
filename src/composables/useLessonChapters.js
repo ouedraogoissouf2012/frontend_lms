@@ -1,6 +1,6 @@
 import { ref, computed, onMounted, getCurrentInstance } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { toast } from '@/services/toast'
+import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
 import { normalizeError } from '@/services/errorHandler'
 import lessonService from '@/services/lesson'

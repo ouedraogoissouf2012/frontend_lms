@@ -1,7 +1,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import lmsService from '@/services/lms'
 import { useAuthStore } from '@/stores/auth'
-import { toast } from '@/services/toast'
+import { toast } from '@/composables/useToast'
 import { normalizeError } from '@/services/errorHandler'
 import { apiBaseUrl } from '@/constants/http'
 

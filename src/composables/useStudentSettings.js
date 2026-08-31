@@ -1,7 +1,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { auth } from '@/services/api'
-import { toast } from '@/services/toast'
+import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
 import { STORAGE_KEYS } from '@/constants/storageKeys'
 

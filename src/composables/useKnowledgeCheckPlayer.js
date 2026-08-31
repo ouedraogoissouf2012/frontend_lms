@@ -1,6 +1,6 @@
 import { ref, computed, onUnmounted } from 'vue'
 import knowledgeCheckService from '@/services/knowledgeCheck'
-import { toast } from '@/services/toast'
+import { toast } from '@/composables/useToast'
 
 /**
  * Couche données de KnowledgeCheckPlayer (#G6 ; éclaté sous 300 lignes en H5).

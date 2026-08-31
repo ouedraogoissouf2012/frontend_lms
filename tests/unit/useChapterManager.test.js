@@ -17,7 +17,7 @@ vi.mock('@/services/api', () => ({
     delete: vi.fn()
   }
 }))
-vi.mock('@/services/toast', () => ({ toast: { error: vi.fn(), success: vi.fn() } }))
+vi.mock('@/composables/useToast', () => ({ toast: { error: vi.fn(), success: vi.fn() } }))
 vi.mock('@/services/errorHandler', () => ({ normalizeError: (e) => ({ userMessage: String(e) }) }))
 vi.mock('@/services/knowledgeCheck', () => ({
   default: { getByChapter: vi.fn().mockResolvedValue({ success: true, data: [] }), delete: vi.fn() }

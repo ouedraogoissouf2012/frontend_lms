@@ -2,7 +2,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import evaluationService from '@/services/evaluation'
 import { formatDateTime, getStatusLabel } from '@/utils/evaluationCorrectionsFormat'
-import { toast } from '@/services/toast'
+import { toast } from '@/composables/useToast'
 
 /**
  * Couche données de EvaluationCorrections (H2 ≤300) : charge les résultats d'une

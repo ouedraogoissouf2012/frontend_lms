@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { forum } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
-import { toast } from '@/services/toast'
+import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
 
 /**

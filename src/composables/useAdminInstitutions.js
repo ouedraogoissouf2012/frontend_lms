@@ -1,6 +1,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { institutions as institutionsApi } from '@/services/api'
-import { toast } from '@/services/toast'
+import { toast } from '@/composables/useToast'
 
 /**
  * Couche données d'AdminInstitutions (#G1 ≤300) : état (liste + overview),

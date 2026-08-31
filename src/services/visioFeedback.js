@@ -1,5 +1,5 @@
 import { confirmDialog } from '@/services/confirmDialog'
-import { toast } from '@/services/toast'
+import { toast } from '@/composables/useToast'
 import { normalizeError } from '@/services/errorHandler'
 
 function messageFrom(error, fallback) {

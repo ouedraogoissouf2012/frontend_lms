@@ -18,7 +18,7 @@ vi.mock('@/services/lesson', () => ({ default: lessonMock }))
 
 // alert() -> toast (Lot F3) : les validations passent par toast.warning/error.
 const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn(), show: vi.fn() }))
-vi.mock('@/services/toast', () => ({ toast: toastMock }))
+vi.mock('@/composables/useToast', () => ({ toast: toastMock }))
 
 import { useLessonForm } from '@/composables/useLessonForm'
 

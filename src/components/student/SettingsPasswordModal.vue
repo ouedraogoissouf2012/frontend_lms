@@ -67,7 +67,7 @@
 import { ref } from 'vue'
 import Modal from '@/components/ui/Modal.vue'
 import PasswordChangeUnavailableNotice from '@/components/ui/PasswordChangeUnavailableNotice.vue'
-import { toast } from '@/services/toast'
+import { toast } from '@/composables/useToast'
 import { PASSWORD_CHANGE_UNAVAILABLE_MESSAGE } from '@/constants/passwordChange'
 
 const modelValue = defineModel({ type: Boolean, default: false })

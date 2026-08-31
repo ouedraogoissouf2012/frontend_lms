@@ -25,7 +25,7 @@ vi.mock('@/services/lesson', () => ({
     publishLesson: (...a) => publishLessonApi(...a)
   }
 }))
-vi.mock('@/services/toast', () => ({ toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn(), show: vi.fn() } }))
+vi.mock('@/composables/useToast', () => ({ toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn(), show: vi.fn() } }))
 vi.mock('@/composables/useConfirm', () => ({ useConfirm: () => ({ confirm: confirmMock, accept: vi.fn(), cancel: vi.fn(), state: {} }) }))
 vi.mock('@/services/errorHandler', () => ({ normalizeError: () => ({ userMessage: 'err' }) }))
 

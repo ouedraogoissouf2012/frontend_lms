@@ -3,7 +3,7 @@
  * Le composant appelle lmsService.getVisioParticipants() au montage et lance un
  * setInterval de refresh. On mocke :
  *  - @/services/lms (default export lmsService.getVisioParticipants) → promesse résolue neutre
- *  - @/services/toast et @/services/errorHandler (utilisés par les exports) → no-op
+ *  - @/composables/useToast et @/services/errorHandler (utilisés par les exports) → no-op
  *  - @/constants/http (apiBaseUrl) → no-op
  * Pinia est fourni (le store auth est utilisé dans les méthodes d'export, pas au montage).
  * Assertions : montage sans erreur (overlay Modal), appel du service au montage,
@@ -23,7 +23,7 @@ vi.mock('@/services/lms', () => ({
   default: { getVisioParticipants },
   lmsService: { getVisioParticipants }
 }))
-vi.mock('@/services/toast', () => ({ toast: { error: vi.fn(), success: vi.fn() } }))
+vi.mock('@/composables/useToast', () => ({ toast: { error: vi.fn(), success: vi.fn() } }))
 vi.mock('@/services/errorHandler', () => ({ normalizeError: (e) => ({ userMessage: String(e) }) }))
 vi.mock('@/constants/http', () => ({ apiBaseUrl: () => 'http://test', API_TIMEOUT_MS: 30000 }))
 

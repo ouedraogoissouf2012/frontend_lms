@@ -15,7 +15,7 @@ const h = vi.hoisted(() => ({
   auth: { getUser: vi.fn(() => ({ nom: 'Test', role: 'admin' })), logout: vi.fn() },
   push: vi.fn(),
 }))
-vi.mock('@/services/toast', () => ({ toast: h.toast }))
+vi.mock('@/composables/useToast', () => ({ toast: h.toast }))
 vi.mock('@/services/api', () => ({ auth: h.auth }))
 vi.mock('vue-router', () => ({ useRouter: () => ({ push: h.push }) }))
 
