@@ -1,4 +1,5 @@
 import api from './api'
+import { endpoints } from './endpoints'
 
 /**
  * Service de gestion des notifications
@@ -15,7 +16,7 @@ export const notificationsService = {
         unread_only: unreadOnly
       }
 
-      const response = await api.get('/notifications', { params })
+      const response = await api.get(endpoints.notifications.list, { params })
 
       return response.success ? response : null
     } catch (error) {
@@ -29,7 +30,7 @@ export const notificationsService = {
    */
   async getUnreadCount() {
     try {
-      const response = await api.get('/notifications/unread-count')
+      const response = await api.get(endpoints.notifications.unreadCount)
       return response.success ? response.count : 0
     } catch (error) {
       console.error('Erreur récupération count notifications:', error)
@@ -42,7 +43,7 @@ export const notificationsService = {
    */
   async getRecentNotifications(limit = 5) {
     try {
-      const response = await api.get('/notifications/recent', {
+      const response = await api.get(endpoints.notifications.recent, {
         params: { limit }
       })
 
@@ -58,7 +59,7 @@ export const notificationsService = {
    */
   async markAsRead(notificationId) {
     try {
-      const response = await api.post(`/notifications/${notificationId}/mark-as-read`)
+      const response = await api.post(endpoints.notifications.markAsRead(notificationId))
       return response.success
     } catch (error) {
       console.error('Erreur marquage notification:', error)
@@ -71,7 +72,7 @@ export const notificationsService = {
    */
   async markAllAsRead() {
     try {
-      const response = await api.post('/notifications/mark-all-as-read')
+      const response = await api.post(endpoints.notifications.markAllAsRead)
       return response.success
     } catch (error) {
       console.error('Erreur marquage toutes notifications:', error)
@@ -84,7 +85,7 @@ export const notificationsService = {
    */
   async deleteNotification(notificationId) {
     try {
-      const response = await api.delete(`/notifications/${notificationId}`)
+      const response = await api.delete(endpoints.notifications.delete(notificationId))
       return response.success
     } catch (error) {
       console.error('Erreur suppression notification:', error)
@@ -97,7 +98,7 @@ export const notificationsService = {
    */
   async deleteAllRead() {
     try {
-      const response = await api.delete('/notifications/read/all')
+      const response = await api.delete(endpoints.notifications.deleteReadAll)
       return response.success
     } catch (error) {
       console.error('Erreur suppression notifications lues:', error)
@@ -110,7 +111,7 @@ export const notificationsService = {
    */
   async createNotification(data) {
     try {
-      const response = await api.post('/admin/notifications/create', data)
+      const response = await api.post(endpoints.admin.notifications.create, data)
       return response.success
     } catch (error) {
       console.error('Erreur création notification:', error)
@@ -123,7 +124,7 @@ export const notificationsService = {
    */
   async getStats() {
     try {
-      const response = await api.get('/admin/notifications/stats')
+      const response = await api.get(endpoints.admin.notifications.stats)
       return response.success ? response.data : null
     } catch (error) {
       console.error('Erreur récupération stats notifications:', error)

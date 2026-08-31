@@ -4,6 +4,7 @@ import lessonService from '@/services/lesson'
 import chapterProgressService from '@/services/chapterProgress'
 import api from '@/services/api'
 import { toast } from '@/composables/useToast'
+import { endpoints } from '@/services/endpoints'
 
 /**
  * Couche données de StudentLessonView (#H4 ≤300) : charge leçon + chapitres +
@@ -60,14 +61,14 @@ export function useStudentLessonView() {
       }
 
       // Load chapters
-      const chaptersRes = await api.get(`/lessons/${lessonId.value}/chapters`)
+      const chaptersRes = await api.get(endpoints.chapters.ofLesson(lessonId.value))
       if (chaptersRes.success) {
         chapters.value = chaptersRes.data || []
       }
 
       // Load chapter progress
       try {
-        const progressRes = await api.get(`/lessons/${lessonId.value}/chapter-progress`)
+        const progressRes = await api.get(endpoints.lessons.chapterProgress(lessonId.value))
         if (progressRes.success && progressRes.data) {
           const list = progressRes.data.chapters || []
           const completedIds = list
@@ -85,7 +86,7 @@ export function useStudentLessonView() {
         .filter(ch => ch.content_type === 'quiz')
         .map(async (chapter) => {
           try {
-            const quizRes = await api.get(`/knowledge-checks/chapter/${chapter.id}`)
+            const quizRes = await api.get(endpoints.knowledgeChecks.byChapter(chapter.id))
             if (quizRes.success && quizRes.data) {
               quizzes.value[chapter.id] = quizRes.data
             }
@@ -211,7 +212,7 @@ export function useStudentLessonView() {
     // Refresh quiz data to get updated scores
     if (activeChapter.value) {
       try {
-        const quizRes = await api.get(`/knowledge-checks/chapter/${activeChapter.value.id}`)
+        const quizRes = await api.get(endpoints.knowledgeChecks.byChapter(activeChapter.value.id))
         if (quizRes.success && quizRes.data) {
           quizzes.value[activeChapter.value.id] = quizRes.data
           // Force reactivity

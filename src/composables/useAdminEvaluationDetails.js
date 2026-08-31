@@ -1,6 +1,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '@/services/api'
+import { endpoints } from '@/services/endpoints'
 
 /**
  * Couche données d'AdminEvaluationDetails (#H3 ≤300) : lit l'id d'évaluation dans
@@ -74,7 +75,7 @@ export function useAdminEvaluationDetails() {
 
   async function loadEvaluationFallback(evaluationId, initialError) {
     try {
-      const fallbackResponse = await api.get(`/evaluations/${evaluationId}`)
+      const fallbackResponse = await api.get(endpoints.evaluations.details(evaluationId))
       const evaluationData = unwrapData(fallbackResponse)
 
       applyEvaluationOnly(evaluationData)
@@ -98,7 +99,7 @@ export function useAdminEvaluationDetails() {
 
     try {
       const evaluationId = route.params.id
-      const evaluationResponse = await api.get(`/evaluations/${evaluationId}`)
+      const evaluationResponse = await api.get(endpoints.evaluations.details(evaluationId))
       const evaluationData = unwrapData(evaluationResponse)
 
       if (evaluationResponse?.success === false || !evaluationData) {
@@ -111,7 +112,7 @@ export function useAdminEvaluationDetails() {
         return
       }
 
-      const response = await api.get(`/evaluations/${evaluationId}/results-by-class`)
+      const response = await api.get(endpoints.evaluations.resultsByClass(evaluationId))
 
       // L'intercepteur retourne déjà response.data, donc response = { success: true, data: {...} }
       if (response.success) {

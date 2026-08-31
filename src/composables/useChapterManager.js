@@ -5,6 +5,7 @@ import { useConfirm } from '@/composables/useConfirm'
 import { normalizeError } from '@/services/errorHandler'
 import knowledgeCheckService from '@/services/knowledgeCheck'
 import { createEmptyChapter, buildChapterPayload } from '@/utils/chapterManager'
+import { endpoints } from '@/services/endpoints'
 
 /**
  * Couche données de ChapterManager (#28 ; éclaté sous 300 lignes en H5).
@@ -35,7 +36,7 @@ export function useChapterManager(lessonId) {
   async function loadChapters() {
     loading.value = true
     try {
-      const response = await api.get(`/lessons/${lessonId.value}/chapters`)
+      const response = await api.get(endpoints.chapters.ofLesson(lessonId.value))
       if (response.success) {
         chapters.value = response.data.map(ch => ({
           ...ch,
@@ -88,9 +89,9 @@ export function useChapterManager(lessonId) {
 
       let response
       if (chapter.id) {
-        response = await api.put(`/chapters/${chapter.id}`, chapterData)
+        response = await api.put(endpoints.chapters.details(chapter.id), chapterData)
       } else {
-        response = await api.post(`/lessons/${lessonId.value}/chapters`, chapterData)
+        response = await api.post(endpoints.chapters.ofLesson(lessonId.value), chapterData)
       }
 
       if (response.success) {
@@ -118,7 +119,7 @@ export function useChapterManager(lessonId) {
       const formData = new FormData()
       formData.append('file', file)
 
-      const response = await api.post(`/chapters/${chapterId}/upload`, formData, {
+      const response = await api.post(endpoints.chapters.upload(chapterId), formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         onUploadProgress: (progressEvent) => {
           uploadProgress.value = Math.round((progressEvent.loaded * 100) / progressEvent.total)
@@ -146,7 +147,7 @@ export function useChapterManager(lessonId) {
     }
 
     try {
-      const response = await api.delete(`/chapters/${chapter.id}`)
+      const response = await api.delete(endpoints.chapters.details(chapter.id))
       if (response.success) {
         await loadChapters()
         toast.success('Chapitre supprimé!')

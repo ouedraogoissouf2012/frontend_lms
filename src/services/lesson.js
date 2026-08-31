@@ -1,5 +1,6 @@
 import api from './api'
 import { formatDuration as fmtDuration } from '../utils/formatters'
+import { endpoints } from './endpoints'
 
 /**
  * Service pour la gestion des leçons (Lessons)
@@ -12,19 +13,7 @@ const lessonService = {
    */
   async getLessons(params = {}) {
     try {
-      const queryParams = new URLSearchParams()
-
-      if (params.matiere_id) queryParams.append('matiere_id', params.matiere_id)
-      if (params.classe_id) queryParams.append('classe_id', params.classe_id)
-      if (params.enseignant_id) queryParams.append('enseignant_id', params.enseignant_id)
-      if (params.type) queryParams.append('type', params.type)
-      if (params.status) queryParams.append('status', params.status)
-      if (params.per_page) queryParams.append('per_page', params.per_page)
-
-      const queryString = queryParams.toString()
-      const url = queryString ? `/lessons?${queryString}` : '/lessons'
-
-      const response = await api.get(url)
+      const response = await api.get(endpoints.lessons.list, { params })
       // L'intercepteur API retourne déjà response.data, donc response contient { success, message, data }
       return response
     } catch (error) {
@@ -40,7 +29,7 @@ const lessonService = {
    */
   async getLesson(lessonId) {
     try {
-      const response = await api.get(`/lessons/${lessonId}`)
+      const response = await api.get(endpoints.lessons.details(lessonId))
       // L'intercepteur API retourne déjà response.data, donc response contient { success, message, data }
       return response
     } catch (error) {
@@ -56,7 +45,7 @@ const lessonService = {
    */
   async createLesson(lessonData) {
     try {
-      const response = await api.post('/lessons', lessonData)
+      const response = await api.post(endpoints.lessons.list, lessonData)
       // L'intercepteur API retourne déjà response.data, donc response contient { success, message, data }
       return response
     } catch (error) {
@@ -73,7 +62,7 @@ const lessonService = {
    */
   async updateLesson(lessonId, lessonData) {
     try {
-      const response = await api.put(`/lessons/${lessonId}`, lessonData)
+      const response = await api.put(endpoints.lessons.details(lessonId), lessonData)
       // L'intercepteur API retourne déjà response.data, donc response contient { success, message, data }
       return response
     } catch (error) {
@@ -89,7 +78,7 @@ const lessonService = {
    */
   async deleteLesson(lessonId) {
     try {
-      const response = await api.delete(`/lessons/${lessonId}`)
+      const response = await api.delete(endpoints.lessons.details(lessonId))
       // L'intercepteur API retourne déjà response.data, donc response contient { success, message, data }
       return response
     } catch (error) {
@@ -105,7 +94,7 @@ const lessonService = {
    */
   async publishLesson(lessonId) {
     try {
-      const response = await api.post(`/lessons/${lessonId}/publish`)
+      const response = await api.post(endpoints.lessons.publish(lessonId))
       // L'intercepteur API retourne déjà response.data, donc response contient { success, message, data }
       return response
     } catch (error) {
@@ -121,7 +110,7 @@ const lessonService = {
    */
   async unpublishLesson(lessonId) {
     try {
-      const response = await api.post(`/lessons/${lessonId}/unpublish`)
+      const response = await api.post(endpoints.lessons.unpublish(lessonId))
       // L'intercepteur API retourne déjà response.data, donc response contient { success, message, data }
       return response
     } catch (error) {
@@ -137,7 +126,7 @@ const lessonService = {
    */
   async getProgress(lessonId) {
     try {
-      const response = await api.get(`/lessons/${lessonId}/progress`)
+      const response = await api.get(endpoints.lessons.progress(lessonId))
       return response.data
     } catch (error) {
       console.error('[LessonService] Erreur getProgress:', error)
@@ -154,7 +143,7 @@ const lessonService = {
    */
   async updateProgress(lessonId, progressPercentage, timeSpentMinutes = 0) {
     try {
-      const response = await api.post(`/lessons/${lessonId}/progress`, {
+      const response = await api.post(endpoints.lessons.progress(lessonId), {
         progress_percentage: progressPercentage,
         time_spent_minutes: timeSpentMinutes
       })
@@ -172,7 +161,7 @@ const lessonService = {
    */
   async markComplete(lessonId) {
     try {
-      const response = await api.post(`/lessons/${lessonId}/complete`)
+      const response = await api.post(endpoints.lessons.complete(lessonId))
       return response.data
     } catch (error) {
       console.error('[LessonService] Erreur markComplete:', error)
@@ -189,7 +178,7 @@ const lessonService = {
    */
   async rateLesson(lessonId, rating, feedback = null) {
     try {
-      const response = await api.post(`/lessons/${lessonId}/rating`, {
+      const response = await api.post(endpoints.lessons.rating(lessonId), {
         rating,
         feedback
       })

@@ -2,6 +2,7 @@
  * Service pour interagir avec les analytics admin
  */
 import api from './api'
+import { endpoints } from './endpoints'
 
 export const analyticsService = {
   /**
@@ -10,7 +11,7 @@ export const analyticsService = {
    */
   async getActivityTrends() {
     try {
-      const response = await api.get('/admin/analytics/activity-trends')
+      const response = await api.get(endpoints.admin.analytics.activityTrends)
       return response.success ? response.data : null
     } catch (error) {
       console.error('Erreur récupération tendances activité:', error)
@@ -24,7 +25,7 @@ export const analyticsService = {
    */
   async getSystemMetrics() {
     try {
-      const response = await api.get('/admin/analytics/system-metrics')
+      const response = await api.get(endpoints.admin.analytics.systemMetrics)
       return response.success ? response.data : null
     } catch (error) {
       console.error('Erreur récupération métriques système:', error)
@@ -38,7 +39,7 @@ export const analyticsService = {
    */
   async getPendingTasks() {
     try {
-      const response = await api.get('/admin/analytics/pending-tasks')
+      const response = await api.get(endpoints.admin.analytics.pendingTasks)
       return response.success ? response.data : null
     } catch (error) {
       console.error('Erreur récupération tâches en attente:', error)
@@ -52,7 +53,7 @@ export const analyticsService = {
    */
   async getRecentUsers() {
     try {
-      const response = await api.get('/admin/analytics/recent-users')
+      const response = await api.get(endpoints.admin.analytics.recentUsers)
       return response.success ? response.data : []
     } catch (error) {
       console.error('Erreur récupération utilisateurs récents:', error)

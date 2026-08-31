@@ -1,4 +1,5 @@
 import api from './api'
+import { endpoints } from './endpoints'
 
 /**
  * Service de recherche globale
@@ -9,7 +10,7 @@ export const searchService = {
    */
   async globalSearch(query, limit = 5) {
     try {
-      const response = await api.get('/search', {
+      const response = await api.get(endpoints.search.query, {
         params: { query, limit }
       })
 
@@ -25,7 +26,7 @@ export const searchService = {
    */
   async getSuggestions(query) {
     try {
-      const response = await api.get('/search/suggestions', {
+      const response = await api.get(endpoints.search.suggestions, {
         params: { query }
       })
 
@@ -41,7 +42,7 @@ export const searchService = {
    */
   async getSearchHistory() {
     try {
-      const response = await api.get('/search/history')
+      const response = await api.get(endpoints.search.history)
       return response.success ? response.history : []
     } catch (error) {
       console.error('Erreur historique:', error)
@@ -54,7 +55,7 @@ export const searchService = {
    */
   async saveToHistory(query) {
     try {
-      const response = await api.post('/search/history', { query })
+      const response = await api.post(endpoints.search.history, { query })
       return response.success
     } catch (error) {
       console.error('Erreur sauvegarde historique:', error)

@@ -4,6 +4,7 @@ import evaluationService from '@/services/evaluation'
 import api, { auth } from '@/services/api'
 import { isExpired } from '@/utils/studentEvaluationStatus'
 import { toast } from '@/composables/useToast'
+import { endpoints } from '@/services/endpoints'
 
 /**
  * Couche données de StudentEvaluationsList (H2 ≤300) : charge les évaluations de
@@ -60,7 +61,7 @@ export function useStudentEvaluationsList() {
     error.value = null
 
     try {
-      const response = await api.get('/evaluations/student')
+      const response = await api.get(endpoints.evaluations.student)
 
       if (response.success && response.data) {
         evaluations.value = response.data

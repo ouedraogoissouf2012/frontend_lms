@@ -96,7 +96,7 @@ const revokeClient = axios.create({
  * @returns {Promise} Résolue si révoqué, rejetée sinon (à ignorer côté appelant).
  */
 export function revokeSession(token) {
-  return revokeClient.post('/auth/logout', null, {
+  return revokeClient.post(endpoints.auth.logout, null, {
     headers: { Authorization: `Bearer ${token}` },
   })
 }
@@ -126,26 +126,14 @@ export const auth = {
 }
 
 // Fonctions pour les leçons
+const lessonClient = () => import('./lesson').then((m) => m.default)
+
 export const lessons = {
-  async getAll(params = {}) {
-    return await api.get(endpoints.lessons.list, { params })
-  },
-
-  async getOne(id) {
-    return await api.get(endpoints.lessons.details(id))
-  },
-
-  async create(data) {
-    return await api.post(endpoints.lessons.list, data)
-  },
-
-  async update(id, data) {
-    return await api.put(endpoints.lessons.details(id), data)
-  },
-
-  async delete(id) {
-    return await api.delete(endpoints.lessons.details(id))
-  }
+  getAll: (params = {}) => lessonClient().then((s) => s.getLessons(params)),
+  getOne: (id) => lessonClient().then((s) => s.getLesson(id)),
+  create: (data) => lessonClient().then((s) => s.createLesson(data)),
+  update: (id, data) => lessonClient().then((s) => s.updateLesson(id, data)),
+  delete: (id) => lessonClient().then((s) => s.deleteLesson(id)),
 }
 
 // Fonctions pour le dashboard
