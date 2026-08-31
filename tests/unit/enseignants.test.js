@@ -5,6 +5,7 @@ import { describe, it, expect } from 'vitest'
 import {
   getEnseignantClassesCount,
   getEnseignantUniqueClasses,
+  getEnseignantClassesLabel,
   computeEnseignantsStats
 } from '@/utils/enseignants'
 
@@ -39,6 +40,22 @@ describe('utils/enseignants — getEnseignantUniqueClasses', () => {
   it('[] si pas de matières', () => {
     expect(getEnseignantUniqueClasses({})).toEqual([])
     expect(getEnseignantUniqueClasses(null)).toEqual([])
+  })
+})
+
+describe('utils/enseignants — getEnseignantClassesLabel', () => {
+  it('joint les libellés uniques des classes (dédup par id)', () => {
+    const ens = {
+      matieres: [
+        { classes: [{ id: 1, nom: '6e A' }] },
+        { classes: [{ id: 2, nom: '5e B' }, { id: 1, nom: '6e A' }] }
+      ]
+    }
+    expect(getEnseignantClassesLabel(ens)).toBe('6e A, 5e B')
+  })
+  it('null (= non renseigné, pas « aucune ») si aucune classe connue', () => {
+    expect(getEnseignantClassesLabel({})).toBe(null)
+    expect(getEnseignantClassesLabel({ matieres: [] })).toBe(null)
   })
 })
 
