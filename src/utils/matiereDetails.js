@@ -1,3 +1,5 @@
+import { hasRole, isStudent, isTeacher, ROLES } from '@/constants/roles'
+
 /**
  * Logique métier PURE des détails d'une matière (#28).
  *
@@ -122,21 +124,18 @@ export function resolveEvaluationRoute(evaluation, { role, matiereId }) {
   if (evaluation.online_version || evaluation.has_online) {
     const lmsId = evaluation.online_version?.id || evaluation.lms_id
 
-    if (role === 'etudiant') {
-      // Étudiant : voir résultats si déjà soumis, sinon passer l'évaluation
+    if (isStudent(role)) {
       return evaluation.student_submission
         ? { route: { name: 'EvaluationResults', params: { id: lmsId } } }
         : { route: { name: 'TakeEvaluation', params: { id: lmsId } } }
     }
-    if (['coordinateur', 'superAdmin'].includes(role)) {
+    if (hasRole(role, [ROLES.COORDINATEUR, ROLES.ADMIN])) {
       return { route: { name: 'CoordinatorPreviewEvaluation', params: { id: lmsId } } }
     }
-    // Enseignant
     return { route: { name: 'PreviewEvaluation', params: { id: lmsId } } }
   }
 
-  // Pas de version en ligne : l'enseignant peut créer les questions
-  if (['enseignant', 'teacher'].includes(role)) {
+  if (isTeacher(role)) {
     return {
       route: {
         name: 'CreateQuestions',

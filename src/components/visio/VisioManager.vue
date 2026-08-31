@@ -142,6 +142,7 @@ import ParticipantsModal from './ParticipantsModal.vue'
 import { VISIO_CONFIG } from '@/constants/visio'
 import { formatVisioTime, isInTimeWindow, timeWindowMessage } from '@/utils/visioTimeWindow'
 import { useVisioActions } from '@/composables/useVisioActions'
+import { hasRole, isStudent as roleIsStudent, isTeacher as roleIsTeacher, ROLES } from '@/constants/roles'
 
 // Purge des participations visio expirées, au chargement du module (parité, ex-services/jitsi.js).
 cleanupExpiredVisioParticipations()
@@ -176,13 +177,13 @@ export default {
       return auth.getUser()
     },
     canManageVisio() {
-      return this.user && ['coordinateur', 'superAdmin'].includes(this.user.role)
+      return hasRole(this.user, [ROLES.COORDINATEUR, ROLES.ADMIN])
     },
     isTeacher() {
-      return this.user && this.user.role === 'enseignant'
+      return roleIsTeacher(this.user)
     },
     isStudent() {
-      return this.user && this.user.role === 'etudiant'
+      return roleIsStudent(this.user)
     },
     /**
      * Nombre d'étudiants attendus pour cette séance

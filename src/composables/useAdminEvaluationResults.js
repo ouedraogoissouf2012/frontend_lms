@@ -1,6 +1,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api, { auth } from '@/services/api'
+import { hasRole, ROLES } from '@/constants/roles'
 
 /**
  * Couche données d'AdminEvaluationResults (#H3 ≤300) : charge les évaluations
@@ -13,7 +14,7 @@ export function useAdminEvaluationResults() {
 
   // User role check
   const currentUser = computed(() => auth.getUser())
-  const isCoordinateur = computed(() => currentUser.value?.role === 'coordinateur')
+  const isCoordinateur = computed(() => hasRole(currentUser.value, ROLES.COORDINATEUR))
 
   // State
   const loading = ref(true)

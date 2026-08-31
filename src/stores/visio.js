@@ -4,6 +4,7 @@ import lmsService from '@/services/lms'
 import { useAuthStore } from '@/stores/auth'
 import { useVisioHeartbeat } from '@/composables/useVisioHeartbeat'
 import { sendVisioLeaveBeacon } from '@/services/visioLeave'
+import { isTeacher } from '@/constants/roles'
 
 /**
  * Store Pinia global pour gérer la participation aux visioconférences
@@ -217,8 +218,7 @@ export const useVisioStore = defineStore('visio', () => {
 
     // Le store reste sans UI native : les écrans dédiés exposent l'action
     // "terminer pour tous" avec confirmation modale avant d'appeler endVisio().
-    const role = useAuthStore().currentUser?.role
-    if (role === 'enseignant' || role === 'teacher') {
+    if (isTeacher(useAuthStore().currentUser)) {
       window.dispatchEvent(new CustomEvent('visio:teacher-left', {
         detail: { seanceId: closedSeanceId }
       }))

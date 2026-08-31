@@ -1,6 +1,7 @@
 import { ref, computed, onMounted, getCurrentInstance } from 'vue'
 import lmsService from '@/services/lms'
 import { auth } from '@/services/api'
+import { hasRole, ROLES } from '@/constants/roles'
 
 const asArray = (value) => Array.isArray(value) ? value : []
 
@@ -38,7 +39,7 @@ export function useClasseDetails() {
   // Conservé à l'identique (référencé nulle part dans le template — dette pré-existante).
   const canManageVisio = computed(() => {
     const user = auth.getUser()
-    return user && ['coordinateur', 'superAdmin'].includes(user.role)
+    return hasRole(user, [ROLES.COORDINATEUR, ROLES.ADMIN])
   })
 
   async function loadClasseDetails() {

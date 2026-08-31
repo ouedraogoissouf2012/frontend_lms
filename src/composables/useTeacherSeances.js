@@ -10,6 +10,7 @@ import { confirmVisioAction } from '@/services/visioFeedback'
 // #28 : logique métier pure extraite (testée dans tests/unit/seances.test.js)
 import { filterSeances, computeSeancesStats } from '@/utils/seances'
 import { extractList } from '@/utils/apiList'
+import { isTeacher } from '@/constants/roles'
 
 /**
  * Couche données/logique de la vue TeacherSeances (#H6 ≤300).
@@ -29,7 +30,7 @@ export function useTeacherSeances() {
 
   // Get current user (#19 : via store, plus de localStorage('user'))
   const currentUser = useAuthStore().currentUser
-  const isEnseignant = currentUser?.role === 'enseignant'
+  const isEnseignant = isTeacher(currentUser)
 
   // Filters
   const filters = reactive({

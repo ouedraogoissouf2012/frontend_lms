@@ -104,7 +104,7 @@ const props = defineProps({
 
 const emit = defineEmits(['event-action'])
 
-const router = useRouter()
+const _router = useRouter()
 const calendarViewRef = ref(null)
 const selectedEvent = ref(null)
 
