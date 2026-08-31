@@ -38,13 +38,11 @@ const countsFromCache = (cached) => cached.counts ?? {
  * avec cache + rafraîchissement en arrière-plan. La vue ne fait plus que câbler.
  *
  * Sémantique d'échec : chaque ressource est MESURÉE séparément dans `counts`
- * (`null` = non mesuré, jamais un 0 fabriqué), et les avertissements en sont
- * DÉRIVÉS (`notices`). Il n'y a donc plus d'arbitrage « quel échec tue la page ? » :
- * un échec total des étudiants n'est qu'un échec partiel à zéro classe chargée, et
- * les enseignants déjà obtenus restent affichés. C'est ce qui remplace l'ancien
- * couple `error`/`partialWarning`, où une exception faisait disparaître tout
- * l'écran — y compris des données saines — pendant que les compteurs du haut
- * continuaient d'afficher des valeurs, contredisant l'erreur.
+ * (`null` = non mesuré, jamais un 0 fabriqué) ; les avertissements en sont DÉRIVÉS
+ * (`notices`). Plus d'arbitrage « quel échec tue la page ? » : un échec total des
+ * étudiants n'est qu'un échec partiel à zéro classe, les enseignants déjà obtenus
+ * restent affichés. Remplace l'ancien `error`/`partialWarning` où une exception
+ * faisait disparaître tout l'écran alors que les compteurs affichaient des valeurs.
  */
 export function useAdminUsers() {
   // Données
@@ -137,12 +135,9 @@ export function useAdminUsers() {
   const filteredUsers = computed(() => {
     let result = allUsers.value
     if (filterRole.value !== 'all') result = result.filter(u => u.role === filterRole.value)
-    // Un étudiant a UNE classe, un enseignant plusieurs : on teste l'appartenance.
-    // Comparaison en CHAÎNE : `classe_id` étudiant vient des classes (/proxy) mais
-    // `classe_ids` enseignant vient de matieres[].classes (/lms) — endpoints aux
-    // types d'id KLASSCI potentiellement différents (number vs string). Sans
-    // normalisation, un `===` strict laisserait tomber l'enseignant en silence
-    // (même raison que utils/classStats.js::toId).
+    // Étudiant = 1 classe, enseignant = N : test d'appartenance. Comparaison en
+    // CHAÎNE (ids KLASSCI number vs string selon l'endpoint, cf. classStats::toId
+    // — sinon un `===` strict laisserait tomber l'enseignant en silence).
     if (filterClasse.value !== 'all') {
       const target = String(filterClasse.value)
       result = result.filter(u =>
@@ -194,11 +189,9 @@ export function useAdminUsers() {
     return null
   }
 
-  // Jeton de génération : deux chargements peuvent se chevaucher (revalidation
-  // d'arrière-plan + bouton Actualiser). Seul le PLUS RÉCENT applique son résultat ;
-  // un chargement périmé qui se termine après est jeté (sinon il écraserait des
-  // données fraîches et empoisonnerait le cache). `disposed` neutralise de même tout
-  // chargement encore en vol après démontage.
+  // Jeton de génération : 2 chargements peuvent se chevaucher (revalidation +
+  // Actualiser) ; seul le PLUS RÉCENT applique (un périmé écraserait le frais /
+  // empoisonnerait le cache). `disposed` neutralise l'après-démontage.
   let loadGeneration = 0
   let disposed = false
   onUnmounted(() => { disposed = true })
