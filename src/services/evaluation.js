@@ -1,7 +1,11 @@
 import api from './api'
+import { endpoints } from './endpoints'
 
 /**
- * Service pour gérer les évaluations
+ * Service pour gérer les évaluations.
+ *
+ * Chemins centralisés via `endpoints.evaluations` (#105/#110 — source unique des
+ * URLs). Frontière LMS ENRICHIE `/evaluations/*` ≠ `/proxy/evaluations` brut KLASSCI.
  */
 export default {
   /**
@@ -10,7 +14,7 @@ export default {
   async getEvaluations(filters = {}) {
     try {
       // L'intercepteur api.js retourne déjà response.data, donc pas besoin de .data ici
-      const response = await api.get('/evaluations', { params: filters })
+      const response = await api.get(endpoints.evaluations.list, { params: filters })
       return response
     } catch (error) {
       console.error('Erreur récupération évaluations:', error)
@@ -23,7 +27,7 @@ export default {
    */
   async getEvaluation(id) {
     try {
-      const response = await api.get(`/evaluations/${id}`)
+      const response = await api.get(endpoints.evaluations.details(id))
       return response
     } catch (error) {
       console.error('Erreur récupération évaluation:', error)
@@ -39,7 +43,7 @@ export default {
    */
   async getStudentEvaluations() {
     try {
-      const response = await api.get('/evaluations/student')
+      const response = await api.get(endpoints.evaluations.student)
       return response
     } catch (error) {
       console.error('Erreur récupération évaluations étudiant:', error)
@@ -52,7 +56,7 @@ export default {
    */
   async createEvaluation(data) {
     try {
-      const response = await api.post('/evaluations', data)
+      const response = await api.post(endpoints.evaluations.list, data)
       return response
     } catch (error) {
       console.error('Erreur création évaluation:', error)
@@ -65,7 +69,7 @@ export default {
    */
   async updateEvaluation(id, data) {
     try {
-      const response = await api.put(`/evaluations/${id}`, data)
+      const response = await api.put(endpoints.evaluations.details(id), data)
       return response
     } catch (error) {
       console.error('Erreur mise à jour évaluation:', error)
@@ -78,7 +82,7 @@ export default {
    */
   async deleteEvaluation(id) {
     try {
-      const response = await api.delete(`/evaluations/${id}`)
+      const response = await api.delete(endpoints.evaluations.details(id))
       return response
     } catch (error) {
       console.error('Erreur suppression évaluation:', error)
@@ -91,7 +95,7 @@ export default {
    */
   async publishEvaluation(id) {
     try {
-      const response = await api.post(`/evaluations/${id}/publish`)
+      const response = await api.post(endpoints.evaluations.publish(id))
       return response
     } catch (error) {
       console.error('Erreur publication évaluation:', error)
@@ -104,7 +108,7 @@ export default {
    */
   async startEvaluation(id, klassciEtudiantId) {
     try {
-      const response = await api.post(`/evaluations/${id}/start`, {
+      const response = await api.post(endpoints.evaluations.start(id), {
         klassci_etudiant_id: klassciEtudiantId
       })
       return response
@@ -119,7 +123,7 @@ export default {
    */
   async submitEvaluation(id, submissionId, answers) {
     try {
-      const response = await api.post(`/evaluations/${id}/submit`, {
+      const response = await api.post(endpoints.evaluations.submit(id), {
         submission_id: submissionId,
         answers: answers
       })
@@ -135,7 +139,7 @@ export default {
    */
   async syncToKlassci(id) {
     try {
-      const response = await api.post(`/evaluations/${id}/sync-klassci`)
+      const response = await api.post(endpoints.evaluations.syncKlassci(id))
       return response
     } catch (error) {
       console.error('Erreur synchronisation KLASSCI:', error)
@@ -148,7 +152,7 @@ export default {
    */
   async getTimeStatus(id) {
     try {
-      const response = await api.get(`/evaluations/${id}/time-status`)
+      const response = await api.get(endpoints.evaluations.timeStatus(id))
       return response
     } catch (error) {
       console.error('Erreur récupération état temporel:', error)
@@ -162,7 +166,7 @@ export default {
    */
   async getEvaluationResultsByClass(id) {
     try {
-      const response = await api.get(`/evaluations/${id}/results-by-class`)
+      const response = await api.get(endpoints.evaluations.resultsByClass(id))
       return response
     } catch (error) {
       console.error('Erreur récupération résultats évaluation:', error)
@@ -182,7 +186,7 @@ export default {
    */
   async previewEvaluation(id) {
     try {
-      const response = await api.get(`/evaluations/${id}/preview`)
+      const response = await api.get(endpoints.evaluations.preview(id))
       return response
     } catch (error) {
       console.error('Erreur prévisualisation évaluation:', error)

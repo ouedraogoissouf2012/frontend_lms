@@ -1,6 +1,7 @@
 import api from './api'
 // Import relatif : ce service est chargé par le runner natif des tests de contrat (#17).
 import { formatDuration as fmtDuration } from '../utils/formatters'
+import { endpoints } from './endpoints'
 
 /**
  * Service pour la gestion des chapitres (Chapters)
@@ -17,7 +18,7 @@ const chapterService = {
       throw new Error('[ChapterService] lessonId requis pour charger les chapitres')
     }
     try {
-      const response = await api.get(`/lessons/${lessonId}/chapters`)
+      const response = await api.get(endpoints.chapters.ofLesson(lessonId))
       return response.data
     } catch (error) {
       console.error('[ChapterService] Erreur getChapters:', error)
@@ -32,7 +33,7 @@ const chapterService = {
    */
   async getChapter(chapterId) {
     try {
-      const response = await api.get(`/chapters/${chapterId}`)
+      const response = await api.get(endpoints.chapters.details(chapterId))
       return response.data
     } catch (error) {
       console.error('[ChapterService] Erreur getChapter:', error)
@@ -52,7 +53,7 @@ const chapterService = {
       throw new Error('[ChapterService] lessonId requis pour créer un chapitre')
     }
     try {
-      const response = await api.post(`/lessons/${lessonId}/chapters`, chapterData)
+      const response = await api.post(endpoints.chapters.ofLesson(lessonId), chapterData)
       return response.data
     } catch (error) {
       console.error('[ChapterService] Erreur createChapter:', error)
@@ -68,7 +69,7 @@ const chapterService = {
    */
   async updateChapter(chapterId, chapterData) {
     try {
-      const response = await api.put(`/chapters/${chapterId}`, chapterData)
+      const response = await api.put(endpoints.chapters.details(chapterId), chapterData)
       return response.data
     } catch (error) {
       console.error('[ChapterService] Erreur updateChapter:', error)
@@ -83,7 +84,7 @@ const chapterService = {
    */
   async deleteChapter(chapterId) {
     try {
-      const response = await api.delete(`/chapters/${chapterId}`)
+      const response = await api.delete(endpoints.chapters.details(chapterId))
       return response.data
     } catch (error) {
       console.error('[ChapterService] Erreur deleteChapter:', error)
@@ -102,7 +103,7 @@ const chapterService = {
       throw new Error('[ChapterService] lessonId requis pour réordonner les chapitres')
     }
     try {
-      const response = await api.post(`/lessons/${lessonId}/chapters/reorder`, { chapters })
+      const response = await api.post(endpoints.chapters.reorder(lessonId), { chapters })
       return response.data
     } catch (error) {
       console.error('[ChapterService] Erreur reorderChapters:', error)
