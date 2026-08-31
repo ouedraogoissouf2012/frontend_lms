@@ -1,7 +1,7 @@
 import { ref, reactive } from 'vue'
 import { writeCache } from '@/services/cache'
 import lessonService from '@/services/lesson'
-import { toast } from '@/services/toast'
+import { toast } from '@/composables/useToast'
 
 /**
  * Couche formulaire de la modale leçon (#H4 ≤300), extraite de TeacherLessons.

@@ -18,7 +18,7 @@ vi.mock('@/services/klassci', () => ({
 vi.mock('@/stores/auth', () => ({
   useAuthStore: () => ({ currentUser: { id: 1, role: 'enseignant', name: 'X' } })
 }))
-vi.mock('@/services/toast', () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() } }))
+vi.mock('@/composables/useToast', () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() } }))
 vi.mock('@/services/errorHandler', () => ({ normalizeError: () => ({ userMessage: 'err' }) }))
 vi.mock('@/services/cache', () => ({ readCache: () => null, writeCache: vi.fn(), clearCache: vi.fn() }))
 vi.mock('@/composables/useTrackedVisioJoin', () => ({

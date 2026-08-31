@@ -1,6 +1,6 @@
 import { ref, watch, onMounted } from 'vue'
 import api from '@/services/api'
-import { toast } from '@/services/toast'
+import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
 import { normalizeError } from '@/services/errorHandler'
 import knowledgeCheckService from '@/services/knowledgeCheck'

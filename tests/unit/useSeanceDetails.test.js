@@ -38,12 +38,12 @@ vi.mock('@/stores/auth', () => ({ useAuthStore: () => ({ currentUser }) }))
 vi.mock('@/stores/visio', () => ({
   useVisioStore: () => ({ joinVisio: (...a) => storeJoinVisio(...a) })
 }))
-vi.mock('@/services/toast', () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), warning: vi.fn() } }))
+vi.mock('@/composables/useToast', () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), warning: vi.fn() } }))
 vi.mock('@/services/errorHandler', () => ({ normalizeError: () => ({ userMessage: 'err' }) }))
 vi.mock('@/services/confirmDialog', () => ({ confirmDialog: (...a) => confirmDialog(...a) }))
 
 import { useSeanceDetails } from '@/composables/useSeanceDetails'
-import { toast } from '@/services/toast'
+import { toast } from '@/composables/useToast'
 
 const mountedWrappers = []
 

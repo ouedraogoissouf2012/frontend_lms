@@ -3,7 +3,7 @@ import { useRoute, useRouter } from 'vue-router'
 import lessonService from '@/services/lesson'
 import chapterProgressService from '@/services/chapterProgress'
 import api from '@/services/api'
-import { toast } from '@/services/toast'
+import { toast } from '@/composables/useToast'
 
 /**
  * Couche données de StudentLessonView (#H4 ≤300) : charge leçon + chapitres +

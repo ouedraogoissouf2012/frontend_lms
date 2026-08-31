@@ -7,7 +7,7 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const h = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), info: vi.fn() }))
-vi.mock('@/services/toast', () => ({
+vi.mock('@/composables/useToast', () => ({
   toast: {
     success: (...a) => h.success(...a),
     error: (...a) => h.error(...a),

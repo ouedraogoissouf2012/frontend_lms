@@ -3,7 +3,7 @@ import { useRouter } from 'vue-router'
 import evaluationService from '@/services/evaluation'
 import api, { auth } from '@/services/api'
 import { isExpired } from '@/utils/studentEvaluationStatus'
-import { toast } from '@/services/toast'
+import { toast } from '@/composables/useToast'
 
 /**
  * Couche données de StudentEvaluationsList (H2 ≤300) : charge les évaluations de

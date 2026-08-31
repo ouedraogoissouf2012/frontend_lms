@@ -23,7 +23,7 @@ vi.mock('@/services/api', () => ({ default: { get: (...a) => apiGet(...a) } }))
 vi.mock('@/services/chapterProgress', () => ({
   default: { markAsCompleted: (...a) => markAsCompleted(...a), updateTimeSpent: vi.fn() }
 }))
-vi.mock('@/services/toast', () => ({
+vi.mock('@/composables/useToast', () => ({
   toast: { error: (...a) => toastError(...a), success: vi.fn(), warning: vi.fn() }
 }))
 

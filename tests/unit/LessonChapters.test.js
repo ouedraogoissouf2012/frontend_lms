@@ -9,7 +9,7 @@ const getLesson = vi.fn()
 vi.mock('@/services/lesson', () => ({
   default: { getLesson: (...a) => getLesson(...a), publishLesson: vi.fn() }
 }))
-vi.mock('@/services/toast', () => ({ toast: { error: vi.fn() } }))
+vi.mock('@/composables/useToast', () => ({ toast: { error: vi.fn() } }))
 vi.mock('@/services/errorHandler', () => ({ normalizeError: (e) => ({ userMessage: String(e) }) }))
 
 import LessonChapters from '@/views/lessons/LessonChapters.vue'

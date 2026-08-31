@@ -4,7 +4,7 @@ import lmsService from '@/services/lms'
 import attendanceExportService from '@/services/attendanceExport'
 // #28 : logique métier pure extraite (testée dans tests/unit/attendance.test.js)
 import { getPeriodDates as computePeriodDates } from '@/utils/attendance'
-import { toast } from '@/services/toast'
+import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
 
 /**
@@ -16,7 +16,7 @@ import { useConfirm } from '@/composables/useConfirm'
  * (chargement par séance, y compris ouverture directe par route), les exports
  * PDF/Excel et la suppression. La vue ne fait plus que câbler les sous-composants.
  *
- * Notifications (Lot F3) : toasts via le service unifié `@/services/toast` (rendu
+ * Notifications (Lot F3) : toasts via le service unifié `@/composables/useToast` (rendu
  * par l'unique <ToastContainer> de App.vue). Remplace l'ancien `$toast`
  * (globalProperties jamais enregistré → deleteSeance levait : bug latent corrigé).
  *

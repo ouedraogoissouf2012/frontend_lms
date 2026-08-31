@@ -18,7 +18,7 @@ vi.mock('@/services/lms', () => ({
   default: { getVisioParticipants },
   lmsService: { getVisioParticipants }
 }))
-vi.mock('@/services/toast', () => ({ toast: { error: vi.fn(), success: vi.fn() } }))
+vi.mock('@/composables/useToast', () => ({ toast: { error: vi.fn(), success: vi.fn() } }))
 vi.mock('@/services/errorHandler', () => ({ normalizeError: (e) => ({ userMessage: String(e) }) }))
 vi.mock('@/constants/http', () => ({ apiBaseUrl: () => 'http://test', API_TIMEOUT_MS: 30000 }))
 

@@ -14,7 +14,7 @@ const { authMock, toastMock, pushMock } = vi.hoisted(() => ({
 }))
 
 vi.mock('@/services/api', () => ({ auth: authMock }))
-vi.mock('@/services/toast', () => ({ toast: toastMock }))
+vi.mock('@/composables/useToast', () => ({ toast: toastMock }))
 vi.mock('vue-router', () => ({ useRouter: () => ({ push: pushMock }) }))
 
 import { useTeacherSettings } from '@/composables/useTeacherSettings'

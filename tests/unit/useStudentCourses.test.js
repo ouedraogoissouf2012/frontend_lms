@@ -14,7 +14,7 @@ const toastError = vi.fn()
 vi.mock('@/services/klassci', () => ({
   klassciService: { getMyCourses: (...args) => getMyCourses(...args) },
 }))
-vi.mock('@/services/toast', () => ({
+vi.mock('@/composables/useToast', () => ({
   toast: { error: (...args) => toastError(...args) },
 }))
 vi.mock('vue-router', () => ({

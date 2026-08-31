@@ -35,7 +35,7 @@ vi.mock('@/stores/auth', () => ({
 vi.mock('@/composables/useConfirm', () => ({
   useConfirm: () => ({ confirm: confirmMock, accept: vi.fn(), cancel: vi.fn(), state: {} }),
 }))
-vi.mock('@/services/toast', () => ({ toast: toastMock }))
+vi.mock('@/composables/useToast', () => ({ toast: toastMock }))
 
 import { useForumTopic } from '@/composables/useForumTopic'
 

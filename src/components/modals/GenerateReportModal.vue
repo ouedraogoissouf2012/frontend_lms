@@ -85,7 +85,7 @@ import Modal from '@/components/ui/Modal.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import { klassciService } from '@/services/klassci'
 import api from '@/services/api'
-import { toast } from '@/services/toast'
+import { toast } from '@/composables/useToast'
 
 const props = defineProps({
   modelValue: {

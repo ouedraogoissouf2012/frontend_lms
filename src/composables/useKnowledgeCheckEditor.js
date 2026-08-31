@@ -1,6 +1,6 @@
 import { ref, computed, onMounted } from 'vue'
 import knowledgeCheckService from '@/services/knowledgeCheck'
-import { toast } from '@/services/toast'
+import { toast } from '@/composables/useToast'
 
 /**
  * Couche données de KnowledgeCheckEditor (#G6 ; éclaté sous 300 lignes en H5).

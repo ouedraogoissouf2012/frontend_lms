@@ -55,4 +55,30 @@ describe('useToast', () => {
     expect(last.title).toBe('Succès')
     expect(last.duration).toBe(2000)
   })
+
+  it('les raccourcis portent un titre typé + durée 3000 par défaut (parité ex-services/toast)', () => {
+    const t = useToast()
+    t.error('Échec')
+    const last = t.toasts.value.at(-1)
+    expect(last.title).toBe('Erreur')
+    expect(last.duration).toBe(3000)
+  })
+
+  it('accepte une CHAÎNE comme 2e arg (= titre, compat ancienne signature)', () => {
+    const t = useToast()
+    t.success('Enregistrement démarré.', 'Visio')
+    const last = t.toasts.value.at(-1)
+    expect(last.title).toBe('Visio')
+    expect(last.message).toBe('Enregistrement démarré.')
+  })
+
+  it('l’API impérative `toast` partage le même singleton que useToast()', async () => {
+    const { toast } = await import('@/composables/useToast')
+    const t = useToast()
+    toast.success('via impératif')
+    const last = t.toasts.value.at(-1)
+    expect(last.message).toBe('via impératif')
+    expect(last.type).toBe('success')
+    expect(last.title).toBe('Succès')
+  })
 })

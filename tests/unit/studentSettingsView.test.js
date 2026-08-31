@@ -10,7 +10,7 @@ const getUser = vi.fn()
 vi.mock('@/services/api', () => ({
   auth: { getUser: (...a) => getUser(...a), logout: vi.fn(), getInstitution: vi.fn(() => null) }
 }))
-vi.mock('@/services/toast', () => ({
+vi.mock('@/composables/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn() }
 }))
 

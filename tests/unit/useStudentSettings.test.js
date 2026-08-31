@@ -16,7 +16,7 @@ const h = vi.hoisted(() => ({
 }))
 
 vi.mock('@/services/api', () => ({ auth: { getUser: (...a) => h.getUser(...a), logout: (...a) => h.logout(...a) } }))
-vi.mock('@/services/toast', () => ({ toast: { success: (...a) => h.success(...a), error: (...a) => h.error(...a) } }))
+vi.mock('@/composables/useToast', () => ({ toast: { success: (...a) => h.success(...a), error: (...a) => h.error(...a) } }))
 vi.mock('@/constants/storageKeys', () => ({ STORAGE_KEYS: { USER_PREFERENCES: 'user_preferences' } }))
 vi.mock('vue-router', () => ({ useRouter: () => ({ push: h.push }) }))
 
