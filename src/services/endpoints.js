@@ -90,20 +90,41 @@ export const endpoints = {
   admin: {
     matieres: '/admin/matieres',
     institutions: {
-      // list (GET) et create (POST) partagent le chemin collection.
       list: '/admin/institutions',
-      // details (GET) / update (PUT) / delete (DELETE) partagent le chemin item.
       details: (id) => `/admin/institutions/${id}`,
       toggle: (id) => `/admin/institutions/${id}/toggle`,
       testConnection: (id) => `/admin/institutions/${id}/test-connection`,
     },
+    analytics: {
+      activityTrends: '/admin/analytics/activity-trends',
+      systemMetrics: '/admin/analytics/system-metrics',
+      pendingTasks: '/admin/analytics/pending-tasks',
+      recentUsers: '/admin/analytics/recent-users',
+    },
+    notifications: {
+      create: '/admin/notifications/create',
+      stats: '/admin/notifications/stats',
+    },
+    reports: (type) => `/admin/reports/${type}`,
   },
 
-  // ── LESSONS (/lessons/*) ────────────────────────────────────────────────
+  auth: {
+    login: '/auth/login',
+    logout: '/auth/logout',
+    me: '/auth/me',
+    institutionsActive: '/institutions/active',
+  },
+
   lessons: {
     list: '/lessons',
     details: (id) => `/lessons/${id}`,
     myCourses: '/lessons/my-courses',
+    publish: (id) => `/lessons/${id}/publish`,
+    unpublish: (id) => `/lessons/${id}/unpublish`,
+    progress: (id) => `/lessons/${id}/progress`,
+    complete: (id) => `/lessons/${id}/complete`,
+    rating: (id) => `/lessons/${id}/rating`,
+    chapterProgress: (id) => `/lessons/${id}/chapter-progress`,
   },
 
   // ── DASHBOARD LMS local (/dashboard/*) — distinct des dashboards KLASSCI
@@ -143,13 +164,46 @@ export const endpoints = {
     timeStatus: (id) => `/evaluations/${id}/time-status`,
     resultsByClass: (id) => `/evaluations/${id}/results-by-class`,
     preview: (id) => `/evaluations/${id}/preview`,
+    mySubmission: (id) => `/evaluations/${id}/my-submission`,
   },
 
-  // ── CHAPITRES (index leçon-scopé /lessons/{id}/chapters + /chapters/{id}) ──
   chapters: {
     ofLesson: (lessonId) => `/lessons/${lessonId}/chapters`,
     reorder: (lessonId) => `/lessons/${lessonId}/chapters/reorder`,
     details: (chapterId) => `/chapters/${chapterId}`,
+    progress: (chapterId) => `/chapters/${chapterId}/progress`,
+    complete: (chapterId) => `/chapters/${chapterId}/complete`,
+    time: (chapterId) => `/chapters/${chapterId}/time`,
+    upload: (chapterId) => `/chapters/${chapterId}/upload`,
+  },
+
+  notifications: {
+    list: '/notifications',
+    unreadCount: '/notifications/unread-count',
+    recent: '/notifications/recent',
+    markAsRead: (id) => `/notifications/${id}/mark-as-read`,
+    markAllAsRead: '/notifications/mark-all-as-read',
+    delete: (id) => `/notifications/${id}`,
+    deleteReadAll: '/notifications/read/all',
+  },
+
+  knowledgeChecks: {
+    list: '/knowledge-checks',
+    details: (id) => `/knowledge-checks/${id}`,
+    start: (id) => `/knowledge-checks/${id}/start`,
+    submit: (id) => `/knowledge-checks/${id}/submit`,
+    myAttempts: (id) => `/knowledge-checks/${id}/my-attempts`,
+    byChapter: (id) => `/knowledge-checks/chapter/${id}`,
+  },
+
+  search: {
+    query: '/search',
+    suggestions: '/search/suggestions',
+    history: '/search/history',
+  },
+
+  grades: {
+    mine: '/my-grades',
   },
 }
 

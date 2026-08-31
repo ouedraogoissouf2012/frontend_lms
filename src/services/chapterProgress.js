@@ -1,4 +1,5 @@
 import api from './api'
+import { endpoints } from './endpoints'
 
 /**
  * Service pour la progression des chapitres
@@ -11,7 +12,7 @@ const chapterProgressService = {
    */
   async getLessonProgress(lessonId) {
     try {
-      const response = await api.get(`/lessons/${lessonId}/progress`)
+      const response = await api.get(endpoints.lessons.progress(lessonId))
       return response
     } catch (error) {
       console.error('[ChapterProgressService] Erreur getLessonProgress:', error)
@@ -26,7 +27,7 @@ const chapterProgressService = {
    */
   async getChapterProgress(chapterId) {
     try {
-      const response = await api.get(`/chapters/${chapterId}/progress`)
+      const response = await api.get(endpoints.chapters.progress(chapterId))
       return response
     } catch (error) {
       console.error('[ChapterProgressService] Erreur getChapterProgress:', error)
@@ -42,7 +43,7 @@ const chapterProgressService = {
    */
   async markAsCompleted(chapterId, timeSpentSeconds = 0) {
     try {
-      const response = await api.post(`/chapters/${chapterId}/complete`, {
+      const response = await api.post(endpoints.chapters.complete(chapterId), {
         time_spent_seconds: timeSpentSeconds
       })
       return response
@@ -60,7 +61,7 @@ const chapterProgressService = {
    */
   async updateTimeSpent(chapterId, timeSpentSeconds) {
     try {
-      const response = await api.post(`/chapters/${chapterId}/time`, {
+      const response = await api.post(endpoints.chapters.time(chapterId), {
         time_spent_seconds: timeSpentSeconds
       })
       return response

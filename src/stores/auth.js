@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import api, { revokeSession } from '../services/api'
+import { endpoints } from '../services/endpoints'
 import { clearAllCache } from '../services/cache'
 import {
   normalizeRole,
@@ -94,7 +95,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   /** Authentifie l'utilisateur (POST /auth/login) et ouvre la session si succès. */
   async function login(username, password) {
-    const response = await api.post('/auth/login', { username, password })
+    const response = await api.post(endpoints.auth.login, { username, password })
     if (response.success && response.data) {
       setSession(response.data, response.meta)
     }
@@ -145,12 +146,12 @@ export const useAuthStore = defineStore('auth', () => {
 
   /** Profil courant (GET /auth/me) — ne mute pas l'état. */
   async function me() {
-    return await api.get('/auth/me')
+    return await api.get(endpoints.auth.me)
   }
 
   /** Liste des institutions actives (route publique) — ne mute pas l'état. */
   async function fetchActiveInstitutions() {
-    return await api.get('/institutions/active')
+    return await api.get(endpoints.auth.institutionsActive)
   }
 
   return {

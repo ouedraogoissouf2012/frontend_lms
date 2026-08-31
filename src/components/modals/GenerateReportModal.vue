@@ -86,6 +86,7 @@ import BaseButton from '@/components/ui/BaseButton.vue'
 import { klassciService } from '@/services/klassci'
 import api from '@/services/api'
 import { toast } from '@/composables/useToast'
+import { endpoints } from '@/services/endpoints'
 
 const props = defineProps({
   modelValue: {
@@ -163,7 +164,7 @@ async function handleGenerate() {
   loading.value = true
 
   try {
-    const endpoint = `/admin/reports/${form.value.type}`
+    const endpoint = endpoints.admin.reports(form.value.type)
     const payload = {
       date_start: form.value.date_start,
       date_end: form.value.date_end

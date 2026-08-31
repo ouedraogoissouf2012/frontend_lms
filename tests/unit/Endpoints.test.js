@@ -48,7 +48,7 @@ describe('endpoints — carte unique (#105)', () => {
     })
 
     it('aucun chemin /proxy/ ne fuit hors de endpoints.klassci', () => {
-      for (const group of ['lms', 'admin', 'lessons', 'dashboard', 'forum', 'teacher', 'evaluations', 'chapters']) {
+        for (const group of ['lms', 'admin', 'auth', 'lessons', 'dashboard', 'forum', 'teacher', 'evaluations', 'chapters', 'notifications', 'knowledgeChecks', 'search', 'grades']) {
         for (const [path, url] of flatten(endpoints[group], group)) {
           expect(url.startsWith('/proxy/'), `${path} → ${url}`).toBe(false)
         }
@@ -122,11 +122,29 @@ describe('endpoints — carte unique (#105)', () => {
       expect(endpoints.admin.institutions.details(2)).toBe('/admin/institutions/2')
       expect(endpoints.admin.institutions.toggle(2)).toBe('/admin/institutions/2/toggle')
       expect(endpoints.admin.institutions.testConnection(2)).toBe('/admin/institutions/2/test-connection')
+      expect(endpoints.admin.analytics.activityTrends).toBe('/admin/analytics/activity-trends')
+      expect(endpoints.admin.notifications.create).toBe('/admin/notifications/create')
+      expect(endpoints.admin.reports('pdf')).toBe('/admin/reports/pdf')
     })
     it('lessons', () => {
       expect(endpoints.lessons.list).toBe('/lessons')
       expect(endpoints.lessons.details(1)).toBe('/lessons/1')
       expect(endpoints.lessons.myCourses).toBe('/lessons/my-courses')
+      expect(endpoints.lessons.publish(1)).toBe('/lessons/1/publish')
+      expect(endpoints.lessons.progress(1)).toBe('/lessons/1/progress')
+      expect(endpoints.lessons.chapterProgress(1)).toBe('/lessons/1/chapter-progress')
+    })
+    it('auth / notifications / knowledgeChecks / search / grades', () => {
+      expect(endpoints.auth.login).toBe('/auth/login')
+      expect(endpoints.auth.logout).toBe('/auth/logout')
+      expect(endpoints.auth.me).toBe('/auth/me')
+      expect(endpoints.auth.institutionsActive).toBe('/institutions/active')
+      expect(endpoints.notifications.list).toBe('/notifications')
+      expect(endpoints.notifications.markAsRead(3)).toBe('/notifications/3/mark-as-read')
+      expect(endpoints.knowledgeChecks.list).toBe('/knowledge-checks')
+      expect(endpoints.knowledgeChecks.byChapter(8)).toBe('/knowledge-checks/chapter/8')
+      expect(endpoints.search.query).toBe('/search')
+      expect(endpoints.grades.mine).toBe('/my-grades')
     })
     it('dashboard / forum / teacher / evaluations', () => {
       expect(endpoints.dashboard.student).toBe('/dashboard/student')
@@ -193,6 +211,22 @@ describe('endpoints — carte unique (#105)', () => {
         '/evaluations/:id/start', '/evaluations/:id/submit', '/evaluations/:id/sync-klassci',
         '/evaluations/:id/time-status', '/evaluations/:id/results-by-class', '/evaluations/:id/preview',
         '/lessons/:id/chapters', '/lessons/:id/chapters/reorder', '/chapters/:id',
+        '/auth/login', '/auth/logout', '/auth/me', '/institutions/active',
+        '/lessons/:id/publish', '/lessons/:id/unpublish', '/lessons/:id/progress',
+        '/lessons/:id/complete', '/lessons/:id/rating', '/lessons/:id/chapter-progress',
+        '/chapters/:id/progress', '/chapters/:id/complete', '/chapters/:id/time', '/chapters/:id/upload',
+        '/notifications', '/notifications/unread-count', '/notifications/recent',
+        '/notifications/:id/mark-as-read', '/notifications/mark-all-as-read',
+        '/notifications/:id', '/notifications/read/all',
+        '/admin/notifications/create', '/admin/notifications/stats',
+        '/admin/analytics/activity-trends', '/admin/analytics/system-metrics',
+        '/admin/analytics/pending-tasks', '/admin/analytics/recent-users',
+        '/admin/reports/:id',
+        '/knowledge-checks', '/knowledge-checks/:id', '/knowledge-checks/:id/start',
+        '/knowledge-checks/:id/submit', '/knowledge-checks/:id/my-attempts',
+        '/knowledge-checks/chapter/:id',
+        '/search', '/search/suggestions', '/search/history',
+        '/my-grades', '/evaluations/:id/my-submission',
       ]
       const missing = EXPECTED.filter((p) => !resolved.has(p))
       expect(missing, `chemins manquants : ${missing.join(', ')}`).toEqual([])

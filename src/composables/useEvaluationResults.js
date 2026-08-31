@@ -1,6 +1,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import api from '@/services/api'
+import { endpoints } from '@/services/endpoints'
 
 const CORRECTION_DELAY_DAYS = 7 // Délai en jours avant d'afficher les bonnes réponses
 
@@ -102,7 +103,7 @@ export function useEvaluationResults() {
   async function loadResults() {
     try {
       const evaluationId = route.params.id
-      const result = await api.get(`/evaluations/${evaluationId}/my-submission`)
+      const result = await api.get(endpoints.evaluations.mySubmission(evaluationId))
 
       if (result.success) {
         submission.value = result.data

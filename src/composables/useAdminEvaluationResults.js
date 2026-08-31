@@ -2,6 +2,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api, { auth } from '@/services/api'
 import { hasRole, ROLES } from '@/constants/roles'
+import { endpoints } from '@/services/endpoints'
 
 /**
  * Couche données d'AdminEvaluationResults (#H3 ≤300) : charge les évaluations
@@ -94,7 +95,7 @@ export function useAdminEvaluationResults() {
 
     try {
       // Charger les évaluations
-      const evalsResponse = await api.get('/evaluations')
+      const evalsResponse = await api.get(endpoints.evaluations.list)
 
       evaluations.value = evalsResponse.data || []
 
@@ -114,8 +115,8 @@ export function useAdminEvaluationResults() {
 
       // Charger classes et matières
       const [classesResponse, matieresResponse] = await Promise.all([
-        api.get('/proxy/classes'),
-        api.get('/proxy/matieres')
+        api.get(endpoints.klassci.classes),
+        api.get(endpoints.klassci.matieres)
       ])
 
       classes.value = classesResponse.data || []

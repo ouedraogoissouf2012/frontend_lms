@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import api from '@/services/api'
 import { readCache, writeCache } from '@/services/cache'
 import { byId, displayName, firstValue, nonEmptyArray, toId, unwrapArray } from '@/utils/evaluationDisplay'
+import { endpoints } from '@/services/endpoints'
 
 const EVALUATIONS_CACHE_KEY = 'coordinator_evaluations'
 const REFERENCES_CACHE_KEY = 'coordinator_evaluation_references'
@@ -131,7 +132,7 @@ export function useCoordinatorEvaluations() {
   }
 
   async function fetchEvaluations() {
-    const evalsResponse = await api.get('/evaluations', { timeout: EVALUATIONS_TIMEOUT_MS })
+    const evalsResponse = await api.get(endpoints.evaluations.list, { timeout: EVALUATIONS_TIMEOUT_MS })
     const list = unwrapArray(evalsResponse, ['evaluations'])
     applyEvaluations(list)
     writeCache(EVALUATIONS_CACHE_KEY, evaluations.value)
@@ -151,13 +152,13 @@ export function useCoordinatorEvaluations() {
     const [enseignantsResult, classesResult, matieresResult] = await Promise.allSettled([
       enseignantsCached
         ? Promise.resolve(enseignantsCached)
-        : api.get('/proxy/enseignants', { timeout: FILTER_OPTIONS_TIMEOUT_MS }).then(response => unwrapArray(response, ['enseignants'])),
+        : api.get(endpoints.klassci.enseignants, { timeout: FILTER_OPTIONS_TIMEOUT_MS }).then(response => unwrapArray(response, ['enseignants'])),
       classesCached
         ? Promise.resolve(classesCached)
-        : api.get('/proxy/classes', { timeout: FILTER_OPTIONS_TIMEOUT_MS }).then(response => unwrapArray(response, ['classes'])),
+        : api.get(endpoints.klassci.classes, { timeout: FILTER_OPTIONS_TIMEOUT_MS }).then(response => unwrapArray(response, ['classes'])),
       matieresCached
         ? Promise.resolve(matieresCached)
-        : api.get('/proxy/matieres', { timeout: FILTER_OPTIONS_TIMEOUT_MS }).then(response => unwrapArray(response, ['matieres']))
+        : api.get(endpoints.klassci.matieres, { timeout: FILTER_OPTIONS_TIMEOUT_MS }).then(response => unwrapArray(response, ['matieres']))
     ])
 
     if (enseignantsResult.status === 'fulfilled') {

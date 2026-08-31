@@ -1,4 +1,5 @@
 import api from './api'
+import { endpoints } from './endpoints'
 
 /**
  * Service pour les quiz "Testez vos connaissances"
@@ -12,7 +13,7 @@ const knowledgeCheckService = {
    */
   async getByChapter(chapterId) {
     try {
-      const response = await api.get('/knowledge-checks', {
+      const response = await api.get(endpoints.knowledgeChecks.list, {
         params: { chapter_id: chapterId }
       })
       return response
@@ -29,7 +30,7 @@ const knowledgeCheckService = {
    */
   async get(quizId) {
     try {
-      const response = await api.get(`/knowledge-checks/${quizId}`)
+      const response = await api.get(endpoints.knowledgeChecks.details(quizId))
       return response
     } catch (error) {
       console.error('[KnowledgeCheckService] Erreur get:', error)
@@ -44,7 +45,7 @@ const knowledgeCheckService = {
    */
   async create(quizData) {
     try {
-      const response = await api.post('/knowledge-checks', quizData)
+      const response = await api.post(endpoints.knowledgeChecks.list, quizData)
       return response
     } catch (error) {
       console.error('[KnowledgeCheckService] Erreur create:', error)
@@ -60,7 +61,7 @@ const knowledgeCheckService = {
    */
   async update(quizId, quizData) {
     try {
-      const response = await api.put(`/knowledge-checks/${quizId}`, quizData)
+      const response = await api.put(endpoints.knowledgeChecks.details(quizId), quizData)
       return response
     } catch (error) {
       console.error('[KnowledgeCheckService] Erreur update:', error)
@@ -75,7 +76,7 @@ const knowledgeCheckService = {
    */
   async delete(quizId) {
     try {
-      const response = await api.delete(`/knowledge-checks/${quizId}`)
+      const response = await api.delete(endpoints.knowledgeChecks.details(quizId))
       return response
     } catch (error) {
       console.error('[KnowledgeCheckService] Erreur delete:', error)
@@ -90,7 +91,7 @@ const knowledgeCheckService = {
    */
   async startAttempt(quizId) {
     try {
-      const response = await api.post(`/knowledge-checks/${quizId}/start`)
+      const response = await api.post(endpoints.knowledgeChecks.start(quizId))
       return response
     } catch (error) {
       console.error('[KnowledgeCheckService] Erreur startAttempt:', error)
@@ -107,7 +108,7 @@ const knowledgeCheckService = {
    */
   async submitAttempt(quizId, answers, timeSpentSeconds) {
     try {
-      const response = await api.post(`/knowledge-checks/${quizId}/submit`, {
+      const response = await api.post(endpoints.knowledgeChecks.submit(quizId), {
         answers,
         time_spent_seconds: timeSpentSeconds
       })
@@ -125,7 +126,7 @@ const knowledgeCheckService = {
    */
   async getMyAttempts(quizId) {
     try {
-      const response = await api.get(`/knowledge-checks/${quizId}/my-attempts`)
+      const response = await api.get(endpoints.knowledgeChecks.myAttempts(quizId))
       return response
     } catch (error) {
       console.error('[KnowledgeCheckService] Erreur getMyAttempts:', error)

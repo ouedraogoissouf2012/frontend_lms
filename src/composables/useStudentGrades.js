@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import api from '@/services/api'
+import { endpoints } from '@/services/endpoints'
 
 /**
  * État + chargement des notes de l'élève (G4 — décomposition de StudentGrades.vue
@@ -23,7 +24,7 @@ export function useStudentGrades() {
     error.value = null
 
     try {
-      const response = await api.get('/my-grades')
+      const response = await api.get(endpoints.grades.mine)
 
       if (response.success) {
         const data = response.data
