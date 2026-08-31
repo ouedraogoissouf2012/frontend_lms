@@ -55,7 +55,9 @@ export function useClasseDetails() {
 
       if (data && data.success) {
         classe.value = data.data.classe
-        evaluations.value = data.data.evaluations_programmees || []
+        // `evaluations` est la clé réellement renvoyée ; `evaluations_programmees`
+        // reste accepté pour les payloads antérieurs.
+        evaluations.value = data.data.evaluations || data.data.evaluations_programmees || []
         emploiTemps.value = data.data.emploi_temps_semaine || []
         matieres.value = asArray(data.data.matieres_disponibles || data.data.matieres || classe.value?.matieres)
         statistiques.value = data.data.statistiques
@@ -64,8 +66,12 @@ export function useClasseDetails() {
         console.log('[ClasseDetails] Matières:', matieres.value.length)
         console.log('[ClasseDetails] Évaluations:', evaluations.value.length)
 
-        // Charger les étudiants
-        await loadEtudiants()
+        // Le roster est DÉJÀ dans la réponse de détails : KLASSCI le livre avec la
+        // classe. L'appel séparé vers /lms/classes/{id}/etudiants n'est qu'un repli,
+        // car cet endpoint est soumis à une autorisation PAR CLASSE et répond 403 —
+        // c'est lui qui faisait afficher « 0 étudiant » sur des classes peuplées.
+        etudiants.value = asArray(data.data.etudiants)
+        if (etudiants.value.length === 0) await loadEtudiants()
 
         // Charger les séances à venir
         await loadSeances()
