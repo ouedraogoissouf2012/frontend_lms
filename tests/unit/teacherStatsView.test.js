@@ -11,8 +11,13 @@ vi.mock('@/services/klassci', () => ({
   klassciService: { getTeacherDashboard: (...a) => getTeacherDashboard(...a) },
   default: { getTeacherDashboard: (...a) => getTeacherDashboard(...a) }
 }))
+// `useCachedResource` (SWR) lit `readCacheStale`, pas `readCache` : sans lui le
+// mock renvoyait `undefined`, le chargement echouait avant d'atteindre le service,
+// et l'assertion « getTeacherDashboard appele » tombait sans rapport avec la vue.
+// `{ data: null }` = cache VIDE, donc chargement froid puis fetch — le cas teste ici.
 vi.mock('@/services/cache', () => ({
   readCache: vi.fn(() => null),
+  readCacheStale: vi.fn(() => ({ data: null })),
   writeCache: vi.fn()
 }))
 
