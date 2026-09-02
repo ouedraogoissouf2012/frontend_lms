@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import api, { auth } from '@/services/api'
 import { hasRole, ROLES } from '@/constants/roles'
 import { endpoints } from '@/services/endpoints'
+import { extractList } from '@/utils/apiList'
 
 /**
  * Couche données d'AdminEvaluationResults (#H3 ≤300) : charge les évaluations
@@ -46,19 +47,12 @@ export function useAdminEvaluationResults() {
 
     if (filters.value.classe_id) {
       const classeId = Number(filters.value.classe_id) || filters.value.classe_id
-      filtered = filtered.filter(e => {
-        const match = e.klassci_classe_id == classeId
-        return match
-      })
+      filtered = filtered.filter(e => e.klassci_classe_id == classeId)
     }
 
     if (filters.value.matiere_id) {
       const matiereId = Number(filters.value.matiere_id) || filters.value.matiere_id
-      filtered = filtered.filter(e => {
-        const match = e.klassci_matiere_id == matiereId
-        console.log(`  Eval ${e.id}: klassci_matiere_id=${e.klassci_matiere_id} == ${matiereId} => ${match}`)
-        return match
-      })
+      filtered = filtered.filter(e => e.klassci_matiere_id == matiereId)
     }
 
     if (filters.value.statut) {
@@ -97,7 +91,7 @@ export function useAdminEvaluationResults() {
       // Charger les évaluations
       const evalsResponse = await api.get(endpoints.evaluations.list)
 
-      evaluations.value = evalsResponse.data || []
+      evaluations.value = extractList(evalsResponse)
 
 
       // Extraire la liste unique des enseignants
@@ -119,8 +113,8 @@ export function useAdminEvaluationResults() {
         api.get(endpoints.klassci.matieres)
       ])
 
-      classes.value = classesResponse.data || []
-      matieres.value = matieresResponse.data || []
+      classes.value = extractList(classesResponse, ['classes'])
+      matieres.value = extractList(matieresResponse, ['matieres'])
 
     } catch (err) {
       console.error('Erreur chargement données:', err)

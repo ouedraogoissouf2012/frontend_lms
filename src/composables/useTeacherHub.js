@@ -2,6 +2,7 @@ import { ref, onMounted } from 'vue'
 import { klassciService } from '@/services/klassci'
 import { lmsService } from '@/services/lms'
 import { enrichTeacherClasses } from '@/utils/classStats'
+import { extractList } from '@/utils/apiList'
 
 function firstDashboardNumber(dashboard, keys) {
   for (const key of keys) {
@@ -62,7 +63,7 @@ export function useTeacherHub() {
       stats.value.lecons = dashboard?.nb_lecons || dashboard?.total_lessons || 0
 
       // Compter les seances a venir
-      const seancesData = seances?.data || []
+      const seancesData = extractList(seances)
       const now = new Date()
       stats.value.seancesAVenir = seancesData.filter(s => {
         const dateSeance = new Date(s.programmation?.date || s.date_seance)

@@ -5,6 +5,7 @@ import chapterProgressService from '@/services/chapterProgress'
 import api from '@/services/api'
 import { toast } from '@/composables/useToast'
 import { endpoints } from '@/services/endpoints'
+import { extractList } from '@/utils/apiList'
 
 /**
  * Couche données de StudentLessonView (#H4 ≤300) : charge leçon + chapitres +
@@ -63,7 +64,7 @@ export function useStudentLessonView() {
       // Load chapters
       const chaptersRes = await api.get(endpoints.chapters.ofLesson(lessonId.value))
       if (chaptersRes.success) {
-        chapters.value = chaptersRes.data || []
+        chapters.value = extractList(chaptersRes)
       }
 
       // Load chapter progress
