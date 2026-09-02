@@ -8,6 +8,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
 import UsersFilters from '@/components/admin/UsersFilters.vue'
+import { ROLES } from '@/constants/roles'
 
 const REAL_CLASSE = { id: 1, name: 'B2 COM', libelle: null }
 
@@ -44,5 +45,19 @@ describe('UsersFilters (#G1)', () => {
     const classeSelect = w.findAll('select')[1]
     await classeSelect.setValue(1)
     expect(w.emitted('update:classe')[0]).toEqual([1])
+  })
+  it('propose les rôles d’encadrement, pas seulement les deux populations KLASSCI', async () => {
+    const w = mountFilters()
+    const options = w.findAll('select')[0].findAll('option')
+
+    // Coordinateurs et administrateurs existent bien en base LMS, mais restaient
+    // infiltrables : sans ces entrées, aucun moyen d'isoler l'encadrement dans
+    // l'annuaire — la population était invisible ET non filtrable.
+    expect(options.map(o => o.text())).toEqual([
+      'Tous les rôles', 'Étudiants', 'Enseignants', 'Coordinateurs', 'Administrateurs',
+    ])
+
+    await w.findAll('select')[0].setValue(ROLES.COORDINATEUR)
+    expect(w.emitted('update:role')[0]).toEqual([ROLES.COORDINATEUR])
   })
 })

@@ -18,6 +18,7 @@ const impl = {
   getClasses: () => Promise.resolve([{ id: 1, name: '6e A', libelle: null, places_occupees: 1 }]),
   getEnseignants: () => Promise.resolve([{ id: 10, nom: 'Zoé Prof', email: 'zoe@e.com' }]),
   getClasseEtudiants: () => Promise.resolve([{ id: 100, nom: 'Aline Eleve', email: 'aline@e.com' }]),
+  listAdministrationUsers: () => Promise.resolve({ items: [], counts: null }),
 }
 
 let cacheStore = null
@@ -49,6 +50,11 @@ vi.mock('@/services/lmsTeachers', () => ({
   },
 }))
 
+// Troisieme population : les comptes LMS d'encadrement, absents de KLASSCI.
+vi.mock('@/services/adminUsers', () => ({
+  listAdministrationUsers: (...a) => impl.listAdministrationUsers(...a),
+}))
+
 import { useAdminUsers } from '@/composables/useAdminUsers'
 
 async function setup() {
@@ -65,6 +71,7 @@ beforeEach(() => {
   impl.getClasses = () => Promise.resolve([{ id: 1, name: '6e A', libelle: null, places_occupees: 1 }])
   impl.getEnseignants = () => Promise.resolve([{ id: 10, nom: 'Zoé Prof', email: 'zoe@e.com' }])
   impl.getClasseEtudiants = () => Promise.resolve([{ id: 100, nom: 'Aline Eleve', email: 'aline@e.com' }])
+  impl.listAdministrationUsers = () => Promise.resolve({ items: [], counts: null })
 })
 
 describe('useAdminUsers (#G1)', () => {
@@ -72,6 +79,47 @@ describe('useAdminUsers (#G1)', () => {
     const u = await setup()
     expect(u.totalUsers.value).toBe(2)
     expect(u.loading.value).toBe(false)
+  })
+
+  describe('troisième population — comptes d’encadrement LMS', () => {
+    const ENCADREMENT = [
+      { id: 3, name: 'Cora Coord', email: 'cora@e.com', role: 'coordinateur', klassci_id: null },
+      { id: 4, name: 'Adam Admin', email: 'adam@e.com', role: 'superAdmin', klassci_id: 77 },
+    ]
+
+    it('les ajoute à la liste, en plus des deux populations KLASSCI', async () => {
+      impl.listAdministrationUsers = () => Promise.resolve({ items: ENCADREMENT, counts: null })
+      const u = await setup()
+
+      // 1 étudiant + 1 enseignant + 2 comptes d'encadrement.
+      expect(u.totalUsers.value).toBe(4)
+      const emails = u.filteredUsers.value.map(x => x.email)
+      expect(emails).toContain('cora@e.com')
+      expect(emails).toContain('adam@e.com')
+    })
+
+    it('les rend filtrables par rôle', async () => {
+      impl.listAdministrationUsers = () => Promise.resolve({ items: ENCADREMENT, counts: null })
+      const u = await setup()
+
+      u.filterRole.value = 'coordinateur'
+      expect(u.filteredUsers.value.map(x => x.email)).toEqual(['cora@e.com'])
+
+      // `superAdmin` est un admin d'établissement : il doit répondre au filtre
+      // « Administrateurs », qui porte le rôle canonique.
+      u.filterRole.value = 'admin'
+      expect(u.filteredUsers.value.map(x => x.email)).toEqual(['adam@e.com'])
+    })
+
+    it('n’efface pas les autres populations si leur chargement échoue', async () => {
+      impl.listAdministrationUsers = () => Promise.reject(new Error('500'))
+      const u = await setup()
+
+      // Un endpoint en panne ne doit pas vider un écran par ailleurs sain :
+      // même sémantique que les autres ressources de ce composable.
+      expect(u.totalUsers.value).toBe(2)
+      expect(u.loading.value).toBe(false)
+    })
   })
 
   it('filtre par rôle', async () => {
