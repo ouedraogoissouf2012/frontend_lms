@@ -8,8 +8,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="mobile-web-app-capable" content="yes">
   <title>LMS - Learning Management System</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <!-- Icônes auto-hébergées (Font Awesome + Material Icons) importées dans
+       src/main.js (#279) : plus de CDN externe -> CSP font/style-src 'self'. -->
   <style>
     /* Splash Screen Loader NSIA */
     #app-loader {
@@ -41,9 +41,7 @@
       animation: pulse-logo 2s ease-in-out infinite;
     }
 
-    .loader-logo i {
-      font-size: 5rem;
-      color: #FFB81C;
+    .loader-logo svg {
       filter: drop-shadow(0 0 20px rgba(255, 184, 28, 0.5));
     }
 
@@ -91,7 +89,10 @@
   <div id="app-loader">
     <div class="loader-content">
       <div class="loader-logo">
-        <i class="material-icons">school</i>
+        <!-- SVG inline : le splash ne dépend d'aucune police externe/tardive (#279). -->
+        <svg viewBox="0 0 24 24" width="80" height="80" fill="#FFB81C" aria-hidden="true">
+          <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
+        </svg>
       </div>
       <div class="loader-spinner"></div>
       <div class="loader-text">Chargement en cours...</div>
@@ -102,19 +103,7 @@
   <div id="app"></div>
   <script type="module" src="/src/main.js"></script>
 
-  <script>
-    // Masquer le loader une fois que l'app Vue est montée
-    window.addEventListener('load', function() {
-      setTimeout(function() {
-        const loader = document.getElementById('app-loader');
-        if (loader) {
-          loader.classList.add('fade-out');
-          setTimeout(function() {
-            loader.style.display = 'none';
-          }, 500);
-        }
-      }, 300); // Petit délai pour voir l'animation
-    });
-  </script>
+  <!-- Script externalisé (#279) pour permettre une CSP script-src 'self' stricte. -->
+  <script src="/app-loader.js"></script>
 </body>
 </html>
