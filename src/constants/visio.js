@@ -17,6 +17,8 @@ export const VISIO_CONFIG = Object.freeze({
 export const VISIO_ROOM_REQUIRED_MESSAGE = 'Identifiant de salle visio introuvable dans la réponse API.'
 export const VISIO_RECORDING_UNAVAILABLE_MESSAGE =
   "L'enregistrement n'est pas activé sur cette plateforme : aucun moteur Jitsi/Jibri n'est configuré."
+export const VISIO_TOKEN_REQUIRED_MESSAGE =
+  "Accès à la salle impossible : le serveur n'a pas délivré de jeton d'accès. Prévenez votre administrateur."
 
 export const HEARTBEAT_INTERVAL_MS = VISIO_CONFIG.HEARTBEAT_INTERVAL_MS
 export const RECORDING_POLL_INTERVAL_MS = VISIO_CONFIG.RECORDING_POLL_INTERVAL_MS
@@ -118,17 +120,77 @@ export function requireVisioRoomId(source, message = VISIO_ROOM_REQUIRED_MESSAGE
 
 /**
  * Construit une URL de salle Jitsi.
+ *
+ * ## Le jeton d'accès (#469)
+ *
+ * Le serveur auto-hébergé tourne avec `ENABLE_AUTH=1` et `ENABLE_GUESTS=0` :
+ * sans `?jwt=`, aucune salle ne s'ouvre. Le backend émet ce jeton sur
+ * `POST /seances/{id}/join` depuis #668 — il porte la salle, l'identité et le
+ * statut de modérateur, tous décidés côté serveur.
+ *
+ * L'option est **additive** : sans jeton, l'URL produite est strictement celle
+ * d'avant. C'est ce qui permet de la déployer sans rien casser sur un serveur
+ * qui n'exige pas d'authentification.
+ *
+ * ⚠️ Le jeton part en clair dans l'URL — historique du navigateur, journaux
+ * d'accès du serveur Jitsi. C'est le prix de l'ouverture en onglet séparé : un
+ * en-tête d'autorisation supposerait d'embarquer Jitsi en iframe. Le jeton est
+ * borné à UNE salle et expire (2 h par défaut), ce qui rend ce compromis
+ * acceptable ; il ne le serait pas pour un jeton de session.
+ *
  * @param {string} roomId
- * @param {{ displayName?: string, prejoinDisabled?: boolean }} [options]
- * @returns {string} `https://{domaine}/{roomId}` ou avec fragment hash de config.
+ * @param {{ displayName?: string, prejoinDisabled?: boolean, token?: string|null }} [options]
+ * @returns {string} `https://{domaine}/{roomId}[?jwt=…][#config…]`
  */
 export function buildJitsiUrl(roomId, options = {}) {
   const safeRoomId = requireVisioRoomId(roomId)
-  const base = `https://${getJitsiDomain()}/${safeRoomId}`
-  const { displayName, prejoinDisabled } = options
+  const { displayName, prejoinDisabled, token } = options
+
+  // La query precede TOUJOURS le fragment : `?jwt=…#config…`. L'ordre inverse
+  // ferait lire le jeton comme un morceau du fragment, donc l'ignorerait.
+  const trimmedToken = typeof token === 'string' ? token.trim() : ''
+  const query = trimmedToken ? `?jwt=${encodeURIComponent(trimmedToken)}` : ''
+  const base = `https://${getJitsiDomain()}/${safeRoomId}${query}`
+
   if (!prejoinDisabled && displayName == null) return base
   const parts = []
   if (prejoinDisabled) parts.push('config.prejoinConfig.enabled=false')
   if (displayName != null) parts.push(`userInfo.displayName=${encodeURIComponent(displayName)}`)
   return `${base}#${parts.join('&')}`
+}
+
+/**
+ * Construit l'URL de salle à partir de la réponse de `POST /seances/{id}/join`.
+ *
+ * ## Pourquoi la salle ET le jeton sortent de la MÊME réponse
+ *
+ * Le jeton n'existe qu'après cet appel. Construire l'URL avant — ce que faisait
+ * le code jusqu'ici — condamnait le front à l'ignorer, quoi qu'émette le
+ * backend. Lire les deux au même endroit rend l'inversion impossible à refaire.
+ *
+ * ## Pourquoi un jeton manquant fait ÉCHOUER
+ *
+ * Le serveur tourne avec `ENABLE_GUESTS=0` : sans jeton, la salle refusera
+ * l'entrée. Ouvrir quand même produirait un onglet affichant une erreur
+ * d'authentification que l'enseignant ne peut pas interpréter, en plein cours.
+ *
+ * Échouer ici, au clic, donne un message actionnable — et rend une
+ * configuration serveur incomplète visible immédiatement plutôt que sous la
+ * forme d'un « ça ne marche pas » remonté trois jours plus tard.
+ *
+ * @param {{data?: object}} response réponse déballée de l'API (`{success, message, data}`)
+ * @param {{ displayName?: string, prejoinDisabled?: boolean }} [options]
+ * @returns {string}
+ * @throws {Error} salle absente, ou jeton indisponible
+ */
+export function buildJoinUrlFromResponse(response, options = {}) {
+  const roomId = requireVisioRoomId(response)
+  const token = response?.data?.visio_token
+
+  // Le drapeau ET la valeur doivent tenir : un `available: true` accompagne
+  // d'un jeton vide est une incoherence serveur, pas un cas degrade a absorber.
+  const usable = typeof token === 'string' && token.trim() !== ''
+  if (!usable) throw new Error(VISIO_TOKEN_REQUIRED_MESSAGE)
+
+  return buildJitsiUrl(roomId, { ...options, token })
 }
