@@ -1,6 +1,6 @@
 import { useAuthStore } from '@/stores/auth'
 import { useVisioStore } from '@/stores/visio'
-import { buildJitsiUrl, getVisioRoomId, VISIO_ROOM_REQUIRED_MESSAGE } from '@/constants/visio'
+import { getVisioRoomId, VISIO_ROOM_REQUIRED_MESSAGE } from '@/constants/visio'
 
 const SEANCE_ID_REQUIRED_MESSAGE = 'Identifiant de séance visio introuvable.'
 
@@ -18,17 +18,24 @@ export function useTrackedVisioJoin(defaultDisplayName = 'Utilisateur') {
     const seanceId = resolveSeanceId(seance)
     if (!seanceId) throw new Error(SEANCE_ID_REQUIRED_MESSAGE)
 
+    // Garde AVANT tout appel réseau : une séance sans salle doit échouer ici,
+    // et surtout pas après `join`, qui écrit déjà la présence en base. Sans
+    // cette vérification, un échec plus loin laisserait l'utilisateur marqué
+    // présent à une séance qu'il n'a jamais rejointe (#469).
+    //
+    // La salle utilisée pour construire l'URL vient ensuite de la RÉPONSE de
+    // `join`, seule source qui porte aussi le jeton — d'où la disparition de
+    // `options.roomSource` du chemin de construction : le garder aurait donné
+    // l'illusion qu'il fait autorité alors qu'il n'est plus lu.
     const roomSource = options.roomSource ?? seance
-    const roomId = getVisioRoomId(roomSource) || getVisioRoomId(seance)
-    if (!roomId) throw new Error(options.roomRequiredMessage || VISIO_ROOM_REQUIRED_MESSAGE)
+    if (!getVisioRoomId(roomSource) && !getVisioRoomId(seance)) {
+      throw new Error(options.roomRequiredMessage || VISIO_ROOM_REQUIRED_MESSAGE)
+    }
 
-    const displayName = options.displayName ?? authStore.currentUser?.name ?? defaultDisplayName
-    const jitsiLink = buildJitsiUrl(roomId, {
-      displayName,
+    return visioStore.joinVisio(seanceId, {
+      displayName: options.displayName ?? authStore.currentUser?.name ?? defaultDisplayName,
       prejoinDisabled: options.prejoinDisabled ?? true,
     })
-
-    return visioStore.joinVisio(seanceId, jitsiLink)
   }
 
   return { joinTrackedVisio }
