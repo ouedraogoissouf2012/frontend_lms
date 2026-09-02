@@ -31,8 +31,11 @@ vi.mock('@/services/api', () => ({
           ],
         })
       }
-      if (url === '/proxy/classes') return Promise.resolve({ data: [{ id: 5, name: '6e A' }] })
-      if (url === '/proxy/matieres') return Promise.resolve({ data: [{ id: 7, nom: 'Maths' }] })
+      // Enveloppe KLASSCI à clé nommée { data: { classes: [...] } } : l'ancien
+      // `classesResponse.data || []` renvoyait l'OBJET (bug) ; extractList(_, ['classes'])
+      // extrait bien le tableau. Ce mock verrouille cette robustesse (#276).
+      if (url === '/proxy/classes') return Promise.resolve({ data: { classes: [{ id: 5, name: '6e A' }] } })
+      if (url === '/proxy/matieres') return Promise.resolve({ data: { matieres: [{ id: 7, nom: 'Maths' }] } })
       return Promise.resolve({ data: [] })
     }),
   },
@@ -56,6 +59,12 @@ describe('useAdminEvaluationResults (#H3)', () => {
     expect(c.evaluations.value).toHaveLength(2)
     expect(c.enseignants.value).toHaveLength(2)
     expect(c.enseignants.value[0].name).toBe('Alain') // trié par nom
+  })
+
+  it('extrait classes & matières même en enveloppe nommée { data: { classes: [...] } } (#276)', async () => {
+    const c = await setup()
+    expect(c.classes.value).toEqual([{ id: 5, name: '6e A' }])
+    expect(c.matieres.value).toEqual([{ id: 7, nom: 'Maths' }])
   })
 
   it('expose isCoordinateur selon le rôle', async () => {
