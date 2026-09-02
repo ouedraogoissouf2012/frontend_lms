@@ -5,6 +5,11 @@ import router from './router'
 import './style.css'
 import './assets/styles/themes.css'
 import './assets/styles/mobile-responsive.css'
+// Icônes auto-hébergées (#279) : Font Awesome + Material Icons (variante « filled »
+// = classe .material-icons). Remplacent les CDN externes retirés d'index.html →
+// bundlées par Vite dans /assets/ (self), CSP font/style-src 'self'.
+import 'font-awesome/css/font-awesome.min.css'
+import 'material-icons/iconfont/filled.css'
 import { themeKey } from '@/constants/storageKeys'
 import { reveal } from '@/directives/reveal'
 
