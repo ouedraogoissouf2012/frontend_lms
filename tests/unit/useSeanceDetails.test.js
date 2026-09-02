@@ -177,7 +177,16 @@ describe('useSeanceDetails (#H6)', () => {
     )
   })
 
-  it('startVisio : utilise VITE_JITSI_DOMAIN au lieu de meet.jit.si', async () => {
+  /**
+   * #469 — l'appelant NE construit PLUS l'URL.
+   *
+   * Elle est bâtie dans le store, à partir de la réponse de `join` : c'est la
+   * seule qui porte le jeton d'accès, sans lequel la salle refuse l'entrée.
+   * Ces tests vérifiaient auparavant l'URL exacte, y compris le domaine ; le
+   * domaine est désormais couvert par V15 de `constants/visio`, et ce qui
+   * compte ici est la **délégation** et le nom d'affichage transmis.
+   */
+  it('startVisio : délègue au store, sans construire d\'URL', async () => {
     vi.stubEnv('VITE_JITSI_DOMAIN', 'visio.ecole.test')
     getSeanceDetails.mockResolvedValue({
       success: true,
@@ -190,11 +199,14 @@ describe('useSeanceDetails (#H6)', () => {
 
     expect(storeJoinVisio).toHaveBeenCalledWith(
       42,
-      'https://visio.ecole.test/room-api-start#config.prejoinConfig.enabled=false&userInfo.displayName=Prof%20X',
+      expect.objectContaining({ displayName: 'Prof X' }),
     )
+    // Aucune URL ne doit transiter par le store : la seconde donnée est un
+    // objet d'options, jamais une chaîne.
+    expect(typeof storeJoinVisio.mock.calls[0][1]).toBe('object')
   })
 
-  it('joinVisio : utilise VITE_JITSI_DOMAIN au lieu de meet.jit.si', async () => {
+  it('joinVisio : délègue au store, sans construire d\'URL', async () => {
     vi.stubEnv('VITE_JITSI_DOMAIN', 'visio.ecole.test')
     currentUser = { role: 'etudiant', name: 'Eleve Test' }
     getSeanceDetails.mockResolvedValue({
@@ -210,8 +222,9 @@ describe('useSeanceDetails (#H6)', () => {
 
     expect(storeJoinVisio).toHaveBeenCalledWith(
       42,
-      'https://visio.ecole.test/room-api-join#config.prejoinConfig.enabled=false&userInfo.displayName=Eleve%20Test',
+      expect.objectContaining({ displayName: 'Eleve Test' }),
     )
+    expect(typeof storeJoinVisio.mock.calls[0][1]).toBe('object')
   })
 
   it('startRecording : refuse si la séance visio n’est pas active', async () => {

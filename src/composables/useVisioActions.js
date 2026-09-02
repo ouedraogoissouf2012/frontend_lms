@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import lmsService from '@/services/lms'
 import { useAuthStore } from '@/stores/auth'
 import { useVisioStore } from '@/stores/visio'
-import { buildJitsiUrl, requireVisioRoomId } from '@/constants/visio'
+import { requireVisioRoomId } from '@/constants/visio'
 import { apiBaseUrl } from '@/constants/http'
 import {
   confirmVisioAction,
@@ -99,12 +99,13 @@ export function useVisioActions(props, emit) {
         return
       }
 
-      // 2. Récupérer le lien Jitsi
-      const roomId = requireVisioRoomId(result.data)
-      const jitsiLink = buildJitsiUrl(roomId)
+      // 2. Garde AVANT tout appel réseau : une séance sans salle doit échouer
+      //    ici, jamais après `join` qui écrit déjà la présence en base (#469).
+      requireVisioRoomId(result.data)
 
-      // 3. Utiliser le store pour ouvrir et tracker
-      await visioStore.joinVisio(props.seance.id, jitsiLink)
+      // 3. Le store construit l'URL depuis SA propre réponse — seule source
+      //    qui porte aussi le jeton d'accès exigé par le serveur.
+      await visioStore.joinVisio(props.seance.id)
 
       console.log('✅ Visio démarrée avec window.open + tracking')
 
@@ -223,12 +224,12 @@ export function useVisioActions(props, emit) {
     try {
       console.log('👨‍🎓 Étudiant rejoint la visio...')
 
-      // Room ID depuis la séance
-      const roomId = requireVisioRoomId(props.seance)
+      // Garde AVANT tout appel réseau : sans salle, on échoue ici et non après
+      // `join`, qui écrit déjà la présence en base (#469).
+      requireVisioRoomId(props.seance)
 
-      // Utiliser le store pour ouvrir et tracker
-      const jitsiLink = buildJitsiUrl(roomId)
-      await visioStore.joinVisio(props.seance.id, jitsiLink)
+      // Le store construit l'URL depuis SA réponse, qui porte le jeton d'accès.
+      await visioStore.joinVisio(props.seance.id)
 
       console.log('✅ Étudiant a rejoint avec window.open + tracking')
 

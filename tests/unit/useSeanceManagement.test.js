@@ -125,10 +125,10 @@ describe('useSeanceManagement (#H6)', () => {
 
     await u.handleCalendarAction({ type: 'joinVisio', data: { id: 8, visio_room_id: 'room-8' } })
 
-    expect(storeJoinVisio).toHaveBeenCalledWith(
-      8,
-      'jitsi://room-8',
-    )
+    // #469 — le store reçoit des OPTIONS, plus une URL : celle-ci est bâtie
+    // à partir de la réponse de `join`, seule source du jeton d'accès.
+    expect(storeJoinVisio).toHaveBeenCalledWith(8, expect.any(Object))
+    expect(typeof storeJoinVisio.mock.calls[0][1]).toBe('object')
   })
 
   it('viewMode démarre en "list"', async () => {

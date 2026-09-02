@@ -4,6 +4,7 @@ import lmsService from '@/services/lms'
 import { useAuthStore } from '@/stores/auth'
 import { useVisioHeartbeat } from '@/composables/useVisioHeartbeat'
 import { sendVisioLeaveBeacon } from '@/services/visioLeave'
+import { buildJoinUrlFromResponse } from '@/constants/visio'
 import { isTeacher } from '@/constants/roles'
 
 /**
@@ -64,27 +65,59 @@ export const useVisioStore = defineStore('visio', () => {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   /**
-   * Rejoindre une visioconférence
+   * Annule une participation déjà écrite côté serveur.
+   *
+   * `leaveVisio()` ne convient pas ici : il sort immédiatement tant que
+   * `isInVisio` n'est pas posé — or à ce stade il ne l'est pas encore.
+   * L'échec de compensation n'est jamais propagé : il ne doit pas masquer
+   * l'erreur d'origine, qui est celle que l'utilisateur doit lire.
+   */
+  const compensateJoin = async (seanceId) => {
+    try {
+      await lmsService.leaveVisio(seanceId)
+    } catch (error) {
+      console.error('[VisioStore] Compensation de participation impossible:', error)
+    }
+  }
+
+  /**
+   * Rejoindre une visioconférence.
+   *
+   * L'URL de salle est construite ICI, à partir de la réponse de l'API, parce
+   * que c'est elle qui porte le jeton d'accès. L'appelant ne fournit plus de
+   * lien : il ne pouvait pas en construire un valide.
+   *
    * @param {number} seanceId - ID de la séance
-   * @param {string} jitsiLink - Lien Jitsi Meet à ouvrir
+   * @param {{ displayName?: string, prejoinDisabled?: boolean }} [options]
    * @returns {Promise<Object>} Réponse de l'API joinVisio
    */
-  const joinVisio = async (seanceId, jitsiLink) => {
+  const joinVisio = async (seanceId, options = {}) => {
     try {
       console.log(`[VisioStore] Rejoindre séance ${seanceId}`)
 
-      // 1. Enregistrer la participation dans la base
+      // 1. Enregistrer la participation — et récupérer, dans LA MÊME réponse,
+      //    la salle et le jeton d'accès. Construire l'URL avant cet appel
+      //    condamnait le front à ignorer le jeton (#469).
       const response = await lmsService.joinVisio(seanceId)
 
       if (!response.success) {
         throw new Error(response.message || 'Erreur lors de l\'enregistrement de la participation')
       }
 
-      // 2. Ouvrir Jitsi dans une nouvelle fenêtre
-      visioWindow.value = window.open(jitsiLink, '_blank')
+      // ⚠️ La présence est désormais ÉCRITE côté serveur. Tout échec au-delà de
+      //    ce point doit être COMPENSÉ : sans quoi l'utilisateur reste marqué
+      //    présent à une séance qu'il n'a jamais rejointe — et cette ligne
+      //    alimente les rapports de présence.
+      try {
+        // 2. Construire l'URL (salle + jeton) puis ouvrir Jitsi
+        visioWindow.value = window.open(buildJoinUrlFromResponse(response, options), '_blank')
 
-      if (!visioWindow.value) {
-        throw new Error('Impossible d\'ouvrir la fenêtre Jitsi. Vérifiez les popups.')
+        if (!visioWindow.value) {
+          throw new Error('Impossible d\'ouvrir la fenêtre Jitsi. Vérifiez les popups.')
+        }
+      } catch (error) {
+        await compensateJoin(seanceId)
+        throw error
       }
 
       // 3. Mettre à jour l'état global
