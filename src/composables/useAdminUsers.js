@@ -4,11 +4,10 @@ import { readCache, writeCache, invalidateEntity } from '@/services/cache'
 import { logError } from '@/services/errorHandler'
 import { fetchClassRosters } from '@/services/klassciRoster'
 import { deriveInstitutionCounters } from '@/utils/classStats'
-import { getFullName } from '@/utils/formatters'
-import { ROLES } from '@/constants/roles'
+import { buildUserRows } from '@/utils/adminUsersRows'
 import { buildUsersNotices } from '@/utils/usersNotices'
 import { lmsTeachersService } from '@/services/lmsTeachers'
-import { getEnseignantClassesLabel, getEnseignantUniqueClasses } from '@/utils/enseignants'
+import { listAdministrationUsers } from '@/services/adminUsers'
 import { toId } from '@/utils/toId'
 
 const PAGE_SIZE = 25
@@ -51,6 +50,9 @@ export function useAdminUsers() {
   const etudiants = ref([])
   const enseignants = ref([])
   const classes = ref([])
+  // Comptes LMS d'encadrement (coordinateurs, admins) : ils n'existent pas
+  // cote KLASSCI, d'ou une source distincte des deux autres populations.
+  const administration = ref([])
   const loading = ref(true)
   const loadingProgress = ref('')
   const counts = ref(noCounts())
@@ -77,33 +79,14 @@ export function useAdminUsers() {
     rosterForbidden: rosterForbidden.value,
   }))
 
-  // Liste unifiée étudiants + enseignants
-  const allUsers = computed(() => {
-    const users = []
-    etudiants.value.forEach(e => {
-      users.push({
-        _uid: `etu-${e.id}`, klassci_id: e.id,
-        name: getFullName(e), email: e.email, role: ROLES.ETUDIANT,
-        classe_id: e.classe_id, classe_nom: e.classe_nom,
-        matricule: e.matricule, telephone: e.telephone,
-      })
-    })
-    enseignants.value.forEach(e => {
-      users.push({
-        _uid: `ens-${e.id || e.teacher_id}`, klassci_id: e.id || e.teacher_id,
-        // Rôle FORCÉ : /proxy/enseignants renvoie `"role":"etudiant"` pour un
-        // professeur (donnée amont fausse, vérifiée contre l'API). La source de
-        // vérité est ici l'endpoint interrogé, pas le champ.
-        name: getFullName(e), email: e.email, role: ROLES.ENSEIGNANT,
-        // Classes DÉRIVÉES des matières (helper canonique), jamais un `null` en dur.
-        classe_id: null,
-        classe_ids: getEnseignantUniqueClasses(e).map(c => c.id),
-        classe_nom: getEnseignantClassesLabel(e),
-        matricule: e.matricule, telephone: e.telephone, specialization: e.specialization,
-      })
-    })
-    return users
-  })
+  // Liste unifiée des TROIS populations. La forme des lignes vit dans
+  // `utils/adminUsersRows` : ce composable orchestre le chargement, pas le
+  // formatage (et le fichier reste sous la limite de 300 lignes).
+  const allUsers = computed(() => buildUserRows({
+    etudiants: etudiants.value,
+    enseignants: enseignants.value,
+    administration: administration.value,
+  }))
 
   const totalUsers = computed(() => allUsers.value.length)
 
@@ -175,13 +158,18 @@ export function useAdminUsers() {
   async function fetchAll(onProgress) {
     const generation = ++loadGeneration
 
-    const [classesOutcome, enseignantsOutcome] = await Promise.allSettled([
+    const [classesOutcome, enseignantsOutcome, administrationOutcome] = await Promise.allSettled([
       klassciService.getClasses(),
       // `with_details` : seule cette variante porte les matières, donc les classes.
       lmsTeachersService.getEnseignants(true),
+      // Base LMS, pas KLASSCI : c'est la seule source des coordinateurs et admins.
+      listAdministrationUsers(),
     ])
     const loadedClasses = resolveRoot(classesOutcome, 'classes')
     const loadedEnseignants = resolveRoot(enseignantsOutcome, 'enseignants')
+    const loadedAdministration = administrationOutcome.status === 'fulfilled'
+      ? (administrationOutcome.value?.items ?? [])
+      : (logError(administrationOutcome.reason, '[useAdminUsers] administration'), null)
 
     const classeList = loadedClasses ?? []
     const { collected, ok, forbidden } = await fetchClassRosters(classeList, onProgress)
@@ -194,6 +182,7 @@ export function useAdminUsers() {
     // pas sa liste : un endpoint en panne n'efface pas les données d'un autre.
     if (loadedClasses !== null) classes.value = loadedClasses
     if (loadedEnseignants !== null) enseignants.value = loadedEnseignants
+    if (loadedAdministration !== null) administration.value = loadedAdministration
     rosterForbidden.value = forbidden
 
     // Roster nominatif : on n'applique le résultat frais que s'il fait AUTORITÉ —

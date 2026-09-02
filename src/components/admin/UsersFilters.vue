@@ -14,6 +14,10 @@
         <option value="all">Tous les rôles</option>
         <option :value="ROLES.ETUDIANT">Étudiants</option>
         <option :value="ROLES.ENSEIGNANT">Enseignants</option>
+        <!-- Comptes LMS sans équivalent KLASSCI : sans ces deux entrées, la
+             population d'encadrement restait invisible ET non filtrable. -->
+        <option :value="ROLES.COORDINATEUR">Coordinateurs</option>
+        <option :value="ROLES.ADMIN">Administrateurs</option>
       </select>
       <select v-model="classe" class="filter-select">
         <option value="all">Toutes les classes</option>
