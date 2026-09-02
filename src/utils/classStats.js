@@ -1,16 +1,18 @@
+import {
+  firstNumber,
+  measureClassCapacity,
+  measureClassStudentCount
+} from './classMeasures'
+
+// Reexport : `getClassStudentCount` et `getClassCapacity` restent importables
+// depuis ce module, comme avant l'extraction (useAdminClasses les consomme).
+export { getClassCapacity, getClassStudentCount } from './classMeasures'
+export { measureClassCapacity, measureClassStudentCount } from './classMeasures'
+
 import { toId } from './toId'
 
 function toArray(value) {
   return Array.isArray(value) ? value : []
-}
-
-function firstNumber(values) {
-  for (const value of values) {
-    if (value === null || value === undefined || value === '') continue
-    const number = Number(value)
-    if (Number.isFinite(number)) return number
-  }
-  return null
 }
 
 function collectIds(source, objectFields = [], arrayFields = [], scalarFields = []) {
@@ -188,28 +190,6 @@ export function getAssignedClassIds(matieres = []) {
   return ids
 }
 
-export function getClassStudentCount(classe) {
-  const explicitCount = firstNumber([
-    classe?.places_occupees,
-    classe?.nb_etudiants,
-    classe?.nombre_etudiants,
-    classe?.etudiants_count,
-    classe?.students_count,
-    classe?.total_etudiants,
-    classe?.effectif_actuel,
-    classe?.current_students,
-    classe?.inscrits
-  ])
-  if (explicitCount !== null) return explicitCount
-
-  for (const field of ['etudiants', 'students', 'apprenants']) {
-    const list = classe?.[field]
-    if (Array.isArray(list)) return list.length
-  }
-
-  return firstNumber([classe?.effectif]) ?? 0
-}
-
 export function getClassMatiereCount(classe, matieres = []) {
   if (Array.isArray(classe?.matieres)) return classe.matieres.length
 
@@ -240,18 +220,6 @@ export function getClassMatiereCount(classe, matieres = []) {
   ]) ?? 0
 }
 
-export function getClassCapacity(classe, studentCount = 0) {
-  return firstNumber([
-    classe?.places_totales,
-    classe?.effectif_max,
-    classe?.capacite,
-    classe?.capacity,
-    classe?.capacite_max,
-    classe?.max_students,
-    classe?.total_places
-  ]) ?? (studentCount > 0 ? Math.max(studentCount, 30) : 30)
-}
-
 export function enrichTeacherClasses(rawClasses = [], matieres = []) {
   const classList = toArray(rawClasses)
   const matiereList = toArray(matieres)
@@ -263,14 +231,14 @@ export function enrichTeacherClasses(rawClasses = [], matieres = []) {
       if (!shouldFilterByAssignment) return true
       return assignedClassIds.has(toId(classe))
     })
-    .map((classe) => {
-      const studentCount = getClassStudentCount(classe)
-
-      return {
-        ...classe,
-        places_occupees: studentCount,
-        places_totales: getClassCapacity(classe, studentCount),
-        nb_matieres: shouldFilterByAssignment ? getClassMatiereCount(classe, matiereList) : matiereList.length
-      }
-    })
+    .map((classe) => ({
+      ...classe,
+      // MESURE, pas repli : le dashboard enseignant ne porte ni effectif ni
+      // capacité, et les inventer donnait « 0/30 » sur une classe de 6 élèves —
+      // deux nombres faux présentés comme des faits. `null` remonte l'absence
+      // jusqu'à l'affichage, qui la rend « — ».
+      places_occupees: measureClassStudentCount(classe),
+      places_totales: measureClassCapacity(classe),
+      nb_matieres: shouldFilterByAssignment ? getClassMatiereCount(classe, matiereList) : matiereList.length
+    }))
 }

@@ -1,7 +1,8 @@
 <template>
-  <div
+  <router-link
     class="class-card"
-    :title="`Classe: ${classe.name || classe.libelle}`"
+    :to="{ name: 'classe-details', params: { id: classe.id } }"
+    :title="`Ouvrir ${classe.name || classe.libelle}`"
   >
     <div class="class-header">
       <div class="class-info">
@@ -41,23 +42,23 @@
     <div class="class-stats">
       <div
         class="stat-item"
-        :title="`${classe.places_occupees || 0} étudiants inscrits sur ${classe.places_totales || 0} places disponibles`"
+        :title="effectifTitre"
       >
         <UserGroupIcon class="stat-icon text-blue-600" />
         <div>
           <p class="stat-label">Étudiants</p>
-          <p class="stat-value">{{ classe.places_occupees || 0 }}/{{ classe.places_totales || 0 }}</p>
+          <p class="stat-value">{{ effectif }}/{{ capacite }}</p>
         </div>
       </div>
 
       <div
         class="stat-item"
-        :title="`${classe.nb_matieres || 0} matière(s) enseignée(s) dans cette classe`"
+        :title="matieresTitre"
       >
         <BookOpenIcon class="stat-icon text-orange-600" />
         <div>
           <p class="stat-label">Matières</p>
-          <p class="stat-value">{{ classe.nb_matieres || 0 }}</p>
+          <p class="stat-value">{{ matieres }}</p>
         </div>
       </div>
     </div>
@@ -68,28 +69,67 @@
         <span>{{ classe.name || classe.libelle }}</span>
       </div>
     </div>
-  </div>
+  </router-link>
 </template>
 
 <script setup>
 /**
- * Carte de classe enseignant (#H9 ≤300). Presentation pure : en-tete, filiere,
- * stats (effectifs, matieres) et badge. CSS deplace VERBATIM (specifique a la carte).
+ * Carte de classe enseignant (#H9 ≤300). En-tête, filière, stats et lien vers le
+ * détail de la classe. CSS spécifique à la carte.
+ *
+ * La carte ENTIÈRE est le lien, et non la seule icône : viser une cible de 20 px
+ * est un obstacle réel, en particulier au doigt. `router-link` rend un `<a href>`
+ * natif — donc focusable et activable par Entrée sans code ajouté, là où un `div`
+ * avec `@click` aurait exigé `tabindex`, `role` et `@keydown.enter`, trois
+ * occasions de l'oublier.
+ *
+ * Les compteurs passent par `formatCount` : le dashboard enseignant ne porte NI
+ * effectif NI capacité, et les replis affichaient « 0/30 » pour une classe de
+ * 6 élèves. Une donnée absente se dit « — », jamais par un zéro qui se ferait
+ * passer pour une mesure.
  */
+import { computed } from 'vue'
 import {
   UserGroupIcon,
   BookOpenIcon,
   AcademicCapIcon,
   EyeIcon
 } from '@heroicons/vue/24/outline'
+import { formatCount } from '@/utils/formatters'
 
-defineProps({
+const props = defineProps({
   classe: { type: Object, required: true }
+})
+
+const effectif = computed(() => formatCount(props.classe.places_occupees))
+const capacite = computed(() => formatCount(props.classe.places_totales))
+const matieres = computed(() => formatCount(props.classe.nb_matieres))
+
+/** Une infobulle ne doit pas affirmer un effectif que personne n'a mesuré. */
+const effectifTitre = computed(() => {
+  const inscrits = props.classe.places_occupees
+  if (inscrits === null || inscrits === undefined) {
+    return 'Effectif non communiqué pour cette classe'
+  }
+  const places = props.classe.places_totales
+  return places === null || places === undefined
+    ? `${inscrits} étudiant(s) inscrit(s)`
+    : `${inscrits} étudiant(s) inscrit(s) sur ${places} places disponibles`
+})
+
+const matieresTitre = computed(() => {
+  const total = props.classe.nb_matieres
+  return total === null || total === undefined
+    ? 'Nombre de matières non communiqué pour cette classe'
+    : `${total} matière(s) enseignée(s) dans cette classe`
 })
 </script>
 
 <style scoped>
 .class-card {
+  /* La carte est desormais un <a> : on neutralise le style de lien natif. */
+  text-decoration: none;
+  color: inherit;
   background: var(--card-bg);
   border-radius: 0.75rem;
   box-shadow: var(--card-shadow);

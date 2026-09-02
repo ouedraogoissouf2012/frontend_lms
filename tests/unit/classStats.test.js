@@ -52,10 +52,38 @@ describe('classStats (#100)', () => {
         id: 5,
         nb_etudiants: 18,
         places_occupees: 18,
-        places_totales: 30,
+        // `null` et non `30` : la classe ne porte aucune capacité. L'ancien `30`
+        // était une constante en dur, donc une capacité inventée — indétectable
+        // quand elle tombait juste.
+        places_totales: null,
         nb_matieres: 2
       }
     ])
+  })
+
+  it('ne fabrique NI effectif NI capacite quand la source ne les porte pas', () => {
+    // Forme RÉELLE des classes de /proxy/me/teacher-dashboard (mesurée) :
+    // id, name, libelle, filiere, niveau — et rien d'autre. Ni effectif, ni capacité.
+    const classes = [{ id: 1, name: 'B2 COM', libelle: null }]
+
+    const [enrichie] = enrichTeacherClasses(classes, [])
+
+    // `0` se lirait « cette classe n'a aucun étudiant », et `30` était une capacité
+    // inventée par un `?? 30` en dur. La classe en compte 6 pour 30 places : les
+    // deux chiffres étaient faux, et le 30 l'était de façon indétectable puisqu'il
+    // tombait juste par coïncidence.
+    expect(enrichie.places_occupees).toBeNull()
+    expect(enrichie.places_totales).toBeNull()
+  })
+
+  it('conserve les valeurs REELLEMENT portees par la source', () => {
+    const classes = [{ id: 5, nb_etudiants: 18, places_totales: 28 }]
+
+    const [enrichie] = enrichTeacherClasses(classes, [])
+
+    // Une mesure présente n'est jamais remplacée par un repli.
+    expect(enrichie.places_occupees).toBe(18)
+    expect(enrichie.places_totales).toBe(28)
   })
 
   it('compte les matieres par combinaison filiere/niveau sans multiplier le total global', () => {
