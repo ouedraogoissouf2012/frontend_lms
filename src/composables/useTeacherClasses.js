@@ -1,7 +1,9 @@
 import { ref, onMounted } from 'vue'
 import { klassciService } from '@/services/klassci'
 import { readCache, writeCache } from '@/services/cache'
+import { logError } from '@/services/errorHandler'
 import { enrichTeacherClasses } from '@/utils/classStats'
+import { mergeClassMeasures } from '@/utils/classMeasures'
 
 const TEACHER_CLASSES_CACHE_KEY = 'teacher_classes_dashboard_v2'
 
@@ -14,6 +16,37 @@ export function useTeacherClasses() {
   const classes = ref([])
   const loading = ref(false)
   const error = ref(null)
+
+  /**
+   * Charge les classes de l'enseignant AVEC leurs effectifs.
+   *
+   * Deux sources, en parallele : le tableau de bord dit QUELLES classes sont les
+   * siennes, mais ne porte ni effectif ni capacite ; `/proxy/classes` les porte,
+   * pour tout l'etablissement et en UN appel. Interroger chaque classe couterait
+   * un aller-retour par carte affichee.
+   *
+   * L'echec du referentiel n'est pas fatal : les mesures restent `null` (rendues
+   * « — »), plutot qu'un chiffre invente ou un ecran vide.
+   */
+  async function fetchClasses() {
+    const [dashboardOutcome, referentielOutcome] = await Promise.allSettled([
+      klassciService.getTeacherDashboard(),
+      klassciService.getClasses(),
+    ])
+
+    if (dashboardOutcome.status === 'rejected') throw dashboardOutcome.reason
+
+    const dashboard = dashboardOutcome.value
+    const rawClasses = Array.isArray(dashboard?.classes) ? dashboard.classes : []
+    const dashboardMatieres = Array.isArray(dashboard?.matieres) ? dashboard.matieres : []
+    const referentiel = referentielOutcome.status === 'fulfilled' ? referentielOutcome.value : null
+
+    if (referentielOutcome.status === 'rejected') {
+      logError(referentielOutcome.reason, '[useTeacherClasses] effectifs')
+    }
+
+    return enrichTeacherClasses(mergeClassMeasures(rawClasses, referentiel), dashboardMatieres)
+  }
 
   async function loadClasses() {
     // Verifier le cache
@@ -31,25 +64,7 @@ export function useTeacherClasses() {
     error.value = null
 
     try {
-      console.log('[CLASSES] Chargement des classes enseignant...')
-      const dashboard = await klassciService.getTeacherDashboard()
-      const rawClasses = Array.isArray(dashboard?.classes) ? dashboard.classes : []
-      const dashboardMatieres = Array.isArray(dashboard?.matieres) ? dashboard.matieres : []
-
-      console.log('[CLASSES] Classes brutes:', rawClasses.length)
-      console.log('[CLASSES] Matières disponibles:', dashboardMatieres.length)
-
-      // Debug: afficher la structure d'une matière pour comprendre le lien avec les classes
-      if (dashboardMatieres.length > 0) {
-        console.log("[DEBUG] Structure d'une matière:", dashboardMatieres[0])
-      }
-      if (rawClasses.length > 0) {
-        console.log("[DEBUG] Structure d'une classe:", rawClasses[0])
-      }
-
-      const enrichedClasses = enrichTeacherClasses(rawClasses, dashboardMatieres)
-
-      classes.value = enrichedClasses
+      classes.value = await fetchClasses()
 
       // Mettre en cache
       writeCache(TEACHER_CLASSES_CACHE_KEY, classes.value)
@@ -65,14 +80,7 @@ export function useTeacherClasses() {
 
   async function refreshInBackground() {
     try {
-      console.log('[BACKGROUND] Rafraîchissement des classes...')
-      const dashboard = await klassciService.getTeacherDashboard()
-      const rawClasses = Array.isArray(dashboard?.classes) ? dashboard.classes : []
-      const dashboardMatieres = Array.isArray(dashboard?.matieres) ? dashboard.matieres : []
-
-      const enrichedClasses = enrichTeacherClasses(rawClasses, dashboardMatieres)
-
-      classes.value = enrichedClasses
+      classes.value = await fetchClasses()
 
       writeCache(TEACHER_CLASSES_CACHE_KEY, classes.value)
 

@@ -56,7 +56,6 @@ describe('useTeacherClasses (#H9)', () => {
     expect(c.places_totales).toBe(30)
     expect(api.loading.value).toBe(false)
     expect(getTeacherDashboard).toHaveBeenCalledTimes(1)
-    expect(getClasses).not.toHaveBeenCalled()
     expect(getMatieres).not.toHaveBeenCalled()
     expect(getClasseEtudiants).not.toHaveBeenCalled()
   })
@@ -86,8 +85,56 @@ describe('useTeacherClasses (#H9)', () => {
     getTeacherDashboard.mockRejectedValue(new Error('boom'))
     const api = await setup()
     expect(api.error.value).toBe('Impossible de charger vos classes. Veuillez réessayer.')
-    expect(getClasses).not.toHaveBeenCalled()
     expect(getMatieres).not.toHaveBeenCalled()
     expect(getClasseEtudiants).not.toHaveBeenCalled()
+  })
+
+  describe('effectifs — le tableau de bord ne les porte pas', () => {
+    /** Forme réelle du dashboard : ni effectif ni capacité. */
+    const CLASSES_SANS_MESURE = [
+      { id: 1, name: 'B2 COM', libelle: null },
+      { id: 5, name: 'ROSTAN BTS BATIMENT', libelle: null },
+    ]
+
+    /** Forme réelle de /proxy/classes : les mesures y sont. */
+    const REFERENTIEL = [
+      { id: 1, name: 'B2 COM', places_occupees: 6, places_totales: 30 },
+      { id: 5, name: 'ROSTAN BTS BATIMENT', places_occupees: 0, places_totales: 30 },
+    ]
+
+    it('les recupere depuis la liste des classes, en UN appel', async () => {
+      getTeacherDashboard.mockResolvedValue({ classes: CLASSES_SANS_MESURE, matieres: [] })
+      getClasses.mockResolvedValue(REFERENTIEL)
+
+      const api = await setup()
+
+      expect(api.classes.value[0].places_occupees).toBe(6)
+      expect(api.classes.value[0].places_totales).toBe(30)
+      // UN appel pour toutes les classes : interroger chaque classe coûterait
+      // un aller-retour par carte affichée.
+      expect(getClasses).toHaveBeenCalledTimes(1)
+    })
+
+    it('distingue un zero MESURE d une absence de donnee', async () => {
+      getTeacherDashboard.mockResolvedValue({ classes: CLASSES_SANS_MESURE, matieres: [] })
+      getClasses.mockResolvedValue(REFERENTIEL)
+
+      const api = await setup()
+
+      // ROSTAN compte réellement 0 inscrit : c'est un fait à afficher, pas un trou.
+      expect(api.classes.value[1].places_occupees).toBe(0)
+    })
+
+    it('n invente pas d effectif si la liste des classes echoue', async () => {
+      getTeacherDashboard.mockResolvedValue({ classes: CLASSES_SANS_MESURE, matieres: [] })
+      getClasses.mockRejectedValue(new Error('503'))
+
+      const api = await setup()
+
+      // La panne d'une source ne doit ni vider l'écran ni fabriquer un chiffre.
+      expect(api.classes.value).toHaveLength(2)
+      expect(api.classes.value[0].places_occupees).toBeNull()
+      expect(api.error.value).toBeNull()
+    })
   })
 })

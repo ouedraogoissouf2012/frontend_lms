@@ -55,7 +55,10 @@ describe('TeacherClasses (G10) — montage', () => {
 
     expect(w.find('.classes-container').exists()).toBe(true)
     expect(getTeacherDashboard).toHaveBeenCalled()
-    expect(getClasses).not.toHaveBeenCalled()
+    // La liste des classes est désormais chargée EN PLUS du tableau de bord :
+    // elle seule porte les effectifs, que le dashboard ne fournit pas.
+    // Un appel pour toutes les classes, jamais un par carte.
+    expect(getClasses).toHaveBeenCalledTimes(1)
     expect(getMatieres).not.toHaveBeenCalled()
     expect(getClasseEtudiants).not.toHaveBeenCalled()
   })
