@@ -9,8 +9,10 @@ import { describe, it, expect, vi } from 'vitest'
 
 vi.mock('@/services/cache', () => ({
   readCache: () => null,
+  readCacheStale: () => ({ data: null }),
   writeCache: () => {},
   clearCache: () => {},
+  invalidateEntity: () => {},
 }))
 
 const MATIERES = [
