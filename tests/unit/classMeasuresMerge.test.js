@@ -28,6 +28,25 @@ const REFERENTIEL = [
   { id: 5, name: 'ROSTAN BTS BATIMENT', places_occupees: 0, places_totales: 30 },
 ]
 
+import { enrichTeacherClasses } from '@/utils/classStats'
+
+describe('enrichTeacherClasses + fusion', () => {
+  it('conserve le nombre de matieres MESURE par classe', () => {
+    // Sans cette priorite, l'enrichissement ecrasait la mesure par le total des
+    // matieres de l'enseignant : le meme chiffre sur toutes les cartes.
+    const fusionnees = [
+      { id: 1, name: 'B2 COM', nb_matieres: 3 },
+      { id: 5, name: 'ROSTAN', nb_matieres: 0 },
+    ]
+    const matieresEnseignant = [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }, { id: 6 }]
+
+    const [b2, rostan] = enrichTeacherClasses(fusionnees, matieresEnseignant)
+
+    expect(b2.nb_matieres).toBe(3)
+    expect(rostan.nb_matieres).toBe(0)
+  })
+})
+
 describe('mergeClassMeasures', () => {
   it('complete chaque classe avec son effectif et sa capacite', () => {
     const [b2] = mergeClassMeasures(DASHBOARD, REFERENTIEL)
@@ -64,6 +83,31 @@ describe('mergeClassMeasures', () => {
     const [classe] = mergeClassMeasures([{ id: '1', name: 'B2 COM' }], REFERENTIEL)
 
     expect(classe.places_occupees).toBe(6)
+  })
+
+  it('reprend le nombre de matieres de LA CLASSE', () => {
+    // Chaque carte affichait « Matieres 6 » : le total des matieres de
+    // l'enseignant, repete a l'identique sur toutes ses classes. Le referentiel
+    // porte la vraie repartition, classe par classe.
+    const referentiel = [
+      { id: 1, matieres_disponibles: [{ id: 3 }, { id: 1 }, { id: 2 }] },
+      { id: 5, matieres_disponibles: [] },
+    ]
+
+    const [b2, rostan] = mergeClassMeasures(
+      [{ id: 1, name: 'B2 COM' }, { id: 5, name: 'ROSTAN' }],
+      referentiel,
+    )
+
+    expect(b2.nb_matieres).toBe(3)
+    // Zero MESURE : cette classe n'a effectivement aucune matiere rattachee.
+    expect(rostan.nb_matieres).toBe(0)
+  })
+
+  it('laisse nb_matieres a null quand le referentiel ne le porte pas', () => {
+    const [classe] = mergeClassMeasures([{ id: 1, name: 'B2 COM' }], [{ id: 1 }])
+
+    expect(classe.nb_matieres).toBeNull()
   })
 
   it('ne modifie pas les objets recus', () => {
