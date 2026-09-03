@@ -31,6 +31,19 @@ export function formatTime(isoTimestamp) {
   })
 }
 
+const JOURS_ISO = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
+
+/**
+ * Nom francais du jour depuis le numero ISO-8601 (1=Lundi ... 7=Dimanche) porte
+ * par `programmation.jour`. Mesure sur /lms/classes/{id} : {"jour":"3",
+ * "date":"2026-09-02"} — 2026-09-02 est un mercredi, la convention est confirmee.
+ */
+export function formatJour(jour) {
+  const n = Number(jour)
+  if (!Number.isInteger(n) || n < 1 || n > 7) return 'N/A'
+  return JOURS_ISO[n - 1]
+}
+
 export function getEvaluationStatusClass(window) {
   if (!window) return 'bg-gray-100 text-gray-700'
   if (window.is_active) return 'bg-green-100 text-green-700'
