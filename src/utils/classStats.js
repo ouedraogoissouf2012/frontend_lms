@@ -1,6 +1,7 @@
 import {
   firstNumber,
   measureClassCapacity,
+  measureClassMatiereCount,
   measureClassStudentCount
 } from './classMeasures'
 
@@ -239,6 +240,10 @@ export function enrichTeacherClasses(rawClasses = [], matieres = []) {
       // jusqu'à l'affichage, qui la rend « — ».
       places_occupees: measureClassStudentCount(classe),
       places_totales: measureClassCapacity(classe),
-      nb_matieres: shouldFilterByAssignment ? getClassMatiereCount(classe, matiereList) : matiereList.length
+      // Une mesure PAR CLASSE prime toujours. Sans elle, le repli
+      // `matiereList.length` donne le total des matieres de l'enseignant —
+      // identique sur chaque carte, donc trompeur (« Matieres 6 » partout).
+      nb_matieres: measureClassMatiereCount(classe)
+        ?? (shouldFilterByAssignment ? getClassMatiereCount(classe, matiereList) : matiereList.length)
     }))
 }

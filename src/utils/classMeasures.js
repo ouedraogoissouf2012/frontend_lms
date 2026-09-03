@@ -92,6 +92,31 @@ export function getClassCapacity(classe, studentCount = 0) {
 }
 
 /**
+ * Nombre de matières RÉELLEMENT rattachées à la classe, ou `null`.
+ *
+ * `/proxy/classes` livre `matieres_disponibles` par classe : c'est la seule
+ * source qui distingue les classes entre elles. Le tableau de bord enseignant,
+ * lui, ne donne que SES matières — un total qui, affiché par carte, laissait
+ * croire que chaque classe en comptait autant.
+ *
+ * @param {object} classe
+ * @returns {number|null}
+ */
+export function measureClassMatiereCount(classe) {
+  for (const field of ['matieres_disponibles', 'matieres']) {
+    const list = classe?.[field]
+    if (Array.isArray(list)) return list.length
+  }
+
+  return firstNumber([
+    classe?.nb_matieres,
+    classe?.matieres_count,
+    classe?.nombre_matieres,
+    classe?.total_matieres
+  ])
+}
+
+/**
  * Complète des classes avec l'effectif et la capacité portés par un référentiel.
  *
  * Le tableau de bord enseignant dit QUELLES classes l'enseignant a, mais ne porte
@@ -125,6 +150,7 @@ export function mergeClassMeasures(classes, referentiel) {
       ...classe,
       places_occupees: measureClassStudentCount(reference ?? classe),
       places_totales: measureClassCapacity(reference ?? classe),
+      nb_matieres: measureClassMatiereCount(reference ?? classe),
     }
   })
 }
