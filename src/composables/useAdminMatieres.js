@@ -1,6 +1,7 @@
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { klassciService } from '@/services/klassci'
-import { readCache, writeCache, invalidateEntity } from '@/services/cache'
+import { invalidateEntity } from '@/services/cache'
+import { useCachedResource } from '@/composables/useCachedResource'
 // #28 : logique métier pure extraite (testée dans tests/unit/matieres.test.js)
 import {
   filterMatieres,
@@ -9,19 +10,39 @@ import {
 } from '@/utils/matieres'
 
 /**
- * Couche données d'AdminMatieres (#G1 ≤300) : charge matières + structure
- * (filières/niveaux) depuis KLASSCI avec cache + rafraîchissement en arrière-plan,
- * dérive le filtrage, le regroupement par niveau et les statistiques (logique pure
- * importée de @/utils/matieres), et pilote l'ouverture/fermeture des modales
- * niveau/matière. La vue ne fait plus que câbler.
+ * Récupère les matières (endpoint admin enrichi = combinaisons complètes) et la
+ * structure (filières/niveaux), en parallèle. Rejette si l'endpoint matières
+ * répond `success:false` — c'est alors `useCachedResource` qui conserve
+ * l'affichage en cache et renseigne `error`.
+ * @returns {Promise<{matieres: Array, filieres: Array, niveaux: Array}>}
+ */
+async function fetchMatieres() {
+  const [response, structure] = await Promise.all([
+    klassciService.getAdminMatieres(),
+    klassciService.getStructure(),
+  ])
+  if (!response?.success) {
+    throw new Error(response?.message || 'Erreur lors du chargement des matières')
+  }
+  return {
+    matieres: response.data?.matieres || [],
+    filieres: structure?.filieres || [],
+    niveaux: structure?.niveaux_etude || structure?.niveaux || [],
+  }
+}
+
+/**
+ * Couche données d'AdminMatieres (#G1 ≤300). Le schéma cache + revalidation
+ * d'arrière-plan est désormais centralisé par `useCachedResource` (#224) : plus
+ * de duplication du « lire-le-cache-puis-rafraîchir ». Dérive le filtrage, le
+ * regroupement par niveau et les statistiques (logique pure @/utils/matieres),
+ * et pilote les modales niveau/matière.
  */
 export function useAdminMatieres() {
-  // State
-  const matieres = ref([])
-  const filieres = ref([])
-  const niveaux = ref([])
-  const loading = ref(false)
-  const error = ref(null)
+  const showNiveauModal = ref(false)
+  const selectedNiveau = ref(null)
+  const showMatiereModal = ref(false)
+  const selectedMatiere = ref(null)
 
   const filters = ref({
     search: '',
@@ -29,152 +50,64 @@ export function useAdminMatieres() {
     niveau_id: ''
   })
 
-  const showNiveauModal = ref(false)
-  const selectedNiveau = ref(null)
+  const { data, loading, error, refresh } = useCachedResource('admin_matieres', fetchMatieres)
 
-  const showMatiereModal = ref(false)
-  const selectedMatiere = ref(null)
+  const matieres = computed(() => data.value?.matieres ?? [])
+  const filieres = computed(() => data.value?.filieres ?? [])
+  const niveaux = computed(() => data.value?.niveaux ?? [])
 
-  // Computeds délégués à la logique pure extraite (#28)
+  // Dérivés délégués à la logique pure extraite (#28)
   const filteredMatieres = computed(() => filterMatieres(matieres.value, filters.value))
-
   const filteredNiveauxWithMatieres = computed(() =>
     groupMatieresByNiveau(filteredMatieres.value, niveaux.value)
   )
-
   const stats = computed(() => computeMatieresStats(matieres.value))
 
-  // View niveau details (open modal)
   function viewNiveauDetails(niveauGroup) {
     selectedNiveau.value = niveauGroup
     showNiveauModal.value = true
   }
 
-  // Close niveau modal
   function closeNiveauModal() {
     showNiveauModal.value = false
     selectedNiveau.value = null
   }
 
-  // View matiere full details (optional)
   function viewMatiereDetails(matiere) {
     selectedMatiere.value = matiere
     showMatiereModal.value = true
   }
 
-  // Close matiere modal
   function closeMatiereModal() {
     showMatiereModal.value = false
     selectedMatiere.value = null
   }
 
-  // Load matieres
-  async function loadMatieres() {
-    // Try cache first
-    const cached = readCache('admin_matieres')
-    if (cached) {
-      console.log('[CACHE] Matières admin chargées depuis le cache')
-      matieres.value = cached.matieres
-      filieres.value = cached.filieres
-      niveaux.value = cached.niveaux
-      loading.value = false
-      refreshInBackground()
-      return
-    }
-
-    loading.value = true
-    error.value = null
-
-    try {
-      console.log('[ADMIN] Chargement de toutes les matières...')
-
-      // Utiliser le nouvel endpoint admin qui enrichit les combinaisons
-      const response = await klassciService.getAdminMatieres()
-
-      if (!response.success) {
-        throw new Error(response.message || 'Erreur lors du chargement des matières')
-      }
-
-      matieres.value = response.data.matieres || []
-
-      // Récupérer aussi la structure pour les filtres
-      const structureData = await klassciService.getStructure()
-      filieres.value = structureData?.filieres || []
-      niveaux.value = structureData?.niveaux_etude || structureData?.niveaux || []
-
-      console.log('[ADMIN] Matières:', matieres.value.length)
-      console.log('[ADMIN] Filières:', filieres.value.length)
-      console.log('[ADMIN] Niveaux:', niveaux.value.length)
-
-      // Save to cache
-      writeCache('admin_matieres', {
-        matieres: matieres.value,
-        filieres: filieres.value,
-        niveaux: niveaux.value
-      })
-
-      console.log('[OK] Matières admin chargées avec combinaisons complètes')
-    } catch (err) {
-      console.error('[ERREUR] Chargement matières admin:', err)
-      error.value = 'Impossible de charger les matières. Veuillez réessayer.'
-    } finally {
-      loading.value = false
-    }
+  function loadMatieres(forceReload = false) {
+    if (forceReload) invalidateEntity('matieres')
+    return refresh()
   }
 
-  // Refresh in background
-  async function refreshInBackground() {
-    try {
-      console.log('[BACKGROUND] Rafraîchissement matières admin...')
-
-      const [response, structureData] = await Promise.all([
-        klassciService.getAdminMatieres(),
-        klassciService.getStructure()
-      ])
-
-      if (response.success) {
-        matieres.value = response.data.matieres || []
-        filieres.value = structureData?.filieres || []
-        niveaux.value = structureData?.niveaux_etude || structureData?.niveaux || []
-
-        writeCache('admin_matieres', {
-          matieres: matieres.value,
-          filieres: filieres.value,
-          niveaux: niveaux.value
-        })
-
-        console.log('[BACKGROUND] Rafraîchissement terminé')
-      }
-    } catch (error) {
-      console.warn('[BACKGROUND] Erreur rafraîchissement:', error)
-    }
-  }
-
-  // Refresh data manually
+  /**
+   * Rafraîchissement manuel. #237 : invalide TOUTES les clés « matières »
+   * (admin_matieres, admin_klassci_matieres, teacher_matieres) pour que les
+   * autres vues (coordinateur, dashboard, enseignant) ne servent plus une
+   * version périmée, puis revalide.
+   */
   function refreshData() {
-    // #237 : invalide TOUTES les clés « matières » (admin_matieres,
-    // admin_klassci_matieres, teacher_matieres) pour que les autres vues
-    // (coordinateur, dashboard, enseignant) ne servent plus une version périmée.
     invalidateEntity('matieres')
-    loadMatieres()
+    return refresh()
   }
 
-  // Apply filters
   function applyFilters() {
-    // Filters are applied via computed property
+    // Les filtres sont réactifs : filteredMatieres se recalcule seul.
   }
 
-  // Reset filters
   function resetFilters() {
     filters.value.search = ''
     filters.value.filiere_id = ''
     filters.value.niveau_id = ''
   }
-
-  // Lifecycle
-  onMounted(() => {
-    loadMatieres()
-  })
 
   return {
     matieres, filieres, niveaux, loading, error, filters,
