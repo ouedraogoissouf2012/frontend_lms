@@ -13,7 +13,7 @@
 
         <!-- Nom de la classe -->
         <h1 class="page-title">
-          {{ classe?.nom || 'Chargement...' }}
+          {{ titre }}
         </h1>
 
         <!-- Infos classe -->
@@ -70,8 +70,15 @@
  * En-tête de ClasseDetails (#H9 ≤300). Présentation pure : breadcrumb, titre,
  * infos classe et 3 stats. Émet `back` pour les boutons retour. CSS de l'en-tête
  * déplacé VERBATIM (spécifique à cette section).
+ *
+ * Le titre passe par `classeLabel` : `/lms/classes/{id}` → `data.classe` porte
+ * `name`, jamais `nom`. Lire la clé absente laissait le titre bloqué sur
+ * « Chargement… » même une fois la classe affichée, stats comprises.
  */
-defineProps({
+import { computed } from 'vue'
+import { classeLabel } from '@/utils/classes'
+
+const props = defineProps({
   classe: { type: Object, default: null },
   loading: { type: Boolean, default: false },
   etudiantsCount: { type: Number, default: 0 },
@@ -79,6 +86,13 @@ defineProps({
   evaluationsCount: { type: Number, default: 0 }
 })
 defineEmits(['back'])
+
+/**
+ * « Chargement… » n'est dit que pendant l'attente. Un chargement TERMINÉ sans
+ * classe est un échec, pas une attente : le laisser afficher « Chargement… »
+ * ferait patienter devant un écran mort. `classeLabel` rend alors « — ».
+ */
+const titre = computed(() => (props.loading && !props.classe ? 'Chargement...' : classeLabel(props.classe)))
 </script>
 
 <style scoped>

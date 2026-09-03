@@ -25,4 +25,32 @@ describe('ClasseDetailsHeader (#H9)', () => {
     await w.find('.btn-retour').trigger('click')
     expect(w.emitted('back')).toBeTruthy()
   })
+
+  describe('titre — forme reelle du payload', () => {
+    const titre = (classe, loading = false) =>
+      mount(ClasseDetailsHeader, { props: { classe, loading } }).find('.page-title').text()
+
+    it('affiche le nom porte par `name`', () => {
+      // Forme RÉELLE de /lms/classes/{id} → data.classe, mesurée sur la classe 1 :
+      // { id, name: 'B2 COM', libelle: null, filiere, niveau, places_* }.
+      // Le champ `nom` N'EXISTE PAS — d'où un titre bloqué sur « Chargement… »
+      // en permanence, même une fois la classe chargée.
+      expect(titre({ id: 1, name: 'B2 COM', libelle: null })).toBe('B2 COM')
+    })
+
+    it('accepte encore `libelle` et `nom` des autres sources', () => {
+      expect(titre({ id: 2, libelle: 'B3 COM' })).toBe('B3 COM')
+      expect(titre({ id: 3, nom: '6e A' })).toBe('6e A')
+    })
+
+    it('annonce le chargement tant que la classe n est pas arrivee', () => {
+      expect(titre(null, true)).toBe('Chargement...')
+    })
+
+    it('ne reste pas en « Chargement… » quand le chargement est fini sans classe', () => {
+      // Un chargement terminé sans classe est un échec, pas une attente :
+      // laisser « Chargement… » ferait patienter devant un écran mort.
+      expect(titre(null, false)).not.toBe('Chargement...')
+    })
+  })
 })
