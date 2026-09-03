@@ -15,11 +15,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
 
-const { mockMount, mockDispose, mockOn, mockNotifyError, mockOnProviderStatus } = vi.hoisted(() => ({
+const { mockMount, mockDispose, mockOn, mockNotifyError, mockOnProviderStatus, mockStartRecording, mockStopRecording } = vi.hoisted(() => ({
   mockMount: vi.fn(),
   mockDispose: vi.fn(),
   mockOn: vi.fn(),
   mockNotifyError: vi.fn(),
+  mockStartRecording: vi.fn(),
+  mockStopRecording: vi.fn(),
   mockOnProviderStatus: vi.fn(),
 }))
 
@@ -29,8 +31,8 @@ vi.mock('@/composables/useJitsiRoom', () => ({
     mount: mockMount,
     dispose: mockDispose,
     on: mockOn,
-    startRecording: vi.fn(),
-    stopRecording: vi.fn(),
+    startRecording: mockStartRecording,
+    stopRecording: mockStopRecording,
   }),
 }))
 
@@ -65,6 +67,8 @@ beforeEach(() => {
   mockDispose.mockReset()
   mockOn.mockReset()
   mockNotifyError.mockReset()
+  mockStartRecording.mockReset().mockResolvedValue(undefined)
+  mockStopRecording.mockReset().mockResolvedValue(undefined)
 })
 
 describe('VisioRoom', () => {
@@ -140,5 +144,52 @@ describe('VisioRoom', () => {
     await wrapper.vm.$nextTick()
 
     expect(mockDispose).toHaveBeenCalled()
+  })
+
+  /**
+   * Le bouton d'enregistrement de l'ecran seance commande la SALLE, pas la
+   * base. Les commandes ne doivent donc etre publiees qu'apres un montage
+   * reussi — sinon un ordre atteindrait une instance Jitsi inexistante, et on
+   * retomberait dans le defaut d'origine de #673.
+   */
+  it('R6 — les commandes ne sont publiees qu apres un montage reussi', async () => {
+    const wrapper = mount(VisioRoom, { attachTo: document.body })
+    const store = useVisioStore()
+
+    await expect(store.startRoomRecording()).rejects.toThrow(/salle/i)
+
+    store.roomConfig = ROOM_CONFIG
+    await wrapper.vm.$nextTick()
+    await wrapper.vm.$nextTick()
+
+    await expect(store.startRoomRecording()).resolves.toBeUndefined()
+  })
+
+  it('R7 — un montage en echec ne publie AUCUNE commande', async () => {
+    mockMount.mockRejectedValue(new Error('indisponible'))
+    const wrapper = mount(VisioRoom, { attachTo: document.body })
+    const store = useVisioStore()
+    vi.spyOn(store, 'leaveVisio').mockResolvedValue(undefined)
+
+    store.roomConfig = ROOM_CONFIG
+    await wrapper.vm.$nextTick()
+    await wrapper.vm.$nextTick()
+    await Promise.resolve()
+
+    await expect(store.startRoomRecording()).rejects.toThrow(/salle/i)
+  })
+
+  it('R8 — la sortie de salle retire les commandes', async () => {
+    const wrapper = mount(VisioRoom, { attachTo: document.body })
+    const store = useVisioStore()
+    store.roomConfig = ROOM_CONFIG
+    await wrapper.vm.$nextTick()
+    await wrapper.vm.$nextTick()
+
+    store.roomConfig = null
+    await wrapper.vm.$nextTick()
+    await wrapper.vm.$nextTick()
+
+    await expect(store.startRoomRecording()).rejects.toThrow(/salle/i)
   })
 })
