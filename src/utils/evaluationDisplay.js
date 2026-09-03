@@ -1,5 +1,5 @@
 import { extractList } from './apiList'
-import { toId } from './toId'
+import { toId, ENTITY_ID_KEYS } from './toId'
 
 export { toId }
 
@@ -35,17 +35,10 @@ export const nonEmptyArray = (value, envelopeKeys = []) => {
 export const byId = (items) => {
   const map = new Map()
   ;(Array.isArray(items) ? items : []).forEach((item) => {
-    ;[
-      item?.id,
-      item?.klassci_id,
-      item?.teacher_id,
-      item?.enseignant_id,
-      item?.user_id,
-      item?.professeur_id,
-      item?.classe_id,
-      item?.matiere_id
-    ].forEach((id) => {
-      const key = toId(id)
+    // Même liste de clés que `toId` (#296) : plus de divergence possible.
+    // `class_id`, jadis oublié ici, est désormais indexé lui aussi.
+    ENTITY_ID_KEYS.forEach((k) => {
+      const key = toId(item?.[k])
       if (key && !map.has(key)) map.set(key, item)
     })
   })
