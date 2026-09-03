@@ -15,7 +15,9 @@
 </template>
 
 <script setup>
-import { ref, watch, onBeforeUnmount } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import lmsService from '@/services/lms'
+import { useAuthStore } from '@/stores/auth'
 import { useVisioStore } from '@/stores/visio'
 import { useJitsiRoom } from '@/composables/useJitsiRoom'
 import { useVisioRecordingMirror } from '@/composables/useVisioRecordingMirror'
@@ -89,6 +91,34 @@ watch(
   },
   { flush: 'post' },
 )
+
+/**
+ * Reprise apres un rechargement complet de page (R8).
+ *
+ * La salle embarquee ne survit pas a un F5 — c'est la regression assumee du
+ * passage a l'iframe, et elle se traite ici. Le SERVEUR fait autorite sur la
+ * participation en cours : aucune persistance client, le depot ayant
+ * delibrement demonte celle qui existait (`visioParticipationCleanup.js`).
+ *
+ * On rappelle `joinVisio` plutot que de reconstruire la salle a la main :
+ * lui seul revere l'autorisation et obtient un jeton frais. C'est aussi ce qui
+ * garantit qu'une visio terminee entre-temps ne se rouvre pas.
+ */
+onMounted(async () => {
+  // Ce composant est monte a la RACINE, donc aussi sur l'ecran de connexion.
+  // Interroger le serveur sans jeton produirait un 401 a chaque chargement de
+  // page, pour tout visiteur non connecte.
+  if (!useAuthStore().token) return
+
+  try {
+    const response = await lmsService.getActiveVisioParticipation()
+    const seanceId = response?.data?.seance_id
+    if (seanceId) await visioStore.joinVisio(seanceId)
+  } catch (error) {
+    // Une reprise impossible ne doit JAMAIS empecher l'application de demarrer.
+    console.error('[VisioRoom] Reprise de la participation impossible:', error)
+  }
+})
 
 onBeforeUnmount(() => {
   visioStore.registerRoomCommands(null)

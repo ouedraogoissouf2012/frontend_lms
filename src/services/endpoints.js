@@ -75,6 +75,10 @@ export const endpoints = {
       leave: (id) => `${LMS}/seances/${id}/leave`,
       heartbeat: (id) => `${LMS}/seances/${id}/heartbeat`,
       participants: (id) => `${LMS}/seances/${id}/visio-participants`,
+      // Participation en cours de l'appelant (#673). Sans identifiant de
+      // séance : le serveur la résout par l'utilisateur authentifié, et par lui
+      // seul. Sert à remonter la salle embarquée après un rechargement de page.
+      activeParticipation: () => `${LMS}/visio/active`,
       recordingStatus: (id) => `${LMS}/seances/${id}/recording`,
       recordingStart: (id) => `${LMS}/seances/${id}/recording/start`,
       recordingStop: (id) => `${LMS}/seances/${id}/recording/stop`,
