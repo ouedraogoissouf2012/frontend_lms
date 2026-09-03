@@ -19,9 +19,15 @@ import { readCacheStale, writeCache } from '@/services/cache'
  * @template T
  * @param {string} name - Clé de cache logique (ex. 'admin_stats').
  * @param {() => Promise<T>} fetcher - Récupère la donnée fraîche ; rejette sur erreur.
- * @param {{ immediate?: boolean, onError?: (e: unknown) => void }} [options]
+ * @param {{ immediate?: boolean, onError?: (e: unknown) => void,
+ *   cacheable?: () => boolean }} [options]
  *   - immediate (défaut true) : charge dès l'appel. false → appeler `load()` soi-même.
  *   - onError : rappel optionnel sur échec de revalidation (en plus de `error`).
+ *   - cacheable (défaut `() => true`) : prédicat évalué à chaque chargement. Quand
+ *     il renvoie faux, on NE lit NI n'écrit le cache et on charge à froid — pour les
+ *     ressources dont l'entrée courante ne doit pas être mise en cache (ex.
+ *     AdminSeances : liste filtrée par enseignant/classe, qui ne doit pas être
+ *     servie aux vues non filtrées sous la même clé). #315.
  * @returns {{ data: import('vue').Ref<T|null>, loading: import('vue').Ref<boolean>,
  *   revalidating: import('vue').Ref<boolean>, error: import('vue').Ref<string|null>,
  *   load: () => Promise<void>, refresh: () => Promise<void> }}
@@ -31,13 +37,16 @@ export function useCachedResource(name, fetcher, options = {}) {
   const loading = ref(false)
   const revalidating = ref(false)
   const error = ref(null)
+  // #315 : mise en cache conditionnelle. Par défaut on met toujours en cache
+  // (comportement historique, inchangé pour les consommateurs existants).
+  const isCacheable = typeof options.cacheable === 'function' ? options.cacheable : () => true
 
   async function revalidate() {
     revalidating.value = true
     try {
       const fresh = await fetcher()
       data.value = fresh
-      writeCache(name, fresh)
+      if (isCacheable()) writeCache(name, fresh)
       error.value = null
     } catch (e) {
       // On CONSERVE la donnée déjà affichée (stale) et on signale l'erreur.
@@ -50,7 +59,9 @@ export function useCachedResource(name, fetcher, options = {}) {
   }
 
   async function load() {
-    const entry = readCacheStale(name)
+    // Cache non applicable (ex. filtres actifs) → chargement froid direct, sans
+    // lire une entrée qui ne correspondrait pas à la requête courante.
+    const entry = isCacheable() ? readCacheStale(name) : { data: null, fresh: false }
     if (entry.data !== null && entry.data !== undefined) {
       // On a quelque chose à montrer (même périmé) → affichage immédiat + revalidation
       // d'arrière-plan NON bloquante.

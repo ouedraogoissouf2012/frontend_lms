@@ -1,17 +1,21 @@
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { klassciService } from '@/services/klassci'
-import { readCache, writeCache } from '@/services/cache'
 import { extractList } from '@/utils/apiList'
+import { useCachedResource } from '@/composables/useCachedResource'
 
 /**
  * Couche données d'AdminSeances (#G1 ≤300) : charge les séances de visioconférence
  * (avec cache + rafraîchissement en arrière-plan), les enseignants et les classes
  * pour les filtres, et expose les filtres + actions. La vue ne fait plus que câbler.
+ *
+ * #224/#315 : le schéma cache + revalidation d'arrière-plan des séances est porté
+ * par `useCachedResource`, en mise en cache CONDITIONNELLE — on ne met en cache
+ * (clé `admin_seances`) que lorsqu'AUCUN filtre enseignant/classe n'est actif ;
+ * sinon une liste filtrée serait écrite sous la clé partagée puis servie aux vues
+ * non filtrées. Enseignants et classes (pour les listes de filtres) restent des
+ * chargements simples non mis en cache.
  */
 export function useAdminSeances() {
-  const loading = ref(true)
-  const error = ref(null)
-  const seances = ref([])
   const teachers = ref([])
   const classes = ref([])
 
@@ -22,63 +26,44 @@ export function useAdminSeances() {
     status: ''
   })
 
-  async function loadSeances() {
-    loading.value = true
-    error.value = null
+  // Le cache n'est valide que pour la liste NON filtrée (par enseignant/classe).
+  const noActiveFilter = () => !filters.value.teacher_id && !filters.value.classe_id
 
+  /**
+   * Récupère les séances selon les filtres courants. Rejette (avec `userMessage`)
+   * sur `success:false` ou erreur réseau, pour que `useCachedResource` renseigne
+   * `error` en conservant l'affichage précédent.
+   */
+  async function fetchSeances() {
+    let response
     try {
-      // Tenter de charger depuis le cache
-      if (!filters.value.teacher_id && !filters.value.classe_id) {
-        const cached = readCache('admin_seances')
-        if (cached) {
-          console.log('[CACHE] Séances admin chargées depuis le cache')
-          seances.value = cached
-          loading.value = false
-          refreshInBackground()
-          return
-        }
-      }
-
-      // Charger depuis l'API
-      const response = await klassciService.getSeances({
+      response = await klassciService.getSeances({
         days: filters.value.days,
         teacher_id: filters.value.teacher_id,
         classe_id: filters.value.classe_id
       })
-
-      if (response.success) {
-        seances.value = extractList(response)
-
-        // Mettre en cache si aucun filtre actif
-        if (!filters.value.teacher_id && !filters.value.classe_id) {
-          writeCache('admin_seances', seances.value)
-        }
-      } else {
-        throw new Error(response.message || 'Erreur lors du chargement des séances')
-      }
     } catch (err) {
-      console.error('❌ Erreur chargement séances:', err)
-      error.value = err.message || 'Impossible de charger les séances'
-    } finally {
-      loading.value = false
+      // Préfère un message utilisateur posé par l'intercepteur, repli sur le message technique.
+      err.userMessage = err.userMessage || err.message || 'Impossible de charger les séances'
+      throw err
     }
+
+    if (!response.success) {
+      const err = new Error(response.message || 'Erreur lors du chargement des séances')
+      err.userMessage = response.message || 'Impossible de charger les séances'
+      throw err
+    }
+
+    return extractList(response)
   }
 
-  async function refreshInBackground() {
-    try {
-      const response = await klassciService.getSeances({
-        days: filters.value.days
-      })
+  const { data, loading, error, load } = useCachedResource(
+    'admin_seances',
+    fetchSeances,
+    { cacheable: noActiveFilter }
+  )
 
-      if (response.success) {
-        seances.value = extractList(response)
-        writeCache('admin_seances', seances.value)
-        console.log('[CACHE] Séances admin rafraîchies en arrière-plan')
-      }
-    } catch (err) {
-      console.warn('[CACHE] Erreur rafraîchissement:', err)
-    }
-  }
+  const seances = computed(() => data.value ?? [])
 
   async function loadTeachers() {
     try {
@@ -98,8 +83,13 @@ export function useAdminSeances() {
     }
   }
 
+  // Appelée au montage ET à chaque changement de filtre (SeancesFilters @change).
+  function loadSeances() {
+    return load()
+  }
+
   function refreshData() {
-    loadSeances()
+    load()
     loadTeachers()
     loadClasses()
   }
@@ -115,7 +105,7 @@ export function useAdminSeances() {
   }
 
   onMounted(() => {
-    loadSeances()
+    load()
     loadTeachers()
     loadClasses()
   })
