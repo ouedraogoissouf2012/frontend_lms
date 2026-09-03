@@ -20,7 +20,11 @@ const mockAnalytics = vi.hoisted(() => ({ getSystemMetrics: vi.fn() }))
 vi.mock('@/services/api', () => ({ auth: mockAuth }))
 vi.mock('@/services/klassci', () => ({ klassciService: mockKlassci, default: mockKlassci }))
 vi.mock('@/services/analytics', () => ({ analyticsService: mockAnalytics }))
-vi.mock('@/services/cache', () => ({ readCache: () => null, writeCache: () => {} }))
+vi.mock('@/services/cache', () => ({
+  readCache: () => null,
+  readCacheStale: () => ({ data: null }),
+  writeCache: () => {},
+}))
 
 import { useAdminStats } from '@/composables/useAdminStats'
 
