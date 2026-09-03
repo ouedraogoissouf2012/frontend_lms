@@ -15,7 +15,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
 
-const { mockMount, mockDispose, mockOn, mockNotifyError, mockOnProviderStatus, mockStartRecording, mockStopRecording } = vi.hoisted(() => ({
+const { mockMount, mockDispose, mockOn, mockNotifyError, mockOnProviderStatus, mockStartRecording, mockStopRecording, mockGetActive } = vi.hoisted(() => ({
   mockMount: vi.fn(),
   mockDispose: vi.fn(),
   mockOn: vi.fn(),
@@ -23,6 +23,7 @@ const { mockMount, mockDispose, mockOn, mockNotifyError, mockOnProviderStatus, m
   mockStartRecording: vi.fn(),
   mockStopRecording: vi.fn(),
   mockOnProviderStatus: vi.fn(),
+  mockGetActive: vi.fn(),
 }))
 
 vi.mock('@/composables/useJitsiRoom', () => ({
@@ -43,6 +44,13 @@ vi.mock('@/composables/useVisioRecordingMirror', () => ({
     reset: vi.fn(),
   }),
 }))
+
+vi.mock('@/services/lms', () => ({
+  default: { getActiveVisioParticipation: mockGetActive },
+}))
+
+let jeton = 'jeton-de-session'
+vi.mock('@/stores/auth', () => ({ useAuthStore: () => ({ token: jeton, currentUser: { role: 'enseignant' } }) }))
 
 vi.mock('@/services/visioFeedback', () => ({
   notifyVisioError: mockNotifyError,
@@ -69,6 +77,8 @@ beforeEach(() => {
   mockNotifyError.mockReset()
   mockStartRecording.mockReset().mockResolvedValue(undefined)
   mockStopRecording.mockReset().mockResolvedValue(undefined)
+  mockGetActive.mockReset().mockResolvedValue({ success: true, data: null })
+  jeton = 'jeton-de-session'
 })
 
 describe('VisioRoom', () => {
@@ -191,5 +201,63 @@ describe('VisioRoom', () => {
     await wrapper.vm.$nextTick()
 
     await expect(store.startRoomRecording()).rejects.toThrow(/salle/i)
+  })
+
+  // ─────────────────────────── Reprise apres rechargement (R8) ──────────────
+  //
+  // La salle est embarquee : un F5 la detruit. Le serveur fait autorite sur la
+  // participation en cours — aucune persistance client, le depot ayant
+  // delibrement demonte celle qui existait.
+
+  it('R9 — au demarrage, une participation ouverte fait reprendre la salle', async () => {
+    mockGetActive.mockResolvedValue({ success: true, data: { seance_id: 349 } })
+    const wrapper = mount(VisioRoom, { attachTo: document.body })
+    const store = useVisioStore()
+    const joinVisio = vi.spyOn(store, 'joinVisio').mockResolvedValue({ success: true })
+
+    await wrapper.vm.$nextTick()
+    await Promise.resolve()
+    await Promise.resolve()
+
+    expect(mockGetActive).toHaveBeenCalledTimes(1)
+    expect(joinVisio).toHaveBeenCalledWith(349)
+  })
+
+  it('R10 — sans participation ouverte, rien n est rejoint', async () => {
+    const wrapper = mount(VisioRoom, { attachTo: document.body })
+    const store = useVisioStore()
+    const joinVisio = vi.spyOn(store, 'joinVisio')
+
+    await wrapper.vm.$nextTick()
+    await Promise.resolve()
+
+    expect(joinVisio).not.toHaveBeenCalled()
+  })
+
+  /**
+   * Le composant est monte a la RACINE, donc aussi sur l ecran de connexion.
+   * Interroger le serveur sans jeton produirait un 401 a chaque chargement de
+   * page, pour tous les visiteurs non connectes.
+   */
+  it('R11 — sans session authentifiee, aucune requete n est emise', async () => {
+    jeton = null
+    const wrapper = mount(VisioRoom, { attachTo: document.body })
+
+    await wrapper.vm.$nextTick()
+    await Promise.resolve()
+
+    expect(mockGetActive).not.toHaveBeenCalled()
+  })
+
+  /** Une reprise impossible ne doit jamais empecher l application de demarrer. */
+  it('R12 — un echec de reprise ne casse pas le demarrage', async () => {
+    mockGetActive.mockRejectedValue(new Error('503'))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const wrapper = mount(VisioRoom, { attachTo: document.body })
+    await wrapper.vm.$nextTick()
+    await Promise.resolve()
+
+    expect(wrapper.exists()).toBe(true)
   })
 })

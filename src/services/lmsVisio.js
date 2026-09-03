@@ -145,6 +145,24 @@ export const lmsVisioService = {
    * @param {number|string} seanceId
    * @returns {Promise<Object>}
    */
+  /**
+   * La participation visio en cours de l'utilisateur courant, ou `null` (#673).
+   *
+   * Aucun identifiant n'est transmis : le serveur résout la participation par
+   * l'utilisateur authentifié. Il ne délivre aucun jeton — l'appelant rappelle
+   * `joinVisio`, qui revérifie l'autorisation et taille la clé de salle.
+   *
+   * @returns {Promise<Object>}
+   */
+  async getActiveVisioParticipation() {
+    try {
+      return await api.get(endpoints.lms.visio.activeParticipation())
+    } catch (error) {
+      console.error('Erreur récupération participation visio active:', error)
+      throw error
+    }
+  },
+
   async getVisioRecording(seanceId) {
     try {
       return await api.get(endpoints.lms.visio.recordingStatus(seanceId))
