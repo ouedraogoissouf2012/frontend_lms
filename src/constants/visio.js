@@ -12,6 +12,19 @@ export const VISIO_CONFIG = Object.freeze({
   RECORDING_PROVIDER_ENABLED: false, // fail-closed tant que Jibri/JaaS/provider n'est pas validé
   PARTICIPATION_EXPIRATION_MS: 7 * 24 * 60 * 60 * 1000, // 7 jours
   DEFAULT_JITSI_DOMAIN: 'meet.jit.si',
+
+  // #673 — Délai de garde avant de conclure qu'un ordre d'enregistrement n'a
+  // pas été confirmé. Ce n'est PAS le délai nominal : le fournisseur signale
+  // ses échecs explicitement, bien plus vite. C'est un filet.
+  //
+  // Sa valeur vient de deux mesures, pas d'une intuition :
+  //   · Jibri a mis 8,3 s puis 23,9 s à passer à `on` (journaux Jicofo, 2026-08-31) ;
+  //   · Jicofo patiente lui-même `pending-timeout = "90 seconds"`
+  //     (/run/jicofo/config/jicofo.conf:104).
+  // Conclure à l'échec avant Jicofo ferait enregistrer Jibri sans que le LMS
+  // ait rien persisté : le webhook de fin serait alors rejeté et le média
+  // orphelin. D'où une marge au-dessus des 90 s.
+  RECORDING_CONFIRMATION_TIMEOUT_MS: 120000,
 })
 
 export const VISIO_ROOM_REQUIRED_MESSAGE = 'Identifiant de salle visio introuvable dans la réponse API.'
@@ -23,6 +36,7 @@ export const VISIO_TOKEN_REQUIRED_MESSAGE =
 export const HEARTBEAT_INTERVAL_MS = VISIO_CONFIG.HEARTBEAT_INTERVAL_MS
 export const RECORDING_POLL_INTERVAL_MS = VISIO_CONFIG.RECORDING_POLL_INTERVAL_MS
 export const PARTICIPATION_EXPIRATION_MS = VISIO_CONFIG.PARTICIPATION_EXPIRATION_MS
+export const RECORDING_CONFIRMATION_TIMEOUT_MS = VISIO_CONFIG.RECORDING_CONFIRMATION_TIMEOUT_MS
 
 /** Domaine Jitsi effectif (VITE_JITSI_DOMAIN ou défaut). */
 export function getJitsiDomain() {
@@ -183,14 +197,43 @@ export function buildJitsiUrl(roomId, options = {}) {
  * @returns {string}
  * @throws {Error} salle absente, ou jeton indisponible
  */
-export function buildJoinUrlFromResponse(response, options = {}) {
-  const roomId = requireVisioRoomId(response)
+/**
+ * Décrit la salle à ouvrir à partir de la réponse de `POST /seances/{id}/join`.
+ *
+ * ## Pourquoi une configuration plutôt qu'une URL (#673)
+ *
+ * La salle n'est plus ouverte dans un onglet mais embarquée : le jeton devient
+ * une option passée à l'IFrame API, et non un `?jwt=` visible dans la barre
+ * d'adresse, l'historique du navigateur et les journaux d'accès du serveur
+ * Jitsi. C'est la disparition d'un compromis qui était assumé faute de mieux.
+ *
+ * Les deux valeurs sortent de la MÊME réponse, pour la même raison qu'avant :
+ * le jeton n'existe qu'après cet appel. Les lire ailleurs condamnerait le front
+ * à l'ignorer, quoi qu'émette le backend.
+ *
+ * Un jeton manquant fait ÉCHOUER, il n'est jamais absorbé : le serveur tourne
+ * avec `ENABLE_GUESTS=0`, la salle refuserait l'entrée. Échouer ici donne un
+ * message actionnable au lieu d'une erreur d'authentification illisible en
+ * plein cours.
+ *
+ * @param {{data?: object}} response réponse déballée de l'API (`{success, message, data}`)
+ * @param {{ displayName?: string }} [options]
+ * @returns {{ domain: string, roomName: string, jwt: string, displayName: string|null }}
+ * @throws {Error} salle absente, ou jeton indisponible
+ */
+export function buildRoomConfigFromResponse(response, options = {}) {
+  const roomName = requireVisioRoomId(response)
   const token = response?.data?.visio_token
 
-  // Le drapeau ET la valeur doivent tenir : un `available: true` accompagne
-  // d'un jeton vide est une incoherence serveur, pas un cas degrade a absorber.
+  // Le drapeau ET la valeur doivent tenir : un `available: true` accompagné
+  // d'un jeton vide est une incohérence serveur, pas un cas dégradé à absorber.
   const usable = typeof token === 'string' && token.trim() !== ''
   if (!usable) throw new Error(VISIO_TOKEN_REQUIRED_MESSAGE)
 
-  return buildJitsiUrl(roomId, { ...options, token })
+  return {
+    domain: getJitsiDomain(),
+    roomName,
+    jwt: token.trim(),
+    displayName: options.displayName ?? null,
+  }
 }

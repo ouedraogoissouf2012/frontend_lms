@@ -37,10 +37,6 @@ export function useSeanceDetails() {
   const roomActive = ref(false) // Géré par le LMS (statut room)
   const joiningVisio = ref(false)
   const { joinTrackedVisio } = useTrackedVisioJoin('Utilisateur')
-  // Dette pré-existante : `visioWindow` n'était jamais déclaré dans data() et
-  // watchVisioWindow()/leaveVisio() ne sont appelés nulle part → code inerte,
-  // conservé à l'identique (cf. commit) plutôt que supprimé.
-  let visioWindow = null
 
   const seanceId = computed(() => parseInt(route.params.id))
 
@@ -203,34 +199,6 @@ export function useSeanceDetails() {
     }
   }
 
-  /**
-   * Surveiller la fermeture de la fenêtre Jitsi (dette pré-existante : inerte).
-   */
-  function watchVisioWindow() {
-    if (!visioWindow) return
-
-    const checkClosed = setInterval(() => {
-      if (visioWindow.closed) {
-        clearInterval(checkClosed)
-        console.log('🚪 Fenêtre Jitsi fermée, enregistrement sortie')
-        leaveVisio()
-        visioWindow = null
-      }
-    }, 1000) // Vérifier toutes les secondes
-  }
-
-  /**
-   * Enregistrer la sortie de la visio (dette pré-existante : inerte).
-   */
-  async function leaveVisio() {
-    try {
-      const response = await lmsService.leaveVisio(seanceId.value)
-      console.log('👋 Sortie de visio enregistrée:', response)
-    } catch (err) {
-      console.error('fa-times-circle Erreur leave visio:', err)
-    }
-  }
-
   function formatDate(date) {
     if (!date) return 'Non défini'
     return new Date(date).toLocaleDateString('fr-FR', {
@@ -282,7 +250,7 @@ export function useSeanceDetails() {
     loading, error, seance, visio, participants, roomActive, joiningVisio,
     recordingActionLoading, recordingPolling,
     seanceId, user, isTeacher, isStudent, canManageRecording, recordingProviderEnabled,
-    loadSeanceDetails, startVisio, joinVisio, watchVisioWindow, leaveVisio,
+    loadSeanceDetails, startVisio, joinVisio,
     startRecording, stopRecording, hideSeance, formatDate, formatTime
   }
 }
