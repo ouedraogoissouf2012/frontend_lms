@@ -9,16 +9,20 @@ import { beforeEach, describe, it, expect, vi } from 'vitest'
 
 const h = vi.hoisted(() => ({
   readCache: vi.fn(),
+  readCacheStale: vi.fn(),
   writeCache: vi.fn(),
   clearCache: vi.fn(),
+  invalidateEntity: vi.fn(),
   getLmsEnseignants: vi.fn(),
   getEnseignants: vi.fn(),
 }))
 
 vi.mock('@/services/cache', () => ({
   readCache: h.readCache,
+  readCacheStale: h.readCacheStale,
   writeCache: h.writeCache,
   clearCache: h.clearCache,
+  invalidateEntity: h.invalidateEntity,
 }))
 vi.mock('@/services/klassci', () => ({
   default: {
@@ -40,8 +44,10 @@ async function setup() {
 describe('useAdminEnseignants (#G1)', () => {
   beforeEach(() => {
     h.readCache.mockReset().mockReturnValue(null)
+    h.readCacheStale.mockReset().mockReturnValue({ data: null })
     h.writeCache.mockReset()
     h.clearCache.mockReset()
+    h.invalidateEntity.mockReset()
     h.getLmsEnseignants.mockReset().mockResolvedValue({
       success: true,
       data: [
@@ -81,7 +87,7 @@ describe('useAdminEnseignants (#G1)', () => {
   })
 
   it('ignore un cache non-tableau et normalise une réponse API non-tableau (#13)', async () => {
-    h.readCache.mockReturnValue({ stale: true })
+    h.readCacheStale.mockReturnValue({ data: { stale: true } })
     h.getLmsEnseignants.mockResolvedValue({ success: true, data: { id: 1 } })
 
     const e = await setup()
