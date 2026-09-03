@@ -82,11 +82,19 @@
       0%, 100% { opacity: 1; }
       50% { opacity: 0.7; }
     }
+
+    /* #295 : ni animation ni transition pour qui préfère le mouvement réduit. */
+    @media (prefers-reduced-motion: reduce) {
+      #app-loader { transition: none; }
+      .loader-logo,
+      .loader-spinner,
+      .loader-text { animation: none; }
+    }
   </style>
 </head>
 <body>
   <!-- Splash Screen Loader -->
-  <div id="app-loader">
+  <div id="app-loader" role="status" aria-live="polite">
     <div class="loader-content">
       <div class="loader-logo">
         <!-- SVG inline : le splash ne dépend d'aucune police externe/tardive (#279). -->
@@ -101,9 +109,7 @@
   </div>
 
   <div id="app"></div>
+  <!-- Le masquage du splash est piloté par src/main.js après router.isReady() (#295). -->
   <script type="module" src="/src/main.js"></script>
-
-  <!-- Script externalisé (#279) pour permettre une CSP script-src 'self' stricte. -->
-  <script src="/app-loader.js"></script>
 </body>
 </html>

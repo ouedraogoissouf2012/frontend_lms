@@ -64,3 +64,18 @@ app.use(router)
 app.directive('reveal', reveal)
 
 app.mount('#app')
+
+// Masque le splash quand l'app est réellement prête (navigation initiale résolue),
+// et NON sur `window.load` (#295) : évite de masquer sur un écran vide ou de
+// traîner ~800 ms après l'interactivité. Respecte `prefers-reduced-motion`.
+router.isReady().finally(() => {
+  const loader = document.getElementById('app-loader')
+  if (!loader) return
+  const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  if (reduce) {
+    loader.remove()
+    return
+  }
+  loader.classList.add('fade-out')
+  setTimeout(() => loader.remove(), 500) // = durée de la transition d'opacité (CSS)
+})
