@@ -158,17 +158,32 @@ export const useVisioStore = defineStore('visio', () => {
   }
 
   /**
+   * Vrai entre le premier signal de sortie et la fin du `leaveVisio` qu'il a
+   * déclenché. Volontairement hors de Vue : la garde doit être posée de façon
+   * SYNCHRONE, avant tout `await`.
+   */
+  let leaving = false
+
+  /**
    * Sortie de salle signalée par Jitsi (`videoConferenceLeft` / `readyToClose`).
    *
    * Remplace la surveillance d'une fenêtre externe : l'événement est exact,
    * là où le sondage de la fenêtre chaque seconde ne l'était pas — il
    * confondait fermeture, navigation et blocage de popup, et lisait
    * `location.href` dans un `catch` qui avalait les erreurs CORS.
+   *
+   * ⚠️ Jitsi émet `videoConferenceLeft` PUIS `readyToClose` pour une SEULE et
+   * même sortie. Comme `leaveVisio()` est asynchrone, `isInVisio` vaut encore
+   * `true` quand le second arrive : sans la garde synchrone ci-dessous,
+   * l'enseignant se verrait proposer DEUX FOIS de terminer la séance pour tous.
    */
   const handleRoomLeft = () => {
+    if (leaving || !isInVisio.value || !activeSeanceId.value) return
+    leaving = true
+
     const closedSeanceId = activeSeanceId.value
 
-    leaveVisio()
+    void leaveVisio().finally(() => { leaving = false })
 
     // Le store reste sans UI native : les écrans dédiés exposent l'action
     // « terminer pour tous » avec confirmation modale avant d'appeler endVisio().

@@ -11,8 +11,6 @@
     </div>
 
     <div ref="container" class="visio-room__frame"></div>
-
-    <p v-if="mountError" class="visio-room__error" role="alert">{{ mountError }}</p>
   </div>
 </template>
 
@@ -21,6 +19,7 @@ import { ref, watch, onBeforeUnmount } from 'vue'
 import { useVisioStore } from '@/stores/visio'
 import { useJitsiRoom } from '@/composables/useJitsiRoom'
 import { useVisioRecordingMirror } from '@/composables/useVisioRecordingMirror'
+import { notifyVisioError } from '@/services/visioFeedback'
 
 /**
  * Salle de visioconférence embarquée (#673).
@@ -41,7 +40,6 @@ import { useVisioRecordingMirror } from '@/composables/useVisioRecordingMirror'
  */
 const visioStore = useVisioStore()
 const container = ref(null)
-const mountError = ref(null)
 
 const room = useJitsiRoom()
 const mirror = useVisioRecordingMirror({ getSeanceId: () => visioStore.activeSeanceId })
@@ -66,13 +64,15 @@ watch(
   async (config) => {
     room.dispose()
     mirror.reset()
-    mountError.value = null
     if (!config) return
 
     try {
       await room.mount({ ...config, parentNode: container.value })
     } catch (error) {
-      mountError.value = error.message
+      // Le message passe par un toast, JAMAIS par un élément de ce composant :
+      // la compensation ci-dessous remet `roomConfig` à null, donc le `v-if`
+      // démonte tout — un message rendu ici ne serait jamais lu.
+      notifyVisioError(error, "Impossible d'ouvrir la salle de visioconférence")
       // La participation est déjà écrite côté serveur : sans compensation,
       // l'utilisateur resterait présent à une séance qu'il ne suit pas.
       await visioStore.leaveVisio()
@@ -140,13 +140,5 @@ onBeforeUnmount(() => room.dispose())
   width: 100%;
   height: 100%;
   border: 0;
-}
-
-.visio-room__error {
-  margin: 0;
-  padding: 0.75rem 1rem;
-  background: var(--color-danger-bg);
-  color: var(--color-danger-text);
-  border-top: 1px solid var(--color-danger-border);
 }
 </style>
