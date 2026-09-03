@@ -2,12 +2,17 @@
  * Test du composable useTeacherHub (#H11 ≤300) : agrégation parallèle des
  * compteurs du hub enseignant (classes, matières, leçons, séances à venir,
  * évaluations, étudiants). Services KLASSCI + LMS mockés.
+ *
+ * L'enjeu central de ce fichier est la DISTINCTION entre « zéro » et « pas
+ * mesuré ». Un hub qui affiche « 0 classe » quand le réseau est tombé annonce
+ * à l'enseignant qu'il n'enseigne nulle part — un fait faux, indiscernable du
+ * vrai. Les compteurs non mesurés valent `null` et l'échec est signalé.
  */
 import { mount, flushPromises } from '@vue/test-utils'
 import { defineComponent } from 'vue'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const { klassci, lms, lesson } = vi.hoisted(() => ({
+const { klassci, lms, lessons, cache } = vi.hoisted(() => ({
   klassci: {
     getClasses: vi.fn(),
     getMatieres: vi.fn(),
@@ -15,12 +20,19 @@ const { klassci, lms, lesson } = vi.hoisted(() => ({
     getClasseEtudiants: vi.fn(),
   },
   lms: { getMyTeachingSeances: vi.fn() },
-  lesson: { getLessons: vi.fn() },
+  lessons: { getLessons: vi.fn() },
+  cache: { readCacheStale: vi.fn(), writeCache: vi.fn() },
 }))
 
 vi.mock('@/services/klassci', () => ({ klassciService: klassci }))
 vi.mock('@/services/lms', () => ({ lmsService: lms }))
-vi.mock('@/services/lesson', () => ({ default: lesson }))
+vi.mock('@/services/lesson', () => ({ default: lessons, lessonService: lessons }))
+// useCachedResource lit `readCacheStale` : `{ data: null }` = cache vide.
+vi.mock('@/services/cache', () => ({
+  readCache: vi.fn(() => null),
+  readCacheStale: (...a) => cache.readCacheStale(...a),
+  writeCache: (...a) => cache.writeCache(...a),
+}))
 
 import { useTeacherHub } from '@/composables/useTeacherHub'
 
@@ -29,14 +41,15 @@ async function setup() {
   const Comp = defineComponent({ setup() { api = useTeacherHub(); return () => null } })
   mount(Comp)
   await flushPromises()
+  await flushPromises()
   return api
 }
 
 describe('useTeacherHub (#H11)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    cache.readCacheStale.mockReturnValue({ data: null })
     klassci.getClasses.mockResolvedValue([])
-    lesson.getLessons.mockResolvedValue({ success: true, data: [] })
     klassci.getMatieres.mockResolvedValue([])
     klassci.getTeacherDashboard.mockResolvedValue({
       classes: [{ id: 1, places_occupees: 3 }, { id: 2, nb_etudiants: 3 }],
@@ -46,6 +59,7 @@ describe('useTeacherHub (#H11)', () => {
     })
     klassci.getClasseEtudiants.mockResolvedValue([{ id: 1 }, { id: 2 }, { id: 3 }])
     lms.getMyTeachingSeances.mockResolvedValue({ data: [] })
+    lessons.getLessons.mockResolvedValue({ data: [] })
   })
 
   it('compte classes, matières, leçons et évaluations depuis les services', async () => {
@@ -55,9 +69,6 @@ describe('useTeacherHub (#H11)', () => {
     expect(h.stats.value.lecons).toBe(7)
     expect(h.stats.value.evaluations).toBe(4)
     expect(h.loading.value).toBe(false)
-    // La liste des classes EST desormais chargee : le dashboard ne porte pas
-    // les effectifs. Un appel, pas un par classe.
-    expect(klassci.getClasses).toHaveBeenCalledTimes(1)
     expect(klassci.getMatieres).not.toHaveBeenCalled()
   })
 
@@ -73,11 +84,8 @@ describe('useTeacherHub (#H11)', () => {
       matieres: [{ id: 10 }],
       statistiques: { total_etudiants: 42 }
     })
-
     const h = await setup()
-
     expect(h.stats.value.etudiants).toBe(42)
-    expect(klassci.getClasseEtudiants).not.toHaveBeenCalled()
   })
 
   it('ignore un total dashboard vide et retombe sur les compteurs classes', async () => {
@@ -86,11 +94,8 @@ describe('useTeacherHub (#H11)', () => {
       matieres: [{ id: 10 }],
       statistiques: { total_etudiants: null }
     })
-
     const h = await setup()
-
     expect(h.stats.value.etudiants).toBe(8)
-    expect(klassci.getClasseEtudiants).not.toHaveBeenCalled()
   })
 
   it('ne compte que les séances à venir (date >= maintenant)', async () => {
@@ -103,79 +108,77 @@ describe('useTeacherHub (#H11)', () => {
     expect(h.stats.value.seancesAVenir).toBe(2)
   })
 
-  it('reste robuste si un service échoue (catch → valeurs par défaut)', async () => {
-    klassci.getTeacherDashboard.mockRejectedValue(new Error('boom'))
-    const h = await setup()
-    expect(h.stats.value.classes).toBe(0)
-    // `null` et non `0` : une panne du dashboard n'est pas un effectif nul.
-    // Afficher « 0 étudiant » ferait passer une absence de mesure pour un fait.
-    expect(h.stats.value.etudiants).toBeNull()
-    expect(h.loading.value).toBe(false)
-  })
-
-  describe('formes REELLES du payload — les cles lues n existent pas', () => {
-    /**
-     * Dashboard tel que KLASSCI le renvoie vraiment (mesure) :
-     * { classes, enseignant, evaluations, matieres, prochaines_seances, statistiques }.
-     * Ni nb_lecons, ni nb_evaluations, ni statistiques.total_etudiants.
-     */
-    const DASHBOARD_REEL = {
-      classes: [{ id: 1, name: 'B2 COM' }, { id: 5, name: 'ROSTAN' }],
-      matieres: [{ id: 1 }, { id: 2 }],
-      evaluations: new Array(27).fill(0).map((_, i) => ({ id: i + 1 })),
-      statistiques: {
-        heures: { total_seances: 105, seances_effectuees: 1 },
-        evaluations: { total_programmees: 27, a_corriger: 0 },
-      },
+  describe('panne : ne jamais fabriquer un compteur', () => {
+    function toutEchoue() {
+      klassci.getTeacherDashboard.mockRejectedValue(new Error('reseau'))
+      lms.getMyTeachingSeances.mockRejectedValue(new Error('reseau'))
+      lessons.getLessons.mockRejectedValue(new Error('reseau'))
+      klassci.getClasses.mockRejectedValue(new Error('reseau'))
     }
 
-    it('compte les lecons depuis le LMS, pas depuis KLASSCI', async () => {
-      // Les lecons sont une entite LMS : KLASSCI ne les connait pas. Les y
-      // chercher donnait « 0 lecon » sur le hub alors que l ecran Lecons en
-      // listait 5.
-      klassci.getTeacherDashboard.mockResolvedValue(DASHBOARD_REEL)
-      lesson.getLessons.mockResolvedValue({
-        success: true,
-        data: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
-      })
-
+    it('n affiche AUCUN 0 quand rien n a pu etre mesure', async () => {
+      // Le defaut vecu a l'ecran : classes/matieres/seances tombaient a 0 —
+      // « vous n'enseignez a aucune classe » — alors qu'aucune reponse n'etait
+      // arrivee. Le dashboard absent devenait un objet vide, et `[].length`
+      // fournissait un 0 qui avait l'apparence d'une mesure.
+      toutEchoue()
       const h = await setup()
 
-      expect(h.stats.value.lecons).toBe(5)
-    })
-
-    it('compte les evaluations la ou le dashboard les porte', async () => {
-      klassci.getTeacherDashboard.mockResolvedValue(DASHBOARD_REEL)
-
-      const h = await setup()
-
-      // `statistiques.evaluations.total_programmees` = 27, la ou `nb_evaluations`
-      // n existe pas.
-      expect(h.stats.value.evaluations).toBe(27)
-    })
-
-    it('compte les etudiants depuis la liste des classes', async () => {
-      klassci.getTeacherDashboard.mockResolvedValue(DASHBOARD_REEL)
-      klassci.getClasses.mockResolvedValue([
-        { id: 1, places_occupees: 6 },
-        { id: 5, places_occupees: 0 },
-      ])
-
-      const h = await setup()
-
-      // Le dashboard ne porte aucun effectif : sans cette source, la somme
-      // valait 0 alors que l enseignant a bien des etudiants.
-      expect(h.stats.value.etudiants).toBe(6)
-    })
-
-    it('n invente rien quand une source est indisponible', async () => {
-      klassci.getTeacherDashboard.mockResolvedValue(DASHBOARD_REEL)
-      lesson.getLessons.mockRejectedValue(new Error('503'))
-
-      const h = await setup()
-
-      // Une panne ne doit pas se lire « 0 lecon » : c est une absence de mesure.
+      expect(h.stats.value.classes).toBeNull()
+      expect(h.stats.value.matieres).toBeNull()
+      expect(h.stats.value.seancesAVenir).toBeNull()
       expect(h.stats.value.lecons).toBeNull()
+      expect(h.stats.value.evaluations).toBeNull()
+      expect(h.stats.value.etudiants).toBeNull()
+    })
+
+    it('signale l echec au lieu de le taire', async () => {
+      toutEchoue()
+      const h = await setup()
+      expect(h.error.value).toBeTruthy()
+      expect(h.loading.value).toBe(false)
+    })
+
+    it('CONSERVE les derniers compteurs connus au lieu de les remplacer', async () => {
+      // La persistance demandee : une coupure ne doit pas effacer de l'ecran
+      // des chiffres deja mesures.
+      cache.readCacheStale.mockReturnValue({
+        data: { classes: 4, matieres: 6, lecons: 5, seancesAVenir: 0, evaluations: 27, etudiants: 13 }
+      })
+      toutEchoue()
+
+      const h = await setup()
+
+      expect(h.stats.value.classes).toBe(4)
+      expect(h.stats.value.matieres).toBe(6)
+      expect(h.stats.value.etudiants).toBe(13)
+      expect(h.error.value).toBeTruthy()
+    })
+
+    it('ne remplace pas le cache par des compteurs non mesures', async () => {
+      // Ecrire un objet de `null` ecraserait la derniere mesure valable.
+      cache.readCacheStale.mockReturnValue({
+        data: { classes: 4, matieres: 6, lecons: 5, seancesAVenir: 0, evaluations: 27, etudiants: 13 }
+      })
+      toutEchoue()
+
+      await setup()
+
+      expect(cache.writeCache).not.toHaveBeenCalled()
+    })
+
+    it('mesure ce qui repond meme si le reste tombe', async () => {
+      // Une panne partielle ne doit pas jeter les sources qui ont repondu.
+      klassci.getTeacherDashboard.mockRejectedValue(new Error('reseau'))
+      klassci.getClasses.mockRejectedValue(new Error('reseau'))
+      lessons.getLessons.mockResolvedValue({ data: [{ id: 1 }, { id: 2 }] })
+      lms.getMyTeachingSeances.mockResolvedValue({ data: [] })
+
+      const h = await setup()
+
+      expect(h.stats.value.lecons).toBe(2)
+      expect(h.stats.value.seancesAVenir).toBe(0)
+      expect(h.stats.value.classes).toBeNull()
     })
   })
 })

@@ -9,7 +9,7 @@
         <h2 class="card-title">Mes Classes</h2>
         <p class="card-description">Les classes auxquelles vous enseignez</p>
         <div class="card-stat">
-          <span class="stat-number">{{ stats.classes }}</span>
+          <span class="stat-number">{{ formatCount(stats.classes) }}</span>
           <span class="stat-label">classe(s)</span>
         </div>
       </div>
@@ -28,7 +28,7 @@
         <h2 class="card-title">Mes Matieres</h2>
         <p class="card-description">Les matieres que vous enseignez</p>
         <div class="card-stat">
-          <span class="stat-number">{{ stats.matieres }}</span>
+          <span class="stat-number">{{ formatCount(stats.matieres) }}</span>
           <span class="stat-label">matiere(s)</span>
         </div>
       </div>
@@ -47,7 +47,7 @@
         <h2 class="card-title">Mes Lecons</h2>
         <p class="card-description">Les lecons que vous avez creees</p>
         <div class="card-stat">
-          <span class="stat-number">{{ stats.lecons }}</span>
+          <span class="stat-number">{{ formatCount(stats.lecons) }}</span>
           <span class="stat-label">lecon(s)</span>
         </div>
       </div>
@@ -63,6 +63,9 @@
 /** Cartes de navigation du hub enseignant (#H11 ≤300). Présentation pure :
  *  3 raccourcis cliquables (classes/matières/leçons) avec leur compteur. */
 import { UserGroupIcon, BookOpenIcon, AcademicCapIcon, ArrowRightIcon } from '@heroicons/vue/24/outline'
+// Un compteur non mesure s'affiche « — » : une case vide se lisait comme
+// « zero », et zero est une affirmation que la donnee ne portait pas.
+import { formatCount } from '@/utils/formatters'
 
 defineProps({
   stats: { type: Object, required: true }

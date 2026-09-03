@@ -5,21 +5,21 @@
       <div class="stat-card">
         <CalendarIcon class="stat-icon text-blue-500" />
         <div>
-          <p class="stat-value">{{ stats.seancesAVenir }}</p>
+          <p class="stat-value">{{ formatCount(stats.seancesAVenir) }}</p>
           <p class="stat-label">Seances a venir</p>
         </div>
       </div>
       <div class="stat-card">
         <ClipboardDocumentCheckIcon class="stat-icon text-orange-500" />
         <div>
-          <p class="stat-value">{{ stats.evaluations }}</p>
+          <p class="stat-value">{{ formatCount(stats.evaluations) }}</p>
           <p class="stat-label">Evaluations actives</p>
         </div>
       </div>
       <div class="stat-card">
         <UsersIcon class="stat-icon text-green-500" />
         <div>
-          <p class="stat-value">{{ stats.etudiants }}</p>
+          <p class="stat-value">{{ formatCount(stats.etudiants) }}</p>
           <p class="stat-label">Etudiants total</p>
         </div>
       </div>
@@ -31,6 +31,7 @@
 /** Aperçu rapide du hub enseignant (#H11 ≤300). Présentation pure :
  *  3 compteurs (séances à venir, évaluations actives, étudiants). */
 import { CalendarIcon, ClipboardDocumentCheckIcon, UsersIcon } from '@heroicons/vue/24/outline'
+import { formatCount } from '@/utils/formatters'
 
 defineProps({
   stats: { type: Object, required: true }
