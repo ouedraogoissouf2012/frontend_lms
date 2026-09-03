@@ -21,6 +21,7 @@ vi.mock('@/services/klassci', () => ({
 }))
 vi.mock('@/services/cache', () => ({
   readCache: vi.fn(() => null),
+  readCacheStale: vi.fn(() => ({ data: null })),
   writeCache: vi.fn()
 }))
 
