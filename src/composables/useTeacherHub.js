@@ -1,7 +1,9 @@
 import { ref, onMounted } from 'vue'
 import { klassciService } from '@/services/klassci'
 import { lmsService } from '@/services/lms'
+import lessonService from '@/services/lesson'
 import { enrichTeacherClasses } from '@/utils/classStats'
+import { mergeClassMeasures } from '@/utils/classMeasures'
 import { extractList } from '@/utils/apiList'
 
 function firstDashboardNumber(dashboard, keys) {
@@ -12,6 +14,15 @@ function firstDashboardNumber(dashboard, keys) {
     if (Number.isFinite(number)) return number
   }
   return null
+}
+
+/**
+ * Somme des effectifs MESURES. `null` si aucune classe n'en porte : additionner
+ * des absences donnerait 0, indiscernable d'un etablissement sans etudiant.
+ */
+function sommeEffectifs(classes) {
+  const mesures = classes.map((c) => c.places_occupees).filter((n) => typeof n === 'number')
+  return mesures.length === 0 ? null : mesures.reduce((total, n) => total + n, 0)
 }
 
 /**
@@ -36,10 +47,20 @@ export function useTeacherHub() {
 
     try {
       // Charger les donnees rattachees a l enseignant connecte.
-      const [dashboard, seances] = await Promise.all([
-        klassciService.getTeacherDashboard().catch(() => ({})),
-        lmsService.getMyTeachingSeances().catch(() => ({ data: [] }))
-      ])
+      // Quatre sources : le dashboard KLASSCI ne porte NI les lecons (entite
+      // LMS qu'il ne connait pas) NI les effectifs. Les y chercher donnait
+      // « 0 lecon » sur ce hub alors que l'ecran Lecons en listait 5.
+      const [dashboardOutcome, seancesOutcome, lessonsOutcome, referentielOutcome] =
+        await Promise.allSettled([
+          klassciService.getTeacherDashboard(),
+          lmsService.getMyTeachingSeances(),
+          lessonService.getLessons(),
+          klassciService.getClasses(),
+        ])
+
+      const dashboard = dashboardOutcome.status === 'fulfilled' ? dashboardOutcome.value : {}
+      const seances = seancesOutcome.status === 'fulfilled' ? seancesOutcome.value : { data: [] }
+      const referentiel = referentielOutcome.status === 'fulfilled' ? referentielOutcome.value : null
 
       const classes = Array.isArray(dashboard?.classes) ? dashboard.classes : []
       const matieres = Array.isArray(dashboard?.matieres) ? dashboard.matieres : []
@@ -59,8 +80,11 @@ export function useTeacherHub() {
         'matieres_count'
       ]) ?? matieres.length
 
-      // Compter les lecons depuis le dashboard
-      stats.value.lecons = dashboard?.nb_lecons || dashboard?.total_lessons || 0
+      // Lecons : le dashboard d'abord (s'il les portait un jour), sinon le LMS
+      // qui en est la seule source. Une panne vaut `null` — « non mesure » —
+      // jamais 0, qui se lirait « aucune lecon creee ».
+      stats.value.lecons = firstDashboardNumber(dashboard, ['nb_lecons', 'total_lessons'])
+        ?? (lessonsOutcome.status === 'fulfilled' ? extractList(lessonsOutcome.value).length : null)
 
       // Compter les seances a venir
       const seancesData = extractList(seances)
@@ -70,8 +94,13 @@ export function useTeacherHub() {
         return dateSeance >= now
       }).length
 
-      // Compter les evaluations actives
-      stats.value.evaluations = dashboard?.nb_evaluations || dashboard?.evaluations_count || 0
+      // Evaluations : `nb_evaluations` n'existe pas dans le payload reel ; le
+      // compte vit sous `statistiques.evaluations.total_programmees`.
+      stats.value.evaluations = firstDashboardNumber(dashboard, [
+        'nb_evaluations',
+        'evaluations_count',
+        'statistiques.evaluations.total_programmees'
+      ]) ?? (Array.isArray(dashboard?.evaluations) ? dashboard.evaluations.length : null)
 
       // Compter les etudiants sans charger les rosters de toutes les classes.
       stats.value.etudiants = firstDashboardNumber(dashboard, [
@@ -79,7 +108,7 @@ export function useTeacherHub() {
         'nb_etudiants',
         'etudiants_count',
         'students_count'
-      ]) ?? teacherClasses.reduce((sum, classe) => sum + (classe.places_occupees || 0), 0)
+      ]) ?? sommeEffectifs(mergeClassMeasures(classes, referentiel))
 
       console.log('[HUB] Stats chargees:', stats.value)
     } catch (error) {

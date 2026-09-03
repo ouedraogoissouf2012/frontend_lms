@@ -57,7 +57,9 @@ describe('TeacherHub.vue (G9) — montage', () => {
 
     expect(w.exists()).toBe(true)
     expect(klassci.getTeacherDashboard).toHaveBeenCalled()
-    expect(klassci.getClasses).not.toHaveBeenCalled()
+    // La liste des classes est chargée EN PLUS du dashboard : elle seule porte
+    // les effectifs. Un appel pour toutes, jamais un roster par classe.
+    expect(klassci.getClasses).toHaveBeenCalledTimes(1)
     expect(klassci.getMatieres).not.toHaveBeenCalled()
     expect(klassci.getClasseEtudiants).not.toHaveBeenCalled()
     expect(lms.getMyTeachingSeances).toHaveBeenCalled()
