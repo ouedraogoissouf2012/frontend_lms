@@ -16,7 +16,7 @@
               {{ etudiant.matricule }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-              {{ etudiant.nom }}
+              {{ getFullName(etudiant) }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
               {{ etudiant.email }}
@@ -44,7 +44,15 @@
  * Onglet Étudiants de ClasseDetails (#H9 ≤300). Présentation pure : table des
  * étudiants. Le style (table, badges, couleurs) est centralisé dans la vue
  * parente via `:deep()`.
+ *
+ * Le nom passe par `getFullName` : le roster de `/lms/classes/{id}` porte
+ * `nom_complet`, et non `nom`. Lire la clé absente laissait la colonne « Nom »
+ * VIDE alors que matricule et email s'affichaient — le helper couvre les trois
+ * formes rencontrées (`name`, `nom_complet`, `prenom`+`nom`) et rend une chaîne
+ * vide plutôt qu'un nom inventé quand aucune n'est présente.
  */
+import { getFullName } from '@/utils/formatters'
+
 defineProps({
   etudiants: { type: Array, default: () => [] }
 })
