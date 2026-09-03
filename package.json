@@ -2,6 +2,9 @@
   "name": "lms-frontend",
   "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -43,7 +46,6 @@
     "@tiptap/starter-kit": "^3.10.1",
     "@tiptap/suggestion": "^3.10.1",
     "@tiptap/vue-3": "^3.10.1",
-    "apexcharts": "^5.3.5",
     "axios": "^1.6.7",
     "chart.js": "^4.5.1",
     "dompurify": "^3.4.12",
@@ -53,7 +55,6 @@
     "vue": "^3.4.21",
     "vue-chartjs": "^5.3.2",
     "vue-router": "^4.3.0",
-    "vue3-apexcharts": "^1.10.0",
     "vue3-easy-data-table": "^1.5.47",
     "vuedraggable": "^4.1.0"
   },
