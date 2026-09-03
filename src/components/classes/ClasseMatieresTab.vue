@@ -7,7 +7,7 @@
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Matière</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Coefficient</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Enseignants</th>
+            <th v-if="afficheEnseignants" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Enseignants</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
           </tr>
         </thead>
@@ -24,7 +24,7 @@
                 {{ matiere.coefficient }}
               </span>
             </td>
-            <td class="px-6 py-4">
+            <td v-if="afficheEnseignants" class="px-6 py-4">
               <div class="text-sm text-gray-900" v-if="matiere.enseignants && matiere.enseignants.length > 0">
                 <div v-for="(ens, idx) in matiere.enseignants" :key="idx" class="flex items-center gap-1">
                   <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -33,7 +33,6 @@
                   {{ ens.nom }}
                 </div>
               </div>
-              <span v-else class="text-sm text-gray-400">Non assigné</span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
               <button
@@ -58,9 +57,23 @@
  * Onglet Matières de ClasseDetails (#H9 ≤300). Présentation pure : table des
  * matières ; émet `view-matiere` au clic sur « Voir détails ». Le style (table,
  * badges, couleurs) est centralisé dans la vue parente via `:deep()`.
+ *
+ * La colonne « Enseignants » n'apparaît QUE si la charge utile la porte. Sur cet
+ * écran, `/lms/classes/{id}` → `matieres_disponibles` livre
+ * { id, nom, code, coefficient, couleur, heures, source } : aucun enseignant.
+ * La colonne affichait donc « Non assigné » sur chaque ligne — une affirmation
+ * sans mesure, qui peut être fausse (la matière a peut-être un enseignant, la
+ * source ne le dit simplement pas). Le jour où elle le dira, la colonne
+ * réapparaîtra d'elle-même.
  */
-defineProps({
+import { computed } from 'vue'
+
+const props = defineProps({
   matieres: { type: Array, default: () => [] }
 })
+
+const afficheEnseignants = computed(() =>
+  props.matieres.some((m) => Array.isArray(m?.enseignants) && m.enseignants.length > 0)
+)
 defineEmits(['view-matiere'])
 </script>
