@@ -15,7 +15,7 @@
         <tbody class="bg-white divide-y divide-gray-200">
           <tr v-for="(seance, idx) in emploiTemps" :key="idx" class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-              {{ seance.jour }}
+              {{ formatJour(seance.programmation?.jour) }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
               {{ formatTime(seance.programmation?.heure_debut) }} - {{ formatTime(seance.programmation?.heure_fin) }}
@@ -27,7 +27,7 @@
               {{ seance.enseignant?.nom || 'N/A' }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {{ seance.salle || 'N/A' }}
+              {{ seance.programmation?.salle || 'N/A' }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
               <span :class="[
@@ -50,10 +50,14 @@
 <script setup>
 /**
  * Onglet Planning de ClasseDetails (#H9 ≤300). Présentation pure : emploi du
- * temps de la semaine. `formatTime` vient de `utils/classeDetails`. Le style
- * (table, badges, couleurs) est centralisé dans la vue parente via `:deep()`.
+ * temps de la semaine. `formatTime`/`formatJour` viennent de `utils/classeDetails`.
+ * Le style (table, badges, couleurs) est centralisé dans la vue parente via `:deep()`.
+ *
+ * `jour` et `salle` vivent sous `seance.programmation`, jamais à la racine de
+ * la séance — les lire à la racine rendait la colonne Jour vide et masquait
+ * une salle pourtant présente derrière un « N/A » fabriqué.
  */
-import { formatTime } from '@/utils/classeDetails'
+import { formatTime, formatJour } from '@/utils/classeDetails'
 
 defineProps({
   emploiTemps: { type: Array, default: () => [] }

@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   formatDate, formatTime, calculateDuration,
-  getEvaluationStatusClass, getEvaluationStatusLabel
+  getEvaluationStatusClass, getEvaluationStatusLabel, formatJour
 } from '@/utils/classeDetails'
 
 describe('classeDetails utils (#H9)', () => {
@@ -39,5 +39,26 @@ describe('classeDetails utils (#H9)', () => {
     expect(getEvaluationStatusLabel({ is_upcoming: true, time_until_start: 'dans 2h' })).toBe('Ouvre dans 2h')
     expect(getEvaluationStatusLabel({ is_past: true })).toBe('Terminée')
     expect(getEvaluationStatusLabel({})).toBe('Programmée')
+  })
+
+  describe('formatJour (#Planning)', () => {
+    // `/lms/classes/{id}` -> emploi_temps_semaine[].programmation.jour porte un
+    // numero ISO-8601 (1=Lundi ... 7=Dimanche), mesure : {"jour":"3", "date":
+    // "2026-09-02"} et 2026-09-02 EST un mercredi -> convention confirmee.
+    // Le composant lisait `seance.jour` (racine, absent) au lieu de
+    // `seance.programmation.jour` -> colonne Jour vide a l'ecran.
+    it('mappe le numero ISO (chaine ou nombre) au nom francais', () => {
+      expect(formatJour('1')).toBe('Lundi')
+      expect(formatJour(3)).toBe('Mercredi')
+      expect(formatJour('7')).toBe('Dimanche')
+    })
+
+    it('rend N/A pour une valeur absente ou hors plage — jamais un jour invente', () => {
+      expect(formatJour(null)).toBe('N/A')
+      expect(formatJour(undefined)).toBe('N/A')
+      expect(formatJour('0')).toBe('N/A')
+      expect(formatJour('8')).toBe('N/A')
+      expect(formatJour('abc')).toBe('N/A')
+    })
   })
 })
