@@ -11,7 +11,7 @@ import {
   getVisioRoomId,
   requireVisioRoomId,
   buildJitsiUrl,
-  buildJoinUrlFromResponse,
+  buildRoomConfigFromResponse,
   jitsiExternalApiSrc,
   isVisioRecordingProviderEnabled,
 } from '@/constants/visio'
@@ -133,49 +133,65 @@ describe('constants/visio (#24)', () => {
     )
   })
 
-  // ── buildJoinUrlFromResponse : salle ET jeton dans la MÊME réponse ────────
+  // ── buildRoomConfigFromResponse : salle ET jeton dans la MEME reponse ─────
+  //
+  // #673 : la salle n'est plus ouverte dans un onglet mais embarquee. On ne
+  // construit donc plus d'URL, mais une configuration — et le jeton cesse de
+  // transiter par la barre d'adresse, l'historique et les journaux Jitsi.
 
   const reponseJoin = (data) => ({ success: true, message: 'ok', data })
 
-  it('V15 — salle et jeton sont lus dans la réponse de join', () => {
+  it('V15 — salle et jeton sont lus dans la reponse de join', () => {
     vi.stubEnv('VITE_JITSI_DOMAIN', 'visio.klassci.com')
     expect(
-      buildJoinUrlFromResponse(
+      buildRoomConfigFromResponse(
         reponseJoin({ visio_room_id: 'lms_abc', visio_token: 'jeton', visio_token_available: true }),
-        { displayName: 'Awa', prejoinDisabled: true },
+        { displayName: 'Awa' },
       ),
-    ).toBe(
-      'https://visio.klassci.com/lms_abc?jwt=jeton#config.prejoinConfig.enabled=false&userInfo.displayName=Awa',
-    )
+    ).toEqual({
+      domain: 'visio.klassci.com',
+      roomName: 'lms_abc',
+      jwt: 'jeton',
+      displayName: 'Awa',
+    })
   })
 
   /**
-   * Le cœur du correctif : un jeton indisponible doit ÉCHOUER, jamais ouvrir
-   * une salle qui refusera l'entrée. Un échec silencieux rendrait la correction
-   * invisible — c'est l'état d'avant, repeint en « corrigé ».
+   * Le coeur du correctif : un jeton indisponible doit ECHOUER, jamais ouvrir
+   * une salle qui refusera l'entree. Un echec silencieux rendrait la correction
+   * invisible — c'est l'etat d'avant, repeint en « corrige ».
    */
-  it('V16 — jeton indisponible : échec explicite, pas d\'URL dégradée', () => {
+  it('V16 — jeton indisponible : echec explicite, pas de salle degradee', () => {
     vi.stubEnv('VITE_JITSI_DOMAIN', 'visio.klassci.com')
     expect(() =>
-      buildJoinUrlFromResponse(
+      buildRoomConfigFromResponse(
         reponseJoin({ visio_room_id: 'lms_abc', visio_token: null, visio_token_available: false }),
       ),
     ).toThrow(VISIO_TOKEN_REQUIRED_MESSAGE)
   })
 
-  it('V17 — drapeau vrai mais jeton vide : incohérence serveur, refusée aussi', () => {
+  it('V17 — drapeau vrai mais jeton vide : incoherence serveur, refusee aussi', () => {
     vi.stubEnv('VITE_JITSI_DOMAIN', 'visio.klassci.com')
     expect(() =>
-      buildJoinUrlFromResponse(
+      buildRoomConfigFromResponse(
         reponseJoin({ visio_room_id: 'lms_abc', visio_token: '  ', visio_token_available: true }),
       ),
     ).toThrow(VISIO_TOKEN_REQUIRED_MESSAGE)
   })
 
-  it('V18 — salle absente de la réponse : message de salle, pas de jeton', () => {
+  it('V18 — salle absente de la reponse : message de salle, pas de jeton', () => {
     vi.stubEnv('VITE_JITSI_DOMAIN', 'visio.klassci.com')
     expect(() =>
-      buildJoinUrlFromResponse(reponseJoin({ visio_token: 'jeton', visio_token_available: true })),
+      buildRoomConfigFromResponse(reponseJoin({ visio_token: 'jeton', visio_token_available: true })),
     ).toThrow(VISIO_ROOM_REQUIRED_MESSAGE)
+  })
+
+  it("V19 — le jeton n'apparait dans AUCUN champ transmis a l'URL", () => {
+    vi.stubEnv('VITE_JITSI_DOMAIN', 'visio.klassci.com')
+    const config = buildRoomConfigFromResponse(
+      reponseJoin({ visio_room_id: 'lms_abc', visio_token: 'jeton-secret', visio_token_available: true }),
+    )
+    expect(config.roomName).not.toContain('jeton-secret')
+    expect(config.domain).not.toContain('jeton-secret')
   })
 })
