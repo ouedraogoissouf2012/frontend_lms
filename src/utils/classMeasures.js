@@ -90,3 +90,41 @@ export function measureClassCapacity(classe) {
 export function getClassCapacity(classe, studentCount = 0) {
   return measureClassCapacity(classe) ?? (studentCount > 0 ? Math.max(studentCount, 30) : 30)
 }
+
+/**
+ * Complète des classes avec l'effectif et la capacité portés par un référentiel.
+ *
+ * Le tableau de bord enseignant dit QUELLES classes l'enseignant a, mais ne porte
+ * ni effectif ni capacité. `/proxy/classes` les porte — pour tout l'établissement
+ * et en UN seul appel. On apparie par identifiant plutôt que d'interroger chaque
+ * classe : le N+1 coûterait un aller-retour par carte affichée.
+ *
+ * Une classe absente du référentiel, ou un référentiel indisponible, laisse `null` :
+ * on ne remplace jamais une absence par un chiffre.
+ *
+ * @param {Array<object>} classes - Classes à compléter (jamais mutées).
+ * @param {Array<object>|null} referentiel - Classes porteuses des mesures, ou `null`.
+ * @returns {Array<object>} Nouveaux objets, mesures ajoutées.
+ */
+export function mergeClassMeasures(classes, referentiel) {
+  const source = Array.isArray(classes) ? classes : []
+  const parId = new Map()
+
+  for (const classe of Array.isArray(referentiel) ? referentiel : []) {
+    // Clé en CHAÎNE : les ids KLASSCI arrivent tantôt en nombre, tantôt en
+    // chaîne selon l'endpoint, et un appariement strict les manquerait en silence.
+    if (classe?.id !== null && classe?.id !== undefined) {
+      parId.set(String(classe.id), classe)
+    }
+  }
+
+  return source.map((classe) => {
+    const reference = parId.get(String(classe?.id))
+
+    return {
+      ...classe,
+      places_occupees: measureClassStudentCount(reference ?? classe),
+      places_totales: measureClassCapacity(reference ?? classe),
+    }
+  })
+}
