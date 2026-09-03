@@ -11,7 +11,11 @@ const getSeances = vi.fn()
 const getTeachers = vi.fn()
 const getClasses = vi.fn()
 
-vi.mock('@/services/cache', () => ({ readCache: () => null, writeCache: () => {} }))
+vi.mock('@/services/cache', () => ({
+  readCache: () => null,
+  readCacheStale: () => ({ data: null }),
+  writeCache: () => {},
+}))
 vi.mock('@/services/klassci', () => ({
   klassciService: {
     getSeances: (...a) => getSeances(...a),

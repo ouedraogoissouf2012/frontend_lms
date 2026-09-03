@@ -90,4 +90,30 @@ describe('useCachedResource (#224 SWR)', () => {
     expect(r.data.value).toEqual({ v: 'b' })
     expect(fetcher).toHaveBeenCalledTimes(2)
   })
+
+  // #315 — mise en cache conditionnelle
+  it('cacheable=false : ne LIT NI n\'ÉCRIT le cache et charge à froid', async () => {
+    const fetcher = vi.fn().mockResolvedValue({ v: 'frais' })
+
+    const r = useCachedResource('k', fetcher, { immediate: false, cacheable: () => false })
+    const p = r.load()
+    expect(r.loading.value).toBe(true) // cache écarté → chargement froid légitime
+
+    await p
+    expect(mockCache.readCacheStale).not.toHaveBeenCalled()
+    expect(mockCache.writeCache).not.toHaveBeenCalled()
+    expect(r.data.value).toEqual({ v: 'frais' })
+    expect(r.loading.value).toBe(false)
+  })
+
+  it('cacheable=true (défaut) : lit ET écrit le cache comme d\'habitude', async () => {
+    mockCache.readCacheStale.mockReturnValue({ data: null, fresh: false })
+    const fetcher = vi.fn().mockResolvedValue({ v: 1 })
+
+    const r = useCachedResource('k', fetcher, { immediate: false, cacheable: () => true })
+    await r.load()
+
+    expect(mockCache.readCacheStale).toHaveBeenCalledWith('k')
+    expect(mockCache.writeCache).toHaveBeenCalledWith('k', { v: 1 })
+  })
 })
