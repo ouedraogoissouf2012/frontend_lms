@@ -56,6 +56,13 @@ describe('useAdminSeances (#G1)', () => {
     expect(s.filters.value).toEqual({ days: '30', teacher_id: '', classe_id: '', status: '' })
   })
 
+  it('ne charge les séances qu\'UNE fois au montage (pas de double fetch)', async () => {
+    // Régression : useCachedResource charge déjà au setup (immediate) ; un load()
+    // supplémentaire dans onMounted déclenchait un second appel réseau inutile.
+    await setup()
+    expect(getSeances).toHaveBeenCalledTimes(1)
+  })
+
   it('renseigne error quand la réponse échoue', async () => {
     getSeances.mockResolvedValue({ success: false, message: 'Boom' })
     const s = await setup()

@@ -105,7 +105,9 @@ export function useAdminSeances() {
   }
 
   onMounted(() => {
-    load()
+    // Les séances sont déjà chargées par useCachedResource (`immediate` par défaut) ;
+    // on ne complète ici que les listes de filtres (enseignants/classes) — rappeler
+    // load() ici déclencherait un SECOND chargement des séances au montage.
     loadTeachers()
     loadClasses()
   })
