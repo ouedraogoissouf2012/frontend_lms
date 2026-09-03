@@ -1,10 +1,10 @@
-import { ref, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { auth } from '@/services/api'
 import { klassciService } from '@/services/klassci'
 import { analyticsService } from '@/services/analytics'
-import { readCache, writeCache } from '@/services/cache'
 import { logError } from '@/services/errorHandler'
 import { deriveInstitutionCounters } from '@/utils/classStats'
+import { useCachedResource } from '@/composables/useCachedResource'
 
 /**
  * Couche données d'AdminStats (#H3 ≤300) : statistiques globales de la plateforme
@@ -17,6 +17,10 @@ import { deriveInstitutionCounters } from '@/utils/classStats'
  * mêmes sources que le tableau de bord (KLASSCI pour l'établissement, métriques
  * système pour le LMS), et ce dont aucune source n'existe vaut `null`
  * (« non mesuré ») au lieu d'un zéro fabriqué.
+ *
+ * #224 : le schéma « lire-le-cache-puis-revalider » est désormais porté par
+ * `useCachedResource` (stale-while-revalidate). L'écran affiche immédiatement les
+ * derniers compteurs connus et revalide en arrière-plan, sans spinner bloquant.
  */
 
 /** Nombre fini, ou `null` si la valeur n'a pas été mesurée. */
@@ -52,107 +56,70 @@ const unmeasuredStats = () => ({
   taux_presence: null,
 })
 
+/**
+ * Interroge les sources réelles et compose les compteurs.
+ * Rejette (avec `userMessage`) si AUCUNE source n'a répondu, pour que
+ * `useCachedResource` renseigne `error` et conserve l'affichage précédent.
+ */
+async function fetchStats() {
+  const [classes, matieres, enseignants, metrics] = await Promise.all([
+    settle(klassciService.getClasses(), 'classes'),
+    settle(klassciService.getMatieres(), 'matieres'),
+    settle(klassciService.getEnseignants(), 'enseignants'),
+    settle(analyticsService.getSystemMetrics(), 'métriques système'),
+  ])
+
+  // Aucune source n'a répondu : on ne compose rien, on signale l'échec.
+  if (classes === null && matieres === null && enseignants === null && metrics === null) {
+    const err = new Error('Toutes les sources de statistiques ont échoué')
+    err.userMessage = 'Impossible de charger les statistiques. Réessayez dans quelques instants.'
+    throw err
+  }
+
+  return {
+    ...unmeasuredStats(),
+
+    // --- Établissement (KLASSCI) : dérivation PARTAGÉE avec le tableau de
+    //     bord et le profil, pour que les trois écrans ne puissent plus
+    //     diverger sur les mêmes compteurs. ---
+    ...deriveInstitutionCounters({ classes, matieres, enseignants }),
+
+    // --- LMS (métriques système) ---
+    nb_lessons: measured(metrics?.lessons?.total),
+    nb_evaluations: measured(metrics?.evaluations?.total),
+    nb_evaluations_actives: measured(metrics?.evaluations?.published),
+
+    // Laissés NON MESURÉS faute de source : séances actives, visioconférences,
+    // évaluations terminées, sujets de forum, heures de cours et taux de
+    // présence n'ont aujourd'hui aucun endpoint côté front. DETTE TRACÉE :
+    // à brancher quand le backend les exposera. Afficher 0 serait un mensonge.
+  }
+}
+
 export function useAdminStats() {
-  const loading = ref(true)
-  const error = ref(null)
-  const stats = ref({})
-  const meta = ref(null)
+  // La méta de session est locale (auth) et synchrone — hors du cache réseau.
+  const meta = ref(auth.getMeta())
 
-  /** Interroge les sources réelles et compose les compteurs. */
-  async function fetchStats() {
-    const [classes, matieres, enseignants, metrics] = await Promise.all([
-      settle(klassciService.getClasses(), 'classes'),
-      settle(klassciService.getMatieres(), 'matieres'),
-      settle(klassciService.getEnseignants(), 'enseignants'),
-      settle(analyticsService.getSystemMetrics(), 'métriques système'),
-    ])
+  const { data, loading, revalidating, error, load, refresh } =
+    useCachedResource('admin_stats', fetchStats)
 
-    // Aucune source n'a répondu : on ne compose rien, l'appelant lèvera l'erreur.
-    if (classes === null && matieres === null && enseignants === null && metrics === null) {
-      return null
-    }
+  // `data` reste `null` tant qu'aucune mesure n'a abouti (chargement froid ou
+  // échec total) → on présente alors les seize compteurs NON MESURÉS, jamais des
+  // zéros. En succès, `fetchStats` renvoie déjà les seize clés (nulls compris).
+  const stats = computed(() => data.value ?? unmeasuredStats())
 
-    return {
-      ...unmeasuredStats(),
-
-      // --- Établissement (KLASSCI) : dérivation PARTAGÉE avec le tableau de
-      //     bord et le profil, pour que les trois écrans ne puissent plus
-      //     diverger sur les mêmes compteurs. ---
-      ...deriveInstitutionCounters({ classes, matieres, enseignants }),
-
-      // --- LMS (métriques système) ---
-      nb_lessons: measured(metrics?.lessons?.total),
-      nb_evaluations: measured(metrics?.evaluations?.total),
-      nb_evaluations_actives: measured(metrics?.evaluations?.published),
-
-      // Laissés NON MESURÉS faute de source : séances actives, visioconférences,
-      // évaluations terminées, sujets de forum, heures de cours et taux de
-      // présence n'ont aujourd'hui aucun endpoint côté front. DETTE TRACÉE :
-      // à brancher quand le backend les exposera. Afficher 0 serait un mensonge.
-    }
-  }
-
-  async function loadStats() {
-    loading.value = true
-    error.value = null
-
-    try {
-      meta.value = auth.getMeta()
-
-      const cached = readCache('admin_stats')
-      if (cached?.data) {
-        stats.value = cached.data
-        meta.value = cached.metaData ?? meta.value
-        loading.value = false
-        refreshInBackground()
-        return
-      }
-
-      const fresh = await fetchStats()
-      if (fresh === null) {
-        stats.value = unmeasuredStats()
-        error.value = 'Impossible de charger les statistiques. Réessayez dans quelques instants.'
-        return
-      }
-
-      stats.value = fresh
-      writeCache('admin_stats', { data: stats.value, metaData: meta.value })
-    } catch (err) {
-      logError(err, '[useAdminStats] chargement')
-      stats.value = unmeasuredStats()
-      error.value = err.userMessage || 'Impossible de charger les statistiques'
-    } finally {
-      loading.value = false
-    }
-  }
-
-  /**
-   * Revalidation non bloquante : on garde l'affichage en cache si elle échoue.
-   * L'ancienne version testait `user.admin_data.statistics`, condition jamais
-   * vraie — le « rafraîchissement » ne rafraîchissait donc rien.
-   */
-  async function refreshInBackground() {
-    const fresh = await fetchStats().catch((err) => {
-      logError(err, '[useAdminStats] revalidation')
-      return null
-    })
-    if (!fresh) return
-
-    stats.value = fresh
+  function loadStats() {
     meta.value = auth.getMeta() ?? meta.value
-    writeCache('admin_stats', { data: stats.value, metaData: meta.value })
+    return load()
   }
 
   function refreshData() {
-    loadStats()
+    meta.value = auth.getMeta() ?? meta.value
+    return refresh()
   }
 
-  onMounted(() => {
-    loadStats()
-  })
-
   return {
-    loading, error, stats, meta,
-    loadStats, refreshInBackground, refreshData,
+    loading, revalidating, error, stats, meta,
+    loadStats, refreshData, refresh,
   }
 }

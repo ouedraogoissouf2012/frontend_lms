@@ -11,7 +11,7 @@
           </div>
         </div>
         <button @click="refreshData" class="refresh-btn" title="Actualiser les données">
-          <ArrowPathIcon :class="['w-5 h-5', { 'animate-spin': loading }]" />
+          <ArrowPathIcon :class="['w-5 h-5', { 'animate-spin': loading || revalidating }]" />
         </button>
       </div>
 
@@ -62,7 +62,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import { useAdminStats } from '@/composables/useAdminStats'
 
-const { loading, error, stats, meta, loadStats, refreshData } = useAdminStats()
+const { loading, revalidating, error, stats, meta, loadStats, refreshData } = useAdminStats()
 </script>
 
 <style scoped>
