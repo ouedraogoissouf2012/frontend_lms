@@ -64,10 +64,19 @@ watch(
   async (config) => {
     room.dispose()
     mirror.reset()
+    // Desenregistrer AVANT toute tentative : sinon, entre le demontage et le
+    // remontage, le bouton commanderait une instance Jitsi detruite.
+    visioStore.registerRoomCommands(null)
     if (!config) return
 
     try {
       await room.mount({ ...config, parentNode: container.value })
+      // Publiees seulement APRES un montage reussi : c'est ce qui garantit
+      // qu'un ordre d'enregistrement atteint une salle reellement ouverte.
+      visioStore.registerRoomCommands({
+        startRecording: room.startRecording,
+        stopRecording: room.stopRecording,
+      })
     } catch (error) {
       // Le message passe par un toast, JAMAIS par un élément de ce composant :
       // la compensation ci-dessous remet `roomConfig` à null, donc le `v-if`
@@ -81,7 +90,10 @@ watch(
   { flush: 'post' },
 )
 
-onBeforeUnmount(() => room.dispose())
+onBeforeUnmount(() => {
+  visioStore.registerRoomCommands(null)
+  room.dispose()
+})
 </script>
 
 <style scoped>

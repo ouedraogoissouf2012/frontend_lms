@@ -7,6 +7,9 @@ import { sendVisioLeaveBeacon } from '@/services/visioLeave'
 import { buildRoomConfigFromResponse } from '@/constants/visio'
 import { isTeacher } from '@/constants/roles'
 
+const ROOM_NOT_JOINED_MESSAGE =
+  "Rejoignez d'abord la salle : l'enregistrement se pilote depuis la visioconférence."
+
 /**
  * Store Pinia global de participation aux visioconférences.
  *
@@ -195,6 +198,40 @@ export const useVisioStore = defineStore('visio', () => {
   }
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // Pilotage de l'enregistrement (#673)
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  /**
+   * Commandes de la salle actuellement montée, publiées par `VisioRoom`.
+   *
+   * Hors de Vue délibérément : ce sont des fonctions impératives liées à une
+   * instance Jitsi, pas de l'état à rendre. Les placer dans un `ref` répéterait
+   * le défaut de l'ancien `visioWindow`.
+   */
+  let roomCommands = null
+
+  /** Publiée par `VisioRoom` au montage, remise à `null` au démontage. */
+  const registerRoomCommands = (commands) => { roomCommands = commands }
+
+  /**
+   * Un enregistrement se commande depuis la salle, jamais depuis la base.
+   *
+   * Le refus explicite est le garde-fou central de #673 : sans lui, le bouton
+   * pourrait de nouveau écrire une ligne « enregistrement en cours » sans que
+   * Jibri en sache quoi que ce soit. Et sur le fond, on n'enregistre pas une
+   * réunion qu'on n'a pas rejointe.
+   */
+  const commandRoom = (name) => {
+    if (!roomCommands) {
+      return Promise.reject(new Error(ROOM_NOT_JOINED_MESSAGE))
+    }
+    return roomCommands[name]()
+  }
+
+  const startRoomRecording = () => commandRoom('startRecording')
+  const stopRoomRecording = () => commandRoom('stopRecording')
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // Cleanup global (beforeunload)
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -217,6 +254,11 @@ export const useVisioStore = defineStore('visio', () => {
     joinVisio,
     leaveVisio,
     handleRoomLeft,
+    registerRoomCommands,
+    startRoomRecording,
+    stopRoomRecording,
     sendHeartbeat
   }
 })
+
+export { ROOM_NOT_JOINED_MESSAGE }

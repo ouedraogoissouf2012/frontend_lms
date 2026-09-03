@@ -14,6 +14,8 @@ const startVisioRecording = vi.fn()
 const stopVisioRecording = vi.fn()
 const hideSeance = vi.fn()
 const storeJoinVisio = vi.fn()
+const storeStartRoomRecording = vi.fn()
+const storeStopRoomRecording = vi.fn()
 const confirmDialog = vi.fn()
 
 vi.mock('vue-router', () => ({
@@ -36,7 +38,12 @@ let currentUser = { role: 'coordinateur', name: 'Prof X' }
 vi.mock('@/services/api', () => ({ auth: { getUser: () => currentUser } }))
 vi.mock('@/stores/auth', () => ({ useAuthStore: () => ({ currentUser }) }))
 vi.mock('@/stores/visio', () => ({
-  useVisioStore: () => ({ joinVisio: (...a) => storeJoinVisio(...a) })
+  useVisioStore: () => ({
+    joinVisio: (...a) => storeJoinVisio(...a),
+    // #673 : l'enregistrement se commande depuis la SALLE, plus depuis la base.
+    startRoomRecording: (...a) => storeStartRoomRecording(...a),
+    stopRoomRecording: (...a) => storeStopRoomRecording(...a),
+  })
 }))
 vi.mock('@/composables/useToast', () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), warning: vi.fn() } }))
 vi.mock('@/services/errorHandler', () => ({ normalizeError: () => ({ userMessage: 'err' }) }))
@@ -65,6 +72,8 @@ describe('useSeanceDetails (#H6)', () => {
     stopVisioRecording.mockReset()
     hideSeance.mockReset()
     storeJoinVisio.mockReset()
+    storeStartRoomRecording.mockReset().mockResolvedValue(undefined)
+    storeStopRoomRecording.mockReset().mockResolvedValue(undefined)
     confirmDialog.mockReset()
     confirmDialog.mockResolvedValue(true)
     storeJoinVisio.mockResolvedValue({ success: true })
@@ -285,7 +294,7 @@ describe('useSeanceDetails (#H6)', () => {
     )
   })
 
-  it('startRecording : appelle le backend et applique le statut retourné', async () => {
+  it('startRecording : commande la salle, jamais le backend', async () => {
     vi.stubEnv('VITE_VISIO_RECORDING_ENABLED', 'true')
     currentUser = { role: 'enseignant', name: 'Prof X' }
     getSeanceDetails.mockResolvedValue({
@@ -305,12 +314,17 @@ describe('useSeanceDetails (#H6)', () => {
     await u.startRecording()
 
     expect(confirmDialog).toHaveBeenCalled()
-    expect(startVisioRecording).toHaveBeenCalledWith(42)
+    // #673 : l'ordre part vers la salle, et le backend n'est JAMAIS appele en
+    // direct — c'est cet appel direct qui creait l'enregistrement fantome.
+    expect(storeStartRoomRecording).toHaveBeenCalledTimes(1)
+    expect(startVisioRecording).not.toHaveBeenCalled()
+    // L'etat affiche est RELU cote serveur, jamais deduit de l'ordre.
+    expect(getVisioRecording).toHaveBeenCalledWith(42)
     expect(u.visio.value.recording.status).toBe('recording')
     expect(toast.success).toHaveBeenCalledWith('Enregistrement démarré.', 'Visio')
   })
 
-  it('stopRecording : appelle le backend et applique le statut retourné', async () => {
+  it('stopRecording : commande la salle, jamais le backend', async () => {
     vi.stubEnv('VITE_VISIO_RECORDING_ENABLED', 'true')
     currentUser = { role: 'enseignant', name: 'Prof X' }
     getSeanceDetails.mockResolvedValue({
@@ -333,7 +347,9 @@ describe('useSeanceDetails (#H6)', () => {
     await u.stopRecording()
 
     expect(confirmDialog).toHaveBeenCalled()
-    expect(stopVisioRecording).toHaveBeenCalledWith(42)
+    expect(storeStopRoomRecording).toHaveBeenCalledTimes(1)
+    expect(stopVisioRecording).not.toHaveBeenCalled()
+    expect(getVisioRecording).toHaveBeenCalledWith(42)
     expect(u.visio.value.recording.status).toBe('processing')
     expect(toast.success).toHaveBeenCalledWith("Arrêt de l'enregistrement demandé.", 'Visio')
   })

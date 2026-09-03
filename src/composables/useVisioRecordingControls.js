@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import lmsService from '@/services/lms'
+import { useVisioStore } from '@/stores/visio'
 import { normalizeVisioRecording } from '@/utils/visioRecording'
 import {
   resolveVisioRecordingPayload,
@@ -37,6 +37,13 @@ function setRecording(visio, payload) {
  * Le front ne déduit jamais seul un état actif : après start/stop, il applique
  * le payload backend, puis poll le statut tant que celui-ci est non terminal.
  */
+/**
+ * ⚠️ Le store est résolu PARESSEUSEMENT, au moment de l'action, jamais à la
+ * construction. Le remonter en tête du composable exigerait une instance Pinia
+ * active partout où `SeanceDetails` est simplement monté — y compris dans des
+ * tests de rendu qui ne déclenchent aucun enregistrement. Ce serait élargir le
+ * contrat de ce composable sans nécessité.
+ */
 export function useVisioRecordingControls({
   seanceId,
   visio,
@@ -53,9 +60,16 @@ export function useVisioRecordingControls({
     },
   })
 
-  async function applyBackendRecording(response) {
-    const payload = resolveVisioRecordingPayload(response)
-    const normalized = setRecording(visio, payload) ?? await polling.refreshRecording()
+  /**
+   * Relit l'état d'enregistrement CÔTÉ SERVEUR au lieu de le déduire de la
+   * réponse à un ordre.
+   *
+   * C'est la conséquence directe de #673 : la ligne n'est plus écrite par ce
+   * composable mais par le miroir, sur confirmation du fournisseur. Déduire
+   * l'état d'un ordre reviendrait à réafficher une intention.
+   */
+  async function syncFromServer() {
+    const normalized = await polling.refreshRecording()
 
     if (normalized && shouldPollVisioRecording(normalized)) {
       polling.start()
@@ -93,11 +107,12 @@ export function useVisioRecordingControls({
 
     recordingActionLoading.value = true
     try {
-      const response = await lmsService.startVisioRecording(seanceId.value)
-      if (response?.success === false) {
-        throw new Error(response.message || "Impossible de démarrer l'enregistrement")
-      }
-      await applyBackendRecording(response)
+      // L'ordre part vers la SALLE, jamais vers la base. C'est Jicofo qui
+      // pilote Jibri et qui publie le bandeau de consentement à TOUS les
+      // participants ; un appel backend direct écrirait une ligne sans que
+      // Jibri en sache quoi que ce soit — le défaut d'origine de #673.
+      await useVisioStore().startRoomRecording()
+      await syncFromServer()
       notifyVisioSuccess('Enregistrement démarré.')
     } catch (error) {
       notifyVisioError(error, "Erreur lors du démarrage de l'enregistrement")
@@ -117,11 +132,8 @@ export function useVisioRecordingControls({
 
     recordingActionLoading.value = true
     try {
-      const response = await lmsService.stopVisioRecording(seanceId.value)
-      if (response?.success === false) {
-        throw new Error(response.message || "Impossible d'arrêter l'enregistrement")
-      }
-      await applyBackendRecording(response)
+      await useVisioStore().stopRoomRecording()
+      await syncFromServer()
       notifyVisioSuccess("Arrêt de l'enregistrement demandé.")
     } catch (error) {
       notifyVisioError(error, "Erreur lors de l'arrêt de l'enregistrement")

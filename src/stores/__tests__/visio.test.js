@@ -214,3 +214,44 @@ describe('store visio — sortie de salle (#673)', () => {
     expect(dispatch.mock.calls.filter(([e]) => e.type === 'visio:teacher-left')).toHaveLength(0)
   })
 })
+
+describe('store visio — pilotage de l enregistrement depuis la salle (#673)', () => {
+  /**
+   * On n'enregistre pas une reunion qu'on n'a pas rejointe. Le refus doit etre
+   * EXPLICITE : c'est ce qui empeche le bouton de retomber dans le defaut
+   * d'origine — ecrire une ligne en base sans que Jibri en sache rien.
+   */
+  it('S11 — sans salle ouverte, la commande est refusee avec un motif', async () => {
+    const store = useVisioStore()
+
+    await expect(store.startRoomRecording()).rejects.toThrow(/salle/i)
+    await expect(store.stopRoomRecording()).rejects.toThrow(/salle/i)
+  })
+
+  it('S12 — la commande est deleguee a la salle montee', async () => {
+    const store = useVisioStore()
+    const startRecording = vi.fn().mockResolvedValue(undefined)
+    const stopRecording = vi.fn().mockResolvedValue(undefined)
+
+    store.registerRoomCommands({ startRecording, stopRecording })
+
+    await store.startRoomRecording()
+    await store.stopRoomRecording()
+
+    expect(startRecording).toHaveBeenCalledTimes(1)
+    expect(stopRecording).toHaveBeenCalledTimes(1)
+  })
+
+  /**
+   * La salle est demontee a la sortie : sans desenregistrement, le bouton
+   * commanderait une instance Jitsi detruite.
+   */
+  it('S13 — desenregistrer la salle rend la commande a nouveau impossible', async () => {
+    const store = useVisioStore()
+    store.registerRoomCommands({ startRecording: vi.fn(), stopRecording: vi.fn() })
+
+    store.registerRoomCommands(null)
+
+    await expect(store.startRoomRecording()).rejects.toThrow(/salle/i)
+  })
+})
