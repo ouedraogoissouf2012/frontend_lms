@@ -36,6 +36,10 @@ vi.mock('@/services/lms', () => ({
 
 // La sortie par Beacon touche `fetch` et `navigator.sendBeacon` : hors sujet ici.
 vi.mock('@/services/visioLeave', () => ({ sendVisioLeaveBeacon: vi.fn(async () => true) }))
+vi.mock('@/constants/roles', async (importActual) => ({
+  ...(await importActual()),
+  isTeacher: () => true,
+}))
 
 import { useVisioStore } from '@/stores/visio'
 import { VISIO_TOKEN_REQUIRED_MESSAGE } from '@/constants/visio'
@@ -174,5 +178,39 @@ describe('store visio — la sortie', () => {
     await store.leaveVisio()
 
     expect(sendVisioLeaveBeacon).not.toHaveBeenCalled()
+  })
+})
+
+describe('store visio — sortie de salle (#673)', () => {
+  /**
+   * Jitsi emet `videoConferenceLeft` PUIS `readyToClose` pour une seule et meme
+   * sortie. `leaveVisio()` etant asynchrone, `isInVisio` vaut encore true quand
+   * le second arrive : sans garde synchrone, l'enseignant se voit proposer DEUX
+   * fois de « terminer pour tous ».
+   */
+  it('S9 — deux evenements pour une meme sortie ne notifient qu une fois', async () => {
+    mockJoinVisio.mockResolvedValue(joinResponse(VALID_DATA))
+    const store = useVisioStore()
+    await store.joinVisio(SEANCE_ID)
+
+    const dispatch = vi.spyOn(window, 'dispatchEvent')
+
+    store.handleRoomLeft()
+    store.handleRoomLeft()
+    await Promise.resolve()
+
+    const notifications = dispatch.mock.calls.filter(([e]) => e.type === 'visio:teacher-left')
+    expect(notifications).toHaveLength(1)
+    expect(notifications[0][0].detail.seanceId).toBe(SEANCE_ID)
+  })
+
+  it('S10 — une sortie sans participation active ne notifie pas', async () => {
+    const store = useVisioStore()
+    const dispatch = vi.spyOn(window, 'dispatchEvent')
+
+    store.handleRoomLeft()
+    await Promise.resolve()
+
+    expect(dispatch.mock.calls.filter(([e]) => e.type === 'visio:teacher-left')).toHaveLength(0)
   })
 })
