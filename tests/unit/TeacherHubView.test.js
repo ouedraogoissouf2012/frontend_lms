@@ -10,17 +10,28 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // vi.hoisted : initialise les mocks AVANT le hoisting des vi.mock (sinon la
 // factory référencerait un objet non encore initialisé).
-const { klassci, lms } = vi.hoisted(() => ({
+const { klassci, lms, lessons } = vi.hoisted(() => ({
   klassci: {
     getClasses: vi.fn(),
     getMatieres: vi.fn(),
     getTeacherDashboard: vi.fn(),
     getClasseEtudiants: vi.fn()
   },
-  lms: { getMyTeachingSeances: vi.fn() }
+  lms: { getMyTeachingSeances: vi.fn() },
+  lessons: { getLessons: vi.fn() }
 }))
 vi.mock('@/services/klassci', () => ({ klassciService: klassci }))
 vi.mock('@/services/lms', () => ({ lmsService: lms }))
+vi.mock('@/services/lesson', () => ({ default: lessons, lessonService: lessons }))
+// Les compteurs passent par useCachedResource (SWR), qui lit `readCacheStale`.
+// Sans ce mock il rend `undefined`, le chargement s'interrompt avant d'atteindre
+// le service, et l'assertion « dashboard appele » tombe sans rapport avec la vue.
+// `{ data: null }` = cache VIDE : chargement froid, le cas teste ici.
+vi.mock('@/services/cache', () => ({
+  readCache: vi.fn(() => null),
+  readCacheStale: vi.fn(() => ({ data: null })),
+  writeCache: vi.fn()
+}))
 
 import TeacherHub from '@/views/teacher/TeacherHub.vue'
 
@@ -49,6 +60,7 @@ describe('TeacherHub.vue (G9) — montage', () => {
     })
     klassci.getClasseEtudiants.mockResolvedValue([{ id: 10 }, { id: 11 }])
     lms.getMyTeachingSeances.mockResolvedValue({ data: [] })
+    lessons.getLessons.mockResolvedValue({ data: [] })
   })
 
   it('monte et charge les statistiques au montage', async () => {
