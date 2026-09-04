@@ -61,6 +61,7 @@ npm run test          # tests unitaires (Vitest)
 npm run test:contract # contrat API (chemins backend figés)
 npm run lint:css      # garde anti-régression couleurs en dur (#161)
 npm run lint:size     # garde anti-régression fichiers > 300 lignes (#195)
+npm run lint:dewrap   # garde anti-régression dé-wrap d'enveloppe ad hoc (#296)
 npm run build         # build prod (vérifie le code splitting)
 ```
 
@@ -117,3 +118,37 @@ La baseline est un ratchet : réduire ou supprimer un fichier legacy est accept�
 mais la CI ne l'élargit jamais automatiquement. Pour une exception temporaire et
 justifiée en PR, exécuter `npm run lint:size:baseline` puis expliquer pourquoi le
 découpage ne peut pas être fait dans la même tâche.
+
+## 6. Enveloppe API : dé-wrapper les listes via `extractList`, jamais à la main (#296)
+
+Le backend KLASSCI emballe les listes dans une enveloppe
+(`{ success, data: [...] }`, parfois paginée `{ data: { data: [...] } }`). Le
+seul point de dé-wrap autorisé est le helper canonique **`extractList`**
+(`src/utils/apiList.js`), qui absorbe ces trois formes de manière cohérente.
+
+```js
+import { extractList } from '@/utils/apiList'
+const rows = extractList(response, ['classes'])   // ✅ tableau, {data:[]}, {data:{data:[]}}
+
+const rows = response.data || []                   // ❌ refusé par lint:dewrap
+const rows = response.data.data                    // ❌ refusé par lint:dewrap
+```
+
+**Garde automatique** — `npm run lint:dewrap` (exécuté en CI sur chaque PR vers
+`dev`/`main`) fait **échouer** tout dé-wrap ad hoc introduit. Mécanisme :
+
+- **Ratchet sur baseline figée.** Les quelques dé-wraps manuels legacy sont gelés
+  dans `.dewrap-baseline.json` et n'échouent pas. **Tout nouveau** dé-wrap (ou
+  occurrence surnuméraire dans un fichier) échoue. La baseline ne fait que se
+  resserrer.
+- **Formes refusées** : `.data || []`, `.data ?? []`, `.data.data`, `.data?.data`
+  — le `[]` prouve l'intention « liste », que `extractList` remplace.
+- **Exceptions** (non refusées, car légitimes) : la lecture d'un corps d'**erreur**
+  axios (`error.response.data...`), le repli **objet** `.data || {}` /
+  `.data ?? {}` (ex. `MessageEvent.data`, `extendedProps.data` de FullCalendar),
+  les occurrences en commentaire `//`, et le helper `src/utils/apiList.js` lui-même.
+
+**Si un dé-wrap manuel est vraiment inévitable** (rare) : justifie-le en PR puis
+exécute `npm run lint:dewrap:baseline` pour l'inscrire explicitement dans la
+baseline. Ne jamais contourner la garde en renommant la variable pour masquer le
+motif.

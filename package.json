@@ -18,7 +18,9 @@
     "lint:css": "node scripts/lint-css.mjs",
     "lint:css:baseline": "node scripts/lint-css.mjs --update",
     "lint:size": "node scripts/check-file-size.mjs",
-    "lint:size:baseline": "node scripts/check-file-size.mjs --update"
+    "lint:size:baseline": "node scripts/check-file-size.mjs --update",
+    "lint:dewrap": "node scripts/lint-dewrap.mjs",
+    "lint:dewrap:baseline": "node scripts/lint-dewrap.mjs --update"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.19",
