@@ -1,4 +1,5 @@
 import { computed } from 'vue'
+import { formatDateWeekday } from '@/utils/formatters'
 
 /**
  * Composable de la modale de détail d'événement (H8 — décomposition
@@ -102,15 +103,9 @@ export function useEventDetail(props, emit) {
     return visioStatus === 'active'
   })
 
+  // #283 : délègue au formatter canonique (repli local conservé).
   function formatDate(dateString) {
-    if (!dateString) return 'N/A'
-    const date = new Date(dateString)
-    return new Intl.DateTimeFormat('fr-FR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }).format(date)
+    return formatDateWeekday(dateString, { fallback: 'N/A' })
   }
 
   function formatTimeRange(start, end) {

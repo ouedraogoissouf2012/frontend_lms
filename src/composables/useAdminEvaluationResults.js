@@ -1,4 +1,5 @@
 import { ref, computed, onMounted } from 'vue'
+import { formatDate as fmtDate } from '@/utils/formatters'
 import { useRouter } from 'vue-router'
 import api, { auth } from '@/services/api'
 import { hasRole, ROLES } from '@/constants/roles'
@@ -180,14 +181,8 @@ export function useAdminEvaluationResults() {
     return effectiveStatus === 'terminee'
   }
 
-  const formatDate = (date) => {
-    if (!date) return '-'
-    return new Date(date).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    })
-  }
+  // #283 : délègue au formatter canonique (repli local conservé).
+  const formatDate = (date) => fmtDate(date, { fallback: '-' })
 
   onMounted(() => {
     loadData()

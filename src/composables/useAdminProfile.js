@@ -4,7 +4,7 @@ import { klassciService } from '@/services/klassci'
 import { logError } from '@/services/errorHandler'
 import { getRoleDisplayName } from '@/constants/roles'
 import { deriveInstitutionCounters } from '@/utils/classStats'
-import { getInitials } from '@/utils/formatters'
+import { getInitials, formatDateLong } from '@/utils/formatters'
 
 /**
  * Couche données d'AdminProfile (#H3 ≤300) : expose l'utilisateur courant
@@ -42,14 +42,9 @@ export function useAdminProfile() {
     return getRoleDisplayName(role)
   }
 
+  // #283 : délègue au formatter canonique (repli local conservé).
   function formatDate(date) {
-    if (!date) return 'Non disponible'
-    const d = new Date(date)
-    return d.toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
+    return formatDateLong(date, { fallback: 'Non disponible' })
   }
 
   const roleLabel = computed(() => getRoleLabel(user.value?.role))
