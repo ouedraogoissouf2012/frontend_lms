@@ -60,6 +60,7 @@
  * Émet view-evaluation ; la logique reste au parent. (Markup Tailwind, pas de CSS.)
  */
 import { getEvaluationStatusClass, getEvaluationStatusLabel } from '@/utils/matiereDetails'
+import { formatDateWeekday } from '@/utils/formatters'
 
 defineProps({
   evaluations: { type: Array, default: () => [] }
@@ -67,16 +68,10 @@ defineProps({
 
 defineEmits(['view-evaluation'])
 
-// Formatter local (copie exacte ; dédup vers utils/formatters = dette #23).
+// #283 : formatage délégué au canonique ; double-repli (null vs date invalide) conservé.
 function formatDate(date) {
   if (!date) return 'Non défini'
-  const dateObj = new Date(date)
-  if (isNaN(dateObj.getTime())) return 'Date invalide'
-  return dateObj.toLocaleDateString('fr-FR', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+  if (Number.isNaN(new Date(date).getTime())) return 'Date invalide'
+  return formatDateWeekday(date)
 }
 </script>
