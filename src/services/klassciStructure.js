@@ -8,7 +8,9 @@
  */
 import api from './api'
 import { endpoints } from './endpoints'
-import { extractList } from '@/utils/apiList'
+// Import RELATIF (pas l'alias `@`) : ce service est dans le graphe du test de
+// contrat (runner natif Node, sans résolution d'alias Vite) — cf. lint.yml.
+import { extractList } from '../utils/apiList'
 
 const getWithOptionalConfig = (url, config = {}) =>
   Object.keys(config).length > 0 ? api.get(url, config) : api.get(url)
