@@ -21,20 +21,25 @@ export const lmsTeachersService = {
       console.error('Erreur récupération enseignants:', error)
       throw error
     }
-  },
-
-  /**
-   * Récupérer le dashboard enseignant (matières, classes, stats)
-   * @returns {Promise<Object>} { success, data: { matieres, classes, stats } }
-   */
-  async getTeacherDashboard() {
-    try {
-      return await api.get(endpoints.klassci.teacherDashboard)
-    } catch (error) {
-      console.error('Erreur récupération dashboard enseignant:', error)
-      throw error
-    }
   }
+
+  // `getTeacherDashboard` a été SUPPRIMÉE ici (#329).
+  //
+  // Elle appelait `endpoints.klassci.teacherDashboard`, c'est-à-dire `/proxy/*`,
+  // depuis un service `lms*` — une violation de la frontière que `endpoints.js`
+  // déclare pourtant gardée par test (#26). Le nom disait « LMS », le code
+  // parlait au CRM : tout inventaire du couplage fondé sur les noms de services
+  // était donc faux.
+  //
+  // Elle n'avait AUCUN appelant applicatif, ni directement ni via la façade
+  // `lmsService` : les consommateurs réels passent tous par
+  // `klassciDashboardService.getTeacherDashboard()`. On ne redirige pas du code
+  // mort, on le retire.
+  //
+  // Les deux méthodes n'étaient d'ailleurs PAS interchangeables — contrairement
+  // à ce qu'un « doublon strict » laisserait croire : celle-ci rendait
+  // l'enveloppe complète, celle de `klassciDashboard` rend `data` déballé ou
+  // `null`. Rediriger les appelants aurait changé leur contrat de retour.
 }
 
 export default lmsTeachersService
