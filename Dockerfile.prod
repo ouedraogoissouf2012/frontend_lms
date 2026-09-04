@@ -4,11 +4,21 @@ COPY package.json package-lock.json* ./
 RUN npm ci
 COPY . .
 ARG VITE_API_URL
-ARG VITE_JITSI_DOMAIN=meet.jit.si
+# Aucune valeur par defaut : c'est le coeur de #327. Une valeur ici serait
+# INLINEE par Vite dans le bundle, ce qui transformerait le `throw` de
+# getJitsiDomain() en code mort — la garde JS ne se declencherait jamais sur le
+# seul artefact reellement livre. Le fail-closed doit vivre dans la couche qui
+# PRODUIT le bundle, pas seulement dans celle qui le consomme.
+# `.dockerignore` exclut `.env*` : cet ARG est l'unique source de la variable.
+ARG VITE_JITSI_DOMAIN
 ARG VITE_VISIO_RECORDING_ENABLED=false
 ENV VITE_API_URL=$VITE_API_URL
 ENV VITE_JITSI_DOMAIN=$VITE_JITSI_DOMAIN
 ENV VITE_VISIO_RECORDING_ENABLED=$VITE_VISIO_RECORDING_ENABLED
+RUN test -n "$VITE_JITSI_DOMAIN" || { \
+      echo "VITE_JITSI_DOMAIN est obligatoire (#327) : passez --build-arg VITE_JITSI_DOMAIN=visio.votre-domaine.com" >&2; \
+      exit 1; \
+    }
 RUN npm run build
 
 FROM nginx:1.27-alpine

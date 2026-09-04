@@ -42,7 +42,7 @@ vi.mock('@/constants/roles', async (importActual) => ({
 }))
 
 import { useVisioStore } from '@/stores/visio'
-import { VISIO_TOKEN_REQUIRED_MESSAGE } from '@/constants/visio'
+import { VISIO_TOKEN_REQUIRED_MESSAGE, VISIO_DOMAIN_REQUIRED_MESSAGE } from '@/constants/visio'
 import { sendVisioLeaveBeacon } from '@/services/visioLeave'
 
 const SEANCE_ID = 349
@@ -60,6 +60,13 @@ let originalOpen
 
 beforeEach(() => {
   setActivePinia(createPinia())
+
+  // #327 — Le domaine visio n'a plus de défaut : sans lui, la construction de
+  // la salle échoue. Ces tests portent sur la PRÉSENCE, pas sur la
+  // configuration de déploiement ; on la pose donc explicitement. Le cas du
+  // domaine manquant est couvert par S5.1, où il est le sujet.
+  vi.stubEnv('VITE_JITSI_DOMAIN', 'visio.klassci.com')
+
   mockJoinVisio.mockReset()
   mockLeaveVisio.mockReset().mockResolvedValue({ success: true })
   mockHeartbeat.mockReset().mockResolvedValue({ success: true })
@@ -74,6 +81,7 @@ beforeEach(() => {
 
 afterEach(() => {
   window.open = originalOpen
+  vi.unstubAllEnvs()
   vi.restoreAllMocks()
 })
 
@@ -141,6 +149,26 @@ describe('store visio — la participation (R6)', () => {
 
     await expect(store.joinVisio(SEANCE_ID)).rejects.toThrow(VISIO_TOKEN_REQUIRED_MESSAGE)
     expect(mockLeaveVisio).toHaveBeenCalledWith(SEANCE_ID)
+  })
+
+  /**
+   * #327 — Le domaine visio n'a plus de défaut. Un déploiement sans
+   * `VITE_JITSI_DOMAIN` échoue désormais au lieu de router la classe vers
+   * `meet.jit.si`, un opérateur public sans contrat.
+   *
+   * Ce qui se joue ici n'est pas le message d'erreur mais la PRÉSENCE : la
+   * participation est déjà écrite côté serveur quand la construction de la
+   * salle échoue. Sans compensation, l'apprenant reste marqué présent à une
+   * séance qu'il n'a jamais rejointe — et cette ligne alimente les rapports.
+   */
+  it('S5.1 — un domaine absent échoue ET compense la participation écrite', async () => {
+    vi.stubEnv('VITE_JITSI_DOMAIN', '')
+    mockJoinVisio.mockResolvedValue(joinResponse(VALID_DATA))
+    const store = useVisioStore()
+
+    await expect(store.joinVisio(SEANCE_ID)).rejects.toThrow(VISIO_DOMAIN_REQUIRED_MESSAGE)
+    expect(mockLeaveVisio).toHaveBeenCalledWith(SEANCE_ID)
+    expect(store.isInVisio).toBe(false)
   })
 
   /**

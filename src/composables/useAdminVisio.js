@@ -178,12 +178,22 @@ export function useAdminVisio() {
   }
 
   function joinVisio(visio) {
-    console.log('Rejoindre visio:', visio)
     const roomId = getVisioRoomId(visio)
-    if (roomId) {
-      window.open(buildJitsiUrl(roomId), '_blank')
-    } else {
+    if (!roomId) {
       notifyVisioError(null, 'Identifiant de salle visio introuvable.')
+      return
+    }
+
+    // `buildJitsiUrl` lève désormais quand aucun serveur visio n'est configuré
+    // (#327). Sans ce `try`, Vue avalerait l'exception d'un gestionnaire
+    // d'événement : l'administrateur cliquerait « Rejoindre » et n'obtiendrait
+    // ni onglet, ni message — un bouton muet, plus difficile à diagnostiquer
+    // que le défaut qu'on vient de corriger. La branche voisine sait déjà
+    // notifier ; on emprunte le même chemin.
+    try {
+      window.open(buildJitsiUrl(roomId), '_blank')
+    } catch (error) {
+      notifyVisioError(error, "Impossible d'ouvrir la salle de visioconférence.")
     }
   }
 

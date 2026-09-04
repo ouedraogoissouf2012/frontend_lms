@@ -1,3 +1,12 @@
+> ⚠️ **DÉCISION SUPERSÉDÉE PAR #327 (04/09/2026).**
+> Ce document déclare en §« Gestion d'erreurs » que le repli silencieux vers
+> `meet.jit.si` est « un comportement légitime et documenté ». Ce n'est plus la
+> décision du projet : le défaut a été **supprimé**, `getJitsiDomain()` lève
+> désormais quand `VITE_JITSI_DOMAIN` est absent. Motif : sur un produit qui
+> filme des apprenants, une variable d'environnement oubliée envoyait la classe
+> chez un opérateur public sans contrat, et aucune promesse de résidence des
+> données ne tenait. Le reste du document demeure exact.
+
 # Design Document — Centralisation des constantes et de la configuration (#24)
 
 ## Overview
