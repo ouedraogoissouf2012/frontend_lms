@@ -10,10 +10,12 @@ import { useCachedResource } from '@/composables/useCachedResource'
  *
  * #224/#315 : le schéma cache + revalidation d'arrière-plan des séances est porté
  * par `useCachedResource`, en mise en cache CONDITIONNELLE — on ne met en cache
- * (clé `admin_seances`) que lorsqu'AUCUN filtre enseignant/classe n'est actif ;
- * sinon une liste filtrée serait écrite sous la clé partagée puis servie aux vues
- * non filtrées. Enseignants et classes (pour les listes de filtres) restent des
- * chargements simples non mis en cache.
+ * que lorsqu'AUCUN filtre enseignant/classe n'est actif ; sinon une liste filtrée
+ * serait écrite sous la clé partagée puis servie aux vues non filtrées.
+ * La clé est de plus SCOPÉE par `days` (`admin_seances_d<days>`) : `days` est un
+ * paramètre serveur (envoyé à getSeances) mais n'entre pas dans `noActiveFilter` ;
+ * sans scoping, passer de 30 à 7 jours servirait la liste 30 jours périmée sous la
+ * même clé. Enseignants et classes (listes de filtres) restent non mis en cache.
  */
 export function useAdminSeances() {
   const teachers = ref([])
@@ -58,7 +60,7 @@ export function useAdminSeances() {
   }
 
   const { data, loading, error, load } = useCachedResource(
-    'admin_seances',
+    () => `admin_seances_d${filters.value.days}`,
     fetchSeances,
     { cacheable: noActiveFilter }
   )
