@@ -70,6 +70,7 @@
 </template>
 
 <script setup>
+import { formatTime as fmtTime } from '@/utils/formatters'
 /**
  * Carte d'une séance côté coordinateur (#H6 ≤300) : infos (date/horaire/classe/
  * salle), bouton d'activation visio et panneau visio (CoordinatorVisioPanel)
@@ -85,13 +86,8 @@ defineProps({
 
 defineEmits(['toggle', 'show-participants', 'join'])
 
-const formatTime = (isoTimestamp) => {
-  if (!isoTimestamp) return 'N/A'
-  return new Date(isoTimestamp).toLocaleTimeString('fr-FR', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
+// #283 : délègue au formatter canonique (repli local conservé).
+const formatTime = (isoTimestamp) => fmtTime(isoTimestamp, { fallback: 'N/A' })
 
 const formatDate = (date) => {
   if (!date) return 'Non défini'

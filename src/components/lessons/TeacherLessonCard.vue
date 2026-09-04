@@ -41,6 +41,7 @@
 </template>
 
 <script setup>
+import { formatDateLong } from '@/utils/formatters'
 /**
  * Carte d'une leçon enseignant (#H4 ≤300) : icône type, statut, titre, matière,
  * méta (date/vues) et action « Voir les chapitres » (emit `view`). Présentationnel ;
@@ -85,14 +86,9 @@ function getMatiereLabel(matiereId) {
   return matiere ? (matiere.name || matiere.nom) : 'Matière inconnue'
 }
 
+// #283 : délègue au formatter canonique (repli local conservé).
 function formatDate(dateString) {
-  if (!dateString) return 'N/A'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('fr-FR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+  return formatDateLong(dateString, { fallback: 'N/A' })
 }
 </script>
 

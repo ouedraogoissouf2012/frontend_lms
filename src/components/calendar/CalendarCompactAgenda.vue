@@ -36,6 +36,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { formatTime as fmtTime } from '@/utils/formatters'
 
 const props = defineProps({
   events: {
@@ -79,11 +80,9 @@ function formatTimeRange(start, end) {
   return `${startTime} - ${formatTime(endDate)}`
 }
 
+// #283 : délègue au formatter canonique (l'appelant garantit une Date valide).
 function formatTime(date) {
-  return date.toLocaleTimeString('fr-FR', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+  return fmtTime(date)
 }
 
 function getEventColor(event) {
