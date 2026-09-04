@@ -7,6 +7,7 @@ import {
   VISIO_RECORDING_UNAVAILABLE_MESSAGE,
   VISIO_ROOM_REQUIRED_MESSAGE,
   VISIO_TOKEN_REQUIRED_MESSAGE,
+  VISIO_DOMAIN_REQUIRED_MESSAGE,
   getJitsiDomain,
   getVisioRoomId,
   requireVisioRoomId,
@@ -28,20 +29,40 @@ describe('constants/visio (#24)', () => {
     expect(getJitsiDomain()).toBe('meet.mondomaine.ci')
   })
 
-  it('V3 — défaut meet.jit.si si absent/vide', () => {
+  /**
+   * #327 — Ce test remplace un « V3 — défaut meet.jit.si si absent/vide » qui
+   * VERROUILLAIT le repli vers l'opérateur public. Un test peut entériner un
+   * défaut : celui-ci l'a fait pendant toute la vie du fichier.
+   */
+  it('V3 — domaine absent : ÉCHEC, jamais de repli vers un opérateur public', () => {
     vi.stubEnv('VITE_JITSI_DOMAIN', '')
+    expect(() => getJitsiDomain()).toThrow(VISIO_DOMAIN_REQUIRED_MESSAGE)
+  })
+
+  it('V3.1 — le message nomme la variable à renseigner', () => {
+    expect(VISIO_DOMAIN_REQUIRED_MESSAGE).toContain('VITE_JITSI_DOMAIN')
+  })
+
+  it('V3.2 — meet.jit.si reste possible, mais devient une décision écrite', () => {
+    vi.stubEnv('VITE_JITSI_DOMAIN', 'meet.jit.si')
     expect(getJitsiDomain()).toBe('meet.jit.si')
   })
 
-  it('V4 — buildJitsiUrl bare', () => {
+  it('V3.3 — toute la chaîne échoue quand le domaine manque', () => {
     vi.stubEnv('VITE_JITSI_DOMAIN', '')
-    expect(buildJitsiUrl('seance_42')).toBe('https://meet.jit.si/seance_42')
+    expect(() => jitsiExternalApiSrc()).toThrow(VISIO_DOMAIN_REQUIRED_MESSAGE)
+    expect(() => buildJitsiUrl('seance_42')).toThrow(VISIO_DOMAIN_REQUIRED_MESSAGE)
+  })
+
+  it('V4 — buildJitsiUrl bare', () => {
+    vi.stubEnv('VITE_JITSI_DOMAIN', 'visio.klassci.com')
+    expect(buildJitsiUrl('seance_42')).toBe('https://visio.klassci.com/seance_42')
   })
 
   it('V5 — buildJitsiUrl avec displayName + prejoinDisabled (hash exact)', () => {
-    vi.stubEnv('VITE_JITSI_DOMAIN', '')
+    vi.stubEnv('VITE_JITSI_DOMAIN', 'visio.klassci.com')
     expect(buildJitsiUrl('room1', { displayName: 'Awa Koné', prejoinDisabled: true })).toBe(
-      'https://meet.jit.si/room1#config.prejoinConfig.enabled=false&userInfo.displayName=Awa%20Kon%C3%A9',
+      'https://visio.klassci.com/room1#config.prejoinConfig.enabled=false&userInfo.displayName=Awa%20Kon%C3%A9',
     )
   })
 
@@ -51,8 +72,8 @@ describe('constants/visio (#24)', () => {
   })
 
   it('V7 — jitsiExternalApiSrc', () => {
-    vi.stubEnv('VITE_JITSI_DOMAIN', '')
-    expect(jitsiExternalApiSrc()).toBe('https://meet.jit.si/external_api.js')
+    vi.stubEnv('VITE_JITSI_DOMAIN', 'visio.klassci.com')
+    expect(jitsiExternalApiSrc()).toBe('https://visio.klassci.com/external_api.js')
   })
 
   it('V8 — constantes de temps', () => {

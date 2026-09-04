@@ -5,7 +5,7 @@
  */
 import { mount, flushPromises } from '@vue/test-utils'
 import { defineComponent } from 'vue'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 const getSeances = vi.fn()
 
@@ -57,8 +57,20 @@ async function setup() {
 
 describe('useAdminVisio (#G1)', () => {
   beforeEach(() => {
+    // #327 — Le domaine visio n'a plus de defaut : `buildJitsiUrl` leve sans
+    // lui. Ces tests portent sur le FILTRAGE et les STATS, pas sur la
+    // configuration de deploiement ; on la pose donc explicitement.
+    //
+    // Ne PAS compter sur un `.env` local : il est gitignore, la CI ne l'aura
+    // jamais. Un test vert grace a un fichier absent du depot est un faux vert.
+    vi.stubEnv('VITE_JITSI_DOMAIN', 'visio.klassci.com')
+
     getSeances.mockReset()
     getSeances.mockResolvedValue({ success: true, data: makeSeances() })
+  })
+
+  afterEach(() => {
+    vi.unstubAllEnvs()
   })
 
   it('ne garde que les séances visio_enabled et calcule les stats par statut', async () => {
@@ -128,6 +140,25 @@ describe('useAdminVisio (#G1)', () => {
     expect(visio.room_id).toBe('nested-room')
     v.joinVisio(visio)
     expect(open).toHaveBeenCalledWith(expect.stringContaining('/nested-room'), '_blank')
+    vi.unstubAllGlobals()
+  })
+
+  /**
+   * #327 — Sans serveur visio configure, `buildJitsiUrl` leve. Vue avalerait
+   * l'exception d'un gestionnaire d'evenement : l'administrateur cliquerait
+   * « Rejoindre » et n'obtiendrait NI onglet, NI message. Ce test verrouille
+   * les deux moities du contrat : on notifie, et on n'ouvre rien.
+   */
+  it("sans serveur visio configuré, notifie au lieu d'ouvrir un onglet muet", async () => {
+    vi.stubEnv('VITE_JITSI_DOMAIN', '')
+    const open = vi.fn()
+    vi.stubGlobal('open', open)
+
+    const v = await setup()
+    const visio = v.visioconferences.value[0]
+
+    expect(() => v.joinVisio(visio)).not.toThrow()
+    expect(open).not.toHaveBeenCalled()
     vi.unstubAllGlobals()
   })
 

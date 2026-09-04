@@ -5,6 +5,7 @@ import {
   VISIO_ROOM_REQUIRED_MESSAGE,
   VISIO_TOKEN_REQUIRED_MESSAGE,
 } from '@/constants/visio'
+import { jitsiConfigOverwrite } from '@/constants/visioNetwork'
 
 const RECORDING_NOT_CONFIRMED_MESSAGE =
   "L'enregistrement n'a pas été confirmé par le serveur. Il n'a pas démarré : prévenez votre administrateur."
@@ -70,12 +71,17 @@ export function useJitsiRoom({
 
     const JitsiMeetExternalAPI = await loadExternalApi()
 
+    // La configuration vient de `constants/visio` et de nulle part ailleurs :
+    // c'est elle qui porte le profil réseau (#327). Le pré-join natif est
+    // désactivé ici, mais il était le SEUL écran où l'apprenant pouvait couper
+    // sa caméra avant de dépenser sa data — son remplacement KLASSCI est tracé
+    // en #328.
     api = new JitsiMeetExternalAPI(domain, {
       roomName,
       jwt,
       parentNode,
       userInfo: displayName ? { displayName } : undefined,
-      configOverwrite: { prejoinPageEnabled: false },
+      configOverwrite: jitsiConfigOverwrite(),
     })
 
     attach(RECORDING_STATUS_EVENT, (payload) => {

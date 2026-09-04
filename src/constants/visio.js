@@ -1,9 +1,9 @@
 /**
- * Constantes & helpers visioconférence (#24) — domaine Jitsi configurable + temps.
+ * Constantes & helpers visioconférence (#24) — domaine Jitsi et profil réseau.
  *
- * Le domaine Jitsi vient de `VITE_JITSI_DOMAIN` (défaut `meet.jit.si`), lu à
- * l'exécution via optional chaining (chargeable hors Vite, pattern roles.js).
- * Configurable par déploiement / institution, plus de hardcode dispersé.
+ * Le domaine vient de `VITE_JITSI_DOMAIN`, lu à l'exécution via optional
+ * chaining (chargeable hors Vite, pattern roles.js). Il n'a **aucun défaut** :
+ * voir `getJitsiDomain`.
  */
 
 export const VISIO_CONFIG = Object.freeze({
@@ -11,7 +11,6 @@ export const VISIO_CONFIG = Object.freeze({
   RECORDING_POLL_INTERVAL_MS: 5000, // rafraîchissement du statut d'enregistrement
   RECORDING_PROVIDER_ENABLED: false, // fail-closed tant que Jibri/JaaS/provider n'est pas validé
   PARTICIPATION_EXPIRATION_MS: 7 * 24 * 60 * 60 * 1000, // 7 jours
-  DEFAULT_JITSI_DOMAIN: 'meet.jit.si',
 
   // #673 — Délai de garde avant de conclure qu'un ordre d'enregistrement n'a
   // pas été confirmé. Ce n'est PAS le délai nominal : le fournisseur signale
@@ -32,22 +31,50 @@ export const VISIO_RECORDING_UNAVAILABLE_MESSAGE =
   "L'enregistrement n'est pas activé sur cette plateforme : aucun moteur Jitsi/Jibri n'est configuré."
 export const VISIO_TOKEN_REQUIRED_MESSAGE =
   "Accès à la salle impossible : le serveur n'a pas délivré de jeton d'accès. Prévenez votre administrateur."
+export const VISIO_DOMAIN_REQUIRED_MESSAGE =
+  "Aucun serveur visio n'est configuré (VITE_JITSI_DOMAIN). Prévenez votre administrateur."
 
 export const HEARTBEAT_INTERVAL_MS = VISIO_CONFIG.HEARTBEAT_INTERVAL_MS
 export const RECORDING_POLL_INTERVAL_MS = VISIO_CONFIG.RECORDING_POLL_INTERVAL_MS
 export const PARTICIPATION_EXPIRATION_MS = VISIO_CONFIG.PARTICIPATION_EXPIRATION_MS
 export const RECORDING_CONFIRMATION_TIMEOUT_MS = VISIO_CONFIG.RECORDING_CONFIRMATION_TIMEOUT_MS
 
-/** Domaine Jitsi effectif (VITE_JITSI_DOMAIN ou défaut). */
+/**
+ * Domaine Jitsi effectif. **Sans défaut, et c'est délibéré (#327).**
+ *
+ * Ce fichier retenait `meet.jit.si` quand `VITE_JITSI_DOMAIN` manquait au build.
+ * Dans une chaîne par ailleurs fail-closed — `RECORDING_PROVIDER_ENABLED: false`
+ * quelques lignes plus haut — c'était la seule porte fail-open : une variable
+ * d'environnement oubliée envoyait la classe entière chez un opérateur public
+ * avec lequel personne n'a de contrat, sur un produit qui filme des apprenants.
+ * Aucune promesse de résidence des données ne tient dans ce cas.
+ *
+ * Le raisonnement est celui que `buildRoomConfigFromResponse` applique déjà au
+ * jeton, plus bas dans ce fichier : échouer au clic donne un message actionnable
+ * et rend une configuration incomplète visible tout de suite, au lieu d'un
+ * « ça ne marche pas » remonté trois jours plus tard — ou, ici, d'un cours tenu
+ * ailleurs que là où on le croit.
+ *
+ * Vouloir `meet.jit.si` reste possible : il faut l'écrire. C'est une décision,
+ * plus un défaut.
+ *
+ * @throws {Error} si `VITE_JITSI_DOMAIN` est absent ou vide
+ */
 export function getJitsiDomain() {
   const d = import.meta.env?.VITE_JITSI_DOMAIN
-  return d && String(d).trim() ? String(d).trim() : VISIO_CONFIG.DEFAULT_JITSI_DOMAIN
+  const domain = d ? String(d).trim() : ''
+  if (!domain) throw new Error(VISIO_DOMAIN_REQUIRED_MESSAGE)
+  return domain
 }
 
 /** URL du script IFrame API Jitsi. */
 export function jitsiExternalApiSrc() {
   return `https://${getJitsiDomain()}/external_api.js`
 }
+
+// Le profil réseau (débit, nombre de flux reçus, résolution) vit dans
+// `visioNetwork.js` : ce fichier décrit QUELLE salle ouvrir, celui-là COMBIEN
+// elle coûte à l'apprenant. Deux préoccupations, deux rythmes d'évolution.
 
 function toBooleanOrNull(value) {
   if (typeof value === 'boolean') return value

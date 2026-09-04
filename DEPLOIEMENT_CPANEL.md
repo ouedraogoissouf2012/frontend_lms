@@ -354,6 +354,10 @@ Allez sur : `https://votre-domaine.com`
 
 ### Frontend ✅
 - [ ] `.env` configuré avec la bonne URL d'API
+- [ ] **`VITE_JITSI_DOMAIN` renseigné** — obligatoire depuis #327, sans défaut.
+      Omis, le build réussit mais **toute ouverture de salle échoue** : le repli
+      silencieux vers `meet.jit.si` a été supprimé, parce qu'il envoyait la
+      classe chez un opérateur public sans contrat.
 - [ ] `npm run build` exécuté
 - [ ] Fichiers du `dist/` uploadés dans `public_html/`
 - [ ] `.htaccess` créé
