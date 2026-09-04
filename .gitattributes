@@ -1,0 +1,22 @@
+# Normalisation des fins de ligne (#281).
+#
+# core.autocrlf=false + absence de .gitattributes laissait ~22 fichiers commités
+# en CRLF alors que le reste du dépôt est en LF -> diffs illisibles sur des zones
+# actives (KLASSCI, admin users). Ici : TOUT le texte est stocké en LF dans le
+# dépôt, quel que soit l'OS de checkout. Git normalise les deux côtés au merge,
+# donc les branches encore ouvertes fusionneront sans bruit CRLF/LF.
+* text=auto eol=lf
+
+# Binaires : jamais de normalisation de fins de ligne.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.otf binary
+*.pdf binary
