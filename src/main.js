@@ -10,6 +10,8 @@ import './assets/styles/mobile-responsive.css'
 // bundlées par Vite dans /assets/ (self), CSP font/style-src 'self'.
 import 'font-awesome/css/font-awesome.min.css'
 import 'material-icons/iconfont/filled.css'
+// #295 : override woff2-only + font-display:swap (APRÈS les CSS vendored, prime).
+import './assets/styles/icon-fonts.css'
 import { themeKey } from '@/constants/storageKeys'
 import { reveal } from '@/directives/reveal'
 
