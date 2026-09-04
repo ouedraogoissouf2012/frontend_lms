@@ -17,7 +17,11 @@ import { readCacheStale, writeCache } from '@/services/cache'
  * utilisateur/institution (cache.js, #230).
  *
  * @template T
- * @param {string} name - Clé de cache logique (ex. 'admin_stats').
+ * @param {string | (() => string)} name - Clé de cache logique (ex. 'admin_stats').
+ *   #315 : accepte aussi une FONCTION, ré-évaluée à chaque `load()`/`revalidate()`,
+ *   pour scoper l'entrée par un paramètre de requête (ex.
+ *   `() => \`admin_seances_d\${filters.days}\``). Sans ça, deux valeurs de paramètre
+ *   partageraient la même clé et se serviraient mutuellement des données périmées.
  * @param {() => Promise<T>} fetcher - Récupère la donnée fraîche ; rejette sur erreur.
  * @param {{ immediate?: boolean, onError?: (e: unknown) => void,
  *   cacheable?: () => boolean }} [options]
@@ -40,13 +44,20 @@ export function useCachedResource(name, fetcher, options = {}) {
   // #315 : mise en cache conditionnelle. Par défaut on met toujours en cache
   // (comportement historique, inchangé pour les consommateurs existants).
   const isCacheable = typeof options.cacheable === 'function' ? options.cacheable : () => true
+  // #315 : clé dynamique optionnelle. Une `name` string garde le comportement
+  // historique à l'identique ; une fonction est ré-évaluée à chaque accès.
+  const resolveKey = typeof name === 'function' ? name : () => name
 
   async function revalidate() {
     revalidating.value = true
+    // Fige la clé AVANT le fetch : l'écriture doit atterrir sous la clé qui
+    // correspond à l'état (ex. `days`) au moment de la requête, même si cet état
+    // change pendant que le réseau répond.
+    const key = resolveKey()
     try {
       const fresh = await fetcher()
       data.value = fresh
-      if (isCacheable()) writeCache(name, fresh)
+      if (isCacheable()) writeCache(key, fresh)
       error.value = null
     } catch (e) {
       // On CONSERVE la donnée déjà affichée (stale) et on signale l'erreur.
@@ -61,7 +72,7 @@ export function useCachedResource(name, fetcher, options = {}) {
   async function load() {
     // Cache non applicable (ex. filtres actifs) → chargement froid direct, sans
     // lire une entrée qui ne correspondrait pas à la requête courante.
-    const entry = isCacheable() ? readCacheStale(name) : { data: null, fresh: false }
+    const entry = isCacheable() ? readCacheStale(resolveKey()) : { data: null, fresh: false }
     if (entry.data !== null && entry.data !== undefined) {
       // On a quelque chose à montrer (même périmé) → affichage immédiat + revalidation
       // d'arrière-plan NON bloquante.

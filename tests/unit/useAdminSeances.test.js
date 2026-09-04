@@ -11,10 +11,11 @@ const getSeances = vi.fn()
 const getTeachers = vi.fn()
 const getClasses = vi.fn()
 
+const { writeCacheSpy } = vi.hoisted(() => ({ writeCacheSpy: vi.fn() }))
 vi.mock('@/services/cache', () => ({
   readCache: () => null,
   readCacheStale: () => ({ data: null }),
-  writeCache: () => {},
+  writeCache: (...a) => writeCacheSpy(...a),
 }))
 vi.mock('@/services/klassci', () => ({
   klassciService: {
@@ -93,5 +94,24 @@ describe('useAdminSeances (#G1)', () => {
     const s = await setup()
     expect(() => s.viewSeanceDetails({ id: 1 })).not.toThrow()
     expect(() => s.enableVisio({ id: 1 })).not.toThrow()
+  })
+
+  // #315 — clé de cache scopée par `days` (correction du service croisé 30↔7)
+  it('scope la clé de cache par `days` (admin_seances_d30 par défaut)', async () => {
+    await setup() // days='30', aucun filtre enseignant/classe → cacheable
+    expect(writeCacheSpy).toHaveBeenCalledWith(
+      'admin_seances_d30',
+      expect.arrayContaining([{ id: 1 }, { id: 2 }]),
+    )
+  })
+
+  it('changer `days` écrit sous une clé DISTINCTE (pas de collision 30↔7)', async () => {
+    const s = await setup()
+    writeCacheSpy.mockClear()
+    s.filters.value.days = '7'
+    await s.loadSeances()
+    await flushPromises()
+    expect(writeCacheSpy).toHaveBeenCalledWith('admin_seances_d7', expect.any(Array))
+    expect(writeCacheSpy).not.toHaveBeenCalledWith('admin_seances_d30', expect.any(Array))
   })
 })
