@@ -13,6 +13,7 @@
  *
  * Chaque cible est confirmée par `.claude/specs/api-contract-sync/backend-contract-verified.md`.
  */
+import { readdirSync, readFileSync } from 'node:fs'
 import { setActivePinia, createPinia } from 'pinia'
 import { installCapture } from './captureAdapter.mjs'
 
@@ -28,6 +29,23 @@ import { searchService } from '../../src/services/search.js'
 
 /** Motif IDOR : un identifiant d'étudiant dans le chemin est interdit (R7.5). */
 const IDOR_PATTERN = /^\/evaluations\/student\/.+/
+
+/**
+ * Retire commentaires et docblocks avant analyse (#329).
+ *
+ * Sans ça, une garde qui cherche `endpoints.klassci` rougit sur le commentaire
+ * qui EXPLIQUE pourquoi l'appel a été retiré — c'est arrivé à la première
+ * rédaction de cette règle. Une garde doit mesurer le code, jamais la prose.
+ *
+ * Limite assumée : découpage par expression régulière, pas par analyseur
+ * syntaxique. Une chaîne de caractères contenant littéralement `//` serait
+ * tronquée. C'est sans conséquence sur le seul usage ici — chercher un
+ * identifiant dans des fichiers de service — et une dépendance de parsing
+ * serait disproportionnée pour une garde.
+ */
+function codeSeul(source) {
+  return source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1')
+}
 
 /**
  * Cas de contrat positifs : chaque cas exécute une méthode de service et asserte
@@ -142,6 +160,44 @@ export const structuralChecks = [
     name: 'R6 — api.js notifications.markAllAsRead supprimée (dédup)',
     _req: 'R6', _ek: 'Ék-5',
     ok: () => typeof apiNotifications.markAllAsRead === 'undefined',
+  },
+  {
+    name: '#329 — lmsTeachersService.getTeacherDashboard supprimée (appelait /proxy depuis un service lms*)',
+    _req: '#329',
+    ok: () => typeof lmsService.getTeacherDashboard === 'undefined',
+  },
+  {
+    /**
+     * La règle, pas le cas.
+     *
+     * Cette garde a laissé passer #329 pendant toute la vie du fichier, pour une
+     * raison simple : elle est une LISTE DE CAS. Elle ne vérifiait que les
+     * méthodes que quelqu'un avait pensé à y inscrire, et personne n'avait
+     * inscrit `lmsTeachersService.getTeacherDashboard`.
+     *
+     * Ajouter un cas de plus n'aurait rien corrigé — le suivant passerait
+     * pareil. On assert donc l'INVARIANT : la frontière `endpoints.klassci.*`
+     * (= `/proxy/*`) est le seul marqueur fiable du couplage réseau, et aucun
+     * service préfixé `lms` ne doit la franchir.
+     *
+     * Le dénominateur est publié dans `detail` : une garde qui ne sait pas dire
+     * combien de fichiers elle a inspectés ne distingue pas « rien à redire » de
+     * « je n'ai rien regardé ».
+     */
+    name: '#329 — aucun service lms* ne franchit la frontière /proxy',
+    _req: '#329',
+    ok: () => {
+      const dir = new URL('../../src/services/', import.meta.url)
+      const fichiers = readdirSync(dir).filter((f) => /^lms.*\.js$/.test(f))
+
+      if (fichiers.length === 0) return false // rien inspecté ⇒ échec, jamais un vert
+
+      const fautifs = fichiers.filter((f) =>
+        codeSeul(readFileSync(new URL(f, dir), 'utf8')).includes('endpoints.klassci'),
+      )
+
+      return fautifs.length === 0
+    },
   },
 ]
 
