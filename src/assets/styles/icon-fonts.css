@@ -1,0 +1,30 @@
+/*
+ * #295 — Override des @font-face d'icônes : woff2 UNIQUEMENT + font-display: swap.
+ *
+ * Importé APRÈS `font-awesome.min.css` et `material-icons/iconfont/filled.css`
+ * dans main.js. Re-déclarer un @font-face de même famille/graisse/style FAIT
+ * PRIMER cette règle (dernière gagnante) : le navigateur télécharge le woff2 seul
+ * (au lieu de choisir parmi eot/ttf/svg/woff/woff2) et surtout applique
+ * `font-display: swap` — fin du FOIT « invisible ~3 s » (Material était en
+ * `font-display: block`, Font Awesome sans descripteur = `auto` ≈ block).
+ *
+ * Les fichiers eot/ttf/svg restent ÉMIS dans dist par les CSS vendored (Vite
+ * traite leurs url()), mais ne sont plus TÉLÉCHARGÉS. Le nettoyage de l'émission
+ * dist (self-host complet ou subset) est un chantier outillé distinct — cf. issue
+ * de suivi #295.
+ */
+@font-face {
+  font-family: 'FontAwesome';
+  src: url('../../../node_modules/font-awesome/fonts/fontawesome-webfont.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Material Icons';
+  src: url('../../../node_modules/material-icons/iconfont/material-icons.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
