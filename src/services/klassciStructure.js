@@ -8,6 +8,7 @@
  */
 import api from './api'
 import { endpoints } from './endpoints'
+import { extractList } from '@/utils/apiList'
 
 const getWithOptionalConfig = (url, config = {}) =>
   Object.keys(config).length > 0 ? api.get(url, config) : api.get(url)
@@ -20,7 +21,9 @@ export const klassciStructureService = {
   async getClasses(config = {}) {
     try {
       const response = await getWithOptionalConfig(endpoints.klassci.classes, config)
-      return response.success ? response.data : []
+      // #296 : normalise la frontière → garantit un tableau (gère `{classes:[…]}`
+      // comme le plat `[…]`), conforme au JSDoc @returns Array.
+      return response.success ? extractList(response, ['classes']) : []
     } catch (error) {
       console.error('Erreur récupération classes:', error)
       throw error
@@ -34,7 +37,8 @@ export const klassciStructureService = {
   async getMatieres(config = {}) {
     try {
       const response = await getWithOptionalConfig(endpoints.klassci.matieres, config)
-      return response.success ? response.data : []
+      // #296 : normalise la frontière → garantit un tableau.
+      return response.success ? extractList(response, ['matieres']) : []
     } catch (error) {
       console.error('Erreur récupération matières:', error)
       throw error
@@ -48,7 +52,8 @@ export const klassciStructureService = {
   async getEnseignants() {
     try {
       const response = await api.get(endpoints.klassci.enseignants)
-      return response.success ? response.data : []
+      // #296 : normalise la frontière → garantit un tableau.
+      return response.success ? extractList(response, ['enseignants']) : []
     } catch (error) {
       console.error('Erreur récupération enseignants:', error)
       throw error
