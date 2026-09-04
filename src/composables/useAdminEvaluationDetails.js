@@ -171,16 +171,10 @@ export function useAdminEvaluationDetails() {
     })
   }
 
-  const formatDateTime = (datetime) => {
-    if (!datetime) return '-'
-    return new Date(datetime).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
+  // #283 : formatDateTime était une COPIE EXACTE de formatDate (même corps,
+  // date+heure fusionnées) → alias. Variante non canonique (séparateur ICU d'un
+  // appel unique ≠ formatDateTime composé), conservée telle quelle côté sortie.
+  const formatDateTime = formatDate
 
   const exportCSV = () => {
     const csvContent = [

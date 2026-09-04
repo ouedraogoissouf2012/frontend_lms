@@ -98,6 +98,7 @@
  */
 import VisioManager from '@/components/visio/VisioManager.vue'
 import { getSeanceStatusClass, getSeanceStatusLabel, calculateSeanceDuration } from '@/utils/matiereDetails'
+import { formatDateWeekday, formatTime as fmtTime } from '@/utils/formatters'
 
 defineProps({
   seances: { type: Array, default: () => [] },
@@ -106,26 +107,16 @@ defineProps({
 
 defineEmits(['view-seance', 'hide-seance', 'visio-updated'])
 
-// Formatters locaux (copie exacte ; dédup vers utils/formatters = dette #23).
+// #283 : formatage délégué aux canoniques ; doubles-replis (null vs invalide) conservés.
 function formatDate(date) {
   if (!date) return 'Non défini'
-  const dateObj = new Date(date)
-  if (isNaN(dateObj.getTime())) return 'Date invalide'
-  return dateObj.toLocaleDateString('fr-FR', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+  if (Number.isNaN(new Date(date).getTime())) return 'Date invalide'
+  return formatDateWeekday(date)
 }
 
 function formatTime(isoTimestamp) {
   if (!isoTimestamp) return 'N/A'
-  const dateObj = new Date(isoTimestamp)
-  if (isNaN(dateObj.getTime())) return '--:--'
-  return dateObj.toLocaleTimeString('fr-FR', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+  if (Number.isNaN(new Date(isoTimestamp).getTime())) return '--:--'
+  return fmtTime(isoTimestamp)
 }
 </script>
