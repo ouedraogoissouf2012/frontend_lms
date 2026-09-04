@@ -97,22 +97,22 @@ describe('klassci.js — split par domaine (G9)', () => {
     expect(getMock).toHaveBeenCalledWith('/lessons/my-courses?matiere_id=5&enseignant_id=7')
   })
 
-  it('getUpcomingSeances applique un timeout court pour ne pas bloquer le dashboard', async () => {
+  it('getUpcomingSeances suit le timeout global, sans surcharge locale', async () => {
+    // Cf. lmsServiceSplit : le timeout court de 5 s visait un endpoint qui
+    // tournait 120 s (N+1 des 452 matieres), corrige cote backend (PR #725).
     getMock.mockResolvedValue({ success: true, data: [] })
     const data = await klassciService.getUpcomingSeances({ days: 30 })
     expect(getMock).toHaveBeenCalledWith('/lms/seances/upcoming', {
-      params: { days: 30 },
-      timeout: 5000
+      params: { days: 30 }
     })
     expect(data).toEqual([])
   })
 
-  it('getSeances applique aussi le timeout court sur l’endpoint lent', async () => {
+  it('getSeances vise le meme endpoint, avec le meme timeout global', async () => {
     getMock.mockResolvedValue({ success: true, data: [] })
     await klassciService.getSeances({ days: 30 })
     expect(getMock).toHaveBeenCalledWith('/lms/seances/upcoming', {
-      params: { days: 30 },
-      timeout: 5000
+      params: { days: 30 }
     })
   })
 })

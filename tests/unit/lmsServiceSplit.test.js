@@ -72,12 +72,20 @@ describe('lms.js — split par domaine (#26)', () => {
     expect(lmsService.getClasses).toBeUndefined()
   })
 
-  it('getUpcomingSeances applique un timeout court sur l’endpoint lent', async () => {
+  it('getUpcomingSeances suit le timeout global, sans surcharge locale', async () => {
+    // Le timeout court (5 s) etait un garde-fou delibere (PR #208, « timeout
+    // court sur l'endpoint upcoming lent ») contre un endpoint qui parcourait
+    // les 452 matieres du tenant et tournait 120 s. Ce N+1 est corrige cote
+    // backend (PR #725) : l'endpoint repond en 0,17-0,53 s.
+    //
+    // Le garde-fou ne protegeait d'ailleurs QUE le client : le serveur, lui,
+    // continuait jusqu'a « Maximum execution time of 120 seconds exceeded ».
+    // Le laisser en place en ferait un piege : un appel qui echoue 6x plus tot
+    // que tout le reste de l'application, sans raison visible.
     getMock.mockResolvedValue({ success: true, data: [] })
     await lmsService.getUpcomingSeances({ days: 30 })
     expect(getMock).toHaveBeenCalledWith('/lms/seances/upcoming', {
-      params: { days: 30 },
-      timeout: 5000
+      params: { days: 30 }
     })
   })
 })
