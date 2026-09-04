@@ -67,6 +67,7 @@
 </template>
 
 <script setup>
+import { formatDateLong, formatTime as fmtTime } from '@/utils/formatters'
 /**
  * Grille des cartes de séances d'AdminSeances (#G1 ≤300). Présentation pure :
  * reçoit la liste `seances` en prop, calcule le statut/les libellés et formate
@@ -107,23 +108,13 @@ function getSeanceStatusLabel(seance) {
   return labels[status] || 'Inconnu'
 }
 
+// #283 : délèguent aux formatters canoniques (replis locaux conservés).
 function formatDate(dateString) {
-  if (!dateString) return 'N/A'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  })
+  return formatDateLong(dateString, { fallback: 'N/A' })
 }
 
 function formatTime(dateString) {
-  if (!dateString) return 'N/A'
-  const date = new Date(dateString)
-  return date.toLocaleTimeString('fr-FR', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+  return fmtTime(dateString, { fallback: 'N/A' })
 }
 </script>
 

@@ -60,6 +60,7 @@
 </template>
 
 <script setup>
+import { formatDateWeekday, formatTime as fmtTime } from '@/utils/formatters'
 /**
  * En-tête de SeanceDetails (#H6 ≤300) : retour, titre matière, grille
  * d'infos (date/horaire/enseignant/classe/salle) et bouton « Masquer »
@@ -75,22 +76,13 @@ defineProps({
 
 defineEmits(['hide'])
 
+// #283 : délèguent aux formatters canoniques (replis locaux conservés).
 function formatDate(date) {
-  if (!date) return 'Non défini'
-  return new Date(date).toLocaleDateString('fr-FR', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+  return formatDateWeekday(date, { fallback: 'Non défini' })
 }
 
 function formatTime(isoTimestamp) {
-  if (!isoTimestamp) return 'Non défini'
-  return new Date(isoTimestamp).toLocaleTimeString('fr-FR', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+  return fmtTime(isoTimestamp, { fallback: 'Non défini' })
 }
 </script>
 

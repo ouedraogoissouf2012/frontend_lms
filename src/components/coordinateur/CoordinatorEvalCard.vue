@@ -65,6 +65,7 @@
 </template>
 
 <script setup>
+import { formatDate as fmtDate } from '@/utils/formatters'
 import {
   UserIcon,
   UserGroupIcon,
@@ -110,14 +111,8 @@ const getStatusLabel = (status) => {
   return labels[status] || status
 }
 
-const formatDate = (date) => {
-  if (!date) return '-'
-  return new Date(date).toLocaleDateString('fr-FR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  })
-}
+// #283 : délègue au formatter canonique (repli local conservé).
+const formatDate = (date) => fmtDate(date, { fallback: '-' })
 </script>
 
 <style scoped>
