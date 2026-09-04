@@ -1,6 +1,7 @@
 import { extractList } from './apiList'
 import { enrichTeacherClasses } from './classStats'
 import { toId } from './toId'
+import { coalesceNumber } from './coalesceNumber'
 
 const EMPTY_TEACHER_DASHBOARD = {
   matieres: [],
@@ -37,12 +38,7 @@ function normalizeText(value) {
 }
 
 function firstNumber(values, fallback = 0) {
-  for (const value of values) {
-    if (value === null || value === undefined || value === '') continue
-    const number = Number(value)
-    if (Number.isFinite(number)) return number
-  }
-  return fallback
+  return coalesceNumber(values, fallback)
 }
 
 function getPersonNames(person = {}) {
