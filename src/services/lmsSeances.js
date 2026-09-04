@@ -1,8 +1,6 @@
 import api from './api'
 import { endpoints } from './endpoints'
 
-const UPCOMING_SEANCES_TIMEOUT_MS = 5000
-
 /**
  * Service LMS — domaine SÉANCES & PRÉSENCES (`/lms/seances/*`, `/lms/attendance*`).
  * Couvre le cycle de vie des séances (hors visio, cf. lmsVisioService) :
@@ -18,10 +16,12 @@ export const lmsSeancesService = {
    */
   async getUpcomingSeances(params = {}) {
     try {
-      return await api.get(endpoints.lms.seances.upcoming, {
-        params,
-        timeout: UPCOMING_SEANCES_TIMEOUT_MS
-      })
+      // Timeout global (constants/http.js), sans surcharge : le garde-fou de
+      // 5 s (PR #208) visait un endpoint qui parcourait les 452 matieres du
+      // tenant et tournait 120 s. N+1 corrige cote backend (PR #725) — il
+      // repond desormais en 0,17-0,53 s. Garder 5 s ici en ferait un piege :
+      // cet appel echouerait 6x plus tot que tout le reste, sans raison visible.
+      return await api.get(endpoints.lms.seances.upcoming, { params })
     } catch (error) {
       console.error('Erreur récupération séances à venir:', error)
       throw error
