@@ -1,4 +1,5 @@
 import { ref, onMounted } from 'vue'
+import { formatDateLong } from '@/utils/formatters'
 import { useRouter } from 'vue-router'
 import { auth, dashboard as dashboardService } from '@/services/api'
 import { klassciService } from '@/services/klassci'
@@ -80,14 +81,9 @@ export function useTeacherDashboard() {
     }
   }
 
+  // #283 : délègue au formatter canonique (repli local conservé).
   function formatDate(dateString) {
-    if (!dateString) return 'N/A'
-    const date = new Date(dateString)
-    return date.toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
+    return formatDateLong(dateString, { fallback: 'N/A' })
   }
 
   function navigateToMatiere(matiere) {

@@ -1,4 +1,5 @@
 import { ref, reactive, computed, onMounted } from 'vue'
+import { formatDateLong } from '@/utils/formatters'
 import { useRouter } from 'vue-router'
 import { klassciService } from '@/services/klassci'
 import lessonService from '@/services/lesson'
@@ -156,14 +157,9 @@ export function useTeacherLessons() {
     return matiere ? (matiere.name || matiere.nom) : 'Matière inconnue'
   }
 
+  // #283 : délègue au formatter canonique (repli local conservé).
   function formatDate(dateString) {
-    if (!dateString) return 'N/A'
-    const date = new Date(dateString)
-    return date.toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
+    return formatDateLong(dateString, { fallback: 'N/A' })
   }
 
   function viewChapters(lesson) {

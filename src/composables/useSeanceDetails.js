@@ -1,4 +1,5 @@
 import { ref, computed, onMounted } from 'vue'
+import { formatDateWeekday, formatTime as fmtTime } from '@/utils/formatters'
 import { useRoute, useRouter } from 'vue-router'
 import lmsService from '@/services/lms'
 import { auth } from '@/services/api'
@@ -199,14 +200,9 @@ export function useSeanceDetails() {
     }
   }
 
+  // #283 : délègue au formatter canonique (repli local conservé).
   function formatDate(date) {
-    if (!date) return 'Non défini'
-    return new Date(date).toLocaleDateString('fr-FR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
+    return formatDateWeekday(date, { fallback: 'Non défini' })
   }
 
   async function hideSeance() {
@@ -232,12 +228,9 @@ export function useSeanceDetails() {
     }
   }
 
+  // #283 : délègue au formatter canonique (repli local conservé).
   function formatTime(isoTimestamp) {
-    if (!isoTimestamp) return 'Non défini'
-    return new Date(isoTimestamp).toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+    return fmtTime(isoTimestamp, { fallback: 'Non défini' })
   }
 
   onMounted(() => {

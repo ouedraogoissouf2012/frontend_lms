@@ -1,4 +1,5 @@
 import { ref, reactive, getCurrentInstance, onMounted } from 'vue'
+import { formatDate as fmtDate, formatTime as fmtTime } from '@/utils/formatters'
 import { useRoute } from 'vue-router'
 import lmsService from '@/services/lms'
 import attendanceExportService from '@/services/attendanceExport'
@@ -228,17 +229,13 @@ export function useSeanceAttendanceHistory() {
     }
   }
 
+  // #283 : délèguent aux formatters canoniques (replis locaux conservés).
   function formatDate(dateString) {
-    if (!dateString) return '-'
-    return new Date(dateString).toLocaleDateString('fr-FR')
+    return fmtDate(dateString, { fallback: '-' })
   }
 
   function formatTime(dateString) {
-    if (!dateString) return '-'
-    return new Date(dateString).toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+    return fmtTime(dateString, { fallback: '-' })
   }
 
   // Dette PRÉEXISTANTE : méthode jamais appelée dans le composant d'origine,
