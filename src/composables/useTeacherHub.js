@@ -6,6 +6,7 @@ import { useCachedResource } from '@/composables/useCachedResource'
 import { enrichTeacherClasses } from '@/utils/classStats'
 import { mergeClassMeasures } from '@/utils/classMeasures'
 import { extractList } from '@/utils/apiList'
+import { coalesceNumberFrom } from '@/utils/coalesceNumber'
 
 /** Aucun compteur mesuré : l'état avant toute réponse, et après une panne froide. */
 const AUCUNE_MESURE = Object.freeze({
@@ -18,13 +19,7 @@ const AUCUNE_MESURE = Object.freeze({
 })
 
 function firstDashboardNumber(dashboard, keys) {
-  for (const key of keys) {
-    const value = key.split('.').reduce((current, part) => current?.[part], dashboard)
-    if (value === null || value === undefined || value === '') continue
-    const number = Number(value)
-    if (Number.isFinite(number)) return number
-  }
-  return null
+  return coalesceNumberFrom(dashboard, keys)
 }
 
 /**

@@ -1,3 +1,5 @@
+import { coalesceNumber } from './coalesceNumber'
+
 /**
  * Mesures d'une classe : effectif et capacité.
  *
@@ -21,12 +23,7 @@
 
 /** Premier nombre fini de la liste, ou `null`. Les chaînes vides ne comptent pas. */
 export function firstNumber(values) {
-  for (const value of values) {
-    if (value === null || value === undefined || value === '') continue
-    const number = Number(value)
-    if (Number.isFinite(number)) return number
-  }
-  return null
+  return coalesceNumber(values)
 }
 
 /**

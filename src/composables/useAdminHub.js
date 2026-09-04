@@ -1,15 +1,10 @@
 import { ref, onMounted } from 'vue'
 import { klassciService } from '@/services/klassci'
 import { dashboard } from '@/services/api'
+import { coalesceNumberFrom } from '@/utils/coalesceNumber'
 
 function firstNumber(source, keys) {
-  for (const key of keys) {
-    const value = key.split('.').reduce((current, part) => current?.[part], source)
-    if (value === null || value === undefined || value === '') continue
-    const number = Number(value)
-    if (Number.isFinite(number)) return number
-  }
-  return 0
+  return coalesceNumberFrom(source, keys, 0)
 }
 
 function countItems(value) {
