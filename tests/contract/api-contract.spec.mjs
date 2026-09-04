@@ -14,8 +14,24 @@
  * Chaque cible est confirmée par `.claude/specs/api-contract-sync/backend-contract-verified.md`.
  */
 import { readdirSync, readFileSync } from 'node:fs'
+import { dirname, join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { setActivePinia, createPinia } from 'pinia'
 import { installCapture } from './captureAdapter.mjs'
+
+/**
+ * Répertoire des services, en CHAÎNE et non en `URL`.
+ *
+ * Ce module tourne sous deux runners. Sous Vitest, l'environnement jsdom
+ * remplace le global `URL` par celui du navigateur ; `node:fs` n'accepte que
+ * l'objet `URL` de Node et rejette l'autre avec `ERR_INVALID_URL_SCHEME`. Le
+ * runner natif n'a pas jsdom et ne voyait donc pas le problème : la garde
+ * passait d'un côté et échouait de l'autre.
+ *
+ * `fileURLToPath` prend une chaîne et rend une chaîne : aucun objet `URL` n'est
+ * impliqué, le code se comporte pareil sous les deux runners.
+ */
+const DIR_SERVICES = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', 'src', 'services')
 
 // Services réels (import = le vrai code testé, pas un double).
 import { notifications as apiNotifications } from '../../src/services/api.js'
@@ -187,13 +203,12 @@ export const structuralChecks = [
     name: '#329 — aucun service lms* ne franchit la frontière /proxy',
     _req: '#329',
     ok: () => {
-      const dir = new URL('../../src/services/', import.meta.url)
-      const fichiers = readdirSync(dir).filter((f) => /^lms.*\.js$/.test(f))
+      const fichiers = readdirSync(DIR_SERVICES).filter((f) => /^lms.*\.js$/.test(f))
 
       if (fichiers.length === 0) return false // rien inspecté ⇒ échec, jamais un vert
 
       const fautifs = fichiers.filter((f) =>
-        codeSeul(readFileSync(new URL(f, dir), 'utf8')).includes('endpoints.klassci'),
+        codeSeul(readFileSync(join(DIR_SERVICES, f), 'utf8')).includes('endpoints.klassci'),
       )
 
       return fautifs.length === 0
