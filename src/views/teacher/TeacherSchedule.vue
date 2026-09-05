@@ -16,7 +16,7 @@
       <UniversalCalendar
         ref="calendarRef"
         user-role="teacher"
-        :user-id="currentUser?.klassci_id"
+        :user-id="actorId"
         @event-action="handleEventAction"
       />
     </div>
@@ -24,21 +24,19 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import UniversalCalendar from '@/components/calendar/UniversalCalendar.vue'
 import { lmsService } from '@/services/lms'
-import { useAuthStore } from '@/stores/auth'
 import { useTrackedVisioJoin } from '@/composables/useTrackedVisioJoin'
+import { useScheduleActorId } from '@/composables/useScheduleActorId'
 import { notifyVisioError } from '@/services/visioFeedback'
 
 const router = useRouter()
 const calendarRef = ref(null)
 const { joinTrackedVisio } = useTrackedVisioJoin('Enseignant')
-
-// Utilisateur courant réactif depuis le store (#19) — plus de localStorage('user')
-const currentUser = computed(() => useAuthStore().currentUser)
+const { currentUser, actorId } = useScheduleActorId('teacher')
 
 async function handleEventAction({ type, data }) {
   console.log('[TeacherSchedule] Action:', type, data)

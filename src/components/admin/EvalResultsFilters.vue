@@ -9,8 +9,8 @@
         </label>
         <select v-model="enseignantId" class="filter-select">
           <option value="">Tous les enseignants</option>
-          <option v-for="enseignant in enseignants" :key="enseignant.klassci_id" :value="enseignant.klassci_id">
-            {{ enseignant.name }}
+          <option v-for="enseignant in enseignants" :key="enseignant.id" :value="enseignant.id">
+            {{ enseignant.libelle }}
           </option>
         </select>
       </div>

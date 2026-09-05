@@ -84,10 +84,13 @@ export function useCoordinatorEvaluations() {
     const name = displayName(enseignant)
     if (!id || !name) return null
     const source = typeof enseignant === 'object' && enseignant !== null ? enseignant : {}
+    const joinId = source.klassci_id ?? source.id ?? source.teacher_id ?? id
     return {
       ...source,
-      klassci_id: source.klassci_id ?? source.id ?? source.teacher_id ?? id,
+      id: joinId,
+      klassci_id: joinId,
       name,
+      libelle: name,
       email: source.email || ''
     }
   }
@@ -100,10 +103,14 @@ export function useCoordinatorEvaluations() {
     })
     evaluations.value.forEach(evaluation => {
       if (evaluation.klassci_enseignant_id && (evaluation.enseignant_nom || evaluation.enseignant)) {
-        enseignantsMap.set(toId(evaluation.klassci_enseignant_id), {
+        const joinId = evaluation.klassci_enseignant_id
+        const name = firstValue(evaluation.enseignant_nom, displayName(evaluation.enseignant))
+        enseignantsMap.set(toId(joinId), {
           ...(evaluation.enseignant || {}),
-          klassci_id: evaluation.klassci_enseignant_id,
-          name: firstValue(evaluation.enseignant_nom, displayName(evaluation.enseignant)),
+          id: joinId,
+          klassci_id: joinId,
+          name,
+          libelle: name,
           email: evaluation.enseignant?.email || ''
         })
       }
