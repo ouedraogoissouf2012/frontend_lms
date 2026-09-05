@@ -116,4 +116,51 @@ describe('useCachedResource (#224 SWR)', () => {
     expect(mockCache.readCacheStale).toHaveBeenCalledWith('k')
     expect(mockCache.writeCache).toHaveBeenCalledWith('k', { v: 1 })
   })
+
+  // #315 — clé dynamique (name = fonction)
+  it('clé dynamique : name fonction est ré-évaluée à CHAQUE load (lit ET écrit sous la clé courante)', async () => {
+    mockCache.readCacheStale.mockReturnValue({ data: null, fresh: false })
+    const fetcher = vi.fn().mockResolvedValue({ v: 1 })
+    let key = 'k_a'
+    const r = useCachedResource(() => key, fetcher, { immediate: false })
+
+    await r.load()
+    expect(mockCache.readCacheStale).toHaveBeenLastCalledWith('k_a')
+    expect(mockCache.writeCache).toHaveBeenLastCalledWith('k_a', { v: 1 })
+
+    key = 'k_b' // le paramètre (ex. filters.days) a changé entre deux chargements
+    await r.load()
+    expect(mockCache.readCacheStale).toHaveBeenLastCalledWith('k_b')
+    expect(mockCache.writeCache).toHaveBeenLastCalledWith('k_b', { v: 1 })
+  })
+
+  it('clé dynamique : l\'écriture utilise la clé FIGÉE au début de la revalidation (cohérente avec le fetch)', async () => {
+    // Si le paramètre change PENDANT que le réseau répond, la réponse décrit
+    // l'état d'AVANT ; elle doit être écrite sous la clé d'avant, pas la nouvelle.
+    mockCache.readCacheStale.mockReturnValue({ data: null, fresh: false })
+    let key = 'k_at_fetch'
+    let resolveFetch
+    const fetcher = vi.fn(() => new Promise((res) => { resolveFetch = () => res({ v: 9 }) }))
+
+    const r = useCachedResource(() => key, fetcher, { immediate: false })
+    const p = r.load()             // fige key='k_at_fetch' avant le fetch
+    key = 'k_changed_midflight'    // le paramètre change en plein vol
+    resolveFetch()
+    await p
+    await flushPromises()
+
+    expect(mockCache.writeCache).toHaveBeenCalledWith('k_at_fetch', { v: 9 })
+    expect(mockCache.writeCache).not.toHaveBeenCalledWith('k_changed_midflight', { v: 9 })
+  })
+
+  it('clé string (rétro-compat) : comportement historique inchangé', async () => {
+    mockCache.readCacheStale.mockReturnValue({ data: null, fresh: false })
+    const fetcher = vi.fn().mockResolvedValue({ v: 1 })
+
+    const r = useCachedResource('k_str', fetcher, { immediate: false })
+    await r.load()
+
+    expect(mockCache.readCacheStale).toHaveBeenCalledWith('k_str')
+    expect(mockCache.writeCache).toHaveBeenCalledWith('k_str', { v: 1 })
+  })
 })
