@@ -62,7 +62,13 @@ export function useJitsiRoom({
     if (api) attach(event, handler)
   }
 
-  async function mount({ domain, roomName, jwt, displayName, parentNode }) {
+  /**
+   * @param {object} options
+   * @param {object} [options.configOverwrite] configuration Jitsi. Injectée pour
+   *   que ce composable ignore l'existence des modes réseau (#328) : il monte
+   *   une salle, il ne décide pas de ce qu'elle coûte à l'apprenant.
+   */
+  async function mount({ domain, roomName, jwt, displayName, parentNode, configOverwrite }) {
     // Valider AVANT d'instancier : une iframe créée puis abandonnée laisse une
     // connexion ouverte et un nœud orphelin dans la page.
     if (!roomName) throw new Error(VISIO_ROOM_REQUIRED_MESSAGE)
@@ -71,17 +77,15 @@ export function useJitsiRoom({
 
     const JitsiMeetExternalAPI = await loadExternalApi()
 
-    // La configuration vient de `constants/visio` et de nulle part ailleurs :
-    // c'est elle qui porte le profil réseau (#327). Le pré-join natif est
-    // désactivé ici, mais il était le SEUL écran où l'apprenant pouvait couper
-    // sa caméra avant de dépenser sa data — son remplacement KLASSCI est tracé
-    // en #328.
+    // La configuration vient de `constants/visioNetwork` et de nulle part
+    // ailleurs. Sans choix explicite, on retombe sur le profil par défaut — ce
+    // qui garde ce composable utilisable seul, en test comme en reprise.
     api = new JitsiMeetExternalAPI(domain, {
       roomName,
       jwt,
       parentNode,
       userInfo: displayName ? { displayName } : undefined,
-      configOverwrite: jitsiConfigOverwrite(),
+      configOverwrite: configOverwrite ?? jitsiConfigOverwrite(),
     })
 
     attach(RECORDING_STATUS_EVENT, (payload) => {
