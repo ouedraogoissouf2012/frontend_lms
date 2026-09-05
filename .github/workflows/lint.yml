@@ -9,6 +9,10 @@ name: CI
 #    PR / push that hand-rolls list-envelope unwrapping (`response.data || []`,
 #    `res.data.data`, …) instead of the canonical `extractList` helper, beyond the
 #    committed baseline (.dewrap-baseline.json).
+# 2ter) Anti-regression guard for presentation-layer OCP coupling (issues #325 /
+#    #330): fails any PR / push that introduces klassci / establishment-mode /
+#    form-coupling signatures under src/components or src/views, beyond the
+#    committed baseline (.ocp-baseline.json). Inspecting 0 files is exit 2.
 # 3) Unit tests (Vitest), including the guard's destructive suite.
 # 4) Contrat API via le runner natif Node (`npm run test:contract`) : le contrat
 #    frontend <-> backend Laravel est aussi joué sous Vitest
@@ -84,6 +88,25 @@ jobs:
 
       - name: Check source file sizes
         run: npm run lint:size
+
+  lint-ocp:
+    name: OCP presentation-layer guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for new presentation-layer OCP coupling
+        run: npm run lint:ocp
 
   lint-dewrap:
     name: Envelope de-wrap guard
