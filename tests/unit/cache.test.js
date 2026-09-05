@@ -12,7 +12,7 @@ const { mockAuth } = vi.hoisted(() => ({
 }))
 vi.mock('@/services/api', () => ({ auth: mockAuth }))
 
-import { cacheKey, readCache, writeCache, clearAllCache, invalidateEntity, readCacheStale } from '@/services/cache'
+import { cacheKey, readCache, writeCache, clearAllCache, clearCacheByPrefix, invalidateEntity, readCacheStale } from '@/services/cache'
 
 describe('cache — scope par institution ET par utilisateur (#230)', () => {
   beforeEach(() => {
@@ -82,6 +82,32 @@ describe('cache — scope par institution ET par utilisateur (#230)', () => {
     writeCache('admin_matieres', 1)
     expect(() => invalidateEntity('inconnu')).not.toThrow()
     expect(readCache('admin_matieres')).toBe(1)
+  })
+
+  it('clearCacheByPrefix vide toutes les variantes d\'un préfixe (clés scopées par param), pas les autres (#315)', () => {
+    writeCache('seances_management_d30', [1])
+    writeCache('seances_management_d7', [2])
+    writeCache('seances_management', [3]) // variante legacy sans days
+    writeCache('autre_ressource', 'X') // autre préfixe → intact
+
+    clearCacheByPrefix('seances_management')
+
+    expect(readCache('seances_management_d30')).toBeNull()
+    expect(readCache('seances_management_d7')).toBeNull()
+    expect(readCache('seances_management')).toBeNull()
+    expect(readCache('autre_ressource')).toBe('X')
+  })
+
+  it('clearCacheByPrefix ne touche PAS le cache d\'un AUTRE utilisateur (#315)', () => {
+    writeCache('seances_management_d30', [1]) // user 1
+    mockAuth.getUser.mockReturnValue({ id: 2 })
+    writeCache('seances_management_d30', [2]) // user 2
+
+    clearCacheByPrefix('seances_management') // exécuté en tant que user 2
+
+    expect(readCache('seances_management_d30')).toBeNull() // user 2 vidé
+    mockAuth.getUser.mockReturnValue({ id: 1 })
+    expect(readCache('seances_management_d30')).toEqual([1]) // user 1 intact
   })
 
   it('clearAllCache purge toutes les entrées _cache_ (tous users)', () => {

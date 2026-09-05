@@ -15,7 +15,7 @@ vi.mock('@/services/lms', () => ({
 vi.mock('@/services/klassci', () => ({
   klassciService: new Proxy({}, { get: () => vi.fn().mockResolvedValue([]) })
 }))
-vi.mock('@/services/cache', () => ({ readCache: () => null, writeCache: vi.fn(), clearCache: vi.fn() }))
+vi.mock('@/services/cache', () => ({ readCache: () => null, readCacheStale: () => ({ data: null }), writeCache: vi.fn(), clearCacheByPrefix: vi.fn() }))
 vi.mock('@/stores/auth', () => ({
   useAuthStore: () => ({ currentUser: { id: 1, role: 'coordinateur', name: 'X' } })
 }))
