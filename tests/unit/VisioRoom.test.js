@@ -81,6 +81,20 @@ beforeEach(() => {
   jeton = 'jeton-de-session'
 })
 
+/**
+ * Depuis #328, un mode reseau doit etre choisi AVANT tout montage : l'ecran de
+ * choix remplace le pre-join natif de Jitsi, desactive en #327. Les tests qui
+ * portent sur le MONTAGE passent donc par ce helper ; le comportement de
+ * l'ecran lui-meme est verrouille par R13-R15.
+ */
+async function ouvrirSalle(wrapper, store, config = ROOM_CONFIG) {
+  store.roomConfig = config
+  await wrapper.vm.$nextTick()
+  await wrapper.findComponent({ name: 'VisioJoinChoice' }).vm.$emit('rejoindre', 'complet')
+  await wrapper.vm.$nextTick()
+  await wrapper.vm.$nextTick()
+}
+
 describe('VisioRoom', () => {
   it('R1 — sans salle décrite, rien n\'est rendu ni monté', async () => {
     const wrapper = mount(VisioRoom)
@@ -108,9 +122,7 @@ describe('VisioRoom', () => {
     const wrapper = mount(VisioRoom, { attachTo: document.body })
     const store = useVisioStore()
 
-    store.roomConfig = ROOM_CONFIG
-    await wrapper.vm.$nextTick()
-    await wrapper.vm.$nextTick()
+    await ouvrirSalle(wrapper, store)
 
     expect(mockMount).toHaveBeenCalledTimes(1)
     const args = mockMount.mock.calls[0][0]
@@ -131,9 +143,7 @@ describe('VisioRoom', () => {
     const store = useVisioStore()
     const leaveVisio = vi.spyOn(store, 'leaveVisio').mockResolvedValue(undefined)
 
-    store.roomConfig = ROOM_CONFIG
-    await wrapper.vm.$nextTick()
-    await wrapper.vm.$nextTick()
+    await ouvrirSalle(wrapper, store)
     await Promise.resolve()
 
     expect(mockNotifyError).toHaveBeenCalledTimes(1)
@@ -144,9 +154,7 @@ describe('VisioRoom', () => {
     const wrapper = mount(VisioRoom, { attachTo: document.body })
     const store = useVisioStore()
 
-    store.roomConfig = ROOM_CONFIG
-    await wrapper.vm.$nextTick()
-    await wrapper.vm.$nextTick()
+    await ouvrirSalle(wrapper, store)
     mockDispose.mockClear()
 
     store.roomConfig = null
@@ -168,9 +176,7 @@ describe('VisioRoom', () => {
 
     await expect(store.startRoomRecording()).rejects.toThrow(/salle/i)
 
-    store.roomConfig = ROOM_CONFIG
-    await wrapper.vm.$nextTick()
-    await wrapper.vm.$nextTick()
+    await ouvrirSalle(wrapper, store)
 
     await expect(store.startRoomRecording()).resolves.toBeUndefined()
   })
@@ -181,9 +187,7 @@ describe('VisioRoom', () => {
     const store = useVisioStore()
     vi.spyOn(store, 'leaveVisio').mockResolvedValue(undefined)
 
-    store.roomConfig = ROOM_CONFIG
-    await wrapper.vm.$nextTick()
-    await wrapper.vm.$nextTick()
+    await ouvrirSalle(wrapper, store)
     await Promise.resolve()
 
     await expect(store.startRoomRecording()).rejects.toThrow(/salle/i)
@@ -192,9 +196,7 @@ describe('VisioRoom', () => {
   it('R8 — la sortie de salle retire les commandes', async () => {
     const wrapper = mount(VisioRoom, { attachTo: document.body })
     const store = useVisioStore()
-    store.roomConfig = ROOM_CONFIG
-    await wrapper.vm.$nextTick()
-    await wrapper.vm.$nextTick()
+    await ouvrirSalle(wrapper, store)
 
     store.roomConfig = null
     await wrapper.vm.$nextTick()
@@ -259,5 +261,60 @@ describe('VisioRoom', () => {
     await Promise.resolve()
 
     expect(wrapper.exists()).toBe(true)
+  })
+
+  // ── Choix du mode reseau (#328) ─────────────────────────────────────────
+
+  /**
+   * LE test qui rend l'ecran opposable plutot que decoratif. #327 a desactive
+   * le pre-join natif de Jitsi, seul endroit ou l'apprenant pouvait couper sa
+   * camera avant de depenser sa data. Si la salle se montait quand meme, on
+   * aurait retire le garde-fou et affiche un ecran sans effet.
+   */
+  it('R13 — aucune salle n est montee tant qu aucun mode n est choisi', async () => {
+    const wrapper = mount(VisioRoom, { attachTo: document.body })
+    const store = useVisioStore()
+
+    store.roomConfig = ROOM_CONFIG
+    await wrapper.vm.$nextTick()
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.findComponent({ name: 'VisioJoinChoice' }).exists()).toBe(true)
+    expect(wrapper.find('.visio-room').exists()).toBe(false)
+    expect(mockMount).not.toHaveBeenCalled()
+  })
+
+  it('R14 — le mode choisi est transmis a la salle', async () => {
+    const wrapper = mount(VisioRoom, { attachTo: document.body })
+    const store = useVisioStore()
+
+    store.roomConfig = ROOM_CONFIG
+    await wrapper.vm.$nextTick()
+    await wrapper.findComponent({ name: 'VisioJoinChoice' }).vm.$emit('rejoindre', 'audio')
+    await wrapper.vm.$nextTick()
+    await wrapper.vm.$nextTick()
+
+    expect(mockMount).toHaveBeenCalledTimes(1)
+    // `channelLastN: 0` est la seule facon de ne recevoir aucun flux video.
+    expect(mockMount.mock.calls[0][0].configOverwrite.channelLastN).toBe(0)
+  })
+
+  /**
+   * La participation est DEJA ecrite cote serveur quand l'ecran s'affiche.
+   * Refuser d'entrer sans compenser laisserait l'apprenant marque present a une
+   * seance qu'il a explicitement refusee — et cette ligne alimente les rapports.
+   */
+  it('R15 — refuser d entrer compense la participation deja ecrite', async () => {
+    const wrapper = mount(VisioRoom, { attachTo: document.body })
+    const store = useVisioStore()
+    const leave = vi.spyOn(store, 'leaveVisio').mockResolvedValue(undefined)
+
+    store.roomConfig = ROOM_CONFIG
+    await wrapper.vm.$nextTick()
+    await wrapper.findComponent({ name: 'VisioJoinChoice' }).vm.$emit('annuler')
+    await wrapper.vm.$nextTick()
+
+    expect(leave).toHaveBeenCalled()
+    expect(mockMount).not.toHaveBeenCalled()
   })
 })

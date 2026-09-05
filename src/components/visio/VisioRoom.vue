@@ -1,5 +1,16 @@
 <template>
-  <div v-if="visioStore.roomConfig" class="visio-room" role="dialog" aria-label="Salle de visioconférence">
+  <!--
+    Le choix du mode reseau precede TOUT montage (#328). Il remplace le pre-join
+    natif de Jitsi, desactive en #327 : c'etait le seul ecran ou l'apprenant
+    pouvait couper sa camera avant de depenser sa data.
+  -->
+  <VisioJoinChoice
+    v-if="visioStore.roomConfig && !modeChoisi"
+    @rejoindre="demarrer"
+    @annuler="annuler"
+  />
+
+  <div v-else-if="visioStore.roomConfig" class="visio-room" role="dialog" aria-label="Salle de visioconférence">
     <div class="visio-room__bar">
       <span class="visio-room__title">Visioconférence en cours</span>
       <span v-if="room.isRecording.value" class="visio-room__recording">
@@ -21,6 +32,8 @@ import { useAuthStore } from '@/stores/auth'
 import { useVisioStore } from '@/stores/visio'
 import { useJitsiRoom } from '@/composables/useJitsiRoom'
 import { useVisioRecordingMirror } from '@/composables/useVisioRecordingMirror'
+import VisioJoinChoice from '@/components/visio/VisioJoinChoice.vue'
+import { jitsiConfigForMode } from '@/constants/visioNetwork'
 import { notifyVisioError } from '@/services/visioFeedback'
 
 /**
@@ -52,6 +65,23 @@ room.on('recordingStatusChanged', (payload) => { void mirror.onProviderStatus(pa
 room.on('videoConferenceLeft', () => visioStore.handleRoomLeft())
 room.on('readyToClose', () => visioStore.handleRoomLeft())
 
+/** Mode retenu pour la salle en cours. `null` = l'ecran de choix est affiche. */
+const modeChoisi = ref(null)
+
+function demarrer(mode) {
+  modeChoisi.value = mode
+}
+
+/**
+ * Refus d'entrer : la participation est DEJA ecrite cote serveur par
+ * `POST /seances/{id}/join`. Sans compensation, l'apprenant resterait marque
+ * present a une seance qu'il a explicitement refuse de rejoindre — et cette
+ * ligne alimente les rapports de presence.
+ */
+async function annuler() {
+  await visioStore.leaveVisio()
+}
+
 async function leave() {
   await visioStore.leaveVisio()
 }
@@ -62,17 +92,23 @@ async function leave() {
  * `null` et le montage échouerait à chaque fois.
  */
 watch(
-  () => visioStore.roomConfig,
-  async (config) => {
+  () => [visioStore.roomConfig, modeChoisi.value],
+  async ([config, mode]) => {
     room.dispose()
     mirror.reset()
     // Desenregistrer AVANT toute tentative : sinon, entre le demontage et le
     // remontage, le bouton commanderait une instance Jitsi detruite.
     visioStore.registerRoomCommands(null)
-    if (!config) return
+    // Tant qu'aucun mode n'est choisi, on ne monte RIEN : c'est ce qui rend
+    // l'ecran de choix opposable plutot que decoratif.
+    if (!config || !mode) return
 
     try {
-      await room.mount({ ...config, parentNode: container.value })
+      await room.mount({
+        ...config,
+        parentNode: container.value,
+        configOverwrite: jitsiConfigForMode(mode),
+      })
       // Publiees seulement APRES un montage reussi : c'est ce qui garantit
       // qu'un ordre d'enregistrement atteint une salle reellement ouverte.
       visioStore.registerRoomCommands({
@@ -119,6 +155,10 @@ onMounted(async () => {
     console.error('[VisioRoom] Reprise de la participation impossible:', error)
   }
 })
+
+// Une salle fermee doit redemander le mode a la prochaine entree : le contexte
+// reseau de l'apprenant a pu changer entre deux cours.
+watch(() => visioStore.roomConfig, (config) => { if (!config) modeChoisi.value = null })
 
 onBeforeUnmount(() => {
   visioStore.registerRoomCommands(null)
