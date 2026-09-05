@@ -62,6 +62,7 @@ npm run test:contract # contrat API (chemins backend figés)
 npm run lint:css      # garde anti-régression couleurs en dur (#161)
 npm run lint:size     # garde anti-régression fichiers > 300 lignes (#195)
 npm run lint:dewrap   # garde anti-régression dé-wrap d'enveloppe ad hoc (#296)
+npm run lint:ocp      # garde OCP présentation : pas de nouveau couplage (#325/#330)
 npm run build         # build prod (vérifie le code splitting)
 ```
 
@@ -152,3 +153,40 @@ const rows = response.data.data                    // ❌ refusé par lint:dewra
 exécute `npm run lint:dewrap:baseline` pour l'inscrire explicitement dans la
 baseline. Ne jamais contourner la garde en renommant la variable pour masquer le
 motif.
+
+## 7. OCP présentation : pas de nouveau couplage dans un composant (#325 / #330)
+
+**Aucun composant ni aucune vue n'apprend l'existence du mode d'établissement.**
+Un composant reçoit des données déjà normalisées. Le point de résolution est le
+composable (ou le service qu'il consomme).
+
+Sous `src/components/**` et `src/views/**` sont refusés :
+
+- le mot `klassci` sous toutes ses casses (y compris `klassci_*` comme clé) ;
+- `isStandalone`, `institution.mode` ;
+- le couplage de forme : `programmation`, `matiere_nom` / `classe_nom` /
+  `enseignant_nom`, rôles bruts `'superAdmin'` / `'secretaire'`.
+
+```vue
+<option :value="enseignant.klassci_id">     <!-- ❌ -->
+<option :value="enseignant.id">             <!-- ✅ id déjà résolu en amont -->
+{{ seance.programmation?.date }}            <!-- ❌ enveloppe KLASSCI -->
+{{ seance.date }}                           <!-- ✅ plat, normalisé à la frontière -->
+```
+
+**Garde automatique** — `npm run lint:ocp` (exécuté en CI sur chaque PR vers
+`dev`/`main`) fait **échouer** tout nouveau couplage. Mécanisme :
+
+- **Ratchet sur baseline figée.** Les hits legacy sont gelés dans
+  `.ocp-baseline.json`. **Tout nouveau** hit (ou occurrence surnuméraire) échoue.
+  La baseline ne fait que se resserrer.
+- **Dénominateur imprimé** : `N files inspected`. Si N = 0, sortie **2** — ce
+  n'est pas un vert.
+- **Allow-list** : `InstitutionFormModal.vue` configure l'intégration elle-même ;
+  ce n'est pas une dérogation art. 7, c'est le périmètre de la garde.
+- Les commentaires `//` ne sont pas analysés.
+
+**Si un couplage est vraiment inévitable** : trois demandes explicites et
+distinctes au mainteneur (épique #325 art. 7), ADR daté, puis
+`npm run lint:ocp:baseline`. Ne jamais élargir la baseline pour faire passer un
+écran neuf.
