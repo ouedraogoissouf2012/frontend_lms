@@ -108,6 +108,26 @@ describe('useAdminEvaluationDetails (#H3)', () => {
     })
   })
 
+  it('#321 : places_occupees null ne zéroïse plus le total quand nb_etudiants existe', async () => {
+    // Éval sans soumission → buildEmptyStatistiques. `places_occupees` null (référentiel
+    // non chargé, convention « null = non mesuré ») NE DOIT PAS masquer nb_etudiants.
+    getMock.mockResolvedValueOnce({
+      success: true,
+      data: {
+        id: 42,
+        titre: 'Éval planifiée',
+        submissions_count: 0,
+        classe: { places_occupees: null, nb_etudiants: 30 },
+      },
+    })
+
+    const c = await setup()
+
+    expect(c.statistiques.value.total_etudiants).toBe(30) // avant #321 : 0 (Number(null)===0)
+    expect(c.statistiques.value.etudiants_non_passes).toBe(30) // 30 - 0 soumis
+    expect(c.statistiques.value.taux_participation).toBe(0) // 0/30
+  })
+
   it('n’appelle pas results-by-class quand aucune soumission n’existe', async () => {
     getMock.mockResolvedValueOnce({
       success: true,

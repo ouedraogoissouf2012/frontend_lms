@@ -2,6 +2,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '@/services/api'
 import { endpoints } from '@/services/endpoints'
+import { coalesceNumber } from '@/utils/coalesceNumber'
 
 /**
  * Couche données d'AdminEvaluationDetails (#H3 ≤300) : lit l'id d'évaluation dans
@@ -25,12 +26,15 @@ export function useAdminEvaluationDetails() {
 
   function buildEmptyStatistiques(evaluationData = {}) {
     const soumis = getSubmissionsCount(evaluationData)
-    const total = firstNumber([
+    // #321 : coalesceNumber IGNORE null/'' (convention « null = non mesuré »), là où
+    // l'ancien firstNumber local comptait Number(null)===0 comme une mesure → un
+    // `places_occupees` null zéroïsait le total en masquant nb_etudiants/total_etudiants.
+    const total = coalesceNumber([
       evaluationData.classe?.places_occupees,
       evaluationData.classe?.nb_etudiants,
       evaluationData.total_etudiants,
       soumis
-    ])
+    ], 0)
 
     return {
       total_etudiants: total,
@@ -49,14 +53,6 @@ export function useAdminEvaluationDetails() {
     const count = Number(evaluationData.submissions_count)
     if (Number.isFinite(count)) return count
     if (Array.isArray(evaluationData.submissions)) return evaluationData.submissions.length
-    return 0
-  }
-
-  function firstNumber(values) {
-    for (const value of values) {
-      const number = Number(value)
-      if (Number.isFinite(number)) return number
-    }
     return 0
   }
 
