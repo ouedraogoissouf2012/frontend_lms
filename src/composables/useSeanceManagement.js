@@ -5,7 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 import { toast } from '@/composables/useToast'
 import { normalizeError } from '@/services/errorHandler'
 import lmsService from '@/services/lms'
-import { clearCache } from '@/services/cache'
+import { clearCacheByPrefix } from '@/services/cache'
 import { getVisioRoomId } from '@/constants/visio'
 import { useCoordinatorSeances } from '@/composables/useCoordinatorSeances'
 import { confirmVisioAction } from '@/services/visioFeedback'
@@ -71,8 +71,9 @@ export function useSeanceManagement() {
           seance.visio_room_id = getVisioRoomId(response.data)
         }
 
-        // Clear cache after update
-        clearCache('seances_management')
+        // Purge après maj : la clé séances est scopée par `days` (#315), donc on
+        // vide TOUTES les variantes `seances_management_d*`, pas une clé fixe.
+        clearCacheByPrefix('seances_management')
 
         toast.success(response.message || 'Visioconférence mise à jour')
       } else {
