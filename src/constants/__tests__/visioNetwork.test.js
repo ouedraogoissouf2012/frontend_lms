@@ -16,8 +16,11 @@
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import {
   VISIO_NETWORK_DEFAULTS,
+  VISIO_MODES,
   readNetworkProfile,
   jitsiConfigOverwrite,
+  jitsiConfigForMode,
+  megaoctetsParHeure,
 } from '@/constants/visioNetwork'
 
 afterEach(() => vi.unstubAllEnvs())
@@ -109,5 +112,61 @@ describe('constants/visioNetwork (#327)', () => {
     const config = jitsiConfigOverwrite()
     expect(config.prejoinConfig.enabled).toBe(false)
     expect(config.prejoinPageEnabled).toBe(false)
+  })
+
+  // ── Modes d'entree en salle (#328) ──────────────────────────────────────
+
+  /**
+   * `channelLastN: 0` est la seule facon, verifiee dans le config.js officiel,
+   * de ne recevoir AUCUN flux video. Si cette valeur derivait, le mode « audio
+   * seul » deviendrait un mensonge affiche a l'apprenant.
+   */
+  it('M1 — audio seul : aucun flux video recu ni envoye', () => {
+    const c = jitsiConfigForMode(VISIO_MODES.AUDIO)
+    expect(c.channelLastN).toBe(0)
+    expect(c.startWithVideoMuted).toBe(true)
+    expect(c.startLowBandwidthMode).toBe(true)
+    expect(megaoctetsParHeure(VISIO_MODES.AUDIO)).toBe(0)
+  })
+
+  it('M2 — economie : un seul flux recu, camera coupee', () => {
+    const c = jitsiConfigForMode(VISIO_MODES.ECONOME)
+    expect(c.channelLastN).toBe(1)
+    expect(c.startWithVideoMuted).toBe(true)
+    expect(c.startLowBandwidthMode).toBeUndefined()
+  })
+
+  it('M3 — complet : on retombe sur le profil, sans forcer la camera', () => {
+    const c = jitsiConfigForMode(VISIO_MODES.COMPLET)
+    expect(c.channelLastN).toBe(VISIO_NETWORK_DEFAULTS.CHANNEL_LAST_N)
+    expect(c.startWithVideoMuted).toBeUndefined()
+  })
+
+  /**
+   * L'ecran affiche ces nombres a l'apprenant. Un cout qui n'augmente pas avec
+   * le nombre de flux rendrait le choix arbitraire — donc inutile.
+   */
+  it('M4 — le cout croit strictement avec le nombre de flux recus', () => {
+    const audio = megaoctetsParHeure(VISIO_MODES.AUDIO)
+    const econome = megaoctetsParHeure(VISIO_MODES.ECONOME)
+    const complet = megaoctetsParHeure(VISIO_MODES.COMPLET)
+    expect(audio).toBeLessThan(econome)
+    expect(econome).toBeLessThan(complet)
+  })
+
+  it('M5 — le cout suit la resolution du profil', () => {
+    const en360 = megaoctetsParHeure(VISIO_MODES.ECONOME, { channelLastN: 1, videoHeight: 360, maxBitrateBps: 100000 })
+    const en180 = megaoctetsParHeure(VISIO_MODES.ECONOME, { channelLastN: 1, videoHeight: 180, maxBitrateBps: 100000 })
+    expect(en180).toBeLessThan(en360)
+  })
+
+  /**
+   * `startAudioOnly` n'existe PAS dans le config.js officiel de Jitsi (verifie).
+   * L'emettre serait une correction cosmetique : Jitsi ignore les cles inconnues.
+   */
+  it('M6 — aucune cle inventee : startAudioOnly n est jamais emis', () => {
+    for (const mode of Object.values(VISIO_MODES)) {
+      expect(jitsiConfigForMode(mode).startAudioOnly).toBeUndefined()
+    }
   })
 })

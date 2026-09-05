@@ -88,3 +88,80 @@ export function jitsiConfigOverwrite(profile = readNetworkProfile()) {
     videoQuality: { maxBitratesVideo: { low: profile.maxBitrateBps } },
   }
 }
+
+/**
+ * Modes d'entrée en salle (#328).
+ *
+ * ## Nommés par ce que Jitsi sait RÉELLEMENT imposer
+ *
+ * `channelLastN` borne le nombre de flux vidéo **reçus** ; il n'existe aucune
+ * clé permettant de recevoir le partage d'écran tout en refusant les caméras
+ * (vérifié contre le `config.js` officiel). Le mode intermédiaire ne peut donc
+ * pas promettre « les diapositives » : il promet **un seul flux**, qui sera le
+ * participant dominant — souvent l'écran partagé, pas toujours.
+ *
+ * Mieux vaut un nom exact qu'une promesse que la plateforme ne tient pas.
+ *
+ * Toutes les clés employées ici sont vérifiées présentes et top-level dans le
+ * `config.js` officiel : `channelLastN`, `startWithVideoMuted`,
+ * `startLowBandwidthMode`, `disableSelfView`. `startAudioOnly` **n'existe pas**
+ * et n'est donc pas utilisé.
+ */
+export const VISIO_MODES = Object.freeze({
+  AUDIO: 'audio',
+  ECONOME: 'econome',
+  COMPLET: 'complet',
+})
+
+/** `channelLastN` imposé par chaque mode. `null` = on garde celui du profil. */
+const FLUX_PAR_MODE = Object.freeze({
+  [VISIO_MODES.AUDIO]: 0,
+  [VISIO_MODES.ECONOME]: 1,
+  [VISIO_MODES.COMPLET]: null,
+})
+
+/**
+ * Débit d'un flux vidéo reçu, dérivé des paliers publiés par Jitsi
+ * (180p ≈ 200 kbit/s, 360p ≈ 500, 720p ≈ 2500).
+ */
+function debitParFlux(hauteur) {
+  if (hauteur <= 180) return 200000
+  if (hauteur <= 360) return 500000
+  return 2500000
+}
+
+/**
+ * Estimation du coût **vidéo reçu**, en mégaoctets par heure.
+ *
+ * Le premier flux arrive à la résolution demandée ; les suivants sont servis par
+ * la couche basse du simulcast — c'est la raison pour laquelle un flux
+ * supplémentaire ne coûte pas autant que le premier.
+ *
+ * ⚠️ **La part audio n'est PAS comptée** : Jitsi ne publie pas de débit audio de
+ * référence, et l'inventer donnerait un chiffre faux avec l'apparence du sérieux.
+ * L'interface doit donc présenter ce nombre comme la part vidéo, pas comme le
+ * total. La mesure réelle est demandée en `lms_backend#700`.
+ */
+export function megaoctetsParHeure(mode, profile = readNetworkProfile()) {
+  const flux = FLUX_PAR_MODE[mode] ?? profile.channelLastN
+  if (flux <= 0) return 0
+
+  const bps = debitParFlux(profile.videoHeight) + (flux - 1) * profile.maxBitrateBps
+  return Math.round((bps * 3600) / 8 / 1024 / 1024)
+}
+
+/** Configuration Jitsi du mode choisi. */
+export function jitsiConfigForMode(mode, profile = readNetworkProfile()) {
+  const base = jitsiConfigOverwrite(profile)
+  const flux = FLUX_PAR_MODE[mode]
+
+  if (flux === null || flux === undefined) return base
+
+  return {
+    ...base,
+    channelLastN: flux,
+    startWithVideoMuted: true,
+    disableSelfView: true,
+    ...(mode === VISIO_MODES.AUDIO ? { startLowBandwidthMode: true } : {}),
+  }
+}
