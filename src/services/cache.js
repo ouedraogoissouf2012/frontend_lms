@@ -78,6 +78,30 @@ export function clearCache(name) {
 }
 
 /**
+ * #315 — Purge TOUTES les entrées de l'utilisateur/institution courant dont le
+ * nom logique commence par `namePrefix`.
+ *
+ * Nécessaire quand une ressource scope sa clé par un paramètre (clé dynamique de
+ * `useCachedResource`, ex. `seances_management_d7`/`_d30`) : une purge par clé
+ * FIXE (`clearCache('seances_management')`) ne toucherait plus aucune variante.
+ * Scopée au user/institution comme {@link cacheKey} (le suffixe `_cache_<inst>_u<id>`
+ * borne la purge) — ne vide jamais le cache d'un autre utilisateur.
+ */
+export function clearCacheByPrefix(namePrefix) {
+  const institution = auth.getInstitution() || 'default'
+  const userId = auth.getUser()?.id ?? 'anon'
+  const suffix = `_cache_${institution}_u${userId}`
+  const keysToRemove = []
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i)
+    if (key && key.startsWith(namePrefix) && key.endsWith(suffix)) {
+      keysToRemove.push(key)
+    }
+  }
+  keysToRemove.forEach((key) => localStorage.removeItem(key))
+}
+
+/**
  * #237 — Clés de cache par entité KLASSCI (lecture seule côté LMS).
  *
  * La MÊME donnée (classes/matières/enseignants) est mise en cache sous plusieurs

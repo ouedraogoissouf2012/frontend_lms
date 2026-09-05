@@ -1,22 +1,27 @@
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import lmsService from '@/services/lms'
 import { klassciService } from '@/services/klassci'
-import { readCache, writeCache } from '@/services/cache'
 import { extractList } from '@/utils/apiList'
+import { useCachedResource } from '@/composables/useCachedResource'
 
 /**
  * Composable de données des séances côté coordinateur (G7).
  *
  * Encapsule l'état réactif (séances, classes, enseignants, filtres) et les
- * appels API de chargement (LMS + KLASSCI, avec cache `seances_management` et
- * rafraîchissement en arrière-plan). Extrait du god-component
- * `SeanceManagement.vue` — comportement, logs et clés de cache identiques.
+ * appels API de chargement (LMS + KLASSCI). Extrait du god-component
+ * `SeanceManagement.vue`.
+ *
+ * #224/#315 : le schéma cache + revalidation d'arrière-plan des séances est porté
+ * par `useCachedResource` (à la place du cache manuel `readCache`/`writeCache`).
+ * Mise en cache CONDITIONNELLE — seulement sans filtre enseignant/classe — et clé
+ * SCOPÉE par `days` (`seances_management_d<days>`) : `days` est un paramètre serveur
+ * qui ne rentre pas dans `noActiveFilter`, donc sans scoping passer de 30 à 7 jours
+ * servirait la liste 30 j périmée sous la même clé. La purge après toggle visio se
+ * fait via `clearCacheByPrefix('seances_management')` (cf. `useSeanceManagement`).
+ * `immediate: false` conserve le comportement d'origine : le composant déclenche le
+ * chargement (pas d'auto-load au setup).
  */
 export function useCoordinatorSeances() {
-  // État réactif
-  const loading = ref(false)
-  const error = ref(null)
-  const seances = ref([])
   const classes = ref([])
   const enseignants = ref([])
   const filters = reactive({
@@ -24,6 +29,9 @@ export function useCoordinatorSeances() {
     teacher_id: null,
     classe_id: null
   })
+
+  // Le cache n'est valide que pour la liste NON filtrée (par enseignant/classe).
+  const noActiveFilter = () => !filters.teacher_id && !filters.classe_id
 
   const loadClasses = async () => {
     try {
@@ -51,78 +59,44 @@ export function useCoordinatorSeances() {
     }
   }
 
-  const loadSeances = async () => {
-    // Try cache first
-    if (!filters.teacher_id && !filters.classe_id) {
-      const cachedEntry = readCache('seances_management')
-      if (cachedEntry !== null && cachedEntry.filterState?.days === filters.days) {
-        console.log('[CACHE] Séances chargées depuis le cache')
-        seances.value = cachedEntry.data
-        loading.value = false
-        refreshInBackground()
-        return
-      }
-    }
+  /**
+   * Récupère les séances selon les filtres courants. Rejette (avec `userMessage`)
+   * sur erreur réseau ou `success:false`, pour que `useCachedResource` renseigne
+   * `error` en conservant l'affichage précédent. Préserve les messages d'origine.
+   */
+  async function fetchSeances() {
+    const params = {}
+    if (filters.days) params.days = filters.days
+    if (filters.teacher_id) params.teacher_id = filters.teacher_id
+    if (filters.classe_id) params.classe_id = filters.classe_id
 
-    loading.value = true
-    error.value = null
-
+    let data
     try {
-      console.log('[SEANCES] Chargement à venir...')
-
-      const params = {}
-      if (filters.days) params.days = filters.days
-      if (filters.teacher_id) params.teacher_id = filters.teacher_id
-      if (filters.classe_id) params.classe_id = filters.classe_id
-
-      const data = await lmsService.getUpcomingSeances(params)
-
-      console.log('[OK] Séances reçues:', data)
-
-      if (data.success) {
-        seances.value = Array.isArray(data.data) ? data.data : (data.data.seances || [])
-        console.log(`[OK] ${seances.value.length} séances chargées`)
-
-        // Save to cache only if no filters applied
-        if (!filters.teacher_id && !filters.classe_id) {
-          writeCache('seances_management', {
-            data: seances.value,
-            filterState: { days: filters.days }
-          })
-        }
-      } else {
-        error.value = 'Erreur lors du chargement des séances'
-      }
+      data = await lmsService.getUpcomingSeances(params)
     } catch (err) {
-      console.error('[ERREUR] Chargement séances:', err)
-      error.value = 'Impossible de charger les séances. Veuillez réessayer.'
-    } finally {
-      loading.value = false
+      err.userMessage = 'Impossible de charger les séances. Veuillez réessayer.'
+      throw err
     }
+
+    if (!data.success) {
+      const err = new Error('Erreur lors du chargement des séances')
+      err.userMessage = 'Erreur lors du chargement des séances'
+      throw err
+    }
+
+    return Array.isArray(data.data) ? data.data : (data.data.seances || [])
   }
 
-  // Refresh in background
-  async function refreshInBackground() {
-    try {
-      console.log('[BACKGROUND] Rafraîchissement séances...')
+  const { data, loading, error, load, refresh } = useCachedResource(
+    () => `seances_management_d${filters.days}`,
+    fetchSeances,
+    { cacheable: noActiveFilter, immediate: false }
+  )
 
-      const params = { days: filters.days }
-      const data = await lmsService.getUpcomingSeances(params)
+  const seances = computed(() => data.value ?? [])
 
-      if (data.success) {
-        seances.value = Array.isArray(data.data) ? data.data : (data.data.seances || [])
-
-        writeCache('seances_management', {
-          data: seances.value,
-          filterState: { days: filters.days }
-        })
-
-        console.log('[BACKGROUND] Rafraîchissement terminé')
-      }
-    } catch (error) {
-      console.warn('[BACKGROUND] Erreur rafraîchissement:', error)
-    }
-  }
+  // Appelée au montage ET à chaque changement de filtre par le composant.
+  const loadSeances = () => load()
 
   return {
     loading,
@@ -134,6 +108,7 @@ export function useCoordinatorSeances() {
     loadClasses,
     loadEnseignants,
     loadSeances,
-    refreshInBackground
+    // Conservé pour compat d'API ; revalidation d'arrière-plan via le socle.
+    refreshInBackground: refresh
   }
 }

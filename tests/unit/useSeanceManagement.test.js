@@ -10,7 +10,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const toggleVisio = vi.fn()
 const deleteSeance = vi.fn()
 const routerPush = vi.fn()
-const clearCache = vi.fn()
+const clearCacheByPrefix = vi.fn()
 const toastError = vi.fn()
 const storeJoinVisio = vi.fn()
 const confirmVisioAction = vi.fn()
@@ -27,7 +27,7 @@ vi.mock('@/services/lms', () => ({
 vi.mock('@/services/klassci', () => ({
   klassciService: new Proxy({}, { get: () => vi.fn().mockResolvedValue([]) })
 }))
-vi.mock('@/services/cache', () => ({ readCache: () => null, writeCache: vi.fn(), clearCache: (...a) => clearCache(...a) }))
+vi.mock('@/services/cache', () => ({ readCache: () => null, readCacheStale: () => ({ data: null }), writeCache: vi.fn(), clearCacheByPrefix: (...a) => clearCacheByPrefix(...a) }))
 vi.mock('@/stores/auth', () => ({
   useAuthStore: () => ({ currentUser: { id: 1, role: 'coordinateur', name: 'Coord' } })
 }))
@@ -63,7 +63,7 @@ describe('useSeanceManagement (#H6)', () => {
     toggleVisio.mockReset()
     deleteSeance.mockReset()
     routerPush.mockReset()
-    clearCache.mockReset()
+    clearCacheByPrefix.mockReset()
     toastError.mockReset()
     storeJoinVisio.mockReset()
     storeJoinVisio.mockResolvedValue({ success: true })
@@ -79,7 +79,7 @@ describe('useSeanceManagement (#H6)', () => {
     expect(toggleVisio).toHaveBeenCalledWith(3, true, 'jitsi')
     expect(seance.visio_enabled).toBe(true)
     expect(seance.visio_room_id).toBe('room-3-api')
-    expect(clearCache).toHaveBeenCalledWith('seances_management')
+    expect(clearCacheByPrefix).toHaveBeenCalledWith('seances_management')
   })
 
   it('showParticipants ouvre la modal sur la bonne séance', async () => {
