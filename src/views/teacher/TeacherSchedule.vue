@@ -36,7 +36,7 @@ import { notifyVisioError } from '@/services/visioFeedback'
 const router = useRouter()
 const calendarRef = ref(null)
 const { joinTrackedVisio } = useTrackedVisioJoin('Enseignant')
-const { currentUser, actorId } = useScheduleActorId('teacher')
+const { currentUser, actorId } = useScheduleActorId()
 
 async function handleEventAction({ type, data }) {
   console.log('[TeacherSchedule] Action:', type, data)
