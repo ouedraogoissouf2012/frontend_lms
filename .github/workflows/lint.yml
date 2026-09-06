@@ -213,6 +213,12 @@ jobs:
       - name: Build production bundle
         run: npm run build
 
+      # #340 : aucune fonte non-woff2 (eot/ttf/svg/woff) ne doit être émise dans
+      # dist/assets. Le plugin Vite `strip-dead-icon-fonts` les retire à la source ;
+      # ce garde-fou échoue si un format mort réapparaît (~962 Ko de poids mort).
+      - name: Check no dead icon fonts in dist
+        run: npm run lint:fonts
+
   # 6) SAST (issue #241) : analyse statique de sécurité du code source front via
   #    Semgrep (règles OSS security-audit + javascript), pour combler l'asymétrie
   #    avec le backend (Semgrep déjà en CI). Bloque UNIQUEMENT sur les findings de
