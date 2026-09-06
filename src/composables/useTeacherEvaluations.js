@@ -1,6 +1,7 @@
 import { ref, reactive, computed } from 'vue'
 import klassciService from '@/services/klassci'
 import evaluationService from '@/services/evaluation'
+import { fetchTeacherMatieres } from '@/services/teacherReferentials'
 import { readCache, writeCache } from '@/services/cache'
 import {
   mergeWithOnlineVersions,
@@ -73,8 +74,8 @@ export function useTeacherEvaluations() {
       return
     }
     try {
-      const data = await klassciService.getMatieres()
-      matieres.value = Array.isArray(data) ? data : []
+      // #315 : source + forme canoniques (partagées avec useTeacherLessons/Seances).
+      matieres.value = await fetchTeacherMatieres()
       writeCache('teacher_matieres', matieres.value)
     } catch (err) {
       console.error('[ERREUR] Chargement matières:', err)
