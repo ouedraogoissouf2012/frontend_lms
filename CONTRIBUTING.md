@@ -64,6 +64,7 @@ npm run lint:size     # garde anti-régression fichiers > 300 lignes (#195)
 npm run lint:dewrap   # garde anti-régression dé-wrap d'enveloppe ad hoc (#296)
 npm run lint:ocp      # garde OCP présentation : pas de nouveau couplage (#325/#330)
 npm run build         # build prod (vérifie le code splitting)
+npm run lint:fonts    # après build : aucune fonte non-woff2 émise dans dist (#340)
 ```
 
 > Note : un chunk reste > 500 kB (`LessonChapters`, éditeur riche embarqué).
@@ -190,3 +191,21 @@ Sous `src/components/**` et `src/views/**` sont refusés :
 distinctes au mainteneur (épique #325 art. 7), ADR daté, puis
 `npm run lint:ocp:baseline`. Ne jamais élargir la baseline pour faire passer un
 écran neuf.
+
+## 8. Fontes d'icônes : woff2 uniquement dans `dist` (#340)
+
+Les CSS d'icônes vendored (`font-awesome`, `material-icons`) déclarent leurs
+`@font-face` en multi-format (`eot`/`ttf`/`svg`/`woff`/`woff2`). Le runtime ne
+télécharge déjà que le woff2 (override `@font-face`, #341/#295), mais Vite
+**émettait** tous les formats dans `dist/assets` (~962 Ko de poids mort).
+
+**Correctif** — le plugin Vite `strip-dead-icon-fonts` (`enforce: 'pre'`,
+`scripts/vite-strip-dead-fonts.mjs`) retire les sources non-woff2 des `@font-face`
+de ces CSS **avant** que `vite:css` ne scanne/émette les `url()`. Un plugin PostCSS
+classique ne suffit PAS : il s'exécute *après* le scan d'assets de Vite (le CSS
+final était bien woff2-only, mais les fichiers morts étaient quand même émis).
+
+**Garde automatique** — `npm run lint:fonts` (après `npm run build`, exécuté en CI
+dans le job build) échoue si `dist/assets` contient une fonte non-woff2
+(`eot`/`ttf`/`otf`/`woff`, ou un `.svg` de fonte d'icône connue). Cible : **0**.
+Une police non-woff2 légitime (rare) suppose d'ajuster `scripts/check-dist-fonts.mjs`.
