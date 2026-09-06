@@ -40,6 +40,8 @@
           @save="savePreferences"
         />
 
+        <VisioConsentSettings />
+
         <!-- Sécurité -->
         <div class="settings-section">
           <div class="section-header">
@@ -93,6 +95,7 @@ import ThemeToggle from '@/components/ui/ThemeToggle.vue'
 import SettingsPersonalInfo from '@/components/teacher/SettingsPersonalInfo.vue'
 import SettingsNotifications from '@/components/teacher/SettingsNotifications.vue'
 import PasswordChangeModal from '@/components/teacher/PasswordChangeModal.vue'
+import VisioConsentSettings from '@/components/visio/VisioConsentSettings.vue'
 import {
   AdjustmentsHorizontalIcon,
   LockClosedIcon,

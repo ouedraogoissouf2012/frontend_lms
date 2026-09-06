@@ -65,6 +65,8 @@
           @change="savePreferences"
         />
 
+        <VisioConsentSettings />
+
         <!-- Sécurité -->
         <div class="settings-section">
           <div class="section-header">
@@ -111,6 +113,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ThemeToggle from '@/components/ui/ThemeToggle.vue'
 import SettingsNotifications from '@/components/student/SettingsNotifications.vue'
 import SettingsPasswordModal from '@/components/student/SettingsPasswordModal.vue'
+import VisioConsentSettings from '@/components/visio/VisioConsentSettings.vue'
 import {
   UserIcon,
   AdjustmentsHorizontalIcon,

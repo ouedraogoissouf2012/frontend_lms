@@ -41,8 +41,13 @@ vi.mock('@/services/visioFeedback', () => ({
   notifyVisioWarning: mockNotifyWarning,
 }))
 
+vi.mock('@/services/cache', () => ({
+  cacheKey: (name) => `${name}_test`,
+}))
+
 import { useVisioRecordingControls } from '@/composables/useVisioRecordingControls'
 import { useVisioStore } from '@/stores/visio'
+import { resetVisioConsentForTests, useVisioConsent } from '@/composables/useVisioConsent'
 
 function controls() {
   return useVisioRecordingControls({
@@ -55,6 +60,9 @@ function controls() {
 
 beforeEach(() => {
   setActivePinia(createPinia())
+  localStorage.clear()
+  resetVisioConsentForTests()
+  useVisioConsent().enregistrer({ captation: true, diffusion: false, reutilisation: false })
   mockStartVisioRecording.mockReset().mockResolvedValue({ success: true, data: {} })
   mockStopVisioRecording.mockReset().mockResolvedValue({ success: true, data: {} })
   mockGetVisioRecording.mockReset().mockResolvedValue({ success: true, data: { status: 'idle' } })
@@ -70,6 +78,18 @@ describe('contrôles d\'enregistrement — le bouton commande la salle (#673)', 
    * exactement l'enregistrement fantôme du 2026-09-02 : une ligne
    * `status='recording'` pendant que Jibri reste `IDLE`.
    */
+  it('#333 — sans recueil, démarrer ne commande pas la salle', async () => {
+    resetVisioConsentForTests()
+    const store = useVisioStore()
+    const startRecording = vi.fn()
+    store.registerRoomCommands({ startRecording, stopRecording: vi.fn() })
+
+    await controls().startRecording()
+
+    expect(startRecording).not.toHaveBeenCalled()
+    expect(mockNotifyWarning).toHaveBeenCalled()
+  })
+
   it('C1 — démarrer n\'appelle JAMAIS le backend directement', async () => {
     const store = useVisioStore()
     const startRecording = vi.fn().mockResolvedValue(undefined)

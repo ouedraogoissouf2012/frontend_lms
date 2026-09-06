@@ -48,9 +48,13 @@ vi.mock('@/stores/visio', () => ({
 vi.mock('@/composables/useToast', () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), warning: vi.fn() } }))
 vi.mock('@/services/errorHandler', () => ({ normalizeError: () => ({ userMessage: 'err' }) }))
 vi.mock('@/services/confirmDialog', () => ({ confirmDialog: (...a) => confirmDialog(...a) }))
+vi.mock('@/services/cache', () => ({
+  cacheKey: (name) => `${name}_test`,
+}))
 
 import { useSeanceDetails } from '@/composables/useSeanceDetails'
 import { toast } from '@/composables/useToast'
+import { resetVisioConsentForTests, useVisioConsent } from '@/composables/useVisioConsent'
 
 const mountedWrappers = []
 
@@ -65,6 +69,9 @@ async function setup() {
 describe('useSeanceDetails (#H6)', () => {
   beforeEach(() => {
     vi.unstubAllEnvs()
+    localStorage.clear()
+    resetVisioConsentForTests()
+    useVisioConsent().enregistrer({ captation: true, diffusion: false, reutilisation: false })
     getSeanceDetails.mockReset()
     startVisio.mockReset()
     getVisioRecording.mockReset()

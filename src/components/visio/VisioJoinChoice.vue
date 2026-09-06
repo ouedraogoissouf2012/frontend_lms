@@ -32,9 +32,11 @@
         par Jitsi. L'audio s'y ajoute&nbsp;; il n'est pas compté ici faute de chiffre officiel.
       </p>
 
+      <VisioConsentFields />
+
       <div class="mode-choix__actions">
         <BaseButton variant="secondary" @click="$emit('annuler')">Ne pas rejoindre</BaseButton>
-        <BaseButton variant="primary" @click="$emit('rejoindre', profil.choisi.value)">
+        <BaseButton variant="primary" @click="confirmer">
           Rejoindre le cours
         </BaseButton>
       </div>
@@ -45,7 +47,9 @@
 <script setup>
 import { computed } from 'vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
+import VisioConsentFields from '@/components/visio/VisioConsentFields.vue'
 import { useNetworkProfile } from '@/composables/useNetworkProfile'
+import { useVisioConsent } from '@/composables/useVisioConsent'
 import { VISIO_MODES, megaoctetsParHeure } from '@/constants/visioNetwork'
 
 /**
@@ -68,9 +72,15 @@ import { VISIO_MODES, megaoctetsParHeure } from '@/constants/visioNetwork'
  * consommation mobile reelle d'environ 2 Go par mois dans les economies a
  * faible revenu, tous usages confondus.
  */
-defineEmits(['rejoindre', 'annuler'])
+const emit = defineEmits(['rejoindre', 'annuler'])
 
 const profil = useNetworkProfile()
+const consent = useVisioConsent()
+
+function confirmer() {
+  consent.enregistrer(consent.choix.value)
+  emit('rejoindre', profil.choisi.value)
+}
 
 const options = computed(() => [
   {

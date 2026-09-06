@@ -12,6 +12,7 @@ import {
   notifyVisioSuccess,
   notifyVisioWarning,
 } from '@/services/visioFeedback'
+import { useVisioConsent } from '@/composables/useVisioConsent'
 
 function canManage(canManageRecording) {
   return typeof canManageRecording === 'function'
@@ -93,6 +94,10 @@ export function useVisioRecordingControls({
       notifyVisioWarning("L'enregistrement est disponible uniquement pendant une séance active.")
       return false
     }
+    if (!useVisioConsent().enregistrementAutorise.value) {
+      notifyVisioWarning('Le consentement doit être recueilli avant tout enregistrement.')
+      return false
+    }
     return true
   }
 
@@ -100,7 +105,7 @@ export function useVisioRecordingControls({
     if (recordingActionLoading.value || !ensureCanRecord()) return
 
     const confirmed = await confirmVisioAction(
-      "Démarrer l'enregistrement de cette séance ? Les participants verront la bannière de consentement.",
+      "Démarrer l'enregistrement de cette séance ?",
       { confirmLabel: 'Démarrer' }
     )
     if (!confirmed) return
