@@ -83,9 +83,9 @@
 import { ref, watch, onMounted, computed } from 'vue'
 import Modal from '@/components/ui/Modal.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
-import { klassciService } from '@/services/klassci'
 import api from '@/services/api'
 import { toast } from '@/composables/useToast'
+import { useReportCatalog } from '@/composables/useReportCatalog'
 import { endpoints } from '@/services/endpoints'
 
 const props = defineProps({
@@ -100,8 +100,7 @@ const emit = defineEmits(['update:modelValue', 'generated'])
 const isOpen = ref(props.modelValue)
 const loading = ref(false)
 const error = ref(null)
-const classes = ref([])
-const matieres = ref([])
+const { classes, matieres, loadCatalog } = useReportCatalog()
 
 const today = computed(() => {
   return new Date().toISOString().split('T')[0]
@@ -143,12 +142,7 @@ function resetForm() {
 
 async function loadData() {
   try {
-    const [classesData, matieresData] = await Promise.all([
-      klassciService.getClasses(),
-      klassciService.getMatieres()
-    ])
-    classes.value = classesData
-    matieres.value = matieresData
+    await loadCatalog()
   } catch (err) {
     console.error('Erreur chargement données:', err)
   }
