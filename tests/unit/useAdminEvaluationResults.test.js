@@ -31,15 +31,19 @@ vi.mock('@/services/api', () => ({
           ],
         })
       }
-      // Enveloppe KLASSCI à clé nommée { data: { classes: [...] } } : l'ancien
-      // `classesResponse.data || []` renvoyait l'OBJET (bug) ; extractList(_, ['classes'])
-      // extrait bien le tableau. Ce mock verrouille cette robustesse (#276).
-      if (url === '/proxy/classes') return Promise.resolve({ data: { classes: [{ id: 5, name: '6e A' }] } })
-      if (url === '/proxy/matieres') return Promise.resolve({ data: { matieres: [{ id: 7, nom: 'Maths' }] } })
       return Promise.resolve({ data: [] })
     }),
   },
   auth: { getUser: () => ({ role: 'coordinateur' }) },
+}))
+
+// #296 : classes/matières viennent désormais du service KLASSCI (déjà normalisé
+// à la frontière) — le composable ne dé-wrappe plus l'enveloppe lui-même.
+vi.mock('@/services/klassci', () => ({
+  klassciService: {
+    getClasses: vi.fn(() => Promise.resolve([{ id: 5, name: '6e A' }])),
+    getMatieres: vi.fn(() => Promise.resolve([{ id: 7, nom: 'Maths' }])),
+  },
 }))
 
 import { useAdminEvaluationResults } from '@/composables/useAdminEvaluationResults'
@@ -61,7 +65,7 @@ describe('useAdminEvaluationResults (#H3)', () => {
     expect(c.enseignants.value[0].name).toBe('Alain') // trié par nom
   })
 
-  it('extrait classes & matières même en enveloppe nommée { data: { classes: [...] } } (#276)', async () => {
+  it('récupère classes & matières via le service KLASSCI normalisé (#296)', async () => {
     const c = await setup()
     expect(c.classes.value).toEqual([{ id: 5, name: '6e A' }])
     expect(c.matieres.value).toEqual([{ id: 7, nom: 'Maths' }])

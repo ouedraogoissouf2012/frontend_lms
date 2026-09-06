@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import api, { auth } from '@/services/api'
 import { hasRole, ROLES } from '@/constants/roles'
 import { endpoints } from '@/services/endpoints'
+import { klassciService } from '@/services/klassci'
 import { extractList } from '@/utils/apiList'
 
 /**
@@ -110,14 +111,15 @@ export function useAdminEvaluationResults() {
       })
       enseignants.value = Array.from(enseignantsMap.values()).sort((a, b) => a.name.localeCompare(b.name))
 
-      // Charger classes et matières
-      const [classesResponse, matieresResponse] = await Promise.all([
-        api.get(endpoints.klassci.classes),
-        api.get(endpoints.klassci.matieres)
+      // Classes et matières via le service KLASSCI (déjà normalisé à la frontière
+      // #343) : plus de dé-wrap d'enveloppe nommée ad hoc côté composable (#296).
+      const [classesList, matieresList] = await Promise.all([
+        klassciService.getClasses(),
+        klassciService.getMatieres()
       ])
 
-      classes.value = extractList(classesResponse, ['classes'])
-      matieres.value = extractList(matieresResponse, ['matieres'])
+      classes.value = classesList
+      matieres.value = matieresList
 
     } catch (err) {
       console.error('Erreur chargement données:', err)
