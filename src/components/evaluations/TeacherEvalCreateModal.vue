@@ -7,7 +7,7 @@
   >
     <div class="modal-info">
       <p class="info-text">
-        <strong>Évaluation KLASSCI:</strong> {{ evaluation?.titre }}
+        <strong>Évaluation :</strong> {{ evaluation?.titre }}
       </p>
       <p class="info-text">
         <strong>Matière:</strong> {{ evaluation?.matiere?.nom || evaluation?.matiere?.name }}

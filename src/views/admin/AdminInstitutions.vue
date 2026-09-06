@@ -5,7 +5,7 @@
       <div class="header-section">
         <div class="header-content">
           <h1 class="page-title">Gestion des Institutions</h1>
-          <p class="page-subtitle">Administration globale des institutions KLASSCI</p>
+          <p class="page-subtitle">Administration globale des institutions</p>
         </div>
         <div class="header-actions">
           <button @click="loadInstitutions" class="refresh-btn" :disabled="loading">

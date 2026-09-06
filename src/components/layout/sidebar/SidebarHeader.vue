@@ -9,7 +9,7 @@
         </svg>
       </div>
       <transition name="fade">
-        <span v-if="!isCollapsed" class="logo-text">KLASSCI</span>
+        <span v-if="!isCollapsed" class="logo-text">{{ productName }}</span>
       </transition>
     </div>
     <button class="collapse-btn" :title="isCollapsed ? 'Expand' : 'Collapse'">
@@ -21,12 +21,16 @@
 
 <script setup>
 /**
- * En-tête de la sidebar (#H12) : logo KLASSCI + bouton de repli. Présentationnel :
+ * En-tête de la sidebar (#H12) : logo produit + bouton de repli. Présentationnel :
  * reçoit `isCollapsed`, émet `toggle` au clic (parité avec toggleSidebar).
  */
+import { useBrand } from '@/composables/useBrand'
+
 defineProps({
   isCollapsed: { type: Boolean, default: false }
 })
+
+const { productName } = useBrand()
 
 defineEmits(['toggle'])
 </script>

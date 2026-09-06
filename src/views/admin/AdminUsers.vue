@@ -55,7 +55,7 @@
             Aucun résultat pour les filtres sélectionnés. Essayez de modifier vos critères.
           </p>
           <p class="empty-message" v-else>
-            Aucun utilisateur n'a été trouvé dans le système KLASSCI.
+            Aucun utilisateur n'a été trouvé.
           </p>
         </div>
 

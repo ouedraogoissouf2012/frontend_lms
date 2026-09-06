@@ -33,12 +33,12 @@
       >
         <ExclamationTriangleIcon class="dashboard-error-icon" />
         <span>{{ loadError }}</span>
-        <button class="dashboard-error-retry" @click="loadKlassciData()">Réessayer</button>
+        <button class="dashboard-error-retry" @click="loadDashboard()">Réessayer</button>
       </div>
 
       <!-- Dashboard Content -->
       <div v-if="!loading.stats && !loading.classes && !loading.matieres">
-        <!-- Statistiques Admin depuis KLASSCI -->
+        <!-- Statistiques admin -->
         <DashboardStatsCards v-if="stats" v-reveal="70" :stats="stats" />
 
         <!-- Widget Graphe Activité (30 jours) -->
@@ -65,7 +65,7 @@
           :is-admin="isAdmin()"
         />
 
-        <!-- Classes KLASSCI -->
+        <!-- Classes -->
         <DashboardClasses
           v-reveal
           :classes="classes"
@@ -84,7 +84,7 @@
           <CalendarWidget :events="calendarEvents" height="500px" />
         </div>
 
-        <!-- Matières KLASSCI -->
+        <!-- Matières -->
         <DashboardMatieres
           v-reveal
           :matieres="matieres"
@@ -133,7 +133,7 @@ const {
   activityData, pendingTasks, recentUsers, calendarEvents,
   showGenerateReportModal, loading, loadError,
   navigateTo, handleReportGenerated, getDashboardTitle,
-  isCoordinateur, isTeacher, isAdmin, loadKlassciData,
+  isCoordinateur, isTeacher, isAdmin, loadDashboard,
 } = useAdminDashboard()
 </script>
 

@@ -19,7 +19,7 @@
         Aujourd'hui
       </button>
 
-      <button class="refresh-button" @click="$emit('refresh')" :disabled="refreshing" title="Actualiser les donnees depuis KLASSCI">
+      <button class="refresh-button" @click="$emit('refresh')" :disabled="refreshing" title="Actualiser les données">
         <i class="material-icons" :class="{ 'spin': refreshing }">sync</i>
         {{ refreshing ? 'Chargement...' : 'Actualiser' }}
       </button>

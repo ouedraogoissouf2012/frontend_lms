@@ -22,7 +22,7 @@ describe('EnseignantCard (#G1)', () => {
     expect(w.find('.enseignant-name').text()).toBe('Zoé Prof')
     expect(w.find('.enseignant-email').text()).toBe('zoe@e.com')
     const values = w.findAll('.detail-value').map(n => n.text())
-    expect(values).toEqual(['1', '2', '0102030405', 'K-42'])
+    expect(values).toEqual(['1', '2', '0102030405'])
   })
 
   it('affiche les tags matières et classes (pluriel)', () => {
@@ -37,7 +37,7 @@ describe('EnseignantCard (#G1)', () => {
     expect(w.emitted('view')[0][0]).toMatchObject({ id: 1, nom: 'Zoé' })
   })
 
-  it('masque téléphone/KLASSCI ID et tags quand absents/vides', () => {
+  it('masque téléphone et tags quand absents/vides', () => {
     const w = mount(EnseignantCard, {
       props: { enseignant: { id: 2, nom: 'Sans', prenom: 'Cours', matieres: [] } },
     })

@@ -32,13 +32,7 @@
           </div>
         </div>
 
-        <div class="info-item">
-          <IdentificationIcon class="info-icon" />
-          <div class="info-content">
-            <label class="info-label">ID Klassci</label>
-            <p class="info-value">{{ user?.klassci_id || 'Non renseigné' }}</p>
-          </div>
-        </div>
+
 
         <div class="info-item">
           <CalendarIcon class="info-icon" />
@@ -62,7 +56,6 @@ import {
   UserIcon,
   EnvelopeIcon,
   PhoneIcon,
-  IdentificationIcon,
   CalendarIcon,
 } from '@heroicons/vue/24/outline'
 
