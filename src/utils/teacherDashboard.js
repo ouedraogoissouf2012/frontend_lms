@@ -187,8 +187,10 @@ export function hasDashboardContent(data) {
 }
 
 export async function buildTeacherDashboardFallback(lmsService, currentUser) {
+  // #296 : ces méthodes lms* normalisent désormais en tableau à la frontière →
+  // plus de `keys`. `extractList` reste seulement pour le null-safe (`.catch(()=>null)`).
   const enseignantsResponse = await lmsService.getEnseignants(true).catch(() => null)
-  const currentTeacher = findCurrentTeacher(extractList(enseignantsResponse, ['enseignants']), currentUser)
+  const currentTeacher = findCurrentTeacher(extractList(enseignantsResponse), currentUser)
   if (currentTeacher) {
     const teacherDashboard = buildDashboardFromTeacher(currentTeacher)
     if (hasDashboardContent(teacherDashboard)) return teacherDashboard
@@ -199,10 +201,10 @@ export async function buildTeacherDashboardFallback(lmsService, currentUser) {
     lmsService.getMyTeachingSeances().catch(() => null),
   ])
 
-  const matieres = extractList(matieresResponse, ['matieres'])
+  const matieres = extractList(matieresResponse)
   const rawClasses = collectClassesFromMatieres(matieres)
   const classes = enrichTeacherClasses(rawClasses, matieres)
-  const seances = extractList(seancesResponse, ['seances'])
+  const seances = extractList(seancesResponse)
 
   return normalizeTeacherDashboard({
     matieres,

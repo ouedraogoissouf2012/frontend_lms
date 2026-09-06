@@ -30,7 +30,8 @@ function mountView() {
 describe('TeacherMatieres (G10) — montage', () => {
   beforeEach(() => {
     getMyMatieres.mockReset()
-    getMyMatieres.mockResolvedValue({ success: true, data: [] })
+    // #296 : getMyMatieres renvoie un tableau normalisé à la frontière.
+    getMyMatieres.mockResolvedValue([])
   })
 
   it('monte sans erreur et charge les matières au montage', async () => {

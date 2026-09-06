@@ -1,7 +1,6 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import lmsService from '@/services/lms'
-import { extractList } from '@/utils/apiList'
 
 /**
  * Couche donnees de TeacherMatieres (#H9 ≤300). Charge les matieres de
@@ -19,22 +18,10 @@ export function useTeacherMatieres() {
 
     try {
       console.log('[TeacherMatieres] Chargement des matières...')
-      const response = await lmsService.getMyMatieres()
-
-      console.log('[TeacherMatieres] Response reçue:', response)
-
-      if (response && response.success) {
-        matieres.value = extractList(response)
-        console.log('[TeacherMatieres] Matières chargées:', matieres.value.length)
-
-        // Log détaillé pour debug
-        if (matieres.value.length > 0) {
-          console.log('[TeacherMatieres] Première matière:', matieres.value[0])
-        }
-      } else {
-        error.value = response?.message || 'Erreur de chargement'
-        console.error('[TeacherMatieres] Success = false:', response)
-      }
+      // #296 : getMyMatieres renvoie désormais un tableau normalisé à la frontière
+      // (plus de dé-wrap ni de garde `.success` côté composable).
+      matieres.value = await lmsService.getMyMatieres()
+      console.log('[TeacherMatieres] Matières chargées:', matieres.value.length)
     } catch (err) {
       console.error('[TeacherMatieres] Erreur:', err)
       error.value = 'Impossible de charger les matières'
