@@ -1,9 +1,8 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import lmsService from '@/services/lms'
-import { useAuthStore } from '@/stores/auth'
+import attendanceExportService from '@/services/attendanceExport'
 import { toast } from '@/composables/useToast'
 import { normalizeError } from '@/services/errorHandler'
-import { apiBaseUrl } from '@/constants/http'
 
 /**
  * Couche données/logique de ParticipantsModal (#G8/H13 ≤300) : charge la liste de
@@ -127,98 +126,24 @@ export function useParticipantsModal(seanceId) {
     return name.substring(0, 2).toUpperCase()
   }
 
-  /**
-   * Exporter la liste de présence en PDF
-   */
   async function exportPDF() {
     if (exporting.value) return
-
     exporting.value = true
     try {
-      console.log('[ParticipantsModal] Export PDF de la séance', seanceId.value)
-
-      const API_URL = apiBaseUrl()
-      const token = useAuthStore().token
-
-      // Créer l'URL de téléchargement
-      const url = `${API_URL}/lms/seances/${seanceId.value}/export/presences/pdf`
-
-      // Télécharger le fichier
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/pdf'
-        }
-      })
-
-      if (!response.ok) {
-        throw new Error('Erreur lors du téléchargement du PDF')
-      }
-
-      // Créer un blob et télécharger
-      const blob = await response.blob()
-      const downloadUrl = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = downloadUrl
-      a.download = `presences_seance_${seanceId.value}_${new Date().toISOString().split('T')[0]}.pdf`
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(downloadUrl)
-      document.body.removeChild(a)
-
-      console.log('[ParticipantsModal] ✅ PDF téléchargé avec succès')
+      await attendanceExportService.exportPdf(seanceId.value)
     } catch (err) {
-      console.error('[ParticipantsModal] Erreur export PDF:', err)
       toast.error(err.userMessage ?? normalizeError(err).userMessage)
     } finally {
       exporting.value = false
     }
   }
 
-  /**
-   * Exporter la liste de présence en Excel
-   */
   async function exportExcel() {
     if (exporting.value) return
-
     exporting.value = true
     try {
-      console.log('[ParticipantsModal] Export Excel de la séance', seanceId.value)
-
-      const API_URL = apiBaseUrl()
-      const token = useAuthStore().token
-
-      // Créer l'URL de téléchargement
-      const url = `${API_URL}/lms/seances/${seanceId.value}/export/presences/excel`
-
-      // Télécharger le fichier
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        }
-      })
-
-      if (!response.ok) {
-        throw new Error('Erreur lors du téléchargement du fichier Excel')
-      }
-
-      // Créer un blob et télécharger
-      const blob = await response.blob()
-      const downloadUrl = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = downloadUrl
-      a.download = `presences_seance_${seanceId.value}_${new Date().toISOString().split('T')[0]}.xlsx`
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(downloadUrl)
-      document.body.removeChild(a)
-
-      console.log('[ParticipantsModal] ✅ Excel téléchargé avec succès')
+      await attendanceExportService.exportExcel(seanceId.value)
     } catch (err) {
-      console.error('[ParticipantsModal] Erreur export Excel:', err)
       toast.error(err.userMessage ?? normalizeError(err).userMessage)
     } finally {
       exporting.value = false

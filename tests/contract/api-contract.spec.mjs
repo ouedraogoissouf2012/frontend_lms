@@ -32,6 +32,18 @@ import { installCapture } from './captureAdapter.mjs'
  * impliqué, le code se comporte pareil sous les deux runners.
  */
 const DIR_SERVICES = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', 'src', 'services')
+const DIR_COMPOSABLES = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', 'src', 'composables')
+const DEAD_PRESENCE_EXPORT = 'export/presences'
+
+function listJsFiles(dir) {
+  const out = []
+  for (const ent of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, ent.name)
+    if (ent.isDirectory()) out.push(...listJsFiles(full))
+    else if (ent.name.endsWith('.js')) out.push(full)
+  }
+  return out
+}
 
 // Services réels (import = le vrai code testé, pas un double).
 import { notifications as apiNotifications } from '../../src/services/api.js'
@@ -214,6 +226,18 @@ export const structuralChecks = [
       return fautifs.length === 0
     },
   },
+  {
+    name: '#337 — aucun service/composable ne cite la route morte export/presences',
+    _req: '#337',
+    ok: () => {
+      const fichiers = [...listJsFiles(DIR_SERVICES), ...listJsFiles(DIR_COMPOSABLES)]
+      if (fichiers.length === 0) return false
+      const fautifs = fichiers.filter((f) =>
+        codeSeul(readFileSync(f, 'utf8')).includes(DEAD_PRESENCE_EXPORT),
+      )
+      return fautifs.length === 0
+    },
+  },
 ]
 
 /**
@@ -249,6 +273,7 @@ const DEAD_PATH_MATCHERS = [
   { label: '/proxy/search', test: (u) => u === '/proxy/search' },
   { label: '/chapters (sans segment leçon)', test: (u) => u === '/chapters' || u.startsWith('/chapters?') },
   { label: '/chapters/reorder (sans segment leçon)', test: (u) => u === '/chapters/reorder' },
+  { label: '/lms/seances/{id}/export/presences', test: (u) => /\/lms\/seances\/[^/]+\/export\/presences/.test(u) },
 ]
 
 /**

@@ -1,9 +1,8 @@
 import { ref } from 'vue'
 import lmsService from '@/services/lms'
-import { useAuthStore } from '@/stores/auth'
+import attendanceExportService from '@/services/attendanceExport'
 import { useVisioStore } from '@/stores/visio'
 import { requireVisioRoomId } from '@/constants/visio'
-import { apiBaseUrl } from '@/constants/http'
 import {
   confirmVisioAction,
   notifyVisioError,
@@ -163,48 +162,11 @@ export function useVisioActions(props, emit) {
     }
   }
 
-  /**
-   * Télécharger la liste de présence en PDF
-   */
   async function telechargerPresences() {
     loading.value = true
     try {
-      console.log('[VisioManager] Téléchargement liste de présence PDF...')
-
-      const API_URL = apiBaseUrl()
-      const token = useAuthStore().token
-
-      // Créer l'URL de téléchargement
-      const url = `${API_URL}/lms/seances/${props.seance.id}/export/presences/pdf`
-
-      // Télécharger le fichier
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/pdf'
-        }
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.message || 'Erreur lors du téléchargement du PDF')
-      }
-
-      // Créer un blob et télécharger
-      const blob = await response.blob()
-      const downloadUrl = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = downloadUrl
-      a.download = `presences_seance_${props.seance.id}_${new Date().toISOString().split('T')[0]}.pdf`
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(downloadUrl)
-      document.body.removeChild(a)
-
-      console.log('[VisioManager] ✅ PDF téléchargé avec succès')
+      await attendanceExportService.exportPdf(props.seance.id)
     } catch (error) {
-      console.error('[VisioManager] Erreur téléchargement PDF:', error)
       notifyVisioError(error, 'Erreur lors du téléchargement du PDF')
     } finally {
       loading.value = false
