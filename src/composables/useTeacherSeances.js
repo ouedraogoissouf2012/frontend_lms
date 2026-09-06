@@ -1,7 +1,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useTrackedVisioJoin } from '@/composables/useTrackedVisioJoin'
 import { lmsService } from '@/services/lms'
-import { klassciService } from '@/services/klassci'
+import { fetchTeacherMatieres } from '@/services/teacherReferentials'
 import { useAuthStore } from '@/stores/auth'
 import { toast } from '@/composables/useToast'
 import { normalizeError } from '@/services/errorHandler'
@@ -106,8 +106,10 @@ export function useTeacherSeances() {
 
     try {
       console.log('[API] Chargement matières...')
-      const dashboardData = await klassciService.getTeacherDashboard()
-      matieres.value = dashboardData.matieres || []
+      // #315 : source + forme canoniques (getMatieres, partagées avec
+      // useTeacherEvaluations/Lessons) au lieu de getTeacherDashboard().matieres,
+      // pour que la clé partagée `teacher_matieres` reste cohérente.
+      matieres.value = await fetchTeacherMatieres()
 
       writeCache('teacher_matieres', matieres.value)
 

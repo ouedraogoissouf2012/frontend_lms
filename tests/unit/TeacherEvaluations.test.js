@@ -21,7 +21,8 @@ const { klassci, evaluation } = vi.hoisted(() => ({
   evaluation: { getEvaluations: vi.fn() },
 }))
 
-vi.mock('@/services/klassci', () => ({ default: klassci }))
+// default (composable) ET named `klassciService` (helper teacherReferentials).
+vi.mock('@/services/klassci', () => ({ default: klassci, klassciService: klassci }))
 vi.mock('@/services/evaluation', () => ({ default: evaluation }))
 vi.mock('@/services/cache', () => ({ readCache: vi.fn(() => null), writeCache: vi.fn() }))
 vi.mock('vue-router', () => ({ useRouter: () => ({ push: vi.fn(), back: vi.fn() }) }))
