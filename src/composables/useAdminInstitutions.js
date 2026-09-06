@@ -47,7 +47,10 @@ export function useAdminInstitutions() {
       error.value = null
       const response = await institutionsApi.getAll()
       if (response.success) {
-        institutionsList.value = response.data.institutions
+        institutionsList.value = (response.data.institutions || []).map((inst) => ({
+          ...inst,
+          api_url: inst.api_url ?? inst.klassci_api_url,
+        }))
         overview.value = response.data.overview
       }
     } catch (err) {

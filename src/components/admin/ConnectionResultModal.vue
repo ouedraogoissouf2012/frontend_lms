@@ -1,7 +1,7 @@
 <template>
   <Modal
     :model-value="Boolean(connectionResult)"
-    title="Test de Connexion KLASSCI"
+    title="Test de connexion API"
     size="sm"
     class="connection-result-modal"
     @update:model-value="handleModelUpdate"

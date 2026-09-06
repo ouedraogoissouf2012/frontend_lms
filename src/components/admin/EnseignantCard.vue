@@ -34,12 +34,7 @@
         <span class="detail-value">{{ enseignant.telephone }}</span>
       </div>
 
-      <!-- KLASSCI ID -->
-      <div v-if="enseignant.klassci_id" class="detail-row">
-        <span class="detail-icon">#</span>
-        <span class="detail-label">KLASSCI ID:</span>
-        <span class="detail-value">{{ enseignant.klassci_id }}</span>
-      </div>
+
     </div>
 
     <!-- Tags -->

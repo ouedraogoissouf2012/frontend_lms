@@ -26,7 +26,7 @@ describe('ConnectionResultModal (#G1)', () => {
         data: { api_url: 'https://x.klassci.com', status_code: 200, response_time_ms: 42 },
       },
     })
-    expect(w.html()).toContain('Test de Connexion')
+    expect(w.html()).toContain('Test de connexion')
     expect(w.find('.connection-status').classes()).toContain('connection-success')
     expect(w.find('.connection-icon').classes()).toContain('fa-check-circle')
     expect(w.text()).toContain('Connexion OK')

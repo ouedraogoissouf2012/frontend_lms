@@ -29,12 +29,11 @@ describe('ProfileInfoCard (#H3)', () => {
     expect(w.html()).toContain('15 janvier 2024')
   })
 
-  it('affiche email, téléphone et ID Klassci fournis', () => {
+  it('affiche email et téléphone fournis', () => {
     const w = mountCard()
     const html = w.html()
     expect(html).toContain('marie@e.com')
     expect(html).toContain('0102030405')
-    expect(html).toContain('KL-42')
   })
 
   it('utilise les libellés de repli pour les champs manquants', () => {

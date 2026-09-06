@@ -4,7 +4,7 @@
       v-if="!evaluation.has_online"
       @click="$emit('create', evaluation)"
       class="btn-action btn-create"
-      title="Créer une version interactive avec QCM pour cette évaluation KLASSCI"
+      title="Créer une version interactive avec QCM"
     >
       <PlusIcon class="w-5 h-5" />
       Créer version en ligne
@@ -46,11 +46,11 @@
       Prévisualiser
     </button>
     <button
-      v-if="evaluation.has_online && evaluation.online_version?.submissions_count > 0"
+      v-if="evaluation.can_sync_grades && evaluation.has_online && evaluation.online_version?.submissions_count > 0"
       @click="$emit('sync', evaluation)"
       :disabled="syncing === evaluation.id"
       class="btn-action btn-sync"
-      title="Synchroniser les notes vers KLASSCI"
+      title="Synchroniser les notes"
     >
       <ArrowPathIcon class="w-5 h-5" :class="{ 'animate-spin': syncing === evaluation.id }" />
       {{ syncing === evaluation.id ? 'Synchronisation...' : 'Synchroniser les notes' }}

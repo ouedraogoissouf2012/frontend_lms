@@ -30,7 +30,7 @@
     >
       <CalendarIcon class="action-icon text-orange-600" />
       <h3 class="action-title">Gestion Séances & Visio</h3>
-      <p class="action-description">Activer/désactiver les visioconférences (séances de KLASSCI)</p>
+      <p class="action-description">Activer/désactiver les visioconférences</p>
     </router-link>
   </div>
 </template>

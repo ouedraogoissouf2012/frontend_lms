@@ -2,7 +2,7 @@
   <div class="widget-card mb-6">
     <div class="widget-header">
       <BuildingLibraryIcon class="widget-icon text-purple-600" />
-      <h2 class="widget-title">Classes KLASSCI</h2>
+      <h2 class="widget-title">Classes</h2>
       <span v-if="classes.length > 0" class="widget-count">
         {{ displayedClasses.length }}/{{ classes.length }}
       </span>
@@ -54,7 +54,7 @@
 </template>
 
 <script setup>
-/** Widget Classes KLASSCI d'AdminDashboard (#H3 ≤300). Présentation pure. */
+ /** Widget Classes d'AdminDashboard (#H3 ≤300). Présentation pure. */
 import { computed } from 'vue'
 import {
   AcademicCapIcon,

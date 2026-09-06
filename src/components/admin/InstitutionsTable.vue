@@ -22,7 +22,7 @@
               </div>
               <div>
                 <div class="inst-name">{{ inst.name }}</div>
-                <div class="inst-url">{{ inst.klassci_api_url }}</div>
+                <div class="inst-url">{{ inst.api_url }}</div>
               </div>
             </div>
           </td>
@@ -55,7 +55,7 @@
                 @click="$emit('test', inst)"
                 class="action-btn action-btn-blue"
                 :disabled="testingId === inst.id"
-                title="Tester connexion KLASSCI"
+                title="Tester la connexion API"
               >
                 <i :class="testingId === inst.id ? 'fa fa-spinner fa-spin' : 'fa fa-plug'"></i>
               </button>
