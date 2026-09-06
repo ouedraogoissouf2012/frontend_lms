@@ -22,7 +22,22 @@ RUN test -n "$VITE_JITSI_DOMAIN" || { \
 RUN npm run build
 
 FROM nginx:1.27-alpine
-COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+# #297 : la CSP est COMPOSÉE au démarrage par l'entrypoint nginx (envsubst), pour
+# resserrer connect-src à l'origine API réelle et pointer le domaine Jitsi du tenant.
+# Les mêmes valeurs que le bundle (VITE_API_URL/VITE_JITSI_DOMAIN) alimentent la
+# politique. Un .envsh SOURCÉ par l'entrypoint AVANT la substitution dérive
+# API_ORIGIN (= VITE_API_URL sans /api) et JITSI_DOMAIN ; NGINX_ENVSUBST_FILTER
+# borne la substitution à ces 2 variables (les variables nginx $uri/$host… sont
+# préservées). Le template vit dans /etc/nginx/templates → /etc/nginx/conf.d.
+ARG VITE_API_URL
+ARG VITE_JITSI_DOMAIN
+RUN test -n "$VITE_API_URL" || { echo "VITE_API_URL est obligatoire (#297 CSP)" >&2; exit 1; }
+RUN printf 'export API_ORIGIN="%s"\nexport JITSI_DOMAIN="%s"\n' \
+      "$(printf '%s' "$VITE_API_URL" | sed 's#/api/*$##')" "$VITE_JITSI_DOMAIN" \
+      > /docker-entrypoint.d/15-csp-vars.envsh \
+    && chmod +x /docker-entrypoint.d/15-csp-vars.envsh
+ENV NGINX_ENVSUBST_FILTER="^(API_ORIGIN|JITSI_DOMAIN)$"
+COPY docker/nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
