@@ -1,5 +1,7 @@
 import api from './api'
 import { endpoints } from './endpoints'
+// #296 : normalisation d'enveloppe à la frontière (import RELATIF — contrat).
+import { extractList } from '../utils/apiList'
 
 /**
  * Service LMS — domaine MATIÈRES (données enrichies `/lms/matieres/*`, `/lms/teacher/*`).
@@ -29,7 +31,8 @@ export const lmsMatieresService = {
    */
   async getMyMatieres() {
     try {
-      return await api.get(endpoints.lms.matieres.myTeacher)
+      // #296 : dé-wrap à la frontière → tableau canonique.
+      return extractList(await api.get(endpoints.lms.matieres.myTeacher), ['matieres'])
     } catch (error) {
       console.error('Erreur récupération mes matières:', error)
       throw error

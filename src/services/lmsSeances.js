@@ -1,5 +1,7 @@
 import api from './api'
 import { endpoints } from './endpoints'
+// #296 : normalisation d'enveloppe à la frontière (import RELATIF — contrat).
+import { extractList } from '../utils/apiList'
 
 /**
  * Service LMS — domaine SÉANCES & PRÉSENCES (`/lms/seances/*`, `/lms/attendance*`).
@@ -97,11 +99,12 @@ export const lmsSeancesService = {
   /**
    * Récupérer les séances de l'enseignant connecté
    * @param {boolean} forceRefresh - Si true, bypass le cache KLASSCI
-   * @returns {Promise<Object>} { success, data: [...] }
+   * @returns {Promise<Array>} tableau des séances (dé-wrap à la frontière, #296)
    */
   async getMyTeachingSeances(forceRefresh = false) {
     const params = forceRefresh ? { refresh: true } : {}
-    return await api.get(endpoints.lms.seances.myTeaching, { params })
+    // #296 : dé-wrap à la frontière → tableau canonique.
+    return extractList(await api.get(endpoints.lms.seances.myTeaching, { params }), ['seances'])
   },
 
   /**

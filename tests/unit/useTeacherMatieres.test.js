@@ -21,21 +21,22 @@ async function setup() {
 }
 
 describe('useTeacherMatieres (#H9)', () => {
-  it('charge les matieres au montage sur succes', async () => {
-    getMyMatieres.mockResolvedValue({ success: true, data: [{ id: 1 }, { id: 2 }] })
+  it('charge les matieres au montage (getMyMatieres renvoie un tableau normalise, #296)', async () => {
+    getMyMatieres.mockResolvedValue([{ id: 1 }, { id: 2 }])
     const api = await setup()
     expect(api.matieres.value).toHaveLength(2)
     expect(api.loading.value).toBe(false)
+    expect(api.error.value).toBe(null)
   })
 
-  it('sur echec, renseigne error', async () => {
-    getMyMatieres.mockResolvedValue({ success: false, message: 'KO' })
+  it('sur erreur reseau, renseigne error', async () => {
+    getMyMatieres.mockRejectedValue(new Error('reseau'))
     const api = await setup()
-    expect(api.error.value).toBe('KO')
+    expect(api.error.value).toBe('Impossible de charger les matières')
   })
 
   it('navigateToMatiere resout l id et pousse la route', async () => {
-    getMyMatieres.mockResolvedValue({ success: true, data: [] })
+    getMyMatieres.mockResolvedValue([])
     const api = await setup()
     push.mockClear()
     api.navigateToMatiere({ matiere_id: 42 })
@@ -45,7 +46,7 @@ describe('useTeacherMatieres (#H9)', () => {
   })
 
   it('navigateToMatiere sans id renseigne error', async () => {
-    getMyMatieres.mockResolvedValue({ success: true, data: [] })
+    getMyMatieres.mockResolvedValue([])
     const api = await setup()
     push.mockClear()
     api.navigateToMatiere({})

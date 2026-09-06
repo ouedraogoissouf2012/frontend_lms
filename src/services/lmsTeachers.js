@@ -1,5 +1,8 @@
 import api from './api'
 import { endpoints } from './endpoints'
+// #296 : normalisation d'enveloppe à la frontière (import RELATIF — le runner
+// natif des tests de contrat ne résout pas l'alias @).
+import { extractList } from '../utils/apiList'
 
 /**
  * Service LMS — domaine ENSEIGNANTS (`/lms/enseignants`, dashboard enseignant).
@@ -16,7 +19,9 @@ export const lmsTeachersService = {
     try {
       // Query string ?with_details (orthogonale) laissée au client — cf. endpoints.js.
       const url = withDetails ? `${endpoints.lms.enseignants}?with_details=true` : endpoints.lms.enseignants
-      return await api.get(url)
+      // #296 : dé-wrap à la frontière → tableau canonique (les consommateurs ne
+      // dé-wrappent plus). Chaque enseignant garde ses champs imbriqués (with_details).
+      return extractList(await api.get(url), ['enseignants'])
     } catch (error) {
       console.error('Erreur récupération enseignants:', error)
       throw error
