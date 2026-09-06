@@ -1,7 +1,6 @@
 {
   "src/components/admin/ConnectionResultModal.vue": 2,
   "src/components/admin/EnseignantCard.vue": 4,
-  "src/components/admin/EvalResultsFilters.vue": 2,
   "src/components/admin/EvaluationInfoCard.vue": 1,
   "src/components/admin/InstitutionModals.vue": 1,
   "src/components/admin/InstitutionsTable.vue": 2,
@@ -17,7 +16,6 @@
   "src/components/classes/ClasseEvaluationsTab.vue": 5,
   "src/components/classes/ClassePlanningTab.vue": 5,
   "src/components/classes/ClasseUpcomingSeances.vue": 3,
-  "src/components/coordinateur/CoordinatorEvalFilters.vue": 2,
   "src/components/dashboard/DashboardClasses.vue": 2,
   "src/components/dashboard/DashboardMatieres.vue": 2,
   "src/components/dashboard/DashboardRoleActions.vue": 1,
@@ -30,7 +28,6 @@
   "src/components/layout/sidebar/SidebarHeader.vue": 2,
   "src/components/matieres/MatiereEvaluationsTab.vue": 5,
   "src/components/matieres/MatiereSeancesTab.vue": 5,
-  "src/components/modals/GenerateReportModal.vue": 4,
   "src/components/seances/CoordinatorSeanceCard.vue": 6,
   "src/components/seances/SeanceCardInfo.vue": 3,
   "src/components/seances/SeanceDetailsHeader.vue": 5,
@@ -47,7 +44,5 @@
   "src/views/admin/AdminUsers.vue": 1,
   "src/views/dashboards/AdminDashboard.vue": 5,
   "src/views/evaluations/CreateQuestions.vue": 12,
-  "src/views/evaluations/TeacherEvaluations.vue": 2,
-  "src/views/student/StudentSchedule.vue": 1,
-  "src/views/teacher/TeacherSchedule.vue": 1
+  "src/views/evaluations/TeacherEvaluations.vue": 2
 }

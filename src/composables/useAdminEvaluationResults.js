@@ -100,8 +100,10 @@ export function useAdminEvaluationResults() {
       evaluations.value.forEach(evaluation => {
         if (evaluation.klassci_enseignant_id && evaluation.enseignant_nom) {
           enseignantsMap.set(evaluation.klassci_enseignant_id, {
+            id: evaluation.klassci_enseignant_id,
             klassci_id: evaluation.klassci_enseignant_id,
             name: evaluation.enseignant_nom,
+            libelle: evaluation.enseignant_nom,
             email: evaluation.enseignant?.email || ''
           })
         }
