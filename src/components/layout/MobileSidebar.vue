@@ -15,7 +15,7 @@
       <div class="sidebar-header">
         <div class="logo-section">
           <span class="logo-icon">◉</span>
-          <span class="logo-text">LMS KLASSCI</span>
+          <span class="logo-text">{{ productName }}</span>
         </div>
         <button @click="close" class="close-btn" aria-label="Fermer">
           <span class="close-icon">✕</span>
@@ -34,7 +34,7 @@
       <!-- Footer -->
       <div class="sidebar-footer">
         <p class="footer-text">Version 1.0.0</p>
-        <p class="footer-copyright">© 2025 LMS KLASSCI</p>
+        <p class="footer-copyright">{{ copyright }}</p>
       </div>
     </aside>
   </transition>
@@ -47,6 +47,7 @@
  * (overlay, en-tête, pied, transitions) conservé ici.
  */
 import { useMobileSidebar } from '@/composables/useMobileSidebar'
+import { useBrand } from '@/composables/useBrand'
 import MobileSidebarNav from '@/components/layout/mobile/MobileSidebarNav.vue'
 
 const props = defineProps({
@@ -66,6 +67,7 @@ const {
   close,
   handleLogout
 } = useMobileSidebar(props, emit)
+const { productName, copyright } = useBrand()
 </script>
 
 <style scoped>

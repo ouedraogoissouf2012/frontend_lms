@@ -40,10 +40,7 @@
           <span class="info-label">Classe:</span>
           <span class="info-value">{{ user.classe_nom }}</span>
         </div>
-        <div v-if="user.klassci_id" class="info-item">
-          <span class="info-label">KLASSCI ID:</span>
-          <span class="info-value">#{{ user.klassci_id }}</span>
-        </div>
+
         <div v-if="user.matricule" class="info-item">
           <span class="info-label">Matricule:</span>
           <span class="info-value">{{ user.matricule }}</span>

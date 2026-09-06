@@ -2,7 +2,7 @@
   <div class="widget-card mb-6">
     <div class="widget-header">
       <BookOpenIcon class="widget-icon text-orange-600" />
-      <h2 class="widget-title">Matières KLASSCI</h2>
+      <h2 class="widget-title">Matières</h2>
       <span v-if="matieres.length > 0" class="widget-count">
         {{ displayedMatieres.length }}/{{ matieres.length }}
       </span>
@@ -41,7 +41,7 @@
 </template>
 
 <script setup>
-/** Widget Matières KLASSCI d'AdminDashboard (#H3 ≤300). Présentation pure. */
+ /** Widget Matières d'AdminDashboard (#H3 ≤300). Présentation pure. */
 import { computed } from 'vue'
 import { BookOpenIcon } from '@heroicons/vue/24/outline'
 

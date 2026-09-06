@@ -106,7 +106,7 @@ export function useAdminDashboard() {
     user, meta, stats, classes, matieres,
     activityData, pendingTasks, recentUsers, calendarEvents,
     showGenerateReportModal, loading, loadError,
-    loadKlassciData, loadAnalytics, loadCalendarEvents,
+    loadDashboard: loadKlassciData, loadAnalytics, loadCalendarEvents,
     navigateTo, handleReportGenerated, getDashboardTitle,
     isCoordinateur, isTeacher, isAdmin,
     getInitials, getRoleLabel, getRoleClass, formatDate,
