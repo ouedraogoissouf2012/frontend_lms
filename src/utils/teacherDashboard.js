@@ -1,4 +1,4 @@
-import { extractList } from './apiList'
+import { extractList, pickList } from './apiList'
 import { enrichTeacherClasses } from './classStats'
 import { toId } from './toId'
 import { coalesceNumber } from './coalesceNumber'
@@ -130,15 +130,17 @@ function isTodaySeance(seance) {
 }
 
 function buildDashboardFromTeacher(enseignant) {
-  const matieres = extractList(enseignant, ['matieres'])
-  const rawClasses = extractList(enseignant, ['classes'])
+  // #296 : lecture de CHAMP d'objet (enseignant.matieres…) via pickList, distincte
+  // du dé-wrap d'enveloppe d'extractList (réservé aux réponses ci-dessous).
+  const matieres = pickList(enseignant, ['matieres'])
+  const rawClasses = pickList(enseignant, ['classes'])
   const classes = enrichTeacherClasses(
     rawClasses.length > 0 ? rawClasses : collectClassesFromMatieres(matieres),
     matieres
   )
-  const seances = extractList(enseignant, ['seances'])
-  const evaluations = extractList(enseignant, ['evaluations'])
-  const lessons = extractList(enseignant, ['lessons', 'lecons'])
+  const seances = pickList(enseignant, ['seances'])
+  const evaluations = pickList(enseignant, ['evaluations'])
+  const lessons = pickList(enseignant, ['lessons', 'lecons'])
   const statistiques = enseignant?.statistiques || enseignant?.stats || {}
 
   return normalizeTeacherDashboard({

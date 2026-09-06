@@ -38,3 +38,25 @@ export function extractList(response, keys = []) {
 
   return []
 }
+
+/**
+ * Lit le PREMIER champ tableau parmi `keys` dans un OBJET donné.
+ *
+ * C'est une LECTURE DE CHAMP, distincte du dé-wrap d'enveloppe d'`extractList`
+ * (#296 : `extractList` mélangeait ces deux opérations via son paramètre `keys`).
+ * À utiliser quand `source` est déjà une entité (ex. la forme enseignant du
+ * dashboard : `pickList(enseignant, ['matieres'])`), PAS une réponse à dé-wrapper.
+ *
+ * @param {*} source Objet source (pas une réponse d'API).
+ * @param {string[]} keys Clés candidates, par ordre de précédence.
+ * @param {Array<*>} [fallback] Retour si aucune clé n'est un tableau.
+ * @returns {Array<*>}
+ */
+export function pickList(source, keys, fallback = []) {
+  if (source && typeof source === 'object') {
+    for (const key of keys) {
+      if (Array.isArray(source[key])) return source[key]
+    }
+  }
+  return fallback
+}
