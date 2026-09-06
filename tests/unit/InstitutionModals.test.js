@@ -50,7 +50,7 @@ describe('InstitutionModals (#G1) — formulaire', () => {
 describe('InstitutionModals (#G1) — résultat connexion', () => {
   it('affiche le résultat et émet close-result', async () => {
     const w = mountModals({ connectionResult: { success: true, message: 'Connexion OK' } })
-    expect(w.html()).toContain('Test de Connexion')
+    expect(w.html()).toContain('Test de connexion API')
     expect(w.html()).toContain('Connexion OK')
     await w.find('.modal-sm .modal-btn-secondary').trigger('click')
     expect(w.emitted('close-result')).toBeTruthy()
