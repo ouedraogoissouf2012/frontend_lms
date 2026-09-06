@@ -1,8 +1,8 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { formatDateLong } from '@/utils/formatters'
 import { useRouter } from 'vue-router'
-import { klassciService } from '@/services/klassci'
 import lessonService from '@/services/lesson'
+import { fetchTeacherMatieres } from '@/services/teacherReferentials'
 import { readCache, writeCache } from '@/services/cache'
 import { useLessonForm } from '@/composables/useLessonForm'
 import { extractList } from '@/utils/apiList'
@@ -99,12 +99,9 @@ export function useTeacherLessons() {
     }
 
     try {
-      // Utiliser getMatieres() au lieu de getTeacherDashboard() pour support coordinateur
-      const matieresData = await klassciService.getMatieres()
-      matieres.value = extractList(matieresData, ['matieres'])
-      if (matieres.value.length > 0 || Array.isArray(matieresData) || Array.isArray(matieresData?.matieres)) {
-        writeCache('teacher_matieres', matieres.value)
-      }
+      // #315 : source + forme canoniques (partagées avec useTeacherEvaluations/Seances).
+      matieres.value = await fetchTeacherMatieres()
+      writeCache('teacher_matieres', matieres.value)
     } catch (err) {
       console.error('[ERREUR] Chargement matières:', err)
     }

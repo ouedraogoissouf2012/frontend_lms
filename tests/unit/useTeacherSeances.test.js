@@ -9,7 +9,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const getMyTeachingSeances = vi.fn()
 const activateVisio = vi.fn()
-const getTeacherDashboard = vi.fn()
+const getMatieres = vi.fn()
 const joinTrackedVisio = vi.fn()
 
 vi.mock('@/services/lms', () => ({
@@ -20,7 +20,7 @@ vi.mock('@/services/lms', () => ({
   }
 }))
 vi.mock('@/services/klassci', () => ({
-  klassciService: { getTeacherDashboard: (...a) => getTeacherDashboard(...a) }
+  klassciService: { getMatieres: (...a) => getMatieres(...a) }
 }))
 vi.mock('@/stores/auth', () => ({
   useAuthStore: () => ({ currentUser: { id: 1, role: 'enseignant', name: 'X' } })
@@ -53,11 +53,12 @@ describe('useTeacherSeances (#H6)', () => {
   beforeEach(() => {
     getMyTeachingSeances.mockReset()
     activateVisio.mockReset()
-    getTeacherDashboard.mockReset()
+    getMatieres.mockReset()
     clearCache.mockReset()
     joinTrackedVisio.mockReset()
     joinTrackedVisio.mockResolvedValue({ success: true })
-    getTeacherDashboard.mockResolvedValue({ matieres: [{ id: 9, nom: 'Maths' }] })
+    // #315 : matières via getMatieres (déjà normalisé en tableau à la frontière).
+    getMatieres.mockResolvedValue([{ id: 9, nom: 'Maths' }])
   })
 
   it('charge les séances depuis l\'API et calcule les stats', async () => {

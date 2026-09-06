@@ -16,7 +16,9 @@ const { klassci, evaluation } = vi.hoisted(() => ({
   evaluation: { getEvaluations: vi.fn() },
 }))
 
-vi.mock('@/services/klassci', () => ({ default: klassci }))
+// default (import du composable) ET named `klassciService` (import du helper
+// teacherReferentials) — klassci.js exporte les deux vers le même objet.
+vi.mock('@/services/klassci', () => ({ default: klassci, klassciService: klassci }))
 vi.mock('@/services/evaluation', () => ({ default: evaluation }))
 vi.mock('@/services/cache', () => ({ readCache: vi.fn(() => null), writeCache: vi.fn() }))
 
