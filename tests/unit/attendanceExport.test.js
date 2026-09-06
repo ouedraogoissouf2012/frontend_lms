@@ -18,24 +18,27 @@ describe('services/attendanceExport (#28)', () => {
     window.URL.revokeObjectURL = vi.fn()
   })
 
-  it('exportPdf : appelle le bon endpoint avec Accept application/pdf + Bearer', async () => {
+  it('exportPdf : POST /admin/reports/attendance avec seance_id local (#337)', async () => {
     await attendanceExportService.exportPdf(42)
     expect(global.fetch).toHaveBeenCalledWith(
-      'http://api.test/api/lms/seances/42/export/presences/pdf',
+      'http://api.test/api/admin/reports/attendance',
       expect.objectContaining({
-        method: 'GET',
+        method: 'POST',
         headers: expect.objectContaining({
           Authorization: 'Bearer TEST_TOKEN',
           Accept: 'application/pdf'
-        })
+        }),
+        body: JSON.stringify({ seance_id: 42, format: 'pdf' }),
       })
     )
   })
 
-  it('exportExcel : endpoint excel + Accept xlsx', async () => {
+  it('exportExcel : même pipeline, format excel', async () => {
     await attendanceExportService.exportExcel(7)
     const [url, opts] = global.fetch.mock.calls[0]
-    expect(url).toBe('http://api.test/api/lms/seances/7/export/presences/excel')
+    expect(url).toBe('http://api.test/api/admin/reports/attendance')
+    expect(opts.method).toBe('POST')
+    expect(opts.body).toBe(JSON.stringify({ seance_id: 7, format: 'excel' }))
     expect(opts.headers.Accept).toContain('spreadsheetml.sheet')
   })
 

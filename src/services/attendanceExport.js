@@ -1,5 +1,6 @@
 import { apiBaseUrl } from '@/constants/http'
 import { useAuthStore } from '@/stores/auth'
+import { endpoints } from './endpoints'
 
 /**
  * Service d'export des présences d'une séance (#28).
@@ -13,19 +14,21 @@ import { useAuthStore } from '@/stores/auth'
 
 /**
  * Télécharge un export binaire de présences et déclenche la sauvegarde fichier.
- * @param {number|string} seanceId - id KLASSCI de la séance
+ * @param {number|string} seanceId - id local LMS de la séance (#337)
  * @param {{ format: string, accept: string, extension: string, errorLabel: string }} opts
  */
 async function downloadPresenceExport(seanceId, { format, accept, extension, errorLabel }) {
-  const url = `${apiBaseUrl()}/lms/seances/${seanceId}/export/presences/${format}`
+  const url = `${apiBaseUrl()}${endpoints.admin.reports('attendance')}`
   const token = useAuthStore().token
 
   const response = await fetch(url, {
-    method: 'GET',
+    method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
-      Accept: accept
-    }
+      Accept: accept,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ seance_id: seanceId, format }),
   })
 
   if (!response.ok) {

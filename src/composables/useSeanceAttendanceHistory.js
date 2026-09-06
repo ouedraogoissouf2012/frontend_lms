@@ -194,7 +194,7 @@ export function useSeanceAttendanceHistory() {
     if (exporting.value || !selectedSeance.value) return
     exporting.value = true
     try {
-      await attendanceExportService.exportPdf(selectedSeance.value.klassci_seance_id)
+      await attendanceExportService.exportPdf(selectedSeance.value.id)
     } catch (error) {
       console.error('[SeanceHistory] Erreur export PDF:', error)
       toast.error('Erreur lors de l\'export PDF : ' + error.message)
@@ -207,7 +207,7 @@ export function useSeanceAttendanceHistory() {
     if (exporting.value || !selectedSeance.value) return
     exporting.value = true
     try {
-      await attendanceExportService.exportExcel(selectedSeance.value.klassci_seance_id)
+      await attendanceExportService.exportExcel(selectedSeance.value.id)
     } catch (error) {
       console.error('[SeanceHistory] Erreur export Excel:', error)
       toast.error('Erreur lors de l\'export Excel : ' + error.message)
