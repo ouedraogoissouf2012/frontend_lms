@@ -50,12 +50,27 @@ describe('useLessonChapters (#H4)', () => {
     expect(c.isReadOnly.value).toBe(false)
   })
 
-  it('goBack redirige vers la matière quand matiere_id est présent', async () => {
+  // Ce test naviguait avec `matiere_id`, l'identifiant LOCAL stocké par le
+  // backend, dans une route proxifiée vers KLASSCI qui attend le sien. Il
+  // ouvrait donc la matière KLASSCI du MÊME numéro : en-tête d'une matière,
+  // liste de leçons d'une autre. Une leçon a été supprimée par erreur depuis
+  // cet écran le 2026-09-07 — il était impossible de savoir ce qu'on regardait.
+  it('goBack redirige vers la matière avec son identifiant KLASSCI', async () => {
     const c = await setup()
-    c.lesson.value = { matiere_id: 12 }
+    c.lesson.value = { matiere_id: 4, matiere_klassci_id: 12 }
     c.goBack()
     expect(push).toHaveBeenCalledWith({ name: 'matiere-details', params: { id: 12 } })
     expect(back).not.toHaveBeenCalled()
+  })
+
+  // L'id LOCAL seul ne suffit PAS : sans identifiant KLASSCI on retombe sur
+  // router.back(), plutôt que d'ouvrir une matière au hasard.
+  it("goBack retombe sur router.back quand seul l'id local est connu", async () => {
+    const c = await setup()
+    c.lesson.value = { matiere_id: 4 }
+    c.goBack()
+    expect(push).not.toHaveBeenCalled()
+    expect(back).toHaveBeenCalled()
   })
 
   it('goBack retombe sur router.back sans matiere_id', async () => {
@@ -68,7 +83,7 @@ describe('useLessonChapters (#H4)', () => {
   it('publishLesson publie après confirmation et redirige', async () => {
     confirmMock.mockResolvedValue(true)
     const c = await setup()
-    c.lesson.value = { matiere_id: 5 }
+    c.lesson.value = { matiere_id: 2, matiere_klassci_id: 5 }
     await c.publishLesson()
     expect(publishLessonApi).toHaveBeenCalledWith(7)
     expect(push).toHaveBeenCalledWith({ name: 'matiere-details', params: { id: 5 } })
