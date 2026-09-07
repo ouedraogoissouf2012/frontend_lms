@@ -21,25 +21,41 @@ server {
     # `no-cache` ne veut pas dire « ne pas stocker » : le navigateur conserve le
     # fichier mais REVALIDE à chaque visite. Avec l'ETag que nginx envoie déjà,
     # une page inchangée coûte un 304 vide.
+    #
+    # #297 : CE FICHIER EST UN TEMPLATE. Les placeholders API_ORIGIN et JITSI_DOMAIN
+    # sont substitués au démarrage du conteneur par l'entrypoint nginx (envsubst),
+    # depuis les build-args VITE_API_URL/VITE_JITSI_DOMAIN (cf. Dockerfile.prod).
+    # NGINX_ENVSUBST_FILTER borne la substitution à ces 2 variables, donc les
+    # variables nginx ($uri, $host…) NE SONT PAS touchées.
     location / {
         try_files $uri $uri/ /index.html;
         add_header Cache-Control "no-cache, must-revalidate";
 
-        # Content-Security-Policy en mode RAPPORT (#279) : n'impose RIEN encore,
-        # signale seulement ce qui violerait la politique (console navigateur).
-        # Étape 1 du déploiement : on observe sur le prod réel avant de basculer en
-        # `Content-Security-Policy` (enforce) une fois les rapports à zéro. Report-Only
-        # NE PEUT PAS passer par <meta> (interdit par le spec) -> en-tête serveur.
+        # Content-Security-Policy en mode RAPPORT (#279/#297) : n'impose RIEN
+        # encore, signale seulement ce qui violerait la politique. On observe les
+        # rapports (via /csp-report) sur le prod réel AVANT de basculer en enforce.
+        # Report-Only NE PEUT PAS passer par <meta> (interdit par le spec) -> en-tête.
         #
         #  - script-src 'self' : plus aucun script inline (externalisé -> /app-loader.js)
         #    ni CDN -> durcissement clé contre le vol de token XSS (lié #223).
         #  - style-src 'unsafe-inline' : Vite/Vue injectent des styles au runtime + le
         #    splash inline ; risque faible, indispensable sinon l'app casse.
-        #  - connect-src/img/media 'https:' : large VOLONTAIREMENT ici — l'API et la
-        #    visio varient par tenant (build-args VITE_API_URL/JITSI) ; on resserrera
-        #    par déploiement avant l'enforce.
-        #  - frame-src : iframes légitimes (vidéos de leçon YouTube/Vimeo, visio Jitsi).
-        add_header Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self'; connect-src 'self' https:; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://meet.jit.si; media-src 'self' https: blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'" always;
+        #  - #297 : connect-src RESSERRÉ à `'self' ${API_ORIGIN}` (fin de l'auto-défaite
+        #    `https:` qui autorisait l'exfiltration de token) ; `wss:` couvre la
+        #    signalisation Jitsi. frame-src pointe le domaine Jitsi du tenant.
+        #  - img-src conserve `https:` (avatars/illustrations multi-sources) — resserrage
+        #    ultérieur ; c'est le 2e canal résiduel, tracé.
+        #  - report-to/report-uri -> collecteur /csp-report (+ listener JS, cf. main.js).
+        add_header Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self'; connect-src 'self' ${API_ORIGIN} wss:; frame-src 'self' https://www.youtube.com https://player.vimeo.com https://${JITSI_DOMAIN}; media-src 'self' https: blob:; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; report-to csp; report-uri ${API_ORIGIN}/csp-report" always;
+
+        # Point de collecte des rapports (mécanisme moderne Reporting-Endpoints +
+        # repli report-uri ci-dessus pour Firefox/Safari). Vers le backend.
+        add_header Reporting-Endpoints "csp=\"${API_ORIGIN}/csp-report\"" always;
+
+        # #297 : directives SÛRES en ENFORCE dès maintenant (risque de casse ≈ nul).
+        # Le passage en enforce du RESTE se fera en déplaçant les directives du
+        # Report-Only ci-dessus une fois les rapports à zéro.
+        add_header Content-Security-Policy "object-src 'none'; base-uri 'self'" always;
 
         # Durcissements sans risque (enforce direct, pas report-only).
         add_header X-Content-Type-Options "nosniff" always;

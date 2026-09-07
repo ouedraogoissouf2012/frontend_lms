@@ -14,6 +14,7 @@ import 'material-icons/iconfont/filled.css'
 import './assets/styles/icon-fonts.css'
 import { themeKey } from '@/constants/storageKeys'
 import { reveal } from '@/directives/reveal'
+import { installCspReporter } from '@/utils/cspReporter'
 
 // Initialiser le thème AVANT de monter l'application.
 // Avant le montage, Pinia n'est pas hydraté : on lit le slug d'institution
@@ -56,6 +57,12 @@ if (!import.meta.env.DEV) {
   console.error = () => {}
   console.warn = () => {}
 }
+
+// #297 : collecteur de violations CSP (best-effort). Le neutering console.* prod
+// ci-dessus NE masque PAS le log CSP du moteur ; ce collecteur envoie EN PLUS un
+// beacon au backend pour observer les violations avant la bascule Report-Only →
+// enforce. No-op tant que l'endpoint /csp-report n'existe pas côté backend.
+installCspReporter()
 
 const app = createApp(App)
 
