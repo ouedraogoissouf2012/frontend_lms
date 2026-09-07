@@ -95,15 +95,28 @@ export function createEmptyLesson() {
  * Construit le payload de création de leçon (contexte matière/classe/enseignant
  * ajouté au brouillon). Mapping PUR.
  * @param {Object} newLesson - brouillon du formulaire
- * @param {{ classes:Array, user:Object, matiereId:number }} ctx
+ * @param {{ classes:Array, user:Object, matiereIdLocal:?number }} ctx
  *   `classes` = classes_concernees de la matière (1ère classe utilisée comme
  *   classe_id, requis par le backend). `matiere` n'a PAS de propriété `classes`.
+ *
+ *   `matiereIdLocal` = le champ `matiere_id_local` de la réponse, et surtout
+ *   PAS le paramètre de route, qui est un identifiant KLASSCI. Le backend
+ *   stocke `lessons.matiere_id` dans l'espace LOCAL : envoyer l'id de route
+ *   faisait atterrir la leçon sur une AUTRE matière quand les deux
+ *   numérotations se percutaient — en 201, sans erreur, et invisible sur la
+ *   page d'origine. Observé le 2026-09-07 : une leçon créée depuis « Anglais »
+ *   (KLASSCI 3) s'est retrouvée sur « Algorithme » (local 3).
+ *
+ *   `null` quand la matière n'est pas encore miroitée côté backend : on envoie
+ *   alors `null` plutôt que l'identifiant de l'autre espace. Une leçon sans
+ *   matière est réparable ; une leçon sur la mauvaise matière est une
+ *   corruption silencieuse, que personne ne cherche puisque rien n'a échoué.
  * @returns {Object} payload prêt pour lessonService.createLesson
  */
-export function buildLessonPayload(newLesson, { classes, user, matiereId }) {
+export function buildLessonPayload(newLesson, { classes, user, matiereIdLocal }) {
   return {
     ...newLesson,
-    matiere_id: matiereId,
+    matiere_id: matiereIdLocal ?? null,
     classe_id: classes?.[0]?.id || null, // 1ère classe concernée (classes_concernees)
     enseignant_id: user?.id,
     type: 'cours',
