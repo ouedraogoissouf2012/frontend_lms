@@ -141,6 +141,20 @@ export function useChapterManager(lessonId) {
     }
   }
 
+  // #322 : restaure un chapitre sorti de la corbeille (soft-delete backend #694).
+  async function restoreChapter(chapter) {
+    try {
+      const response = await api.post(endpoints.chapters.restore(chapter.id))
+      if (response.success) {
+        await loadChapters()
+        toast.success(`Chapitre « ${chapter.title} » restauré`)
+      }
+    } catch (error) {
+      console.error('[ChapterManager] Erreur restauration:', error)
+      toast.error(error.userMessage ?? normalizeError(error).userMessage)
+    }
+  }
+
   async function deleteChapter(chapter) {
     if (!(await useConfirm().confirm({ message: `Supprimer le chapitre "${chapter.title}" ?`, variant: 'danger', confirmLabel: 'Supprimer' }))) {
       return
@@ -150,7 +164,12 @@ export function useChapterManager(lessonId) {
       const response = await api.delete(endpoints.chapters.details(chapter.id))
       if (response.success) {
         await loadChapters()
-        toast.success('Chapitre supprimé!')
+        // #322 : la suppression est réversible (corbeille) → proposer un « Annuler »
+        // immédiat plutôt que de laisser l'enseignant sans recours.
+        toast.success('Chapitre supprimé', {
+          duration: 8000,
+          action: { label: 'Annuler', onClick: () => restoreChapter(chapter) },
+        })
       }
     } catch (error) {
       console.error('[ChapterManager] Erreur suppression:', error)
@@ -259,7 +278,7 @@ export function useChapterManager(lessonId) {
     knowledgeChecks, showQuizEditor, showQuizPlayer, selectedChapterId,
     selectedQuiz, editingQuiz,
     loadChapters, addChapter, editChapter, cancelEdit, saveChapter, uploadFile,
-    deleteChapter, loadKnowledgeChecks, loadAllKnowledgeChecks, openQuizEditor,
+    deleteChapter, restoreChapter, loadKnowledgeChecks, loadAllKnowledgeChecks, openQuizEditor,
     closeQuizEditor, onQuizSaved, openQuizPlayer, closeQuizPlayer, onQuizCompleted,
     deleteKnowledgeCheck, getChapterQuiz
   }

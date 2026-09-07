@@ -93,6 +93,22 @@ const chapterService = {
   },
 
   /**
+   * Restaurer un chapitre depuis la corbeille (#322 ; back #689/#694).
+   * Le back rend un chapitre COMPLET (pas une coquille), même garde d'appartenance.
+   * @param {Number} chapterId
+   * @returns {Promise}
+   */
+  async restoreChapter(chapterId) {
+    try {
+      const response = await api.post(endpoints.chapters.restore(chapterId))
+      return response.data
+    } catch (error) {
+      console.error('[ChapterService] Erreur restoreChapter:', error)
+      throw error
+    }
+  },
+
+  /**
    * Réorganiser l'ordre des chapitres d'une leçon
    * @param {Number} lessonId - Leçon parente (segment d'URL, obligatoire)
    * @param {Array} chapters - Tableau d'objets {id, order}

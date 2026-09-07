@@ -81,4 +81,21 @@ describe('useToast', () => {
     expect(last.type).toBe('success')
     expect(last.title).toBe('Succès')
   })
+
+  it('show transmet une action optionnelle, null par défaut (#322)', () => {
+    const t = useToast()
+    const onClick = () => {}
+    t.show({ message: 'avec', action: { label: 'Annuler', onClick } })
+    expect(t.toasts.value.at(-1).action).toEqual({ label: 'Annuler', onClick })
+    t.show({ message: 'sans' })
+    expect(t.toasts.value.at(-1).action).toBeNull()
+  })
+
+  it('un raccourci transmet une action via ses options (#322 undo)', () => {
+    const t = useToast()
+    t.success('Supprimé', { duration: 8000, action: { label: 'Annuler', onClick: () => {} } })
+    const last = t.toasts.value.at(-1)
+    expect(last.action.label).toBe('Annuler')
+    expect(last.duration).toBe(8000)
+  })
 })

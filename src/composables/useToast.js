@@ -21,12 +21,15 @@ const items = ref([])
 
 /**
  * Empile un toast.
- * @param {{ message?: string, title?: string, type?: 'success'|'error'|'warning'|'info', duration?: number }} options
+ * @param {{ message?: string, title?: string, type?: 'success'|'error'|'warning'|'info',
+ *   duration?: number, action?: { label: string, onClick: () => void } | null }} options
+ *   - action (optionnel, #322) : bouton d'action affiché dans le toast (ex. « Annuler »
+ *     pour un undo). Son `onClick` s'exécute puis ferme le toast.
  * @returns {number} id du toast (pour un `remove` ciblé).
  */
-function show({ message = '', title = '', type = 'info', duration = 5000 } = {}) {
+function show({ message = '', title = '', type = 'info', duration = 5000, action = null } = {}) {
   const id = ++seq
-  items.value.push({ id, message, title, type, duration })
+  items.value.push({ id, message, title, type, duration, action })
   return id
 }
 
