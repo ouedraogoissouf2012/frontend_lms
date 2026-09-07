@@ -66,11 +66,18 @@ export function useLessonChapters() {
       if (response.success) {
         toast.success('Leçon publiée avec succès!')
 
-        // Rediriger vers la page de la matière
-        if (lesson.value?.matiere_id) {
+        // Rediriger vers la page de la matière.
+        //
+        // `matiere_klassci_id`, JAMAIS `matiere_id` : ce dernier est
+        // l'identifiant LOCAL stocké par le backend, alors que la route
+        // `matiere-details` est proxifiée vers KLASSCI et attend le sien.
+        // Utiliser le local ouvrait la matière KLASSCI du MÊME numéro —
+        // en-tête d'une matière, liste de leçons d'une autre. Une leçon a
+        // été supprimée par erreur depuis cet écran le 2026-09-07.
+        if (lesson.value?.matiere_klassci_id) {
           router.push({
             name: 'matiere-details',
-            params: { id: lesson.value.matiere_id }
+            params: { id: lesson.value.matiere_klassci_id }
           })
         } else {
           await loadLesson()
@@ -91,10 +98,10 @@ export function useLessonChapters() {
 
   function goBack() {
     // Retourner à la page de la matière si possible
-    if (lesson.value?.matiere_id) {
+    if (lesson.value?.matiere_klassci_id) {
       router.push({
         name: 'matiere-details',
-        params: { id: lesson.value.matiere_id }
+        params: { id: lesson.value.matiere_klassci_id }
       })
     } else {
       router.back()

@@ -22,6 +22,11 @@ export function useMatiereDetails() {
   const activeTab = ref('lessons')
   const viewMode = ref('grid') // 'grid' ou 'list'
   const matiere = ref(null)
+  // Identité LOCALE de la matière, distincte de `matiere.id` qui porte
+  // l'identifiant KLASSCI (celui de la route). Le backend stocke du LOCAL :
+  // renvoyer l'id de route à la création faisait atterrir la leçon sur une
+  // AUTRE matière quand les deux numérotations se percutaient.
+  const matiereIdLocal = ref(null)
   const lessons = ref([])
   const seances = ref([])
   const evaluations = ref([])
@@ -69,6 +74,7 @@ export function useMatiereDetails() {
 
       if (data && data.success) {
         matiere.value = data.data.matiere
+          matiereIdLocal.value = data.data.matiere_id_local ?? null
         lessons.value = data.data.lessons || []
         seances.value = data.data.seances_programmees || []
         evaluations.value = data.data.evaluations_programmees || []
@@ -130,7 +136,7 @@ export function useMatiereDetails() {
       const lessonData = buildLessonPayload(newLesson.value, {
         classes: classes.value,
         user,
-        matiereId: matiereId.value
+        matiereIdLocal: matiereIdLocal.value
       })
 
       console.log('[MatiereDetails] Création leçon contextuelle:', lessonData)
