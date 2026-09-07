@@ -1,5 +1,6 @@
 import { computed } from 'vue'
 import { klassciService } from '@/services/klassci'
+import { lmsClassesService } from '@/services/lmsClasses'
 import { logError } from '@/services/errorHandler'
 import { enrichTeacherClasses } from '@/utils/classStats'
 import { mergeClassMeasures } from '@/utils/classMeasures'
@@ -10,8 +11,9 @@ const TEACHER_CLASSES_CACHE_KEY = 'teacher_classes_dashboard_v2'
 /**
  * Charge les classes de l'enseignant AVEC leurs effectifs.
  *
- * Deux sources, en parallele : le tableau de bord dit QUELLES classes sont les
- * siennes, mais ne porte ni effectif ni capacite ; `/proxy/classes` les porte,
+ * Deux sources, en parallele : `/lms/teacher/classes` dit QUELLES classes sont
+ * les siennes (#712, pivot local) ; `/proxy/classes` porte encore les effectifs
+ * d'etablissement. L'echec du referentiel n'est pas fatal.
  * pour tout l'etablissement et en UN appel. Interroger chaque classe couterait
  * un aller-retour par carte affichee.
  *
@@ -22,7 +24,7 @@ const TEACHER_CLASSES_CACHE_KEY = 'teacher_classes_dashboard_v2'
  */
 async function fetchClasses() {
   const [dashboardOutcome, referentielOutcome] = await Promise.allSettled([
-    klassciService.getTeacherDashboard(),
+    lmsClassesService.getTeacherClasses(),
     klassciService.getClasses(),
   ])
 
@@ -32,16 +34,14 @@ async function fetchClasses() {
     throw err
   }
 
-  const dashboard = dashboardOutcome.value
-  const rawClasses = Array.isArray(dashboard?.classes) ? dashboard.classes : []
-  const dashboardMatieres = Array.isArray(dashboard?.matieres) ? dashboard.matieres : []
+  const rawClasses = Array.isArray(dashboardOutcome.value) ? dashboardOutcome.value : []
   const referentiel = referentielOutcome.status === 'fulfilled' ? referentielOutcome.value : null
 
   if (referentielOutcome.status === 'rejected') {
     logError(referentielOutcome.reason, '[useTeacherClasses] effectifs')
   }
 
-  return enrichTeacherClasses(mergeClassMeasures(rawClasses, referentiel), dashboardMatieres)
+  return enrichTeacherClasses(mergeClassMeasures(rawClasses, referentiel), [])
 }
 
 /**
