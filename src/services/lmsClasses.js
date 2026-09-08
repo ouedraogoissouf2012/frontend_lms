@@ -1,5 +1,5 @@
 import api from './api'
-import { extractList } from '@/utils/apiList'
+import { extractList } from '../utils/apiList'
 import { endpoints } from './endpoints'
 
 /**

@@ -21,7 +21,7 @@ import lmsService, {
 } from '@/services/lms'
 
 const DOMAINS = {
-  classes: { svc: lmsClassesService, methods: ['getClasseDetails', 'getClasseEtudiants'] },
+  classes: { svc: lmsClassesService, methods: ['getTeacherClasses', 'getClasseDetails', 'getClasseEtudiants'] },
   matieres: { svc: lmsMatieresService, methods: ['getMatiereDetails', 'getMyMatieres'] },
   // `getTeacherDashboard` retirée du domaine teachers (#329) : elle appelait
   // `/proxy/*` depuis un service `lms*`, sans aucun appelant applicatif.
