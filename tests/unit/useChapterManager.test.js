@@ -9,15 +9,20 @@ import { defineComponent, ref } from 'vue'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const apiGet = vi.fn()
+const apiPost = vi.fn()
+const apiDelete = vi.fn()
+const toastSuccess = vi.fn()
+const confirmMock = vi.fn()
 vi.mock('@/services/api', () => ({
   default: {
     get: (...a) => apiGet(...a),
-    post: vi.fn(),
+    post: (...a) => apiPost(...a),
     put: vi.fn(),
-    delete: vi.fn()
+    delete: (...a) => apiDelete(...a)
   }
 }))
-vi.mock('@/composables/useToast', () => ({ toast: { error: vi.fn(), success: vi.fn() } }))
+vi.mock('@/composables/useToast', () => ({ toast: { error: vi.fn(), success: (...a) => toastSuccess(...a) } }))
+vi.mock('@/composables/useConfirm', () => ({ useConfirm: () => ({ confirm: (...a) => confirmMock(...a) }) }))
 vi.mock('@/services/errorHandler', () => ({ normalizeError: (e) => ({ userMessage: String(e) }) }))
 vi.mock('@/services/knowledgeCheck', () => ({
   default: { getByChapter: vi.fn().mockResolvedValue({ success: true, data: [] }), delete: vi.fn() }
@@ -36,7 +41,13 @@ async function setup() {
 }
 
 describe('useChapterManager (#28 / H5)', () => {
-  beforeEach(() => { apiGet.mockReset() })
+  beforeEach(() => {
+    apiGet.mockReset()
+    apiPost.mockReset()
+    apiDelete.mockReset()
+    toastSuccess.mockReset()
+    confirmMock.mockReset().mockResolvedValue(true)
+  })
 
   it('charge les chapitres de la leçon au montage', async () => {
     apiGet.mockResolvedValue({ success: true, data: [{ id: 1, title: 'Ch1' }] })
@@ -90,5 +101,50 @@ describe('useChapterManager (#28 / H5)', () => {
     expect(m.getChapterQuiz(7)).toBe(null)
     m.knowledgeChecks.value[7] = [{ id: 1, title: 'Q' }]
     expect(m.getChapterQuiz(7)).toEqual({ id: 1, title: 'Q' })
+  })
+
+  // #322 — suppression réversible (corbeille backend)
+  it('#322 : supprimer poste DELETE et affiche un toast avec action « Annuler »', async () => {
+    apiGet.mockResolvedValue({ success: true, data: [{ id: 5, title: 'Ch5' }] })
+    apiDelete.mockResolvedValue({ success: true })
+    const m = await setup()
+    await m.deleteChapter({ id: 5, title: 'Ch5' })
+    await flushPromises()
+    expect(apiDelete).toHaveBeenCalledWith('/chapters/5')
+    const [msg, opts] = toastSuccess.mock.calls.at(-1)
+    expect(msg).toBe('Chapitre supprimé')
+    expect(opts.action.label).toBe('Annuler')
+    expect(typeof opts.action.onClick).toBe('function')
+  })
+
+  it('#322 : l\'action « Annuler » restaure (POST /restore + recharge)', async () => {
+    apiGet.mockResolvedValue({ success: true, data: [{ id: 5, title: 'Ch5' }] })
+    apiDelete.mockResolvedValue({ success: true })
+    apiPost.mockResolvedValue({ success: true })
+    const m = await setup()
+    await m.deleteChapter({ id: 5, title: 'Ch5' })
+    await flushPromises()
+    await toastSuccess.mock.calls.at(-1)[1].action.onClick()
+    await flushPromises()
+    expect(apiPost).toHaveBeenCalledWith('/chapters/5/restore')
+  })
+
+  it('#322 : restoreChapter poste vers /restore, recharge et confirme', async () => {
+    apiGet.mockResolvedValue({ success: true, data: [] })
+    apiPost.mockResolvedValue({ success: true })
+    const m = await setup()
+    await m.restoreChapter({ id: 7, title: 'Ch7' })
+    await flushPromises()
+    expect(apiPost).toHaveBeenCalledWith('/chapters/7/restore')
+    expect(toastSuccess).toHaveBeenCalledWith('Chapitre « Ch7 » restauré')
+  })
+
+  it('#322 : ne supprime PAS si la confirmation est refusée', async () => {
+    apiGet.mockResolvedValue({ success: true, data: [{ id: 5, title: 'Ch5' }] })
+    confirmMock.mockResolvedValue(false)
+    const m = await setup()
+    await m.deleteChapter({ id: 5, title: 'Ch5' })
+    await flushPromises()
+    expect(apiDelete).not.toHaveBeenCalled()
   })
 })

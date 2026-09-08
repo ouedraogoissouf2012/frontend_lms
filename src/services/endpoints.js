@@ -183,6 +183,8 @@ export const endpoints = {
     complete: (chapterId) => `/chapters/${chapterId}/complete`,
     time: (chapterId) => `/chapters/${chapterId}/time`,
     upload: (chapterId) => `/chapters/${chapterId}/upload`,
+    // #322 : sortir un chapitre de la corbeille (soft-delete backend #689/#694).
+    restore: (chapterId) => `/chapters/${chapterId}/restore`,
   },
 
   notifications: {

@@ -87,7 +87,7 @@ describe('utils/matiereDetails — buildLessonPayload', () => {
     const payload = buildLessonPayload(draft, {
       classes: [{ id: 7 }, { id: 9 }], // classes_concernees de la matière
       user: { id: 42 },
-      matiereId: 3
+      matiereIdLocal: 3
     })
     expect(payload).toMatchObject({
       title: 'Algèbre',
@@ -100,8 +100,17 @@ describe('utils/matiereDetails — buildLessonPayload', () => {
     })
   })
   it('classe_id null si aucune classe concernée', () => {
-    expect(buildLessonPayload(draft, { classes: [], user: { id: 1 }, matiereId: 3 }).classe_id).toBeNull()
-    expect(buildLessonPayload(draft, { classes: null, user: null, matiereId: 3 }).classe_id).toBeNull()
+    expect(buildLessonPayload(draft, { classes: [], user: { id: 1 }, matiereIdLocal: 3 }).classe_id).toBeNull()
+    expect(buildLessonPayload(draft, { classes: null, user: null, matiereIdLocal: 3 }).classe_id).toBeNull()
+  })
+
+  // On envoie `null`, jamais l'identifiant de l'autre espace « pour depanner » :
+  // une lecon sans matiere est reparable, une lecon sur la MAUVAISE matiere est
+  // une corruption silencieuse que personne ne cherche, puisque rien n'a echoue.
+  it("matiere_id null quand la matiere n'est pas miroitee cote backend", () => {
+    const ctx = { classes: [{ id: 7 }], user: { id: 1 } }
+    expect(buildLessonPayload(draft, { ...ctx, matiereIdLocal: null }).matiere_id).toBeNull()
+    expect(buildLessonPayload(draft, ctx).matiere_id).toBeNull()
   })
 })
 
