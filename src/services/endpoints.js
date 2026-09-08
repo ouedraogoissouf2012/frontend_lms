@@ -43,6 +43,7 @@ export const endpoints = {
     classes: {
       details: (id) => `${LMS}/classes/${id}`,
       etudiants: (id) => `${LMS}/classes/${id}/etudiants`,
+      mine: `${LMS}/teacher/classes`,
     },
 
     matieres: {

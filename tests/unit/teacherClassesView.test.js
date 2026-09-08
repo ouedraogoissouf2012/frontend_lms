@@ -1,23 +1,27 @@
 /**
  * Test de MONTAGE de la vue TeacherClasses (G10 — script déjà < 300, vérif parité).
  *
- * Cache vide → fetch ; monte sans erreur et appelle le dashboard enseignant.
+ * Cache vide → fetch ; monte sans erreur et appelle /lms/teacher/classes.
  */
 import { mount, flushPromises } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const getClasses = vi.fn()
 const getMatieres = vi.fn()
-const getTeacherDashboard = vi.fn()
+const getTeacherClasses = vi.fn()
 const getClasseEtudiants = vi.fn()
 vi.mock('@/services/klassci', () => ({
   klassciService: {
     getClasses: (...a) => getClasses(...a),
     getMatieres: (...a) => getMatieres(...a),
-    getTeacherDashboard: (...a) => getTeacherDashboard(...a),
     getClasseEtudiants: (...a) => getClasseEtudiants(...a)
   },
   default: {}
+}))
+vi.mock('@/services/lmsClasses', () => ({
+  lmsClassesService: {
+    getTeacherClasses: (...a) => getTeacherClasses(...a)
+  }
 }))
 vi.mock('@/services/cache', () => ({
   readCache: vi.fn(() => null),
@@ -42,11 +46,11 @@ describe('TeacherClasses (G10) — montage', () => {
   beforeEach(() => {
     getClasses.mockReset()
     getMatieres.mockReset()
-    getTeacherDashboard.mockReset()
+    getTeacherClasses.mockReset()
     getClasseEtudiants.mockReset()
     getClasses.mockResolvedValue([])
     getMatieres.mockResolvedValue([])
-    getTeacherDashboard.mockResolvedValue({ classes: [], matieres: [] })
+    getTeacherClasses.mockResolvedValue([])
     getClasseEtudiants.mockResolvedValue([])
   })
 
@@ -55,10 +59,8 @@ describe('TeacherClasses (G10) — montage', () => {
     await flushPromises()
 
     expect(w.find('.classes-container').exists()).toBe(true)
-    expect(getTeacherDashboard).toHaveBeenCalled()
-    // La liste des classes est désormais chargée EN PLUS du tableau de bord :
-    // elle seule porte les effectifs, que le dashboard ne fournit pas.
-    // Un appel pour toutes les classes, jamais un par carte.
+    expect(getTeacherClasses).toHaveBeenCalled()
+    // Effectifs toujours via /proxy/classes, un appel pour toutes les cartes.
     expect(getClasses).toHaveBeenCalledTimes(1)
     expect(getMatieres).not.toHaveBeenCalled()
     expect(getClasseEtudiants).not.toHaveBeenCalled()

@@ -1,4 +1,5 @@
 import api from './api'
+import { extractList } from '../utils/apiList'
 import { endpoints } from './endpoints'
 
 /**
@@ -14,6 +15,10 @@ export const lmsClassesService = {
    * @param {number} classeId
    * @returns {Promise<Object>}
    */
+  async getTeacherClasses() {
+    return extractList(await api.get(endpoints.lms.classes.mine))
+  },
+
   async getClasseDetails(classeId) {
     try {
       return await api.get(endpoints.lms.classes.details(classeId))
