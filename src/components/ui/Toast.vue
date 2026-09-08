@@ -23,6 +23,8 @@
         <p class="toast-title" v-if="title">{{ title }}</p>
         <p class="toast-message">{{ message }}</p>
       </div>
+      <!-- #322 : action optionnelle (ex. « Annuler ») — exécute onClick puis ferme. -->
+      <button v-if="action" class="toast-action" @click="onAction">{{ action.label }}</button>
       <button class="toast-close" @click="close">
         <svg class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -52,6 +54,11 @@ export default {
     duration: {
       type: Number,
       default: 3000
+    },
+    // #322 : { label, onClick } — bouton d'action optionnel (undo).
+    action: {
+      type: Object,
+      default: null
     }
   },
   data() {
@@ -78,6 +85,11 @@ export default {
       setTimeout(() => {
         this.$emit('close')
       }, 300)
+    },
+    // #322 : exécute l'action (ex. restaurer) puis ferme le toast.
+    onAction() {
+      this.action?.onClick?.()
+      this.close()
     }
   },
   beforeUnmount() {
@@ -135,6 +147,25 @@ export default {
   font-size: 0.875rem;
   margin: 0;
   opacity: 0.9;
+}
+
+/* #322 : bouton d'action (undo). `currentColor` hérite de la teinte du toast → 0 hex. */
+.toast-action {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  color: currentColor;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  opacity: 0.9;
+  transition: opacity 0.2s;
+}
+
+.toast-action:hover {
+  opacity: 1;
 }
 
 .toast-close {

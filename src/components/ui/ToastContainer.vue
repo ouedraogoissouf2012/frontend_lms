@@ -7,6 +7,7 @@
       :title="toast.title"
       :type="toast.type"
       :duration="toast.duration"
+      :action="toast.action"
       @close="remove(toast.id)"
     />
   </div>
