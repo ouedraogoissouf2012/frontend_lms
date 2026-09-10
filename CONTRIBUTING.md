@@ -63,6 +63,7 @@ npm run lint:css      # garde anti-régression couleurs en dur (#161)
 npm run lint:size     # garde anti-régression fichiers > 300 lignes (#195)
 npm run lint:dewrap   # garde anti-régression dé-wrap d'enveloppe ad hoc (#296)
 npm run lint:ocp      # garde OCP présentation : pas de nouveau couplage (#325/#330)
+npm run lint:klassci-fixtures  # garde : aucune charge KLASSCI écrite à la main (#367)
 npm run build         # build prod (vérifie le code splitting)
 npm run lint:fonts    # après build : aucune fonte non-woff2 émise dans dist (#340)
 ```
@@ -209,3 +210,52 @@ final était bien woff2-only, mais les fichiers morts étaient quand même émis
 dans le job build) échoue si `dist/assets` contient une fonte non-woff2
 (`eot`/`ttf`/`otf`/`woff`, ou un `.svg` de fonte d'icône connue). Cible : **0**.
 Une police non-woff2 légitime (rare) suppose d'ajuster `scripts/check-dist-fonts.mjs`.
+
+## 9. Charges KLASSCI : capturées, jamais écrites de mémoire (#367)
+
+**Un test qui consomme KLASSCI importe ses charges de `tests/fixtures/klassci/`.**
+Ce module ne contient que des réponses **réellement capturées**, chacune avec sa
+provenance : date, compte, endpoint.
+
+```js
+import { TEACHER_DASHBOARD } from '../fixtures/klassci/teacherDashboard'  // ✅
+const DASHBOARD = { statistiques: { heures: { total_seances: 12 } } }     // ❌ refusé
+```
+
+**Pourquoi cette règle existe.** Quinze fichiers de test décrivaient l'API amont
+de mémoire — 42 occurrences mesurées. L'un d'eux inventait **six clés** que
+KLASSCI n'envoie pas (`total_etudiants`, `total_lecons`, `corrections_effectuees`,
+`visio_effectuees`, `messages_forum`, et `seances` au lieu de
+`prochaines_seances`). Le test était **vert** ; l'écran `/teacher/stats` affichait
+**six tuiles sur huit à zéro en production**, dont « Séances Données : 0 » alors
+que KLASSCI en déclare 105.
+
+Rien ne pouvait l'attraper : un test qui **écrit lui-même sa donnée d'entrée** ne
+peut pas découvrir qu'elle est fausse. Ni ESLint, ni la suite, ni la revue ne
+distinguent une charge capturée d'une charge inventée — les deux sont du
+JavaScript valide décrivant un objet plausible. C'est un angle mort
+**structurel**, pas une inattention.
+
+**Garde automatique** — `npm run lint:klassci-fixtures` (exécutée en CI sur chaque
+PR vers `dev`/`main`) fait **échouer** toute charge écrite à la main hors du
+module. Mécanisme :
+
+- **Ratchet sur baseline figée.** Les 41 occurrences héritées sont gelées dans
+  `.klassci-fixture-baseline.json`. Toute occurrence **neuve** échoue. La baseline
+  ne fait que se resserrer.
+- **Dénominateur imprimé** : `N fichiers inspectés`. Si N = 0, sortie **2** — ce
+  n'est pas un vert. Idem si la baseline est absente ou illisible.
+- **Périmètre** : seuls les fichiers `*.test.js` qui référencent un service
+  KLASSCI (`services/klassci`, `getTeacherDashboard`, `/proxy/`). Un test qui
+  manipule par hasard une clé au nom voisin n'est pas concerné.
+- Les commentaires `//` ne sont pas analysés — un commentaire décrit une charge,
+  il n'en fabrique pas.
+- Le cœur pur vit dans `scripts/lib/klassciFixtureRatchet.mjs`, et son **test de
+  rougissement** dans `tests/unit/klassciFixtureRatchet.test.js` : une garde sans
+  test de rougissement n'est pas une garde.
+
+**Pour ajouter une charge** : appeler l'endpoint avec un vrai jeton, coller la
+réponse, noter la provenance. **Ne pas l'abréger « pour la lisibilité »** — les
+clés absentes d'un extrait sont indiscernables des clés absentes de l'API, et
+c'est exactement la confusion que ce module supprime. Réduire le nombre
+d'**éléments** d'une liste, jamais le nombre de **clés**.
