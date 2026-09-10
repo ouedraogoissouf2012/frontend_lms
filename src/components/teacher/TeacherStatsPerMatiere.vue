@@ -12,15 +12,15 @@
       >
         <div class="matiere-info">
           <p class="matiere-name">{{ matiere.nom }}</p>
-          <p class="matiere-detail">{{ matiere.nb_classes || 0 }} classe(s)</p>
+          <p class="matiere-detail">{{ formatCount(matiere.nb_classes) }} classe(s)</p>
         </div>
         <div class="matiere-stats">
           <div class="mini-stat">
-            <span class="mini-stat-value">{{ matiere.nb_etudiants || 0 }}</span>
+            <span class="mini-stat-value">{{ formatCount(matiere.nb_etudiants) }}</span>
             <span class="mini-stat-label">étudiants</span>
           </div>
           <div class="mini-stat">
-            <span class="mini-stat-value">{{ matiere.nb_evaluations || 0 }}</span>
+            <span class="mini-stat-value">{{ formatCount(matiere.nb_evaluations) }}</span>
             <span class="mini-stat-label">éval.</span>
           </div>
         </div>
@@ -33,6 +33,7 @@
 </template>
 
 <script setup>
+import { formatCount } from '@/utils/formatters'
 /** Widget « Performance par matière » des statistiques enseignant (#H11 ≤300).
  *  Présentation pure : liste matières + mini-stats (étudiants, évaluations). */
 import { ChartBarIcon } from '@heroicons/vue/24/outline'
