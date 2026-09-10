@@ -39,6 +39,7 @@ vi.mock('@/services/api', () => ({ dashboard: lmsMock }))
 vi.mock('@/services/cache', () => ({ readCacheStale: cacheMock.readCacheStale, writeCache: cacheMock.writeCache }))
 
 import { useTeacherStats } from '@/composables/useTeacherStats'
+import { TEACHER_DASHBOARD as KLASSCI_REEL } from '../fixtures/klassci/teacherDashboard'
 
 async function setup() {
   let api
@@ -46,18 +47,6 @@ async function setup() {
   mount(Comp)
   await flushPromises()
   return api
-}
-
-/** Charge `data` RÉELLE de `me/teacher-dashboard`, mesurée le 2026-09-09. */
-const KLASSCI_REEL = {
-  matieres: [{ id: 1, nom: 'Marketing digital' }, { id: 3, nom: 'Anglais' }],
-  classes: [{ id: 1, name: 'B2 COM', libelle: null, niveau: { id: 1, nom: 'BTS 1ere ANNEE', code: '1A' } }],
-  prochaines_seances: [],
-  evaluations: [{ id: 1 }, { id: 2 }],
-  statistiques: {
-    heures: { total_seances: 105, seances_effectuees: 0 },
-    evaluations: { total_programmees: 27, a_corriger: 0 },
-  },
 }
 
 /** Charge `data` RÉELLE de `/dashboard/teacher` (LMS). */
@@ -79,8 +68,8 @@ describe('useTeacherStats', () => {
     const s = await setup()
 
     // KLASSCI : le référentiel académique.
-    expect(s.stats.value.nb_matieres).toBe(2)
-    expect(s.stats.value.nb_evaluations).toBe(2)
+    expect(s.stats.value.nb_matieres).toBe(KLASSCI_REEL.matieres.length)
+    expect(s.stats.value.nb_evaluations).toBe(KLASSCI_REEL.evaluations.length)
     expect(s.stats.value.nb_seances).toBe(105)
 
     // LMS : `lessons` est SA table ; KLASSCI ne l'a jamais eue.
@@ -104,7 +93,7 @@ describe('useTeacherStats', () => {
     const s = await setup()
 
     expect(s.error.value).toBeNull()
-    expect(s.stats.value.nb_matieres).toBe(2)
+    expect(s.stats.value.nb_matieres).toBe(KLASSCI_REEL.matieres.length)
     expect(s.stats.value.nb_seances).toBe(105)
     expect(s.stats.value.nb_lecons).toBeNull()
   })
@@ -116,7 +105,7 @@ describe('useTeacherStats', () => {
 
     expect(s.loading.value).toBe(false)
     expect(klassciMock.getTeacherDashboard).toHaveBeenCalled()
-    expect(s.stats.value.nb_matieres).toBe(2)
+    expect(s.stats.value.nb_matieres).toBe(KLASSCI_REEL.matieres.length)
   })
 
   it('expose une erreur si KLASSCI échoue', async () => {

@@ -23,6 +23,8 @@
     "lint:dewrap:baseline": "node scripts/lint-dewrap.mjs --update",
     "lint:ocp": "node scripts/lint-ocp.mjs",
     "lint:ocp:baseline": "node scripts/lint-ocp.mjs --update",
+    "lint:klassci-fixtures": "node scripts/lint-klassci-fixtures.mjs",
+    "lint:klassci-fixtures:baseline": "node scripts/lint-klassci-fixtures.mjs --update",
     "lint:fonts": "node scripts/check-dist-fonts.mjs"
   },
   "dependencies": {
