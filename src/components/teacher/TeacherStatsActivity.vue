@@ -11,7 +11,7 @@
         </div>
         <div>
           <p class="activity-label">Leçons Créées</p>
-          <p class="activity-value">{{ stats.nb_lecons || 0 }}</p>
+          <p class="activity-value">{{ formatCount(stats.nb_lecons) }}</p>
         </div>
       </div>
 
@@ -21,7 +21,7 @@
         </div>
         <div>
           <p class="activity-label">Corrections Effectuées</p>
-          <p class="activity-value">{{ stats.nb_corrections || 0 }}</p>
+          <p class="activity-value">{{ formatCount(stats.nb_corrections) }}</p>
         </div>
       </div>
 
@@ -31,7 +31,7 @@
         </div>
         <div>
           <p class="activity-label">Visioconférences</p>
-          <p class="activity-value">{{ stats.nb_visio || 0 }}</p>
+          <p class="activity-value">{{ formatCount(stats.nb_visio) }}</p>
         </div>
       </div>
 
@@ -41,7 +41,7 @@
         </div>
         <div>
           <p class="activity-label">Messages Forum</p>
-          <p class="activity-value">{{ stats.nb_messages_forum || 0 }}</p>
+          <p class="activity-value">{{ formatCount(stats.nb_messages_forum) }}</p>
         </div>
       </div>
     </div>
@@ -49,6 +49,7 @@
 </template>
 
 <script setup>
+import { formatCount } from '@/utils/formatters'
 /** Widget « Activité récente » des statistiques enseignant (#H11 ≤300).
  *  Présentation pure : 4 indicateurs (leçons, corrections, visio, forum). */
 import { ClockIcon, AcademicCapIcon, CheckCircleIcon, VideoCameraIcon, ChatBubbleLeftRightIcon } from '@heroicons/vue/24/outline'

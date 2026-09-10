@@ -6,7 +6,7 @@
       </div>
       <div class="stat-content">
         <p class="stat-label">Matières Enseignées</p>
-        <p class="stat-value">{{ stats.nb_matieres || 0 }}</p>
+        <p class="stat-value">{{ formatCount(stats.nb_matieres) }}</p>
       </div>
     </div>
 
@@ -16,7 +16,7 @@
       </div>
       <div class="stat-content">
         <p class="stat-label">Total Étudiants</p>
-        <p class="stat-value">{{ stats.nb_etudiants || 0 }}</p>
+        <p class="stat-value">{{ formatCount(stats.nb_etudiants) }}</p>
       </div>
     </div>
 
@@ -26,7 +26,7 @@
       </div>
       <div class="stat-content">
         <p class="stat-label">Évaluations Créées</p>
-        <p class="stat-value">{{ stats.nb_evaluations || 0 }}</p>
+        <p class="stat-value">{{ formatCount(stats.nb_evaluations) }}</p>
       </div>
     </div>
 
@@ -36,13 +36,14 @@
       </div>
       <div class="stat-content">
         <p class="stat-label">Séances Données</p>
-        <p class="stat-value">{{ stats.nb_seances || 0 }}</p>
+        <p class="stat-value">{{ formatCount(stats.nb_seances) }}</p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import { formatCount } from '@/utils/formatters'
 /** Cartes globales des statistiques enseignant (#H11 ≤300). Présentation pure :
  *  4 compteurs (matières, étudiants, évaluations, séances). */
 import { BookOpenIcon, UserGroupIcon, DocumentTextIcon, CalendarIcon } from '@heroicons/vue/24/outline'

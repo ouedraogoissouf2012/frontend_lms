@@ -12,16 +12,16 @@
       >
         <div class="classe-header">
           <h3 class="classe-name">{{ classe.nom }}</h3>
-          <span class="classe-badge">{{ classe.niveau }}</span>
+          <span class="classe-badge">{{ classe.niveau ?? '—' }}</span>
         </div>
         <div class="classe-stats-row">
           <div class="classe-stat">
             <UserGroupIcon class="w-4 h-4 text-gray-500" />
-            <span>{{ classe.nb_etudiants || 0 }} étudiants</span>
+            <span>{{ formatCount(classe.places_occupees) }} étudiants</span>
           </div>
           <div class="classe-stat">
             <BookOpenIcon class="w-4 h-4 text-gray-500" />
-            <span>{{ classe.nb_matieres || 0 }} matières</span>
+            <span>{{ formatCount(classe.nb_matieres) }} matières</span>
           </div>
         </div>
       </div>
@@ -33,6 +33,7 @@
 </template>
 
 <script setup>
+import { formatCount } from '@/utils/formatters'
 /** Widget « Répartition par classe » des statistiques enseignant (#H11 ≤300).
  *  Présentation pure : carte par classe (niveau, étudiants, matières). */
 import { BuildingLibraryIcon, UserGroupIcon, BookOpenIcon } from '@heroicons/vue/24/outline'
