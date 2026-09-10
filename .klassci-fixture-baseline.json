@@ -1,0 +1,13 @@
+{
+  "tests/unit/classMeasuresMerge.test.js": 6,
+  "tests/unit/TeacherHubView.test.js": 1,
+  "tests/unit/useAdminClasses.test.js": 4,
+  "tests/unit/useAdminDashboard.test.js": 2,
+  "tests/unit/useAdminHub.test.js": 1,
+  "tests/unit/useAdminMatieres.test.js": 4,
+  "tests/unit/useAdminProfile.test.js": 1,
+  "tests/unit/useAdminStatsReal.test.js": 2,
+  "tests/unit/useAdminUsers.test.js": 13,
+  "tests/unit/useTeacherClasses.test.js": 6,
+  "tests/unit/useTeacherHub.test.js": 1
+}

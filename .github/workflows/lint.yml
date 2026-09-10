@@ -127,6 +127,28 @@ jobs:
       - name: Check for new ad-hoc envelope unwraps
         run: npm run lint:dewrap
 
+  lint-klassci-fixtures:
+    name: KLASSCI fixture guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Un test qui ECRIT sa charge KLASSCI ne peut pas decouvrir qu'elle est
+      # fausse : la fixture de useTeacherStats inventait six cles, le test etait
+      # vert, et l'ecran affichait six zeros en production.
+      - name: Check for hand-written KLASSCI payloads
+        run: npm run lint:klassci-fixtures
+
   lint-js:
     name: ESLint
     runs-on: ubuntu-latest
