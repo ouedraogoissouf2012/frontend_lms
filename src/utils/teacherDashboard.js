@@ -217,3 +217,75 @@ export async function buildTeacherDashboardFallback(lmsService, currentUser) {
     },
   })
 }
+
+/** Nombre fini, ou `null` — jamais `0` par défaut. */
+function mesure(valeur) {
+  const n = typeof valeur === 'string' ? Number(valeur) : valeur
+  return typeof n === 'number' && Number.isFinite(n) ? n : null
+}
+
+/**
+ * Effectif total des classes, ou `null` si AUCUNE ne porte la donnée.
+ *
+ * `countStudents` rend `0` dans ce cas : indiscernable d'un vrai effectif nul.
+ * Ici, l'absence remonte telle quelle jusqu'à l'affichage, qui la rend « — ».
+ */
+function effectifMesure(classes) {
+  const liste = Array.isArray(classes) ? classes : []
+  const valeurs = liste
+    .map((c) => mesure(c?.places_occupees ?? c?.nb_etudiants ?? c?.students_count))
+    .filter((n) => n !== null)
+
+  return valeurs.length > 0 ? valeurs.reduce((s, n) => s + n, 0) : null
+}
+
+/**
+ * Les quatre indicateurs du tableau de bord enseignant (#371), chacun demandé
+ * à la source qui le DÉTIENT.
+ *
+ * ## Le défaut que cette fonction supprime
+ *
+ * `DashboardActivityWidgets.vue` lisait `statistiques.total_etudiants`,
+ * `.total_lecons`, `.seances_aujourdhui` et `.evaluations_en_cours` —
+ * **quatre clés absentes** de `me/teacher-dashboard`, dont `statistiques` ne
+ * porte que `{ heures, evaluations }`. Le `|| 0` rendait quatre zéros
+ * permanents. Mesuré à l'écran le 2026-09-10 : « Leçons Créées : 0 » alors que
+ * `/api/dashboard/teacher` répondait `lessons.total = 2` dans le MÊME
+ * chargement de page.
+ *
+ * `buildTeacherDashboardFallback` calcule bien ces valeurs, mais il est
+ * conditionné à `hasDashboardContent()` faux : KLASSCI rendant 6 matières et
+ * 27 évaluations, il ne s'exécute jamais dans le cas nominal.
+ *
+ * ## Deux mesurables, deux non
+ *
+ * `total_lecons` vient du LMS — `lessons` est SA table, KLASSCI ne l'a jamais
+ * eue. `evaluations_en_cours` se dérive de `programmation.window.is_open`, le
+ * signal d'ouverture faisant autorité.
+ *
+ * `total_etudiants` et `seances_aujourdhui` n'ont **aucune** source dans cette
+ * charge : les classes ne portent pas d'effectif, et `prochaines_seances` est
+ * toujours vide (#739). Ils valent donc `null`, affiché « — ». Un `0`
+ * affirmerait une mesure qu'on n'a pas — règle déjà posée dans `classStats.js`.
+ *
+ * @param {object|null} klassci Charge `data` de `me/teacher-dashboard`.
+ * @param {object|null} local   Charge `data` de `/api/dashboard/teacher`.
+ * @returns {{total_etudiants:number|null, total_lecons:number|null,
+ *   seances_aujourdhui:number|null, evaluations_en_cours:number|null}}
+ */
+export function deriveTeacherCounters(klassci, local) {
+  const k = klassci && typeof klassci === 'object' ? klassci : {}
+  const l = local && typeof local === 'object' ? local : {}
+  const evaluations = Array.isArray(k.evaluations) ? k.evaluations : null
+
+  return {
+    total_etudiants: effectifMesure(k.classes),
+    total_lecons: mesure(l?.lessons?.total),
+    seances_aujourdhui: Array.isArray(k.prochaines_seances) && k.prochaines_seances.length > 0
+      ? k.prochaines_seances.filter(isTodaySeance).length
+      : null,
+    evaluations_en_cours: evaluations
+      ? evaluations.filter((e) => e?.programmation?.window?.is_open === true).length
+      : null,
+  }
+}
