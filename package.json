@@ -25,6 +25,8 @@
     "lint:ocp:baseline": "node scripts/lint-ocp.mjs --update",
     "lint:klassci-fixtures": "node scripts/lint-klassci-fixtures.mjs",
     "lint:klassci-fixtures:baseline": "node scripts/lint-klassci-fixtures.mjs --update",
+    "lint:cles": "node scripts/lint-cles-inexistantes.mjs",
+    "lint:cles:baseline": "node scripts/lint-cles-inexistantes.mjs --update",
     "lint:fonts": "node scripts/check-dist-fonts.mjs"
   },
   "dependencies": {

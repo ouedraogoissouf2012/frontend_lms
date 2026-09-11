@@ -64,6 +64,7 @@ npm run lint:size     # garde anti-régression fichiers > 300 lignes (#195)
 npm run lint:dewrap   # garde anti-régression dé-wrap d'enveloppe ad hoc (#296)
 npm run lint:ocp      # garde OCP présentation : pas de nouveau couplage (#325/#330)
 npm run lint:klassci-fixtures  # garde : aucune charge KLASSCI écrite à la main (#367)
+npm run lint:cles     # garde : aucune lecture d'une clé que l'API n'envoie pas (#376)
 npm run build         # build prod (vérifie le code splitting)
 npm run lint:fonts    # après build : aucune fonte non-woff2 émise dans dist (#340)
 ```
@@ -259,3 +260,53 @@ réponse, noter la provenance. **Ne pas l'abréger « pour la lisibilité »** �
 clés absentes d'un extrait sont indiscernables des clés absentes de l'API, et
 c'est exactement la confusion que ce module supprime. Réduire le nombre
 d'**éléments** d'une liste, jamais le nombre de **clés**.
+
+## 10. Aucune lecture d'une clé que l'API n'envoie pas (#376)
+
+**Un écran ne lit que des clés présentes dans la charge réellement mesurée.**
+
+```js
+{{ dashboardData.statistiques?.total_lecons || 0 }}   // ❌ la clé n'existe pas → 0 permanent
+{{ user.nom }} {{ user.prenom }}                      // ❌ le login n'envoie que `name`
+```
+
+**Pourquoi cette règle existe.** Quatre fois en trois jours, du code a lu une clé
+absente, et le repli l'a transformée en valeur plausible :
+
+| Défaut | Ce que l'utilisateur voyait |
+|---|---|
+| `statistiques.total_lecons` (#371) | « Leçons Créées : 0 » alors que le LMS répondait **2** dans le même chargement |
+| `user.nom` / `user.prenom` (#372) | nom **vide** dans la barre latérale, sur toutes les pages, tous rôles |
+| `statistiques.total_etudiants` + 5 autres (#365) | **six tuiles sur huit** à zéro |
+
+`payload.cle_qui_nexiste_pas` est du **JavaScript parfaitement valide** : ni
+ESLint, ni la suite de tests, ni la revue ne peuvent le voir. Seule une
+comparaison à la charge mesurée tranche.
+
+**Garde automatique** — `npm run lint:cles` (exécutée en CI sur chaque PR vers
+`dev`/`main`). Mécanisme :
+
+- **La vérité vient des fixtures**, pas du script : les clés autorisées sont
+  dérivées de `tests/fixtures/**`, qui sont des réponses **capturées** avec leur
+  provenance. Ajouter un champ au backend puis à la fixture suffit à l'autoriser.
+- **Le porteur décide, pas le nom de la clé.** `matiere.nom` est légitime,
+  `user.nom` ne l'est pas. Chaque destinataire surveillé est déclaré
+  explicitement dans `scripts/lib/clesInexistantes.mjs`, avec sa **portée** —
+  un `user` n'est l'utilisateur connecté que si le fichier le tient de
+  `auth.getUser()` / du store.
+- **Cliquet sur baseline.** Les 8 lectures héritées sont gelées dans
+  `.cles-inexistantes-baseline.json`. Toute lecture **neuve** échoue.
+- **Dénominateur imprimé** : nombre de fichiers inspectés et de clés connues par
+  destinataire. Si la garde ne peut pas travailler — fixture illisible, rien à
+  inspecter, baseline absente — elle sort en **2**, pas en 0.
+- **Exemptés** : les normaliseurs et helpers polymorphes (`utils/formatters.js`,
+  `utils/teacherDashboard.js`, `utils/classStats.js`…). C'est chez eux que la
+  traduction entre formes doit vivre.
+
+**Étendre la couverture** = ajouter un destinataire et sa fixture mesurée. Le
+tableau de bord **étudiant** (`me/dashboard`) est aujourd'hui hors portée : sa
+charge n'a pas été capturée. La garde le déclare plutôt que de l'inventer.
+
+**Si une clé existe vraiment** : mesure-la contre le vrai serveur, ajoute-la à la
+fixture, et la garde suivra. **Ne jamais compléter une fixture de mémoire** —
+c'est exactement le trou que cette garde ferme.
