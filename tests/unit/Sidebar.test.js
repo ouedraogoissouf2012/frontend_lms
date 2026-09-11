@@ -54,14 +54,25 @@ describe('Sidebar.vue (G9) — montage', () => {
     expect(hrefs).toContain('/teacher/settings')
   })
 
+  // Le payload RÉEL de `POST /auth/login` ne porte qu'un champ `name`
+  // (whitelist fermée, #504). C'est le cas nominal.
   it('reflète les infos utilisateur (initiales, nom, rôle affiché)', () => {
-    getUser.mockReturnValue({ role: 'etudiant', nom: 'Doe', prenom: 'Jane' })
+    getUser.mockReturnValue({ role: 'etudiant', name: 'Jane Doe' })
     const w = mountSidebar()
 
     expect(w.find('.avatar').text()).toBe('JD')
-    // userName = `${nom} ${prenom}`.trim() → "Doe Jane" (ordre d'origine conservé)
-    expect(w.find('.user-name').text()).toBe('Doe Jane')
+    expect(w.find('.user-name').text()).toBe('Jane Doe')
     expect(w.find('.user-role').text()).toBe('Étudiant')
+  })
+
+  // Regression #371-bis : avant correctif, `.user-name` rendait une chaîne VIDE
+  // et l'avatar le repli générique `U` — sur toutes les pages, tous rôles.
+  it('ne rend JAMAIS un nom vide quand l’utilisateur est connu', () => {
+    getUser.mockReturnValue({ role: 'enseignant', name: 'BEDE ABEL TEST' })
+    const w = mountSidebar()
+
+    expect(w.find('.user-name').text()).not.toBe('')
+    expect(w.find('.avatar').text()).not.toBe('U')
   })
 
   it('rend le menu minimal du supradmin', () => {

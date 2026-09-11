@@ -8,7 +8,7 @@
       <div class="info-grid">
         <div class="info-item">
           <label class="info-label">Nom complet</label>
-          <p class="info-value">{{ user?.nom }} {{ user?.prenom }}</p>
+          <p class="info-value">{{ getFullName(user, { fallback: 'Non renseigné' }) }}</p>
         </div>
         <div class="info-item">
           <label class="info-label">Email</label>
@@ -28,6 +28,9 @@
 </template>
 
 <script setup>
+// Le payload de login n'expose que `name` : composer `nom` + `prenom` rendait un
+// simple espace. getFullName accepte les deux formes (#504).
+import { getFullName } from '@/utils/formatters'
 /** Section « Informations personnelles » des paramètres enseignant (#H11 ≤300).
  *  Présentation pure : 4 champs en lecture seule. */
 import { UserIcon } from '@heroicons/vue/24/outline'

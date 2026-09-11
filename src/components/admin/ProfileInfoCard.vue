@@ -10,7 +10,7 @@
           <span class="avatar-initials">{{ userInitials }}</span>
         </div>
         <div class="avatar-info">
-          <h3 class="user-name">{{ user?.nom }} {{ user?.prenom }}</h3>
+          <h3 class="user-name">{{ getFullName(user, { fallback: 'Non renseigné' }) }}</h3>
           <p class="user-role">{{ roleLabel }}</p>
         </div>
       </div>
@@ -47,6 +47,9 @@
 </template>
 
 <script setup>
+// Le payload de login n'expose que `name` : composer `nom` + `prenom` rendait un
+// simple espace. getFullName accepte les deux formes (#504).
+import { getFullName } from '@/utils/formatters'
 /**
  * Carte « Informations Personnelles » d'AdminProfile (#H3 ≤300). Présentation
  * pure : reçoit l'utilisateur, ses initiales, le libellé de rôle et la date

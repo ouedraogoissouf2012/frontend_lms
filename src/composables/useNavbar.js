@@ -2,6 +2,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { auth } from '@/services/api'
 import { isStudent, isTeacher, isAdminScope } from '@/constants/roles'
+import { getInitials } from '@/utils/formatters'
 import { useNotifications } from '@/composables/useNotifications'
 
 /**
@@ -34,15 +35,17 @@ export function useNavbar() {
     // La navbar consomme l'état PARTAGÉ ; le polling est porté par DashboardLayout.
   } = useNotifications({ autoCheck: false })
 
-  // Initiales utilisateur
+  // Initiales utilisateur. `getInitials` est polymorphe : il lit `name` comme
+  // `{prenom, nom}`. L'ancien calcul ne connaissait que la seconde forme, que
+  // `POST /auth/login` n'envoie pas (whitelist fermée #504) — il rendait donc
+  // toujours le repli générique `U`. Voir useSidebar pour la mesure.
   const userInitials = computed(() => {
     const user = auth.getUser()
     if (!user) return 'U'
 
-    const firstInitial = (user.prenom || user.nom || 'U')[0]
-    const lastInitial = user.nom ? user.nom[0] : ''
+    const initiales = getInitials(user)
 
-    return (firstInitial + lastInitial).toUpperCase()
+    return initiales === '?' ? 'U' : initiales
   })
 
   // URLs Profil/Paramètres selon le rôle (rôle normalisé, #18)
