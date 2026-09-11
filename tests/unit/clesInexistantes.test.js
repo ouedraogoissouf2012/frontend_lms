@@ -112,6 +112,31 @@ describe('garde clés inexistantes — elle se tait là où elle le doit', () =>
   })
 })
 
+describe('les clés ajoutées par un normaliseur ne peuvent pas dériver', () => {
+  it('la liste déclarée est IDENTIQUE à ce que deriveTeacherCounters produit', async () => {
+    // La garde tourne sous Node, qui ne résout pas les imports sans extension
+    // de `src/utils/` : elle ne peut donc pas importer le normaliseur et doit
+    // déclarer ses clés. Ce test — lui, exécuté par Vitest, qui résout l'alias —
+    // est ce qui empêche la liste déclarée de dériver en silence.
+    const { deriveTeacherCounters } = await import('@/utils/teacherDashboard')
+    const { RECEVEURS } = await import('../../scripts/lib/clesInexistantes.mjs')
+
+    const receveur = RECEVEURS.find((r) => r.nom.includes('teacher-dashboard'))
+    const produites = Object.keys(deriveTeacherCounters(null, null)).sort()
+
+    expect([...(receveur.clesAjoutees ?? [])].sort()).toEqual(produites)
+  })
+
+  it('elles entrent dans les clés autorisées', () => {
+    const cles = clesAutorisees(
+      { A: { statistiques: { heures: {}, evaluations: {} } } },
+      { exports: ['A'], chemin: 'statistiques', clesAjoutees: ['total_lecons'] },
+    )
+
+    expect([...cles].sort()).toEqual(['evaluations', 'heures', 'total_lecons'])
+  })
+})
+
 describe('la vérité vient de la fixture, pas du script', () => {
   it('dérive les clés autorisées du module importé', () => {
     const faux = {
