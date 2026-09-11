@@ -1,5 +1,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { auth, teacherStats } from '@/services/api'
+import { getInitials } from '@/utils/formatters'
 
 const ROLE_LABELS = {
   'etudiant': 'Étudiant',
@@ -25,12 +26,13 @@ export function useTeacherProfile() {
   })
   const isLoadingStats = ref(false)
 
-  const userInitials = computed(() => {
-    if (!user.value) return '?'
-    const nom = user.value.nom || ''
-    const prenom = user.value.prenom || ''
-    return `${prenom.charAt(0)}${nom.charAt(0)}`.toUpperCase()
-  })
+  // `getInitials` est polymorphe : il accepte `{name}` — la forme RÉELLE du
+  // payload de login, dont la whitelist est fermée (#504) — autant que
+  // `{prenom, nom}`. L'ancien calcul ne lisait que les champs séparés, absents
+  // de la réponse : il rendait `''`, et le repli `'?'` ne s'appliquait pas
+  // (il est conditionné à l'absence de `user`). Une pastille d'avatar VIDE.
+  // Même correctif que useAdminProfile, qui l'avait déjà reçu.
+  const userInitials = computed(() => getInitials(user.value))
 
   function getRoleLabel(role) {
     return ROLE_LABELS[role] || role

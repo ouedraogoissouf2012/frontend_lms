@@ -37,13 +37,27 @@ describe('useSidebar (#H12)', () => {
     localStorage.clear()
   })
 
-  it('expose les infos utilisateur (initiales, nom, rôle)', () => {
+  // La charge RÉELLE de `POST /auth/login` ne porte qu'un champ `name` : sa
+  // whitelist est fermée (#504). Ce cas-ci est donc le cas NOMINAL, et il est
+  // couvert plus largement par tests/unit/identiteUtilisateur.test.js, qui
+  // s'appuie sur tests/fixtures/api/loginUser.js.
+  it('expose les infos utilisateur depuis le champ `name` du payload réel', () => {
+    getUser.mockReturnValue({ role: 'etudiant', name: 'Jane Doe' })
+    const { api } = run()
+    expect(api.userInitials.value).toBe('JD')
+    expect(api.userName.value).toBe('Jane Doe')
+    expect(api.userRole.value).toBe('Étudiant')
+  })
+
+  // Forme `{prenom, nom}` : elle n'existe PAS au login, mais KLASSCI la renvoie
+  // dans le roster d'une classe. `getFullName` la compose dans l'ordre naturel
+  // prénom-nom — l'ancien calcul rendait « Doe Jane », un ordre que seul le code
+  // fautif produisait, jamais un besoin exprimé.
+  it('accepte encore la forme séparée, dans l’ordre prénom-nom', () => {
     getUser.mockReturnValue({ role: 'etudiant', nom: 'Doe', prenom: 'Jane' })
     const { api } = run()
     expect(api.userInitials.value).toBe('JD')
-    // nom + prenom (ordre d'origine conservé)
-    expect(api.userName.value).toBe('Doe Jane')
-    expect(api.userRole.value).toBe('Étudiant')
+    expect(api.userName.value).toBe('Jane Doe')
   })
 
   it('dérive le menu du rôle courant via useNavigation (parité enseignant)', () => {

@@ -2,6 +2,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { auth } from '@/services/api'
 import { isTeacher, isStudent, getRoleDisplayName } from '@/constants/roles'
+import { getFullName, getInitials } from '@/utils/formatters'
 import { sidebarKey } from '@/constants/storageKeys'
 import { useNavigation } from '@/composables/useNavigation'
 
@@ -23,11 +24,15 @@ export function useSidebar() {
   const isCollapsed = ref(false)
   const openSubmenus = ref({})
 
-  // Infos utilisateur depuis le service auth
-  const userName = computed(() => {
-    const user = auth.getUser()
-    return user ? `${user.nom || ''} ${user.prenom || ''}`.trim() : 'Utilisateur'
-  })
+  // Infos utilisateur depuis le service auth.
+  //
+  // `POST /auth/login` renvoie un unique champ `name` — sa whitelist est FERMÉE
+  // (#504) et ne porte ni `nom` ni `prenom`. L'ancien calcul composait ces deux
+  // champs absents : il rendait une chaîne VIDE sur toutes les pages et pour
+  // tous les rôles, et le repli `'Utilisateur'` ne se déclenchait jamais —
+  // il est conditionné à l'absence de `user`, or `user` est un objet valide.
+  // Mesuré le 2026-09-11 : `.user-name` contenait `""`, l'avatar affichait `U`.
+  const userName = computed(() => getFullName(auth.getUser(), { fallback: 'Utilisateur' }))
 
   const userRole = computed(() => {
     const user = auth.getUser()
@@ -36,14 +41,16 @@ export function useSidebar() {
     return getRoleDisplayName(user) || 'Invité'
   })
 
+  // `getInitials` est polymorphe : il sait lire `name` comme `{prenom, nom}`.
+  // L'ancien calcul ne connaissait que la seconde forme, absente de la réponse,
+  // et rendait donc toujours le repli générique `U`.
   const userInitials = computed(() => {
     const user = auth.getUser()
     if (!user) return 'U'
 
-    const firstInitial = (user.prenom || user.nom || 'U')[0]
-    const lastInitial = user.nom ? user.nom[0] : ''
+    const initiales = getInitials(user)
 
-    return (firstInitial + lastInitial).toUpperCase()
+    return initiales === '?' ? 'U' : initiales
   })
 
   // Menu selon le rôle, issu de la source unique déclarative (#104). `sections`

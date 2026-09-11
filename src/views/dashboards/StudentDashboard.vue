@@ -7,7 +7,7 @@
         <div>
           <h1 class="page-title">Dashboard Étudiant</h1>
           <p class="page-subtitle">
-            Bienvenue, <strong>{{ user?.name || user?.nom + ' ' + user?.prenom }}</strong>
+            Bienvenue, <strong>{{ getFullName(user) }}</strong>
           </p>
         </div>
       </div>
@@ -34,6 +34,9 @@
 </template>
 
 <script setup>
+// Repli mort supprime : `nom`/`prenom` n'existent pas dans le payload de login
+// (#504), et leur concatenation rendait « undefined undefined ».
+import { getFullName } from '@/utils/formatters'
 /**
  * Dashboard Étudiant. Orchestrateur (#G1 ≤300) : la donnée et la logique (cache +
  * rafraîchissement en arrière-plan) vivent dans useStudentDashboard ; l'UI est
