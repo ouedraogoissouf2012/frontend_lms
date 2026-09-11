@@ -149,6 +149,30 @@ jobs:
       - name: Check for hand-written KLASSCI payloads
         run: npm run lint:klassci-fixtures
 
+  lint-cles:
+    name: Cles inexistantes guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # `payload.cle_qui_nexiste_pas` est du JavaScript VALIDE : ni ESLint, ni la
+      # suite, ni la revue ne peuvent le voir. Un `|| 0` transforme alors
+      # l'absence en valeur plausible, et l'ecran ment sans que rien n'echoue.
+      # Arrive quatre fois : #365, #371, #372. La verite vient des fixtures
+      # mesurees, pas de ce script.
+      - name: Check for reads of keys the API never sends
+        run: npm run lint:cles
+
   lint-js:
     name: ESLint
     runs-on: ubuntu-latest
