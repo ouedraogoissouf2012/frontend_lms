@@ -15,18 +15,22 @@ const mountCard = (props = {}) =>
       },
       userInitials: 'MD',
       roleLabel: 'Administrateur',
-      memberSince: '15 janvier 2024',
       ...props,
     },
   })
 
 describe('ProfileInfoCard (#H3)', () => {
-  it('affiche initiales, nom, rôle et date d\'inscription', () => {
+  it('affiche initiales, nom et rôle', () => {
     const w = mountCard()
     expect(w.find('.avatar-initials').text()).toBe('MD')
     expect(w.find('.user-name').text()).toContain('Dupont')
     expect(w.find('.user-role').text()).toBe('Administrateur')
-    expect(w.html()).toContain('15 janvier 2024')
+  })
+
+  // La carte ne doit plus proposer de ligne « Membre depuis » : aucune charge
+  // ne porte de date de création, elle affichait « Non disponible » à vie.
+  it('ne propose plus de ligne « Membre depuis »', () => {
+    expect(mountCard().text()).not.toContain('Membre depuis')
   })
 
   it('affiche email et téléphone fournis', () => {

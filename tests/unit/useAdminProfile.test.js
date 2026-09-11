@@ -27,8 +27,9 @@ const realUser = {
   prenom: 'Marie',
   email: 'marie@e.com',
   role: 'admin',
-  created_at: '2024-01-15T10:00:00Z',
-  permissions: ['users:read'],
+  // Ni `created_at` ni `permissions` ici : le premier n'a jamais existé dans la
+  // charge, le second en a été RETIRÉ par #504. Les laisser ferait de ce
+  // `realUser` une charge inventée — ce que son nom promet précisément.
 }
 
 async function setup() {
@@ -55,9 +56,10 @@ describe('useAdminProfile (#H3)', () => {
     expect(p.userInitials.value).toBe('MD')
   })
 
-  it('formate la date d’inscription, et son absence', async () => {
+  // Même mesure que useTeacherProfile : aucune source pour « Membre depuis ».
+  it('n’expose plus de date d’inscription, faute de source', async () => {
     const p = await setup()
-    expect(p.memberSince.value).toContain('2024')
+    expect(p.memberSince).toBeUndefined()
     expect(p.formatDate(null)).toBe('Non disponible')
   })
 

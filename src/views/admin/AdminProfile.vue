@@ -15,7 +15,6 @@
           :user="user"
           :user-initials="userInitials"
           :role-label="roleLabel"
-          :member-since="memberSince"
         />
 
         <ProfileStatsCard :stats="stats" />
@@ -44,7 +43,7 @@ import ProfilePermissionsCard from '@/components/admin/ProfilePermissionsCard.vu
 import ProfileActionsCard from '@/components/admin/ProfileActionsCard.vue'
 import { useAdminProfile } from '@/composables/useAdminProfile'
 
-const { user, stats, userInitials, roleLabel, memberSince } = useAdminProfile()
+const { user, stats, userInitials, roleLabel } = useAdminProfile()
 </script>
 
 <style scoped>

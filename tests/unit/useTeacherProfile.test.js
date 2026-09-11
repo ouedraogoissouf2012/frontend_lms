@@ -29,7 +29,7 @@ describe('useTeacherProfile (#H11)', () => {
     vi.clearAllMocks()
     authMock.getUser.mockReturnValue({
       nom: 'Dupont', prenom: 'Marie', role: 'enseignant',
-      email: 'm@e.com', created_at: '2024-01-15',
+      email: 'm@e.com',
     })
     teacherStatsMock.getStats.mockResolvedValue({ matieres: 3, classes: 2, evaluations: 5, lessons: 9 })
   })
@@ -45,9 +45,15 @@ describe('useTeacherProfile (#H11)', () => {
     expect(p.roleLabel.value).toBe('Enseignant')
   })
 
-  it('formate la date d\'inscription en français', async () => {
+  // « Membre depuis » n'est plus exposé : aucune charge ne porte de date de
+  // création — mesuré le 2026-09-11 sur le compte enseignant réel, `POST
+  // /auth/login` comme `GET /auth/me`. La version précédente de ce test
+  // FABRIQUAIT un `created_at` dans sa charge et restait donc verte sur une
+  // lecture morte : le défaut de classe que ce chantier ferme. On vérifie
+  // désormais l'absence, et que le formateur exporté fonctionne toujours.
+  it('n\'expose plus de date d\'inscription, faute de source', async () => {
     const p = await setup()
-    expect(p.memberSince.value).toMatch(/2024/)
+    expect(p.memberSince).toBeUndefined()
     expect(p.formatDate(null)).toBe('Non disponible')
   })
 

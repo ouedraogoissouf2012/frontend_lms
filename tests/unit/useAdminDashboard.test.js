@@ -77,6 +77,48 @@ describe('useAdminDashboard (#H3)', () => {
     expect(s.loading.value.stats).toBe(false)
   })
 
+  // `stats` part de `ref(null)`, et AdminDashboard.vue:42 monte les tuiles sous
+  // `v-if="stats"` : `null` est donc ce qui distingue « pas encore chargé » de
+  // « chargé ». Le montage amorçait pourtant `stats` à
+  // `user.admin_data.statistics || {}` — or `admin_data` a été RETIRÉ de la
+  // réponse de login par #504. La lecture ne rendait plus jamais rien, et son
+  // `|| {}` substituait au `null` un objet vide mais TRUTHY, qui rendait la
+  // garde inopérante. Ces deux tests gèlent le retrait.
+  describe('amorçage de stats au montage', () => {
+    it('reste NON CHARGÉ (null) tant que KLASSCI n’a pas répondu', () => {
+      // Promesses qui ne se résolvent jamais : on observe la fenêtre de
+      // chargement, celle qu'aucune assertion existante ne couvrait.
+      const jamais = () => new Promise(() => {})
+      mockKlassci.getClasses.mockImplementation(jamais)
+      mockKlassci.getMatieres.mockImplementation(jamais)
+      mockKlassci.getEnseignants.mockImplementation(jamais)
+
+      let api
+      mount(defineComponent({ setup() { api = useAdminDashboard(); return () => null } }))
+
+      expect(api.stats.value).toBeNull()
+    })
+
+    it('n’amorce RIEN depuis admin_data, même si la charge en porte', () => {
+      // La forme d'avant #504. Si elle réapparaissait côté KLASSCI, elle ne doit
+      // plus servir de source : l'autorité est `loadKlassciData`.
+      mockAuth.getUser.mockReturnValue({
+        name: 'Alice',
+        role: 'admin',
+        admin_data: { statistics: { nb_enseignants: 999 } },
+      })
+      const jamais = () => new Promise(() => {})
+      mockKlassci.getClasses.mockImplementation(jamais)
+      mockKlassci.getMatieres.mockImplementation(jamais)
+      mockKlassci.getEnseignants.mockImplementation(jamais)
+
+      let api
+      mount(defineComponent({ setup() { api = useAdminDashboard(); return () => null } }))
+
+      expect(api.stats.value).toBeNull()
+    })
+  })
+
   it('charge les analytics (tendances, tâches, utilisateurs récents)', async () => {
     mockAnalytics.getActivityTrends.mockResolvedValue({ points: [1, 2] })
     mockAnalytics.getPendingTasks.mockResolvedValue({ pending_grading: { count: 4 } })

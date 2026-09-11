@@ -90,7 +90,15 @@ export function useAdminDashboard() {
   onMounted(() => {
     user.value = auth.getUser()
     meta.value = auth.getMeta()
-    stats.value = user.value?.admin_data?.statistics || {}
+    // Pas d'amorçage de `stats` ici. L'ancienne ligne lisait
+    // `user.admin_data.statistics` — or `admin_data` a été RETIRÉ de la réponse
+    // de login par #504 (un KLASSCI compromis pouvait y pousser des droits) :
+    // elle ne pouvait donc plus rien rendre. Son `|| {}` remplaçait le
+    // `ref(null)` par un objet VIDE mais truthy, défaisant le `v-if="stats"`
+    // d'AdminDashboard.vue:42 — la garde même qui distingue « pas encore
+    // chargé » de « chargé ». `loadKlassciData()`, appelé juste après, écrit
+    // `stats.value` dans son `try` comme dans son `catch` : rien n'était lu
+    // entre les deux.
 
     // Charger les données KLASSCI
     loadKlassciData()
