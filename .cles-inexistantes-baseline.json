@@ -1,5 +1,4 @@
 {
-  "src/components/teacher/DashboardActivityWidgets.vue": 4,
   "src/composables/useAdminDashboard.js": 1,
   "src/composables/useAdminProfile.js": 1,
   "src/composables/useScheduleActorId.js": 1,

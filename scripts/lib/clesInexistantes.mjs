@@ -76,6 +76,22 @@ export const RECEVEURS = [
     exports: ['TEACHER_DASHBOARD'],
     chemin: 'statistiques',
     portee: null,
+    // `dashboardData.statistiques` n'est PAS la charge brute : `useTeacherDashboard`
+    // y greffe quatre indicateurs via `deriveTeacherCounters` (#371). Ces clés
+    // existent donc au runtime, et les signaler ferait rougir la garde sur le
+    // code qui CORRIGE le défaut — exactement ce qu'elle doit éviter.
+    //
+    // Cette liste n'est pas « écrite de mémoire » : le test
+    // tests/unit/clesInexistantes.test.js verifie qu'elle est IDENTIQUE aux clés
+    // que `deriveTeacherCounters` produit. Elle ne peut donc pas dériver en
+    // silence. Un import direct serait préférable, mais Node ESM ne résout pas
+    // les imports sans extension de `src/utils/` — Vite oui, Node non.
+    clesAjoutees: [
+      'total_etudiants',
+      'total_lecons',
+      'seances_aujourdhui',
+      'evaluations_en_cours',
+    ],
     // `dashboardData` nomme AUSSI la charge du tableau de bord ÉTUDIANT
     // (`me/dashboard`), qui porte ses propres clés — `moyenne_generale`,
     // `taux_presence`. Les signaler serait faux : cette charge-là n'a pas encore
@@ -129,6 +145,10 @@ const HORS_CHARGE = new Set([
  */
 export function clesAutorisees(moduleFixture, receveur) {
   const cles = new Set()
+
+  // Clés ajoutées par un normaliseur en aval de l'API : elles existent au
+  // runtime même si la charge brute ne les porte pas.
+  for (const k of receveur.clesAjoutees ?? []) cles.add(k)
 
   for (const nomExport of receveur.exports) {
     let valeur = moduleFixture[nomExport]
