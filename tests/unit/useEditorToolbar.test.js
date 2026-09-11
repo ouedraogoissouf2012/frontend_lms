@@ -68,4 +68,46 @@ describe('useEditorToolbar (#G1)', () => {
     insertTable()
     expect(editor.calls).toHaveLength(1)
   })
+
+  // LA forme que le vrai appelant utilise, et la seule qui n'était pas testée.
+  //
+  // `EditorToolbar.vue:48` fait `useEditorToolbar(() => props.editor)` — un
+  // GETTER. `unref` d'une fonction rend la fonction elle-même, donc `ed()`
+  // retournait le getter et non l'éditeur : `ed().chain` était `undefined`.
+  //
+  // Mesuré dans le navigateur le 2026-09-11, sur l'éditeur réel :
+  //   TypeError: ed(...).chain is not a function
+  //
+  // Les QUATRE boutons — tableau, lien, image, vidéo — étaient donc morts
+  // depuis le refactor `cb12dc31` du 2026-06-25, pendant que ce fichier restait
+  // vert : il ne couvrait que les deux formes qui fonctionnaient.
+  describe('forme GETTER — celle du vrai appelant', () => {
+    it('insertTable fonctionne quand editor est une fonction', () => {
+      const editor = makeEditor()
+      const { insertTable } = useEditorToolbar(() => editor)
+      insertTable()
+      expect(editor.calls).toEqual([
+        { method: 'insertTable', arg: { rows: 3, cols: 3, withHeaderRow: true } },
+      ])
+    })
+
+    it('addLink, addImage et addYoutubeVideo aussi', () => {
+      promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('https://x.io')
+      const editor = makeEditor()
+      const t = useEditorToolbar(() => editor)
+
+      t.addLink()
+      t.addImage()
+      t.addYoutubeVideo()
+
+      expect(editor.calls.map((c) => c.method)).toEqual(['setLink', 'setImage', 'setYoutubeVideo'])
+    })
+
+    it('un getter rendant une ref est résolu jusqu’au bout', () => {
+      const editor = makeEditor()
+      const { insertTable } = useEditorToolbar(() => ref(editor))
+      insertTable()
+      expect(editor.calls).toHaveLength(1)
+    })
+  })
 })
