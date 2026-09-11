@@ -15,7 +15,6 @@
           :user="user"
           :user-initials="userInitials"
           :role-label="roleLabel"
-          :member-since="memberSince"
         />
         <ProfileStatsCard :stats="stats" />
         <ProfileQuickActions />
@@ -36,7 +35,7 @@ import ProfileStatsCard from '@/components/teacher/ProfileStatsCard.vue'
 import ProfileQuickActions from '@/components/teacher/ProfileQuickActions.vue'
 import { useTeacherProfile } from '@/composables/useTeacherProfile'
 
-const { user, stats, userInitials, roleLabel, memberSince } = useTeacherProfile()
+const { user, stats, userInitials, roleLabel } = useTeacherProfile()
 </script>
 
 <style scoped>

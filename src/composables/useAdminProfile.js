@@ -48,7 +48,10 @@ export function useAdminProfile() {
   }
 
   const roleLabel = computed(() => getRoleLabel(user.value?.role))
-  const memberSince = computed(() => formatDate(user.value?.created_at))
+  // « Membre depuis » RETIRÉ — aucune source. Même mesure que useTeacherProfile
+  // (2026-09-11) : ni `POST /auth/login` ni `GET /auth/me` ne portent de date de
+  // création, la ligne affichait « Non disponible » à perpétuité, et son test
+  // inventait un `created_at` absent de la charge réelle.
 
   /** Résout une promesse en tolérant l'échec : `null` + journalisation sûre. */
   async function settle(promise, label) {
@@ -84,7 +87,7 @@ export function useAdminProfile() {
 
   return {
     user, stats,
-    userInitials, roleLabel, memberSince,
+    userInitials, roleLabel,
     getRoleLabel, formatDate, loadStats,
   }
 }

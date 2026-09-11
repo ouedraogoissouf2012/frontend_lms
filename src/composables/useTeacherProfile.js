@@ -49,7 +49,23 @@ export function useTeacherProfile() {
   }
 
   const roleLabel = computed(() => getRoleLabel(user.value?.role))
-  const memberSince = computed(() => formatDate(user.value?.created_at))
+
+  // « Membre depuis » a été RETIRÉ : aucune source ne peut l'alimenter.
+  //
+  // `user` vient de `auth.getUser()`, dont l'unique écrivain est
+  // `stores/auth.js` au retour du login. Or la charge de login ne porte pas de
+  // date — mesuré le 2026-09-11 sur le compte enseignant réel, les deux
+  // branches du présentateur confondues :
+  //   {id, klassci_id, name, email, role, role_display_name, avatar,
+  //    enseignant_data, etudiant_data}
+  // et `GET /auth/me` rend `klassci_data: []`, vide.
+  //
+  // La ligne affichait donc « Non disponible » en permanence, et le test qui la
+  // couvrait fabriquait un `created_at` que l'API n'envoie jamais : vert sur du
+  // code mort. Exposer `users.created_at` serait possible côté LMS, mais pour un
+  // compte MIROITÉ cette date mesure la première synchro, pas l'ancienneté dans
+  // l'établissement — l'afficher inventerait une information.
+  // Le besoin produit, s'il existe, est suivi hors de ce fichier.
 
   async function loadStats() {
     try {
@@ -71,7 +87,7 @@ export function useTeacherProfile() {
 
   return {
     user, stats, isLoadingStats,
-    userInitials, roleLabel, memberSince,
+    userInitials, roleLabel,
     getRoleLabel, formatDate, loadStats,
   }
 }

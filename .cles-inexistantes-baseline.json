@@ -1,6 +1,3 @@
 {
-  "src/composables/useAdminDashboard.js": 1,
-  "src/composables/useAdminProfile.js": 1,
-  "src/composables/useScheduleActorId.js": 1,
-  "src/composables/useTeacherProfile.js": 1
+  "src/composables/useScheduleActorId.js": 1
 }

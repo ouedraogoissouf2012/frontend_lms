@@ -31,16 +31,6 @@
             <p class="info-value">{{ user?.telephone || 'Non renseigné' }}</p>
           </div>
         </div>
-
-
-
-        <div class="info-item">
-          <CalendarIcon class="info-icon" />
-          <div class="info-content">
-            <label class="info-label">Membre depuis</label>
-            <p class="info-value">{{ memberSince }}</p>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -52,13 +42,12 @@
 import { getFullName } from '@/utils/formatters'
 /** Carte « Informations personnelles » du profil enseignant (#H11 ≤300).
  *  Présentation pure : avatar (initiales), nom/rôle et coordonnées. */
-import { UserIcon, EnvelopeIcon, PhoneIcon, CalendarIcon } from '@heroicons/vue/24/outline'
+import { UserIcon, EnvelopeIcon, PhoneIcon } from '@heroicons/vue/24/outline'
 
 defineProps({
   user: { type: Object, default: null },
   userInitials: { type: String, default: '?' },
   roleLabel: { type: String, default: '' },
-  memberSince: { type: String, default: '' }
 })
 </script>
 

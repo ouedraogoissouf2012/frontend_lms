@@ -12,7 +12,7 @@ describe('ProfileInfoCard (#H11)', () => {
     const w = mount(ProfileInfoCard, {
       props: {
         user: { nom: 'Dupont', prenom: 'Marie', email: 'm@e.com' },
-        userInitials: 'MD', roleLabel: 'Enseignant', memberSince: '15 janvier 2024',
+        userInitials: 'MD', roleLabel: 'Enseignant',
       },
     })
     expect(w.find('.avatar-initials').text()).toBe('MD')
