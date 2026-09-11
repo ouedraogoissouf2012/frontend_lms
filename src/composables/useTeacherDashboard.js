@@ -7,6 +7,7 @@ import lmsService from '@/services/lms'
 import { clearCache, readCache, writeCache } from '@/services/cache'
 import {
   buildTeacherDashboardFallback,
+  deriveTeacherCounters,
   hasDashboardContent,
   normalizeTeacherDashboard,
   normalizeTeacherDashboardPayload,
@@ -26,6 +27,31 @@ export function useTeacherDashboard() {
   const dashboardData = ref(null)
   const loading = ref(false)
   const error = ref(null)
+
+  /**
+   * Compteurs du LMS, ou `null` s'il n'a pas répondu. Source COMPLÉMENTAIRE :
+   * son échec ne doit pas vider l'écran.
+   */
+  async function compteursLocaux() {
+    try {
+      const reponse = await dashboardService.getTeacherDashboard()
+      return reponse?.data ?? null
+    } catch {
+      return null
+    }
+  }
+
+  /**
+   * Greffe les quatre indicateurs SUR le bloc `statistiques`, sans écraser ce
+   * que KLASSCI y met déjà (`heures`, `evaluations`) : l'ajout est additif,
+   * aucun consommateur existant n'est déplacé.
+   */
+  function avecCompteurs(data, brut, local) {
+    return {
+      ...data,
+      statistiques: { ...(data.statistiques ?? {}), ...deriveTeacherCounters(brut, local) },
+    }
+  }
 
   async function loadFallbackDashboard() {
     const localDashboard = normalizeTeacherDashboardPayload(
@@ -50,10 +76,21 @@ export function useTeacherDashboard() {
     error.value = null
 
     try {
-      const data = normalizeTeacherDashboard(await klassciService.getTeacherDashboard())
+      // Les deux sources en parallèle : le référentiel académique est chez
+      // KLASSCI, mais `lessons` est une table du LMS — la lui demander ne
+      // pouvait qu'échouer. L'échec du LMS ne fait pas échouer l'écran : ses
+      // compteurs deviennent « non mesurés », rendus « — ». L'échec de KLASSCI,
+      // lui, remonte : l'avaler afficherait un écran entièrement à zéro sans
+      // rien dire, soit le défaut qu'on corrige (#371).
+      const [brut, local] = await Promise.all([
+        klassciService.getTeacherDashboard(),
+        compteursLocaux(),
+      ])
+
+      const data = normalizeTeacherDashboard(brut)
       if (hasDashboardContent(data)) {
-        dashboardData.value = data
-        writeCache(CACHE_NAME, data)
+        dashboardData.value = avecCompteurs(data, brut, local)
+        writeCache(CACHE_NAME, dashboardData.value)
         return
       }
 

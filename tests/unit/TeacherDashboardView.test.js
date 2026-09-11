@@ -76,7 +76,16 @@ describe('TeacherDashboard.vue (G9) — montage', () => {
       classes: [],
       evaluations: [],
       seances: [],
-      statistiques: {},
+      // `statistiques` n'est plus VIDE : les quatre indicateurs du tableau de
+      // bord y sont désormais greffés (#371). Ils valent `null` ici — aucune
+      // source dans cette charge de test — et `null` s'affiche « — », là où
+      // l'ancien `|| 0` rendait quatre zéros permanents.
+      statistiques: {
+        total_etudiants: null,
+        total_lecons: null,
+        seances_aujourdhui: null,
+        evaluations_en_cours: null,
+      },
     }))
   })
 
