@@ -10,13 +10,13 @@
         <div class="stat-item">
           <p class="stat-label">Étudiants Totaux</p>
           <p class="stat-value text-indigo-600">
-            {{ dashboardData.statistiques?.total_etudiants || 0 }}
+            {{ formatCount(dashboardData.statistiques?.total_etudiants) }}
           </p>
         </div>
         <div class="stat-item">
           <p class="stat-label">Leçons Créées</p>
           <p class="stat-value text-blue-600">
-            {{ dashboardData.statistiques?.total_lecons || dashboardData.lessons?.length || 0 }}
+            {{ formatCount(dashboardData.statistiques?.total_lecons) }}
           </p>
         </div>
       </div>
@@ -32,13 +32,13 @@
         <div class="stat-item">
           <p class="stat-label">Séances du Jour</p>
           <p class="stat-value text-purple-600">
-            {{ dashboardData.statistiques?.seances_aujourdhui || 0 }}
+            {{ formatCount(dashboardData.statistiques?.seances_aujourdhui) }}
           </p>
         </div>
         <div class="stat-item">
           <p class="stat-label">Évaluations en Cours</p>
           <p class="stat-value text-orange-600">
-            {{ dashboardData.statistiques?.evaluations_en_cours || 0 }}
+            {{ formatCount(dashboardData.statistiques?.evaluations_en_cours) }}
           </p>
         </div>
       </div>
@@ -50,6 +50,10 @@
 /** Widgets « Activité récente » + « Aujourd'hui » du dashboard enseignant
  *  (#H11 ≤300). Présentation pure : 4 indicateurs issus de statistiques. */
 import { ChartBarIcon, CalendarIcon } from '@heroicons/vue/24/outline'
+// Un compteur sans source rend `null`, affiché « — » : un `0` affirmerait une
+// mesure qu'on n'a pas. Les quatre clés lues auparavant n'existaient pas dans
+// la charge KLASSCI — voir utils/teacherDashboard.js `deriveTeacherCounters` (#371).
+import { formatCount } from '@/utils/formatters'
 
 defineProps({
   dashboardData: { type: Object, required: true }
