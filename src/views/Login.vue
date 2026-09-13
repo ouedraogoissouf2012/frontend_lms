@@ -65,6 +65,9 @@
           {{ loading ? 'Connexion...' : 'Se connecter' }}
         </button>
       </form>
+      <p class="mt-4 text-center">
+        <router-link to="/forgot-password" class="text-primary-600">Mot de passe oublié</router-link>
+      </p>
 
     </div>
   </div>

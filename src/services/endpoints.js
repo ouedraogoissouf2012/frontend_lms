@@ -121,6 +121,8 @@ export const endpoints = {
     logout: '/auth/logout',
     me: '/auth/me',
     institutionsActive: '/institutions/active',
+    forgotPassword: '/auth/forgot-password',
+    resetPassword: '/auth/reset-password',
   },
 
   lessons: {

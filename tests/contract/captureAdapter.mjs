@@ -61,6 +61,7 @@ export function installCapture() {
         data: typeof config.data === 'string' && config.data.length
           ? safeParse(config.data)
           : (config.data ?? null),
+        headers: config.headers ?? {},
       })
       // L'intercepteur de réponse d'api.js renvoie `response.data` : on simule une
       // enveloppe API standard pour que les services ne lèvent pas.

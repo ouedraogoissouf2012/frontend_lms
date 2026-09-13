@@ -54,6 +54,7 @@ import klassciService from '../../src/services/klassci.js'
 import chapterProgressService from '../../src/services/chapterProgress.js'
 import { notificationsService } from '../../src/services/notifications.js'
 import { searchService } from '../../src/services/search.js'
+import { passwordResetService } from '../../src/services/passwordReset.js'
 
 /** Motif IDOR : un identifiant d'étudiant dans le chemin est interdit (R7.5). */
 const IDOR_PATTERN = /^\/evaluations\/student\/.+/
@@ -265,6 +266,32 @@ export const edgeCases = [
   },
 ]
 
+const RESET_HEADER = { name: 'X-Institution', value: 'esi' }
+
+contractCases.push(
+  {
+    name: '#332 — forgot-password émet X-Institution',
+    _req: '#332',
+    run: () => passwordResetService.requestLink('esi', 'a@b.test'),
+    method: 'POST',
+    url: '/auth/forgot-password',
+    header: RESET_HEADER,
+  },
+  {
+    name: '#332 — reset-password émet X-Institution',
+    _req: '#332',
+    run: () => passwordResetService.resetPassword('esi', {
+      email: 'a@b.test',
+      token: 'tok',
+      password: 'Nouveau123',
+      password_confirmation: 'Nouveau123',
+    }),
+    method: 'POST',
+    url: '/auth/reset-password',
+    header: RESET_HEADER,
+  },
+)
+
 /** Chemins morts qui ne doivent JAMAIS être émis (assertions négatives). */
 const DEAD_PATH_MATCHERS = [
   { label: '/notifications/{id}/read', test: (u) => /^\/notifications\/\d+\/read$/.test(u) },
@@ -300,7 +327,10 @@ export async function runContractAssertions() {
       const methodOk = last.method === c.method
       const urlOk = last.url === c.url
       const bodyOk = c.body ? c.body(last.data) : true
-      const ok = methodOk && urlOk && bodyOk
+      const headerOk = c.header
+        ? last.headers?.[c.header.name] === c.header.value
+        : true
+      const ok = methodOk && urlOk && bodyOk && headerOk
       results.push({
         ...meta(c),
         ok,
