@@ -38,6 +38,20 @@
       </div>
     </router-link>
 
+    <router-link to="/teacher/import" class="hub-card">
+      <div class="card-icon classes-icon">
+        <ArrowRightIcon class="icon" />
+      </div>
+      <div class="card-content">
+        <h2 class="card-title">Import apprenants</h2>
+        <p class="card-description">CSV guidé : analyse à blanc avant toute écriture</p>
+      </div>
+      <div class="card-footer">
+        <span>Importer</span>
+        <ArrowRightIcon class="arrow-icon" />
+      </div>
+    </router-link>
+
     <!-- Section Lecons -->
     <router-link to="/teacher/lessons" class="hub-card">
       <div class="card-icon lecons-icon">
@@ -61,7 +75,7 @@
 
 <script setup>
 /** Cartes de navigation du hub enseignant (#H11 ≤300). Présentation pure :
- *  3 raccourcis cliquables (classes/matières/leçons) avec leur compteur. */
+ *  raccourcis cliquables (classes/matières/import/leçons). */
 import { UserGroupIcon, BookOpenIcon, AcademicCapIcon, ArrowRightIcon } from '@heroicons/vue/24/outline'
 // Un compteur non mesure s'affiche « — » : une case vide se lisait comme
 // « zero », et zero est une affirmation que la donnee ne portait pas.

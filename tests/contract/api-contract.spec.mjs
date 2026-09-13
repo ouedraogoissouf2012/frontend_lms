@@ -55,6 +55,7 @@ import chapterProgressService from '../../src/services/chapterProgress.js'
 import { notificationsService } from '../../src/services/notifications.js'
 import { searchService } from '../../src/services/search.js'
 import { passwordResetService } from '../../src/services/passwordReset.js'
+import { previewImport } from '../../src/services/importPreview.js'
 
 /** Motif IDOR : un identifiant d'étudiant dans le chemin est interdit (R7.5). */
 const IDOR_PATTERN = /^\/evaluations\/student\/.+/
@@ -289,6 +290,13 @@ contractCases.push(
     method: 'POST',
     url: '/auth/reset-password',
     header: RESET_HEADER,
+  },
+  {
+    name: '#334 — preview import POST /lms/imports/preview',
+    _req: '#334',
+    run: () => previewImport(new File(['nom;prenom\nA;B'], 'x.csv', { type: 'text/csv' })),
+    method: 'POST',
+    url: '/lms/imports/preview',
   },
 )
 

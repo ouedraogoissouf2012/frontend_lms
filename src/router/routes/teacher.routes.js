@@ -49,6 +49,16 @@ export const teacherRoutes = [
   },
   // Classes Enseignant
   {
+    path: '/teacher/import',
+    name: 'TeacherImport',
+    component: () => import('@/views/teacher/TeacherImport.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['enseignant', 'teacher'],
+      title: 'Import apprenants'
+    }
+  },
+  {
     path: '/teacher/classes',
     name: 'TeacherClasses',
     component: () => import('@/views/teacher/TeacherClasses.vue'),
