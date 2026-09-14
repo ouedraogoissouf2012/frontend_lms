@@ -76,6 +76,26 @@ describe('mappingIssues', () => {
     expect(issues[0]).toMatch(/s'appellent/i)
   })
 
+  it('refuse deux colonnes SANS NOM, que le serveur compte comme doublon', () => {
+    // Un point-virgule en trop suffit à produire « nom;;;prenom ». Le serveur
+    // normalise puis compare : deux chaînes vides sont pour lui deux colonnes
+    // de même nom, et il refuse le fichier en 422. Mesuré.
+    const issues = mappingIssues(
+      { nom: 'nom', prenom: 'prenom', telephone: 'tel' },
+      ['nom', '', '', 'prenom', 'tel'],
+    )
+
+    expect(issues).toHaveLength(1)
+    expect(issues[0]).toMatch(/pas de nom/i)
+  })
+
+  it('tolere UNE seule colonne sans nom, que le serveur accepte', () => {
+    expect(mappingIssues(
+      { nom: 'nom', prenom: 'prenom', telephone: 'tel' },
+      ['nom', '', 'prenom', 'tel'],
+    )).toEqual([])
+  })
+
   it('ignore les champs laisses vides', () => {
     expect(mappingIssues({ nom: 'Nom', prenom: 'Prenom', email: '', telephone: 'Tel' }, ['Nom', 'Prenom', 'Tel'])).toEqual([])
   })

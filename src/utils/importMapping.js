@@ -33,7 +33,7 @@ const SYNONYMS = {
 function normalizeHeader(header) {
   return String(header ?? '')
     .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
+    .replace(/[\u0300-\u036f]/g, '')
     .replace(/[-_']/g, ' ')
     .trim()
     .replace(/\s+/g, ' ')
@@ -55,16 +55,30 @@ function filledEntries(mapping) {
  * faire remplir un formulaire qui ne peut pas aboutir.
  */
 function duplicateHeaders(mapping, headers) {
+  const issues = []
+
+  // Le serveur compare TOUS les en-têtes normalisés, les vides compris : deux
+  // colonnes sans nom sont pour lui deux colonnes de même nom, et il refuse le
+  // fichier (code `duplicate_header`). Un séparateur en trop suffit à en
+  // produire deux. Les écarter avant de compter donnait un feu vert que la
+  // requête suivante démentait aussitôt.
+  if ((headers ?? []).filter((header) => !String(header ?? '').trim()).length > 1) {
+    issues.push(
+      "Plusieurs colonnes du fichier n'ont pas de nom : retirez les séparateurs en trop de la ligne d'en-tête.",
+    )
+  }
+
   // Comparaison sur la forme NORMALISÉE, celle que le serveur utilise : pour
-  // lui « Nom » et « nom » sont la même colonne. Comparer les chaînes brutes
-  // donnerait un feu vert que la requête suivante démentirait aussitôt.
+  // lui « Nom » et « nom » sont la même colonne.
   const named = (headers ?? []).filter(Boolean)
   const formes = named.map((header) => header.trim().toLowerCase())
   const duplicated = [...new Set(named.filter((_, index) => formes.indexOf(formes[index]) !== index))]
 
-  return duplicated.map(
-    (header) => `Deux colonnes du fichier s'appellent « ${header} » : renommez-en une dans votre tableur.`,
-  )
+  for (const header of duplicated) {
+    issues.push(`Deux colonnes du fichier s'appellent « ${header} » : renommez-en une dans votre tableur.`)
+  }
+
+  return issues
 }
 
 function missingRequired(mapping) {
