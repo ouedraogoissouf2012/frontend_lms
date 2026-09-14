@@ -3,6 +3,7 @@ import { mount } from '@vue/test-utils'
 import ImportPreviewReport from '@/components/import/ImportPreviewReport.vue'
 import ImportJobReport from '@/components/import/ImportJobReport.vue'
 import ImportMapping from '@/components/import/ImportMapping.vue'
+import ImportDeposit from '@/components/import/ImportDeposit.vue'
 import { downloadBlob } from '@/utils/downloadBlob'
 
 const rapport = (counts, rows = []) => ({ counts, rows })
@@ -90,6 +91,47 @@ describe('ImportJobReport (#334)', () => {
     expect(wrapper.text()).toMatch(/relu sur le serveur/i)
     expect(wrapper.find('progress').exists()).toBe(false)
     expect(wrapper.find('[data-test="export"]').attributes('disabled')).toBeDefined()
+  })
+})
+
+describe('ImportDeposit (#334)', () => {
+  const fichier = () => new File(['nom;prenom'], 'eleves.csv', { type: 'text/csv' })
+
+  it('accepte un fichier reellement depose', async () => {
+    // L'ecran promet « glisser-deposer » depuis le depart. L'input etant
+    // visuellement masque, un depot ne l'atteint jamais : sans gestionnaire,
+    // la promesse etait purement decorative.
+    const wrapper = mount(ImportDeposit, { props: { fileName: '' } })
+    const depose = fichier()
+
+    await wrapper.find('.import-drop').trigger('drop', { dataTransfer: { files: [depose] } })
+
+    expect(wrapper.emitted('file')[0][0]).toBe(depose)
+  })
+
+  it('ignore un depot qui ne porte aucun fichier', async () => {
+    const wrapper = mount(ImportDeposit, { props: { fileName: '' } })
+
+    await wrapper.find('.import-drop').trigger('drop', { dataTransfer: { files: [] } })
+
+    expect(wrapper.emitted('file')).toBeUndefined()
+  })
+
+  it('signale visuellement le survol, puis l oublie', async () => {
+    const wrapper = mount(ImportDeposit, { props: { fileName: '' } })
+    const zone = wrapper.find('.import-drop')
+
+    await zone.trigger('dragover')
+    expect(zone.classes()).toContain('import-drop--survol')
+
+    await zone.trigger('dragleave')
+    expect(zone.classes()).not.toContain('import-drop--survol')
+  })
+
+  it('ne laisse pas continuer sans fichier choisi', () => {
+    const wrapper = mount(ImportDeposit, { props: { fileName: '' } })
+
+    expect(wrapper.find('[data-test="next"]').attributes('disabled')).toBeDefined()
   })
 })
 
