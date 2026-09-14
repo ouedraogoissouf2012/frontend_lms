@@ -47,6 +47,8 @@ export const endpoints = {
     },
     imports: {
       preview: `${LMS}/imports/preview`,
+      confirm: (id) => `${LMS}/imports/${id}/confirm`,
+      show: (id) => `${LMS}/imports/${id}`,
     },
 
     matieres: {

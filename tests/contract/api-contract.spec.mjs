@@ -56,6 +56,7 @@ import { notificationsService } from '../../src/services/notifications.js'
 import { searchService } from '../../src/services/search.js'
 import { passwordResetService } from '../../src/services/passwordReset.js'
 import { previewImport } from '../../src/services/importPreview.js'
+import { confirmImport, getImport } from '../../src/services/importJob.js'
 
 /** Motif IDOR : un identifiant d'étudiant dans le chemin est interdit (R7.5). */
 const IDOR_PATTERN = /^\/evaluations\/student\/.+/
@@ -297,6 +298,20 @@ contractCases.push(
     run: () => previewImport(new File(['nom;prenom\nA;B'], 'x.csv', { type: 'text/csv' })),
     method: 'POST',
     url: '/lms/imports/preview',
+  },
+  {
+    name: '#334 — confirm import POST /lms/imports/{id}/confirm',
+    _req: '#334',
+    run: () => confirmImport(12),
+    method: 'POST',
+    url: '/lms/imports/12/confirm',
+  },
+  {
+    name: '#334 — show import GET /lms/imports/{id}',
+    _req: '#334',
+    run: () => getImport(12),
+    method: 'GET',
+    url: '/lms/imports/12',
   },
 )
 

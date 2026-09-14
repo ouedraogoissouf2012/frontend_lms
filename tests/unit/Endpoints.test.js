@@ -75,6 +75,11 @@ describe('endpoints — carte unique (#105)', () => {
 
   describe('valeurs exactes — LMS enrichi (/lms/*)', () => {
     const l = endpoints.lms
+    it('imports', () => {
+      expect(l.imports.preview).toBe('/lms/imports/preview')
+      expect(l.imports.confirm(12)).toBe('/lms/imports/12/confirm')
+      expect(l.imports.show(12)).toBe('/lms/imports/12')
+    })
     it('enseignants / classes / matieres', () => {
       expect(l.enseignants).toBe('/lms/enseignants')
       expect(l.classes.details(3)).toBe('/lms/classes/3')
