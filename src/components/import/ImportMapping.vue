@@ -66,3 +66,43 @@ function onChange(key, value) {
   emit('update:mapping', { ...props.mapping, [key]: value })
 }
 </script>
+
+<style scoped>
+/* Seul ce qui n'appartient qu'à l'étape de cartographie. Le chrome partagé
+   (tableau, boutons, actions) vit dans TeacherImport.vue via `:deep()`. */
+
+.import-issues {
+  align-self: stretch;
+  margin: 0;
+  padding: 0.75rem 1rem 0.75rem 2rem;
+  border: 1px solid var(--warning-border);
+  border-radius: 0.5rem;
+  background: var(--warning-bg);
+  color: var(--warning-text);
+}
+
+.import-issues li + li {
+  margin-top: 0.25rem;
+}
+
+.import-select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--input-border);
+  border-radius: 0.375rem;
+  background: var(--input-bg);
+  color: var(--input-text);
+  font: inherit;
+}
+
+.import-select:focus {
+  border-color: var(--input-border-focus);
+  outline: 2px solid var(--border-focus);
+  outline-offset: 1px;
+}
+
+.import-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+</style>
