@@ -3,6 +3,7 @@ import { useRouter, useRoute } from 'vue-router'
 import evaluationService from '@/services/evaluation'
 import { formatDateTime, getStatusLabel } from '@/utils/evaluationCorrectionsFormat'
 import { toast } from '@/composables/useToast'
+import { downloadBlob } from '@/utils/downloadBlob'
 
 /**
  * Couche données de EvaluationCorrections (H2 ≤300) : charge les résultats d'une
@@ -92,14 +93,9 @@ export function useEvaluationCorrections() {
 
     // Télécharger
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    const url = URL.createObjectURL(blob)
-    link.setAttribute('href', url)
-    link.setAttribute('download', `notes_${evaluation.value.titre.replace(/[^a-z0-9]/gi, '_')}.csv`)
-    link.style.visibility = 'hidden'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    const nom = evaluation.value.titre.replace(/[^a-z0-9]/gi, '_')
+
+    downloadBlob(blob, `notes_${nom}.csv`)
   }
 
   onMounted(() => {

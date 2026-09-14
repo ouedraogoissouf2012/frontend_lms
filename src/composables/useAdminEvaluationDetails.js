@@ -2,6 +2,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '@/services/api'
 import { endpoints } from '@/services/endpoints'
+import { downloadBlob } from '@/utils/downloadBlob'
 import { coalesceNumber } from '@/utils/coalesceNumber'
 
 /**
@@ -187,10 +188,9 @@ export function useAdminEvaluationDetails() {
     ].map(row => row.join(';')).join('\n')
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = `resultats_${evaluation.value?.titre || 'evaluation'}_${new Date().getTime()}.csv`
-    link.click()
+    const titre = evaluation.value?.titre || 'evaluation'
+
+    downloadBlob(blob, `resultats_${titre}_${new Date().getTime()}.csv`)
   }
 
   onMounted(() => {
