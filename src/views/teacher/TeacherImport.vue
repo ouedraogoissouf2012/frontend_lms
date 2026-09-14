@@ -2,42 +2,56 @@
   <DashboardLayout>
     <div class="import-page">
       <h1>Import d'apprenants</h1>
-      <p v-if="error" role="alert">{{ error }}</p>
+      <p v-if="error" class="import-error" role="alert">{{ error }}</p>
       <ol class="import-steps">
         <li :class="{ active: step === 1 }">Dépôt</li>
         <li :class="{ active: step === 2 }">Cartographie</li>
-        <li :class="{ active: step === 3 }">Prévisualisation</li>
+        <li :class="{ active: step === 3 }">Analyse</li>
+        <li :class="{ active: step === 4 }">Rapport</li>
       </ol>
       <ImportDeposit
         v-if="step === 1"
         :file-name="file?.name || ''"
-        @file="onFile"
+        @file="chooseFile"
         @next="readHeaders"
       />
       <ImportMapping
         v-else-if="step === 2"
         :headers="headers"
         :mapping="mapping"
-        :ready="mappingComplete"
+        :issues="mappingIssues"
         :loading="loading"
         @update:mapping="mapping = $event"
-        @back="step = 1"
+        @back="backToDeposit"
         @preview="runPreview"
       />
       <ImportPreviewReport
         v-else-if="step === 3 && report"
         :report="report"
-        @back="step = 2"
+        :loading="loading"
+        @back="backToMapping"
+        @confirm="confirmJob"
+      />
+      <ImportJobReport
+        v-else-if="step === 4"
+        :status="jobStatus"
+        :counts="jobReport?.counts ?? null"
+        :rows="jobReport?.rows ?? []"
+        :polling="jobPolling"
+        @export="exportJobCsv"
+        @fresh="startFresh"
       />
     </div>
   </DashboardLayout>
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ImportDeposit from '@/components/import/ImportDeposit.vue'
 import ImportMapping from '@/components/import/ImportMapping.vue'
 import ImportPreviewReport from '@/components/import/ImportPreviewReport.vue'
+import ImportJobReport from '@/components/import/ImportJobReport.vue'
 import { useImportWizard } from '@/composables/useImportWizard'
 
 const {
@@ -48,15 +62,24 @@ const {
   report,
   loading,
   error,
-  mappingComplete,
+  mappingIssues,
   chooseFile,
   readHeaders,
   runPreview,
+  backToMapping,
+  backToDeposit,
+  confirmJob,
+  restoreJob,
+  startFresh,
+  jobStatus,
+  jobReport,
+  jobPolling,
+  exportJobCsv,
 } = useImportWizard()
 
-function onFile(next) {
-  chooseFile(next)
-}
+onMounted(() => {
+  void restoreJob()
+})
 </script>
 
 <style scoped>
