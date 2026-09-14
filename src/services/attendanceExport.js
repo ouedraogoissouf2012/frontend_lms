@@ -1,5 +1,6 @@
 import { apiBaseUrl } from '@/constants/http'
 import { useAuthStore } from '@/stores/auth'
+import { downloadBlob } from '@/utils/downloadBlob'
 import { endpoints } from './endpoints'
 
 /**
@@ -36,14 +37,9 @@ async function downloadPresenceExport(seanceId, { format, accept, extension, err
   }
 
   const blob = await response.blob()
-  const downloadUrl = window.URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = downloadUrl
-  a.download = `presences_seance_${seanceId}_${new Date().toISOString().split('T')[0]}.${extension}`
-  document.body.appendChild(a)
-  a.click()
-  window.URL.revokeObjectURL(downloadUrl)
-  document.body.removeChild(a)
+  const jour = new Date().toISOString().split('T')[0]
+
+  downloadBlob(blob, `presences_seance_${seanceId}_${jour}.${extension}`)
 }
 
 export const attendanceExportService = {

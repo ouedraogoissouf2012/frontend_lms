@@ -31,17 +31,19 @@ function stripBom(text) {
 }
 
 /**
- * Champs du premier enregistrement CSV, guillemets respectés.
+ * Champs du premier enregistrement, pour un séparateur donné.
  *
- * Les colonnes vides sont CONSERVÉES : les supprimer décalerait la lecture de
- * toutes les colonnes suivantes.
+ * Scanner UNIQUE : `parseFirstRecord` et `detectDelimiter` passent tous les
+ * deux par ici. Chacun avait sa propre copie de cet automate, et deux copies
+ * peuvent diverger sur un guillemet ou une fin de ligne — or une divergence
+ * entre « ce qu'on découpe » et « ce qu'on compte » rendrait le séparateur
+ * détecté incohérent avec les colonnes affichées.
  *
- * @param {string} text - Contenu (au moins le début) du fichier.
- * @param {string} [delimiter=';'] - Séparateur de colonnes.
- * @returns {string[]} Champs, espaces de bord retirés.
+ * @param {string} source - Contenu déjà débarrassé du BOM.
+ * @param {string} delimiter - Séparateur de colonnes.
+ * @returns {string[]} Champs bruts, espaces compris.
  */
-export function parseFirstRecord(text, delimiter = ';') {
-  const source = stripBom(String(text ?? ''))
+function scanFirstRecord(source, delimiter) {
   if (source === '') return []
 
   const fields = []
@@ -89,14 +91,32 @@ export function parseFirstRecord(text, delimiter = ';') {
 
   fields.push(field)
 
-  return fields.map((value) => value.trim())
+  return fields
+}
+
+/**
+ * Champs du premier enregistrement CSV, guillemets respectés.
+ *
+ * Les colonnes vides sont CONSERVÉES : les supprimer décalerait la lecture de
+ * toutes les colonnes suivantes.
+ *
+ * @param {string} text - Contenu (au moins le début) du fichier.
+ * @param {string} [delimiter=';'] - Séparateur de colonnes.
+ * @returns {string[]} Champs, espaces de bord retirés.
+ */
+export function parseFirstRecord(text, delimiter = ';') {
+  return scanFirstRecord(stripBom(String(text ?? '')), delimiter)
+    .map((value) => value.trim())
 }
 
 /**
  * Séparateur le plus probable, d'après le seul premier enregistrement.
  *
- * Ne compte que les occurrences HORS guillemets : une adresse « Rue A, B, C »
- * ne fait pas d'un fichier à points-virgules un fichier à virgules.
+ * Chaque candidat est essayé POUR DE VRAI : on découpe l'enregistrement avec
+ * lui et on retient celui qui produit le plus de colonnes. Les guillemets sont
+ * donc respectés par construction — une adresse « Rue A, B, C » ne fait pas
+ * d'un fichier à points-virgules un fichier à virgules — et il n'existe plus
+ * de second automate susceptible de compter autrement qu'on ne découpe.
  *
  * Le serveur reste l'autorité — il reçoit ce choix et lit le fichier avec
  * (cf. ADR-718-01), ce qui garantit qu'il découpe comme l'utilisateur a vu.
@@ -106,45 +126,14 @@ export function parseFirstRecord(text, delimiter = ';') {
  */
 export function detectDelimiter(text) {
   const source = stripBom(String(text ?? ''))
-  const counts = new Map(DELIMITERS.map((delimiter) => [delimiter, 0]))
-  let quoted = false
-  let atFieldStart = true
-
-  for (let index = 0; index < source.length; index += 1) {
-    const char = source[index]
-
-    if (quoted) {
-      if (char === '"') {
-        if (source[index + 1] === '"') index += 1
-        else quoted = false
-      }
-      continue
-    }
-
-    if (char === '"' && atFieldStart) {
-      quoted = true
-      atFieldStart = false
-      continue
-    }
-    // Même règle que `parseFirstRecord` : un CR isolé n'arrête pas
-    // l'enregistrement, sous peine de compter les séparateurs d'une portion de
-    // fichier différente de celle que le serveur lira.
-    if (char === '\n') break
-
-    if (counts.has(char)) {
-      counts.set(char, counts.get(char) + 1)
-      atFieldStart = true
-      continue
-    }
-    if (char !== ' ') atFieldStart = false
-  }
-
   let best = ';'
-  let bestCount = 0
-  for (const delimiter of DELIMITERS) {
-    if (counts.get(delimiter) > bestCount) {
-      best = delimiter
-      bestCount = counts.get(delimiter)
+  let bestSeparators = 0
+
+  for (const candidate of DELIMITERS) {
+    const separators = scanFirstRecord(source, candidate).length - 1
+    if (separators > bestSeparators) {
+      best = candidate
+      bestSeparators = separators
     }
   }
 

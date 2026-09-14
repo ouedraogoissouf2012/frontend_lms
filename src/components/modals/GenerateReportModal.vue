@@ -87,6 +87,7 @@ import api from '@/services/api'
 import { toast } from '@/composables/useToast'
 import { useReportCatalog } from '@/composables/useReportCatalog'
 import { endpoints } from '@/services/endpoints'
+import { downloadBlob } from '@/utils/downloadBlob'
 
 const props = defineProps({
   modelValue: {
@@ -178,14 +179,8 @@ async function handleGenerate() {
 
     // Créer un lien de téléchargement
     const blob = new Blob([response], { type: 'application/pdf' })
-    const url = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `rapport-${form.value.type}-${new Date().getTime()}.pdf`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(url)
+
+    downloadBlob(blob, `rapport-${form.value.type}-${new Date().getTime()}.pdf`)
 
     toast.success('Rapport PDF généré avec succès')
     emit('generated')
