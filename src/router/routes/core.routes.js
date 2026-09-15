@@ -23,6 +23,12 @@ export const coreRoutes = [
     component: () => import('@/views/ResetPassword.vue'),
     meta: { guest: true }
   },
+  {
+    path: '/ouvrir-une-ecole',
+    name: 'SchoolRequest',
+    component: () => import('@/views/SchoolRequest.vue'),
+    meta: { guest: true }
+  },
   // Redirection / vers dashboard approprié
   {
     path: '/',

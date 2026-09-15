@@ -55,6 +55,7 @@ import chapterProgressService from '../../src/services/chapterProgress.js'
 import { notificationsService } from '../../src/services/notifications.js'
 import { searchService } from '../../src/services/search.js'
 import { passwordResetService } from '../../src/services/passwordReset.js'
+import { submitSchoolRequest } from '../../src/services/schoolRegistration.js'
 import { previewImport } from '../../src/services/importPreview.js'
 import { confirmImport, getImport } from '../../src/services/importJob.js'
 
@@ -270,6 +271,12 @@ export const edgeCases = [
 
 const RESET_HEADER = { name: 'X-Institution', value: 'esi' }
 
+function headerValue(headers, name) {
+  if (!headers) return undefined
+  if (typeof headers.get === 'function') return headers.get(name)
+  return headers[name] ?? headers[name.toLowerCase()]
+}
+
 contractCases.push(
   {
     name: '#332 — forgot-password émet X-Institution',
@@ -291,6 +298,19 @@ contractCases.push(
     method: 'POST',
     url: '/auth/reset-password',
     header: RESET_HEADER,
+  },
+  {
+    name: '#392 — school-requests sans X-Institution',
+    _req: '#392',
+    run: () => submitSchoolRequest({
+      nom_demandeur: 'Awa',
+      email_demandeur: 'awa@test.com',
+      nom_ecole: 'Atelier',
+      usage_prevu: 'Formations courtes en presentiel.',
+    }),
+    method: 'POST',
+    url: '/school-requests',
+    headerForbidden: 'X-Institution',
   },
   {
     name: '#334 — preview import POST /lms/imports/preview',
@@ -353,7 +373,10 @@ export async function runContractAssertions() {
       const headerOk = c.header
         ? last.headers?.[c.header.name] === c.header.value
         : true
-      const ok = methodOk && urlOk && bodyOk && headerOk
+      const headerForbiddenOk = c.headerForbidden
+        ? !headerValue(last.headers, c.headerForbidden)
+        : true
+      const ok = methodOk && urlOk && bodyOk && headerOk && headerForbiddenOk
       results.push({
         ...meta(c),
         ok,
