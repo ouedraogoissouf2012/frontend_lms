@@ -68,6 +68,9 @@
       <p class="mt-4 text-center">
         <router-link to="/forgot-password" class="text-primary-600">Mot de passe oublié</router-link>
       </p>
+      <p class="mt-2 text-center">
+        <router-link to="/ouvrir-une-ecole" class="text-primary-600">Ouvrir une école</router-link>
+      </p>
 
     </div>
   </div>

@@ -133,6 +133,8 @@ export const endpoints = {
     resetPassword: '/auth/reset-password',
   },
 
+  schoolRequests: '/school-requests',
+
   lessons: {
     list: '/lessons',
     details: (id) => `/lessons/${id}`,
