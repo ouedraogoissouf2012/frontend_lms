@@ -72,6 +72,9 @@ export const endpoints = {
 
     // Cycle de vie visio d'une séance (sous /lms/seances/{id}/*).
     visio: {
+      // Consentement du porteur — reglage de COMPTE, pas de seance (#716).
+      // Le backend refuse tout enregistrement tant qu'il n'a pas cette ligne.
+      consent: () => `${LMS}/visio/consent`,
       toggle: (id) => `${LMS}/seances/${id}/toggle-visio`,
       activate: (id) => `${LMS}/seances/${id}/activate-visio`,
       deactivate: (id) => `${LMS}/seances/${id}/deactivate-visio`,

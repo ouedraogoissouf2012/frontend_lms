@@ -30,12 +30,19 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import { useVisioConsent } from '@/composables/useVisioConsent'
 import { VISIO_CONSENT_FINALITES } from '@/constants/visioConsent'
 
 const finalites = VISIO_CONSENT_FINALITES
 const consent = useVisioConsent()
+
+// L'ecran doit montrer ce que le SERVEUR sait, pas ce que ce navigateur-ci a
+// retenu (#716). Un choix fait sur un autre poste doit apparaitre ici, et c'est
+// la ligne serveur — pas le cache local — qui decide si l'enregistrement est
+// autorise. En cas de coupure, le composable garde l'etat connu.
+onMounted(() => { consent.rafraichirDepuisServeur() })
 </script>
 
 <style scoped>
