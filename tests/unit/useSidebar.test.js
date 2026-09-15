@@ -76,10 +76,13 @@ describe('useSidebar (#H12)', () => {
     ])
   })
 
-  it('menu minimal du supradmin (Institutions uniquement)', () => {
+  it('menu minimal du supradmin (Institutions + Demandes)', () => {
     getUser.mockReturnValue({ role: 'supradmin', nom: 'Root' })
     const { api } = run()
-    expect(api.menuSections.value.map((s) => s.to)).toEqual(['/admin/institutions'])
+    expect(api.menuSections.value.map((s) => s.to)).toEqual([
+      '/admin/institutions',
+      '/admin/school-requests',
+    ])
   })
 
   it('toggleSidebar replie, vide les sous-menus et persiste', () => {

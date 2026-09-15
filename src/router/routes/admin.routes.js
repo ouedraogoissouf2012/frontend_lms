@@ -144,5 +144,15 @@ export const adminRoutes = [
       roles: ['supradmin'],
       title: 'Gestion des Institutions'
     }
+  },
+  {
+    path: '/admin/school-requests',
+    name: 'AdminSchoolRequests',
+    component: () => import('@/views/admin/AdminSchoolRequests.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['supradmin'],
+      title: 'Demandes d\'ouverture'
+    }
   }
 ]

@@ -89,4 +89,5 @@ export const NAV_SECTIONS = Object.freeze([
 
   // --- Supradmin (menu minimal, retour anticipé d'origine) ---
   { icon: 'fa-university', label: 'Institutions', to: '/admin/institutions', roles: [SUPRADMIN] },
+  { icon: 'fa-inbox', label: 'Demandes', to: '/admin/school-requests', roles: [SUPRADMIN] },
 ])

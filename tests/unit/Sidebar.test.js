@@ -80,6 +80,6 @@ describe('Sidebar.vue (G9) — montage', () => {
     const w = mountSidebar()
 
     const hrefs = w.findAll('a.nav-item').map((a) => a.attributes('href'))
-    expect(hrefs).toEqual(['/admin/institutions'])
+    expect(hrefs).toEqual(['/admin/institutions', '/admin/school-requests'])
   })
 })

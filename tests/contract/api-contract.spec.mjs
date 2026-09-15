@@ -56,6 +56,7 @@ import { notificationsService } from '../../src/services/notifications.js'
 import { searchService } from '../../src/services/search.js'
 import { passwordResetService } from '../../src/services/passwordReset.js'
 import { submitSchoolRequest } from '../../src/services/schoolRegistration.js'
+import { schoolRequestsService } from '../../src/services/schoolRequests.js'
 import { previewImport } from '../../src/services/importPreview.js'
 import { confirmImport, getImport } from '../../src/services/importJob.js'
 
@@ -311,6 +312,29 @@ contractCases.push(
     method: 'POST',
     url: '/school-requests',
     headerForbidden: 'X-Institution',
+  },
+  {
+    name: '#393 — liste demandes GET /admin/school-requests',
+    _req: '#393',
+    run: () => schoolRequestsService.list(1),
+    method: 'GET',
+    url: '/admin/school-requests',
+  },
+  {
+    name: '#393 — valider POST /admin/school-requests/{id}/validate',
+    _req: '#393',
+    run: () => schoolRequestsService.validate(7, 'atelier'),
+    method: 'POST',
+    url: '/admin/school-requests/7/validate',
+    body: (d) => d?.slug === 'atelier',
+  },
+  {
+    name: '#393 — refuser POST /admin/school-requests/{id}/refuse',
+    _req: '#393',
+    run: () => schoolRequestsService.refuse(7, 'Dossier incomplet pour ouvrir.'),
+    method: 'POST',
+    url: '/admin/school-requests/7/refuse',
+    body: (d) => d?.motif_refus === 'Dossier incomplet pour ouvrir.',
   },
   {
     name: '#334 — preview import POST /lms/imports/preview',

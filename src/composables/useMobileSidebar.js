@@ -84,7 +84,8 @@ export function useMobileSidebar(props, emit) {
     // (les écrans intra-école lui renvoient 403 : institution_id NULL). #659.
     if (isSupradmin(u)) {
       return [
-        { path: '/admin/institutions', icon: 'fa-university', label: 'Institutions', badge: null }
+        { path: '/admin/institutions', icon: 'fa-university', label: 'Institutions', badge: null },
+        { path: '/admin/school-requests', icon: 'fa-inbox', label: 'Demandes', badge: null },
       ]
     }
     // Admin d'ÉTABLISSEMENT (rôle LMS 'admin', inclut le 'superAdmin' d'école KLASSCI) :

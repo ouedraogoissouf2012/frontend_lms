@@ -111,6 +111,11 @@ export const endpoints = {
       toggle: (id) => `/admin/institutions/${id}/toggle`,
       testConnection: (id) => `/admin/institutions/${id}/test-connection`,
     },
+    schoolRequests: {
+      list: '/admin/school-requests',
+      validate: (id) => `/admin/school-requests/${id}/validate`,
+      refuse: (id) => `/admin/school-requests/${id}/refuse`,
+    },
     analytics: {
       activityTrends: '/admin/analytics/activity-trends',
       systemMetrics: '/admin/analytics/system-metrics',
