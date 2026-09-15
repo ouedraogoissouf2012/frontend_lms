@@ -66,7 +66,7 @@ describe('useMobileSidebar (#H12)', () => {
   it('supradmin plateforme : lien Institutions (jamais les écrans intra-école) — #659', () => {
     getUser.mockReturnValue({ role: 'supradmin' })
     const paths = run().api.adminNavItems.value.map(i => i.path)
-    expect(paths).toEqual(['/admin/institutions'])
+    expect(paths).toEqual(['/admin/institutions', '/admin/school-requests'])
   })
 
   it('admin d\'établissement : Classes / Matières / Enseignants (pas Institutions) — #659', () => {
