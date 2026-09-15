@@ -1,13 +1,36 @@
 import { computed, ref } from 'vue'
 import { cacheKey } from '@/services/cache'
+import lmsService from '@/services/lms'
 import { emptyConsent, VISIO_CONSENT_KEYS } from '@/constants/visioConsent'
 
 /**
- * Recueil et révocation du consentement visio (#333).
+ * Recueil et révocation du consentement visio (#333), persisté côté SERVEUR (#716).
  *
  * État unique partagé (écran d'entrée + profil + bouton d'enregistrement).
- * Persistance locale scopée (cacheKey) en attendant lms_backend#716.
- * Ne lit jamais le mode d'établissement.
+ *
+ * ## Le serveur fait autorité, `localStorage` n'est plus qu'un cache
+ *
+ * Ce composable rangeait le choix uniquement dans `localStorage`, et l'annonçait
+ * comme provisoire : « en attendant lms_backend#716 ». Ce backend existe depuis
+ * le 2026-09-06 — table `consents`, garde append-only — mais le raccord n'avait
+ * jamais été fait.
+ *
+ * Conséquence, jusqu'à ce lot : le serveur n'avait aucune ligne de consentement,
+ * et **refusait donc tout enregistrement en 422**. Jibri enregistrait pour de
+ * vrai, puis le webhook de fin ne trouvait aucune ligne active et rendait 404 :
+ * la vidéo finissait orpheline sur le disque.
+ *
+ * Un choix gardé dans le navigateur se perd au changement de poste et ne prouve
+ * rien en cas de contrôle. Il reste néanmoins écrit en local, comme cache : une
+ * panne réseau ne doit pas faire oublier à l'utilisateur ce qu'il a décidé.
+ *
+ * ## L'état reste synchrone, délibérément
+ *
+ * L'écran ne doit pas attendre le réseau pour cocher une case. L'état est donc
+ * mis à jour d'abord, l'envoi part ensuite. Un échec d'envoi ne casse ni l'écran
+ * ni la salle en cours — il est journalisé, et le cache local prend le relais.
+ *
+ * Vérifié par `__tests__/useVisioConsentServeur.test.js`.
  */
 
 const PREFERENCE = 'visio_consent'
@@ -70,22 +93,66 @@ export function useVisioConsent() {
     ecrireStockage()
   }
 
-  function enregistrer(next = choix.value) {
+  /**
+   * Envoie l'état COMPLET au serveur.
+   *
+   * Les trois finalités repartent ensemble : `StoreVisioConsentRequest` les
+   * exige toutes, un consentement partiellement renseigné n'ayant pas de sens.
+   *
+   * L'échec n'est jamais propagé — ce code s'exécute depuis des gestionnaires
+   * d'événement d'interface, et une exception qui remonte casserait l'écran
+   * pour un défaut de réseau.
+   */
+  async function deposer() {
+    try {
+      await lmsService.saveVisioConsent({ ...choix.value })
+    } catch (error) {
+      console.error('Consentement visio non depose sur le serveur:', error)
+    }
+  }
+
+  /**
+   * Relit l'état depuis le serveur, qui fait autorité.
+   *
+   * Sur echec, le cache local reste en place : mieux vaut un choix connu et
+   * peut-être ancien qu'un écran qui redemande tout à chaque coupure.
+   */
+  async function rafraichirDepuisServeur() {
+    try {
+      const reponse = await lmsService.getVisioConsent()
+      const distant = reponse?.data
+      if (!distant) return
+
+      choix.value = { ...emptyConsent(), ...distant }
+      repondu.value = true
+      persist()
+    } catch (error) {
+      console.error('Consentement visio illisible sur le serveur:', error)
+    }
+  }
+
+  async function enregistrer(next = choix.value) {
     choix.value = { ...emptyConsent(), ...next }
     repondu.value = true
     persist()
+
+    await deposer()
   }
 
-  function revoquer(key) {
+  async function revoquer(key) {
     if (!Object.values(VISIO_CONSENT_KEYS).includes(key)) return
     choix.value = { ...choix.value, [key]: false }
     persist()
+
+    await deposer()
   }
 
-  function revoquerTout() {
+  async function revoquerTout() {
     choix.value = emptyConsent()
     repondu.value = true
     persist()
+
+    await deposer()
   }
 
   const peutRejoindre = computed(() => true)
@@ -97,6 +164,7 @@ export function useVisioConsent() {
     enregistrer,
     revoquer,
     revoquerTout,
+    rafraichirDepuisServeur,
     peutRejoindre,
     enregistrementAutorise,
   }

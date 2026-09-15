@@ -163,6 +163,41 @@ export const lmsVisioService = {
     }
   },
 
+  /**
+   * Lit le consentement visio du porteur, cote SERVEUR (#716).
+   *
+   * C'est desormais la source de verite : `localStorage` ne sert plus que de
+   * cache, et ne prouve rien en cas de controle.
+   *
+   * @returns {Promise<Object>}
+   */
+  async getVisioConsent() {
+    try {
+      return await api.get(endpoints.lms.visio.consent())
+    } catch (error) {
+      console.error('Erreur lecture consentement visio:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Depose le consentement du porteur (#716).
+   *
+   * Les trois finalites sont obligatoires cote serveur : un consentement
+   * partiellement renseigne n'a pas de sens juridique.
+   *
+   * @param {{captation: boolean, diffusion: boolean, reutilisation: boolean}} choix
+   * @returns {Promise<Object>}
+   */
+  async saveVisioConsent(choix) {
+    try {
+      return await api.post(endpoints.lms.visio.consent(), choix)
+    } catch (error) {
+      console.error('Erreur depot consentement visio:', error)
+      throw error
+    }
+  },
+
   async getVisioRecording(seanceId) {
     try {
       return await api.get(endpoints.lms.visio.recordingStatus(seanceId))
