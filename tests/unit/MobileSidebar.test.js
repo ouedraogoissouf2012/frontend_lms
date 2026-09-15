@@ -55,6 +55,7 @@ describe('MobileSidebar.vue (G9) — montage', () => {
     expect(hrefs).toContain('/admin/matieres')
     expect(hrefs).toContain('/admin/enseignants')
     expect(hrefs).not.toContain('/admin/institutions')
+    expect(hrefs).not.toContain('/admin/school-requests')
   })
 
   it('superAdmin (admin d\'école KLASSCI) : mêmes raccourcis admin, jamais Institutions (#659)', () => {
@@ -63,6 +64,7 @@ describe('MobileSidebar.vue (G9) — montage', () => {
     const hrefs = w.findAll('a.nav-link').map((a) => a.attributes('href'))
     expect(hrefs).toContain('/admin/classes')
     expect(hrefs).not.toContain('/admin/institutions')
+    expect(hrefs).not.toContain('/admin/school-requests')
   })
 
   it('supradmin (plateforme) : expose Institutions, pas les écrans intra-école (#659)', () => {
@@ -70,6 +72,7 @@ describe('MobileSidebar.vue (G9) — montage', () => {
     const w = mountSidebar(true)
     const hrefs = w.findAll('a.nav-link').map((a) => a.attributes('href'))
     expect(hrefs).toContain('/admin/institutions')
+    expect(hrefs).toContain('/admin/school-requests')
     expect(hrefs).not.toContain('/admin/classes')
   })
 

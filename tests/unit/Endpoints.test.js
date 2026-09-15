@@ -127,6 +127,9 @@ describe('endpoints — carte unique (#105)', () => {
       expect(endpoints.admin.institutions.details(2)).toBe('/admin/institutions/2')
       expect(endpoints.admin.institutions.toggle(2)).toBe('/admin/institutions/2/toggle')
       expect(endpoints.admin.institutions.testConnection(2)).toBe('/admin/institutions/2/test-connection')
+      expect(endpoints.admin.schoolRequests.list).toBe('/admin/school-requests')
+      expect(endpoints.admin.schoolRequests.validate(4)).toBe('/admin/school-requests/4/validate')
+      expect(endpoints.admin.schoolRequests.refuse(4)).toBe('/admin/school-requests/4/refuse')
       expect(endpoints.admin.analytics.activityTrends).toBe('/admin/analytics/activity-trends')
       expect(endpoints.admin.notifications.create).toBe('/admin/notifications/create')
       expect(endpoints.admin.reports('pdf')).toBe('/admin/reports/pdf')
@@ -193,6 +196,7 @@ describe('endpoints — carte unique (#105)', () => {
         '/forum/posts/:id/solution', '/teacher/stats', '/admin/institutions',
         '/admin/institutions/:id', '/admin/institutions/:id/toggle',
         '/admin/institutions/:id/test-connection',
+        '/admin/school-requests', '/admin/school-requests/:id/validate', '/admin/school-requests/:id/refuse',
         // klassci.js (/proxy/* + chemins partagés)
         '/proxy/classes', '/proxy/classes/:id/etudiants',
         '/proxy/matieres', '/proxy/enseignants', '/proxy/emploi-temps', '/proxy/structure',
