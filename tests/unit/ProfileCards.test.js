@@ -18,7 +18,7 @@ describe('ProfileInfoCard (#H11)', () => {
     expect(w.find('.avatar-initials').text()).toBe('MD')
     expect(w.find('.user-role').text()).toBe('Enseignant')
     expect(w.text()).toContain('m@e.com')
-    expect(w.text()).toContain('Non renseigné') // téléphone absent
+    expect(w.text()).not.toContain('Téléphone')
   })
 })
 

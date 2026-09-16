@@ -16,6 +16,7 @@ describe('SettingsPersonalInfo (#H3)', () => {
     expect(w.html()).toContain('Dupont')
     expect(w.html()).toContain('marie@e.com')
     expect(w.html()).toContain('Administrateur')
+    expect(w.text()).not.toContain('Téléphone')
   })
 
   it('affiche « Non renseigné » pour les champs manquants', () => {
