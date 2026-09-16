@@ -27,7 +27,20 @@ describe('vite config — console production guard (#15, révisé #234)', () => 
   })
 
   it('proxyfie API et storage en développement pour éviter les CORS locaux', () => {
-    expect(viteConfig.server?.proxy?.['/api']?.target).toBe('http://localhost:8000')
-    expect(viteConfig.server?.proxy?.['/storage']?.target).toBe('http://localhost:8000')
+    // Cible en IPv4 EXPLICITE, et non `localhost` : `php artisan serve`
+    // n'ouvre le port 8000 qu'en 127.0.0.1, alors que `localhost` se résout
+    // d'abord en `::1` sur Windows avec Node >= 17. Le repli sauve la mise
+    // aujourd'hui ; ce test fige le fait qu'on n'en dépende plus.
+    expect(viteConfig.server?.proxy?.['/api']?.target).toBe('http://127.0.0.1:8000')
+    expect(viteConfig.server?.proxy?.['/storage']?.target).toBe('http://127.0.0.1:8000')
+  })
+
+  it('ne cible jamais un nom d hôte ambigu pour le proxy de dev', () => {
+    // Garde de non-retour : réintroduire `localhost` rouvrirait l'ambiguïté
+    // IPv4/IPv6, dont le symptôme — « Identifiants incorrects » au login —
+    // n'a aucun rapport visible avec la cause.
+    for (const chemin of ['/api', '/storage']) {
+      expect(viteConfig.server?.proxy?.[chemin]?.target).not.toMatch(/localhost/)
+    }
   })
 })

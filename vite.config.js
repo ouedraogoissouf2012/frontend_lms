@@ -23,12 +23,19 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
+      // Cible en 127.0.0.1 (IPv4) et NON `localhost` : sur Windows + Node >= 17,
+      // `localhost` se résout d'abord en `::1` (IPv6), or `php artisan serve`
+      // n'écoute que sur 127.0.0.1 — mesuré : le port 8000 n'est ouvert qu'en
+      // IPv4. Aujourd'hui le proxy s'en sort par repli, faute de quoi que ce
+      // soit sur `::1:8000` ; viser IPv4 supprime la dépendance à ce repli.
+      // Symptôme quand il ne joue pas : le login affiche « Identifiants
+      // incorrects » alors que la requête n'a jamais atteint le serveur.
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://127.0.0.1:8000',
         changeOrigin: true,
       },
       '/storage': {
-        target: 'http://localhost:8000',
+        target: 'http://127.0.0.1:8000',
         changeOrigin: true,
       }
     }
