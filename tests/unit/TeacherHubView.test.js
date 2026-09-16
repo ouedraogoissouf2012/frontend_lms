@@ -6,6 +6,7 @@
  * globales ne doivent plus etre appelees pour eviter le N+1 #100.
  */
 import { mount, flushPromises } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // vi.hoisted : initialise les mocks AVANT le hoisting des vi.mock (sinon la
@@ -48,6 +49,7 @@ function mountHub() {
 
 describe('TeacherHub.vue (G9) — montage', () => {
   beforeEach(() => {
+    setActivePinia(createPinia())
     Object.values(klassci).forEach((m) => m.mockReset())
     lms.getMyTeachingSeances.mockReset()
     klassci.getClasses.mockResolvedValue([{ id: 1 }])

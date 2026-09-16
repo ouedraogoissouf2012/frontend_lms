@@ -38,7 +38,7 @@
       </div>
     </router-link>
 
-    <router-link to="/teacher/import" class="hub-card">
+    <router-link v-if="peutInscrireLocalement" to="/teacher/import" class="hub-card">
       <div class="card-icon classes-icon">
         <ArrowRightIcon class="icon" />
       </div>
@@ -82,7 +82,8 @@ import { UserGroupIcon, BookOpenIcon, AcademicCapIcon, ArrowRightIcon } from '@h
 import { formatCount } from '@/utils/formatters'
 
 defineProps({
-  stats: { type: Object, required: true }
+  stats: { type: Object, required: true },
+  peutInscrireLocalement: { type: Boolean, default: false },
 })
 </script>
 

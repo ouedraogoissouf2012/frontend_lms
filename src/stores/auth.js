@@ -67,6 +67,7 @@ export const useAuthStore = defineStore('auth', () => {
   const isStudent = computed(() => roleIsStudent(user.value))
   const institutionSlug = computed(() => meta.value?.institution ?? institution.value ?? null)
   const institutionDisplayName = computed(() => meta.value?.institution_name ?? null)
+  const peutInscrireLocalement = computed(() => meta.value?.peut_inscrire_localement === true)
 
   // --- Actions ---
 
@@ -160,7 +161,7 @@ export const useAuthStore = defineStore('auth', () => {
     // getters
     isAuthenticated, currentUser, userRole, normalizedRole,
     isAdmin, isSupradmin, isTeacher, isStudent,
-    institutionSlug, institutionDisplayName,
+    institutionSlug, institutionDisplayName, peutInscrireLocalement,
     // actions
     login, setSession, setInstitution, logout, me, fetchActiveInstitutions,
   }

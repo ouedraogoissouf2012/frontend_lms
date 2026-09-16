@@ -21,7 +21,7 @@
           </button>
         </p>
 
-        <HubNavCards :stats="stats" />
+        <HubNavCards :stats="stats" :peut-inscrire-localement="peutInscrireLocalement" />
         <HubQuickStats :stats="stats" />
       </template>
     </div>
@@ -38,13 +38,16 @@
  * compteurs déjà mesurés restent à l'écran, les autres affichent « — ».
  */
 import { computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import HubNavCards from '@/components/teacher/HubNavCards.vue'
 import HubQuickStats from '@/components/teacher/HubQuickStats.vue'
 import { useTeacherHub } from '@/composables/useTeacherHub'
+import { useAuthStore } from '@/stores/auth'
 
 const { loading, revalidating, error, stats, loadStats } = useTeacherHub()
+const { peutInscrireLocalement } = storeToRefs(useAuthStore())
 
 const aDesChiffres = computed(() =>
   Object.values(stats.value).some((valeur) => typeof valeur === 'number')
