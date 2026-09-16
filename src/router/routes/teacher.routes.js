@@ -55,6 +55,10 @@ export const teacherRoutes = [
     meta: {
       requiresAuth: true,
       roles: ['enseignant', 'teacher'],
+      // Le rôle dit QUI ; la capacité dit SI l'établissement tient sa propre
+      // liste. Cacher la carte (#401) ne ferme pas la route — on y arrive par
+      // l'URL. Le serveur répond 403 (#816) ; la garde évite l'écran mort.
+      capacite: 'peutInscrireLocalement',
       title: 'Import apprenants'
     }
   },

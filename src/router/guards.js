@@ -1,5 +1,6 @@
 import { auth } from '@/services/api'
 import { canActivate, getDashboardRoute, logRoleDecision } from '@/constants/roles'
+import { useAuthStore } from '@/stores/auth'
 
 /**
  * Guard de navigation global (G9 — extraction du `beforeEach` de router/index.js
@@ -43,6 +44,18 @@ export function navigationGuard(to, from, next) {
       logRoleDecision('access_denied', { route: to.name ?? to.path })
       return redirectUnlessCurrent(to, decision.redirectTo, next)
     }
+  }
+
+  // 4. Route exigeant une CAPACITÉ accordée par le serveur.
+  //    Le rôle dit QUI ; la capacité dit SI l'établissement a le droit. Cacher
+  //    un bouton ne ferme pas une route — on y arrive par l'URL, et le serveur
+  //    répond 403. Sans cette garde, l'utilisateur ouvre un écran mort.
+  //    La capacité est LUE, jamais calculée ici : aucune notion de mode
+  //    d'établissement n'entre dans le routeur.
+  if (to.meta.capacite && !useAuthStore()[to.meta.capacite]) {
+    logRoleDecision('capacite_absente', { route: to.name ?? to.path, capacite: to.meta.capacite })
+
+    return redirectUnlessCurrent(to, user ? getDashboardRoute(user) : '/login', next)
   }
 
   next()
