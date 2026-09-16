@@ -1,5 +1,6 @@
 import { klassciService } from '@/services/klassci'
 import { analyticsService } from '@/services/analytics'
+import { getAdminStatistics, extractAdminStatistics } from '@/services/adminStatistics'
 import { readCache, writeCache } from '@/services/cache'
 import { logError } from '@/services/errorHandler'
 import { deriveInstitutionCounters } from '@/utils/classStats'
@@ -44,10 +45,14 @@ export function useAdminDashboardData({
     const needMatieres = !matieresCached
 
     try {
-      const [classesData, matieresData, enseignants] = await Promise.all([
+      const [classesData, matieresData, enseignants, adminStatsPayload] = await Promise.all([
         needClasses  ? klassciService.getClasses()     : Promise.resolve(classesCached),
         needMatieres ? klassciService.getMatieres()    : Promise.resolve(matieresCached),
-        klassciService.getEnseignants()
+        klassciService.getEnseignants(),
+        getAdminStatistics().catch((err) => {
+          logError(err, '[useAdminDashboardData] GET /admin/statistics')
+          return null
+        }),
       ])
 
       if (needClasses) {
@@ -78,12 +83,9 @@ export function useAdminDashboardData({
           matieres: matieres.value,
           enseignants,
         }),
-        // Aucune source n'est chargée pour les séances actives : /lms/seances/upcoming
-        // est délibérément écarté du montage (coûteux, cf. useAdminDashboard).
-        // DETTE TRACÉE : à alimenter le jour où une métrique dédiée existe.
-        // `null` = non mesuré → l'UI affiche « — », pas un 0 fabriqué.
         nb_seances_actives: null,
         nb_evaluations: measured(metrics?.evaluations?.total),
+        ...extractAdminStatistics(adminStatsPayload),
       }
     } catch (error) {
       logError(error, '[useAdminDashboardData] chargement KLASSCI')
