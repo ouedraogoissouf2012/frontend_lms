@@ -27,5 +27,5 @@ export function extractAdminStatistics(payload) {
 }
 
 export function getAdminStatistics() {
-  return api.get(endpoints.admin.statistics)
+  return Promise.resolve().then(() => api.get(endpoints.admin.statistics))
 }
