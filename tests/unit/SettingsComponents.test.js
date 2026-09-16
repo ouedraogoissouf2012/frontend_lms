@@ -17,7 +17,7 @@ describe('SettingsPersonalInfo (#H11)', () => {
     const w = mount(SettingsPersonalInfo, {
       props: { user: { nom: 'Dupont', prenom: 'Marie', email: 'm@e.com' }, roleLabel: 'Enseignant' },
     })
-    expect(w.findAll('.info-item')).toHaveLength(4)
+    expect(w.findAll('.info-item')).toHaveLength(3)
     expect(w.text()).toContain('Dupont')
     expect(w.text()).toContain('m@e.com')
     expect(w.text()).toContain('Enseignant')
