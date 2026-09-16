@@ -44,6 +44,11 @@ describe('InstitutionFormModal (#G1)', () => {
     expect(w.emitted('close')).toBeTruthy()
   })
 
+  it('l URL KLASSCI n est pas required (#390)', () => {
+    const w = mountModal({ showForm: true })
+    expect(w.find('#klassci_api_url').attributes('required')).toBeUndefined()
+  })
+
   it('affiche les erreurs de validation', () => {
     const w = mountModal({ showForm: true, formErrors: { slug: ['déjà pris'] } })
     expect(w.find('.form-errors').text()).toContain('déjà pris')
