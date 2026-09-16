@@ -141,6 +141,8 @@ export const endpoints = {
 
   schoolRequests: '/school-requests',
   activation: '/activation',
+  programs: '/programs',
+  trainingSessions: '/training-sessions',
 
   lessons: {
     list: '/lessons',

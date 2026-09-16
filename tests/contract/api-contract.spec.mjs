@@ -59,6 +59,7 @@ import { submitSchoolRequest } from '../../src/services/schoolRegistration.js'
 import { activateAccount } from '../../src/services/activation.js'
 import { schoolRequestsService } from '../../src/services/schoolRequests.js'
 import { getAdminStatistics } from '../../src/services/adminStatistics.js'
+import { trainingSessionsService } from '../../src/services/trainingSessions.js'
 import { previewImport } from '../../src/services/importPreview.js'
 import { confirmImport, getImport } from '../../src/services/importJob.js'
 
@@ -333,6 +334,35 @@ contractCases.push(
     run: () => getAdminStatistics(),
     method: 'GET',
     url: '/admin/statistics',
+  },
+  {
+    name: '#391 — POST /programs',
+    _req: '#391',
+    run: () => trainingSessionsService.createProgram({ titre: 'OHADA', description: 'Cycle.' }),
+    method: 'POST',
+    url: '/programs',
+    body: (d) => d?.titre === 'OHADA' && d.status === undefined && d.institution_id === undefined,
+  },
+  {
+    name: '#391 — GET /training-sessions',
+    _req: '#391',
+    run: () => trainingSessionsService.list(1),
+    method: 'GET',
+    url: '/training-sessions',
+  },
+  {
+    name: '#391 — POST /training-sessions sans status',
+    _req: '#391',
+    run: () => trainingSessionsService.createPeriod({
+      program_id: 3,
+      libelle: 'Promotion de janvier',
+      status: 'publiee',
+    }),
+    method: 'POST',
+    url: '/training-sessions',
+    body: (d) => d?.libelle === 'Promotion de janvier'
+      && d.status === undefined
+      && d.institution_id === undefined,
   },
   {
     name: '#393 — liste demandes GET /admin/school-requests',

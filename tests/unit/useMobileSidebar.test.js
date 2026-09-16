@@ -53,7 +53,12 @@ describe('useMobileSidebar (#H12)', () => {
   it('items coordinateur : forum, historique, paramètres admin', () => {
     getUser.mockReturnValue({ role: 'coordinateur' })
     const paths = run().api.secondaryNavItems.value.map(i => i.path)
-    expect(paths).toEqual(['/forum', '/attendance/seances', '/admin/settings'])
+    expect(paths).toEqual([
+      '/forum',
+      '/attendance/seances',
+      '/admin/training-sessions',
+      '/admin/settings',
+    ])
   })
 
   it('étudiant : aucun item secondaire, aucun item admin', () => {
@@ -72,13 +77,23 @@ describe('useMobileSidebar (#H12)', () => {
   it('admin d\'établissement : Classes / Matières / Enseignants (pas Institutions) — #659', () => {
     getUser.mockReturnValue({ role: 'admin' })
     const paths = run().api.adminNavItems.value.map(i => i.path)
-    expect(paths).toEqual(['/admin/classes', '/admin/matieres', '/admin/enseignants'])
+    expect(paths).toEqual([
+      '/admin/classes',
+      '/admin/matieres',
+      '/admin/enseignants',
+      '/admin/training-sessions',
+    ])
   })
 
   it('superAdmin (admin d\'école KLASSCI) : mêmes items admin qu\'un admin — #659', () => {
     getUser.mockReturnValue({ role: 'superAdmin' })
     const paths = run().api.adminNavItems.value.map(i => i.path)
-    expect(paths).toEqual(['/admin/classes', '/admin/matieres', '/admin/enseignants'])
+    expect(paths).toEqual([
+      '/admin/classes',
+      '/admin/matieres',
+      '/admin/enseignants',
+      '/admin/training-sessions',
+    ])
   })
 
   it('ferme automatiquement le drawer au passage en desktop si ouvert', async () => {

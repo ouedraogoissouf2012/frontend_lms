@@ -71,6 +71,7 @@ export function useMobileSidebar(props, emit) {
         ...commonItems,
         { path: '/forum', icon: 'fa-comments', label: 'Forum', badge: null },
         { path: '/attendance/seances', icon: 'fa-history', label: 'Historique', badge: null },
+        { path: '/admin/training-sessions', icon: 'fa-flag', label: 'Sessions', badge: null },
         { path: '/admin/settings', icon: 'fa-cog', label: 'Paramètres', badge: null }
       ]
     }
@@ -95,7 +96,8 @@ export function useMobileSidebar(props, emit) {
       return [
         { path: '/admin/classes', icon: 'fa-building', label: 'Classes', badge: null },
         { path: '/admin/matieres', icon: 'fa-book', label: 'Matières', badge: null },
-        { path: '/admin/enseignants', icon: 'fa-user', label: 'Enseignants', badge: null }
+        { path: '/admin/enseignants', icon: 'fa-user', label: 'Enseignants', badge: null },
+        { path: '/admin/training-sessions', icon: 'fa-flag', label: 'Sessions', badge: null },
       ]
     }
 
