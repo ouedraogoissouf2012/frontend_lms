@@ -12,6 +12,7 @@ export const ERROR_MESSAGES = Object.freeze({
   auth: 'Votre session a expiré. Veuillez vous reconnecter.',
   forbidden: "Vous n'avez pas les droits nécessaires pour effectuer cette action.",
   notFound: 'La ressource demandée est introuvable.',
+  gone: 'Ce lien n\'est plus valable. Demandez-en un nouveau à votre administrateur.',
   validation: 'Certaines informations sont invalides. Veuillez vérifier votre saisie.',
   rateLimit: 'Trop de requêtes en peu de temps. Veuillez patienter quelques instants.',
   server: 'Une erreur est survenue côté serveur. Veuillez réessayer plus tard.',

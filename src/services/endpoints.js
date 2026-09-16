@@ -139,6 +139,7 @@ export const endpoints = {
   },
 
   schoolRequests: '/school-requests',
+  activation: '/activation',
 
   lessons: {
     list: '/lessons',

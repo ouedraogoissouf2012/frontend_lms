@@ -56,6 +56,7 @@ import { notificationsService } from '../../src/services/notifications.js'
 import { searchService } from '../../src/services/search.js'
 import { passwordResetService } from '../../src/services/passwordReset.js'
 import { submitSchoolRequest } from '../../src/services/schoolRegistration.js'
+import { activateAccount } from '../../src/services/activation.js'
 import { schoolRequestsService } from '../../src/services/schoolRequests.js'
 import { previewImport } from '../../src/services/importPreview.js'
 import { confirmImport, getImport } from '../../src/services/importJob.js'
@@ -311,6 +312,18 @@ contractCases.push(
     }),
     method: 'POST',
     url: '/school-requests',
+    headerForbidden: 'X-Institution',
+  },
+  {
+    name: '#394 — activation sans X-Institution',
+    _req: '#394',
+    run: () => activateAccount({
+      token: 'jeton',
+      password: 'Secret123',
+      password_confirmation: 'Secret123',
+    }),
+    method: 'POST',
+    url: '/activation',
     headerForbidden: 'X-Institution',
   },
   {
