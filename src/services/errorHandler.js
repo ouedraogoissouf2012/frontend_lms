@@ -17,6 +17,7 @@ function categoryFromStatus(status) {
     case 401: return 'auth'
     case 403: return 'forbidden'
     case 404: return 'notFound'
+    case 410: return 'gone'
     case 422: return 'validation'
     case 429: return 'rateLimit'
     default: return status >= 500 ? 'server' : 'unknown'

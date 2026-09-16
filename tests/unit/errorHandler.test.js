@@ -76,6 +76,12 @@ describe('errorHandler — normalizeError (#240 proxy KLASSCI)', () => {
     expect(r.category).toBe('auth')
   })
 
+  it('410 gone : lien d activation consomme ou expire, meme message (#394)', () => {
+    const r = normalizeError(err(410, { url: '/api/activation' }))
+    expect(r.category).toBe('gone')
+    expect(r.userMessage).toBe(ERROR_MESSAGES.gone)
+  })
+
   it('non-régression : 500 reste « server », 422 agrège la validation', () => {
     expect(normalizeError(err(500)).category).toBe('server')
     const v = normalizeError({ response: { status: 422, data: { errors: { nom: ['Le nom est requis.'] } } } })

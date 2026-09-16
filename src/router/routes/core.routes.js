@@ -29,6 +29,12 @@ export const coreRoutes = [
     component: () => import('@/views/SchoolRequest.vue'),
     meta: { guest: true }
   },
+  {
+    path: '/activation/:token',
+    name: 'ActivateAccount',
+    component: () => import('@/views/ActivateAccount.vue'),
+    meta: { guest: true }
+  },
   // Redirection / vers dashboard approprié
   {
     path: '/',

@@ -36,7 +36,7 @@ const CATCH_ALL_PATH = '/:pathMatch(.*)*'
 // Ordre EXACT attendu (identique à l'ancien tableau monolithique de router/index.js)
 const EXPECTED_PATHS = [
   // core
-  '/login', '/forgot-password', '/reset-password', '/ouvrir-une-ecole', '/', '/admin',
+  '/login', '/forgot-password', '/reset-password', '/ouvrir-une-ecole', '/activation/:token', '/', '/admin',
   // admin
   '/admin/dashboard', '/admin/users', '/admin/hub', '/admin/classes', '/admin/matieres',
   '/admin/enseignants', '/admin/seances', '/admin/visioconferences', '/admin/stats',
