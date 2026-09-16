@@ -104,6 +104,19 @@ export const RECEVEURS = [
   },
 ]
 
+export const PORTEURS_USER_CONNECTE = [
+  'src/components/teacher/ProfileInfoCard.vue',
+  'src/components/admin/ProfileInfoCard.vue',
+  'src/components/teacher/SettingsPersonalInfo.vue',
+  'src/components/admin/SettingsPersonalInfo.vue',
+  'src/views/student/StudentSettings.vue',
+]
+
+export function estPorteurUserConnecte(cheminRelatif) {
+  const p = cheminRelatif.split('\\').join('/')
+  return PORTEURS_USER_CONNECTE.some((n) => p === n || p.endsWith(n))
+}
+
 /**
  * Fichiers autorisés à lire les DEUX formes : ce sont les normaliseurs et les
  * helpers polymorphes, dont c'est précisément le rôle. Les exempter n'affaiblit
@@ -190,7 +203,7 @@ export function inspecter(relatif, contenu, receveurs) {
     for (const r of receveurs) {
       // Hors de sa portée, ce destinataire ne décide de rien : le `user` de ce
       // fichier vient d'ailleurs que de l'authentification.
-      if (r.portee && !r.portee.test(contenu)) continue
+      if (r.portee && !r.portee.test(contenu) && !estPorteurUserConnecte(relatif)) continue
       // Chemin explicitement exclu : le porteur y désigne une AUTRE charge.
       if (r.horsPortee && r.horsPortee.test(relatif)) continue
 
