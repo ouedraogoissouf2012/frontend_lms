@@ -23,14 +23,6 @@
             <p class="info-value">{{ user?.email || 'Non renseigné' }}</p>
           </div>
         </div>
-
-        <div class="info-item">
-          <PhoneIcon class="info-icon" />
-          <div class="info-content">
-            <label class="info-label">Téléphone</label>
-            <p class="info-value">{{ user?.telephone || 'Non renseigné' }}</p>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -48,7 +40,6 @@ import { getFullName } from '@/utils/formatters'
 import {
   UserIcon,
   EnvelopeIcon,
-  PhoneIcon,
 } from '@heroicons/vue/24/outline'
 
 defineProps({

@@ -10,7 +10,6 @@ const mountCard = (props = {}) =>
         nom: 'Dupont',
         prenom: 'Marie',
         email: 'marie@e.com',
-        telephone: '0102030405',
         klassci_id: 'KL-42',
       },
       userInitials: 'MD',
@@ -33,11 +32,10 @@ describe('ProfileInfoCard (#H3)', () => {
     expect(mountCard().text()).not.toContain('Membre depuis')
   })
 
-  it('affiche email et téléphone fournis', () => {
+  it('affiche l email fourni, jamais une ligne telephone', () => {
     const w = mountCard()
-    const html = w.html()
-    expect(html).toContain('marie@e.com')
-    expect(html).toContain('0102030405')
+    expect(w.html()).toContain('marie@e.com')
+    expect(w.text()).not.toContain('Téléphone')
   })
 
   it('utilise les libellés de repli pour les champs manquants', () => {

@@ -15,10 +15,6 @@
           <p class="info-value">{{ user?.email || 'Non renseigné' }}</p>
         </div>
         <div class="info-item">
-          <label class="info-label">Téléphone</label>
-          <p class="info-value">{{ user?.telephone || 'Non renseigné' }}</p>
-        </div>
-        <div class="info-item">
           <label class="info-label">Rôle</label>
           <p class="info-value">{{ roleLabel }}</p>
         </div>
@@ -32,7 +28,7 @@
 // simple espace. getFullName accepte les deux formes (#504).
 import { getFullName } from '@/utils/formatters'
 /** Section « Informations personnelles » des paramètres enseignant (#H11 ≤300).
- *  Présentation pure : 4 champs en lecture seule. */
+ *  Présentation pure : nom, email, rôle. Le téléphone n'est dans aucune charge. */
 import { UserIcon } from '@heroicons/vue/24/outline'
 
 defineProps({

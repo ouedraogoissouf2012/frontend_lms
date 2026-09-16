@@ -28,10 +28,6 @@
                 <p class="info-value">{{ user?.email || 'Non renseigné' }}</p>
               </div>
               <div class="info-item">
-                <label class="info-label">Téléphone</label>
-                <p class="info-value">{{ user?.telephone || 'Non renseigné' }}</p>
-              </div>
-              <div class="info-item">
                 <label class="info-label">Rôle</label>
                 <p class="info-value">{{ getRoleLabel(user?.role) }}</p>
               </div>
