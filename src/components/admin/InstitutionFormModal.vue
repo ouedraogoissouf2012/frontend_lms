@@ -45,11 +45,11 @@
       <div class="form-group">
         <label class="form-label">URL API KLASSCI</label>
         <input
+          id="klassci_api_url"
           v-model="form.klassci_api_url"
           type="url"
           class="form-input"
           placeholder="https://esbtp-abidjan.klassci.com/api/lms"
-          required
         />
       </div>
 
