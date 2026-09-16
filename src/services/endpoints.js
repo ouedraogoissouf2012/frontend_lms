@@ -105,6 +105,7 @@ export const endpoints = {
     // Comptes LMS du tenant : seule source des coordinateurs et admins,
     // que le proxy KLASSCI ne renvoie pas.
     users: '/admin/users',
+    statistics: '/admin/statistics',
     institutions: {
       list: '/admin/institutions',
       details: (id) => `/admin/institutions/${id}`,

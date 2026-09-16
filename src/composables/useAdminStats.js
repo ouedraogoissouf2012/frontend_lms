@@ -4,6 +4,7 @@ import { klassciService } from '@/services/klassci'
 import { analyticsService } from '@/services/analytics'
 import { logError } from '@/services/errorHandler'
 import { deriveInstitutionCounters } from '@/utils/classStats'
+import { getAdminStatistics, extractAdminStatistics } from '@/services/adminStatistics'
 import { useCachedResource } from '@/composables/useCachedResource'
 
 /**
@@ -62,15 +63,16 @@ const unmeasuredStats = () => ({
  * `useCachedResource` renseigne `error` et conserve l'affichage précédent.
  */
 async function fetchStats() {
-  const [classes, matieres, enseignants, metrics] = await Promise.all([
+  const [classes, matieres, enseignants, metrics, adminStatsPayload] = await Promise.all([
     settle(klassciService.getClasses(), 'classes'),
     settle(klassciService.getMatieres(), 'matieres'),
     settle(klassciService.getEnseignants(), 'enseignants'),
     settle(analyticsService.getSystemMetrics(), 'métriques système'),
+    settle(getAdminStatistics(), 'GET /admin/statistics'),
   ])
 
   // Aucune source n'a répondu : on ne compose rien, on signale l'échec.
-  if (classes === null && matieres === null && enseignants === null && metrics === null) {
+  if (classes === null && matieres === null && enseignants === null && metrics === null && adminStatsPayload === null) {
     const err = new Error('Toutes les sources de statistiques ont échoué')
     err.userMessage = 'Impossible de charger les statistiques. Réessayez dans quelques instants.'
     throw err
@@ -89,10 +91,7 @@ async function fetchStats() {
     nb_evaluations: measured(metrics?.evaluations?.total),
     nb_evaluations_actives: measured(metrics?.evaluations?.published),
 
-    // Laissés NON MESURÉS faute de source : séances actives, visioconférences,
-    // évaluations terminées, sujets de forum, heures de cours et taux de
-    // présence n'ont aujourd'hui aucun endpoint côté front. DETTE TRACÉE :
-    // à brancher quand le backend les exposera. Afficher 0 serait un mensonge.
+    ...extractAdminStatistics(adminStatsPayload),
   }
 }
 

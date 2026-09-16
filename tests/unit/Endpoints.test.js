@@ -123,6 +123,7 @@ describe('endpoints — carte unique (#105)', () => {
   describe('valeurs exactes — admin / lessons / quizzes / dashboard / forum / divers', () => {
     it('admin', () => {
       expect(endpoints.admin.matieres).toBe('/admin/matieres')
+      expect(endpoints.admin.statistics).toBe('/admin/statistics')
       expect(endpoints.admin.institutions.list).toBe('/admin/institutions')
       expect(endpoints.admin.institutions.details(2)).toBe('/admin/institutions/2')
       expect(endpoints.admin.institutions.toggle(2)).toBe('/admin/institutions/2/toggle')
@@ -231,6 +232,7 @@ describe('endpoints — carte unique (#105)', () => {
         '/notifications/:id/mark-as-read', '/notifications/mark-all-as-read',
         '/notifications/:id', '/notifications/read/all',
         '/admin/notifications/create', '/admin/notifications/stats',
+        '/admin/statistics',
         '/admin/analytics/activity-trends', '/admin/analytics/system-metrics',
         '/admin/analytics/pending-tasks', '/admin/analytics/recent-users',
         '/admin/reports/:id',

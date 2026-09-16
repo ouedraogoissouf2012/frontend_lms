@@ -58,6 +58,7 @@ import { passwordResetService } from '../../src/services/passwordReset.js'
 import { submitSchoolRequest } from '../../src/services/schoolRegistration.js'
 import { activateAccount } from '../../src/services/activation.js'
 import { schoolRequestsService } from '../../src/services/schoolRequests.js'
+import { getAdminStatistics } from '../../src/services/adminStatistics.js'
 import { previewImport } from '../../src/services/importPreview.js'
 import { confirmImport, getImport } from '../../src/services/importJob.js'
 
@@ -325,6 +326,13 @@ contractCases.push(
     method: 'POST',
     url: '/activation',
     headerForbidden: 'X-Institution',
+  },
+  {
+    name: '#383 — GET /admin/statistics',
+    _req: '#383',
+    run: () => getAdminStatistics(),
+    method: 'GET',
+    url: '/admin/statistics',
   },
   {
     name: '#393 — liste demandes GET /admin/school-requests',
