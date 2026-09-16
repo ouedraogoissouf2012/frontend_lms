@@ -80,6 +80,7 @@ export const NAV_SECTIONS = Object.freeze([
   { icon: 'fa-video-camera', label: 'Visioconférences', to: '/admin/visioconferences', roles: [ADMIN] },
   { icon: 'fa-trophy', label: 'Résultats Évaluations', to: '/admin/evaluations/results', roles: [ADMIN] },
   { icon: 'fa-line-chart', label: 'Statistiques', to: '/admin/stats', roles: [ADMIN] },
+  { icon: 'fa-flag', label: 'Sessions', to: '/admin/training-sessions', roles: [ADMIN, COORDINATEUR] },
 
   // --- Queue partagée enseignant/admin ---
   { icon: 'fa-comments', label: 'Forum', to: '/forum', roles: [ENSEIGNANT, COORDINATEUR, ADMIN] },

@@ -154,5 +154,15 @@ export const adminRoutes = [
       roles: ['supradmin'],
       title: 'Demandes d\'ouverture'
     }
+  },
+  {
+    path: '/admin/training-sessions',
+    name: 'AdminTrainingSessions',
+    component: () => import('@/views/admin/AdminTrainingSessions.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['superAdmin', 'admin', 'coordinateur'],
+      title: 'Sessions de formation'
+    }
   }
 ]

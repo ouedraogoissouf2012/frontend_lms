@@ -150,6 +150,8 @@ describe('endpoints — carte unique (#105)', () => {
       expect(endpoints.auth.institutionsActive).toBe('/institutions/active')
       expect(endpoints.schoolRequests).toBe('/school-requests')
       expect(endpoints.activation).toBe('/activation')
+      expect(endpoints.programs).toBe('/programs')
+      expect(endpoints.trainingSessions).toBe('/training-sessions')
       expect(endpoints.notifications.list).toBe('/notifications')
       expect(endpoints.notifications.markAsRead(3)).toBe('/notifications/3/mark-as-read')
       expect(endpoints.knowledgeChecks.list).toBe('/knowledge-checks')
@@ -224,7 +226,7 @@ describe('endpoints — carte unique (#105)', () => {
         '/evaluations/:id/time-status', '/evaluations/:id/results-by-class', '/evaluations/:id/preview',
         '/lessons/:id/chapters', '/lessons/:id/chapters/reorder', '/chapters/:id',
         '/auth/login', '/auth/logout', '/auth/me', '/institutions/active',
-        '/school-requests', '/activation',
+        '/school-requests', '/activation', '/programs', '/training-sessions',
         '/lessons/:id/publish', '/lessons/:id/unpublish', '/lessons/:id/progress',
         '/lessons/:id/complete', '/lessons/:id/rating', '/lessons/:id/chapter-progress',
         '/chapters/:id/progress', '/chapters/:id/complete', '/chapters/:id/time', '/chapters/:id/upload',
