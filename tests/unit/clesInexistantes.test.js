@@ -68,6 +68,17 @@ describe('garde clés inexistantes — elle se tait là où elle le doit', () =>
     expect(inspecter('src/X.vue', src, [RECEVEUR_USER])).toEqual([])
   })
 
+  it('attrape telephone sur une carte alimentee par prop (#382)', () => {
+    const src = "defineProps({ user: Object })\n{{ user.telephone || 'Non renseigné' }}"
+    const v = inspecter('src/components/teacher/ProfileInfoCard.vue', src, [RECEVEUR_USER])
+    expect(v.map((x) => x.cle)).toEqual(['telephone'])
+  })
+
+  it('ne crie pas sur un user de roster (UserDetailModal)', () => {
+    const src = "defineProps({ user: Object })\n{{ user.telephone }}"
+    expect(inspecter('src/components/admin/UserDetailModal.vue', src, [RECEVEUR_USER])).toEqual([])
+  })
+
   it('ne dit rien hors de la portée du destinataire', () => {
     // Ce fichier ne touche jamais l'authentification : son `user` est un autre
     // objet — l'auteur d'un message, une ligne de la table des comptes…
