@@ -39,8 +39,8 @@
     </router-link>
 
     <router-link v-if="peutInscrireLocalement" to="/teacher/import" class="hub-card">
-      <div class="card-icon classes-icon">
-        <ArrowRightIcon class="icon" />
+      <div class="card-icon import-icon">
+        <ArrowUpTrayIcon class="icon" />
       </div>
       <div class="card-content">
         <h2 class="card-title">Import apprenants</h2>
@@ -76,7 +76,7 @@
 <script setup>
 /** Cartes de navigation du hub enseignant (#H11 ≤300). Présentation pure :
  *  raccourcis cliquables (classes/matières/import/leçons). */
-import { UserGroupIcon, BookOpenIcon, AcademicCapIcon, ArrowRightIcon } from '@heroicons/vue/24/outline'
+import { UserGroupIcon, BookOpenIcon, AcademicCapIcon, ArrowRightIcon, ArrowUpTrayIcon } from '@heroicons/vue/24/outline'
 // Un compteur non mesure s'affiche « — » : une case vide se lisait comme
 // « zero », et zero est une affirmation que la donnee ne portait pas.
 import { formatCount } from '@/utils/formatters'
@@ -147,6 +147,10 @@ defineProps({
 
 .matieres-icon {
   background: linear-gradient(135deg, var(--amber-500) 0%, var(--amber-600) 100%);
+}
+
+.import-icon {
+  background: linear-gradient(135deg, var(--indigo-500) 0%, var(--indigo-600) 100%);
 }
 
 .lecons-icon {
