@@ -136,10 +136,36 @@ describe('constants/visioNetwork (#327)', () => {
     expect(c.startLowBandwidthMode).toBeUndefined()
   })
 
-  it('M3 — complet : on retombe sur le profil, sans forcer la camera', () => {
+  /**
+   * M3 affirmait `startWithVideoMuted` INDEFINI en mode complet. Omettre une
+   * cle n\'est pas la mettre a faux : Jitsi combine son reglage avec celui
+   * qu\'il a MEMORISE dans le navigateur. Preuve, dans le bundle deploye
+   * (app.bundle.min.js, version 9365) :
+   *
+   *   disableSelfView || e["features/base/settings"].disableSelfView || ...
+   *
+   * Consequence mesuree en production le 2026-09-17 : un enseignant ayant
+   * rejoint une fois en mode econome gardait sa video MASQUEE dans tous les
+   * modes suivants. Ecran entierement noir, camera activee, aucun message.
+   *
+   * Le mode complet promet a l\'ecran « Votre camera est active ». Il doit donc
+   * poser ces deux cles a FAUX, pas les taire.
+   */
+  it('M3 — complet : la camera est active et la video de soi est visible', () => {
     const c = jitsiConfigForMode(VISIO_MODES.COMPLET)
     expect(c.channelLastN).toBe(VISIO_NETWORK_DEFAULTS.CHANNEL_LAST_N)
-    expect(c.startWithVideoMuted).toBeUndefined()
+    expect(c.startWithVideoMuted).toBe(false)
+    expect(c.disableSelfView).toBe(false)
+  })
+
+  /**
+   * Les modes econome et audio masquent deliberement la video de soi : c\'est
+   * leur raison d\'etre. Ce test empeche qu\'une correction du mode complet ne les
+   * detende par effet de bord.
+   */
+  it('M3b — les modes econome et audio masquent toujours la video de soi', () => {
+    expect(jitsiConfigForMode(VISIO_MODES.AUDIO).disableSelfView).toBe(true)
+    expect(jitsiConfigForMode(VISIO_MODES.ECONOME).disableSelfView).toBe(true)
   })
 
   /**
