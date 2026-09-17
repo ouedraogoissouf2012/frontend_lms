@@ -155,7 +155,22 @@ export function jitsiConfigForMode(mode, profile = readNetworkProfile()) {
   const base = jitsiConfigOverwrite(profile)
   const flux = FLUX_PAR_MODE[mode]
 
-  if (flux === null || flux === undefined) return base
+  // Mode complet : on POSE les deux cles a faux, on ne les tait pas.
+  //
+  // Jitsi combine son reglage avec celui qu'il a MEMORISE dans le navigateur.
+  // Preuve, dans le bundle deploye (app.bundle.min.js, 9365) :
+  //
+  //   disableSelfView || e["features/base/settings"].disableSelfView || ...
+  //
+  // Omettre la cle laissait donc gagner le reglage memorise. Mesure en
+  // production le 2026-09-17 : un enseignant ayant rejoint une fois en mode
+  // econome gardait sa video MASQUEE dans tous les modes suivants - ecran
+  // entierement noir, camera activee, aucun message.
+  //
+  // Et c'est ce que l'ecran PROMET : « Votre camera est active ».
+  if (flux === null || flux === undefined) {
+    return { ...base, startWithVideoMuted: false, disableSelfView: false }
+  }
 
   return {
     ...base,
