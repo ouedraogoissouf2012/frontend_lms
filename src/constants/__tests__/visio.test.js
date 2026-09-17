@@ -166,7 +166,12 @@ describe('constants/visio (#24)', () => {
     vi.stubEnv('VITE_JITSI_DOMAIN', 'visio.klassci.com')
     expect(
       buildRoomConfigFromResponse(
-        reponseJoin({ visio_room_id: 'lms_abc', visio_token: 'jeton', visio_token_available: true }),
+        reponseJoin({
+          visio_room_id: 'lms_abc',
+          visio_token: 'jeton',
+          visio_token_available: true,
+          can_manage_recording: true,
+        }),
         { displayName: 'Awa' },
       ),
     ).toEqual({
@@ -174,6 +179,7 @@ describe('constants/visio (#24)', () => {
       roomName: 'lms_abc',
       jwt: 'jeton',
       displayName: 'Awa',
+      canManageRecording: true,
     })
   })
 
@@ -198,6 +204,42 @@ describe('constants/visio (#24)', () => {
         reponseJoin({ visio_room_id: 'lms_abc', visio_token: '  ', visio_token_available: true }),
       ),
     ).toThrow(VISIO_TOKEN_REQUIRED_MESSAGE)
+  })
+
+  /**
+   * La salle doit savoir qui peut enregistrer, sans le redeviner (#673).
+   *
+   * `VisioRoom` est monte pour TOUS les participants. Le serveur calcule
+   * deja cette autorite pour decider du statut de moderateur dans le jeton :
+   * on la transporte telle quelle, plutot que de la rededuire du role du
+   * compte, qui ne dit rien de la propriete de CETTE seance.
+   */
+  it('V18 — le droit d\'enregistrer est lu dans la reponse de join', () => {
+    vi.stubEnv('VITE_JITSI_DOMAIN', 'visio.klassci.com')
+    const config = buildRoomConfigFromResponse(
+      reponseJoin({
+        visio_room_id: 'lms_abc',
+        visio_token: 'jeton',
+        visio_token_available: true,
+        can_manage_recording: true,
+      }),
+    )
+    expect(config.canManageRecording).toBe(true)
+  })
+
+  /**
+   * Ferme par defaut : un champ absent ne doit JAMAIS offrir le bouton.
+   *
+   * Un front plus recent que son backend, ou une reponse tronquee, doit
+   * degrader vers « pas le droit ». L\'inverse afficherait un bouton que la
+   * salle refusera - exactement la divergence que #673 ferme.
+   */
+  it('V19 — droit absent : ferme par defaut, jamais ouvert', () => {
+    vi.stubEnv('VITE_JITSI_DOMAIN', 'visio.klassci.com')
+    const config = buildRoomConfigFromResponse(
+      reponseJoin({ visio_room_id: 'lms_abc', visio_token: 'jeton', visio_token_available: true }),
+    )
+    expect(config.canManageRecording).toBe(false)
   })
 
   it('V18 — salle absente de la reponse : message de salle, pas de jeton', () => {

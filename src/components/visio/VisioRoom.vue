@@ -16,6 +16,16 @@
       <span v-if="room.isRecording.value" class="visio-room__recording">
         <i class="fa fa-circle" aria-hidden="true"></i> Enregistrement en cours
       </span>
+      <button
+        v-if="enregistrement.peutCommander.value"
+        type="button"
+        class="visio-room__record"
+        :class="{ 'visio-room__record--active': enregistrement.enregistre.value }"
+        :disabled="enregistrement.enCours.value"
+        @click="enregistrement.basculer"
+      >
+        <i class="fa fa-circle" aria-hidden="true"></i> {{ enregistrement.libelle.value }}
+      </button>
       <button type="button" class="visio-room__leave" @click="leave">
         Quitter le cours
       </button>
@@ -32,6 +42,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useVisioStore } from '@/stores/visio'
 import { useJitsiRoom } from '@/composables/useJitsiRoom'
 import { useVisioRecordingMirror } from '@/composables/useVisioRecordingMirror'
+import { useRoomRecording } from '@/composables/useRoomRecording'
 import VisioJoinChoice from '@/components/visio/VisioJoinChoice.vue'
 import { jitsiConfigForMode } from '@/constants/visioNetwork'
 import { notifyVisioError } from '@/services/visioFeedback'
@@ -58,6 +69,23 @@ const container = ref(null)
 
 const room = useJitsiRoom()
 const mirror = useVisioRecordingMirror({ getSeanceId: () => visioStore.activeSeanceId })
+
+// #673 - l'enseignant commande l'enregistrement SANS quitter la salle.
+//
+// Les boutons du LMS vivent sur la page de detail, que cette salle RECOUVRE
+// (position: fixed; inset: 0). Et le bouton natif de Jitsi n'est pas dans la
+// barre : dans le bundle deploye, `recording` est en 16e position d'une barre
+// coupee a 8 boutons, donc enterre dans le menu « … ».
+//
+// L'autorite vient du SERVEUR, via la configuration de salle : c'est la meme
+// valeur qui decide du statut de moderateur dans le jeton. Indispensable ici,
+// car ce composant est monte pour TOUS les participants.
+const enregistrement = useRoomRecording({
+  isRecording: room.isRecording,
+  startRecording: room.startRecording,
+  stopRecording: room.stopRecording,
+  canManageRecording: () => visioStore.roomConfig?.canManageRecording === true,
+})
 
 // L'observation est posée AVANT le montage : un enregistrement déjà en cours
 // à l'entrée en salle doit être reflété, pas manqué.
@@ -202,6 +230,34 @@ onBeforeUnmount(() => {
   border: 1px solid var(--color-danger-border);
 }
 
+/*
+ * Le bouton d'enregistrement (#673). Discret au repos, franchement rouge en
+ * captation : pendant qu'une salle enregistre, l'etat doit se lire sans
+ * chercher. `margin-left: auto` reste sur « Quitter », qui garde sa place a
+ * l'extremite de la barre.
+ */
+.visio-room__record {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--color-danger-border);
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.9rem;
+  background: transparent;
+  color: var(--color-danger-text);
+}
+.visio-room__record--active {
+  background: var(--color-danger);
+  color: var(--bg-primary);
+  border-color: var(--color-danger);
+}
+.visio-room__record:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
 .visio-room__leave {
   margin-left: auto;
   border: none;

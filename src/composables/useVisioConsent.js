@@ -156,7 +156,23 @@ export function useVisioConsent() {
   }
 
   const peutRejoindre = computed(() => true)
-  const enregistrementAutorise = computed(() => repondu.value === true)
+  /**
+   * Le droit d'enregistrer, aligné sur le backend (#673).
+   *
+   * Ce garde lisait `repondu === true` — « l'utilisateur a RÉPONDU » — là où
+   * `RecordingConsentGuard` exige la dernière ligne `Capture` avec
+   * `granted === true`, c'est-à-dire « l'utilisateur a ACCEPTÉ ».
+   *
+   * L'écart n'était pas théorique. Un enseignant ayant refusé la captation
+   * franchissait ce garde, lançait Jibri POUR DE VRAI, puis recevait 422 : le
+   * webhook de fin ne trouvait aucune ligne et abandonnait la vidéo sur le
+   * disque. Le refus produisait donc la captation même qu'il refusait, hors de
+   * toute rétention et de toute demande d'effacement.
+   *
+   * Seule la captation compte ici : la diffusion et la réutilisation portent
+   * sur ce qu'on fait du fichier APRÈS, pas sur le droit de le produire.
+   */
+  const enregistrementAutorise = computed(() => choix.value.captation === true)
 
   return {
     choix,
