@@ -16,7 +16,7 @@
       <div v-if="lienActivation" class="lien-box" role="status">
         <p>{{ messageValidation }}</p>
         <p class="lien-warn">Ce lien ne sera plus affiché. Copiez-le maintenant.</p>
-        <input :value="lienActivation" readonly class="lien-input">
+        <input ref="champLien" :value="lienActivation" readonly class="lien-input">
         <button type="button" class="refresh-btn" @click="copier">Copier le lien</button>
         <button type="button" class="refresh-btn" @click="fermerLien">J'ai transmis le lien</button>
       </div>
@@ -68,13 +68,15 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, watch } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
+import { toast } from '@/composables/useToast'
 import { useAdminSchoolRequests } from '@/composables/useAdminSchoolRequests'
 
 const slugs = reactive({})
 const motifs = reactive({})
+const champLien = ref(null)
 
 const {
   demandes, loading, error, page, lastPage, actingId,
@@ -92,10 +94,62 @@ onMounted(() => {
   load()
 })
 
+/**
+ * Copie le lien d'activation, et le DIT — dans les deux cas (#410).
+ *
+ * Ce bouton porte un secret affiché une seule fois, jamais réaffiché, et qui ne
+ * peut pas être réémis : `ActivationTokenService::emettre()` n'est appelé qu'à
+ * la validation, et le back refuse de rejouer une demande déjà tranchée
+ * (`SchoolRequestDecisionService:195`). C'est le pire endroit du produit pour un
+ * échec muet — or la version précédente se taisait trois fois : aucune
+ * confirmation de succès, un garde qui ne faisait RIEN quand le presse-papier
+ * était absent, et un `await` non gardé dont le rejet partait en silence.
+ *
+ * Le repli ne demande pas à l'utilisateur de se débrouiller : il SÉLECTIONNE le
+ * champ. Un Ctrl+C fonctionne alors sans aucune permission.
+ */
 async function copier() {
-  if (lienActivation.value && navigator.clipboard) {
-    await navigator.clipboard.writeText(lienActivation.value)
+  if (!lienActivation.value) return
+
+  if (await ecrireDansLePressePapier(lienActivation.value)) {
+    toast.success('Lien copié. Transmettez-le maintenant : il ne sera plus affiché.')
+
+    return
   }
+
+  selectionnerLeLien()
+  toast.warning('Copie automatique impossible. Le lien est sélectionné : faites Ctrl+C.')
+}
+
+/**
+ * Répond « est-ce copié ? » — et rien d'autre. Deux échecs, une seule réponse :
+ * `navigator.clipboard` est absent hors contexte sécurisé (origine `http://`,
+ * adresse IP), et `writeText` REJETTE quand la permission est refusée ou que le
+ * document n'a pas le focus. L'appelant décide quoi dire ; ici on ne décide que
+ * du fait.
+ *
+ * @param {string} texte
+ * @returns {Promise<boolean>}
+ */
+async function ecrireDansLePressePapier(texte) {
+  if (!navigator.clipboard) return false
+
+  try {
+    await navigator.clipboard.writeText(texte)
+
+    return true
+  } catch {
+    return false
+  }
+}
+
+/** Repli qui MARCHE : le champ est en lecture seule, le sélectionner suffit. */
+function selectionnerLeLien() {
+  const champ = champLien.value
+  if (!champ) return
+
+  champ.focus()
+  champ.select()
 }
 </script>
 
