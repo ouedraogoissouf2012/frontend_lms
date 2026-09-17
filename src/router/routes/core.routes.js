@@ -29,11 +29,20 @@ export const coreRoutes = [
     component: () => import('@/views/SchoolRequest.vue'),
     meta: { guest: true }
   },
+  // Volontairement SANS `guest: true` (#409). Ce drapeau dit deux choses à la
+  // fois : « aucune authentification requise » ET « réservé aux anonymes, on
+  // renvoie les autres » (guards.js:33). La première est vraie ici, la seconde
+  // est FAUSSE : le jeton désigne un AUTRE compte que la session en cours.
+  // Avec le drapeau, un navigateur portant une session ouverte — typiquement
+  // celui du supradmin qui vérifie le lien qu'il vient de remettre — était
+  // redirigé sans un mot, et le lien passait pour cassé.
+  // Sans `requiresAuth` ni `guest` ni `roles` ni `capacite`, les quatre règles
+  // du garde sont inertes et la route s'ouvre à tous. Verrouillé par
+  // tests/unit/activationRouteAtteignable.test.js.
   {
     path: '/activation/:token',
     name: 'ActivateAccount',
-    component: () => import('@/views/ActivateAccount.vue'),
-    meta: { guest: true }
+    component: () => import('@/views/ActivateAccount.vue')
   },
   // Redirection / vers dashboard approprié
   {
