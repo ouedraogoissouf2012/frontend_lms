@@ -262,5 +262,10 @@ export function buildRoomConfigFromResponse(response, options = {}) {
     roomName,
     jwt: token.trim(),
     displayName: options.displayName ?? null,
+    // Ferme par defaut (#673) : un front plus recent que son backend, ou une
+    // reponse tronquee, doit degrader vers « pas le droit ». L'inverse
+    // afficherait un bouton que la salle refusera - la divergence meme que
+    // cette issue ferme. `=== true` refuse aussi les valeurs vaguement vraies.
+    canManageRecording: response?.data?.can_manage_recording === true,
   }
 }

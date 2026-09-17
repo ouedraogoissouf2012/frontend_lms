@@ -39,8 +39,39 @@ describe('useVisioConsent (#333)', () => {
   it('l\'enregistrement n\'est actionnable qu\'après un recueil', () => {
     const avant = useVisioConsent()
     expect(avant.enregistrementAutorise.value).toBe(false)
-    avant.enregistrer({ captation: false, diffusion: false, reutilisation: false })
+    avant.enregistrer({ captation: true, diffusion: false, reutilisation: false })
     expect(avant.enregistrementAutorise.value).toBe(true)
+  })
+
+  /**
+   * Ce test corrige une assertion qui FIGEAIT le défaut (#673).
+   *
+   * Elle affirmait qu'un enseignant ayant répondu NON à la captation gardait
+   * `enregistrementAutorise === true` : le garde ne lisait que « a répondu ».
+   *
+   * Le backend, lui, exige la dernière ligne `Capture` avec `granted === true`
+   * (`RecordingConsentGuard`). L'écart n'était pas théorique : l'enseignant
+   * passait le garde du front, lançait Jibri POUR DE VRAI, recevait 422 - et le
+   * webhook de fin, ne trouvant aucune ligne, abandonnait la vidéo sur le
+   * disque. Un refus de consentement produisait donc exactement la captation
+   * qu'il refusait, hors de tout cycle de rétention.
+   */
+  it('un refus de captation interdit l\'enregistrement', () => {
+    const c = useVisioConsent()
+    c.enregistrer({ captation: false, diffusion: true, reutilisation: true })
+
+    expect(c.repondu.value).toBe(true)
+    expect(c.enregistrementAutorise.value).toBe(false)
+  })
+
+  it('retirer la captation après coup retire le droit d\'enregistrer', () => {
+    const c = useVisioConsent()
+    c.enregistrer({ captation: true, diffusion: true, reutilisation: true })
+    expect(c.enregistrementAutorise.value).toBe(true)
+
+    c.revoquer(VISIO_CONSENT_KEYS.CAPTATION)
+
+    expect(c.enregistrementAutorise.value).toBe(false)
   })
 
   it('revoquerTout retire les trois autorisations sans bloquer le cours', () => {
