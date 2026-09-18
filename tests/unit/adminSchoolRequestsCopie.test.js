@@ -1,7 +1,7 @@
 /**
- * Le bouton « Copier le lien » ne se tait plus (#410).
+ * Le bouton « Copier le lien » ne se tait plus, et COPIE vraiment (#410).
  *
- * ## Pourquoi ce chemin mérite des tests
+ * ## Pourquoi ce chemin mérite deux voies
  *
  * Ce bouton porte un secret affiché UNE SEULE FOIS, jamais réaffiché, et qui ne
  * peut pas être réémis : côté back, `ActivationTokenService::emettre()` n'est
@@ -13,16 +13,24 @@
  * un garde `navigator.clipboard` qui ne faisait RIEN quand le presse-papier
  * était absent, et un `await` non gardé dont le rejet partait en silence.
  *
+ * ## Le repli n'est pas une consigne, c'est une copie
+ *
+ * Mesuré dans un Chrome réel, sur un contexte NON sécurisé où
+ * `navigator.clipboard` est indéfini : `document.execCommand('copy')` rend
+ * `true` et un Ctrl+V authentique recolle le lien au caractère près. Le premier
+ * jet de ce correctif se contentait de sélectionner le champ et de demander un
+ * Ctrl+C — il laissait l'utilisateur faire ce que le navigateur savait faire.
+ *
  * ## Ce que ces tests NE prouvent PAS
  *
- * Que le repli fonctionne pour de vrai : `select()` est ici un espion sur le
- * prototype jsdom, pas une vraie sélection dans un vrai navigateur. Ils prouvent
- * que le repli est DÉCLENCHÉ, pas qu'un Ctrl+C aboutit.
+ * Que `execCommand` copie pour de vrai : il est feint ici, comme `select()`.
+ * Cette propriété-là a été prouvée dans un vrai navigateur, pas ici. Ces tests
+ * verrouillent l'ENCHAÎNEMENT des deux voies et ce qui est DIT à chaque issue.
  *
- * Le garde `if (!lienActivation.value) return` n'est pas testé non plus : la
- * boîte entière est sous `v-if="lienActivation"`, donc le bouton n'existe pas
- * sans lien. C'est une garde défensive inatteignable par l'écran — dit, plutôt
- * que couvert par un test qui feindrait l'inverse.
+ * Le garde `if (!lienActivation.value) return` n'est pas testé : la boîte
+ * entière est sous `v-if="lienActivation"`, donc le bouton n'existe pas sans
+ * lien. Garde défensive inatteignable par l'écran — dit, plutôt que couvert par
+ * un test qui feindrait l'inverse.
  */
 import { mount, flushPromises } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
@@ -58,6 +66,8 @@ vi.mock('@/composables/useAdminSchoolRequests', async () => {
 
 import AdminSchoolRequests from '@/views/admin/AdminSchoolRequests.vue'
 
+const LIEN = 'https://lms.test/activation/jeton-unique'
+
 const monter = () =>
   mount(AdminSchoolRequests, {
     global: {
@@ -86,58 +96,79 @@ const cliquerSurCopier = async (vue) => {
 
 describe('bouton « Copier le lien » (#410)', () => {
   let selectionner
+  let execCommand
 
   beforeEach(() => {
     success.mockReset()
     warning.mockReset()
     selectionner = vi.spyOn(HTMLInputElement.prototype, 'select').mockImplementation(() => {})
+    execCommand = vi.fn().mockReturnValue(true)
+    document.execCommand = execCommand
   })
 
   afterEach(() => {
     selectionner.mockRestore()
     pressePapier(undefined)
+    delete document.execCommand
   })
 
-  it('confirme la copie quand elle réussit', async () => {
+  it('confirme la copie quand la voie moderne réussit', async () => {
     const writeText = vi.fn().mockResolvedValue(undefined)
     pressePapier({ writeText })
 
     await cliquerSurCopier(monter())
 
-    expect(writeText).toHaveBeenCalledWith('https://lms.test/activation/jeton-unique')
+    expect(writeText).toHaveBeenCalledWith(LIEN)
     expect(success).toHaveBeenCalledTimes(1)
     expect(warning).not.toHaveBeenCalled()
+    // La voie de repli ne doit pas être empruntée inutilement.
+    expect(execCommand).not.toHaveBeenCalled()
     expect(selectionner).not.toHaveBeenCalled()
   })
 
-  it('hors contexte sécurisé, sélectionne le lien au lieu de ne rien faire', async () => {
+  it('hors contexte sécurisé, COPIE par le repli au lieu de le demander', async () => {
     // `navigator.clipboard` est absent sur une origine `http://` ou une adresse
-    // IP — le cas d'un test depuis un téléphone sur le réseau local.
+    // IP — reproduit dans un vrai Chrome, ce n'est pas un cas théorique.
     pressePapier(undefined)
 
     await cliquerSurCopier(monter())
 
-    expect(warning).toHaveBeenCalledTimes(1)
     expect(selectionner).toHaveBeenCalledTimes(1)
-    expect(success).not.toHaveBeenCalled()
+    expect(execCommand).toHaveBeenCalledWith('copy')
+    expect(success).toHaveBeenCalledTimes(1)
+    expect(warning).not.toHaveBeenCalled()
   })
 
-  it('quand la permission est refusée, ne laisse PAS le rejet filer en silence', async () => {
+  it('quand la permission est refusée, bascule sur le repli sans laisser filer le rejet', async () => {
     const writeText = vi.fn().mockRejectedValue(new Error('NotAllowedError'))
     pressePapier({ writeText })
 
     await cliquerSurCopier(monter())
 
-    expect(warning).toHaveBeenCalledTimes(1)
-    expect(selectionner).toHaveBeenCalledTimes(1)
-    expect(success).not.toHaveBeenCalled()
+    expect(execCommand).toHaveBeenCalledWith('copy')
+    expect(success).toHaveBeenCalledTimes(1)
+    expect(warning).not.toHaveBeenCalled()
   })
 
-  it('le message de repli DIT quoi faire, il ne constate pas l\'échec', async () => {
+  it('si les DEUX voies échouent, laisse la sélection et dit quoi faire', async () => {
     pressePapier(undefined)
+    execCommand.mockReturnValue(false)
 
     await cliquerSurCopier(monter())
 
+    expect(selectionner).toHaveBeenCalledTimes(1)
+    expect(success).not.toHaveBeenCalled()
+    expect(warning).toHaveBeenCalledTimes(1)
     expect(warning.mock.calls[0][0]).toContain('Ctrl+C')
+  })
+
+  it('un execCommand qui LÈVE ne casse pas l\'écran', async () => {
+    pressePapier(undefined)
+    execCommand.mockImplementation(() => { throw new Error('non supporté') })
+
+    await cliquerSurCopier(monter())
+
+    expect(warning).toHaveBeenCalledTimes(1)
+    expect(success).not.toHaveBeenCalled()
   })
 })

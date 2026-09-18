@@ -95,7 +95,7 @@ onMounted(() => {
 })
 
 /**
- * Copie le lien d'activation, et le DIT — dans les deux cas (#410).
+ * Copie le lien d'activation, et le DIT — dans tous les cas (#410).
  *
  * Ce bouton porte un secret affiché une seule fois, jamais réaffiché, et qui ne
  * peut pas être réémis : `ActivationTokenService::emettre()` n'est appelé qu'à
@@ -105,28 +105,29 @@ onMounted(() => {
  * confirmation de succès, un garde qui ne faisait RIEN quand le presse-papier
  * était absent, et un `await` non gardé dont le rejet partait en silence.
  *
- * Le repli ne demande pas à l'utilisateur de se débrouiller : il SÉLECTIONNE le
- * champ. Un Ctrl+C fonctionne alors sans aucune permission.
+ * DEUX chemins de copie, parce qu'un seul ne couvre pas le cas qui nous occupe.
+ * Le second n'est pas une consigne donnée à l'utilisateur : il copie vraiment.
  */
 async function copier() {
   if (!lienActivation.value) return
 
-  if (await ecrireDansLePressePapier(lienActivation.value)) {
+  if (await ecrireDansLePressePapier(lienActivation.value) || copierParSelection()) {
     toast.success('Lien copié. Transmettez-le maintenant : il ne sera plus affiché.')
 
     return
   }
 
-  selectionnerLeLien()
+  // Les deux chemins ont échoué, mais la sélection posée par `copierParSelection`
+  // demeure : il ne reste qu'une touche à presser.
   toast.warning('Copie automatique impossible. Le lien est sélectionné : faites Ctrl+C.')
 }
 
 /**
- * Répond « est-ce copié ? » — et rien d'autre. Deux échecs, une seule réponse :
- * `navigator.clipboard` est absent hors contexte sécurisé (origine `http://`,
- * adresse IP), et `writeText` REJETTE quand la permission est refusée ou que le
- * document n'a pas le focus. L'appelant décide quoi dire ; ici on ne décide que
- * du fait.
+ * Chemin moderne. Répond « est-ce copié ? » — et rien d'autre.
+ *
+ * Deux échecs y convergent : `navigator.clipboard` est absent hors contexte
+ * sécurisé (origine `http://`, adresse IP), et `writeText` REJETTE quand la
+ * permission est refusée ou que le document n'a pas le focus.
  *
  * @param {string} texte
  * @returns {Promise<boolean>}
@@ -143,13 +144,34 @@ async function ecrireDansLePressePapier(texte) {
   }
 }
 
-/** Repli qui MARCHE : le champ est en lecture seule, le sélectionner suffit. */
-function selectionnerLeLien() {
+/**
+ * Chemin de repli : sélectionner le champ, puis `execCommand('copy')`.
+ *
+ * `execCommand` est déprécié, mais c'est la SEULE voie qui copie encore là où
+ * `navigator.clipboard` n'existe pas — et ce cas est réel, pas théorique.
+ * MESURÉ dans un Chrome réel sur un contexte non sécurisé (`isSecureContext`
+ * faux, `navigator.clipboard` indéfini) : `execCommand('copy')` rend `true`, et
+ * un Ctrl+V authentique recolle ensuite le lien au caractère près. Ce n'est donc
+ * pas un geste symbolique, le texte atteint bien le presse-papier du système.
+ *
+ * La sélection est posée AVANT la copie et laissée en place : si `execCommand`
+ * échoue à son tour, l'utilisateur n'a plus qu'un Ctrl+C à faire. Le champ est
+ * en lecture seule, le sélectionner ne risque aucune modification.
+ *
+ * @returns {boolean}
+ */
+function copierParSelection() {
   const champ = champLien.value
-  if (!champ) return
+  if (!champ) return false
 
   champ.focus()
   champ.select()
+
+  try {
+    return document.execCommand('copy')
+  } catch {
+    return false
+  }
 }
 </script>
 
