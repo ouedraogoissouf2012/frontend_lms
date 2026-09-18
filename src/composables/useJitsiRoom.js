@@ -14,6 +14,9 @@ const ROOM_NOT_MOUNTED_MESSAGE = "Aucune salle n'est ouverte."
 
 const RECORDING_STATUS_EVENT = 'recordingStatusChanged'
 
+/** Le seul mode que ce produit utilise : Jibri ecrit un fichier. */
+const RECORDING_MODE = 'file'
+
 /**
  * Frontière unique du dépôt avec l'IFrame API de Jitsi (#673).
  *
@@ -141,15 +144,30 @@ export function useJitsiRoom({
     })
   }
 
-  function command(name, expectedOn) {
+  /**
+   * L'argument est passe par l'appelant, car l'API externe de Jitsi est
+   * ASYMETRIQUE. Verifie dans le bundle deploye (app.bundle.min.js, 9365) :
+   *
+   *   "start-recording": e => { let t = e.mode, ... }   -> attend un OBJET
+   *   "stop-recording":  (e,t) => { if (![FILE, STREAM].includes(e))
+   *                        error("Invalid recording mode provided!") }
+   *                                                     -> attend une CHAINE
+   *
+   * Envoyer le meme objet aux deux, comme le faisait ce code, passait
+   * `{ mode: 'file' }` la ou une chaine etait attendue : l'arret echouait
+   * TOUJOURS. Mesure en production le 2026-09-18 a 09:28:24 ; l'enregistrement
+   * ne s'est arrete que parce que l'enseignant a quitte la salle, ce qui a
+   * fait couper la session par Jicofo.
+   */
+  function command(name, expectedOn, argument) {
     if (!api) return Promise.reject(new Error(ROOM_NOT_MOUNTED_MESSAGE))
     const confirmed = awaitRecordingState(expectedOn)
-    api.executeCommand(name, { mode: 'file' })
+    api.executeCommand(name, argument)
     return confirmed
   }
 
-  const startRecording = () => command('startRecording', true)
-  const stopRecording = () => command('stopRecording', false)
+  const startRecording = () => command('startRecording', true, { mode: RECORDING_MODE })
+  const stopRecording = () => command('stopRecording', false, RECORDING_MODE)
 
   return { isRecording, mount, dispose, on, startRecording, stopRecording }
 }
