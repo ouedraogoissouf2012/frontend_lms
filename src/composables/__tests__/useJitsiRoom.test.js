@@ -220,10 +220,52 @@ describe('useJitsiRoom — enregistrement (le cœur de #673)', () => {
     const { room, last } = await mounted()
 
     const stopped = room.stopRecording()
-    expect(last().commands).toEqual([{ name: 'stopRecording', args: [{ mode: 'file' }] }])
+    // L'API externe de Jitsi est ASYMETRIQUE, verifie dans le bundle deploye
+    // (app.bundle.min.js, 9365) :
+    //
+    //   "start-recording": e => { let t = e.mode, ... }   -> un OBJET
+    //   "stop-recording":  (e,t) => { if (![FILE,STREAM].includes(e))
+    //                        error("Invalid recording mode provided!") }
+    //                                                    -> une CHAINE
+    //
+    // Cette assertion FIGEAIT le defaut : elle exigeait un objet, donc
+    // l'arret echouait TOUJOURS en production. Mesure le 2026-09-18 a
+    // 09:28:24 : « <stop-recording>: Invalid recording mode provided! ».
+    // L'enregistrement ne s'est arrete que parce que l'enseignant a quitte
+    // la salle, ce qui a fait couper la session par Jicofo.
+    expect(last().commands).toEqual([{ name: 'stopRecording', args: ['file'] }])
 
     last().emit('recordingStatusChanged', { on: false, mode: 'file' })
     await expect(stopped).resolves.toBeUndefined()
+  })
+
+  /**
+   * Les deux promesses sont RECUEILLIES et neutralisees.
+   *
+   * `command()` n'est tenue que par `recordingStatusChanged` ; sans
+   * confirmation elle rejette au delai de garde. Laisser ces promesses
+   * pendantes produit un rejet non traite APRES la fin du test, qui fait
+   * tomber d'autres fichiers du meme worker. Mesure : 6 a 7 echecs dans
+   * les tests d'evaluation, sans aucun rapport, alors que l'arbre propre
+   * rendait 2303 verts.
+   */
+  it('J10b — le demarrage envoie un OBJET, l\'arret une CHAINE', async () => {
+    const { room, last } = await mounted()
+
+    const demarre = room.startRecording()
+    last().emit('recordingStatusChanged', { on: true, mode: 'file' })
+    await demarre
+
+    const arrete = room.stopRecording()
+    last().emit('recordingStatusChanged', { on: false, mode: 'file' })
+    await arrete
+
+    // Verrouille l'asymetrie elle-meme : une factorisation qui
+    // reunifierait les deux appels recasserait l'arret, en silence.
+    expect(last().commands).toEqual([
+      { name: 'startRecording', args: [{ mode: 'file' }] },
+      { name: 'stopRecording', args: ['file'] },
+    ])
   })
 
   it('J11 — piloter l\'enregistrement sans salle montée échoue', async () => {
