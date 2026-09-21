@@ -96,3 +96,65 @@ describe('#760 — le nom de la route choisit la porte', () => {
     expect(getClasseDetailsLocal).not.toHaveBeenCalled()
   })
 })
+
+/**
+ * #422 — les appels FRERES parlent KLASSCI, meme sur la route locale.
+ *
+ * `/seances/upcoming?classe_id=` filtre sur `klassci_classe_id`
+ * (ManagerSeancesLocalFetcher:54) et `/classes/{id}/etudiants` transmet son
+ * identifiant brut au systeme central. Ouvrir la page par son identifiant LOCAL
+ * ne change rien a ce qu'ils attendent.
+ *
+ * ## La fixture est le test
+ *
+ * `classe.id` vaut 900 quand l'URL porte 5 : sans cet ecart, AUCUNE assertion ne
+ * pourrait distinguer les deux espaces. Les fixtures existantes ecrivent
+ * `classe: { nom: 'B2 COM' }` sans `id` — elles restent vertes quoi qu'on fasse
+ * ici, et c'est precisement pourquoi elles n'ont pas vu le defaut.
+ */
+describe('#422 — les appels freres prennent l identifiant de la REPONSE', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    getClasseEtudiants.mockResolvedValue({ success: true, data: { etudiants: [{ id: 1 }] } })
+    getUpcomingSeances.mockResolvedValue({ success: true, data: { seances: [] } })
+  })
+
+  it('sur la route locale, utilise classe.id et non l identifiant d URL', async () => {
+    // Roster VIDE : c'est ce qui declenche le repli vers l'endpoint etudiants.
+    getClasseDetailsLocal.mockResolvedValue({
+      success: true,
+      data: { classe: { id: 900, nom: 'B2 COM' }, etudiants: [] }
+    })
+
+    const Comp = defineComponent({ setup() { useClasseDetails(); return () => null } })
+    mount(Comp, {
+      global: { mocks: { $route: { name: 'classe-details-local', params: { id: '5' } }, $router: { push: vi.fn(), back: vi.fn() } } }
+    })
+    await flushPromises()
+
+    expect(getClasseDetailsLocal).toHaveBeenCalledWith(5)
+    expect(getClasseEtudiants).toHaveBeenCalledWith(900)
+    expect(getUpcomingSeances).toHaveBeenCalledWith({ classe_id: 900, days: 30 })
+  })
+
+  /**
+   * Le repli, sans lequel la route historique casserait : ses charges utiles
+   * n'ont pas toujours porte d'`id`, et les deux espaces y coincident de toute
+   * facon par construction.
+   */
+  it('sans classe.id dans la reponse, retombe sur l identifiant d URL', async () => {
+    getClasseDetails.mockResolvedValue({
+      success: true,
+      data: { classe: { nom: 'B2 COM' }, etudiants: [] }
+    })
+
+    const Comp = defineComponent({ setup() { useClasseDetails(); return () => null } })
+    mount(Comp, {
+      global: { mocks: { $route: { name: 'classe-details', params: { id: '7' } }, $router: { push: vi.fn(), back: vi.fn() } } }
+    })
+    await flushPromises()
+
+    expect(getClasseEtudiants).toHaveBeenCalledWith(7)
+    expect(getUpcomingSeances).toHaveBeenCalledWith({ classe_id: 7, days: 30 })
+  })
+})

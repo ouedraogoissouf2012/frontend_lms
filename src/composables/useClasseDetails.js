@@ -41,6 +41,27 @@ export function useClasseDetails() {
     ? lmsService.getClasseDetailsLocal(classeId.value)
     : lmsService.getClasseDetails(classeId.value)
 
+  /**
+   * L'identifiant a presenter aux endpoints qui parlent KLASSCI.
+   *
+   * `/seances/upcoming?classe_id=` filtre sur `klassci_classe_id`
+   * (ManagerSeancesLocalFetcher:54) et `/classes/{id}/etudiants` transmet son
+   * identifiant brut au systeme central : tous deux attendent l'espace KLASSCI,
+   * meme quand la page a ete ouverte par son identifiant LOCAL.
+   *
+   * On ne le devine pas, on le LIT : la charge utile des details vient de
+   * `classes/{id}` chez KLASSCI, donc `classe.id` EST son identifiant
+   * (ClasseDetailsQueryService:60, garanti non vide par le 404 de :142).
+   *
+   * Repli sur l'identifiant d'URL pour la route historique, ou les deux espaces
+   * coincident deja par construction.
+   */
+  const idPourKlassci = () => {
+    const depuisLaReponse = classe.value?.id
+
+    return Number.isFinite(Number(depuisLaReponse)) ? Number(depuisLaReponse) : classeId.value
+  }
+
   const tabs = computed(() => [
     { id: 'matieres', label: 'Matières', count: matieres.value?.length || 0 },
     { id: 'etudiants', label: 'Étudiants', count: etudiants.value?.length || 0 },
@@ -101,7 +122,7 @@ export function useClasseDetails() {
 
   async function loadEtudiants() {
     try {
-      const response = await lmsService.getClasseEtudiants(classeId.value)
+      const response = await lmsService.getClasseEtudiants(idPourKlassci())
       if (response && response.success) {
         etudiants.value = response.data.etudiants || []
         console.log('[ClasseDetails] Étudiants:', etudiants.value.length)
@@ -113,7 +134,7 @@ export function useClasseDetails() {
 
   async function loadSeances() {
     try {
-      const response = await lmsService.getUpcomingSeances({ classe_id: classeId.value, days: 30 })
+      const response = await lmsService.getUpcomingSeances({ classe_id: idPourKlassci(), days: 30 })
       if (response && response.success) {
         seances.value = response.data.seances || []
         console.log('[ClasseDetails] Séances à venir:', seances.value.length)
