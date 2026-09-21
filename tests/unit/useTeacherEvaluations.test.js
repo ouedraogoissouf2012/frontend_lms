@@ -84,3 +84,55 @@ describe('useTeacherEvaluations (#278) — chargement & replis', () => {
     expect(c.error.value).toBeNull()
   })
 })
+
+/**
+ * Le compteur de copies vient du SERVEUR, pas de la longueur d'une relation.
+ *
+ * Le composable écrasait `submissions_count` par `e.submissions?.length || 0`,
+ * c'est-à-dire par la longueur d'un tableau que le backend n'a aucune raison
+ * d'envoyer — et qu'il va cesser d'envoyer, parce qu'il contenait les copies de
+ * TOUS les élèves de l'établissement : réponses, score et note.
+ *
+ * Tant que ce repli est en place, retirer la relation côté serveur ferait
+ * tomber le compteur à 0 et supprimerait le bouton « Voir les notes » des
+ * enseignants (`EvaluationCardActions.vue:22`).
+ */
+describe('useTeacherEvaluations — le compteur de copies est celui du serveur', () => {
+  it('le compteur du serveur est utilisé quand la relation est absente', async () => {
+    evaluation.getEvaluations.mockResolvedValue({
+      success: true,
+      data: [{ id: 7, questions_count: 4, submissions_count: 3 }],
+    })
+    const c = useTeacherEvaluations()
+    await c.loadEvaluationsLMS()
+    expect(c.evaluationsLMS.value[0]).toMatchObject({
+      id: 7,
+      questions_count: 4,
+      submissions_count: 3,
+    })
+  })
+
+  it('le compteur du serveur prime sur la longueur de la relation', async () => {
+    // Le cas qui discrimine vraiment : si la relation servait encore de source,
+    // on lirait 1 au lieu de 3. Un repli suffirait à passer le test précédent.
+    evaluation.getEvaluations.mockResolvedValue({
+      success: true,
+      data: [{ id: 8, submissions_count: 3, submissions: [{}] }],
+    })
+    const c = useTeacherEvaluations()
+    await c.loadEvaluationsLMS()
+    expect(c.evaluationsLMS.value[0].submissions_count).toBe(3)
+  })
+
+  it('un zéro MESURÉ par le serveur reste zéro', async () => {
+    // `??` et non `||` : un 0 venant du serveur est une mesure, pas une absence.
+    // Le confondre avec « non renseigné » ferait repartir vers la relation.
+    evaluation.getEvaluations.mockResolvedValue({
+      success: true,
+      data: [{ id: 9, submissions_count: 0, submissions: [{}, {}] }],
+    })
+    const c = useTeacherEvaluations()
+    await c.loadEvaluationsLMS()
+    expect(c.evaluationsLMS.value[0].submissions_count).toBe(0)
+  })
+})
