@@ -30,6 +30,20 @@ export const academicRoutes = [
     component: () => import('@/views/classes/ClasseDetails.vue'),
     meta: { requiresAuth: true, roles: AUTHENTICATED_ROLES }
   },
+  // Meme vue, meme audience — mais l'identifiant est LOCAL (#760).
+  //
+  // Le nom de la route EST la declaration d'espace : useClasseDetails choisit
+  // la porte du backend en le lisant. Sans cela, l'onglet « Classes » d'une
+  // matiere — seul appelant a detenir un id local — envoyait ce nombre a une
+  // route qui le transmet brut a KLASSCI, et affichait une AUTRE classe.
+  //
+  // Aucun conflit avec la route ci-dessus : trois segments contre deux.
+  {
+    path: '/classes/local/:id',
+    name: 'classe-details-local',
+    component: () => import('@/views/classes/ClasseDetails.vue'),
+    meta: { requiresAuth: true, roles: AUTHENTICATED_ROLES }
+  },
   // Séances - Détails avec visioconférence
   {
     path: '/seances',

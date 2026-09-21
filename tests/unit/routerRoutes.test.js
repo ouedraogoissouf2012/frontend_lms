@@ -58,7 +58,7 @@ const EXPECTED_PATHS = [
   '/teacher/evaluations/:id/edit-questions', '/student/evaluations',
   '/student/evaluations/:id/take', '/student/evaluations/:id/results',
   '/teacher/evaluations/:id/preview', '/coordinateur/evaluations/:id/preview', '/matieres/:id',
-  '/classes/:id', '/seances', '/seances/:id', '/attendance/seances',
+  '/classes/:id', '/classes/local/:id', '/seances', '/seances/:id', '/attendance/seances',
   '/attendance/seances/:seanceId', '/coordinateur/evaluations', '/coordinateur/seances',
   // fallback (catch-all 404) — TOUJOURS en dernier
   CATCH_ALL_PATH
