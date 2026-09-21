@@ -42,6 +42,9 @@ export const endpoints = {
 
     classes: {
       details: (id) => `${LMS}/classes/${id}`,
+      // Porte en espace LOCAL (#760). L'autre `details` parle KLASSCI : elle
+      // transmet son identifiant brut au systeme central.
+      detailsLocal: (id) => `${LMS}/classes/local/${id}`,
       etudiants: (id) => `${LMS}/classes/${id}/etudiants`,
       mine: `${LMS}/teacher/classes`,
     },

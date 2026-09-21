@@ -29,6 +29,18 @@ export function useClasseDetails() {
 
   const classeId = computed(() => parseInt(inst.proxy.$route.params.id))
 
+  /**
+   * La porte a interroger — le NOM de la route dit dans quel espace on parle.
+   *
+   * Le repli est l'espace KLASSCI, comportement historique : une route sans nom
+   * (les tests montent ce composable avec un `$route` reduit a ses `params`) ou
+   * toute autre route continue d'emprunter la porte d'origine. Seule la route
+   * explicitement locale bascule.
+   */
+  const chargerDetails = () => inst.proxy.$route.name === 'classe-details-local'
+    ? lmsService.getClasseDetailsLocal(classeId.value)
+    : lmsService.getClasseDetails(classeId.value)
+
   const tabs = computed(() => [
     { id: 'matieres', label: 'Matières', count: matieres.value?.length || 0 },
     { id: 'etudiants', label: 'Étudiants', count: etudiants.value?.length || 0 },
@@ -50,7 +62,7 @@ export function useClasseDetails() {
       console.log('[ClasseDetails] Chargement détails classe:', classeId.value)
 
       // Appel via service LMS enrichi
-      const data = await lmsService.getClasseDetails(classeId.value)
+      const data = await chargerDetails()
 
       console.log('[ClasseDetails] Données reçues:', data)
 

@@ -252,7 +252,10 @@ export function useMatiereDetails() {
   }
 
   function viewClasse(classeId) {
-    inst.proxy.$router.push({ name: 'classe-details', params: { id: classeId } })
+    // `classes_concernees` rend des identifiants LOCAUX (backend #740) : on
+    // navigue donc vers la porte locale. Y envoyer la route KLASSCI affichait
+    // la fiche d'une autre classe des que les deux espaces se croisaient.
+    inst.proxy.$router.push({ name: 'classe-details-local', params: { id: classeId } })
   }
 
   onMounted(() => {

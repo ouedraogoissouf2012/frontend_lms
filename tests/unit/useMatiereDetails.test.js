@@ -80,7 +80,11 @@ describe('useMatiereDetails (#H9)', () => {
     api.viewLesson(10)
     expect(push).toHaveBeenCalledWith({ name: 'LessonView', params: { id: 10 } })
     api.viewClasse(7)
-    expect(push).toHaveBeenCalledWith({ name: 'classe-details', params: { id: 7 } })
+    // #760 — `classes_concernees` rend des identifiants LOCAUX. La route
+    // `classe-details` transmet le sien BRUT a KLASSCI, qui rendait donc la
+    // classe portant ce nombre CHEZ LUI. Cette assertion figeait le defaut ;
+    // elle fige desormais la porte locale.
+    expect(push).toHaveBeenCalledWith({ name: 'classe-details-local', params: { id: 7 } })
   })
 
   it('sur reponse en echec, renseigne error', async () => {
