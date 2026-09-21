@@ -106,10 +106,22 @@ export function useTeacherEvaluations() {
     try {
       const result = await evaluationService.getEvaluations()
       if (result.success) {
+        // Les compteurs viennent du SERVEUR, qui les calcule sur la base ;
+        // la longueur d'une relation n'est qu'un repli pour les réponses qui
+        // ne les portent pas encore.
+        //
+        // Écraser la valeur du serveur par `e.submissions?.length` empêchait de
+        // retirer cette relation du payload — or elle contenait les copies de
+        // TOUS les élèves : réponses, score et note. Sans ce repli inversé, la
+        // retirer ferait tomber le compteur à 0 et supprimerait le bouton
+        // « Voir les notes » (`EvaluationCardActions.vue:22`).
+        //
+        // `??` et non `||` : un 0 renvoyé par le serveur est une mesure, pas
+        // une absence.
         evaluationsLMS.value = result.data.map((e) => ({
           ...e,
-          questions_count: e.questions?.length || 0,
-          submissions_count: e.submissions?.length || 0
+          questions_count: e.questions_count ?? (e.questions?.length || 0),
+          submissions_count: e.submissions_count ?? (e.submissions?.length || 0)
         }))
       }
     } catch (err) {
