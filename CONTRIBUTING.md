@@ -65,6 +65,7 @@ npm run lint:dewrap   # garde anti-régression dé-wrap d'enveloppe ad hoc (#296
 npm run lint:ocp      # garde OCP présentation : pas de nouveau couplage (#325/#330)
 npm run lint:klassci-fixtures  # garde : aucune charge KLASSCI écrite à la main (#367)
 npm run lint:cles     # garde : aucune lecture d'une clé que l'API n'envoie pas (#376)
+npm run lint:api-contract -- --spec <openapi.yaml du backend>  # garde : chaque appel figure dans la spec (backend #876)
 npm run build         # build prod (vérifie le code splitting)
 npm run lint:fonts    # après build : aucune fonte non-woff2 émise dans dist (#340)
 ```

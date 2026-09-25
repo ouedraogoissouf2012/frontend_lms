@@ -133,7 +133,9 @@ describe('endpoints — carte unique (#105)', () => {
       expect(endpoints.admin.schoolRequests.refuse(4)).toBe('/admin/school-requests/4/refuse')
       expect(endpoints.admin.analytics.activityTrends).toBe('/admin/analytics/activity-trends')
       expect(endpoints.admin.notifications.create).toBe('/admin/notifications/create')
-      expect(endpoints.admin.reports('pdf')).toBe('/admin/reports/pdf')
+      expect(endpoints.admin.reports.attendance).toBe('/admin/reports/attendance')
+      expect(endpoints.admin.reports.grades).toBe('/admin/reports/grades')
+      expect(endpoints.admin.reports.activity).toBe('/admin/reports/activity')
     })
     it('lessons', () => {
       expect(endpoints.lessons.list).toBe('/lessons')
@@ -237,7 +239,7 @@ describe('endpoints — carte unique (#105)', () => {
         '/admin/statistics',
         '/admin/analytics/activity-trends', '/admin/analytics/system-metrics',
         '/admin/analytics/pending-tasks', '/admin/analytics/recent-users',
-        '/admin/reports/:id',
+        '/admin/reports/attendance', '/admin/reports/grades', '/admin/reports/activity',
         '/knowledge-checks', '/knowledge-checks/:id', '/knowledge-checks/:id/start',
         '/knowledge-checks/:id/submit', '/knowledge-checks/:id/my-attempts',
         '/knowledge-checks/chapter/:id',

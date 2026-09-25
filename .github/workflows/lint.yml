@@ -13,6 +13,10 @@ name: CI
 #    #330): fails any PR / push that introduces klassci / establishment-mode /
 #    form-coupling signatures under src/components or src/views, beyond the
 #    committed baseline (.ocp-baseline.json). Inspecting 0 files is exit 2.
+# 2quater) API contract guard (backend #876): every HTTP call of the front must be
+#    declared in the backend OpenAPI spec (branch `lms`), or be listed in the
+#    named debt `.api-contract-baseline.json`, which can only shrink. The backend
+#    CI replays the same guard against its real route table, without baseline.
 # 3) Unit tests (Vitest), including the guard's destructive suite.
 # 4) Contrat API via le runner natif Node (`npm run test:contract`) : le contrat
 #    frontend <-> backend Laravel est aussi joué sous Vitest
@@ -172,6 +176,38 @@ jobs:
       # mesurees, pas de ce script.
       - name: Check for reads of keys the API never sends
         run: npm run lint:cles
+
+  lint-api-contract:
+    name: API contract guard (front vs backend spec)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # La spec vit dans le depot backend, public : aucun secret n'est requis.
+      # `lms` est la branche de production du backend. `--fail` fait echouer
+      # l'etape sur un 404 au lieu de passer une page d'erreur a la garde.
+      - name: Fetch backend OpenAPI spec (lms)
+        run: >
+          curl --fail --silent --show-error --retry 3
+          -o "$RUNNER_TEMP/openapi.yaml"
+          https://raw.githubusercontent.com/ouedraogoissouf2012/lms_backend/lms/docs/openapi.yaml
+
+      # Chaque appel du front doit figurer dans la spec du backend, ou dans la
+      # dette nommee `.api-contract-baseline.json`, qui ne peut que baisser.
+      # Un chemin recopie a la main qui cesse d'etre vrai rougit ici, et non
+      # plus en production (#337, #17, backend #876).
+      - name: Check every API call against the backend contract
+        run: npm run lint:api-contract -- --spec "$RUNNER_TEMP/openapi.yaml"
 
   lint-js:
     name: ESLint
