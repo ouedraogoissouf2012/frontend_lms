@@ -155,11 +155,17 @@ async function handleGenerate() {
     return
   }
 
+  // Les trois types du formulaire ont chacun leur route (#876).
+  const endpoint = endpoints.admin.reports[form.value.type]
+  if (!endpoint) {
+    error.value = 'Type de rapport inconnu'
+    return
+  }
+
   error.value = null
   loading.value = true
 
   try {
-    const endpoint = endpoints.admin.reports(form.value.type)
     const payload = {
       date_start: form.value.date_start,
       date_end: form.value.date_end

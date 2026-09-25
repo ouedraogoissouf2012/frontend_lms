@@ -19,7 +19,7 @@ import { endpoints } from './endpoints'
  * @param {{ format: string, accept: string, extension: string, errorLabel: string }} opts
  */
 async function downloadPresenceExport(seanceId, { format, accept, extension, errorLabel }) {
-  const url = `${apiBaseUrl()}${endpoints.admin.reports('attendance')}`
+  const url = `${apiBaseUrl()}${endpoints.admin.reports.attendance}`
   const token = useAuthStore().token
 
   const response = await fetch(url, {

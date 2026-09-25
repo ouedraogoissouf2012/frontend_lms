@@ -130,7 +130,14 @@ export const endpoints = {
       create: '/admin/notifications/create',
       stats: '/admin/notifications/stats',
     },
-    reports: (type) => `/admin/reports/${type}`,
+    // Trois chemins FIXES, ceux que le serveur sert (#876). Une fonction
+    // `(type) => …` laissait croire que n'importe quel type existait : la garde
+    // de contrat ne pouvait pas le vérifier, et un test validait `/pdf`, absent.
+    reports: {
+      attendance: '/admin/reports/attendance',
+      grades: '/admin/reports/grades',
+      activity: '/admin/reports/activity',
+    },
   },
 
   auth: {
