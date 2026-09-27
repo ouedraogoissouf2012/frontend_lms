@@ -24,7 +24,9 @@ vi.mock('@/services/lms', () => ({
 vi.mock('@/services/klassci', () => ({
   default: { getMatieres: vi.fn().mockResolvedValue([{ id: 7 }, { id: 8 }]) }
 }))
-vi.mock('@/services/api', () => ({ auth: { getUser: () => ({ role: 'enseignant' }) } }))
+// Le rôle est lu à chaque appel : un test peut le changer avant le montage.
+const session = vi.hoisted(() => ({ role: 'enseignant' }))
+vi.mock('@/services/api', () => ({ auth: { getUser: () => ({ role: session.role }) } }))
 
 import { useClasseDetails } from '@/composables/useClasseDetails'
 
@@ -43,6 +45,7 @@ describe('useClasseDetails (#H9)', () => {
   // precedents et passerait/echouerait selon l'ordre d'execution.
   beforeEach(() => {
     vi.clearAllMocks()
+    session.role = 'enseignant'
     getClasseEtudiants.mockResolvedValue({ success: true, data: { etudiants: [{ id: 1 }] } })
     getUpcomingSeances.mockResolvedValue({ success: true, data: { seances: [] } })
   })
@@ -111,6 +114,31 @@ describe('useClasseDetails (#H9)', () => {
     expect(ids).toEqual(['matieres', 'etudiants', 'evaluations', 'planning'])
     expect(api.tabs.value[0].count).toBe(1)
     expect(api.tabs.value[2].count).toBe(2)
+  })
+
+  // Le backend vide le roster pour un élève (ADR-GHSA-gg7j-01). Côté écran, un
+  // onglet « Étudiants (0) » serait une mesure fausse, et le repli vers
+  // `/lms/classes/{id}/etudiants` répondrait 403.
+  it('un élève ne voit pas l onglet Étudiants et ne rappelle pas l endpoint', async () => {
+    session.role = 'etudiant'
+    getClasseDetails.mockResolvedValue({
+      success: true,
+      data: { classe: { nom: 'B2 COM' }, etudiants: [], matieres_disponibles: [{ id: 7 }] }
+    })
+    const { api } = await setup('1')
+    expect(api.rosterVisible.value).toBe(false)
+    expect(api.tabs.value.map(t => t.id)).toEqual(['matieres', 'evaluations', 'planning'])
+    expect(getClasseEtudiants).not.toHaveBeenCalled()
+  })
+
+  // Fail-closed, comme le serveur : un rôle que l'on ne connaît pas est un élève.
+  it('un rôle inconnu est traité comme un élève', async () => {
+    session.role = 'invite'
+    getClasseDetails.mockResolvedValue({ success: true, data: { classe: {}, etudiants: [] } })
+    const { api } = await setup('1')
+    expect(api.rosterVisible.value).toBe(false)
+    expect(api.tabs.value.map(t => t.id)).not.toContain('etudiants')
+    expect(getClasseEtudiants).not.toHaveBeenCalled()
   })
 
   it('sur reponse en echec, renseigne error', async () => {
