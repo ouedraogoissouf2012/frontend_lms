@@ -6,14 +6,20 @@
     -->
     <p class="load-more-count" role="status" aria-live="polite">{{ countLabel }}</p>
 
-    <p v-if="error" class="load-more-error">{{ error }}</p>
+    <!-- Annoncée (revue #443) : une erreur seulement affichée passe inaperçue au lecteur d'écran. -->
+    <p v-if="error" class="load-more-error" role="alert">{{ error }}</p>
 
+    <!--
+      aria-disabled et non `disabled` (revue #443) : un bouton désactivé PERD le focus,
+      qui retomberait sur <body> pendant le chargement d'une page intermédiaire. Le
+      bouton reste focalisable et ignore le clic tant que la page charge.
+    -->
     <button
       v-if="hasMore"
       type="button"
       class="load-more-btn"
-      :disabled="loading"
-      @click="$emit('more')"
+      :aria-disabled="loading ? 'true' : 'false'"
+      @click="!loading && $emit('more')"
     >
       {{ loading ? 'Chargement…' : (error ? 'Réessayer' : 'Charger plus de cours') }}
     </button>
@@ -81,12 +87,12 @@ const countLabel = computed(() => {
   transition: all 0.2s;
 }
 
-.load-more-btn:hover:not(:disabled) {
+.load-more-btn:hover:not([aria-disabled='true']) {
   border-color: var(--blue-500);
   box-shadow: var(--card-shadow);
 }
 
-.load-more-btn:disabled {
+.load-more-btn[aria-disabled='true'] {
   cursor: wait;
   opacity: 0.7;
 }
