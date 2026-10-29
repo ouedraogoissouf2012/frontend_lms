@@ -11,7 +11,8 @@
         </button>
       </div>
 
-      <p v-if="error" class="error-banner" role="alert">{{ error }}</p>
+      <!-- Région présente DÈS le montage et jamais masquée : seule la présentation suit l'erreur. -->
+      <p class="annonce" :class="{ 'error-banner': error }" role="alert">{{ error }}</p>
 
       <!-- L'annonce vit dans une région présente DÈS le montage et jamais masquée ; la
            boîte du lien, elle, n'existe qu'avec un lien (des contrôles n'ont rien à faire

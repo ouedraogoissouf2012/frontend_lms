@@ -105,6 +105,20 @@ describe('annonce et focus (D17 : A3, A4, N2)', () => {
     w.unmount()
   })
 
+  it('la région alert existe DÈS le montage, vide et sans présentation, puis porte l’erreur', async () => {
+    etat = double()
+    const w = monter()
+    const alerte = w.find('[role="alert"]')
+    expect(alerte.exists()).toBe(true)
+    expect(alerte.text()).toBe('')
+    expect(alerte.classes()).not.toContain('error-banner')
+    etat.error.value = 'Refusé.'
+    await flushPromises()
+    expect(w.find('[role="alert"]').text()).toBe('Refusé.')
+    expect(w.find('[role="alert"]').classes()).toContain('error-banner')
+    w.unmount()
+  })
+
   it('après « Valider », le focus va au champ du lien (le bouton cliqué a disparu)', async () => {
     etat = double()
     const w = monter()
