@@ -40,15 +40,29 @@ describe('CoursesLoadMore (#434)', () => {
     expect(monter({ shown: 18, hasMore: false }).find('button.load-more-btn').exists()).toBe(false)
   })
 
-  it('désactive le bouton pendant le chargement', () => {
-    const btn = monter({ loading: true }).find('button.load-more-btn')
-    expect(btn.attributes('disabled')).toBeDefined()
+  // Revue #443 : `disabled` faisait PERDRE le focus au bouton pendant le chargement
+  // d'une page intermédiaire (le clavier retombait sur <body>). Le bouton reste donc
+  // focalisable, signale son état par aria-disabled, et ignore le clic. (L'ancien test
+  // exigeait `disabled` : il entérinait le défaut.)
+  it('pendant le chargement : aria-disabled, focalisable, et le clic n’émet rien', async () => {
+    const w = monter({ loading: true })
+    const btn = w.find('button.load-more-btn')
+    expect(btn.attributes('aria-disabled')).toBe('true')
+    expect(btn.attributes('disabled')).toBeUndefined()
     expect(btn.text()).toContain('Chargement')
+    await btn.trigger('click')
+    expect(w.emitted('more')).toBeUndefined()
+  })
+
+  it('hors chargement : aria-disabled vaut false', () => {
+    expect(monter().find('button.load-more-btn').attributes('aria-disabled')).toBe('false')
   })
 
   it("affiche l'erreur du chargement suivant sans masquer le bouton (qui sert à réessayer)", async () => {
     const w = monter({ error: 'Connexion impossible.' })
     expect(w.find('.load-more-error').text()).toContain('Connexion impossible.')
+    // Revue #443 : l'erreur est ANNONCÉE (role="alert"), pas seulement affichée.
+    expect(w.find('.load-more-error').attributes('role')).toBe('alert')
     await w.find('button.load-more-btn').trigger('click')
     expect(w.emitted('more')).toHaveLength(1)
   })

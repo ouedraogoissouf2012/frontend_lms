@@ -178,4 +178,46 @@ describe('useStudentCourses — réponses périmées ignorées (#437)', () => {
     expect(c.courses.value.map((x) => x.id)).toEqual(FILTRE.data.map((x) => x.id))
     expect(c.loadingMore.value).toBe(false)
   })
+
+  // Revue #443 : les gardes du `finally` et du `catch` doivent être vues mordre.
+  it('requête PÉRIMÉE résolue AVANT la fraîche : loading reste true jusqu’à la fraîche', async () => {
+    const c = await setup()
+    const ancienne = differee()
+    const fraiche = differee()
+    getMyCourses.mockReturnValueOnce(ancienne.promise).mockReturnValueOnce(fraiche.promise)
+    c.applyFilters()
+    c.resetFilters()
+    ancienne.resolve(FILTRE)
+    await flushPromises()
+    expect(c.loading.value).toBe(true)
+    expect(c.courses.value.map((x) => x.id)).not.toEqual(FILTRE.data.map((x) => x.id))
+    fraiche.resolve(P1)
+    await flushPromises()
+    expect(c.loading.value).toBe(false)
+    expect(c.courses.value.map((x) => x.id)).toEqual(P1.data.map((x) => x.id))
+  })
+
+  it('rejet PÉRIMÉ d’un loadMore : loadMoreError reste null et le loadMore frais reste en cours', async () => {
+    const c = await setup()
+    const vieuxPlus = differee()
+    getMyCourses.mockReturnValueOnce(vieuxPlus.promise)
+    const enVol = c.loadMore()
+    // Le filtre change (nouvelle page 1), puis un Charger plus FRAIS part.
+    getMyCourses.mockResolvedValueOnce(P1)
+    c.resetFilters()
+    await flushPromises()
+    const fraisPlus = differee()
+    getMyCourses.mockReturnValueOnce(fraisPlus.promise)
+    const frais = c.loadMore()
+    expect(c.loadingMore.value).toBe(true)
+    vieuxPlus.reject(Object.assign(new Error('vieille'), { userMessage: 'ne doit pas paraître' }))
+    await enVol
+    await flushPromises()
+    expect(c.loadMoreError.value).toBe(null)
+    expect(c.loadingMore.value).toBe(true)
+    fraisPlus.resolve(P2)
+    await frais
+    expect(c.loadingMore.value).toBe(false)
+  })
 })
+
