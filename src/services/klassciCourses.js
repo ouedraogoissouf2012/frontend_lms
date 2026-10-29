@@ -2,8 +2,9 @@
  * Domaine KLASSCI — cours (leçons) de l'élève (G9 — split de klassci.js).
  *
  * Vrais cours de l'élève avec enseignant et matière (`/lessons/my-courses`).
- * Comportement, construction de l'URL (query string) et payloads STRICTEMENT
- * identiques à l'original.
+ * Construction de l'URL (query string) identique à l'original du découpage G9.
+ * Une différence volontaire depuis #436 : une réponse sans `success: true` est
+ * REJETÉE (erreur affichable), au lieu d'être remplacée par une liste vide.
  *
  * ## ⚠️ Le nom est trompeur, et c'est important (#329)
  *
@@ -23,12 +24,19 @@
  */
 import api from './api'
 import { endpoints } from './endpoints'
+// Relatif, pas `@/` : ce service est dans le graphe du runner de contrat natif.
+import { invalidResponseError } from './errorHandler'
 
 export const klassciCoursesService = {
   /**
    * Récupérer les vrais cours (leçons) de l'étudiant avec enseignant et matière
    * @param {Object} filters - Filtres optionnels { matiere_id, enseignant_id }
-   * @returns {Promise<Object>} { data: cours[], filters: { matieres, enseignants }, total }
+   * @returns {Promise<Object>} la réponse du serveur, telle quelle :
+   *   `{ success: true, data: cours[], filters: { matieres, enseignants }, total,
+   *   meta: { current_page, last_page, per_page, total } }` (forme D1, capturée
+   *   dans `tests/fixtures/api/myCourses.js`).
+   * @throws {Error} avec `userMessage` : erreur HTTP ou réseau (posée par
+   *   l'intercepteur d'`api.js`), ou réponse sans `success: true` (#436).
    */
   async getMyCourses(filters = {}) {
     try {
@@ -40,7 +48,10 @@ export const klassciCoursesService = {
       const url = queryString ? `${endpoints.lessons.myCourses}?${queryString}` : endpoints.lessons.myCourses
 
       const response = await api.get(url)
-      return response.success ? response : { data: [], filters: { matieres: [], enseignants: [] }, total: 0 }
+      // La réponse porte toujours `success: true` (#436) : son absence est une
+      // anomalie à afficher, jamais une liste vide (« aucun cours publié »).
+      if (response?.success !== true) throw invalidResponseError('GET /lessons/my-courses sans success')
+      return response
     } catch (error) {
       console.error('Erreur récupération mes cours:', error)
       throw error

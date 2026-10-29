@@ -5,7 +5,7 @@
  * doivent PAS éjecter la session LMS.
  */
 import { describe, it, expect } from 'vitest'
-import { shouldForceLogout, normalizeError } from '@/services/errorHandler'
+import { shouldForceLogout, normalizeError, invalidResponseError } from '@/services/errorHandler'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 const err = (status, { url = '', message = '', reason = undefined } = {}) => ({
@@ -87,5 +87,22 @@ describe('errorHandler — normalizeError (#240 proxy KLASSCI)', () => {
     const v = normalizeError({ response: { status: 422, data: { errors: { nom: ['Le nom est requis.'] } } } })
     expect(v.category).toBe('validation')
     expect(v.userMessage).toContain('Le nom est requis.')
+  })
+})
+
+// #436 : une réponse 2xx sans `success` devient une erreur affichable, jamais une
+// liste vide fabriquée.
+describe('errorHandler — invalidResponseError (#436)', () => {
+  it('construit une Error portant le message générique du catalogue', () => {
+    const e = invalidResponseError('GET /x sans success')
+    expect(e).toBeInstanceOf(Error)
+    expect(e.userMessage).toBe(ERROR_MESSAGES.unknown)
+    expect(e.fieldErrors).toBe(null)
+  })
+
+  it("garde le contexte technique dans le message d'erreur, pas dans le texte affiché", () => {
+    const e = invalidResponseError('GET /x sans success')
+    expect(e.message).toContain('GET /x sans success')
+    expect(e.userMessage).not.toContain('GET /x')
   })
 })

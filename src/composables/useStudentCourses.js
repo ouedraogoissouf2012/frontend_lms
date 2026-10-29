@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import { klassciService } from '@/services/klassci'
 import { toast } from '@/composables/useToast'
 import { extractList } from '@/utils/apiList'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 /**
  * Couche données de StudentCourses (#G1 ≤300) : charge les cours de l'élève via
@@ -44,7 +45,8 @@ export function useStudentCourses() {
 
     } catch (err) {
       console.error('[ERREUR] Erreur chargement cours:', err)
-      error.value = 'Impossible de charger vos cours. Veuillez réessayer.'
+      // Le message de la cause (#436), préparé par l'intercepteur ou le service.
+      error.value = err?.userMessage || ERROR_MESSAGES.unknown
     } finally {
       loading.value = false
     }
