@@ -50,9 +50,8 @@ async function handleEventAction({ type, data }) {
         // Si la visio n'est pas active, afficher message
         if (error.response?.status === 400) {
           notifyVisioWarning('La visio n\'est pas encore active. Attendez que l\'enseignant la demarre.')
-        } else if (error.message) {
-          notifyVisioError(error, error.message)
         } else {
+          // #429 : un 403 porte son motif ; userMessage (catalogue) passe avant tout texte.
           notifyVisioError(error, 'Erreur lors de la connexion a la visio')
         }
       }

@@ -43,6 +43,18 @@ export const ERROR_MESSAGES = Object.freeze({
   // 429 : plafond quotidien de codes ERRONÉS pour tout l'établissement (anti-devinette,
   // RejoindreParCodeService), pas un plafond d'inscriptions.
   institutionCapReached: "Trop de codes erronés ont été saisis aujourd'hui dans votre établissement. Réessayez demain.",
+  // #429 : refus d'entrée en visio (POST /lms/seances/{id}/join, ParticipantValidationService).
+  // Chaque message suit la CONDITION serveur, et son recours change vraiment quelque chose.
+  // not_enrolled : l'élève n'est pas parmi les élèves ACTIFS de la classe de la séance.
+  visioNotEnrolled: "Vous ne figurez pas parmi les élèves actifs de la classe de cette séance. Adressez-vous à votre établissement.",
+  // no_classe_id : la séance n'a pas de classe (toute séance locale aujourd'hui) ; le
+  // formateur ne peut pas la rattacher depuis l'écran : seul l'établissement le peut.
+  visioNoClasse: "Cette séance n'est rattachée à aucune classe : la visioconférence n'est pas accessible. Adressez-vous à votre établissement.",
+  visioNotEnabled: "La visioconférence n'est pas activée pour cette séance.",
+  visioTeacherNotOwner: "Vous n'êtes pas l'enseignant de cette séance : vous ne pouvez pas en rejoindre la visioconférence.",
+  visioRoleRefused: 'Votre rôle ne permet pas de rejoindre cette visioconférence.',
+  // tenant_not_resolved : le COMPTE n'a pas d'établissement ; se reconnecter n'y change rien.
+  visioNoInstitution: "Votre compte n'est rattaché à aucun établissement : la visioconférence n'est pas accessible. Adressez-vous à votre administration.",
   // 404 de la porte « rejoindre » : le message générique (ressource introuvable)
   // n'aide pas l'élève ; c'est le CODE qui ne correspond à rien.
   codeInconnu: 'Ce code ne correspond à aucune classe. Vérifiez-le auprès de votre formateur.',

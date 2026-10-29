@@ -146,6 +146,8 @@ export function useSeanceDetails() {
   }
 
   async function joinVisio() {
+    // D17 : `join` écrit la présence ; un 2ᵉ clic pendant le vol en écrirait une seconde.
+    if (joiningVisio.value) return
     if (!user.value) {
       notifyVisioWarning('Vous devez être connecté.')
       return
@@ -176,25 +178,9 @@ export function useSeanceDetails() {
     } catch (err) {
       console.error('fa-times-circle Erreur rejoindre visio:', err)
 
-      // Afficher un message d'erreur plus détaillé
-      let errorMessage = err.message || 'Erreur lors de la connexion à la visioconférence.'
-
-      if (err.response && err.response.data) {
-        const data = err.response.data
-        if (data.message) {
-          errorMessage = data.message
-        } else if (data.reason) {
-          const errorMessages = {
-            'visio_not_enabled': 'La visioconférence n\'est pas activée.',
-            'visio_not_started': 'La visioconférence n\'a pas encore démarré.',
-            'not_enrolled': 'Vous n\'êtes pas inscrit dans cette classe.',
-            'seance_not_found': 'Séance non trouvée dans le système.'
-          }
-          errorMessage = errorMessages[data.reason] || data.reason
-        }
-      }
-
-      notifyVisioError(new Error(errorMessage), 'Erreur lors de la connexion à la visioconférence')
+      // #429 : le motif du refus passe par le catalogue unique (userMessage posé par
+      // l'intercepteur), jamais par le texte du serveur ni par un catalogue local.
+      notifyVisioError(err, 'Erreur lors de la connexion à la visioconférence')
     } finally {
       joiningVisio.value = false
     }
