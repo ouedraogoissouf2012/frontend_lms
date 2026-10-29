@@ -31,6 +31,8 @@ export const klassciCoursesService = {
   /**
    * Récupérer les vrais cours (leçons) de l'étudiant avec enseignant et matière
    * @param {Object} filters - Filtres optionnels { matiere_id, enseignant_id }
+   * @param {number} [page] - Page demandée (#434). Omise ou 1 : première page,
+   *   sans paramètre. Jamais de `per_page` : le serveur pagine à 15 (décision D1).
    * @returns {Promise<Object>} la réponse du serveur, telle quelle :
    *   `{ success: true, data: cours[], filters: { matieres, enseignants }, total,
    *   meta: { current_page, last_page, per_page, total } }` (forme D1, capturée
@@ -38,11 +40,12 @@ export const klassciCoursesService = {
    * @throws {Error} avec `userMessage` : erreur HTTP ou réseau (posée par
    *   l'intercepteur d'`api.js`), ou réponse sans `success: true` (#436).
    */
-  async getMyCourses(filters = {}) {
+  async getMyCourses(filters = {}, page = 1) {
     try {
       const params = new URLSearchParams()
       if (filters.matiere_id) params.append('matiere_id', filters.matiere_id)
       if (filters.enseignant_id) params.append('enseignant_id', filters.enseignant_id)
+      if (page > 1) params.append('page', page)
 
       const queryString = params.toString()
       const url = queryString ? `${endpoints.lessons.myCourses}?${queryString}` : endpoints.lessons.myCourses

@@ -41,6 +41,19 @@ describe('klassciCoursesService.getMyCourses (#436)', () => {
     expect(erreur.userMessage).toBe(ERROR_MESSAGES.unknown)
   })
 
+  // #434 : la page suivante se demande par `page`, sans `per_page` (défaut serveur 15, D1).
+  it.each([
+    [{}, undefined, '/lessons/my-courses'],
+    [{}, 1, '/lessons/my-courses'],
+    [{}, 2, '/lessons/my-courses?page=2'],
+    [{ matiere_id: 5 }, 2, '/lessons/my-courses?matiere_id=5&page=2'],
+    [{ matiere_id: 5, enseignant_id: 7 }, 3, '/lessons/my-courses?matiere_id=5&enseignant_id=7&page=3'],
+  ])('filtres %o, page %s → %s', async (filtres, page, url) => {
+    get.mockResolvedValue(PAGE_1)
+    await klassciCoursesService.getMyCourses(filtres, page)
+    expect(get).toHaveBeenCalledWith(url)
+  })
+
   it('rejette aussi un success explicitement faux', async () => {
     get.mockResolvedValue({ ...PAGE_1, success: false })
 
