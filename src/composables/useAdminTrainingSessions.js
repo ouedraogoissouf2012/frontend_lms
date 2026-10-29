@@ -1,6 +1,9 @@
 import { ref } from 'vue'
 import { extractList } from '@/utils/apiList'
 import { trainingSessionsService } from '@/services/trainingSessions'
+import { useConfirm } from '@/composables/useConfirm'
+import { IRREVERSIBLES, LIBELLES_TRANSITION } from '@/constants/trainingSessionTransitions'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 const PHASES = {
   a_venir: 'À venir',
@@ -35,6 +38,8 @@ export function useAdminTrainingSessions() {
   const lastPage = ref(1)
   const dernierProgrammeId = ref(null)
   const saving = ref(false)
+  // Période dont une transition est en cours : ses boutons sont désactivés.
+  const busyId = ref(null)
 
   async function load(cible = page.value) {
     loading.value = true
@@ -86,9 +91,46 @@ export function useAdminTrainingSessions() {
     }
   }
 
+  /**
+   * Fait avancer une période (#391, ADR-845-01). Annuler et archiver ne se défont
+   * pas : une confirmation les précède. Au succès, la période est remplacée par la
+   * réponse du serveur (statut et phase font foi). Sur 409, l'état a changé
+   * ailleurs : la liste est rechargée AVANT d'écrire le message, car `load` efface
+   * `error`.
+   * @returns {Promise<boolean>} true si le serveur a appliqué la transition.
+   */
+  async function transitionner(periode, action) {
+    if (IRREVERSIBLES.includes(action)) {
+      const ok = await useConfirm().confirm({
+        message: `${LIBELLES_TRANSITION[action]} « ${periode.libelle} » ? Cette opération est irréversible ; les inscriptions déjà faites sont conservées.`,
+        variant: 'danger',
+        confirmLabel: LIBELLES_TRANSITION[action],
+      })
+      if (!ok) return false
+    }
+
+    busyId.value = periode.id
+    error.value = ''
+    notice.value = ''
+    try {
+      const response = await trainingSessionsService.transition(periode.id, action)
+      const index = periodes.value.findIndex((p) => p.id === periode.id)
+      if (index !== -1) periodes.value[index] = { ...periodes.value[index], ...response.data }
+      notice.value = response.message || 'Période mise à jour.'
+      return true
+    } catch (err) {
+      const message = err?.userMessage || ERROR_MESSAGES.unknown
+      if (err?.response?.status === 409) await load(page.value)
+      error.value = message
+      return false
+    } finally {
+      busyId.value = null
+    }
+  }
+
   return {
     periodes, loading, error, notice, page, lastPage,
-    dernierProgrammeId, saving,
-    load, creerProgramme, creerPeriode,
+    dernierProgrammeId, saving, busyId,
+    load, creerProgramme, creerPeriode, transitionner,
   }
 }
