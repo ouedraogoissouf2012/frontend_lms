@@ -41,3 +41,26 @@ describe('trainingSessionsService (#391)', () => {
     })
   })
 })
+
+// #391 : faire avancer une période par une opération NOMMÉE (ADR-845-01), POST sans
+// corps vers un chemin fixe décrit dans la spec du backend.
+describe('trainingSessionsService.transition (#391)', () => {
+  beforeEach(() => {
+    api.post.mockReset()
+    api.post.mockResolvedValue({ data: {} })
+  })
+
+  it.each(['publier', 'annuler', 'cloturer', 'archiver'])('%s → POST /training-sessions/7/%s sans corps', async (action) => {
+    await trainingSessionsService.transition(7, action)
+    expect(api.post).toHaveBeenCalledWith(`/training-sessions/7/${action}`)
+  })
+
+  it('refuse une action inconnue SANS appel réseau', async () => {
+    // Le message nomme la cause : une TypeError fortuite ne doit pas passer pour la garde.
+    await expect(trainingSessionsService.transition(7, 'purger')).rejects.toThrow('Transition inconnue : purger')
+    // Même un nom hérité d'Object.prototype n'est pas une transition.
+    await expect(trainingSessionsService.transition(7, 'toString')).rejects.toThrow('Transition inconnue : toString')
+    expect(api.post).not.toHaveBeenCalled()
+  })
+})
+

@@ -17,6 +17,8 @@ function categoryFromStatus(status) {
     case 401: return 'auth'
     case 403: return 'forbidden'
     case 404: return 'notFound'
+    // État changé ailleurs, ou opération hors du graphe d'états (#391).
+    case 409: return 'conflict'
     case 410: return 'gone'
     case 422: return 'validation'
     case 429: return 'rateLimit'

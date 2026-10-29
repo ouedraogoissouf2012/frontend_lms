@@ -153,6 +153,14 @@ export const endpoints = {
   activation: '/activation',
   programs: '/programs',
   trainingSessions: '/training-sessions',
+  // Quatre opérations NOMMÉES d'une période (#391, ADR-845-01), chemins fixes pour
+  // que la garde de contrat vérifie chacun. Aucune route n'existe pour `purgee`.
+  trainingSessionTransitions: {
+    publier: (id) => `/training-sessions/${id}/publier`,
+    annuler: (id) => `/training-sessions/${id}/annuler`,
+    cloturer: (id) => `/training-sessions/${id}/cloturer`,
+    archiver: (id) => `/training-sessions/${id}/archiver`,
+  },
 
   lessons: {
     list: '/lessons',
