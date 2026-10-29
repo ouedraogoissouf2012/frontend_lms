@@ -58,7 +58,9 @@ describe('CourseCard — un seul élément interactif, un vrai lien (#437)', () 
     const lien = w.find('a.course-card')
     expect(lien.exists()).toBe(true)
     expect(lien.attributes('href')).toBe(`/student/lessons/${COURS.id}`)
-    expect(lien.attributes('aria-label')).toBe(`Accéder au cours ${COURS.title}`)
+    // WCAG 2.5.3 (Label in Name) : le nom accessible CONTIENT le texte visible « Voir le cours ».
+    expect(lien.attributes('aria-label')).toBe(`Voir le cours ${COURS.title}`)
+    expect(lien.attributes('aria-label')).toContain(w.find('.course-button span').text())
   })
 
   it("ne contient aucun bouton ni élément focalisable imbriqué", () => {
@@ -89,5 +91,22 @@ describe('CourseCard — un seul élément interactif, un vrai lien (#437)', () 
     const w = mountCard({ id: undefined }, null)
     expect(w.find('a').exists()).toBe(false)
     expect(w.find('.course-card').exists()).toBe(true)
+  })
+
+  it('sans route, rien ne promet un clic : pas de « Voir le cours », pas de classe interactive', () => {
+    const w = mountCard({ id: undefined }, null)
+    expect(w.find('.course-button').exists()).toBe(false)
+    expect(w.find('.course-card').classes()).toContain('is-inerte')
+  })
+
+  it('sans route, la carte focalisable par programme se nomme (role group + titre)', () => {
+    const carte = mountCard({ id: undefined }, null).find('.course-card')
+    expect(carte.attributes('tabindex')).toBe('-1')
+    expect(carte.attributes('role')).toBe('group')
+    expect(carte.attributes('aria-label')).toBe(COURS.title)
+  })
+
+  it('avec route, la carte n’est pas marquée inerte', () => {
+    expect(mountCard().find('.course-card').classes()).not.toContain('is-inerte')
   })
 })

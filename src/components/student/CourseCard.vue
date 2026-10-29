@@ -4,12 +4,17 @@
     L'ancien `role="button"` contenant un `<button>` (axe nested-interactive)
     déclenchait deux navigations pour une seule touche Entrée.
     Sans lien (cours sans id), la carte reste focalisable PAR PROGRAMME (tabindex -1) :
-    la fin de « Charger plus » y pose le focus, sans ajouter d'arrêt de tabulation.
+    la fin de « Charger plus » y pose le focus, sans ajouter d'arrêt de tabulation. Elle
+    ne promet alors aucun clic : ni « Voir le cours », ni curseur ni survol interactifs.
+    Le nom du lien CONTIENT le texte visible « Voir le cours » (WCAG 2.5.3).
   -->
   <component
     :is="to ? RouterLink : 'div'"
-    v-bind="to ? { to, 'aria-label': `Accéder au cours ${course.title}` } : { tabindex: -1 }"
+    v-bind="to
+      ? { to, 'aria-label': `Voir le cours ${course.title}` }
+      : { tabindex: -1, role: 'group', 'aria-label': course.title }"
     class="course-card"
+    :class="{ 'is-inerte': !to }"
   >
     <!-- Badge type -->
     <div class="course-type-badge" :class="course.type">
@@ -48,7 +53,7 @@
     </div>
 
     <!-- Décoratif : l'action est portée par le lien de la carte entière. -->
-    <span class="course-button" aria-hidden="true">
+    <span v-if="to" class="course-button" aria-hidden="true">
       <span>Voir le cours</span>
       <span class="button-arrow">→</span>
     </span>
@@ -94,7 +99,6 @@ function truncateText(text, maxLength) {
   border-radius: 0.75rem;
   box-shadow: var(--card-shadow);
   padding: 1.5rem;
-  cursor: pointer;
   transition: all 0.2s;
   position: relative;
   display: flex;
@@ -106,7 +110,11 @@ function truncateText(text, maxLength) {
   outline-offset: 2px;
 }
 
-.course-card:hover {
+a.course-card {
+  cursor: pointer;
+}
+
+a.course-card:hover {
   box-shadow: var(--card-hover-shadow);
   transform: translateY(-4px);
 }
