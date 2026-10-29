@@ -15,6 +15,16 @@ describe('ClasseDetailsHeader (#H9)', () => {
     expect(vals).toEqual(['20', '8', '3'])
   })
 
+  // `null` = compteur non destiné à ce lecteur (un élève ne voit pas le roster,
+  // ADR-GHSA-gg7j-01) : la carte disparaît, les deux autres restent.
+  it('masque la carte Étudiants quand le compteur vaut null', () => {
+    const w = mount(ClasseDetailsHeader, {
+      props: { classe: { nom: '6e A' }, loading: false, etudiantsCount: null, matieresCount: 8, evaluationsCount: 3 }
+    })
+    expect(w.findAll('.stat-label-header').map(l => l.text())).toEqual(['Matières', 'Évaluations'])
+    expect(w.findAll('.stat-value-header').map(v => v.text())).toEqual(['8', '3'])
+  })
+
   it('masque les stats pendant le chargement', () => {
     const w = mount(ClasseDetailsHeader, { props: { classe: null, loading: true } })
     expect(w.find('.stats-grid-header').exists()).toBe(false)
