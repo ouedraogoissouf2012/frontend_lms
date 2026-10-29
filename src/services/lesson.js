@@ -136,16 +136,19 @@ const lessonService = {
 
   /**
    * Mettre à jour sa progression (Étudiant)
+   *
+   * N'envoie PAS `time_spent_minutes` (#435) : le temps passé a une seule source
+   * de vérité, `chapter_progress.time_spent_seconds`, déjà enregistrée chapitre
+   * par chapitre. Le serveur cumule ce champ (`+=`) : tout ce que le client y
+   * mettrait serait un second compteur du même fait. Champ absent ⇒ aucun cumul.
    * @param {Number} lessonId
    * @param {Number} progressPercentage - 0-100
-   * @param {Number} timeSpentMinutes - Temps passé en minutes
    * @returns {Promise}
    */
-  async updateProgress(lessonId, progressPercentage, timeSpentMinutes = 0) {
+  async updateProgress(lessonId, progressPercentage) {
     try {
       const response = await api.post(endpoints.lessons.progress(lessonId), {
-        progress_percentage: progressPercentage,
-        time_spent_minutes: timeSpentMinutes
+        progress_percentage: progressPercentage
       })
       return response.data
     } catch (error) {
