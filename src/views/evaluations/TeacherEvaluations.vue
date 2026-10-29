@@ -13,8 +13,8 @@
       </div>
 
       <!-- #420 : région vivante présente dès le montage ; seul son texte change. -->
-      <p data-test="mention-klassci" role="status" class="klassci-mention"
-         :class="{ 'klassci-mention--visible': mentionKlassci }">{{ mentionKlassci }}</p>
+      <p data-test="mention-source" role="status" class="source-mention"
+         :class="{ 'source-mention--visible': mentionSource }">{{ mentionSource }}</p>
 
       <!-- Loading State -->
       <ContentLoader v-if="loading" text="Chargement des évaluations..." />
@@ -104,7 +104,7 @@ const {
   matieres,
   loading,
   error,
-  mentionKlassci,
+  mentionSource,
   hideExpired,
   filters,
   expiredWithoutOnlineCount,
@@ -176,12 +176,12 @@ onMounted(() => {
   margin: 0.25rem 0 0 0;
 }
 
-/* #420 : mention d'accès KLASSCI. Vide, elle ne prend aucune place ; jamais masquée. */
-.klassci-mention {
+/* #420 : mention « source indisponible ». Vide, elle ne prend aucune place ; jamais masquée. */
+.source-mention {
   margin: 0;
 }
 
-.klassci-mention--visible {
+.source-mention--visible {
   background: var(--info-bg);
   border: 1px solid var(--info-border);
   color: var(--info-text);

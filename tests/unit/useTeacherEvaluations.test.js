@@ -164,7 +164,7 @@ describe('#420 — accès KLASSCI absent et panne réelle', () => {
     await c.loadData()
     expect(klassci.getTeacherDashboard).not.toHaveBeenCalled()
     expect(c.evaluationsKlassci.value).toEqual([])
-    expect(c.mentionKlassci.value).toBe(MENTION)
+    expect(c.mentionSource.value).toBe(MENTION)
     expect(c.error.value).toBeNull()
   })
 
@@ -173,7 +173,7 @@ describe('#420 — accès KLASSCI absent et panne réelle', () => {
     klassci.getTeacherDashboard.mockRejectedValue(jetonAbsent())
     const c = useTeacherEvaluations()
     await c.loadData()
-    expect(c.mentionKlassci.value).toBe(MENTION)
+    expect(c.mentionSource.value).toBe(MENTION)
     expect(c.error.value).toBeNull()
   })
 
@@ -183,7 +183,7 @@ describe('#420 — accès KLASSCI absent et panne réelle', () => {
     const c = useTeacherEvaluations()
     await c.loadData()
     expect(c.error.value).toBe(ERROR_MESSAGES.klassciUnavailable)
-    expect(c.mentionKlassci.value).toBe('')
+    expect(c.mentionSource.value).toBe('')
     expect(c.loading.value).toBe(false)
   })
 
@@ -201,18 +201,18 @@ describe('#420 — accès KLASSCI absent et panne réelle', () => {
     const c = useTeacherEvaluations()
     await c.loadData()
     expect(c.error.value).toBeNull()
-    expect(c.mentionKlassci.value).toBe('')
+    expect(c.mentionSource.value).toBe('')
   })
 
   it('un rechargement retire la mention AVANT tout await, pas à la réponse', async () => {
     klassci.getEvaluations.mockRejectedValueOnce(jetonAbsent())
     const c = useTeacherEvaluations()
     await c.loadData()
-    expect(c.mentionKlassci.value).toBe(MENTION)
+    expect(c.mentionSource.value).toBe(MENTION)
     let libererClasses
     klassci.getClasses.mockReturnValueOnce(new Promise((r) => { libererClasses = r }))
     const enCours = c.loadData()
-    expect(c.mentionKlassci.value).toBe('')
+    expect(c.mentionSource.value).toBe('')
     libererClasses([])
     await enCours
   })
@@ -221,10 +221,10 @@ describe('#420 — accès KLASSCI absent et panne réelle', () => {
     klassci.getEvaluations.mockRejectedValueOnce(jetonAbsent())
     const c = useTeacherEvaluations()
     await c.loadData()
-    expect(c.mentionKlassci.value).toBe(MENTION)
+    expect(c.mentionSource.value).toBe(MENTION)
     klassci.getEvaluations.mockResolvedValue({ success: true, data: [{ id: 1 }] })
     await c.loadData()
-    expect(c.mentionKlassci.value).toBe('')
+    expect(c.mentionSource.value).toBe('')
     expect(c.evaluationsKlassci.value).toEqual([{ id: 1 }])
   })
 })

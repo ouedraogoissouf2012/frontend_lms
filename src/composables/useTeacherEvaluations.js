@@ -13,7 +13,7 @@ import {
 } from '@/utils/evaluations'
 
 // #420 : un compte sans aucun accès KLASSCI n'est pas une panne. Son constat (message du
-// catalogue, source unique) va dans `mentionKlassci` ; l'état d'erreur reste aux pannes.
+// catalogue, source unique) va dans `mentionSource` ; l'état d'erreur reste aux pannes.
 const sansAccesKlassci = (err) => normalizeError(err).category === 'klassciTokenMissing'
 const MENTION_SANS_ACCES_KLASSCI = ERROR_MESSAGES.klassciTokenMissing
 
@@ -33,7 +33,7 @@ export function useTeacherEvaluations() {
   const matieres = ref([])
   const loading = ref(true)
   const error = ref(null)
-  const mentionKlassci = ref('')
+  const mentionSource = ref('')
   const hideExpired = ref(true) // masquer par défaut les expirées sans version en ligne
 
   const filters = reactive({
@@ -108,7 +108,7 @@ export function useTeacherEvaluations() {
       }
     } catch (err) {
       if (sansAccesKlassci(err)) {
-        mentionKlassci.value = MENTION_SANS_ACCES_KLASSCI
+        mentionSource.value = MENTION_SANS_ACCES_KLASSCI
         return
       }
       console.error('[ERREUR] Chargement évaluations KLASSCI, fallback dashboard:', err)
@@ -118,7 +118,7 @@ export function useTeacherEvaluations() {
         dashboard = await klassciService.getTeacherDashboard()
       } catch (dashboardError) {
         if (sansAccesKlassci(dashboardError)) {
-          mentionKlassci.value = MENTION_SANS_ACCES_KLASSCI
+          mentionSource.value = MENTION_SANS_ACCES_KLASSCI
           return
         }
         console.error('[ERREUR] Fallback dashboard:', dashboardError)
@@ -163,7 +163,7 @@ export function useTeacherEvaluations() {
     loading.value = true
     error.value = null
     // Avant tout await : la mention d'un chargement précédent ne survit pas au suivant.
-    mentionKlassci.value = ''
+    mentionSource.value = ''
     try {
       await Promise.all([loadClasses(), loadMatieres()])
       await Promise.all([loadEvaluationsKlassci(), loadEvaluationsLMS()])
@@ -194,7 +194,7 @@ export function useTeacherEvaluations() {
     matieres,
     loading,
     error,
-    mentionKlassci,
+    mentionSource,
     hideExpired,
     filters,
     // dérivés

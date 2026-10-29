@@ -104,7 +104,7 @@ describe('TeacherEvaluations (#420) — mention d accès KLASSCI et panne', () =
     const w = mount((await import('@/views/evaluations/TeacherEvaluations.vue')).default, {
       global: { stubs },
     })
-    const region = w.find('[data-test="mention-klassci"]')
+    const region = w.find('[data-test="mention-source"]')
     expect(region.exists()).toBe(true)
     expect(region.attributes('role')).toBe('status')
     expect(region.text()).toBe('')
@@ -121,7 +121,7 @@ describe('TeacherEvaluations (#420) — mention d accès KLASSCI et panne', () =
   it('jeton absent → la région dit la mention, sans état d erreur', async () => {
     klassci.getEvaluations.mockRejectedValue(http(401, { reason: 'klassci_token_missing', message: 'KLASSCI' }))
     const w = await mountView()
-    expect(w.find('[data-test="mention-klassci"]').text()).toBe(MENTION)
+    expect(w.find('[data-test="mention-source"]').text()).toBe(MENTION)
     expect(w.find('.error-state').exists()).toBe(false)
     expect(w.find('.empty-state').exists()).toBe(true)
     expect(klassci.getTeacherDashboard).not.toHaveBeenCalled()
