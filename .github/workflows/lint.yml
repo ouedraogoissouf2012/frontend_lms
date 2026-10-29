@@ -306,9 +306,17 @@ jobs:
   #    avec le backend (Semgrep déjà en CI). Bloque UNIQUEMENT sur les findings de
   #    sévérité ERROR ; les WARNING/INFO restent visibles dans les logs sans casser
   #    la CI (introduction progressive — cf. #241).
+  #    #432 : les résultats partent AUSSI vers code scanning (SARIF), pour un historique et
+  #    un tableau d'alertes. L'envoi n'a lieu que là où le jeton peut écrire : un push sur
+  #    dev, ou une PR venue du dépôt lui-même (une PR de fork n'a pas security-events:write).
+  #    Le `--error` reste bloquant ; l'envoi ne décide jamais du verdict. `--sarif-output`
+  #    écrit une COPIE SARIF : la sortie texte reste lisible dans les journaux.
   sast:
     name: SAST (Semgrep)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     container:
       image: semgrep/semgrep
     steps:
@@ -316,4 +324,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Semgrep scan (ERROR bloquant)
-        run: semgrep scan --config p/security-audit --config p/javascript --severity ERROR --error src/
+        run: semgrep scan --config p/security-audit --config p/javascript --severity ERROR --error --sarif-output=semgrep.sarif src/
+
+      - name: Envoi SARIF vers code scanning
+        if: >-
+          always() && hashFiles('semgrep.sarif') != '' &&
+          (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
