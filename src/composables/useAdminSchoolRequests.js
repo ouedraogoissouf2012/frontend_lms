@@ -34,9 +34,12 @@ export function useAdminSchoolRequests() {
   }
 
   async function valider(id, slug) {
+    // #418 : un lien affiché est un SECRET que rien ne permet de réémettre
+    // (ActivationTokenService::emettre n'est appelé qu'à la validation). Valider une
+    // autre demande l'effaçait : refusé tant qu'il n'a pas été marqué transmis.
+    if (lienActivation.value) return false
     actingId.value = id
     error.value = ''
-    fermerLien()
     try {
       const response = await schoolRequestsService.validate(id, slug)
       lienActivation.value = response.data?.activation_url || ''
