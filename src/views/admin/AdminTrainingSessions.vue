@@ -50,12 +50,13 @@
       <ContentLoader v-if="loading" text="Chargement des sessions..." />
       <p v-else-if="periodes.length === 0">Aucune période pour le moment.</p>
 
-      <article v-for="p in periodes" :key="p.id" class="card">
-        <h2>{{ p.libelle }}</h2>
-        <p>{{ libelleStatut(p.status) }} · {{ libellePhase(p.phase) }}</p>
-        <p>Programme n° {{ p.program_id }}</p>
-        <p v-if="p.starts_on || p.ends_on">{{ p.starts_on || '—' }} → {{ p.ends_on || '—' }}</p>
-      </article>
+      <TrainingPeriodCard
+        v-for="p in periodes"
+        :key="p.id"
+        :periode="p"
+        :busy="busyId === p.id"
+        @transition="(action) => transitionner(p, action)"
+      />
 
       <p v-if="lastPage > 1">
         <button type="button" class="refresh-btn" :disabled="page <= 1" @click="load(page - 1)">Précédent</button>
@@ -70,11 +71,8 @@
 import { onMounted, reactive, ref, watch } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
-import {
-  useAdminTrainingSessions,
-  libellePhase,
-  libelleStatut,
-} from '@/composables/useAdminTrainingSessions'
+import TrainingPeriodCard from '@/components/admin/TrainingPeriodCard.vue'
+import { useAdminTrainingSessions } from '@/composables/useAdminTrainingSessions'
 
 const titre = ref('')
 const description = ref('')
@@ -92,8 +90,8 @@ const periode = reactive({
 
 const {
   periodes, loading, error, notice, page, lastPage,
-  dernierProgrammeId, saving,
-  load, creerProgramme, creerPeriode,
+  dernierProgrammeId, saving, busyId,
+  load, creerProgramme, creerPeriode, transitionner,
 } = useAdminTrainingSessions()
 
 watch(dernierProgrammeId, (id) => {

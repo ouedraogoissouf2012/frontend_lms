@@ -12,6 +12,9 @@ export const ERROR_MESSAGES = Object.freeze({
   auth: 'Votre session a expiré. Veuillez vous reconnecter.',
   forbidden: "Vous n'avez pas les droits nécessaires pour effectuer cette action.",
   notFound: 'La ressource demandée est introuvable.',
+  // 409 (#391) : l'état a changé entre l'affichage et l'action. Le message serveur
+  // n'est pas repris (politique fail-secure, errorHandler.js) ; l'appelant recharge.
+  conflict: "Cette action n'est plus possible dans l'état actuel. La liste a été actualisée.",
   gone: 'Ce lien n\'est plus valable. Demandez-en un nouveau à votre administrateur.',
   validation: 'Certaines informations sont invalides. Veuillez vérifier votre saisie.',
   rateLimit: 'Trop de requêtes en peu de temps. Veuillez patienter quelques instants.',
