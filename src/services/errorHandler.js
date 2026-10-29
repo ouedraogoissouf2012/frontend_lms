@@ -105,6 +105,24 @@ export function normalizeError(error) {
 }
 
 /**
+ * Erreur pour une réponse HTTP RÉUSSIE dont l'enveloppe n'est pas celle attendue
+ * (`success !== true`). Ne lève jamais : construit l'erreur que l'appelant rejette.
+ *
+ * Remplacer une telle réponse par une liste vide fabriquait un fait (« aucun cours
+ * publié ») à partir d'une anomalie (#436, CONTRIBUTING §10). L'erreur porte un
+ * `userMessage` du catalogue, comme celles que pose l'intercepteur d'`api.js` :
+ * l'appelant l'affiche sans distinguer les deux origines.
+ * @param {string} [context] - libellé technique pour les journaux (jamais affiché).
+ * @returns {Error}
+ */
+export function invalidResponseError(context = '') {
+  const error = new Error(context ? `Réponse inattendue : ${context}` : 'Réponse inattendue')
+  error.userMessage = ERROR_MESSAGES.unknown
+  error.fieldErrors = null
+  return error
+}
+
+/**
  * Décide si une erreur HTTP doit invalider la SESSION locale (déconnexion).
  *
  * Règle (#231) : côté LMS, un refus d'autorisation/rôle renvoie 403 (EnsureRole),
