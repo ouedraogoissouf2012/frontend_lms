@@ -4,14 +4,16 @@
  * erreur via logError). Seul l'adaptateur réseau d'axios est remplacé ; le reste de la
  * chaîne (intercepteurs, normalisation, composable) est le code livré.
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { AxiosError } from 'axios'
 import { setActivePinia, createPinia } from 'pinia'
 import api from '@/services/api'
 import { useJoinClass } from '@/composables/useJoinClass'
+import { useEnrolmentCodes } from '@/composables/useEnrolmentCodes'
+import { espionnerConsole } from '../helpers/consoleFuite'
 
 const CODE = 'Q7RT4K'
-const espions = []
+let console_
 let adaptateurOrigine
 
 function repondre(status, data) {
@@ -21,18 +23,17 @@ function repondre(status, data) {
     throw new AxiosError(`HTTP ${status}`, AxiosError.ERR_BAD_REQUEST, config, {}, response)
   }
 }
-// N3 : une AxiosError porte le corps envoyé dans `config.data` : il est sérialisé aussi.
-const serialiser = (args) => JSON.stringify(args, (k, v) => (v instanceof Error ? { message: v.message, stack: v.stack, data: v.config?.data ?? null } : v))
-const fuite = () => espions.some((s) => s.mock.calls.some((args) => serialiser(args).includes(CODE)))
+// Détecteur partagé (tests/helpers/consoleFuite.js) : corps envoyé ET reçu d'une erreur.
+const fuite = () => console_.contient(CODE)
 
 beforeEach(() => {
   setActivePinia(createPinia())
   adaptateurOrigine = api.defaults.adapter
-  for (const m of ['log', 'info', 'warn', 'error', 'debug']) espions.push(vi.spyOn(console, m).mockImplementation(() => {}))
+  console_ = espionnerConsole()
 })
 afterEach(() => {
   api.defaults.adapter = adaptateurOrigine
-  espions.splice(0).forEach((s) => s.mockRestore())
+  console_.restaurer()
 })
 
 describe('C4 — élève, vrai client HTTP : le code ne fuit pas en console', () => {
@@ -47,7 +48,7 @@ describe('C4 — élève, vrai client HTTP : le code ne fuit pas en console', ()
     j.code.value = CODE.toLowerCase()
     expect(await j.rejoindre()).toBe(false)
     // La journalisation a BIEN eu lieu : le test passerait à vide sinon.
-    expect(console.warn).toHaveBeenCalled()
+    expect(console_.appelee('warn')).toBe(true)
     expect(fuite()).toBe(false)
   })
 
@@ -55,6 +56,49 @@ describe('C4 — élève, vrai client HTTP : le code ne fuit pas en console', ()
     const err = new AxiosError('x', AxiosError.ERR_BAD_REQUEST, { data: JSON.stringify({ code: CODE }) })
     console.warn('journal', err)
     expect(fuite()).toBe(true)
+  })
+
+  it('le détecteur voit un code renvoyé dans la RÉPONSE d’une erreur (celle d’émission le contient)', () => {
+    const reponse = { status: 500, data: { success: false, data: { code_inscription: CODE } } }
+    console.error('journal', new AxiosError('x', AxiosError.ERR_BAD_RESPONSE, {}, {}, reponse))
+    expect(fuite()).toBe(true)
+  })
+
+  // C4 (revue de #449) : une erreur IMBRIQUÉE ({ error }) échappait à l'aplatissement de
+  // premier niveau ; et un objet cyclique ne doit pas faire tomber le détecteur.
+  it('le détecteur voit un code dans une erreur IMBRIQUÉE', () => {
+    const reponse = { status: 500, data: { data: { code_inscription: CODE } } }
+    console.warn('journal', { contexte: { erreur: new AxiosError('x', AxiosError.ERR_BAD_RESPONSE, {}, {}, reponse) } })
+    expect(fuite()).toBe(true)
+  })
+
+  it('le détecteur tient sur un objet CYCLIQUE, et y voit encore le code', () => {
+    const boucle = { code: CODE }
+    boucle.moi = boucle
+    console.warn('journal', boucle)
+    expect(() => fuite()).not.toThrow()
+    expect(fuite()).toBe(true)
+  })
+
+  it.each([500, 503])('personnel, émission en échec %i dont la réponse porte le code : journalisée, sans le code', async (status) => {
+    api.defaults.adapter = async (config) => {
+      const response = { status, statusText: '', data: { success: false, data: { code_inscription: CODE } }, headers: {}, config }
+      throw new AxiosError(`HTTP ${status}`, AxiosError.ERR_BAD_RESPONSE, config, {}, response)
+    }
+    const codes = useEnrolmentCodes()
+    codes.classes.value = [{ id: 1, libelle: 'Classe 1', code_inscription: { etat: 'absent', valeur: null } }]
+    await codes.emettre(codes.classes.value[0])
+    expect(console_.appelee('warn')).toBe(true)
+    expect(fuite()).toBe(false)
+  })
+
+  it('personnel, émission réussie (201, la réponse porte le code) : rien en console', async () => {
+    repondre(201, { success: true, message: 'Code émis.', data: { classe_id: 1, code_inscription: CODE } })
+    const codes = useEnrolmentCodes()
+    codes.classes.value = [{ id: 1, libelle: 'Classe 1', code_inscription: { etat: 'absent', valeur: null } }]
+    expect(await codes.emettre(codes.classes.value[0])).toBe(true)
+    expect(codes.classes.value[0].code_inscription.valeur).toBe(CODE)
+    expect(fuite()).toBe(false)
   })
 
   it('succès 201 : rien en console non plus', async () => {
