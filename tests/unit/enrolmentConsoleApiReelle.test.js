@@ -64,6 +64,22 @@ describe('C4 — élève, vrai client HTTP : le code ne fuit pas en console', ()
     expect(fuite()).toBe(true)
   })
 
+  // C4 (revue de #449) : une erreur IMBRIQUÉE ({ error }) échappait à l'aplatissement de
+  // premier niveau ; et un objet cyclique ne doit pas faire tomber le détecteur.
+  it('le détecteur voit un code dans une erreur IMBRIQUÉE', () => {
+    const reponse = { status: 500, data: { data: { code_inscription: CODE } } }
+    console.warn('journal', { contexte: { erreur: new AxiosError('x', AxiosError.ERR_BAD_RESPONSE, {}, {}, reponse) } })
+    expect(fuite()).toBe(true)
+  })
+
+  it('le détecteur tient sur un objet CYCLIQUE, et y voit encore le code', () => {
+    const boucle = { code: CODE }
+    boucle.moi = boucle
+    console.warn('journal', boucle)
+    expect(() => fuite()).not.toThrow()
+    expect(fuite()).toBe(true)
+  })
+
   it.each([500, 503])('personnel, émission en échec %i dont la réponse porte le code : journalisée, sans le code', async (status) => {
     api.defaults.adapter = async (config) => {
       const response = { status, statusText: '', data: { success: false, data: { code_inscription: CODE } }, headers: {}, config }
