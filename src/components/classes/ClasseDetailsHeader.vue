@@ -40,7 +40,9 @@
 
     <!-- Stats -->
     <div class="stats-grid-header" v-if="!loading">
-      <div class="stat-card-header">
+      <!-- `null` = compteur non destiné à ce lecteur (un élève ne voit pas le
+           roster) : la carte disparaît plutôt que d'afficher un faux 0. -->
+      <div v-if="etudiantsCount !== null" class="stat-card-header">
         <div class="stat-header-inner">
           <i class="fa fa-user stat-icon-header"></i>
           <span class="stat-label-header">Étudiants</span>

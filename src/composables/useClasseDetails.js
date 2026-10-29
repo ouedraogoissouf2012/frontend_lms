@@ -62,9 +62,24 @@ export function useClasseDetails() {
     return Number.isFinite(Number(depuisLaReponse)) ? Number(depuisLaReponse) : classeId.value
   }
 
+  /**
+   * Le roster n'est rendu qu'au personnel (backend, ADR-GHSA-gg7j-01) : pour un
+   * élève, `etudiants` arrive VIDE. On ne lui montre donc ni l'onglet ni le
+   * compteur — un « 0 étudiant » serait une mesure fausse — et on ne rappelle
+   * pas `/lms/classes/{id}/etudiants`, désormais réservé au personnel (403).
+   *
+   * Même prédicat que le serveur (`isStaff()`), fail-closed : un rôle inconnu
+   * est traité comme un élève.
+   */
+  const rosterVisible = computed(() =>
+    hasRole(auth.getUser(), [ROLES.ENSEIGNANT, ROLES.COORDINATEUR, ROLES.ADMIN, ROLES.SUPRADMIN])
+  )
+
   const tabs = computed(() => [
     { id: 'matieres', label: 'Matières', count: matieres.value?.length || 0 },
-    { id: 'etudiants', label: 'Étudiants', count: etudiants.value?.length || 0 },
+    ...(rosterVisible.value
+      ? [{ id: 'etudiants', label: 'Étudiants', count: etudiants.value?.length || 0 }]
+      : []),
     { id: 'evaluations', label: 'Évaluations', count: evaluations.value?.length || 0 },
     { id: 'planning', label: 'Planning', count: emploiTemps.value?.length || 0 }
   ])
@@ -105,7 +120,9 @@ export function useClasseDetails() {
         // car cet endpoint est soumis à une autorisation PAR CLASSE et répond 403 —
         // c'est lui qui faisait afficher « 0 étudiant » sur des classes peuplées.
         etudiants.value = asArray(data.data.etudiants)
-        if (etudiants.value.length === 0) await loadEtudiants()
+        // Pour un élève, un roster vide est la RÈGLE, pas une absence de donnée :
+        // le repli ne le concerne pas (il répondrait 403).
+        if (etudiants.value.length === 0 && rosterVisible.value) await loadEtudiants()
 
         // Charger les séances à venir
         await loadSeances()
@@ -161,7 +178,7 @@ export function useClasseDetails() {
   })
 
   return {
-    loading, error, activeTab, classe, matieres, etudiants, evaluations,
+    loading, error, activeTab, classe, matieres, etudiants, evaluations, rosterVisible,
     emploiTemps, seances, statistiques, classeId, tabs, canManageVisio,
     loadClasseDetails, loadSeances, viewMatiere, viewEvaluation, goBack,
   }

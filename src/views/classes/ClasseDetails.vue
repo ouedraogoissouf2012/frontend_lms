@@ -5,7 +5,7 @@
       <ClasseDetailsHeader
         :classe="classe"
         :loading="loading"
-        :etudiants-count="etudiants?.length || 0"
+        :etudiants-count="rosterVisible ? (etudiants?.length || 0) : null"
         :matieres-count="matieres?.length || 0"
         :evaluations-count="evaluations?.length || 0"
         @back="goBack"
@@ -84,7 +84,7 @@ import ClasseUpcomingSeances from '@/components/classes/ClasseUpcomingSeances.vu
 import { useClasseDetails } from '@/composables/useClasseDetails'
 
 const {
-  loading, error, activeTab, classe, matieres, etudiants, evaluations,
+  loading, error, activeTab, classe, matieres, etudiants, evaluations, rosterVisible,
   emploiTemps, seances, tabs,
   loadClasseDetails, loadSeances, viewMatiere, viewEvaluation, goBack,
 } = useClasseDetails()
