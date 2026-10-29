@@ -243,6 +243,37 @@ describe('useSeanceDetails (#H6)', () => {
     expect(typeof storeJoinVisio.mock.calls[0][1]).toBe('object')
   })
 
+  // #429 : le refus s'affiche par le catalogue (userMessage posé par l'intercepteur),
+  // jamais par le texte du serveur ni par un catalogue local de quatre motifs.
+  it('joinVisio refusé : le toast porte le message du catalogue, pas le texte serveur', async () => {
+    currentUser = { role: 'etudiant', name: 'Eleve Test' }
+    getSeanceDetails.mockResolvedValue({ success: true, data: { seance: { id: 42 }, visio: { enabled: true, status: 'active', visio_room_id: 'room-api' } } })
+    const refus = Object.assign(new Error('HTTP 403'), {
+      response: { status: 403, data: { success: false, message: 'texte serveur', reason: 'no_classe_id' } },
+      userMessage: 'Message du catalogue pour ce motif.',
+    })
+    storeJoinVisio.mockRejectedValue(refus)
+    const u = await setup()
+    await u.joinVisio()
+    expect(toast.error).toHaveBeenCalledWith('Message du catalogue pour ce motif.', 'Visio')
+    expect(JSON.stringify(toast.error.mock.calls)).not.toContain('texte serveur')
+  })
+
+  // D17 (invariant await) : un 2ᵉ clic pendant le join en vol écrirait une 2ᵉ présence.
+  it('joinVisio : un second appel pendant le premier n’envoie rien', async () => {
+    currentUser = { role: 'etudiant', name: 'Eleve Test' }
+    getSeanceDetails.mockResolvedValue({ success: true, data: { seance: { id: 42 }, visio: { enabled: true, status: 'active', visio_room_id: 'room-api' } } })
+    let resoudre
+    storeJoinVisio.mockReturnValue(new Promise((r) => { resoudre = r }))
+    const u = await setup()
+    const premier = u.joinVisio()
+    await Promise.resolve()
+    await u.joinVisio()
+    expect(storeJoinVisio).toHaveBeenCalledTimes(1)
+    resoudre({ success: true })
+    await premier
+  })
+
   it('startRecording : refuse si la séance visio n’est pas active', async () => {
     vi.stubEnv('VITE_VISIO_RECORDING_ENABLED', 'true')
     currentUser = { role: 'enseignant', name: 'Prof X' }

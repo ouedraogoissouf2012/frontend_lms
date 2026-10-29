@@ -1,5 +1,15 @@
 import api from './api'
 import { endpoints } from './endpoints'
+// Import relatif : le runner natif des tests de contrat ne résout pas l'alias @.
+import { normalizeError } from './errorHandler'
+
+/** Un refus rendu en 200 devient une erreur lisible par le catalogue (normalizeError). */
+function refusDeJoin(corps) {
+  const erreur = new Error('Entrée en visio refusée')
+  erreur.response = { status: 200, data: { success: false, reason: corps.reason ?? null } }
+  erreur.userMessage = normalizeError(erreur).userMessage
+  return erreur
+}
 
 /**
  * Service LMS — domaine VISIO (`/lms/seances/{id}/{toggle,activate,...}-visio`, join/leave/heartbeat).
@@ -90,7 +100,14 @@ export const lmsVisioService = {
    */
   async joinVisio(seanceId) {
     try {
-      return await api.post(endpoints.lms.visio.join(seanceId))
+      const reponse = await api.post(endpoints.lms.visio.join(seanceId))
+      // #429 : le serveur rend aussi un REFUS en 200 ({ success: true, authorized: false,
+      // reason }). C'est un refus, pas une entrée : il est rejeté ici, à la frontière, avec
+      // son motif (même catalogue que les 403). Sans cela, le store bâtissait une salle depuis
+      // une réponse sans salle, puis « compensait » par un leave d'un join qui n'a rien écrit.
+      // Le jour où le serveur rendra un 403, cette branche restera juste et inerte.
+      if (reponse?.authorized === false) throw refusDeJoin(reponse)
+      return reponse
     } catch (error) {
       console.error('Erreur rejoindre visio:', error)
       throw error

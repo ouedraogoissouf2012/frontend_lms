@@ -22,6 +22,16 @@ const REASON_CATEGORIES = Object.freeze({
   account_quota_exceeded: 'accountQuotaExceeded',
   account_daily_cap_reached: 'accountDailyCapReached',
   institution_cap_reached: 'institutionCapReached',
+  // #429 : contrat de POST /lms/seances/{id}/join. Un `reason` serveur est un identifiant de
+  // contrat GLOBAL (BusinessException) : s'il prenait un autre sens ailleurs, ce serait un
+  // défaut serveur. Catégories préfixées par leur contrat, aucune résolution par écran.
+  not_enrolled: 'visioNotEnrolled',
+  no_classe_id: 'visioNoClasse',
+  visio_not_enabled: 'visioNotEnabled',
+  teacher_not_owner: 'visioTeacherNotOwner',
+  actor_not_authorized: 'visioRoleRefused',
+  invalid_role: 'visioRoleRefused',
+  tenant_not_resolved: 'visioNoInstitution',
 })
 
 /** Catégorie d'erreur depuis le code HTTP. */

@@ -22,7 +22,22 @@ export function useGardeLienAffiche(motif, confirmer = demanderConfirmation) {
 
   onMounted(() => window.addEventListener('beforeunload', avantDechargement))
   onBeforeUnmount(() => window.removeEventListener('beforeunload', avantDechargement))
-  onBeforeRouteLeave(async () => (motif.value ? confirmer(motif.value) : true))
+  onBeforeRouteLeave(confirmerDepart)
+
+  /**
+   * Le motif lu AVANT l'attente ne vaut plus forcément APRÈS : si l'état a changé pendant la
+   * boîte de confirmation (le lien est arrivé), on redemande avec le message de CE nouvel état.
+   */
+  async function confirmerDepart() {
+    let demande = motif.value
+    // Bornée : lien → validation est impossible (peutValider refuse tant qu'un lien est affiché).
+    while (demande) {
+      if (!(await confirmer(demande))) return false
+      if (motif.value === demande) return true
+      demande = motif.value
+    }
+    return true
+  }
 }
 
 const MESSAGES = Object.freeze({
