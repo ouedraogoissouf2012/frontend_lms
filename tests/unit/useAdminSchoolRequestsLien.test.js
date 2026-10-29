@@ -147,22 +147,35 @@ describe('#418 : un lien affiché n’est jamais effacé par une autre validatio
 
   // Remarque 6 : une liste relue pendant la validation de A la faisait réapparaître.
   it('« Actualiser » pendant une validation en vol est refusé : A ne réapparaît pas', async () => {
+    // L'ordre DANGEREUX est rejoué : une liste demandée pendant le vol, et rendue APRÈS la
+    // réponse de la validation. Sans la garde, cette liste (lue avant) remet A dans la file.
     let resoudreA
+    let resoudreListe = null
+    const liste = (config) => ({ status: 200, statusText: '', headers: {}, config, data: { success: true, data: [{ id: 1 }, { id: 2 }], meta: { current_page: 1, last_page: 1 } } })
+    let premiere = true
     api.defaults.adapter = (config) => {
       appels.push(`${config.method} ${config.url}`)
-      if (config.method === 'get') return Promise.resolve({ status: 200, statusText: '', headers: {}, config, data: { success: true, data: [{ id: 1 }, { id: 2 }], meta: { current_page: 1, last_page: 1 } } })
+      if (config.method === 'get') {
+        if (premiere) { premiere = false; return Promise.resolve(liste(config)) }
+        return new Promise((r) => { resoudreListe = () => r(liste(config)) })
+      }
       return new Promise((r) => { resoudreA = () => r({ status: 200, statusText: '', headers: {}, config, data: { success: true, data: { activation_url: SECRET } } }) })
     }
     const r = useAdminSchoolRequests()
     await r.load(1)
     appels.length = 0
     const enVolA = r.valider(1, 'a')
-    await Promise.resolve()
-    expect(await r.load(1)).toBe(false)
-    expect(appels.filter((a) => a.startsWith('get'))).toEqual([])
+    await new Promise((fin) => setTimeout(fin, 0))
+    const relecture = r.load(1)
+    await new Promise((fin) => setTimeout(fin, 0))
     resoudreA()
     await enVolA
+    if (resoudreListe) resoudreListe()
+    const relue = await relecture
+    // D'abord l'EFFET : A ne réapparaît pas, même si une liste a été rendue après la validation.
     expect(r.demandes.value.map((d) => d.id)).toEqual([2])
+    expect(relue).toBe(false)
+    expect(appels.filter((a) => a.startsWith('get'))).toEqual([])
   })
 
   // Condition de l'ARRÊT 3 (course inverse de la remarque 6) : une liste lue AVANT la
