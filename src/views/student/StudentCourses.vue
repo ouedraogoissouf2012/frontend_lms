@@ -35,7 +35,12 @@
       </div>
 
       <!-- Courses Grid -->
-      <div v-if="!loading && !error && courses.length > 0" class="courses-grid">
+      <div
+        v-if="!loading && !error && courses.length > 0"
+        ref="gridRef"
+        class="courses-grid"
+        :aria-busy="loadingMore"
+      >
         <CourseCard
           v-for="course in courses"
           :key="course.id"
@@ -45,33 +50,22 @@
       </div>
 
       <!-- Empty state -->
-      <div v-else-if="!loading && !error" class="empty-state">
-        <div class="empty-icon-wrapper">
-          <i class="fa fa-book empty-icon"></i>
-        </div>
-        <h3 class="empty-title">Aucun cours disponible</h3>
-        <p class="empty-description">
-          <template v-if="selectedMatiere || selectedEnseignant">
-            Aucun cours ne correspond à vos filtres.<br>
-            Essayez de modifier vos critères de recherche.
-          </template>
-          <template v-else>
-            Vos enseignants n'ont pas encore publié de cours.<br>
-            Revenez plus tard pour consulter les nouveaux cours.
-          </template>
-        </p>
-        <div class="empty-actions">
-          <button v-if="selectedMatiere || selectedEnseignant" @click="resetFilters" class="btn-reload">
-            Effacer les filtres
-          </button>
-          <button @click="loadCourses" class="btn-reload" aria-label="Actualiser la liste des cours">
-            Actualiser
-          </button>
-          <router-link to="/student/dashboard" class="btn-secondary-link" aria-label="Retourner au tableau de bord">
-            Retour au dashboard
-          </router-link>
-        </div>
-      </div>
+      <CoursesEmptyState
+        v-else-if="!loading && !error"
+        :filtered="!!(selectedMatiere || selectedEnseignant)"
+        @reset="resetFilters"
+        @reload="loadCourses"
+      />
+
+      <!-- Pied de liste (#434) : rendu DÈS LE MONTAGE, pour que sa région d'annonce existe. -->
+      <CoursesLoadMore
+        :shown="courses.length"
+        :total="loading || error ? null : totalCount"
+        :has-more="!loading && !error && hasMore"
+        :loading="loadingMore"
+        :error="loadMoreError"
+        @more="onLoadMore"
+      />
     </div>
   </DashboardLayout>
 </template>
@@ -79,12 +73,16 @@
 <script setup>
 /**
  * Mes Cours (élève). Orchestrateur (#G1 ≤300) : la donnée et la logique vivent
- * dans useStudentCourses ; l'UI est composée de CoursesFilters et CourseCard.
+ * dans useStudentCourses ; l'UI est composée de CoursesFilters, CourseCard,
+ * CoursesEmptyState et CoursesLoadMore.
  */
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import CoursesFilters from '@/components/student/CoursesFilters.vue'
 import CourseCard from '@/components/student/CourseCard.vue'
+import CoursesLoadMore from '@/components/student/CoursesLoadMore.vue'
+import CoursesEmptyState from '@/components/student/CoursesEmptyState.vue'
+import { ref, nextTick } from 'vue'
 import { useStudentCourses } from '@/composables/useStudentCourses'
 
 defineOptions({ name: 'StudentCourses' })
@@ -96,11 +94,30 @@ const {
   selectedMatiere,
   selectedEnseignant,
   availableFilters,
+  totalCount,
+  hasMore,
+  loadingMore,
+  loadMoreError,
   loadCourses,
+  loadMore,
   applyFilters,
   resetFilters,
   navigateToCourse,
 } = useStudentCourses()
+
+const gridRef = ref(null)
+
+/**
+ * Le focus reste sur « Charger plus » tant qu'il existe. Quand il disparaît (fin de
+ * liste), le focus passerait à <body> : on le pose sur la première carte ajoutée.
+ */
+async function onLoadMore() {
+  const firstNewIndex = courses.value.length
+  await loadMore()
+  if (hasMore.value) return
+  await nextTick()
+  gridRef.value?.querySelectorAll('.course-card')[firstNewIndex]?.focus()
+}
 </script>
 
 <style scoped>
@@ -131,79 +148,6 @@ const {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1.5rem;
-}
-
-/* Empty state */
-.empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.empty-icon-wrapper {
-  display: inline-flex;
-  padding: 1.5rem;
-  background: var(--bg-secondary);
-  border-radius: 50%;
-  margin-bottom: 1.5rem;
-}
-
-.empty-icon {
-  font-size: 3rem;
-  color: var(--text-secondary);
-}
-
-.empty-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 0.75rem;
-}
-
-.empty-description {
-  color: var(--text-secondary);
-  line-height: 1.6;
-  margin-bottom: 2rem;
-}
-
-.empty-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.btn-reload, .btn-secondary-link {
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-  font-size: 1rem;
-  text-decoration: none;
-  display: inline-block;
-}
-
-.btn-reload {
-  background: linear-gradient(135deg, var(--blue-500) 0%, var(--color-info-strong) 100%);
-  color: white;
-}
-
-.btn-reload:hover {
-  background: linear-gradient(135deg, var(--color-info-strong) 0%, var(--color-info-stronger) 100%);
-  transform: translateY(-2px);
-}
-
-.btn-secondary-link {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-}
-
-.btn-secondary-link:hover {
-  background: var(--bg-tertiary);
-  transform: translateY(-2px);
 }
 
 /* Error State */
