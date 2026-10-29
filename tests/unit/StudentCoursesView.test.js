@@ -23,8 +23,8 @@ function doubleComposable({ chargement = false } = {}) {
     courses,
     loading: ref(chargement),
     error: ref(null),
-    selectedMatiere: ref(''),
-    selectedEnseignant: ref(''),
+    selectedMatiere: ref(null),
+    selectedEnseignant: ref(null),
     availableFilters: ref(chargement ? { matieres: [], enseignants: [] } : P1.filters),
     totalCount: computed(() => meta.value?.total ?? null),
     hasMore: computed(() => !!meta.value && meta.value.current_page < meta.value.last_page),
@@ -33,7 +33,7 @@ function doubleComposable({ chargement = false } = {}) {
     loadCourses: vi.fn(),
     applyFilters: vi.fn(),
     resetFilters: vi.fn(),
-    navigateToCourse: vi.fn(),
+    courseRoute: (course) => ({ name: 'lesson-details', params: { id: course.id } }),
     loadMore: vi.fn(async () => {
       courses.value = [...courses.value, ...P2.data]
       meta.value = { ...P2.meta }
@@ -44,7 +44,7 @@ function doubleComposable({ chargement = false } = {}) {
 const monter = () =>
   mount(StudentCourses, {
     attachTo: document.body,
-    global: { stubs: { DashboardLayout: { template: '<div><slot /></div>' }, ContentLoader: true, 'router-link': true } },
+    global: { stubs: { DashboardLayout: { template: '<div><slot /></div>' }, ContentLoader: true, RouterLink: { props: ['to'], template: '<a href="#" v-bind="$attrs"><slot /></a>' } } },
   })
 
 beforeEach(() => {

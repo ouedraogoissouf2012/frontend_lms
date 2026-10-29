@@ -1,26 +1,41 @@
 /**
- * Test de rendu CourseCard (#G1 ≤300) : titre + libellé de type, émission `select`
- * au clic, et troncature de la description.
+ * Test de rendu CourseCard (#G1 ≤300, #437) : titre + libellé de type, troncature, et
+ * navigation par un VRAI lien.
+ *
+ * #437 : la carte était un `role="button"` contenant un `<button>` (défaut axe
+ * `nested-interactive`, WCAG 4.1.2). Au clavier, Entrée sur le bouton interne
+ * déclenchait la navigation DEUX fois (son `keydown` remonté à la carte, puis le
+ * `click` natif du bouton) — mesuré dans un vrai navigateur. Naviguer est le rôle
+ * d'un lien : la carte en devient un, et « Voir le cours » devient décoratif.
+ *
+ * Données : un cours de la capture RÉELLE `tests/fixtures/api/myCourses.js`.
  */
-import { mount } from '@vue/test-utils'
-import { describe, it, expect } from 'vitest'
+import { mount, flushPromises } from '@vue/test-utils'
+import { createRouter, createMemoryHistory } from 'vue-router'
+import { describe, it, expect, vi } from 'vitest'
 import CourseCard from '@/components/student/CourseCard.vue'
+import { MY_COURSES_CAPTURES } from '../fixtures/api/myCourses'
 
-const baseCourse = {
-  id: 'c1',
-  title: 'Algèbre linéaire',
-  type: 'tp',
-  enseignant: { name: 'Prof X' },
-  matiere: { name: 'Maths' },
+const COURS = MY_COURSES_CAPTURES.klassci_page_1_defaut.body.data[0]
+const ROUTE = { name: 'lesson-details', params: { id: COURS.id } }
+
+function routeur() {
+  return createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      { path: '/', component: { template: '<div />' } },
+      { path: '/student/lessons/:id', name: 'lesson-details', component: { template: '<div />' } },
+    ],
+  })
 }
 
-const mountCard = (course = {}) =>
-  mount(CourseCard, { props: { course: { ...baseCourse, ...course } } })
+const mountCard = (course = {}, to = ROUTE, router = routeur()) =>
+  mount(CourseCard, { props: { course: { ...COURS, ...course }, to }, global: { plugins: [router] } })
 
 describe('CourseCard (#G1)', () => {
   it('rend le titre et le libellé de type', () => {
-    const w = mountCard()
-    expect(w.find('.course-title').text()).toBe('Algèbre linéaire')
+    const w = mountCard({ type: 'tp' })
+    expect(w.find('.course-title').text()).toBe(COURS.title)
     expect(w.find('.course-type-badge').text()).toBe('TP')
   })
 
@@ -29,23 +44,50 @@ describe('CourseCard (#G1)', () => {
     expect(w.find('.course-type-badge').text()).toBe('Cours')
   })
 
-  it('émet select au clic', async () => {
-    const w = mountCard()
-    await w.find('.course-card').trigger('click')
-    expect(w.emitted('select')).toBeTruthy()
-  })
-
-  it('émet select au clavier (enter)', async () => {
-    const w = mountCard()
-    await w.find('.course-card').trigger('keydown.enter')
-    expect(w.emitted('select')).toBeTruthy()
-  })
-
   it('tronque une description trop longue', () => {
-    const longText = 'a'.repeat(120)
-    const w = mountCard({ description: longText })
+    const w = mountCard({ description: 'a'.repeat(120) })
     const rendered = w.find('.course-description').text()
     expect(rendered.endsWith('…')).toBe(true)
     expect(rendered).toHaveLength(81) // 80 + caractère ellipse
+  })
+})
+
+describe('CourseCard — un seul élément interactif, un vrai lien (#437)', () => {
+  it('la carte est un lien vers la leçon', () => {
+    const w = mountCard()
+    const lien = w.find('a.course-card')
+    expect(lien.exists()).toBe(true)
+    expect(lien.attributes('href')).toBe(`/student/lessons/${COURS.id}`)
+    expect(lien.attributes('aria-label')).toBe(`Accéder au cours ${COURS.title}`)
+  })
+
+  it("ne contient aucun bouton ni élément focalisable imbriqué", () => {
+    const w = mountCard()
+    expect(w.findAll('button')).toHaveLength(0)
+    expect(w.findAll('[tabindex]')).toHaveLength(0)
+    expect(w.find('.course-button').attributes('aria-hidden')).toBe('true')
+  })
+
+  it('activation clavier comme le navigateur (keydown Entrée puis click) : UNE seule navigation', async () => {
+    const router = routeur()
+    await router.push('/')
+    const push = vi.spyOn(router, 'push')
+    const w = mountCard({}, ROUTE, router)
+    // Le navigateur envoie keydown Entrée à l'élément focalisé, puis son click.
+    const cible = w.find('.course-button').element.closest('a, button') ?? w.find('.course-card').element
+    cible.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
+    cible.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
+    await flushPromises()
+    // Toutes les voies d'activation comptent : navigation du lien OU émission
+    // `select` (l'ancienne carte émettait deux `select` pour une seule touche).
+    const activations = push.mock.calls.length + (w.emitted('select')?.length ?? 0)
+    expect(activations).toBe(1)
+    expect(router.currentRoute.value.fullPath).toBe(`/student/lessons/${COURS.id}`)
+  })
+
+  it('sans route (cours sans id), la carte n’est pas un lien', () => {
+    const w = mountCard({ id: undefined }, null)
+    expect(w.find('a').exists()).toBe(false)
+    expect(w.find('.course-card').exists()).toBe(true)
   })
 })
