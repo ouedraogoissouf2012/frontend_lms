@@ -166,6 +166,26 @@ describe('#418 : un lien affiché n’est jamais effacé par une autre validatio
     expect(r.demandes.value.map((d) => d.id)).toEqual([2])
   })
 
+  // Condition de l'ARRÊT 3 (course inverse de la remarque 6) : une liste lue AVANT la
+  // validation, et rendue APRÈS, ferait réapparaître la demande validée.
+  it('valider pendant un chargement de la liste EN VOL : refusé, aucun POST', async () => {
+    let resoudreListe
+    api.defaults.adapter = (config) => {
+      appels.push(`${config.method} ${config.url}`)
+      if (config.method === 'get') return new Promise((r) => { resoudreListe = () => r({ status: 200, statusText: '', headers: {}, config, data: { success: true, data: [{ id: 1 }], meta: { current_page: 1, last_page: 1 } } }) })
+      return Promise.resolve({ status: 200, statusText: '', headers: {}, config, data: { success: true, data: { activation_url: SECRET } } })
+    }
+    const r = useAdminSchoolRequests()
+    const chargement = r.load(1)
+    await new Promise((fin) => setTimeout(fin, 0))
+    expect(r.peutValider(1)).toBe(false)
+    expect(await r.valider(1, 'a')).toBe(false)
+    expect(appels.filter((a) => a.startsWith('post'))).toEqual([])
+    resoudreListe()
+    await chargement
+    expect(r.peutValider(1)).toBe(true)
+  })
+
   it('après « transmis » (fermerLien), une nouvelle validation repasse', async () => {
     serveur(valide)
     const r = useAdminSchoolRequests()

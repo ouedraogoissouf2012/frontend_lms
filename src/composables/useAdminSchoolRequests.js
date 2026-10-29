@@ -23,8 +23,12 @@ export function useAdminSchoolRequests() {
     reste.delete(id)
     occupees.value = reste
   }
-  /** Seule règle de validation : la vue s'en sert pour aria-disabled ET pour sa garde. */
-  const peutValider = (id) => !validationEnVol.value && !lienActivation.value && !estOccupee(id)
+  /**
+   * Seule règle de validation : la vue s'en sert pour aria-disabled ET pour sa garde.
+   * `!loading` : une liste lue AVANT la validation et rendue APRÈS ferait réapparaître la
+   * demande validée (course inverse de celle que load() refuse pendant le vol).
+   */
+  const peutValider = (id) => !loading.value && !validationEnVol.value && !lienActivation.value && !estOccupee(id)
   const peutRefuser = (id) => !estOccupee(id)
   /**
    * Ce qui interdit de quitter ou de recharger l'écran SANS confirmation : un lien affiché,
