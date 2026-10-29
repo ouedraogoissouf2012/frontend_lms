@@ -3,10 +3,12 @@
     #437 : la carte est un VRAI lien (naviguer = lien), seul élément interactif.
     L'ancien `role="button"` contenant un `<button>` (axe nested-interactive)
     déclenchait deux navigations pour une seule touche Entrée.
+    Sans lien (cours sans id), la carte reste focalisable PAR PROGRAMME (tabindex -1) :
+    la fin de « Charger plus » y pose le focus, sans ajouter d'arrêt de tabulation.
   -->
   <component
     :is="to ? RouterLink : 'div'"
-    v-bind="to ? { to, 'aria-label': `Accéder au cours ${course.title}` } : {}"
+    v-bind="to ? { to, 'aria-label': `Accéder au cours ${course.title}` } : { tabindex: -1 }"
     class="course-card"
   >
     <!-- Badge type -->

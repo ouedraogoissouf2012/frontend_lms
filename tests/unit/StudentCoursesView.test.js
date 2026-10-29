@@ -79,4 +79,21 @@ describe('StudentCourses (#434)', () => {
     expect(document.activeElement).toBe(cartes[15].element)
     w.unmount()
   })
+
+  it("une carte SANS lien (cours sans id) reçoit aussi le focus en fin de liste (#437 × #434)", async () => {
+    etat = doubleComposable()
+    const premierAjoute = P2.data[0].id
+    etat.courseRoute = (course) => (course.id === premierAjoute ? null : { name: 'lesson-details', params: { id: course.id } })
+    const w = monter()
+    const btn = w.find('button.load-more-btn')
+    btn.element.focus()
+    await btn.trigger('click')
+    await flushPromises()
+    const cible = w.findAll('.course-card')[15]
+    expect(cible.element.tagName).toBe('DIV')
+    expect(document.activeElement).toBe(cible.element)
+    // focusable par programme seulement : pas d'arrêt de tabulation sur un élément inerte
+    expect(cible.attributes('tabindex')).toBe('-1')
+    w.unmount()
+  })
 })
