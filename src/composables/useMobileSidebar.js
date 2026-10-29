@@ -2,6 +2,8 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { auth } from '@/services/api'
 import { isStudent, isTeacher, isSupradmin, hasRole, ROLES } from '@/constants/roles'
+import { getActivePinia } from 'pinia'
+import { useAuthStore } from '@/stores/auth'
 
 /**
  * Couche logique du drawer mobile (#H12 ≤300) : détection mobile (resize, ferme
@@ -44,6 +46,11 @@ export function useMobileSidebar(props, emit) {
     window.removeEventListener('resize', handleResize)
   })
 
+  // #391 : capacité LUE dans le store (même source que la garde de route), jamais
+  // calculée à partir d'un mode. Sans Pinia actif : refusée (fail-secure).
+  const peutInscrire = () => !!getActivePinia() && useAuthStore().peutInscrireLocalement === true
+  const CODES_INSCRIPTION = { path: '/admin/enrolment-codes', icon: 'fa-key', label: "Codes d'inscription", badge: null }
+
   // Items de navigation selon le rôle
   const secondaryNavItems = computed(() => {
     const u = user.value
@@ -53,7 +60,9 @@ export function useMobileSidebar(props, emit) {
 
     if (isStudent(u)) {
       return [
-        ...commonItems
+        ...commonItems,
+        // #391 : seulement si l'établissement tient sa propre liste (capacité serveur).
+        ...(peutInscrire() ? [{ path: '/student/rejoindre', icon: 'fa-sign-in', label: 'Rejoindre une classe', badge: null }] : [])
         // À ajouter: Mes Notes, Ma Progression, etc.
       ]
     } else if (isTeacher(u)) {
@@ -72,6 +81,7 @@ export function useMobileSidebar(props, emit) {
         { path: '/forum', icon: 'fa-comments', label: 'Forum', badge: null },
         { path: '/attendance/seances', icon: 'fa-history', label: 'Historique', badge: null },
         { path: '/admin/training-sessions', icon: 'fa-flag', label: 'Sessions', badge: null },
+        ...(peutInscrire() ? [CODES_INSCRIPTION] : []),
         { path: '/admin/settings', icon: 'fa-cog', label: 'Paramètres', badge: null }
       ]
     }
@@ -98,6 +108,7 @@ export function useMobileSidebar(props, emit) {
         { path: '/admin/matieres', icon: 'fa-book', label: 'Matières', badge: null },
         { path: '/admin/enseignants', icon: 'fa-user', label: 'Enseignants', badge: null },
         { path: '/admin/training-sessions', icon: 'fa-flag', label: 'Sessions', badge: null },
+        ...(peutInscrire() ? [CODES_INSCRIPTION] : []),
       ]
     }
 

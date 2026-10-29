@@ -96,5 +96,18 @@ export const studentRoutes = [
     redirect: _to => {
       return { path: '/student/schedule', query: { filter: 'all' } }
     }
+  },
+  // Rejoindre une classe par son code (#391). Même garde de capacité que l'écran du
+  // personnel : sans liste locale, aucun code n'existe à saisir.
+  {
+    path: '/student/rejoindre',
+    name: 'StudentJoinClass',
+    component: () => import('@/views/student/StudentJoinClass.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['etudiant'],
+      capacite: 'peutInscrireLocalement',
+      title: 'Rejoindre une classe'
+    }
   }
 ]
