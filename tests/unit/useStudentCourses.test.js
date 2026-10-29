@@ -1,7 +1,7 @@
 /**
  * Test du composable useStudentCourses (#G1 ≤300) : chargement des cours au
- * montage, filtres disponibles, reset, navigation, et messages d'erreur (#436).
- * Services KLASSCI + toast + vue-router mockés.
+ * montage, filtres disponibles, reset, route des cours (#437), et messages d'erreur (#436).
+ * Service KLASSCI mocké.
  *
  * Les réponses viennent de la capture RÉELLE `tests/fixtures/api/myCourses.js`
  * (ids entiers, `success`, `meta`) — plus de charge écrite de mémoire (#436).
@@ -14,17 +14,9 @@ import { normalizeError } from '@/services/errorHandler'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 const getMyCourses = vi.fn()
-const push = vi.fn()
-const toastError = vi.fn()
 
 vi.mock('@/services/klassci', () => ({
   klassciService: { getMyCourses: (...args) => getMyCourses(...args) },
-}))
-vi.mock('@/composables/useToast', () => ({
-  toast: { error: (...args) => toastError(...args) },
-}))
-vi.mock('vue-router', () => ({
-  useRouter: () => ({ push }),
 }))
 
 import { useStudentCourses } from '@/composables/useStudentCourses'
@@ -53,8 +45,6 @@ async function setup() {
 
 beforeEach(() => {
   getMyCourses.mockReset()
-  push.mockReset()
-  toastError.mockReset()
   getMyCourses.mockResolvedValue(PAGE_1)
 })
 
@@ -88,22 +78,22 @@ describe('useStudentCourses (#G1)', () => {
     c.selectedEnseignant.value = PAGE_1.filters.enseignants[0].id
     c.resetFilters()
     await flushPromises()
-    expect(c.selectedMatiere.value).toBe('')
-    expect(c.selectedEnseignant.value).toBe('')
+    // #437 : « tous » = null, une seule forme de valeur (plus de mélange '' / nombre).
+    expect(c.selectedMatiere.value).toBe(null)
+    expect(c.selectedEnseignant.value).toBe(null)
     expect(getMyCourses).toHaveBeenLastCalledWith({})
   })
 
-  it('navigateToCourse pousse la route lesson-details', async () => {
+  // #437 : la carte est un lien ; le composable lui fournit sa route (OCP : la carte
+  // ne connaît ni le nom de la route ni la forme du cours).
+  it('courseRoute rend la route lesson-details du cours', async () => {
     const c = await setup()
-    c.navigateToCourse(PAGE_1.data[0])
-    expect(push).toHaveBeenCalledWith({ name: 'lesson-details', params: { id: PAGE_1.data[0].id } })
+    expect(c.courseRoute(PAGE_1.data[0])).toEqual({ name: 'lesson-details', params: { id: PAGE_1.data[0].id } })
   })
 
-  it('navigateToCourse sans id appelle toast.error', async () => {
+  it('courseRoute rend null pour un cours sans id (la carte ne sera pas un lien)', async () => {
     const c = await setup()
-    c.navigateToCourse({})
-    expect(push).not.toHaveBeenCalled()
-    expect(toastError).toHaveBeenCalledWith('Impossible de naviguer vers ce cours')
+    expect(c.courseRoute({})).toBe(null)
   })
 })
 

@@ -17,8 +17,6 @@ const getMyCourses = vi.fn()
 vi.mock('@/services/klassci', () => ({
   klassciService: { getMyCourses: (...args) => getMyCourses(...args) },
 }))
-vi.mock('@/composables/useToast', () => ({ toast: { error: vi.fn() } }))
-vi.mock('vue-router', () => ({ useRouter: () => ({ push: vi.fn() }) }))
 
 import { useStudentCourses } from '@/composables/useStudentCourses'
 

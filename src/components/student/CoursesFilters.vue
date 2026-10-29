@@ -5,7 +5,7 @@
       <div class="filter-group" v-if="availableFilters.matieres.length > 0">
         <label class="filter-label">Matière</label>
         <select v-model="selectedMatiere" @change="$emit('apply')" class="filter-select">
-          <option value="">Toutes les matières</option>
+          <option :value="null">Toutes les matières</option>
           <option v-for="matiere in availableFilters.matieres" :key="matiere.id" :value="matiere.id">
             {{ matiere.name }}
           </option>
@@ -16,7 +16,7 @@
       <div class="filter-group" v-if="availableFilters.enseignants.length > 0">
         <label class="filter-label">Enseignant</label>
         <select v-model="selectedEnseignant" @change="$emit('apply')" class="filter-select">
-          <option value="">Tous les enseignants</option>
+          <option :value="null">Tous les enseignants</option>
           <option v-for="enseignant in availableFilters.enseignants" :key="enseignant.id" :value="enseignant.id">
             {{ enseignant.name }}
           </option>
@@ -36,9 +36,13 @@
  * Barre de filtres de StudentCourses (#G1 ≤300). Matière + enseignant en v-model
  * (defineModel) ; émet `apply` au changement de select et `reset` au clic. Aucun
  * appel API : la liste des options vient de la prop availableFilters.
+ *
+ * #437 : les ids du serveur sont des ENTIERS. Le modèle est un nombre, ou `null`
+ * pour « tous » : une seule forme de valeur, au lieu d'un mélange '' / nombre que
+ * Vue signalait à chaque sélection (`type: String`).
  */
-const selectedMatiere = defineModel('selectedMatiere', { type: String, default: '' })
-const selectedEnseignant = defineModel('selectedEnseignant', { type: String, default: '' })
+const selectedMatiere = defineModel('selectedMatiere', { type: Number, default: null })
+const selectedEnseignant = defineModel('selectedEnseignant', { type: Number, default: null })
 
 defineProps({
   availableFilters: { type: Object, default: () => ({ matieres: [], enseignants: [] }) },

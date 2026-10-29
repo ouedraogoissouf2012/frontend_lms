@@ -1,12 +1,20 @@
 <template>
-  <div
+  <!--
+    #437 : la carte est un VRAI lien (naviguer = lien), seul élément interactif.
+    L'ancien `role="button"` contenant un `<button>` (axe nested-interactive)
+    déclenchait deux navigations pour une seule touche Entrée.
+    Sans lien (cours sans id), la carte reste focalisable PAR PROGRAMME (tabindex -1) :
+    la fin de « Charger plus » y pose le focus, sans ajouter d'arrêt de tabulation. Elle
+    ne promet alors aucun clic : ni « Voir le cours », ni curseur ni survol interactifs.
+    Le nom du lien CONTIENT le texte visible « Voir le cours » (WCAG 2.5.3).
+  -->
+  <component
+    :is="to ? RouterLink : 'div'"
+    v-bind="to
+      ? { to, 'aria-label': `Voir le cours ${course.title}` }
+      : { tabindex: -1, role: 'group', 'aria-label': course.title }"
     class="course-card"
-    @click="$emit('select')"
-    @keydown.enter="$emit('select')"
-    @keydown.space.prevent="$emit('select')"
-    role="button"
-    tabindex="0"
-    :aria-label="`Accéder au cours ${course.title}`"
+    :class="{ 'is-inerte': !to }"
   >
     <!-- Badge type -->
     <div class="course-type-badge" :class="course.type">
@@ -44,26 +52,28 @@
       <span class="progress-text">{{ course.progress.percentage }}% complété</span>
     </div>
 
-    <button class="course-button" aria-label="Voir les détails du cours">
+    <!-- Décoratif : l'action est portée par le lien de la carte entière. -->
+    <span v-if="to" class="course-button" aria-hidden="true">
       <span>Voir le cours</span>
-      <span class="button-arrow" aria-hidden="true">→</span>
-    </button>
-  </div>
+      <span class="button-arrow">→</span>
+    </span>
+  </component>
 </template>
 
 <script setup>
 /**
  * Carte de cours de StudentCourses (#G1 ≤300). Présentation pure : reçoit `course`
- * et émet `select` au clic / clavier ; libellé de type et troncature calculés
- * localement (truncate de @/utils/formatters).
+ * et sa route `to`, déjà calculée par le composable (la carte ne connaît ni le nom
+ * de la route ni la forme du cours). `to` null : carte non cliquable. Libellé de type
+ * et troncature calculés localement (truncate de @/utils/formatters).
  */
+import { RouterLink } from 'vue-router'
 import { truncate } from '@/utils/formatters'
 
 defineProps({
   course: { type: Object, required: true },
+  to: { type: Object, default: null },
 })
-
-defineEmits(['select'])
 
 function getTypeLabel(type) {
   const types = {
@@ -83,18 +93,28 @@ function truncateText(text, maxLength) {
 
 <style scoped>
 .course-card {
+  color: inherit;
+  text-decoration: none;
   background: var(--card-bg);
   border-radius: 0.75rem;
   box-shadow: var(--card-shadow);
   padding: 1.5rem;
-  cursor: pointer;
   transition: all 0.2s;
   position: relative;
   display: flex;
   flex-direction: column;
 }
 
-.course-card:hover {
+.course-card:focus-visible {
+  outline: 2px solid var(--blue-500);
+  outline-offset: 2px;
+}
+
+a.course-card {
+  cursor: pointer;
+}
+
+a.course-card:hover {
   box-shadow: var(--card-hover-shadow);
   transform: translateY(-4px);
 }

@@ -23,8 +23,8 @@ function doubleComposable({ chargement = false } = {}) {
     courses,
     loading: ref(chargement),
     error: ref(null),
-    selectedMatiere: ref(''),
-    selectedEnseignant: ref(''),
+    selectedMatiere: ref(null),
+    selectedEnseignant: ref(null),
     availableFilters: ref(chargement ? { matieres: [], enseignants: [] } : P1.filters),
     totalCount: computed(() => meta.value?.total ?? null),
     hasMore: computed(() => !!meta.value && meta.value.current_page < meta.value.last_page),
@@ -33,7 +33,7 @@ function doubleComposable({ chargement = false } = {}) {
     loadCourses: vi.fn(),
     applyFilters: vi.fn(),
     resetFilters: vi.fn(),
-    navigateToCourse: vi.fn(),
+    courseRoute: (course) => ({ name: 'lesson-details', params: { id: course.id } }),
     loadMore: vi.fn(async () => {
       courses.value = [...courses.value, ...P2.data]
       meta.value = { ...P2.meta }
@@ -44,7 +44,7 @@ function doubleComposable({ chargement = false } = {}) {
 const monter = () =>
   mount(StudentCourses, {
     attachTo: document.body,
-    global: { stubs: { DashboardLayout: { template: '<div><slot /></div>' }, ContentLoader: true, 'router-link': true } },
+    global: { stubs: { DashboardLayout: { template: '<div><slot /></div>' }, ContentLoader: true, RouterLink: { props: ['to'], template: '<a href="#" v-bind="$attrs"><slot /></a>' } } },
   })
 
 beforeEach(() => {
@@ -77,6 +77,23 @@ describe('StudentCourses (#434)', () => {
     const cartes = w.findAll('.course-card')
     expect(cartes).toHaveLength(18)
     expect(document.activeElement).toBe(cartes[15].element)
+    w.unmount()
+  })
+
+  it("une carte SANS lien (cours sans id) reçoit aussi le focus en fin de liste (#437 × #434)", async () => {
+    etat = doubleComposable()
+    const premierAjoute = P2.data[0].id
+    etat.courseRoute = (course) => (course.id === premierAjoute ? null : { name: 'lesson-details', params: { id: course.id } })
+    const w = monter()
+    const btn = w.find('button.load-more-btn')
+    btn.element.focus()
+    await btn.trigger('click')
+    await flushPromises()
+    const cible = w.findAll('.course-card')[15]
+    expect(cible.element.tagName).toBe('DIV')
+    expect(document.activeElement).toBe(cible.element)
+    // focusable par programme seulement : pas d'arrêt de tabulation sur un élément inerte
+    expect(cible.attributes('tabindex')).toBe('-1')
     w.unmount()
   })
 })

@@ -45,7 +45,7 @@
           v-for="course in courses"
           :key="course.id"
           :course="course"
-          @select="navigateToCourse(course)"
+          :to="courseRoute(course)"
         />
       </div>
 
@@ -102,7 +102,7 @@ const {
   loadMore,
   applyFilters,
   resetFilters,
-  navigateToCourse,
+  courseRoute,
 } = useStudentCourses()
 
 const gridRef = ref(null)

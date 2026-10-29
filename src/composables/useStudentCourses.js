@@ -1,14 +1,12 @@
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { klassciService } from '@/services/klassci'
-import { toast } from '@/composables/useToast'
 import { extractList } from '@/utils/apiList'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 /**
  * Couche données de StudentCourses (#G1 ≤300) : charge les cours de l'élève
  * (`GET /lessons/my-courses`, endpoint LOCAL malgré le nom du service), gère les
- * filtres matière/enseignant, la pagination et la navigation vers un cours.
+ * filtres matière/enseignant, la pagination, et la route de chaque cours.
  * La vue ne fait plus que câbler état + composants présentationnels.
  *
  * ## Pagination (#434)
@@ -26,16 +24,15 @@ import { ERROR_MESSAGES } from '@/constants/errorMessages'
  * même.
  */
 export function useStudentCourses() {
-  const router = useRouter()
-
   const courses = ref([])
   const meta = ref(null)
   const loading = ref(false)
   const loadingMore = ref(false)
   const error = ref(null)
   const loadMoreError = ref(null)
-  const selectedMatiere = ref('')
-  const selectedEnseignant = ref('')
+  // null = « tous » (#437) : une seule forme de valeur, les ids étant des entiers.
+  const selectedMatiere = ref(null)
+  const selectedEnseignant = ref(null)
   const availableFilters = ref({
     matieres: [],
     enseignants: [],
@@ -116,22 +113,18 @@ export function useStudentCourses() {
   }
 
   function resetFilters() {
-    selectedMatiere.value = ''
-    selectedEnseignant.value = ''
+    selectedMatiere.value = null
+    selectedEnseignant.value = null
     loadCourses()
   }
 
-  function navigateToCourse(course) {
-    if (course.id) {
-      console.log('[NAV] Navigation vers cours:', course.id)
-      router.push({
-        name: 'lesson-details',
-        params: { id: course.id },
-      })
-    } else {
-      console.error('[ERREUR] ID cours non trouvé:', course)
-      toast.error('Impossible de naviguer vers ce cours')
-    }
+  /**
+   * Route d'un cours (#437) : la carte est un lien, elle reçoit sa destination
+   * déjà résolue. `null` pour un cours sans id (défensif : le serveur en émet
+   * toujours un) — la carte n'est alors pas cliquable.
+   */
+  function courseRoute(course) {
+    return course?.id ? { name: 'lesson-details', params: { id: course.id } } : null
   }
 
   onMounted(() => loadCourses())
@@ -151,6 +144,6 @@ export function useStudentCourses() {
     loadMore,
     applyFilters,
     resetFilters,
-    navigateToCourse,
+    courseRoute,
   }
 }
