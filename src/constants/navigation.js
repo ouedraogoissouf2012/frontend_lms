@@ -38,6 +38,8 @@ import { ROLES } from '@/constants/roles'
  * @property {string} [to]     Route cible (absente pour un simple groupe de `children`).
  * @property {string[]} roles  Rôles CANONIQUES (cf. `ROLES`) auxquels l'item est visible.
  * @property {NavItem[]} [children] Sous-items optionnels (filtrés récursivement par rôle).
+ * @property {string} [capacite] Capacité serveur exigée en plus du rôle (#391), lue
+ *           dans le store comme `meta.capacite` de la route (ex. 'peutInscrireLocalement').
  */
 
 const { ETUDIANT, ENSEIGNANT, COORDINATEUR, ADMIN, SUPRADMIN } = ROLES
@@ -50,6 +52,8 @@ export const NAV_SECTIONS = Object.freeze([
   // --- Bloc Étudiant (isStudentRole) ---
   { icon: 'fa-home', label: 'Dashboard', to: '/student/dashboard', roles: [ETUDIANT] },
   { icon: 'fa-book', label: 'Mes Cours', to: '/student/courses', roles: [ETUDIANT] },
+  // #391 : seulement si l'établissement tient sa propre liste (capacité serveur).
+  { icon: 'fa-sign-in', label: 'Rejoindre une classe', to: '/student/rejoindre', roles: [ETUDIANT], capacite: 'peutInscrireLocalement' },
   { icon: 'fa-clock-o', label: 'Emploi du Temps', to: '/student/schedule', roles: [ETUDIANT] },
   { icon: 'fa-edit', label: 'Évaluations', to: '/student/evaluations-list', roles: [ETUDIANT] },
   { icon: 'fa-star', label: 'Mes Notes', to: '/student/grades', roles: [ETUDIANT] },
@@ -81,6 +85,8 @@ export const NAV_SECTIONS = Object.freeze([
   { icon: 'fa-trophy', label: 'Résultats Évaluations', to: '/admin/evaluations/results', roles: [ADMIN] },
   { icon: 'fa-line-chart', label: 'Statistiques', to: '/admin/stats', roles: [ADMIN] },
   { icon: 'fa-flag', label: 'Sessions', to: '/admin/training-sessions', roles: [ADMIN, COORDINATEUR] },
+  // #391 : seulement si l'établissement tient sa propre liste (capacité serveur).
+  { icon: 'fa-key', label: "Codes d'inscription", to: '/admin/enrolment-codes', roles: [ADMIN, COORDINATEUR], capacite: 'peutInscrireLocalement' },
 
   // --- Queue partagée enseignant/admin ---
   { icon: 'fa-comments', label: 'Forum', to: '/forum', roles: [ENSEIGNANT, COORDINATEUR, ADMIN] },

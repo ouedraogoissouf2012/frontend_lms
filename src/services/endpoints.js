@@ -153,6 +153,13 @@ export const endpoints = {
   activation: '/activation',
   programs: '/programs',
   trainingSessions: '/training-sessions',
+  // Code d'inscription d'une classe LOCALE (#391, ADR-803-03). Chemins RÉELS de la
+  // spec : SANS préfixe /lms. `/classes` est la collection des classes locales (#905).
+  enrolment: {
+    classes: '/classes',
+    code: (classeId) => `/classes/${classeId}/code-inscription`,
+    rejoindre: '/me/inscriptions',
+  },
   // Quatre opérations NOMMÉES d'une période (#391, ADR-845-01), chemins fixes pour
   // que la garde de contrat vérifie chacun. Aucune route n'existe pour `purgee`.
   trainingSessionTransitions: {

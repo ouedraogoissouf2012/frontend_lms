@@ -164,5 +164,18 @@ export const adminRoutes = [
       roles: ['superAdmin', 'admin', 'coordinateur'],
       title: 'Sessions de formation'
     }
+  },
+  {
+    path: '/admin/enrolment-codes',
+    name: 'AdminEnrolmentCodes',
+    component: () => import('@/views/admin/AdminEnrolmentCodes.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['superAdmin', 'admin', 'coordinateur'],
+      // #391 : le rôle dit QUI ; la capacité dit SI l'établissement tient sa propre
+      // liste. Le serveur répond 403 sinon ; la garde évite l'écran mort.
+      capacite: 'peutInscrireLocalement',
+      title: "Codes d'inscription"
+    }
   }
 ]

@@ -32,5 +32,20 @@ export const ERROR_MESSAGES = Object.freeze({
   // KLASSCI restaient muets après expiration du token ou indisponibilité).
   klassciExpired: 'Votre session KLASSCI a expiré. Reconnectez-vous à KLASSCI pour actualiser ces données.',
   klassciUnavailable: 'Service KLASSCI temporairement indisponible. Veuillez réessayer dans quelques instants.',
+  // #391, ADR-906-01 : motifs de refus des portes d'inscription par code.
+  // 409 : l'adhésion existe mais n'est pas active (élève suspendu) : une décision de
+  // l'établissement (StudentEnrolmentService), pas un code périmé. Régénérer le code
+  // ne la lèverait pas et casserait celui de tous les autres élèves.
+  enrolmentNotActive: "Votre inscription dans cette classe n'est pas active. Adressez-vous à votre établissement.",
+  noInstitution: "Votre compte n'est rattaché à aucun établissement. Contactez votre administrateur.",
+  accountQuotaExceeded: "Trop d'essais en peu de temps. Réessayez dans une minute.",
+  accountDailyCapReached: "Vous avez atteint la limite d'essais pour aujourd'hui. Réessayez demain.",
+  // 429 : plafond quotidien de codes ERRONÉS pour tout l'établissement (anti-devinette,
+  // RejoindreParCodeService), pas un plafond d'inscriptions.
+  institutionCapReached: "Trop de codes erronés ont été saisis aujourd'hui dans votre établissement. Réessayez demain.",
+  // 404 de la porte « rejoindre » : le message générique (ressource introuvable)
+  // n'aide pas l'élève ; c'est le CODE qui ne correspond à rien.
+  codeInconnu: 'Ce code ne correspond à aucune classe. Vérifiez-le auprès de votre formateur.',
+  codeVide: 'Saisissez le code que votre formateur vous a donné.',
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })

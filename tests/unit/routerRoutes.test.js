@@ -41,7 +41,7 @@ const EXPECTED_PATHS = [
   '/admin/dashboard', '/admin/users', '/admin/hub', '/admin/classes', '/admin/matieres',
   '/admin/enseignants', '/admin/seances', '/admin/visioconferences', '/admin/stats',
   '/admin/evaluations/results', '/admin/evaluations/:id/details', '/admin/profile',
-  '/admin/settings', '/admin/institutions', '/admin/school-requests', '/admin/training-sessions',
+  '/admin/settings', '/admin/institutions', '/admin/school-requests', '/admin/training-sessions', '/admin/enrolment-codes',
   // teacher
   '/teacher', '/teacher/dashboard', '/teacher/seances', '/teacher/schedule', '/teacher/hub',
   '/teacher/import', '/teacher/classes', '/teacher/stats', '/teacher/profile', '/teacher/visio-list',
@@ -49,7 +49,7 @@ const EXPECTED_PATHS = [
   // student
   '/student', '/student/dashboard', '/student/courses', '/student/lessons/:id',
   '/student/evaluations-list', '/student/grades', '/student/visio-list', '/student/settings',
-  '/student/schedule', '/student/seances',
+  '/student/schedule', '/student/seances', '/student/rejoindre',
   // shared
   '/dashboard', '/lessons/:id',
   '/teacher/matieres', '/teacher/lessons', '/teacher/lessons/:id/chapters',
@@ -89,6 +89,12 @@ describe('router routes (#H12) — parité de l\'assemblage', () => {
     expect(byPath['/student/lessons/:id'].meta.hideLayout).toBe(true)
 
     expect(byPath['/coordinateur/seances'].name).toBe('seance-management')
+
+    // #391 : le rôle dit QUI, la capacité publiée dit SI l'établissement tient sa liste.
+    expect(byPath['/admin/enrolment-codes'].meta.roles).toEqual(['superAdmin', 'admin', 'coordinateur'])
+    expect(byPath['/admin/enrolment-codes'].meta.capacite).toBe('peutInscrireLocalement')
+    expect(byPath['/student/rejoindre'].meta.roles).toEqual(['etudiant'])
+    expect(byPath['/student/rejoindre'].meta.capacite).toBe('peutInscrireLocalement')
   })
 
   it('conserve les routes lazy (component = factory) et les redirects', () => {

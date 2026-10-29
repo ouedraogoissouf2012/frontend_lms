@@ -17,6 +17,8 @@ import { computed } from 'vue'
 import { auth } from '@/services/api'
 import { hasRole } from '@/constants/roles'
 import { NAV_SECTIONS } from '@/constants/navigation'
+import { getActivePinia } from 'pinia'
+import { useAuthStore } from '@/stores/auth'
 
 /**
  * Filtre récursivement une liste d'items de navigation selon le rôle de l'utilisateur.
@@ -26,17 +28,23 @@ import { NAV_SECTIONS } from '@/constants/navigation'
  * enfant défini). Les `children` sont remplacés par leur version filtrée.
  *
  * @param {ReadonlyArray<import('@/constants/navigation').NavItem>} sections
+ * Un item portant `capacite` (#391) n'est conservé que si cette capacité, accordée par
+ * le serveur, vaut `true` dans `capacites` — même principe que `meta.capacite` de la
+ * garde de route (guards.js). Absente ou fausse : l'item disparaît (fail-secure).
+ *
  * @param {object|string|null} userOrRole - Objet user, chaîne de rôle, ou null.
+ * @param {Record<string, boolean>} [capacites] - Capacités accordées (nom → booléen).
  * @returns {Array<import('@/constants/navigation').NavItem>} Nouveaux items filtrés.
  */
-export function filterSectionsByRole(sections, userOrRole) {
+export function filterSectionsByRole(sections, userOrRole, capacites = {}) {
   if (!Array.isArray(sections)) return []
 
   return sections.reduce((acc, item) => {
     if (!hasRole(userOrRole, item.roles)) return acc
+    if (item.capacite && capacites?.[item.capacite] !== true) return acc
 
     if (Array.isArray(item.children)) {
-      const children = filterSectionsByRole(item.children, userOrRole)
+      const children = filterSectionsByRole(item.children, userOrRole, capacites)
       // Un groupe sans aucun enfant visible n'est pas affiché.
       if (children.length === 0) return acc
       acc.push({ ...item, children })
@@ -54,6 +62,8 @@ export function filterSectionsByRole(sections, userOrRole) {
  * @param {object|string|null} [options.user] - Utilisateur injecté (sinon `auth.getUser()`).
  * @param {ReadonlyArray<import('@/constants/navigation').NavItem>} [options.sections]
  *        Config injectée (sinon `NAV_SECTIONS`) — utile pour les tests.
+ * @param {Record<string, boolean>} [options.capacites] Capacités injectées (sinon
+ *        lues dans le store, par leur nom, comme le fait la garde de route).
  * @returns {{ sections: import('vue').ComputedRef<Array<import('@/constants/navigation').NavItem>> }}
  */
 export function useNavigation(options = {}) {
@@ -61,8 +71,35 @@ export function useNavigation(options = {}) {
 
   const sections = computed(() => {
     const user = 'user' in options ? options.user : auth.getUser()
-    return filterSectionsByRole(source, user)
+    const capacites = options.capacites ?? capacitesDuStore(source)
+    return filterSectionsByRole(source, user, capacites)
   })
 
   return { sections }
+}
+
+/** Noms de capacités employés par le menu (récursif). */
+function nomsDeCapacites(sections, noms = new Set()) {
+  for (const item of sections ?? []) {
+    if (item.capacite) noms.add(item.capacite)
+    if (Array.isArray(item.children)) nomsDeCapacites(item.children, noms)
+  }
+  return noms
+}
+
+/**
+ * Une capacité accordée par le serveur, LUE dans le store (jamais calculée à partir d'un
+ * mode). Sans Pinia actif (rendu isolé) : refusée, fail-secure. Source UNIQUE pour le
+ * menu et le tiroir mobile (useMobileSidebar).
+ * @param {string} nom
+ * @returns {boolean}
+ */
+export function capaciteAccordee(nom) {
+  return !!getActivePinia() && useAuthStore()[nom] === true
+}
+
+/** Valeur de chaque capacité du menu ; l'entrée gardée reste masquée si elle est refusée. */
+function capacitesDuStore(sections) {
+  const noms = nomsDeCapacites(sections)
+  return Object.fromEntries([...noms].map((nom) => [nom, capaciteAccordee(nom)]))
 }
