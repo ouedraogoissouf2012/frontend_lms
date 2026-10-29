@@ -40,6 +40,31 @@ describe('useGardeLienAffiche (#449)', () => {
     w.unmount()
   })
 
+  // Retouche 2 (D17 à l'envers) : le motif lu AVANT l'attente ne vaut plus APRÈS. La boîte
+  // « validation en cours » est ouverte, le lien arrive, « Quitter quand même » ne doit pas
+  // perdre ce lien sur la foi d'un texte qui décrivait un autre état.
+  it('le motif change pendant la confirmation : on redemande avec le NOUVEAU motif', async () => {
+    const motif = ref('validation')
+    const reponses = [true, false]
+    const confirmer = vi.fn(async (m) => {
+      if (m === 'validation') motif.value = 'lien'
+      return reponses.shift()
+    })
+    const Ecran = defineComponent({ setup() { useGardeLienAffiche(motif, confirmer); return () => h('p', 'écran') } })
+    const routeur = createRouter({
+      history: createMemoryHistory(),
+      routes: [{ path: '/demandes', component: Ecran }, { path: '/ailleurs', component: { render: () => h('p', 'ailleurs') } }],
+    })
+    await routeur.push('/demandes')
+    const w = mount({ template: '<router-view />' }, { global: { plugins: [routeur] }, attachTo: document.body })
+    await flushPromises()
+    await routeur.push('/ailleurs')
+    await flushPromises()
+    expect(confirmer.mock.calls.map((c) => c[0])).toEqual(['validation', 'lien'])
+    expect(routeur.currentRoute.value.path).toBe('/demandes')
+    w.unmount()
+  })
+
   it('une confirmation laisse partir', async () => {
     const { w, router } = await monter('validation', true)
     await router.push('/ailleurs')
