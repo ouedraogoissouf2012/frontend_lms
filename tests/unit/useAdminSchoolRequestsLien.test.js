@@ -101,6 +101,71 @@ describe('#418 : un lien affiché n’est jamais effacé par une autre validatio
     expect(appels.filter((a) => a.includes('/1/validate'))).toHaveLength(1)
   })
 
+  it('motifRetenue : rien au départ, « validation » pendant le vol, « lien » une fois le lien affiché', async () => {
+    let resoudre
+    api.defaults.adapter = (config) => new Promise((r) => { resoudre = () => r({ status: 200, statusText: '', headers: {}, config, data: { success: true, data: { activation_url: SECRET } } }) })
+    const r = useAdminSchoolRequests()
+    expect(r.motifRetenue.value).toBeNull()
+    const enVol = r.valider(1, 'a')
+    // Laisser la chaîne axios (intercepteurs) atteindre l'adaptateur avant de répondre.
+    await new Promise((fin) => setTimeout(fin, 0))
+    expect(r.motifRetenue.value).toBe('validation')
+    resoudre()
+    await enVol
+    expect(r.motifRetenue.value).toBe('lien')
+    r.fermerLien()
+    expect(r.motifRetenue.value).toBeNull()
+  })
+
+  // À corriger 2 (revue du delta) : peutRefuser n'était couvert par aucun test.
+  it('refuser A pendant que valider A est en vol : aucun POST de refus', async () => {
+    let resoudreA
+    api.defaults.adapter = (config) => {
+      appels.push(`${config.method} ${config.url}`)
+      return new Promise((r) => { resoudreA = () => r({ status: 200, statusText: '', headers: {}, config, data: { success: true, data: { activation_url: SECRET } } }) })
+    }
+    const r = useAdminSchoolRequests()
+    const enVolA = r.valider(1, 'a')
+    await Promise.resolve()
+    expect(r.peutRefuser(1)).toBe(false)
+    expect(await r.refuser(1, 'motif suffisamment long')).toBe(false)
+    expect(appels.filter((a) => a.includes('/refuse'))).toEqual([])
+    resoudreA()
+    await enVolA
+  })
+
+  // À corriger 3 : après un ÉCHEC, la demande et la page sont libérées.
+  it.each([500, 409])('validation rejetée (%i) : la demande est libérée, et une nouvelle validation envoie un POST', async (status) => {
+    let rang = 0
+    serveur(() => (rang++ === 0 ? [status, { success: false, message: 'refus' }] : valide()))
+    const r = useAdminSchoolRequests()
+    expect(await r.valider(1, 'a')).toBe(false)
+    expect(r.peutValider(1)).toBe(true)
+    expect(r.motifRetenue.value).toBeNull()
+    expect(await r.valider(1, 'a')).toBe(true)
+    expect(appels.filter((a) => a.includes('/1/validate'))).toHaveLength(2)
+  })
+
+  // Remarque 6 : une liste relue pendant la validation de A la faisait réapparaître.
+  it('« Actualiser » pendant une validation en vol est refusé : A ne réapparaît pas', async () => {
+    let resoudreA
+    api.defaults.adapter = (config) => {
+      appels.push(`${config.method} ${config.url}`)
+      if (config.method === 'get') return Promise.resolve({ status: 200, statusText: '', headers: {}, config, data: { success: true, data: [{ id: 1 }, { id: 2 }], meta: { current_page: 1, last_page: 1 } } })
+      return new Promise((r) => { resoudreA = () => r({ status: 200, statusText: '', headers: {}, config, data: { success: true, data: { activation_url: SECRET } } }) })
+    }
+    const r = useAdminSchoolRequests()
+    await r.load(1)
+    appels.length = 0
+    const enVolA = r.valider(1, 'a')
+    await Promise.resolve()
+    expect(await r.load(1)).toBe(false)
+    expect(appels.filter((a) => a.startsWith('get'))).toEqual([])
+    resoudreA()
+    await enVolA
+    expect(r.demandes.value.map((d) => d.id)).toEqual([2])
+  })
+
   it('après « transmis » (fermerLien), une nouvelle validation repasse', async () => {
     serveur(valide)
     const r = useAdminSchoolRequests()

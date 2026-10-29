@@ -56,6 +56,7 @@ vi.mock('@/composables/useAdminSchoolRequests', async () => {
       estOccupee: () => false,
       peutValider: () => false,
       peutRefuser: () => true,
+      motifRetenue: ref('lien'),
       lienActivation: ref('https://lms.test/activation/jeton-unique'),
       messageValidation: ref('École ouverte.'),
       load: vi.fn(),

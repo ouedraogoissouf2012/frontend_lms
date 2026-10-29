@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { extractList } from '@/utils/apiList'
 import { schoolRequestsService } from '@/services/schoolRequests'
 
@@ -26,8 +26,19 @@ export function useAdminSchoolRequests() {
   /** Seule règle de validation : la vue s'en sert pour aria-disabled ET pour sa garde. */
   const peutValider = (id) => !validationEnVol.value && !lienActivation.value && !estOccupee(id)
   const peutRefuser = (id) => !estOccupee(id)
+  /**
+   * Ce qui interdit de quitter ou de recharger l'écran SANS confirmation : un lien affiché,
+   * ou une validation EN VOL (le serveur a pu émettre le jeton, le lien n'est pas encore là :
+   * un état écrit après l'await ne garde rien pendant l'await). `null` : rien à retenir.
+   */
+  const motifRetenue = computed(() => {
+    if (validationEnVol.value) return 'validation'
+    return lienActivation.value ? 'lien' : null
+  })
 
   async function load(cible = page.value) {
+    // Remarque 6 : une liste relue pendant la validation de A la faisait réapparaître.
+    if (validationEnVol.value) return false
     loading.value = true
     error.value = ''
     try {
@@ -35,9 +46,11 @@ export function useAdminSchoolRequests() {
       demandes.value = extractList(response)
       page.value = response.meta?.current_page ?? cible
       lastPage.value = response.meta?.last_page ?? 1
+      return true
     } catch (err) {
       error.value = err.userMessage || 'Impossible de charger les demandes.'
       demandes.value = []
+      return false
     } finally {
       loading.value = false
     }
@@ -96,6 +109,7 @@ export function useAdminSchoolRequests() {
     estOccupee,
     peutValider,
     peutRefuser,
+    motifRetenue,
     lienActivation,
     messageValidation,
     load,

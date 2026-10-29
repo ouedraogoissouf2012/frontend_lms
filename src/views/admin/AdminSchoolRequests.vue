@@ -6,7 +6,7 @@
           <h1 ref="titre" class="page-title" tabindex="-1">Demandes d'ouverture</h1>
           <p class="page-subtitle">Valider ou refuser une école autonome</p>
         </div>
-        <button type="button" class="refresh-btn" :aria-disabled="loading ? 'true' : 'false'" @click="!loading && load()">
+        <button type="button" class="refresh-btn" :aria-disabled="peutRecharger ? 'false' : 'true'" @click="peutRecharger && load()">
           Actualiser
         </button>
       </div>
@@ -19,6 +19,9 @@
            dans une région annoncée). -->
       <div class="lien-zone" :class="{ 'lien-box': lienActivation }">
         <p class="annonce" role="status" aria-live="polite">{{ messageValidation }}</p>
+        <p v-if="motifRetenue === 'validation'" id="raison-en-vol" class="lien-raison">
+          Une validation est en cours : attendez son lien d'activation avant d'en valider une autre.
+        </p>
         <template v-if="lienActivation">
           <p id="lien-avertissement" class="lien-warn">Ce lien ne sera plus affiché. Copiez-le maintenant.</p>
           <input
@@ -59,7 +62,7 @@
             type="button"
             class="refresh-btn"
             :aria-disabled="peutValider(d.id) ? 'false' : 'true'"
-            :aria-describedby="lienActivation ? 'raison-validation' : undefined"
+            :aria-describedby="peutValider(d.id) ? undefined : idRaisonValidation"
             @click="onValider(d)"
           >
             Valider
@@ -79,16 +82,16 @@
       </div>
 
       <p v-if="lastPage > 1">
-        <button type="button" class="refresh-btn" :aria-disabled="page <= 1 ? 'true' : 'false'" @click="page > 1 && load(page - 1)">Précédent</button>
+        <button type="button" class="refresh-btn" :aria-disabled="peutRecharger && page > 1 ? 'false' : 'true'" @click="peutRecharger && page > 1 && load(page - 1)">Précédent</button>
         Page {{ page }} / {{ lastPage }}
-        <button type="button" class="refresh-btn" :aria-disabled="page >= lastPage ? 'true' : 'false'" @click="page < lastPage && load(page + 1)">Suivant</button>
+        <button type="button" class="refresh-btn" :aria-disabled="peutRecharger && page < lastPage ? 'false' : 'true'" @click="peutRecharger && page < lastPage && load(page + 1)">Suivant</button>
       </p>
     </div>
   </DashboardLayout>
 </template>
 
 <script setup>
-import { nextTick, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import { toast } from '@/composables/useToast'
@@ -101,13 +104,18 @@ const champLien = ref(null)
 const titre = ref(null)
 
 const {
-  demandes, loading, error, page, lastPage, peutValider, peutRefuser,
+  demandes, loading, error, page, lastPage, peutValider, peutRefuser, motifRetenue,
   lienActivation, messageValidation,
   load, valider, refuser, fermerLien,
 } = useAdminSchoolRequests()
 
 // C1 : quitter l'écran ou recharger ne détruit plus le lien en silence.
-useGardeLienAffiche(lienActivation)
+useGardeLienAffiche(motifRetenue)
+
+/** Une seule source pour la raison lue avec un « Valider » refusé : le motif du composable. */
+const idRaisonValidation = computed(() => ({ lien: 'raison-validation', validation: 'raison-en-vol' })[motifRetenue.value])
+// Remarque 6 : pas de relecture de la liste pendant une validation en vol.
+const peutRecharger = computed(() => !loading.value && motifRetenue.value !== 'validation')
 
 watch(demandes, (list) => {
   for (const d of list) {
