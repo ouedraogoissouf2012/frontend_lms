@@ -1,0 +1,37 @@
+# Surveillance continue des dépendances (#432). Les MISES À JOUR DE VERSION partent de ce
+# fichier seul ; les ALERTES et les mises à jour DE SÉCURITÉ demandent en plus un réglage du
+# dépôt (Settings → Code security), réservé au propriétaire.
+#
+# Cible `dev` (branche d'intégration, protégée). Une PR par écosystème et par semaine, au
+# plus, pour qu'aucune vague ne noie la revue : le regroupement réunit les mises à jour,
+# la limite borne ce qui reste ouvert.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 2
+    groups:
+      dependances-prod:
+        dependency-type: production
+      dependances-dev:
+        dependency-type: development
+    commit-message:
+      prefix: chore(deps)
+
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 1
+    groups:
+      actions:
+        patterns:
+          - '*'
+    commit-message:
+      prefix: chore(ci)
