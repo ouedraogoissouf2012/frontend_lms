@@ -16,8 +16,15 @@ const getLesson = vi.fn()
 const apiGet = vi.fn()
 const markAsCompleted = vi.fn()
 const toastError = vi.fn()
+// Hissés hors de la factory : un vi.fn() créé DANS vi.mock est inassertable (#435).
+const updateProgress = vi.fn()
+const markComplete = vi.fn()
 vi.mock('@/services/lesson', () => ({
-  default: { getLesson: (...a) => getLesson(...a), markComplete: vi.fn(), updateProgress: vi.fn() }
+  default: {
+    getLesson: (...a) => getLesson(...a),
+    markComplete: (...a) => markComplete(...a),
+    updateProgress: (...a) => updateProgress(...a)
+  }
 }))
 vi.mock('@/services/api', () => ({ default: { get: (...a) => apiGet(...a) } }))
 vi.mock('@/services/chapterProgress', () => ({
@@ -41,6 +48,7 @@ describe('useStudentLessonView (#H4)', () => {
   beforeEach(() => {
     getLesson.mockReset(); apiGet.mockReset(); push.mockClear()
     markAsCompleted.mockReset(); toastError.mockClear()
+    updateProgress.mockReset(); markComplete.mockReset()
   })
 
   it('charge leçon + chapitres par id de route', async () => {
@@ -114,5 +122,21 @@ describe('useStudentLessonView (#H4)', () => {
 
     expect(c.isChapterCompleted(1)).toBe(true)
     expect(toastError).not.toHaveBeenCalled()
+  })
+
+  // #435 (D2) : le niveau leçon ne reçoit plus de temps fabriqué. La leçon porte
+  // ici `duration_minutes`, la colonne morte que le client relayait : elle ne
+  // doit plus atteindre le service.
+  it('#435 — la progression leçon ne transmet que le pourcentage', async () => {
+    getLesson.mockResolvedValue({ success: true, data: { id: 5, duration_minutes: 30 } })
+    apiGet.mockResolvedValue({ success: true, data: [{ id: 1 }, { id: 2 }] })
+    markAsCompleted.mockResolvedValue({ success: true })
+    const c = await setup()
+
+    await c.markChapterComplete()
+
+    expect(updateProgress).toHaveBeenCalledTimes(1)
+    expect(updateProgress.mock.calls[0]).toStrictEqual([5, 50])
+    expect(markComplete).not.toHaveBeenCalled()
   })
 })

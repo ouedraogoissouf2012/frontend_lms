@@ -15,12 +15,15 @@ vi.mock('@/services/lesson', () => ({
 
 import LessonCard from '@/components/lessons/LessonCard.vue'
 
+// `duree_estimee_minutes` : la colonne réelle, émise par `GET /lms/matieres/{id}`
+// (`MatiereLessonsAndStatsBuilder.php:104`, `$lesson->toArray()`). `duration_minutes`
+// est une colonne morte, toujours nulle (#435).
 const lesson = {
   id: 7,
   title: 'Algèbre linéaire',
   type: 'cours',
   status: 'published',
-  duration_minutes: 30,
+  duree_estimee_minutes: 30,
   content_type: 'text'
 }
 
@@ -42,6 +45,16 @@ describe('LessonCard (G5) — rendu', () => {
     const w = mountCard()
     await w.find('.btn-primary').trigger('click')
     expect(w.emitted('view')[0]).toEqual([7])
+  })
+
+  it('#435 — affiche la durée estimée réelle (duree_estimee_minutes)', () => {
+    expect(mountCard({ lesson: { ...lesson, duree_estimee_minutes: 45 } }).text()).toContain('45 min')
+  })
+
+  it('#435 — ignore la colonne morte duration_minutes', () => {
+    const { duree_estimee_minutes: _ignored, ...sansDuree } = lesson
+    const w = mountCard({ lesson: { ...sansDuree, duration_minutes: 45 } })
+    expect(w.text()).not.toContain('45 min')
   })
 
   it('expose les actions enseignant uniquement si isTeacher', () => {
