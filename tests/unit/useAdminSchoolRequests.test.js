@@ -12,6 +12,8 @@ vi.mock('@/services/schoolRequests', () => ({
 }))
 
 import { useAdminSchoolRequests } from '@/composables/useAdminSchoolRequests'
+import { normalizeError } from '@/services/errorHandler'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 describe('useAdminSchoolRequests (#393)', () => {
   beforeEach(() => {
@@ -80,3 +82,21 @@ describe('useAdminSchoolRequests (#393)', () => {
     expect(api.demandes.value).toHaveLength(0)
   })
 })
+
+// Revue #441 (B2) : le catalogue `conflict` sert TOUS les 409. Ici rien n'est rechargé :
+// le message ne doit donc pas prétendre que la liste a été actualisée.
+describe('useAdminSchoolRequests — 409 (revue #441)', () => {
+  beforeEach(() => { validate.mockReset() })
+
+  it('un 409 « déjà tranchée » donne le message neutre, sans mention d’actualisation', async () => {
+    const err = Object.assign(new Error('HTTP 409'), { response: { status: 409, data: { success: false, message: 'Demande déjà tranchée.' } } })
+    err.userMessage = normalizeError(err).userMessage
+    validate.mockRejectedValue(err)
+    const api = useAdminSchoolRequests()
+    api.demandes.value = [{ id: 7 }]
+    await api.valider(7, 'atelier')
+    expect(api.error.value).toBe(ERROR_MESSAGES.conflict)
+    expect(api.error.value).not.toMatch(/actualis/i)
+  })
+})
+

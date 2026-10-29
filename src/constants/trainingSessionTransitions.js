@@ -13,7 +13,8 @@
  *
  * Le serveur reste l'AUTORITÉ : un refus (409 hors graphe, 422 sans date de début)
  * prime toujours sur cette table. `tests/unit/trainingSessionTransitions.test.js`
- * épingle la copie.
+ * épingle la copie contre ELLE-MÊME (un littéral) : il ne voit pas un changement du
+ * graphe côté serveur — c'est précisément le trou que #956 fermera.
  *
  * `purgee` n'apparaît nulle part : aucune route n'y mène (ADR-845-01).
  */
