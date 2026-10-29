@@ -6,14 +6,15 @@
  * - le lien ne passe JAMAIS par la console, à travers le VRAI client HTTP (api.js et son
  *   intercepteur) : seul l'adaptateur réseau d'axios est remplacé.
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { AxiosError } from 'axios'
 import { setActivePinia, createPinia } from 'pinia'
 import api from '@/services/api'
 import { useAdminSchoolRequests } from '@/composables/useAdminSchoolRequests'
+import { espionnerConsole } from '../helpers/consoleFuite'
 
 const SECRET = 'https://lms.test/activation/Zq8VJ2pT0kLmNw7xR4sY'
-const espions = []
+let console_
 let adaptateurOrigine
 const appels = []
 
@@ -26,22 +27,20 @@ function serveur(routes) {
     throw new AxiosError(`HTTP ${status}`, AxiosError.ERR_BAD_REQUEST, config, {}, response)
   }
 }
-// Les erreurs sont mises à plat AVANT JSON.stringify : AxiosError.toJSON() s'applique avant
-// tout replacer et omet `response`, où un secret renvoyé par le serveur passerait inaperçu.
-const aplatir = (v) => (v instanceof Error ? { message: v.message, stack: v.stack, data: v.config?.data ?? null, reponse: v.response?.data ?? null } : v)
-const serialiser = (args) => JSON.stringify(args.map(aplatir))
-const fuite = () => espions.some((s) => s.mock.calls.some((args) => serialiser(args).includes('Zq8VJ2pT0kLmNw7xR4sY')))
+// Détecteur partagé (tests/helpers/consoleFuite.js, #450) : erreurs mises à plat
+// récursivement, corps envoyé ET reçu, garde de cycles.
+const fuite = () => console_.contient('Zq8VJ2pT0kLmNw7xR4sY')
 const valide = () => [200, { success: true, message: 'École ouverte.', data: { institution: { id: 9 }, activation_url: SECRET } }]
 
 beforeEach(() => {
   setActivePinia(createPinia())
   adaptateurOrigine = api.defaults.adapter
   appels.length = 0
-  for (const m of ['log', 'info', 'warn', 'error', 'debug']) espions.push(vi.spyOn(console, m).mockImplementation(() => {}))
+  console_ = espionnerConsole()
 })
 afterEach(() => {
   api.defaults.adapter = adaptateurOrigine
-  espions.splice(0).forEach((s) => s.mockRestore())
+  console_.restaurer()
 })
 
 describe('#418 : un lien affiché n’est jamais effacé par une autre validation', () => {
@@ -211,7 +210,7 @@ describe('#418 (b) : le lien d’activation ne passe JAMAIS par la console ni pa
     const r = useAdminSchoolRequests()
     await r.valider(1, 'a')
     await r.refuser(2, 'motif suffisamment long')
-    expect(console.warn).toHaveBeenCalled()
+    expect(console_.appelee('warn')).toBe(true)
     expect(fuite()).toBe(false)
   })
 
