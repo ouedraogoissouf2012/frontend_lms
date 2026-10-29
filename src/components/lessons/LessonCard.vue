@@ -17,9 +17,9 @@
     <div class="lesson-card-body">
       <!-- Durée et Type de contenu -->
       <div class="lesson-info-row">
-        <div v-if="lesson.duration_minutes" class="lesson-info-item">
+        <div v-if="lesson.duree_estimee_minutes" class="lesson-info-item">
           <i class="fa fa-clock-o info-icon"></i>
-          <span>{{ formatDuration(lesson.duration_minutes) }}</span>
+          <span>{{ formatDuration(lesson.duree_estimee_minutes) }}</span>
         </div>
         <div v-if="lesson.content_type" class="lesson-info-item">
           <i :class="`fa ${getContentTypeIcon(lesson.content_type)} info-icon`"></i>

@@ -180,12 +180,13 @@ export function useStudentLessonView() {
    */
   async function syncLessonProgress() {
     try {
+      // Le pourcentage seul (#435) : le temps passé est déjà compté par
+      // chapitre (markAsCompleted / updateTimeSpent), le serveur en dérive le total.
       const percentage = overallProgress.value
-      const durationMinutes = lesson.value?.duration_minutes || 0
       if (percentage >= 100) {
         await lessonService.markComplete(lessonId.value)
       } else {
-        await lessonService.updateProgress(lessonId.value, percentage, durationMinutes)
+        await lessonService.updateProgress(lessonId.value, percentage)
       }
     } catch (e) {
       console.warn('[StudentLesson] Sync progression leçon échouée:', e?.message)
