@@ -11,6 +11,19 @@
  */
 import { ERROR_MESSAGES } from '../constants/errorMessages'
 
+/**
+ * Motifs de refus (#391, ADR-906-01) : quand un même statut porte plusieurs sens, le
+ * corps porte `reason`. Un motif CONNU devient une catégorie du catalogue ; un motif
+ * inconnu est ignoré et le statut décide (fail-secure : jamais le texte du serveur).
+ */
+const REASON_CATEGORIES = Object.freeze({
+  enrolment_not_active: 'enrolmentNotActive',
+  no_institution: 'noInstitution',
+  account_quota_exceeded: 'accountQuotaExceeded',
+  account_daily_cap_reached: 'accountDailyCapReached',
+  institution_cap_reached: 'institutionCapReached',
+})
+
 /** Catégorie d'erreur depuis le code HTTP. */
 function categoryFromStatus(status) {
   switch (status) {
@@ -71,6 +84,10 @@ export function normalizeError(error) {
   // c'est le marqueur distinctif. Un 503 générique (sans Retry-After) reste « server ».
   if (status === 503 && error.response?.headers?.['retry-after'] != null) {
     return { category: 'klassciUnavailable', userMessage: ERROR_MESSAGES.klassciUnavailable, fieldErrors: null }
+  }
+  if (typeof reason === 'string' && Object.hasOwn(REASON_CATEGORIES, reason)) {
+    const category = REASON_CATEGORIES[reason]
+    return { category, userMessage: ERROR_MESSAGES[category], fieldErrors: null }
   }
 
   if (status != null) {
