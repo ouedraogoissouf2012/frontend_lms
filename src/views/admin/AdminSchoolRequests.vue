@@ -6,7 +6,7 @@
           <h1 ref="titre" class="page-title" tabindex="-1">Demandes d'ouverture</h1>
           <p class="page-subtitle">Valider ou refuser une école autonome</p>
         </div>
-        <button type="button" class="refresh-btn" :disabled="loading" @click="load()">
+        <button type="button" class="refresh-btn" :aria-disabled="loading ? 'true' : 'false'" @click="!loading && load()">
           Actualiser
         </button>
       </div>
@@ -20,8 +20,15 @@
       <div class="lien-zone" :class="{ 'lien-box': lienActivation }">
         <p class="annonce" role="status" aria-live="polite">{{ messageValidation }}</p>
         <template v-if="lienActivation">
-          <p class="lien-warn">Ce lien ne sera plus affiché. Copiez-le maintenant.</p>
-          <input ref="champLien" :value="lienActivation" readonly class="lien-input">
+          <p id="lien-avertissement" class="lien-warn">Ce lien ne sera plus affiché. Copiez-le maintenant.</p>
+          <input
+            ref="champLien"
+            :value="lienActivation"
+            readonly
+            class="lien-input"
+            aria-label="Lien d'activation"
+            aria-describedby="lien-avertissement"
+          >
           <button type="button" class="refresh-btn" @click="copier">Copier le lien</button>
           <button type="button" class="refresh-btn" @click="onTransmis">J'ai transmis le lien</button>
           <p id="raison-validation" class="lien-raison">
@@ -51,7 +58,7 @@
           <button
             type="button"
             class="refresh-btn"
-            :aria-disabled="(actingId === d.id || !!lienActivation) ? 'true' : 'false'"
+            :aria-disabled="peutValider(d.id) ? 'false' : 'true'"
             :aria-describedby="lienActivation ? 'raison-validation' : undefined"
             @click="onValider(d)"
           >
@@ -63,7 +70,7 @@
           <button
             type="button"
             class="refresh-btn"
-            :aria-disabled="actingId === d.id ? 'true' : 'false'"
+            :aria-disabled="peutRefuser(d.id) ? 'false' : 'true'"
             @click="onRefuser(d)"
           >
             Refuser
@@ -72,9 +79,9 @@
       </div>
 
       <p v-if="lastPage > 1">
-        <button type="button" class="refresh-btn" :disabled="page <= 1" @click="load(page - 1)">Précédent</button>
+        <button type="button" class="refresh-btn" :aria-disabled="page <= 1 ? 'true' : 'false'" @click="page > 1 && load(page - 1)">Précédent</button>
         Page {{ page }} / {{ lastPage }}
-        <button type="button" class="refresh-btn" :disabled="page >= lastPage" @click="load(page + 1)">Suivant</button>
+        <button type="button" class="refresh-btn" :aria-disabled="page >= lastPage ? 'true' : 'false'" @click="page < lastPage && load(page + 1)">Suivant</button>
       </p>
     </div>
   </DashboardLayout>
@@ -86,6 +93,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import { toast } from '@/composables/useToast'
 import { useAdminSchoolRequests } from '@/composables/useAdminSchoolRequests'
+import { useGardeLienAffiche } from '@/composables/useGardeLienAffiche'
 
 const slugs = reactive({})
 const motifs = reactive({})
@@ -93,10 +101,13 @@ const champLien = ref(null)
 const titre = ref(null)
 
 const {
-  demandes, loading, error, page, lastPage, actingId,
+  demandes, loading, error, page, lastPage, peutValider, peutRefuser,
   lienActivation, messageValidation,
   load, valider, refuser, fermerLien,
 } = useAdminSchoolRequests()
+
+// C1 : quitter l'écran ou recharger ne détruit plus le lien en silence.
+useGardeLienAffiche(lienActivation)
 
 watch(demandes, (list) => {
   for (const d of list) {
@@ -113,7 +124,7 @@ onMounted(() => {
  * boîte du lien se ferme). Le focus va là où l'action continue, jamais sur <body>.
  */
 async function onValider(d) {
-  if (actingId.value === d.id || lienActivation.value) return
+  if (!peutValider(d.id)) return
   if (await valider(d.id, slugs[d.id])) {
     await nextTick()
     champLien.value?.focus()
@@ -121,7 +132,7 @@ async function onValider(d) {
 }
 
 async function onRefuser(d) {
-  if (actingId.value === d.id) return
+  if (!peutRefuser(d.id)) return
   if (await refuser(d.id, motifs[d.id])) {
     await nextTick()
     titre.value?.focus()

@@ -26,12 +26,19 @@ import AdminSchoolRequests from '@/views/admin/AdminSchoolRequests.vue'
 const LIEN = 'https://lms.test/activation/jeton-unique'
 const demande = (id) => ({ id, nom_ecole: `Ecole ${id}`, nom_demandeur: 'D', email_demandeur: 'd@x.test', usage_prevu: 'u', created_at: '2026-10-29', slug_souhaite: `ecole-${id}` })
 
-function double({ lien = '', actingId = null } = {}) {
+// Le double expose la MÊME interface que le composable : la logique de peutValider est
+// testée dans useAdminSchoolRequestsLien ; ici, la vue doit la suivre (aria ET garde).
+function double({ lien = '', occupes = [], enVol = false, loading = false, lastPage = 1 } = {}) {
   const lienActivation = ref(lien)
   const messageValidation = ref(lien ? 'École ouverte.' : '')
+  const occupees = ref(new Set(occupes))
+  const validationEnVol = ref(enVol)
+  const estOccupee = (id) => occupees.value.has(id)
   return {
-    demandes: ref([demande(1), demande(2)]), loading: ref(false), error: ref(''), page: ref(1), lastPage: ref(1),
-    actingId: ref(actingId), lienActivation, messageValidation,
+    demandes: ref([demande(1), demande(2)]), loading: ref(loading), error: ref(''), page: ref(1), lastPage: ref(lastPage),
+    lienActivation, messageValidation, estOccupee,
+    peutValider: (id) => !validationEnVol.value && !lienActivation.value && !estOccupee(id),
+    peutRefuser: (id) => !estOccupee(id),
     load: vi.fn(),
     valider: vi.fn(async () => { lienActivation.value = LIEN; messageValidation.value = 'École ouverte.'; return true }),
     refuser: vi.fn(async () => true),
@@ -80,7 +87,7 @@ describe('« Valider » refusé tant qu’un lien affiché n’a pas été trans
   })
 
   it('D17 : une demande en cours garde ses boutons focalisables (aria-disabled, pas disabled)', () => {
-    etat = double({ actingId: 1 })
+    etat = double({ occupes: [1] })
     const w = monter()
     const [v1] = boutons(w, 'Valider')
     const [r1] = boutons(w, 'Refuser')
@@ -88,6 +95,57 @@ describe('« Valider » refusé tant qu’un lien affiché n’a pas été trans
       expect(b.attributes('aria-disabled')).toBe('true')
       expect(b.attributes('disabled')).toBeUndefined()
     }
+    w.unmount()
+  })
+})
+
+describe('B1 : la vue suit peutValider, pour l’aria ET pour la garde', () => {
+  it('une validation en vol ailleurs : « Valider » de toutes les demandes est refusé, et un clic n’appelle rien', async () => {
+    etat = double({ enVol: true })
+    const w = monter()
+    for (const b of boutons(w, 'Valider')) {
+      expect(b.attributes('aria-disabled')).toBe('true')
+      await b.trigger('click')
+    }
+    expect(etat.valider).not.toHaveBeenCalled()
+    w.unmount()
+  })
+})
+
+describe('C3 et R5 : nom accessible du champ, et focus qui ne se perd pas', () => {
+  it('C3 : le champ du lien a un nom, et sa description renvoie à l’avertissement', () => {
+    etat = double({ lien: LIEN })
+    const w = monter()
+    const champ = w.find('input.lien-input[readonly]')
+    expect(champ.attributes('aria-label')).toBe("Lien d'activation")
+    const avert = document.getElementById(champ.attributes('aria-describedby'))
+    expect(avert).not.toBeNull()
+    expect(avert.textContent).toMatch(/ne sera plus affiché/)
+    w.unmount()
+  })
+
+  it('R5 : « Actualiser » pendant un chargement reste focalisable et n’appelle rien', async () => {
+    etat = double({ loading: true })
+    const w = monter()
+    etat.load.mockClear() // load() est appelé au montage : seul le clic compte ici
+    const b = boutons(w, 'Actualiser')[0]
+    expect(b.attributes('aria-disabled')).toBe('true')
+    expect(b.attributes('disabled')).toBeUndefined()
+    await b.trigger('click')
+    expect(etat.load).not.toHaveBeenCalled()
+    w.unmount()
+  })
+
+  it('R5 : la pagination aux bornes reste focalisable et n’appelle rien', async () => {
+    etat = double({ lastPage: 2 })
+    const w = monter()
+    etat.load.mockClear()
+    const precedent = boutons(w, 'Précédent')[0]
+    expect(precedent.attributes('aria-disabled')).toBe('true')
+    expect(precedent.attributes('disabled')).toBeUndefined()
+    await precedent.trigger('click')
+    expect(etat.load).not.toHaveBeenCalled()
+    expect(boutons(w, 'Suivant')[0].attributes('aria-disabled')).toBe('false')
     w.unmount()
   })
 })

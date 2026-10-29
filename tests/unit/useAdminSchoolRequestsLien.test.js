@@ -56,6 +56,51 @@ describe('#418 : un lien affiché n’est jamais effacé par une autre validatio
     expect(r.lienActivation.value).toBe(SECRET)
   })
 
+  // B1 (revue de #449), récidive de A1 (#441) et C2 (#447) : le lien n'existe qu'APRÈS
+  // l'attente, donc garder sur lui seul laissait partir une 2ᵉ validation en vol.
+  it('B1 : deux validations EN VOL : la 2ᵉ est refusée, et le lien de la 1ʳᵉ est conservé', async () => {
+    let resoudreA
+    api.defaults.adapter = (config) => {
+      appels.push(`${config.method} ${config.url}`)
+      return new Promise((resoudre) => {
+        const id = config.url.match(/school-requests\/(\d+)/)[1]
+        const reponse = { status: 200, statusText: '', headers: {}, config, data: { success: true, message: 'ok', data: { activation_url: `${SECRET}-${id}` } } }
+        if (id === '1') resoudreA = () => resoudre(reponse)
+        else resoudre(reponse)
+      })
+    }
+    const r = useAdminSchoolRequests()
+    const enVolA = r.valider(1, 'a')
+    await Promise.resolve()
+    expect(r.peutValider(2)).toBe(false)
+    expect(await r.valider(2, 'b')).toBe(false)
+    resoudreA()
+    await enVolA
+    expect(r.lienActivation.value).toBe(`${SECRET}-1`)
+    expect(appels.filter((a) => a.startsWith('post'))).toHaveLength(1)
+  })
+
+  it('B1 (variante) : refuser B pendant que A est en vol ne réactive pas A', async () => {
+    let resoudreA
+    api.defaults.adapter = (config) => {
+      appels.push(`${config.method} ${config.url}`)
+      if (config.url.includes('/1/validate')) {
+        return new Promise((resoudre) => { resoudreA = () => resoudre({ status: 200, statusText: '', headers: {}, config, data: { success: true, data: { activation_url: SECRET } } }) })
+      }
+      return Promise.resolve({ status: 200, statusText: '', headers: {}, config, data: { success: true } })
+    }
+    const r = useAdminSchoolRequests()
+    const enVolA = r.valider(1, 'a')
+    await Promise.resolve()
+    await r.refuser(2, 'motif suffisamment long')
+    expect(r.estOccupee(1)).toBe(true)
+    expect(r.peutValider(1)).toBe(false)
+    expect(await r.valider(1, 'a')).toBe(false)
+    resoudreA()
+    await enVolA
+    expect(appels.filter((a) => a.includes('/1/validate'))).toHaveLength(1)
+  })
+
   it('après « transmis » (fermerLien), une nouvelle validation repasse', async () => {
     serveur(valide)
     const r = useAdminSchoolRequests()
