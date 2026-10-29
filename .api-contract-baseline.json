@@ -27,7 +27,6 @@
   "GET /knowledge-checks/{}",
   "GET /knowledge-checks/{}/my-attempts",
   "GET /lessons",
-  "GET /lessons/my-courses",
   "GET /lessons/{}",
   "GET /lessons/{}/chapter-progress",
   "GET /lessons/{}/progress",
