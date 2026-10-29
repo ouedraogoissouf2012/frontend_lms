@@ -1,7 +1,11 @@
 /**
- * Transitions d'une période (#391) : la table front doit être EXACTEMENT celle de
- * l'ADR-845-01 du backend (TrainingSessionTransitionService). Ce test épingle la
- * copie : si l'une change sans l'autre, il rougit ici plutôt qu'à l'écran.
+ * Transitions d'une période (#391) : la table front recopie l'ADR-845-01 du backend
+ * (TrainingSessionTransitionService).
+ *
+ * LIMITE, dite honnêtement (revue #441, A5) : ce test compare la table à un LITTÉRAL
+ * écrit ici, pas au serveur. Il épingle la copie contre elle-même : il rougit si
+ * quelqu'un modifie la table sans le vouloir, mais PAS si le graphe du backend change.
+ * Seule lms_backend#956 (le serveur publie les transitions possibles) fermera ce trou.
  */
 import { describe, it, expect } from 'vitest'
 import { TRANSITIONS, transitionsPermises, raisonBlocage } from '@/constants/trainingSessionTransitions'

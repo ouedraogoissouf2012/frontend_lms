@@ -82,14 +82,48 @@ describe('useAdminTrainingSessions — transitions (#391)', () => {
     expect(list).not.toHaveBeenCalled()
   })
 
-  it('409 (état changé ailleurs) : message du catalogue conflict, puis liste rechargée', async () => {
+  it('409 (état changé ailleurs) : liste rechargée, PUIS le message dit l’actualisation', async () => {
     const api = await chargee()
     transition.mockRejectedValue(erreurHttp(409))
     list.mockResolvedValue({ data: [{ ...BROUILLON, status: 'annulee' }], meta: { current_page: 1, last_page: 1 } })
     expect(await api.transitionner(api.periodes.value[0], 'publier')).toBe(false)
-    expect(api.error.value).toBe(ERROR_MESSAGES.conflict)
+    expect(api.error.value).toBe(`${ERROR_MESSAGES.conflict} ${ERROR_MESSAGES.listeActualisee}`)
     expect(list).toHaveBeenCalledTimes(1)
     expect(api.periodes.value[0].status).toBe('annulee')
+  })
+
+  // Revue #441 (A2) : si le rechargement ÉCHOUE, son erreur reste ; on n'affirme pas
+  // une actualisation qui n'a pas eu lieu.
+  it('409 puis rechargement en échec : l’erreur du rechargement n’est pas écrasée', async () => {
+    const api = await chargee()
+    transition.mockRejectedValue(erreurHttp(409))
+    list.mockRejectedValue(erreurHttp(500))
+    await api.transitionner(api.periodes.value[0], 'publier')
+    expect(api.error.value).toBe(ERROR_MESSAGES.server)
+    expect(api.error.value).not.toMatch(/actualis/i)
+  })
+
+  // Revue #441 (A1) : deux cartes en vol en même temps ; chacune garde ses boutons
+  // désactivés tant que SA transition n'est pas finie.
+  it('deux transitions en vol : chaque période reste occupée jusqu’à sa propre réponse', async () => {
+    list.mockResolvedValue({ data: [{ ...BROUILLON }, { ...BROUILLON, id: 5, libelle: 'Autre' }], meta: { current_page: 1, last_page: 1 } })
+    const api = useAdminTrainingSessions()
+    await api.load(1)
+    let finirA, finirB
+    transition
+      .mockReturnValueOnce(new Promise((r) => { finirA = r }))
+      .mockReturnValueOnce(new Promise((r) => { finirB = r }))
+    const a = api.transitionner(api.periodes.value[0], 'publier')
+    const b = api.transitionner(api.periodes.value[1], 'publier')
+    expect(api.estOccupee(4)).toBe(true)
+    expect(api.estOccupee(5)).toBe(true)
+    finirB({ success: true, message: 'ok', data: { id: 5, status: 'publiee', phase: 'a_venir' } })
+    await b
+    expect(api.estOccupee(5)).toBe(false)
+    expect(api.estOccupee(4)).toBe(true)
+    finirA({ success: true, message: 'ok', data: { id: 4, status: 'publiee', phase: 'a_venir' } })
+    await a
+    expect(api.estOccupee(4)).toBe(false)
   })
 
   it('403 : message forbidden, sans rechargement', async () => {
@@ -98,6 +132,21 @@ describe('useAdminTrainingSessions — transitions (#391)', () => {
     await api.transitionner(api.periodes.value[0], 'annuler')
     expect(api.error.value).toBe(ERROR_MESSAGES.forbidden)
     expect(list).not.toHaveBeenCalled()
+  })
+
+  // Revue #441 (B1) : sur une action IRRÉVERSIBLE, les deux boutons du dialogue doivent
+  // se distinguer par leur texte, pas par leur seule couleur (WCAG 1.4.1).
+  it.each([
+    ['annuler', 'Annuler la période'],
+    ['archiver', 'Archiver la période'],
+  ])('%s : libellés explicites et DIFFÉRENTS dans le dialogue', async (action, attendu) => {
+    const api = await chargee()
+    confirmMock.mockResolvedValue(false)
+    await api.transitionner(api.periodes.value[0], action)
+    const options = confirmMock.mock.calls[0][0]
+    expect(options.confirmLabel).toBe(attendu)
+    expect(options.cancelLabel).toBe('Garder la période')
+    expect(options.confirmLabel).not.toBe(options.cancelLabel)
   })
 
   it.each(['annuler', 'archiver'])('%s demande une confirmation ; un refus n’appelle pas le serveur', async (action) => {

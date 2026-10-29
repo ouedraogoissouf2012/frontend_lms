@@ -38,9 +38,14 @@ export function useAdminTrainingSessions() {
   const lastPage = ref(1)
   const dernierProgrammeId = ref(null)
   const saving = ref(false)
-  // Période dont une transition est en cours : ses boutons sont désactivés.
-  const busyId = ref(null)
+  // Périodes dont une transition est en cours (revue #441, A1) : un ENSEMBLE, car
+  // plusieurs cartes peuvent être en vol. Remplacé à chaque écriture (réactivité).
+  const occupees = ref(new Set())
+  const estOccupee = (id) => occupees.value.has(id)
+  const occuper = (id) => { occupees.value = new Set([...occupees.value, id]) }
+  const liberer = (id) => { const s = new Set(occupees.value); s.delete(id); occupees.value = s }
 
+  /** @returns {Promise<boolean>} true si la liste a été rechargée. */
   async function load(cible = page.value) {
     loading.value = true
     error.value = ''
@@ -49,9 +54,11 @@ export function useAdminTrainingSessions() {
       periodes.value = extractList(response)
       page.value = response.meta?.current_page ?? cible
       lastPage.value = response.meta?.last_page ?? 1
+      return true
     } catch (err) {
       error.value = err.userMessage || 'Impossible de charger les sessions.'
       periodes.value = []
+      return false
     } finally {
       loading.value = false
     }
@@ -95,21 +102,25 @@ export function useAdminTrainingSessions() {
    * Fait avancer une période (#391, ADR-845-01). Annuler et archiver ne se défont
    * pas : une confirmation les précède. Au succès, la période est remplacée par la
    * réponse du serveur (statut et phase font foi). Sur 409, l'état a changé
-   * ailleurs : la liste est rechargée AVANT d'écrire le message, car `load` efface
-   * `error`.
+   * ailleurs : la liste est rechargée, et le message ne dit « actualisée » que si ce
+   * rechargement a RÉUSSI (revue #441, B2/A2) — sinon l'erreur du rechargement reste.
+   * Le catalogue `conflict` reste neutre : il sert aussi des 409 qui ne rechargent rien.
    * @returns {Promise<boolean>} true si le serveur a appliqué la transition.
    */
   async function transitionner(periode, action) {
     if (IRREVERSIBLES.includes(action)) {
+      // Deux libellés DISTINCTS (revue #441, B1) : sur une action irréversible, le
+      // texte des boutons doit suffire à les distinguer, pas leur couleur (WCAG 1.4.1).
       const ok = await useConfirm().confirm({
         message: `${LIBELLES_TRANSITION[action]} « ${periode.libelle} » ? Cette opération est irréversible ; les inscriptions déjà faites sont conservées.`,
         variant: 'danger',
-        confirmLabel: LIBELLES_TRANSITION[action],
+        confirmLabel: `${LIBELLES_TRANSITION[action]} la période`,
+        cancelLabel: 'Garder la période',
       })
       if (!ok) return false
     }
 
-    busyId.value = periode.id
+    occuper(periode.id)
     error.value = ''
     notice.value = ''
     try {
@@ -120,17 +131,20 @@ export function useAdminTrainingSessions() {
       return true
     } catch (err) {
       const message = err?.userMessage || ERROR_MESSAGES.unknown
-      if (err?.response?.status === 409) await load(page.value)
-      error.value = message
+      if (err?.response?.status !== 409) {
+        error.value = message
+      } else if (await load(page.value)) {
+        error.value = `${message} ${ERROR_MESSAGES.listeActualisee}`
+      }
       return false
     } finally {
-      busyId.value = null
+      liberer(periode.id)
     }
   }
 
   return {
     periodes, loading, error, notice, page, lastPage,
-    dernierProgrammeId, saving, busyId,
+    dernierProgrammeId, saving, estOccupee,
     load, creerProgramme, creerPeriode, transitionner,
   }
 }
