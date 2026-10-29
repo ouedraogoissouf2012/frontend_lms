@@ -9,8 +9,8 @@
         <button type="button" class="refresh-btn" :disabled="loading" @click="load()">Actualiser</button>
       </div>
 
-      <!-- Régions présentes DÈS le montage : une région créée avec son texte n'est pas
-           toujours annoncée. Vides, elles ne prennent pas de place. -->
+      <!-- Régions présentes DÈS le montage et JAMAIS masquées (une région hors de l'arbre
+           d'accessibilité n'est pas annoncée) : seule la classe « banner » suit le contenu. -->
       <p class="annonce" :class="{ banner: error }" role="alert">{{ error }}</p>
       <p class="annonce" :class="{ banner: notice }" role="status" aria-live="polite">{{ notice }}</p>
 
@@ -63,8 +63,8 @@ onMounted(() => load())
   margin: 0 auto;
 }
 
-.annonce:empty {
-  display: none;
+.annonce {
+  margin: 0;
 }
 
 .banner {

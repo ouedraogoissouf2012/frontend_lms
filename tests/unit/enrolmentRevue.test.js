@@ -35,6 +35,12 @@ function erreurHttp(status) {
   err.userMessage = normalizeError(err).userMessage
   return err
 }
+// Sans réponse HTTP, comme axios les produit : délai client (ECONNABORTED) ou réseau.
+function erreurSansReponse(code) {
+  const err = Object.assign(new Error('sans reponse'), code === 'reseau' ? { request: {}, isAxiosError: true } : { code, isAxiosError: true })
+  err.userMessage = normalizeError(err).userMessage
+  return err
+}
 function differe() {
   let resoudre
   const promesse = new Promise((r) => { resoudre = r })
@@ -71,30 +77,54 @@ describe('B1 / C3 : le message indique le BON recours', () => {
 })
 
 describe('C1 : un échec peut avoir déjà changé le code côté serveur', () => {
-  it('émission en échec (délai) : la liste est relue, puis « actualisée » est ajouté', async () => {
+  // N1 : sans réponse, le POST a pu être reçu et tenir un verrou au-delà du délai client :
+  // une relecture réussie lirait l'ancien code (MVCC), invalidé juste après. Donc inconnu.
+  it.each([['délai', 'ECONNABORTED'], ['délai système', 'ETIMEDOUT'], ['réseau', 'reseau']])(
+    'émission sans réponse (%s) : la classe passe INCONNUE, même si une relecture réussirait, sans « actualisée »',
+    async (_nom, code) => {
+      const api = await charge([classe(1, 'actif', 'ANCIEN'), classe(2, 'actif', 'AUTRE')])
+      emettre.mockRejectedValue(erreurSansReponse(code))
+      listClasses.mockResolvedValue(liste([classe(1, 'actif', 'ANCIEN'), classe(2, 'actif', 'AUTRE')]))
+      expect(await api.emettre(api.classes.value[0])).toBe(false)
+      expect(api.classes.value[0].code_inscription).toEqual({ etat: 'inconnu', valeur: null })
+      expect(api.classes.value[1].code_inscription).toEqual({ etat: 'actif', valeur: 'AUTRE' })
+      expect(api.error.value).toBe(erreurSansReponse(code).userMessage)
+      expect(api.error.value).not.toMatch(/actualis/)
+    }
+  )
+
+  it('retrait sans réponse (délai) : inconnu aussi', async () => {
     const api = await charge([classe(1, 'actif', 'ANCIEN')])
-    emettre.mockRejectedValue(erreurHttp(null))
-    listClasses.mockResolvedValue(liste([classe(1, 'actif', 'NOUVEAU')]))
-    expect(await api.emettre(api.classes.value[0])).toBe(false)
-    expect(listClasses).toHaveBeenCalledTimes(1)
-    expect(api.classes.value[0].code_inscription).toEqual({ etat: 'actif', valeur: 'NOUVEAU' })
-    expect(api.error.value).toBe(`${erreurHttp(null).userMessage} ${ERROR_MESSAGES.listeActualisee}`)
+    retirer.mockRejectedValue(erreurSansReponse('ECONNABORTED'))
+    listClasses.mockResolvedValue(liste([classe(1, 'actif', 'ANCIEN')]))
+    await api.retirer(api.classes.value[0])
+    expect(api.classes.value[0].code_inscription).toEqual({ etat: 'inconnu', valeur: null })
+    expect(api.error.value).not.toMatch(/actualis/)
   })
 
-  it('émission en échec ET relecture en échec : l’ancien code n’est plus montré, rien n’est dit « actualisé »', async () => {
+  it('erreur serveur (503) : la réponse est arrivée, la relecture fait foi, puis « actualisée »', async () => {
+    const api = await charge([classe(1, 'actif', 'ANCIEN')])
+    emettre.mockRejectedValue(erreurHttp(503))
+    listClasses.mockResolvedValue(liste([classe(1, 'actif', 'NOUVEAU')]))
+    await api.emettre(api.classes.value[0])
+    expect(listClasses).toHaveBeenCalledTimes(1)
+    expect(api.classes.value[0].code_inscription).toEqual({ etat: 'actif', valeur: 'NOUVEAU' })
+    expect(api.error.value).toBe(`${erreurHttp(503).userMessage} ${ERROR_MESSAGES.listeActualisee}`)
+  })
+
+  it('erreur serveur ET relecture en échec : l’ancien code n’est plus montré, rien n’est dit « actualisé »', async () => {
     const api = await charge([classe(1, 'actif', 'ANCIEN'), classe(2, 'actif', 'AUTRE')])
-    emettre.mockRejectedValue(erreurHttp(null))
+    emettre.mockRejectedValue(erreurHttp(503))
     listClasses.mockRejectedValue(erreurHttp(500))
     await api.emettre(api.classes.value[0])
     expect(api.classes.value[0].code_inscription).toEqual({ etat: 'inconnu', valeur: null })
     expect(api.classes.value[1].code_inscription).toEqual({ etat: 'actif', valeur: 'AUTRE' })
-    expect(api.error.value).toBe(erreurHttp(null).userMessage)
-    expect(api.error.value).not.toMatch(/actualis/)
+    expect(api.error.value).toBe(erreurHttp(503).userMessage)
   })
 
-  it('retrait en échec : la liste est relue aussi', async () => {
+  it('retrait en erreur serveur : la liste est relue', async () => {
     const api = await charge([classe(1, 'actif', 'ANCIEN')])
-    retirer.mockRejectedValue(erreurHttp(null))
+    retirer.mockRejectedValue(erreurHttp(503))
     listClasses.mockResolvedValue(liste([classe(1, 'retire')]))
     await api.retirer(api.classes.value[0])
     expect(api.classes.value[0].code_inscription.etat).toBe('retire')
@@ -145,6 +175,20 @@ describe('C2 : l’état occupé est suivi PAR classe', () => {
     expect(api.estOccupee(1)).toBe(false)
   })
 
+  it('N4 : deux clics pendant la boîte de confirmation : un seul envoi', async () => {
+    const api = await charge([classe(1, 'actif', 'ANCIEN')])
+    const ouiUn = differe(), ouiDeux = differe()
+    confirmMock.mockReturnValueOnce(ouiUn.promesse).mockReturnValueOnce(ouiDeux.promesse)
+    emettre.mockResolvedValue({ success: true, message: 'ok', data: { code_inscription: 'NOUVEAU' } })
+    const p1 = api.emettre(api.classes.value[0])
+    const p2 = api.emettre(api.classes.value[0])
+    ouiUn.resoudre(true)
+    await Promise.resolve()
+    ouiDeux.resoudre(true)
+    await Promise.all([p1, p2])
+    expect(emettre).toHaveBeenCalledTimes(1)
+  })
+
   it('garde de réentrée : un second clic sur une classe en vol n’envoie rien', async () => {
     const api = await charge([classe(1, 'absent')])
     const un = differe()
@@ -168,6 +212,46 @@ describe('R8 : jamais deux bandeaux contradictoires', () => {
     await api.load()
     expect(api.error.value).not.toBe('')
     expect(api.notice.value).toBe('')
+  })
+})
+
+describe('N6 : aria-invalid seulement pour une erreur de SAISIE', () => {
+  it.each([
+    ['code inconnu (404)', () => erreurHttp(404), true],
+    ['format refusé (422)', () => erreurHttp(422), true],
+    ['panne serveur (500)', () => erreurHttp(500), false],
+    ['quota (429)', () => erreurHttp(429), false],
+    ['inscription non active (409)', () => erreurHttp(409), false],
+    ['réseau', () => erreurSansReponse('reseau'), false],
+  ])('%s → saisieInvalide = %s', async (_nom, fabrique, attendu) => {
+    rejoindre.mockRejectedValue(fabrique())
+    const j = useJoinClass()
+    j.code.value = 'Q7RT4K'
+    await j.rejoindre()
+    expect(j.saisieInvalide.value).toBe(attendu)
+  })
+
+  it('code vide → saisie invalide ; puis un succès la remet à faux', async () => {
+    const j = useJoinClass()
+    j.code.value = '  '
+    await j.rejoindre()
+    expect(j.saisieInvalide.value).toBe(true)
+    rejoindre.mockResolvedValue({ success: true, message: 'ok', data: { classe: null } })
+    j.code.value = 'Q7RT4K'
+    await j.rejoindre()
+    expect(j.saisieInvalide.value).toBe(false)
+  })
+
+  it('D17 : un second envoi pendant le premier est ignoré (le bouton reste focalisable)', async () => {
+    const d = differe()
+    rejoindre.mockReturnValue(d.promesse)
+    const j = useJoinClass()
+    j.code.value = 'Q7RT4K'
+    const p = j.rejoindre()
+    expect(await j.rejoindre()).toBe(false)
+    expect(rejoindre).toHaveBeenCalledTimes(1)
+    d.resoudre({ success: true, message: 'ok', data: { classe: null } })
+    await p
   })
 })
 

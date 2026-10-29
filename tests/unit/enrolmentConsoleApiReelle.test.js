@@ -21,7 +21,9 @@ function repondre(status, data) {
     throw new AxiosError(`HTTP ${status}`, AxiosError.ERR_BAD_REQUEST, config, {}, response)
   }
 }
-const fuite = () => espions.some((s) => s.mock.calls.some((args) => JSON.stringify(args, (k, v) => (v instanceof Error ? `${v.message} ${v.stack}` : v)).includes(CODE)))
+// N3 : une AxiosError porte le corps envoyé dans `config.data` : il est sérialisé aussi.
+const serialiser = (args) => JSON.stringify(args, (k, v) => (v instanceof Error ? { message: v.message, stack: v.stack, data: v.config?.data ?? null } : v))
+const fuite = () => espions.some((s) => s.mock.calls.some((args) => serialiser(args).includes(CODE)))
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -47,6 +49,12 @@ describe('C4 — élève, vrai client HTTP : le code ne fuit pas en console', ()
     // La journalisation a BIEN eu lieu : le test passerait à vide sinon.
     expect(console.warn).toHaveBeenCalled()
     expect(fuite()).toBe(false)
+  })
+
+  it('N3 : le détecteur voit le code caché dans config.data d’une AxiosError', () => {
+    const err = new AxiosError('x', AxiosError.ERR_BAD_REQUEST, { data: JSON.stringify({ code: CODE }) })
+    console.warn('journal', err)
+    expect(fuite()).toBe(true)
   })
 
   it('succès 201 : rien en console non plus', async () => {

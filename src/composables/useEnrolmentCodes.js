@@ -67,18 +67,22 @@ export function useEnrolmentCodes() {
   }
 
   /**
-   * Issue INCERTAINE : sans réponse (réseau, délai), une erreur serveur, ou un 409 (l'état
-   * a changé ailleurs). Un refus net (403, 404, 422, 429) n'a rien changé : pas de relecture.
+   * Après un échec, trois cas :
+   * - SANS RÉPONSE (délai, réseau) : le POST a pu être reçu et tenir un verrou au-delà du
+   *   délai client ; une relecture lirait l'ancien code, invalidé juste après. Le code
+   *   devient inconnu, sans relecture ni « actualisée » ;
+   * - réponse 5xx ou 409 (l'état a changé ailleurs) : la relecture fait foi ;
+   * - refus NET (403, 404, 422, 429) : rien n'a changé, message seul.
    */
-  function issueIncertaine(err) {
-    const status = err?.response?.status
-    return status == null || status >= 500 || status === 409
-  }
-
-  /** Après un échec incertain : relit la liste ; sans relecture, le code devient inconnu. */
   async function signalerEchec(classe, err) {
     const message = err?.userMessage || ERROR_MESSAGES.unknown
-    if (!issueIncertaine(err)) {
+    const status = err?.response?.status
+    if (status == null) {
+      majCode(classe.id, { etat: 'inconnu', valeur: null })
+      error.value = message
+      return
+    }
+    if (status < 500 && status !== 409) {
       error.value = message
       return
     }
@@ -103,7 +107,8 @@ export function useEnrolmentCodes() {
         `Régénérer le code de « ${classe.libelle} » ? L'ancien code ne fonctionnera plus. Les inscriptions déjà faites sont conservées.`,
         'Régénérer'
       )
-      if (!ok) return false
+      // Deux clics pendant la boîte de dialogue : le premier confirmé occupe la classe.
+      if (!ok || estOccupee(classe.id)) return false
     }
     occuper(classe.id)
     error.value = ''
@@ -128,7 +133,7 @@ export function useEnrolmentCodes() {
       `Retirer le code de « ${classe.libelle} » ? Il ne permettra plus de rejoindre la classe. Les inscriptions déjà faites sont conservées.`,
       'Retirer'
     )
-    if (!ok) return false
+    if (!ok || estOccupee(classe.id)) return false
     occuper(classe.id)
     error.value = ''
     notice.value = ''

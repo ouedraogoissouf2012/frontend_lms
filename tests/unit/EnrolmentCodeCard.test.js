@@ -50,8 +50,13 @@ describe('EnrolmentCodeCard (#391)', () => {
     expect(w.emitted('retirer')).toHaveLength(1)
   })
 
-  it('busy désactive les boutons', () => {
+  it('D17 : busy rend les boutons aria-disabled (focalisables), et un clic n’émet rien', async () => {
     const w = mount(EnrolmentCodeCard, { props: { classe: classe('actif', 'Q7RT4K'), busy: true } })
-    expect(w.findAll('button').every((b) => b.attributes('disabled') !== undefined)).toBe(true)
+    const btns = w.findAll('button')
+    expect(btns.every((b) => b.attributes('aria-disabled') === 'true')).toBe(true)
+    expect(btns.every((b) => b.attributes('disabled') === undefined)).toBe(true)
+    for (const b of btns) await b.trigger('click')
+    expect(w.emitted('emettre')).toBeUndefined()
+    expect(w.emitted('retirer')).toBeUndefined()
   })
 })

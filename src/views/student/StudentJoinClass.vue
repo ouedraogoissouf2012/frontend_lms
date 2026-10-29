@@ -15,18 +15,19 @@
           spellcheck="false"
           maxlength="16"
           required
-          :aria-invalid="error ? 'true' : 'false'"
+          :aria-invalid="saisieInvalide ? 'true' : 'false'"
           :aria-describedby="error ? 'join-erreur' : undefined"
         >
-        <button type="submit" class="join-btn" :disabled="submitting">
+        <!-- aria-disabled, pas disabled : un bouton désactivé perd le focus clavier. -->
+        <button type="submit" class="join-btn" :aria-disabled="submitting ? 'true' : 'false'">
           {{ submitting ? 'Envoi…' : 'Rejoindre' }}
         </button>
       </form>
 
-      <!-- Régions présentes DÈS le montage (une région créée avec son texte n'est pas
-           toujours annoncée) ; vides, elles ne prennent pas de place. -->
-      <p id="join-erreur" class="join-message is-error" role="alert">{{ error }}</p>
-      <div class="join-message" role="status" aria-live="polite">
+      <!-- Régions présentes DÈS le montage et JAMAIS masquées (une région hors de l'arbre
+           d'accessibilité n'est pas annoncée) : seule la présentation suit le contenu. -->
+      <p id="join-erreur" class="join-region" :class="{ 'join-message is-error': error }" role="alert">{{ error }}</p>
+      <div class="join-region" :class="{ 'join-message': result }" role="status" aria-live="polite">
         <template v-if="result">
           <p>{{ result.message }}<template v-if="result.classe"> — {{ result.classe.libelle }}</template></p>
           <router-link to="/student/courses">Voir mes cours</router-link>
@@ -47,7 +48,7 @@ import { useJoinClass } from '@/composables/useJoinClass'
 
 defineOptions({ name: 'StudentJoinClass' })
 
-const { code, submitting, error, result, rejoindre } = useJoinClass()
+const { code, submitting, error, saisieInvalide, result, rejoindre } = useJoinClass()
 </script>
 
 <style scoped>
@@ -100,16 +101,17 @@ const { code, submitting, error, result, rejoindre } = useJoinClass()
   cursor: pointer;
 }
 
-.join-btn:disabled {
+.join-btn[aria-disabled='true'] {
   cursor: wait;
   opacity: 0.7;
 }
 
-.join-message:empty {
-  display: none;
+.join-region {
+  margin: 0;
 }
 
 .join-message {
+  margin-top: 1rem;
   padding: 1rem;
   border-radius: 0.5rem;
   background: var(--card-bg);

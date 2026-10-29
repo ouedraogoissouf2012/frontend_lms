@@ -11,10 +11,11 @@
     </dl>
 
     <div class="code-actions">
-      <button type="button" class="code-btn" :disabled="busy" @click="$emit('emettre')">
+      <!-- aria-disabled, pas disabled : le bouton cliqué garde le focus clavier. -->
+      <button type="button" class="code-btn" :aria-disabled="busy ? 'true' : 'false'" @click="!busy && $emit('emettre')">
         {{ peutRegenerer ? 'Régénérer' : 'Émettre un code' }}
       </button>
-      <button v-if="code" type="button" class="code-btn is-danger" :disabled="busy" @click="$emit('retirer')">
+      <button v-if="code" type="button" class="code-btn is-danger" :aria-disabled="busy ? 'true' : 'false'" @click="!busy && $emit('retirer')">
         Retirer
       </button>
     </div>
@@ -103,7 +104,7 @@ const peutRegenerer = computed(() => etat.value === 'actif' || etat.value === 'i
   border-color: var(--color-danger, var(--border-primary));
 }
 
-.code-btn:disabled {
+.code-btn[aria-disabled='true'] {
   cursor: not-allowed;
   opacity: 0.6;
 }
