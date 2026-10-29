@@ -1,5 +1,6 @@
 <template>
-  <article class="card period-card">
+  <!-- tabindex -1 : focalisable par script quand plus aucun bouton n'est permis (revue #441, A3). -->
+  <article class="card period-card" tabindex="-1">
     <h2>{{ periode.libelle }}</h2>
     <p>{{ libelleStatut(periode.status) }} · {{ libellePhase(periode.phase) }}</p>
     <p>Programme n° {{ periode.program_id }}</p>

@@ -12,7 +12,9 @@
       </div>
 
       <p v-if="error" class="banner" role="alert">{{ error }}</p>
-      <p v-if="notice" class="banner" role="status">{{ notice }}</p>
+      <!-- Présente DÈS LE MONTAGE (revue #441, A4) : une région d'annonce créée avec
+           son contenu n'est pas toujours lue. Vide, elle ne prend aucune place. -->
+      <p class="status-region" :class="{ banner: notice }" role="status" aria-live="polite">{{ notice }}</p>
 
       <form class="card" @submit.prevent="onProgramme">
         <h2>Nouveau programme</h2>
@@ -54,8 +56,9 @@
         v-for="p in periodes"
         :key="p.id"
         :periode="p"
-        :busy="busyId === p.id"
-        @transition="(action) => transitionner(p, action)"
+        :busy="estOccupee(p.id)"
+        :data-periode-id="p.id"
+        @transition="(action) => onTransition(p, action)"
       />
 
       <p v-if="lastPage > 1">
@@ -68,7 +71,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref, watch } from 'vue'
+import { nextTick, onMounted, reactive, ref, watch } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import TrainingPeriodCard from '@/components/admin/TrainingPeriodCard.vue'
@@ -90,9 +93,22 @@ const periode = reactive({
 
 const {
   periodes, loading, error, notice, page, lastPage,
-  dernierProgrammeId, saving, busyId,
+  dernierProgrammeId, saving, estOccupee,
   load, creerProgramme, creerPeriode, transitionner,
 } = useAdminTrainingSessions()
+
+/**
+ * Après une transition, le bouton cliqué a disparu (il n'est plus permis) : le focus
+ * partirait sur <body>. On le remet sur la même carte, à son premier bouton actif,
+ * ou sur la carte elle-même s'il n'en reste aucun (revue #441, A3).
+ */
+async function onTransition(periode, action) {
+  await transitionner(periode, action)
+  await nextTick()
+  const carte = document.querySelector(`[data-periode-id="${periode.id}"]`)
+  const cible = carte?.querySelector('button.transition-btn:not([disabled])') ?? carte
+  cible?.focus()
+}
 
 watch(dernierProgrammeId, (id) => {
   if (id && !periode.program_id) periode.program_id = String(id)
@@ -152,6 +168,13 @@ async function onPeriode() {
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
   margin-bottom: var(--spacing-md);
+}
+
+.status-region:empty {
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 
 .field {
