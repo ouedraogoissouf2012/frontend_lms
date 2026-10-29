@@ -15,16 +15,22 @@
           spellcheck="false"
           maxlength="16"
           required
+          :aria-invalid="error ? 'true' : 'false'"
+          :aria-describedby="error ? 'join-erreur' : undefined"
         >
         <button type="submit" class="join-btn" :disabled="submitting">
           {{ submitting ? 'Envoi…' : 'Rejoindre' }}
         </button>
       </form>
 
-      <p v-if="error" class="join-message is-error" role="alert">{{ error }}</p>
-      <div v-if="result" class="join-message" role="status">
-        <p>{{ result.message }}<template v-if="result.classe"> — {{ result.classe.libelle }}</template></p>
-        <router-link to="/student/courses">Voir mes cours</router-link>
+      <!-- Régions présentes DÈS le montage (une région créée avec son texte n'est pas
+           toujours annoncée) ; vides, elles ne prennent pas de place. -->
+      <p id="join-erreur" class="join-message is-error" role="alert">{{ error }}</p>
+      <div class="join-message" role="status" aria-live="polite">
+        <template v-if="result">
+          <p>{{ result.message }}<template v-if="result.classe"> — {{ result.classe.libelle }}</template></p>
+          <router-link to="/student/courses">Voir mes cours</router-link>
+        </template>
       </div>
     </div>
   </DashboardLayout>
@@ -97,6 +103,10 @@ const { code, submitting, error, result, rejoindre } = useJoinClass()
 .join-btn:disabled {
   cursor: wait;
   opacity: 0.7;
+}
+
+.join-message:empty {
+  display: none;
 }
 
 .join-message {

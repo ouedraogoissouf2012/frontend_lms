@@ -2,8 +2,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { auth } from '@/services/api'
 import { isStudent, isTeacher, isSupradmin, hasRole, ROLES } from '@/constants/roles'
-import { getActivePinia } from 'pinia'
-import { useAuthStore } from '@/stores/auth'
+import { capaciteAccordee } from '@/composables/useNavigation'
 
 /**
  * Couche logique du drawer mobile (#H12 ≤300) : détection mobile (resize, ferme
@@ -46,9 +45,9 @@ export function useMobileSidebar(props, emit) {
     window.removeEventListener('resize', handleResize)
   })
 
-  // #391 : capacité LUE dans le store (même source que la garde de route), jamais
-  // calculée à partir d'un mode. Sans Pinia actif : refusée (fail-secure).
-  const peutInscrire = () => !!getActivePinia() && useAuthStore().peutInscrireLocalement === true
+  // #391 : même lecture que le menu (capaciteAccordee), jamais un mode. Ce tiroir a encore
+  // sa propre liste d'entrées (dette notée dans la PR) ; la capacité, elle, a une source.
+  const peutInscrire = () => capaciteAccordee('peutInscrireLocalement')
   const CODES_INSCRIPTION = { path: '/admin/enrolment-codes', icon: 'fa-key', label: "Codes d'inscription", badge: null }
 
   // Items de navigation selon le rôle

@@ -23,6 +23,20 @@ describe('EnrolmentCodeCard (#391)', () => {
     expect(boutons(w)).toEqual(['Émettre un code'])
   })
 
+  it('code actif : le libellé « Code d’inscription » est VISIBLE (dt), pas un aria-label ignoré', () => {
+    const w = mount(EnrolmentCodeCard, { props: { classe: classe('actif', 'Q7RT4K') } })
+    expect(w.find('dt').text()).toBe("Code d'inscription")
+    expect(w.find('dd.code-valeur').text()).toBe('Q7RT4K')
+    expect(w.find('[aria-label]').exists()).toBe(false)
+  })
+
+  it('état INCONNU (échec sans relecture) : aucun code montré, « Régénérer » seul, invitation à actualiser', () => {
+    const w = mount(EnrolmentCodeCard, { props: { classe: classe('inconnu', 'PEUTETRE') } })
+    expect(w.text()).not.toContain('PEUTETRE')
+    expect(w.find('.code-etat').text()).toContain('actualisez')
+    expect(boutons(w)).toEqual(['Régénérer'])
+  })
+
   it('une valeur présente avec un état non actif n’est JAMAIS affichée', () => {
     const w = mount(EnrolmentCodeCard, { props: { classe: classe('retire', 'ANCIEN') } })
     expect(w.text()).not.toContain('ANCIEN')

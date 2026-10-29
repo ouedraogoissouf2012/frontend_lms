@@ -27,7 +27,12 @@ export function useJoinClass() {
 
   async function rejoindre() {
     const saisie = normaliserCode(code.value)
-    if (saisie === '') return false
+    if (saisie === '') {
+      // `required` ne bloque pas une saisie faite d'espaces : sans ceci, rien ne se passait.
+      result.value = null
+      error.value = ERROR_MESSAGES.codeVide
+      return false
+    }
     submitting.value = true
     error.value = ''
     result.value = null

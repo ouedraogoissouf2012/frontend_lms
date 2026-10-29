@@ -88,13 +88,18 @@ function nomsDeCapacites(sections, noms = new Set()) {
 }
 
 /**
- * Valeur de chaque capacité du menu, LUE dans le store (jamais calculée ici). Sans
- * Pinia actif (rendu isolé), aucune capacité n'est accordée : fail-secure, l'entrée
- * gardée reste masquée.
+ * Une capacité accordée par le serveur, LUE dans le store (jamais calculée à partir d'un
+ * mode). Sans Pinia actif (rendu isolé) : refusée, fail-secure. Source UNIQUE pour le
+ * menu et le tiroir mobile (useMobileSidebar).
+ * @param {string} nom
+ * @returns {boolean}
  */
+export function capaciteAccordee(nom) {
+  return !!getActivePinia() && useAuthStore()[nom] === true
+}
+
+/** Valeur de chaque capacité du menu ; l'entrée gardée reste masquée si elle est refusée. */
 function capacitesDuStore(sections) {
   const noms = nomsDeCapacites(sections)
-  if (noms.size === 0 || !getActivePinia()) return {}
-  const store = useAuthStore()
-  return Object.fromEntries([...noms].map((nom) => [nom, store[nom] === true]))
+  return Object.fromEntries([...noms].map((nom) => [nom, capaciteAccordee(nom)]))
 }

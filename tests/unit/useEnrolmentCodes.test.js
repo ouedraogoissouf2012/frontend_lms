@@ -70,14 +70,14 @@ describe('useEnrolmentCodes (#391)', () => {
     expect(emettre).not.toHaveBeenCalled()
   })
 
-  it('retirer demande confirmation, puis relit la liste (la réponse n’a pas de corps)', async () => {
+  it('retirer demande confirmation ; au succès, l’état est CONNU (retiré) sans relire la liste', async () => {
     const api = await charge([classe(1, 'actif', CODE)])
     retirer.mockResolvedValue({ success: true, message: 'Code retiré. Les inscriptions déjà faites sont conservées.', data: null })
-    listClasses.mockResolvedValue({ success: true, data: [classe(1, 'retire')], meta: { current_page: 1, last_page: 1 } })
     expect(await api.retirer(api.classes.value[0])).toBe(true)
     expect(confirmMock.mock.calls[0][0].message).toContain('conservées')
-    expect(listClasses).toHaveBeenCalledTimes(1)
-    expect(api.classes.value[0].code_inscription.etat).toBe('retire')
+    expect(listClasses).not.toHaveBeenCalled()
+    expect(api.classes.value[0].code_inscription).toEqual({ etat: 'retire', valeur: null })
+    expect(api.notice.value).toContain('Code retiré')
   })
 
   it('403 (établissement relié à KLASSCI) : message forbidden du catalogue', async () => {

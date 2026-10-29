@@ -9,8 +9,10 @@
         <button type="button" class="refresh-btn" :disabled="loading" @click="load()">Actualiser</button>
       </div>
 
-      <p v-if="error" class="banner" role="alert">{{ error }}</p>
-      <p v-if="notice" class="banner" role="status">{{ notice }}</p>
+      <!-- Régions présentes DÈS le montage : une région créée avec son texte n'est pas
+           toujours annoncée. Vides, elles ne prennent pas de place. -->
+      <p class="annonce" :class="{ banner: error }" role="alert">{{ error }}</p>
+      <p class="annonce" :class="{ banner: notice }" role="status" aria-live="polite">{{ notice }}</p>
 
       <ContentLoader v-if="loading" text="Chargement des classes..." />
       <p v-else-if="classes.length === 0 && !error">Aucune classe locale pour le moment.</p>
@@ -19,7 +21,7 @@
         v-for="c in classes"
         :key="c.id"
         :classe="c"
-        :busy="busyId === c.id"
+        :busy="estOccupee(c.id)"
         @emettre="emettre(c)"
         @retirer="retirer(c)"
       />
@@ -47,7 +49,7 @@ import { useEnrolmentCodes } from '@/composables/useEnrolmentCodes'
 
 defineOptions({ name: 'AdminEnrolmentCodes' })
 
-const { classes, loading, error, notice, page, lastPage, busyId, load, emettre, retirer } = useEnrolmentCodes()
+const { classes, loading, error, notice, page, lastPage, estOccupee, load, emettre, retirer } = useEnrolmentCodes()
 
 onMounted(() => load())
 </script>
@@ -59,6 +61,10 @@ onMounted(() => load())
   padding: var(--spacing-xl);
   max-width: 52rem;
   margin: 0 auto;
+}
+
+.annonce:empty {
+  display: none;
 }
 
 .banner {

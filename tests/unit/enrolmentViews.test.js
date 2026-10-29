@@ -21,7 +21,7 @@ describe('AdminEnrolmentCodes (#391)', () => {
   it('charge au montage et relaie émettre / retirer pour la bonne classe', async () => {
     codes = {
       classes: ref([classe(1, 'absent'), classe(2, 'actif', 'Q7RT4K')]), loading: ref(false), error: ref(''), notice: ref(''),
-      page: ref(1), lastPage: ref(1), busyId: ref(null), load: vi.fn(), emettre: vi.fn(), retirer: vi.fn(),
+      page: ref(1), lastPage: ref(1), estOccupee: () => false, load: vi.fn(), emettre: vi.fn(), retirer: vi.fn(),
     }
     const w = mount(AdminEnrolmentCodes, { global: { stubs } })
     await flushPromises()
@@ -34,8 +34,27 @@ describe('AdminEnrolmentCodes (#391)', () => {
     expect(codes.retirer).toHaveBeenCalledWith(codes.classes.value[1])
   })
 
+  it('C2 : seule la carte occupée a ses boutons désactivés', () => {
+    codes = {
+      classes: ref([classe(1, 'absent'), classe(2, 'actif', 'Q7RT4K')]), loading: ref(false), error: ref(''), notice: ref(''),
+      page: ref(1), lastPage: ref(1), estOccupee: (id) => id === 2, load: vi.fn(), emettre: vi.fn(), retirer: vi.fn(),
+    }
+    const cartes = mount(AdminEnrolmentCodes, { global: { stubs } }).findAll('.code-card')
+    expect(cartes[0].find('button').attributes('disabled')).toBeUndefined()
+    expect(cartes[1].findAll('button').every((b) => b.attributes('disabled') !== undefined)).toBe(true)
+  })
+
+  it('R4 : les régions alert et status existent DÈS le montage, vides', () => {
+    codes = { classes: ref([]), loading: ref(true), error: ref(''), notice: ref(''), page: ref(1), lastPage: ref(1), estOccupee: () => false, load: vi.fn(), emettre: vi.fn(), retirer: vi.fn() }
+    const w = mount(AdminEnrolmentCodes, { global: { stubs } })
+    expect(w.find('[role="alert"]').exists()).toBe(true)
+    expect(w.find('[role="alert"]').text()).toBe('')
+    expect(w.find('[role="status"]').exists()).toBe(true)
+    expect(w.find('[role="status"]').text()).toBe('')
+  })
+
   it('affiche l’erreur dans une alerte', () => {
-    codes = { classes: ref([]), loading: ref(false), error: ref('Refusé.'), notice: ref(''), page: ref(1), lastPage: ref(1), busyId: ref(null), load: vi.fn(), emettre: vi.fn(), retirer: vi.fn() }
+    codes = { classes: ref([]), loading: ref(false), error: ref('Refusé.'), notice: ref(''), page: ref(1), lastPage: ref(1), estOccupee: () => false, load: vi.fn(), emettre: vi.fn(), retirer: vi.fn() }
     const w = mount(AdminEnrolmentCodes, { global: { stubs } })
     expect(w.find('[role="alert"]').text()).toBe('Refusé.')
   })
@@ -55,9 +74,24 @@ describe('StudentJoinClass (#391)', () => {
     expect(w.text()).toContain('Voir mes cours')
   })
 
-  it('affiche l’erreur dans une alerte', async () => {
+  it('affiche l’erreur dans une alerte, reliée au champ (aria-invalid, aria-describedby)', async () => {
     join = { code: ref(''), submitting: ref(false), error: ref('Ce code ne correspond à aucune classe.'), result: ref(null), rejoindre: vi.fn() }
     const w = mount(StudentJoinClass, { global: { stubs } })
-    expect(w.find('[role="alert"]').text()).toBe('Ce code ne correspond à aucune classe.')
+    const alerte = w.find('[role="alert"]')
+    expect(alerte.text()).toBe('Ce code ne correspond à aucune classe.')
+    const champ = w.find('input#code-inscription')
+    expect(champ.attributes('aria-invalid')).toBe('true')
+    expect(champ.attributes('aria-describedby')).toBe(alerte.attributes('id'))
+  })
+
+  it('R4 : sans erreur, le champ n’est pas invalide, et les régions existent dès le montage', () => {
+    join = { code: ref(''), submitting: ref(false), error: ref(''), result: ref(null), rejoindre: vi.fn() }
+    const w = mount(StudentJoinClass, { global: { stubs } })
+    const champ = w.find('input#code-inscription')
+    expect(champ.attributes('aria-invalid')).toBe('false')
+    expect(champ.attributes('aria-describedby')).toBeUndefined()
+    expect(w.find('[role="alert"]').exists()).toBe(true)
+    expect(w.find('[role="status"]').exists()).toBe(true)
+    expect(w.find('[role="status"]').text()).toBe('')
   })
 })
