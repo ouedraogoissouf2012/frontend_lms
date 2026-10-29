@@ -85,3 +85,58 @@ describe('TeacherEvaluations (#278) — câblage réel vue ↔ composable', () =
     expect(w.findAll('.eval-card')).toHaveLength(1)
   })
 })
+
+/**
+ * #420 — la mention d'accès KLASSCI est une région vivante PRÉSENTE AU MONTAGE :
+ * un lecteur d'écran n'annonce que les changements d'une région qui existait déjà.
+ * Elle n'est jamais masquée (ni `display:none`, ni `:empty`) ; seul son texte change.
+ */
+describe('TeacherEvaluations (#420) — mention d accès KLASSCI et panne', () => {
+  const MENTION = "Aucun accès KLASSCI n'est enregistré pour ce compte : les données qui en proviennent ne peuvent pas être affichées."
+  const http = (status, data = {}, headers = {}) =>
+    Object.assign(new Error(`HTTP ${status}`), {
+      isAxiosError: true,
+      response: { status, data: { success: false, ...data }, headers },
+    })
+
+  it('la région existe dès le montage, pendant le chargement, vide et non masquée', async () => {
+    klassci.getEvaluations.mockReturnValue(new Promise(() => {}))
+    const w = mount((await import('@/views/evaluations/TeacherEvaluations.vue')).default, {
+      global: { stubs },
+    })
+    const region = w.find('[data-test="mention-klassci"]')
+    expect(region.exists()).toBe(true)
+    expect(region.attributes('role')).toBe('status')
+    expect(region.text()).toBe('')
+    expect(region.attributes('style')).toBeUndefined()
+    expect(w.find('.content-loader').exists()).toBe(true)
+    // L'état d'erreur a lui aussi sa région, présente au montage et vide.
+    const alerte = w.find('[data-test="erreur-evaluations"]')
+    expect(alerte.exists()).toBe(true)
+    expect(alerte.attributes('role')).toBe('alert')
+    expect(alerte.text()).toBe('')
+    expect(alerte.attributes('style')).toBeUndefined()
+  })
+
+  it('jeton absent → la région dit la mention, sans état d erreur', async () => {
+    klassci.getEvaluations.mockRejectedValue(http(401, { reason: 'klassci_token_missing', message: 'KLASSCI' }))
+    const w = await mountView()
+    expect(w.find('[data-test="mention-klassci"]').text()).toBe(MENTION)
+    expect(w.find('.error-state').exists()).toBe(false)
+    expect(w.find('.empty-state').exists()).toBe(true)
+    expect(klassci.getTeacherDashboard).not.toHaveBeenCalled()
+  })
+
+  it('panne KLASSCI et repli en échec → état d erreur, et non une liste vide', async () => {
+    const panne = http(503, { message: 'KLASSCI' }, { 'retry-after': '30' })
+    klassci.getEvaluations.mockRejectedValue(panne)
+    klassci.getTeacherDashboard.mockRejectedValue(panne)
+    const w = await mountView()
+    expect(w.find('.error-state').exists()).toBe(true)
+    expect(w.find('[data-test="erreur-evaluations"] .error-message').exists()).toBe(true)
+    expect(w.find('.error-message').text()).toBe(
+      'Service KLASSCI temporairement indisponible. Veuillez réessayer dans quelques instants.'
+    )
+    expect(w.find('.empty-state').exists()).toBe(false)
+  })
+})

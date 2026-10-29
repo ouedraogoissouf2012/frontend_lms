@@ -12,25 +12,17 @@
         </div>
       </div>
 
+      <!-- #420 : région vivante présente dès le montage ; seul son texte change. -->
+      <p data-test="mention-klassci" role="status" class="klassci-mention"
+         :class="{ 'klassci-mention--visible': mentionKlassci }">{{ mentionKlassci }}</p>
+
       <!-- Loading State -->
       <ContentLoader v-if="loading" text="Chargement des évaluations..." />
 
-      <!-- Error State -->
-      <div v-else-if="error" class="error-state">
-        <div class="error-content">
-          <i class="fa fa-exclamation-triangle error-icon"></i>
-          <div>
-            <h3 class="error-title">Erreur de chargement</h3>
-            <p class="error-message">{{ error }}</p>
-          </div>
-        </div>
-        <button @click="loadData" class="btn-retry">
-          <ArrowPathIcon class="w-5 h-5" />
-          Réessayer
-        </button>
-      </div>
+      <!-- Error State : région d'alerte toujours rendue (#420) -->
+      <TeacherEvalErrorState :message="error" @retry="loadData" />
 
-      <template v-else>
+      <template v-if="!loading && !error">
         <!-- Filters Card -->
         <TeacherEvalFilters
           :filters="filters"
@@ -95,13 +87,14 @@
 import { onMounted } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
-import { DocumentTextIcon, ArrowPathIcon } from '@heroicons/vue/24/outline'
+import { DocumentTextIcon } from '@heroicons/vue/24/outline'
 import { useTeacherEvaluations } from '@/composables/useTeacherEvaluations'
 import { useTeacherEvaluationActions } from '@/composables/useTeacherEvaluationActions'
 import EvaluationCard from '@/components/evaluations/EvaluationCard.vue'
 import TeacherEvalFilters from '@/components/evaluations/TeacherEvalFilters.vue'
 import TeacherEvalStats from '@/components/evaluations/TeacherEvalStats.vue'
 import TeacherEvalEmptyState from '@/components/evaluations/TeacherEvalEmptyState.vue'
+import TeacherEvalErrorState from '@/components/evaluations/TeacherEvalErrorState.vue'
 import TeacherEvalCreateModal from '@/components/evaluations/TeacherEvalCreateModal.vue'
 
 // Données, filtres & dérivés délégués au composable (#28, tranche 2)
@@ -111,6 +104,7 @@ const {
   matieres,
   loading,
   error,
+  mentionKlassci,
   hideExpired,
   filters,
   expiredWithoutOnlineCount,
@@ -182,59 +176,18 @@ onMounted(() => {
   margin: 0.25rem 0 0 0;
 }
 
-/* Error State */
-.error-state {
-  background: var(--correction-red-100);
-  border: 1px solid var(--correction-red-200);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.error-content {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.error-icon {
-  font-size: 2rem;
-  line-height: 1;
-}
-
-.error-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--correction-red-600);
-  margin: 0 0 0.25rem 0;
-}
-
-.error-message {
-  font-size: 0.875rem;
-  color: var(--correction-red-700);
+/* #420 : mention d'accès KLASSCI. Vide, elle ne prend aucune place ; jamais masquée. */
+.klassci-mention {
   margin: 0;
 }
 
-.btn-retry {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
-  background: var(--red-600);
-  color: white;
-  border: none;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-retry:hover {
-  background: var(--red-700);
+.klassci-mention--visible {
+  background: var(--info-bg);
+  border: 1px solid var(--info-border);
+  color: var(--info-text);
+  border-radius: 0.75rem;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 /* Evaluations List */

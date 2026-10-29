@@ -3,12 +3,19 @@ import klassciService from '@/services/klassci'
 import evaluationService from '@/services/evaluation'
 import { fetchTeacherMatieres } from '@/services/teacherReferentials'
 import { readCache, writeCache } from '@/services/cache'
+import { normalizeError } from '@/services/errorHandler'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 import {
   mergeWithOnlineVersions,
   isExpiredWithoutOnline,
   filterEvaluations,
   computeEvaluationStats
 } from '@/utils/evaluations'
+
+// #420 : un compte sans aucun accès KLASSCI n'est pas une panne. Son constat (message du
+// catalogue, source unique) va dans `mentionKlassci` ; l'état d'erreur reste aux pannes.
+const sansAccesKlassci = (err) => normalizeError(err).category === 'klassciTokenMissing'
+const MENTION_SANS_ACCES_KLASSCI = ERROR_MESSAGES.klassciTokenMissing
 
 /**
  * Composable de données des évaluations enseignant (#28, tranche 2).
@@ -26,6 +33,7 @@ export function useTeacherEvaluations() {
   const matieres = ref([])
   const loading = ref(true)
   const error = ref(null)
+  const mentionKlassci = ref('')
   const hideExpired = ref(true) // masquer par défaut les expirées sans version en ligne
 
   const filters = reactive({
@@ -82,6 +90,16 @@ export function useTeacherEvaluations() {
     }
   }
 
+  /**
+   * Évaluations KLASSCI, avec repli sur le dashboard enseignant.
+   *
+   * #420 : trois issues distinctes, que l'écran ne confond plus.
+   *  - Ce compte n'a aucun accès KLASSCI (`reason` serveur, jamais le mode de
+   *    l'établissement) → mention vraie, sans repli : le dashboard vient de la
+   *    même source et serait refusé pour la même cause.
+   *  - Panne, repli compris → l'échec d'origine REMONTE, et loadData le dit.
+   *  - Sinon, la liste reçue, même vide.
+   */
   async function loadEvaluationsKlassci() {
     try {
       const result = await klassciService.getEvaluations(filters)
@@ -89,16 +107,27 @@ export function useTeacherEvaluations() {
         evaluationsKlassci.value = result.data
       }
     } catch (err) {
+      if (sansAccesKlassci(err)) {
+        mentionKlassci.value = MENTION_SANS_ACCES_KLASSCI
+        return
+      }
       console.error('[ERREUR] Chargement évaluations KLASSCI, fallback dashboard:', err)
       // Fallback : dashboard enseignant
+      let dashboard
       try {
-        const dashboard = await klassciService.getTeacherDashboard()
-        if (dashboard && dashboard.evaluations) {
-          evaluationsKlassci.value = dashboard.evaluations
-        }
+        dashboard = await klassciService.getTeacherDashboard()
       } catch (dashboardError) {
+        if (sansAccesKlassci(dashboardError)) {
+          mentionKlassci.value = MENTION_SANS_ACCES_KLASSCI
+          return
+        }
         console.error('[ERREUR] Fallback dashboard:', dashboardError)
+        throw err
       }
+      // Un dashboard refusé (`success` faux → null) ne prouve pas l'absence
+      // d'évaluations : c'est encore la panne d'origine.
+      if (!dashboard || !Array.isArray(dashboard.evaluations)) throw err
+      evaluationsKlassci.value = dashboard.evaluations
     }
   }
 
@@ -133,12 +162,15 @@ export function useTeacherEvaluations() {
   async function loadData() {
     loading.value = true
     error.value = null
+    // Avant tout await : la mention d'un chargement précédent ne survit pas au suivant.
+    mentionKlassci.value = ''
     try {
       await Promise.all([loadClasses(), loadMatieres()])
       await Promise.all([loadEvaluationsKlassci(), loadEvaluationsLMS()])
     } catch (err) {
       console.error('[ERREUR] Chargement données:', err)
-      error.value = 'Impossible de charger les évaluations. Veuillez réessayer.'
+      // Message du catalogue (fail-secure) : une panne KLASSCI dit « réessayez ».
+      error.value = normalizeError(err).userMessage
     } finally {
       loading.value = false
     }
@@ -162,6 +194,7 @@ export function useTeacherEvaluations() {
     matieres,
     loading,
     error,
+    mentionKlassci,
     hideExpired,
     filters,
     // dérivés
