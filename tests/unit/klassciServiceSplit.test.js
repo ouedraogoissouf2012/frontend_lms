@@ -49,7 +49,7 @@ const DOMAINS = {
 const PUBLIC_API = Object.values(DOMAINS).flatMap((d) => d.methods)
 
 describe('klassci.js — split par domaine (G9)', () => {
-  beforeEach(() => getMock.mockReset())
+  beforeEach(() => { getMock.mockReset() })
 
   it('chaque module domaine porte exactement ses méthodes', () => {
     for (const [name, { svc, methods }] of Object.entries(DOMAINS)) {

@@ -8,7 +8,7 @@ vi.mock('@/services/klassci', () => ({
 import { fetchTeacherMatieres } from '@/services/teacherReferentials'
 
 describe('fetchTeacherMatieres (#315 — source + forme canoniques de teacher_matieres)', () => {
-  beforeEach(() => getMatieres.mockReset())
+  beforeEach(() => { getMatieres.mockReset() })
 
   it('retourne le tableau de getMatieres (déjà normalisé à la frontière #343)', async () => {
     getMatieres.mockResolvedValue([{ id: 1, nom: 'Maths' }, { id: 2, nom: 'Physique' }])

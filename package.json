@@ -15,6 +15,7 @@
     "test:coverage": "vitest run --coverage",
     "test:contract": "node tests/contract/run-contract.mjs",
     "lint": "eslint src",
+    "lint:tests": "eslint tests",
     "lint:css": "node scripts/lint-css.mjs",
     "lint:css:baseline": "node scripts/lint-css.mjs --update",
     "lint:size": "node scripts/check-file-size.mjs",
@@ -27,6 +28,8 @@
     "lint:klassci-fixtures:baseline": "node scripts/lint-klassci-fixtures.mjs --update",
     "lint:cles": "node scripts/lint-cles-inexistantes.mjs",
     "lint:cles:baseline": "node scripts/lint-cles-inexistantes.mjs --update",
+    "lint:proprietes": "node scripts/lint-proprietes-non-definies.mjs",
+    "lint:proprietes:baseline": "node scripts/lint-proprietes-non-definies.mjs --update",
     "lint:api-contract": "node scripts/lint-api-contract.mjs",
     "lint:api-contract:baseline": "node scripts/lint-api-contract.mjs --update",
     "lint:fonts": "node scripts/check-dist-fonts.mjs"
