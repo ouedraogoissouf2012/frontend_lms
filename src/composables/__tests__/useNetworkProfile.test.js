@@ -16,7 +16,7 @@ function poserConnexion(valeur) {
   Object.defineProperty(navigator, 'connection', { value: valeur, configurable: true })
 }
 
-beforeEach(() => localStorage.clear())
+beforeEach(() => { localStorage.clear() })
 afterEach(() => { poserConnexion(undefined); vi.unstubAllGlobals() })
 
 describe('useNetworkProfile (#328)', () => {
