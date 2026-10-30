@@ -2,9 +2,16 @@
 # fichier seul ; les ALERTES et les mises à jour DE SÉCURITÉ demandent en plus un réglage du
 # dépôt (Settings → Code security), réservé au propriétaire.
 #
-# Cible `dev` (branche d'intégration, protégée). Une PR par écosystème et par semaine, au
-# plus, pour qu'aucune vague ne noie la revue : le regroupement réunit les mises à jour,
-# la limite borne ce qui reste ouvert.
+# Cible `dev` (branche d'intégration, protégée). Les groupes ne réunissent que les montées
+# MINEURES et CORRECTIVES (`update-types`) : sans cette clé, un groupe prend aussi les
+# majeures, et une même PR mélangeait pinia 2 → 4, vite 6 → 8 et des correctifs (#456,
+# #457). Une montée MAJEURE arrive donc seule, dans sa propre PR, pour être revue une par
+# une. Elle n'est pas ignorée : une majeure ignorée devient invisible.
+#
+# La limite borne ce qui reste ouvert. Elle compte groupes ET majeures : à 2, les deux
+# groupes l'occupaient et aucune majeure n'apparaissait jamais. Les mises à jour de
+# sécurité ne sont pas groupées (`applies-to` vaut `version-updates` par défaut) et ont
+# leur propre plafond.
 version: 2
 updates:
   - package-ecosystem: npm
@@ -13,12 +20,18 @@ updates:
     schedule:
       interval: weekly
       day: monday
-    open-pull-requests-limit: 2
+    open-pull-requests-limit: 5
     groups:
       dependances-prod:
         dependency-type: production
+        update-types:
+          - minor
+          - patch
       dependances-dev:
         dependency-type: development
+        update-types:
+          - minor
+          - patch
     commit-message:
       prefix: chore(deps)
 
@@ -28,10 +41,13 @@ updates:
     schedule:
       interval: weekly
       day: monday
-    open-pull-requests-limit: 1
+    open-pull-requests-limit: 3
     groups:
       actions:
         patterns:
           - '*'
+        update-types:
+          - minor
+          - patch
     commit-message:
       prefix: chore(ci)

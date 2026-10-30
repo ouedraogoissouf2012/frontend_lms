@@ -95,7 +95,7 @@ defineEmits(['change'])
 .filter-select {
   padding: var(--spacing-sm) var(--spacing-md);
   background: var(--bg-primary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-md);
   font-size: 0.875rem;
   color: var(--text-primary);

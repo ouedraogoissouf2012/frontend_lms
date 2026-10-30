@@ -85,7 +85,7 @@ defineEmits(['close-confirm', 'submit', 'return'])
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  border: 2px solid var(--border-color, #d1d5db);
+  border: 2px solid var(--border-primary);
   background: var(--card-bg);
   color: var(--text-secondary);
   border-radius: 0.5rem;

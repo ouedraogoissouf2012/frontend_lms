@@ -85,7 +85,7 @@ defineEmits(['edit', 'delete', 'save', 'cancel', 'open-quiz-editor', 'open-quiz-
 
 .chapter-block {
   background: var(--card-bg);
-  border: 3px solid var(--border-color);
+  border: 3px solid var(--border-primary);
   border-left: 6px solid var(--color-primary, var(--emerald-500));
   border-radius: 12px;
   margin-bottom: 24px;
@@ -126,7 +126,7 @@ defineEmits(['edit', 'delete', 'save', 'cancel', 'open-quiz-editor', 'open-quiz-
 .btn-delete {
   padding: 6px 12px;
   font-size: 0.8125rem;
-  border: 3px solid var(--border-color);
+  border: 3px solid var(--border-primary);
   border-radius: 6px;
   background: var(--card-bg);
   cursor: pointer;

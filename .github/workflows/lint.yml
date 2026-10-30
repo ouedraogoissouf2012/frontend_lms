@@ -177,6 +177,26 @@ jobs:
       - name: Check for reads of keys the API never sends
         run: npm run lint:cles
 
+  lint-proprietes:
+    name: Proprietes CSS non definies guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      # `var(--x)` d'une propriete definie nulle part est invalide au calcul :
+      # la declaration qui la lit retombe sur ses valeurs initiales, sans aucune
+      # erreur. Les bordures en `var(--border-color)` n'etaient ainsi pas
+      # dessinees du tout (#442). Le script n'importe que des modules de Node :
+      # pas de `npm ci`.
+      - name: Check for reads of CSS custom properties defined nowhere
+        run: npm run lint:proprietes
+
   lint-api-contract:
     name: API contract guard (front vs backend spec)
     runs-on: ubuntu-latest
@@ -227,6 +247,9 @@ jobs:
 
       - name: Lint JS/Vue
         run: npm run lint
+
+      - name: Lint des tests (hooks de test en bloc)
+        run: npm run lint:tests
 
   test:
     name: Tests unitaires (Vitest)

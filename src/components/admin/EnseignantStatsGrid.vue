@@ -80,7 +80,7 @@ const safeStats = computed(() => ({
 
 .stat-detail-card {
   background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
   padding: var(--spacing-md);
   display: flex;

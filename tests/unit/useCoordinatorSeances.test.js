@@ -34,7 +34,8 @@ describe('useCoordinatorSeances (G7)', () => {
     vi.clearAllMocks()
     mockReadCacheStale.mockReturnValue({ data: null, fresh: false })
     mockGetClasses.mockResolvedValue([])
-    mockGetEnseignants.mockResolvedValue({ success: true, data: [] })
+    // lmsTeachers.getEnseignants déballe à la frontière : il rend le TABLEAU.
+    mockGetEnseignants.mockResolvedValue([])
     mockGetUpcoming.mockResolvedValue({ success: true, data: [] })
   })
 
@@ -55,15 +56,15 @@ describe('useCoordinatorSeances (G7)', () => {
     expect(c.classes.value).toHaveLength(2)
   })
 
-  it('loadEnseignants remplit enseignants quand success', async () => {
-    mockGetEnseignants.mockResolvedValue({ success: true, data: [{ id: 7 }] })
+  it('loadEnseignants remplit enseignants avec le tableau rendu par le service', async () => {
+    mockGetEnseignants.mockResolvedValue([{ id: 7 }])
     const c = useCoordinatorSeances()
     await c.loadEnseignants()
     expect(c.enseignants.value).toEqual([{ id: 7 }])
   })
 
-  it('loadEnseignants ignore une réponse non-success', async () => {
-    mockGetEnseignants.mockResolvedValue({ success: false })
+  it('loadEnseignants garde la liste vide si le service rejette', async () => {
+    mockGetEnseignants.mockRejectedValue(new Error('down'))
     const c = useCoordinatorSeances()
     await c.loadEnseignants()
     expect(c.enseignants.value).toEqual([])

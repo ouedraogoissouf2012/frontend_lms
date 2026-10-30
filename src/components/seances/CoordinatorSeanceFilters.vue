@@ -108,7 +108,7 @@ defineEmits(['change'])
   width: 100%;
   padding: 0.625rem;
   background: var(--input-bg);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 0.5rem;
   color: var(--text-primary);
   font-size: 0.875rem;

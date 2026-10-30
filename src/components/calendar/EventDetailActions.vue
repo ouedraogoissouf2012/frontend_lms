@@ -132,7 +132,7 @@ defineEmits(['action'])
 <style scoped>
 .modal-footer {
   padding: 1.5rem;
-  border-top: 1px solid var(--border-color, #e5e7eb);
+  border-top: 1px solid var(--border-primary);
   background: var(--bg-secondary);
 }
 
@@ -185,7 +185,7 @@ defineEmits(['action'])
 .action-btn.secondary {
   background: var(--bg-secondary);
   color: var(--text-primary);
-  border: 1px solid var(--border-color, #e5e7eb);
+  border: 1px solid var(--border-primary);
 }
 
 .action-btn.secondary:hover {

@@ -32,6 +32,10 @@ const REASON_CATEGORIES = Object.freeze({
   actor_not_authorized: 'visioRoleRefused',
   invalid_role: 'visioRoleRefused',
   tenant_not_resolved: 'visioNoInstitution',
+  // #420 : 401 d'une route adossée à KLASSCI quand ce compte n'a AUCUN accès KLASSCI
+  // (compte local, école autonome). Ni une session LMS morte, ni une session KLASSCI
+  // expirée : se reconnecter n'y change rien (contrat `KlassciUnauthorized`).
+  klassci_token_missing: 'klassciTokenMissing',
 })
 
 /** Catégorie d'erreur depuis le code HTTP. */
@@ -142,6 +146,16 @@ export function normalizeError(error) {
  * @param {string} [context] - libellé technique pour les journaux (jamais affiché).
  * @returns {Error}
  */
+/**
+ * Requête annulée par l'appelant (AbortController → `signal`) : ce n'est PAS un échec
+ * à montrer — une requête plus récente l'a remplacée. Axios pose `ERR_CANCELED`.
+ * @param {unknown} error
+ * @returns {boolean}
+ */
+export function isCanceled(error) {
+  return error?.code === 'ERR_CANCELED' || error?.name === 'CanceledError'
+}
+
 export function invalidResponseError(context = '') {
   const error = new Error(context ? `Réponse inattendue : ${context}` : 'Réponse inattendue')
   error.userMessage = ERROR_MESSAGES.unknown
@@ -160,7 +174,9 @@ export function invalidResponseError(context = '') {
  * EXCEPTION : un 401 lié à la session KLASSCI (appels proxy, token KLASSCI
  * manquant/expiré) ne doit PAS éjecter la session LMS — l'utilisateur peut se
  * ré-authentifier auprès de KLASSCI sans perdre sa session LMS. On l'identifie
- * par l'URL `/proxy/`, le `reason: 'klassci_session_expired'` ou un message KLASSCI.
+ * par l'URL `/proxy/`, le `reason` serveur — `klassci_session_expired`, ou
+ * `klassci_token_missing` (#420 : ce compte n'a aucun accès KLASSCI ; règle
+ * explicite pour toute route adossée à KLASSCI, `/proxy/` ou non) — ou un message KLASSCI.
  *
  * Fonction PURE, ne lève jamais.
  *
@@ -176,6 +192,7 @@ export function shouldForceLogout(error) {
   // Exceptions KLASSCI : ne pas éjecter la session LMS pour un souci KLASSCI.
   if (url.includes('/proxy/')) return false
   if (data.reason === 'klassci_session_expired') return false
+  if (data.reason === 'klassci_token_missing') return false
   if (/klassci/i.test(String(data.message ?? ''))) return false
 
   // Tout autre 401 = session Sanctum invalide/expirée → déconnexion.

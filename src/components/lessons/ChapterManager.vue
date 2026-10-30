@@ -123,7 +123,7 @@ const {
 <style scoped>
 .chapter-manager-professional {
   background: var(--card-bg);
-  border: 3px solid var(--border-color);
+  border: 3px solid var(--border-primary);
   border-radius: 12px;
   padding: 0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -132,7 +132,7 @@ const {
 /* Header */
 .chapters-header {
   padding: 24px 24px 16px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .chapters-title {
@@ -160,7 +160,7 @@ const {
 .spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid var(--border-color);
+  border: 3px solid var(--border-primary);
   border-top-color: var(--color-primary, var(--emerald-500));
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -184,7 +184,7 @@ const {
   text-align: center;
   max-width: 400px;
   width: 90%;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
 }
 
 :deep(.chapter-upload-body) {

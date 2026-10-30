@@ -102,7 +102,7 @@ const { productName, copyright } = useBrand()
   align-items: center;
   justify-content: space-between;
   padding: 1rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-primary);
   background: var(--bg-secondary);
 }
 
@@ -149,7 +149,7 @@ const { productName, copyright } = useBrand()
 /* Footer */
 .sidebar-footer {
   padding: 1rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-primary);
   background: var(--bg-secondary);
 }
 
@@ -199,7 +199,7 @@ const { productName, copyright } = useBrand()
 }
 
 .mobile-sidebar::-webkit-scrollbar-thumb {
-  background: var(--border-color);
+  background: var(--scrollbar-thumb);
   border-radius: 3px;
 }
 
