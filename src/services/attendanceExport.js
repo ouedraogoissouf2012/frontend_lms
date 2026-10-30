@@ -53,12 +53,18 @@ export const attendanceExportService = {
     })
   },
 
-  /** Exporte les présences en Excel (.xlsx). */
+  /**
+   * Exporte les présences en Excel. Le serveur rend du SpreadsheetML 2003 (XML),
+   * en `application/vnd.ms-excel`, nommé `.xls` (SeanceAttendanceExportService:74-101 ;
+   * spec #991) : un nom en `.xlsx` annonçait une archive zip que ces octets ne
+   * sont pas. Le nom n'est pas lu dans Content-Disposition :
+   * l'API ne l'expose pas aux autres origines (config/cors.php:31).
+   */
   exportExcel(seanceId) {
     return downloadPresenceExport(seanceId, {
       format: 'excel',
-      accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      extension: 'xlsx',
+      accept: 'application/vnd.ms-excel',
+      extension: 'xls',
       errorLabel: 'Erreur lors du téléchargement du fichier Excel'
     })
   }

@@ -33,8 +33,8 @@ defineEmits(['close'])
   width: 100%;
   max-width: 320px;
   background: var(--card-bg);
-  border-left: 1px solid var(--border-color);
-  border-bottom: 1px solid var(--border-color);
+  border-left: 1px solid var(--border-primary);
+  border-bottom: 1px solid var(--border-primary);
   box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.1);
   z-index: 1002;
   max-height: calc(100vh - 56px - 56px);
@@ -46,7 +46,7 @@ defineEmits(['close'])
   align-items: center;
   justify-content: space-between;
   padding: 1rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .panel-title {

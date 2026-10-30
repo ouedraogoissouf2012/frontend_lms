@@ -5,6 +5,7 @@ import { useConfirm } from '@/composables/useConfirm'
 import { normalizeError } from '@/services/errorHandler'
 import knowledgeCheckService from '@/services/knowledgeCheck'
 import { createEmptyChapter, buildChapterPayload } from '@/utils/chapterManager'
+import { useChapterQuizzes } from '@/composables/useChapterQuizzes'
 import { endpoints } from '@/services/endpoints'
 
 /**
@@ -13,20 +14,24 @@ import { endpoints } from '@/services/endpoints'
  * Reprend VERBATIM la logique de l'ancien god-component Options API : CRUD des
  * chapitres d'une leçon (`/lessons/:id/chapters`, `/chapters/:id`), upload de
  * média avec progression, et gestion des « knowledge checks » (quiz) par
- * chapitre (chargement, éditeur, lecteur). Le composant ne fait plus que câbler.
+ * chapitre (éditeur, lecteur ; le chargement vit dans useChapterQuizzes). Le
+ * composant ne fait plus que câbler.
  *
  * @param {import('vue').Ref<number>} lessonId — id de la leçon (ref réactive).
  */
 export function useChapterManager(lessonId) {
   const chapters = ref([])
   const loading = ref(false)
+  // Message du catalogue quand la liste n'a pas pu être lue : elle est alors
+  // INCONNUE, pas vide — l'écran ne propose pas d'ajouter (doublons possibles).
+  const loadError = ref(null)
   const saving = ref(false)
   const uploadingFile = ref(false)
   const uploadProgress = ref(0)
   const uploadStatus = ref('')
   const nextTempId = ref(1)
   // Knowledge Checks
-  const knowledgeChecks = ref({})
+  const { knowledgeChecks, loadKnowledgeChecks, loadAllKnowledgeChecks, isQuizUnknown, getChapterQuiz } = useChapterQuizzes()
   const showQuizEditor = ref(false)
   const showQuizPlayer = ref(false)
   const selectedChapterId = ref(null)
@@ -35,6 +40,7 @@ export function useChapterManager(lessonId) {
 
   async function loadChapters() {
     loading.value = true
+    loadError.value = null
     try {
       const response = await api.get(endpoints.chapters.ofLesson(lessonId.value))
       if (response.success) {
@@ -50,6 +56,7 @@ export function useChapterManager(lessonId) {
       }
     } catch (error) {
       console.error('[ChapterManager] Erreur chargement:', error)
+      loadError.value = error.userMessage ?? normalizeError(error).userMessage
     } finally {
       loading.value = false
     }
@@ -180,25 +187,6 @@ export function useChapterManager(lessonId) {
   // =====================
   // Knowledge Checks
   // =====================
-  async function loadKnowledgeChecks(chapterId) {
-    try {
-      const response = await knowledgeCheckService.getByChapter(chapterId)
-      if (response.success) {
-        knowledgeChecks.value[chapterId] = response.data
-      }
-    } catch (error) {
-      console.error('[ChapterManager] Erreur chargement quiz:', error)
-    }
-  }
-
-  async function loadAllKnowledgeChecks() {
-    for (const chapter of chapters.value) {
-      if (chapter.id) {
-        await loadKnowledgeChecks(chapter.id)
-      }
-    }
-  }
-
   function openQuizEditor(chapterId, quiz = null) {
     selectedChapterId.value = chapterId
     editingQuiz.value = quiz
@@ -254,12 +242,6 @@ export function useChapterManager(lessonId) {
     }
   }
 
-  // Retourne le premier quiz du chapitre (pour type quiz)
-  function getChapterQuiz(chapterId) {
-    const quizzes = knowledgeChecks.value[chapterId]
-    return quizzes && quizzes.length > 0 ? quizzes[0] : null
-  }
-
   watch(chapters, (newChapters) => {
     // Charger les quiz pour tous les chapitres
     newChapters.forEach(ch => {
@@ -274,12 +256,13 @@ export function useChapterManager(lessonId) {
   })
 
   return {
-    chapters, loading, saving, uploadingFile, uploadProgress, uploadStatus,
+    chapters, loading, loadError, saving, uploadingFile, uploadProgress, uploadStatus,
     knowledgeChecks, showQuizEditor, showQuizPlayer, selectedChapterId,
     selectedQuiz, editingQuiz,
     loadChapters, addChapter, editChapter, cancelEdit, saveChapter, uploadFile,
-    deleteChapter, restoreChapter, loadKnowledgeChecks, loadAllKnowledgeChecks, openQuizEditor,
+    deleteChapter, restoreChapter, loadKnowledgeChecks,
+    loadAllKnowledgeChecks: () => loadAllKnowledgeChecks(chapters.value), openQuizEditor,
     closeQuizEditor, onQuizSaved, openQuizPlayer, closeQuizPlayer, onQuizCompleted,
-    deleteKnowledgeCheck, getChapterQuiz
+    deleteKnowledgeCheck, getChapterQuiz, isQuizUnknown
   }
 }

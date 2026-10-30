@@ -164,7 +164,7 @@ async function onPeriode() {
 .banner,
 .card {
   background: var(--card-bg);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
   margin-bottom: var(--spacing-md);
@@ -184,7 +184,7 @@ async function onPeriode() {
   padding: var(--spacing-sm);
   color: var(--text-primary);
   background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-md);
 }
 </style>

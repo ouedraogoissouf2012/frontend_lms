@@ -33,4 +33,14 @@ describe('GlobalSearchModal (G6) — montage', () => {
     expect(document.body.querySelector('.search-modal')).not.toBeNull()
     expect(document.body.querySelector('.search-input')).not.toBeNull()
   })
+
+  it('ouvert : la région qui annonce un échec existe déjà, vide, en role="status"', async () => {
+    mount(GlobalSearchModal, { props: { modelValue: true }, attachTo: document.body })
+    await flushPromises()
+    const region = document.body.querySelector('[data-test="erreur-recherche"]')
+    expect(region).not.toBeNull()
+    expect(region.getAttribute('role')).toBe('status')
+    expect(region.textContent.trim()).toBe('')
+    expect(region.getAttribute('style')).toBeNull()
+  })
 })

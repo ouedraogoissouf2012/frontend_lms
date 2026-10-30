@@ -86,6 +86,13 @@ export function jitsiConfigOverwrite(profile = readNetworkProfile()) {
       video: { height: { ideal: profile.videoHeight, max: profile.videoHeight, min: 180 } },
     },
     videoQuality: { maxBitratesVideo: { low: profile.maxBitrateBps } },
+    // #415 — la video de soi n'est JAMAIS masquee, et on le dit (false, pas une
+    // cle absente). Jitsi copie cette cle de la config dans ses reglages
+    // PERSISTES (base/config/middleware.any.ts:76-80, tag stable/jitsi-meet_11248)
+    // et les combine par un OU (getHideSelfView) : un seul `true` pose un jour
+    // laissait l'ecran noir dans tous les modes suivants. La masquer n'economise
+    // d'ailleurs rien : la vignette montre le flux LOCAL, hors reseau.
+    disableSelfView: false,
   }
 }
 
@@ -155,28 +162,19 @@ export function jitsiConfigForMode(mode, profile = readNetworkProfile()) {
   const base = jitsiConfigOverwrite(profile)
   const flux = FLUX_PAR_MODE[mode]
 
-  // Mode complet : on POSE les deux cles a faux, on ne les tait pas.
-  //
-  // Jitsi combine son reglage avec celui qu'il a MEMORISE dans le navigateur.
-  // Preuve, dans le bundle deploye (app.bundle.min.js, 9365) :
-  //
-  //   disableSelfView || e["features/base/settings"].disableSelfView || ...
-  //
-  // Omettre la cle laissait donc gagner le reglage memorise. Mesure en
-  // production le 2026-09-17 : un enseignant ayant rejoint une fois en mode
-  // econome gardait sa video MASQUEE dans tous les modes suivants - ecran
-  // entierement noir, camera activee, aucun message.
-  //
-  // Et c'est ce que l'ecran PROMET : « Votre camera est active ».
+  // Mode complet : la camera est POSEE active, pas tue. C'est ce que l'ecran
+  // promet (« Votre camera est active »). La video de soi, elle, n'est masquee
+  // dans aucun mode : `base` la pose a faux (#415).
   if (flux === null || flux === undefined) {
-    return { ...base, startWithVideoMuted: false, disableSelfView: false }
+    return { ...base, startWithVideoMuted: false }
   }
 
+  // Modes econome et audio : l'economie tient a ce qui est ENVOYE
+  // (`startWithVideoMuted`) et RECU (`channelLastN`) - jamais a la vignette locale.
   return {
     ...base,
     channelLastN: flux,
     startWithVideoMuted: true,
-    disableSelfView: true,
     ...(mode === VISIO_MODES.AUDIO ? { startLowBandwidthMode: true } : {}),
   }
 }
