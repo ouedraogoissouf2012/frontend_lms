@@ -95,7 +95,7 @@ function handleFileSelect(event) {
   width: 100%;
   padding: 10px 12px;
   font-size: 0.875rem;
-  border: 3px solid var(--border-color);
+  border: 3px solid var(--border-primary);
   border-radius: 8px;
   margin-bottom: 12px;
   background-color: rgba(0, 0, 0, 0.03);

@@ -33,7 +33,7 @@ defineProps({ classes: { type: Array, default: () => [] } })
 
 .classe-detail-card {
   background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-md);
   padding: var(--spacing-md);
   display: flex;

@@ -68,6 +68,8 @@ describe('useNotifications — déduplication au montage', () => {
     mockService.getRecentNotifications.mockResolvedValue([
       { id: 1, is_unread: true }, { id: 2, is_unread: false },
     ])
+    // Le compte du badge vient du compteur du serveur, plus du comptage de la liste.
+    mockService.getUnreadCount.mockResolvedValue(1)
 
     let a, b
     const A = defineComponent({ setup() { a = useNotifications({ autoCheck: false }); return () => null } })

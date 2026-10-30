@@ -90,7 +90,7 @@ defineEmits(['sort', 'select'])
 
 .users-table-wrapper {
   background: var(--card-bg);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-xl);
   overflow: hidden;
 }
@@ -112,7 +112,7 @@ defineEmits(['sort', 'select'])
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-primary);
   white-space: nowrap;
 }
 
@@ -132,7 +132,7 @@ defineEmits(['sort', 'select'])
 
 .users-table td {
   padding: 12px 16px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-primary);
   font-size: var(--font-size-sm);
   color: var(--text-primary);
 }
@@ -181,7 +181,7 @@ defineEmits(['sort', 'select'])
 .action-btn {
   padding: 6px 10px;
   background: transparent;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-md);
   color: var(--text-secondary);
   cursor: pointer;
@@ -200,13 +200,13 @@ defineEmits(['sort', 'select'])
   justify-content: center;
   gap: var(--spacing-sm);
   padding: var(--spacing-lg);
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-primary);
 }
 
 .page-btn {
   padding: 8px 12px;
   background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-md);
   color: var(--text-primary);
   cursor: pointer;

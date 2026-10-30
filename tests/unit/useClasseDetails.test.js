@@ -47,7 +47,7 @@ describe('useClasseDetails (#H9)', () => {
     vi.clearAllMocks()
     session.role = 'enseignant'
     getClasseEtudiants.mockResolvedValue({ success: true, data: { etudiants: [{ id: 1 }] } })
-    getUpcomingSeances.mockResolvedValue({ success: true, data: { seances: [] } })
+    getUpcomingSeances.mockResolvedValue({ success: true, data: [], meta: {} }) // forme serveur : data EST la liste
   })
 
   it('charge la classe au montage avec id de route, puis matieres + etudiants', async () => {

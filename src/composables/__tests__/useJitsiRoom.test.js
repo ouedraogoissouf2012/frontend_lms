@@ -14,7 +14,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 // Double de l'IFrame API, partagé avec les tests qui montent la salle (#416).
 import { ROOM, mountRoom } from '../../../tests/helpers/fakeJitsiApi'
 
-beforeEach(() => vi.useFakeTimers())
+beforeEach(() => { vi.useFakeTimers() })
 afterEach(() => vi.useRealTimers())
 
 describe('useJitsiRoom — montage', () => {

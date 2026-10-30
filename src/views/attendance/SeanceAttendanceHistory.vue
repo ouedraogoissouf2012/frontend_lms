@@ -122,7 +122,7 @@ const {
   padding: 1.5rem;
   background: var(--bg-secondary);
   border-radius: 1rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 

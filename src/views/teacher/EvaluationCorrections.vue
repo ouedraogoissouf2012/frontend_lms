@@ -89,7 +89,7 @@ const {
   padding: 0.5rem 1rem;
   background: var(--bg-secondary);
   color: var(--text-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 0.5rem;
   font-size: 0.875rem;
   font-weight: 500;

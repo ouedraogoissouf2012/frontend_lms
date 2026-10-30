@@ -60,25 +60,15 @@
       <div v-if="!loading" class="quick-stats">
         <h3 class="section-title">Aperçu rapide</h3>
         <div class="stats-grid">
-          <div class="stat-card">
-            <UsersIcon class="stat-icon text-blue-500" />
+          <div v-for="carte in apercu" :key="carte.label" class="stat-card">
+            <component :is="carte.icon" :class="['stat-icon', carte.iconClass]" />
             <div>
-              <p class="stat-value">{{ stats.etudiants }}</p>
-              <p class="stat-label">Étudiants total</p>
-            </div>
-          </div>
-          <div class="stat-card">
-            <CalendarIcon class="stat-icon text-orange-500" />
-            <div>
-              <p class="stat-value">{{ stats.seances }}</p>
-              <p class="stat-label">Séances programmées</p>
-            </div>
-          </div>
-          <div class="stat-card">
-            <ClipboardDocumentCheckIcon class="stat-icon text-green-500" />
-            <div>
-              <p class="stat-value">{{ stats.evaluations }}</p>
-              <p class="stat-label">Évaluations</p>
+              <!-- Non mesuré : « — » à l'œil, « non disponible » au lecteur d'écran. -->
+              <p class="stat-value">
+                <span :aria-hidden="carte.valeur === null ? 'true' : null">{{ formatCount(carte.valeur) }}</span>
+                <span v-if="carte.valeur === null" class="sr-only">non disponible</span>
+              </p>
+              <p class="stat-label">{{ carte.label }}</p>
             </div>
           </div>
         </div>
@@ -88,6 +78,8 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { formatCount } from '@/utils/formatters'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import HubCard from '@/components/admin/HubCard.vue'
@@ -102,6 +94,13 @@ import {
 } from '@heroicons/vue/24/outline'
 
 const { loading, error, stats } = useAdminHub()
+
+// `null` = NON MESURÉ (useAdminHub) : formatCount le rend « — », jamais 0.
+const apercu = computed(() => [
+  { label: 'Étudiants total', icon: UsersIcon, iconClass: 'text-blue-500', valeur: stats.value.etudiants },
+  { label: 'Séances programmées', icon: CalendarIcon, iconClass: 'text-orange-500', valeur: stats.value.seances },
+  { label: 'Évaluations', icon: ClipboardDocumentCheckIcon, iconClass: 'text-green-500', valeur: stats.value.evaluations },
+])
 </script>
 
 <style scoped>

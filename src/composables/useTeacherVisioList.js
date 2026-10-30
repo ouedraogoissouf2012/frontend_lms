@@ -208,7 +208,9 @@ export function useTeacherVisioList() {
       await joinTrackedVisio(seance)
     } catch (err) {
       console.error('[ERREUR] Join visio:', err)
-      error.value = err.message || 'Erreur lors de la connexion à la visio'
+      // Le motif du refus (catalogue, #452), puis le message propre au front ; jamais
+      // le texte technique d'une erreur HTTP. Même forme que useTeacherSeances.
+      error.value = err.userMessage ?? err.message ?? 'Erreur lors de la connexion à la visio'
     } finally {
       actionLoading.value = null
     }

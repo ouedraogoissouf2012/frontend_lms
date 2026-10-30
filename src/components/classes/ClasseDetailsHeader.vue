@@ -173,7 +173,7 @@ const titre = computed(() => (props.loading && !props.classe ? 'Chargement...' :
   padding: 0.625rem 1.25rem;
   background: var(--bg-secondary);
   color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 0.5rem;
   font-weight: 500;
   cursor: pointer;
@@ -197,7 +197,7 @@ const titre = computed(() => (props.loading && !props.classe ? 'Chargement...' :
   background: var(--bg-secondary);
   padding: 1rem;
   border-radius: 0.75rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   transition: all 0.2s;
 }
 

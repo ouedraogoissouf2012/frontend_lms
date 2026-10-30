@@ -93,7 +93,7 @@ function handleModelUpdate(value) {
   font-size: var(--font-size-sm);
 }
 .detail-item + .detail-item {
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-primary);
 }
 .detail-label {
   color: var(--text-secondary);

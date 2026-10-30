@@ -101,7 +101,7 @@ const {
   align-items: center;
   justify-content: space-between;
   padding: 1.25rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .header-left {
@@ -131,7 +131,7 @@ const {
 .view-btn {
   padding: 0.5rem 1rem;
   background: transparent;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 0.5rem;
   color: var(--text-secondary);
   font-size: 0.875rem;
@@ -169,7 +169,7 @@ const {
 
 :deep(.fc-button) {
   background: var(--bg-secondary) !important;
-  border: 1px solid var(--border-color) !important;
+  border: 1px solid var(--border-primary) !important;
   color: var(--text-primary) !important;
   padding: 0.5rem 1rem !important;
   font-weight: 600 !important;
