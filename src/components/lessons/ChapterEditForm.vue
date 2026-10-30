@@ -33,7 +33,9 @@
         v-if="chapter.content_type === 'quiz'"
         :chapter="chapter"
         :quiz="quiz"
+        :quiz-unknown="quizUnknown"
         @open-quiz-editor="(...args) => $emit('open-quiz-editor', ...args)"
+        @retry-quiz="$emit('retry-quiz', $event)"
       />
     </div>
 
@@ -69,10 +71,12 @@ defineProps({
   chapter: { type: Object, required: true },
   // Quiz du chapitre (résolu par le parent depuis knowledgeChecks), ou null.
   quiz: { type: Object, default: null },
+  // Quiz illisible (inconnu, pas absent) : relayé à ChapterQuizField.
+  quizUnknown: { type: Boolean, default: false },
   saving: { type: Boolean, default: false }
 })
 
-defineEmits(['save', 'cancel', 'open-quiz-editor'])
+defineEmits(['save', 'cancel', 'open-quiz-editor', 'retry-quiz'])
 </script>
 
 <style scoped>
