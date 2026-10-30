@@ -136,7 +136,7 @@ const {
   text-align: center;
   padding: var(--spacing-3xl);
   background: var(--card-bg);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-xl);
 }
 

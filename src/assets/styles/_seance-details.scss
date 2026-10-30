@@ -80,7 +80,7 @@ button:disabled {
 .bg-gray-50 {
   background: var(--bg-secondary) !important;
   color: var(--text-secondary) !important;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
 }
 
 /* Border colors */
@@ -93,7 +93,7 @@ button:disabled {
 }
 
 .border-gray-300 {
-  border-color: var(--border-color) !important;
+  border-color: var(--border-primary) !important;
 }
 
 /* Text colors orange */
@@ -103,11 +103,11 @@ button:disabled {
 
 /* Borders */
 .border {
-  border-color: var(--border-color) !important;
+  border-color: var(--border-primary) !important;
 }
 
 .border-gray-200 {
-  border-color: var(--border-color) !important;
+  border-color: var(--border-primary) !important;
 }
 
 /* Red/Error states */

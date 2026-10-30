@@ -122,7 +122,7 @@ function formatDuration(minutes) {
 
 .modal-table thead {
   background: var(--bg-secondary);
-  border-bottom: 2px solid var(--border-color);
+  border-bottom: 2px solid var(--border-primary);
 }
 
 .modal-table th {
@@ -136,7 +136,7 @@ function formatDuration(minutes) {
 }
 
 .modal-table tbody tr {
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-primary);
   transition: background-color 0.15s ease;
 }
 
@@ -213,7 +213,7 @@ function formatDuration(minutes) {
   padding: 1.5rem;
   background: var(--bg-secondary);
   border-radius: 0.5rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
 }
 
 .modal-stat-item {

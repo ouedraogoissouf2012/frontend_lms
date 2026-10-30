@@ -80,7 +80,7 @@ const safeMatieres = computed(() =>
 
 .matiere-detail-card {
   background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
   padding: var(--spacing-md);
 }
@@ -106,7 +106,7 @@ const safeMatieres = computed(() =>
   background: var(--card-bg);
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
 }
 
 .matiere-detail-stats {

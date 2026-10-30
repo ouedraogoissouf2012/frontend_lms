@@ -151,7 +151,7 @@ const {
 .spinner {
   width: 2rem;
   height: 2rem;
-  border: 3px solid var(--border-color);
+  border: 3px solid var(--border-primary);
   border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;

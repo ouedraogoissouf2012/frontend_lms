@@ -49,7 +49,7 @@ function isActive(path) {
   right: 0;
   height: 56px;
   background: var(--card-bg);
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-primary);
   display: flex;
   justify-content: space-around;
   align-items: center;

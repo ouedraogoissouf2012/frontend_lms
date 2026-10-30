@@ -69,7 +69,7 @@ defineEmits(['prev', 'next', 'goto', 'submit'])
   justify-content: space-between;
   gap: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-primary);
 }
 
 .nav-btn {
@@ -86,7 +86,7 @@ defineEmits(['prev', 'next', 'goto', 'submit'])
 
 .prev-btn {
   background: none;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   color: var(--text-secondary);
 }
 
@@ -134,7 +134,7 @@ defineEmits(['prev', 'next', 'goto', 'submit'])
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: 2px solid var(--border-color);
+  border: 2px solid var(--border-primary);
   background: var(--bg-primary);
   color: var(--text-secondary);
   font-size: 0.75rem;

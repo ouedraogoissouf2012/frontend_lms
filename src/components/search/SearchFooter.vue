@@ -37,7 +37,7 @@ defineProps({
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1.25rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-primary);
   background: var(--bg-secondary);
 }
 
@@ -55,7 +55,7 @@ defineProps({
 .shortcut kbd {
   padding: 0.25rem 0.5rem;
   background: var(--bg-primary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 0.25rem;
   font-size: 0.75rem;
   font-family: monospace;

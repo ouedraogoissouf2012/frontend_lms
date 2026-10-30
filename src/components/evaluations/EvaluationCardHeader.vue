@@ -60,7 +60,7 @@ function getStatusIcon(status) {
 .eval-header {
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .eval-title-section {
@@ -136,7 +136,7 @@ function getStatusIcon(status) {
 .status-badge-default {
   background: var(--bg-secondary);
   color: var(--text-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
 }
 
 .online-badge {
