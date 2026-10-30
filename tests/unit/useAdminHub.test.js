@@ -1,7 +1,8 @@
 /**
  * Test du composable useAdminHub (#G1 ≤300) : chargement parallèle des compteurs
- * (classes/matières/enseignants) et des stats du dashboard, avec tolérance aux
- * variantes de clés (total_* / nb_*). Service KLASSCI mocké.
+ * (classes/matières/enseignants) et des stats du dashboard, lues sous `data` comme
+ * le serveur les rend. Service KLASSCI mocké ; la traversée du vrai client HTTP est
+ * couverte par ecransFormeServeur.test.js.
  */
 import { mount, flushPromises } from '@vue/test-utils'
 import { defineComponent } from 'vue'
@@ -42,10 +43,11 @@ describe('useAdminHub (#G1)', () => {
     ])
     klassciMock.getMatieres.mockReset().mockResolvedValue([{ id: 1 }, { id: 2 }, { id: 3 }])
     klassciMock.getEnseignants.mockReset().mockResolvedValue([{ id: 1 }])
+    // Forme serveur (AdminDashboardService::aggregate) : compteurs SOUS `data`,
+    // sans aucun compteur de séances ni d'évaluations.
     dashboardMock.getStats.mockReset().mockResolvedValue({
-      quizzes: { total: 5 },
-      seances: { total: 8 },
-      users: { students: 42 },
+      success: true,
+      data: { users: { total: 50, students: 42, teachers: 8 }, quizzes: { total: 5, total_attempts: 9 } },
     })
   })
 
@@ -57,11 +59,11 @@ describe('useAdminHub (#G1)', () => {
     expect(h.loading.value).toBe(false)
   })
 
-  it('lit les stats dashboard avec tolérance des variantes de clés', async () => {
+  it('somme les classes KLASSCI ; séances et évaluations non mesurées (null), jamais le nombre de quiz', async () => {
     const h = await setup()
     expect(h.stats.value.etudiants).toBe(15) // somme des classes KLASSCI prioritaire
-    expect(h.stats.value.seances).toBe(8)
-    expect(h.stats.value.evaluations).toBe(5)
+    expect(h.stats.value.seances).toBeNull()
+    expect(h.stats.value.evaluations).toBeNull()
   })
 
   it('retombe sur dashboard.users.students si les classes ne portent pas de compteur étudiants', async () => {
@@ -76,7 +78,7 @@ describe('useAdminHub (#G1)', () => {
     expect(h.stats.value.classes).toBe(2)
     expect(h.stats.value.matieres).toBe(3)
     expect(h.stats.value.enseignants).toBe(1)
-    expect(h.stats.value.evaluations).toBe(0)
+    expect(h.stats.value.evaluations).toBeNull()
     expect(h.loading.value).toBe(false)
   })
 

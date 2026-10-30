@@ -63,7 +63,7 @@ describe('#760 — le nom de la route choisit la porte', () => {
     getClasseDetails.mockResolvedValue(REPONSE)
     getClasseDetailsLocal.mockResolvedValue(REPONSE)
     getClasseEtudiants.mockResolvedValue({ success: true, data: { etudiants: [] } })
-    getUpcomingSeances.mockResolvedValue({ success: true, data: { seances: [] } })
+    getUpcomingSeances.mockResolvedValue({ success: true, data: [], meta: {} }) // forme serveur : data EST la liste
   })
 
   it('sous la route LOCALE, interroge la porte locale et jamais celle de KLASSCI', async () => {
@@ -116,7 +116,7 @@ describe('#422 — les appels freres prennent l identifiant de la REPONSE', () =
   beforeEach(() => {
     vi.clearAllMocks()
     getClasseEtudiants.mockResolvedValue({ success: true, data: { etudiants: [{ id: 1 }] } })
-    getUpcomingSeances.mockResolvedValue({ success: true, data: { seances: [] } })
+    getUpcomingSeances.mockResolvedValue({ success: true, data: [], meta: {} }) // forme serveur : data EST la liste
   })
 
   it('sur la route locale, utilise classe.id et non l identifiant d URL', async () => {
