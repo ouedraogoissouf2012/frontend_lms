@@ -15,6 +15,7 @@
     "test:coverage": "vitest run --coverage",
     "test:contract": "node tests/contract/run-contract.mjs",
     "lint": "eslint src",
+    "lint:tests": "eslint tests",
     "lint:css": "node scripts/lint-css.mjs",
     "lint:css:baseline": "node scripts/lint-css.mjs --update",
     "lint:size": "node scripts/check-file-size.mjs",

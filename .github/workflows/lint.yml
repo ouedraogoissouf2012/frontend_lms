@@ -248,6 +248,9 @@ jobs:
       - name: Lint JS/Vue
         run: npm run lint
 
+      - name: Lint des tests (hooks de test en bloc)
+        run: npm run lint:tests
+
   test:
     name: Tests unitaires (Vitest)
     runs-on: ubuntu-latest
