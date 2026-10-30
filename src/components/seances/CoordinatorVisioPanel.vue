@@ -67,7 +67,7 @@ defineEmits(['show-participants', 'join'])
   margin-top: 1rem;
   padding: 1rem;
   background: var(--card-bg-dark);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 0.5rem;
 }
 

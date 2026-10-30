@@ -107,7 +107,7 @@ defineEmits(['close'])
   width: 3rem;
   height: 3rem;
   border-radius: 0.5rem;
-  border: 2px solid var(--border-color);
+  border: 2px solid var(--border-primary);
 }
 /* Detail Section */
 .detail-section {

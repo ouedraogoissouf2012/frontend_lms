@@ -103,7 +103,7 @@ function onTypeChange() {
 .form-input {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
   font-size: 0.9375rem;
   background: var(--bg-primary);
@@ -118,7 +118,7 @@ function onTypeChange() {
 
 .question-card {
   background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
   margin-bottom: 1rem;
   overflow: hidden;
@@ -135,7 +135,7 @@ function onTypeChange() {
   gap: 0.75rem;
   padding: 0.75rem 1rem;
   background: var(--bg-tertiary);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .drag-handle {
@@ -155,7 +155,7 @@ function onTypeChange() {
 .type-select {
   margin-left: auto;
   padding: 0.375rem 0.75rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 6px;
   background: var(--bg-primary);
   color: var(--text-primary);
@@ -187,7 +187,7 @@ function onTypeChange() {
 .points-input {
   width: 100%;
   padding: 0.5rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 6px;
   background: var(--bg-primary);
   color: var(--text-primary);

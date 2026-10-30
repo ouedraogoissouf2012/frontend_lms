@@ -28,7 +28,7 @@
   display: flex;
   gap: 1.5rem;
   padding: 1rem 1.25rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-primary);
   flex-wrap: wrap;
 }
 

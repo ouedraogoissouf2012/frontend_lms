@@ -51,7 +51,7 @@ const { insertTable, addLink, addImage, addYoutubeVideo } = useEditorToolbar(() 
 <style scoped>
 .toolbar-divider {
   width: 2px;
-  background: var(--border-color);
+  background: var(--border-primary);
   margin: 0 8px;
   align-self: stretch;
 }

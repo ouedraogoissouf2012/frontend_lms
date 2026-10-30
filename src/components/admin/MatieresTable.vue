@@ -104,7 +104,7 @@ defineEmits(['view'])
 
 /* Table Body */
 .modern-table tbody tr {
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-primary);
   transition: background-color 0.15s ease;
 }
 
@@ -121,7 +121,7 @@ defineEmits(['view'])
   color: var(--text-primary);
   font-size: 0.875rem;
   vertical-align: middle;
-  border-right: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-primary);
 }
 
 .modern-table td:last-child {

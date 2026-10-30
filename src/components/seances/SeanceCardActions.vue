@@ -128,7 +128,7 @@ function formatTime(dateTimeStr) {
 /* Seance Actions */
 .seance-actions {
   padding-top: 1.5rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-primary);
 }
 
 .action-section {
@@ -152,12 +152,12 @@ function formatTime(dateTimeStr) {
 
 .action-scheduled {
   background: var(--card-bg-dark);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
 }
 
 .action-active {
   background: var(--card-bg-dark);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
 }
 
 .action-title-active {
@@ -178,7 +178,7 @@ function formatTime(dateTimeStr) {
   align-items: center;
   gap: 1rem;
   background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
 }
 
 .action-info {

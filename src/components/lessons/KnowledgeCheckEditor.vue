@@ -108,7 +108,7 @@ const { saving, isEditing, quiz, isValid, addQuestion, removeQuestion, save } =
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .editor-title {
@@ -172,7 +172,7 @@ const { saving, isEditing, quiz, isValid, addQuestion, removeQuestion, save } =
 .form-input {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
   font-size: 0.9375rem;
   background: var(--bg-primary);
@@ -190,14 +190,14 @@ const { saving, isEditing, quiz, isValid, addQuestion, removeQuestion, save } =
   justify-content: flex-end;
   gap: 0.75rem;
   padding: 1rem 1.5rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-primary);
   background: var(--bg-secondary);
 }
 
 .cancel-btn {
   padding: 0.625rem 1.25rem;
   background: none;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.875rem;

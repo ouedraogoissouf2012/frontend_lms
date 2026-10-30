@@ -68,7 +68,7 @@ function formatDuration(minutes) {
   justify-content: space-between;
   align-items: flex-start;
   padding: 1.5rem 2rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-primary);
   background: var(--bg-secondary);
 }
 

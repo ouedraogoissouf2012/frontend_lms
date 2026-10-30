@@ -263,7 +263,7 @@ const hiddenCount = computed(() => Math.max(props.users.length - displayedUsers.
   gap: 1rem;
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-primary);
   color: var(--text-secondary);
   font-size: 0.875rem;
 }

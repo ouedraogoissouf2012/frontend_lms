@@ -43,13 +43,13 @@ defineEmits(['change-page'])
   justify-content: center;
   gap: 1rem;
   padding: 1.5rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-primary);
 }
 
 .pagination-btn {
   padding: 0.625rem 1.25rem;
   background: var(--bg-primary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 0.5rem;
   cursor: pointer;
   font-size: 0.875rem;
