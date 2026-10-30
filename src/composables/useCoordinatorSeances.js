@@ -1,7 +1,6 @@
 import { ref, reactive, computed } from 'vue'
 import lmsService from '@/services/lms'
 import { klassciService } from '@/services/klassci'
-import { extractList } from '@/utils/apiList'
 import { useCachedResource } from '@/composables/useCachedResource'
 
 /**
@@ -48,12 +47,10 @@ export function useCoordinatorSeances() {
   const loadEnseignants = async () => {
     try {
       console.log('[ENSEIGNANTS] Chargement...')
-      const response = await lmsService.getEnseignants()
-
-      if (response && response.success) {
-        enseignants.value = extractList(response)
-        console.log(`[OK] ${enseignants.value.length} enseignants chargés`)
-      }
+      // Le service rend déjà le TABLEAU, déballé à la frontière (lmsTeachers.js:24) :
+      // y chercher `success` laissait la liste des enseignants toujours vide.
+      enseignants.value = await lmsService.getEnseignants()
+      console.log(`[OK] ${enseignants.value.length} enseignants chargés`)
     } catch (err) {
       console.error('[ERREUR] Chargement enseignants:', err)
     }

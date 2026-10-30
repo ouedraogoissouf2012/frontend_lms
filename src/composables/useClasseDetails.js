@@ -152,8 +152,11 @@ export function useClasseDetails() {
   async function loadSeances() {
     try {
       const response = await lmsService.getUpcomingSeances({ classe_id: idPourKlassci(), days: 30 })
+      // `/lms/seances/upcoming` rend `{ success, data: [séances], meta }`
+      // (LMSSeancesListController::upcomingSeances) : la liste EST `data`.
+      // `data.seances` n'existe pas — l'onglet restait toujours vide.
       if (response && response.success) {
-        seances.value = response.data.seances || []
+        seances.value = asArray(response.data)
         console.log('[ClasseDetails] Séances à venir:', seances.value.length)
       }
     } catch (err) {
