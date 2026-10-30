@@ -6,16 +6,23 @@
       <p class="chapters-subtitle">Organisez votre leçon en chapitres. Chaque chapitre peut avoir un type de contenu différent.</p>
     </div>
 
+    <!-- Liste illisible : INCONNUE, pas vide. Région présente dès le montage. -->
+    <div role="alert">
+      <LoadRetryNotice v-if="loadError" :message="loadError" :busy="loading" @retry="loadChapters" />
+    </div>
+
     <!-- Loading state -->
     <ContentLoader v-if="loading" text="Chargement des chapitres..." />
 
-    <!-- Chapters List (#28 : extrait en sous-composant) -->
+    <!-- Chapters List (#28 : extrait en sous-composant) — jamais sur une liste inconnue
+         (« Ajouter un chapitre » y créerait des doublons). -->
     <ChapterList
-      v-else
+      v-else-if="!loadError"
       :chapters="chapters"
       :readonly="readonly"
       :saving="saving"
       :get-chapter-quiz="getChapterQuiz"
+      :is-quiz-unknown="isQuizUnknown"
       @edit="editChapter"
       @delete="deleteChapter"
       @save="saveChapter"
@@ -23,6 +30,7 @@
       @open-quiz-editor="openQuizEditor"
       @open-quiz-player="openQuizPlayer"
       @add="addChapter"
+      @retry-quiz="loadKnowledgeChecks"
     />
 
     <!-- Upload Progress Modal -->
@@ -95,6 +103,7 @@ import Modal from '@/components/ui/Modal.vue'
 import KnowledgeCheckEditor from '@/components/lessons/KnowledgeCheckEditor.vue'
 import KnowledgeCheckPlayer from '@/components/lessons/KnowledgeCheckPlayer.vue'
 import ChapterList from '@/components/lessons/ChapterList.vue'
+import LoadRetryNotice from '@/components/lessons/LoadRetryNotice.vue'
 import { useChapterManager } from '@/composables/useChapterManager'
 
 const props = defineProps({
@@ -103,11 +112,11 @@ const props = defineProps({
 })
 
 const {
-  chapters, loading, saving, uploadingFile, uploadProgress, uploadStatus,
+  chapters, loading, loadError, saving, uploadingFile, uploadProgress, uploadStatus,
   showQuizEditor, showQuizPlayer, selectedChapterId, selectedQuiz, editingQuiz,
-  addChapter, editChapter, cancelEdit, saveChapter, deleteChapter,
+  loadChapters, addChapter, editChapter, cancelEdit, saveChapter, deleteChapter,
   openQuizEditor, closeQuizEditor, onQuizSaved, openQuizPlayer, closeQuizPlayer,
-  onQuizCompleted, getChapterQuiz
+  onQuizCompleted, getChapterQuiz, isQuizUnknown, loadKnowledgeChecks
 } = useChapterManager(toRef(props, 'lessonId'))
 </script>
 

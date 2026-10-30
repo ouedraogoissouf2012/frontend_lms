@@ -1,8 +1,14 @@
 <template>
   <div class="quiz-editor-inline">
     <div v-if="chapter.id" class="quiz-editor-wrapper">
+      <!-- Quiz illisible : ni « aucun quiz » ni invite de création (doublon possible) -->
+      <LoadRetryNotice
+        v-if="quizUnknown"
+        message="Quiz indisponible pour le moment."
+        @retry="$emit('retry-quiz', chapter.id)"
+      />
       <!-- Quiz existant ou creation -->
-      <div v-if="quiz" class="quiz-exists-info">
+      <div v-else-if="quiz" class="quiz-exists-info">
         <div class="quiz-summary">
           <i class="material-icons">quiz</i>
           <div class="quiz-summary-text">
@@ -37,13 +43,17 @@
  * résumé du quiz existant, l'invite de création, ou le rappel d'enregistrer
  * d'abord le chapitre. L'ouverture de l'éditeur de quiz est émise au parent.
  */
+import LoadRetryNotice from '@/components/lessons/LoadRetryNotice.vue'
+
 defineProps({
   chapter: { type: Object, required: true },
   // Quiz du chapitre (résolu par le parent depuis knowledgeChecks), ou null.
-  quiz: { type: Object, default: null }
+  quiz: { type: Object, default: null },
+  // Le chargement du quiz a échoué : null veut alors dire INCONNU, pas absent.
+  quizUnknown: { type: Boolean, default: false }
 })
 
-defineEmits(['open-quiz-editor'])
+defineEmits(['open-quiz-editor', 'retry-quiz'])
 </script>
 
 <style scoped>
