@@ -187,7 +187,7 @@ function isOptionSelected(index) {
   gap: 0.75rem;
   padding: 1rem;
   background: var(--bg-secondary);
-  border: 2px solid var(--border-color);
+  border: 2px solid var(--border-primary);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;

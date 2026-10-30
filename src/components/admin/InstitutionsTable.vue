@@ -90,7 +90,7 @@ function formatDate(dateStr) {
 /* Table */
 .table-container {
   background: var(--card-bg);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-xl);
   overflow: hidden;
 }
@@ -102,7 +102,7 @@ function formatDate(dateStr) {
 
 .institutions-table thead {
   background: var(--bg-secondary);
-  border-bottom: 2px solid var(--border-color);
+  border-bottom: 2px solid var(--border-primary);
 }
 
 .institutions-table th {
@@ -120,7 +120,7 @@ function formatDate(dateStr) {
   padding: var(--spacing-md) var(--spacing-lg);
   font-size: var(--font-size-sm);
   color: var(--text-primary);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-primary);
   vertical-align: middle;
 }
 
@@ -218,7 +218,7 @@ function formatDate(dateStr) {
   align-items: center;
   justify-content: center;
   background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-md);
   color: var(--text-secondary);
   cursor: pointer;

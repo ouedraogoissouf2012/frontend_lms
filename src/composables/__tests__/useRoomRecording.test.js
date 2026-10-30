@@ -37,6 +37,9 @@ describe('useRoomRecording (#673)', () => {
   const construire = (options = {}) => {
     commandes = {
       isRecording: ref(options.enregistre ?? false),
+      // #416 : salle jointe par défaut ; l'état non joint est couvert par
+      // tests/unit/visioEnregistrementJonction.test.js.
+      isJoined: ref(options.jointe ?? true),
       startRecording: vi.fn().mockResolvedValue(undefined),
       stopRecording: vi.fn().mockResolvedValue(undefined),
       canManageRecording: () => options.peutGerer ?? true,

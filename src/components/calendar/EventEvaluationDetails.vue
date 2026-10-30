@@ -141,7 +141,7 @@ defineProps({
 .result-section {
   margin-top: 1.5rem;
   padding-top: 1.5rem;
-  border-top: 1px solid var(--border-color, #e5e7eb);
+  border-top: 1px solid var(--border-primary);
 }
 
 .section-title {

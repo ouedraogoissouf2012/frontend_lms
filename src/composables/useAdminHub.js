@@ -38,8 +38,9 @@ export function useAdminHub() {
     matieres: 0,
     enseignants: 0,
     etudiants: 0,
-    seances: 0,
-    evaluations: 0
+    // `null` = NON MESURÉ, rendu « — » : le serveur ne compte ni l'un ni l'autre (cf. loadStats).
+    seances: null,
+    evaluations: null
   })
 
   async function loadStats() {
@@ -68,25 +69,14 @@ export function useAdminHub() {
         classes: countItems(classes),
         matieres: countItems(matieres),
         enseignants: countItems(enseignants),
-        etudiants: etudiantsFromClasses || firstNumber(dashboardStats, [
-          'users.students',
-          'total_etudiants',
-          'nb_etudiants',
-          'students',
-          'students_count'
-        ]),
-        seances: firstNumber(dashboardStats, [
-          'seances.total',
-          'sessions.total',
-          'total_seances',
-          'nb_seances'
-        ]),
-        evaluations: firstNumber(dashboardStats, [
-          'quizzes.total',
-          'evaluations.total',
-          'total_evaluations',
-          'nb_evaluations'
-        ])
+        // `/dashboard/stats` rend `{ success, data: { users, lessons, quizzes, forum,
+        // notifications, recent_activity } }` (AdminDashboardService::aggregate) :
+        // les compteurs sont SOUS `data`. Lus à la racine, ils valaient toujours 0.
+        etudiants: etudiantsFromClasses || firstNumber(dashboardStats?.data, ['users.students']),
+        // Aucun compteur de séances ni d'évaluations dans cette réponse ; `quizzes.total`
+        // compte des QUIZ, pas des évaluations. Non mesuré → « — », jamais un 0.
+        seances: null,
+        evaluations: null
       }
 
       console.log('[ADMIN HUB] Stats chargées:', stats.value)

@@ -158,7 +158,7 @@ button[class*="bg-red-600"]:hover {
 }
 :deep(td) {
   padding: 1rem 1.5rem;
-  border-top: 1px solid var(--border-color) !important;
+  border-top: 1px solid var(--border-primary) !important;
   color: var(--text-primary) !important;
   background: var(--bg-primary) !important;
 }
@@ -222,7 +222,7 @@ button[class*="bg-red-600"]:hover {
 }
 /* Cards & Borders */
 :deep(div[class*="border-gray-200"]) {
-  border: 1px solid var(--border-color) !important;
+  border: 1px solid var(--border-primary) !important;
   border-radius: 0.75rem;
   padding: 1rem;
   transition: all 0.2s;

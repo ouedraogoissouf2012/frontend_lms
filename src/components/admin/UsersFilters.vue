@@ -72,7 +72,7 @@ defineProps({
   width: 100%;
   padding: 10px 14px 10px 38px;
   background: var(--card-bg);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
   color: var(--text-primary);
   font-size: var(--font-size-md);
@@ -96,7 +96,7 @@ defineProps({
 .filter-select {
   padding: 10px 14px;
   background: var(--card-bg);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
   color: var(--text-primary);
   font-size: var(--font-size-sm);

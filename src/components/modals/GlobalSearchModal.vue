@@ -22,6 +22,10 @@
       @close="close"
     />
 
+    <!-- Échec : région présente dès l'ouverture, seul son texte change. -->
+    <p data-test="erreur-recherche" role="status" class="search-error"
+       :class="{ 'search-error--visible': searchError }">{{ searchError }}</p>
+
     <!-- Loading -->
     <ContentLoader v-if="searching" text="Recherche en cours..." />
 
@@ -41,7 +45,7 @@
       v-else
       :query="query"
       :search-history="searchHistory"
-      :show-empty="query.length >= 2 && !searching"
+      :show-empty="query.length >= 2 && !searching && !searchError"
       :show-history="!query && searchHistory.length > 0"
       @select-history="(q) => (query = q)"
     />
@@ -82,7 +86,7 @@ const isOpen = computed({
 })
 
 const {
-  searchInput, query, searching, searchHistory,
+  searchInput, query, searching, searchHistory, searchError,
   filteredResults, hasResults, totalResults,
   getCategoryTitle, getIcon, handleInput,
   isHighlighted, setHighlight, navigateDown, navigateUp,
@@ -123,6 +127,18 @@ const {
 }
 
 /* Loading */
+.search-error {
+  margin: 0;
+}
+
+.search-error--visible {
+  margin: 0.75rem 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  background: var(--error-bg);
+  color: var(--error-text);
+}
+
 .search-loading {
   display: flex;
   flex-direction: column;
@@ -135,7 +151,7 @@ const {
 .spinner {
   width: 2rem;
   height: 2rem;
-  border: 3px solid var(--border-color);
+  border: 3px solid var(--border-primary);
   border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;

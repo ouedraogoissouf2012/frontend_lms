@@ -88,7 +88,7 @@ defineEmits(['view'])
   align-items: start;
   margin-bottom: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-primary);
 }
 .class-info {
   flex: 1;

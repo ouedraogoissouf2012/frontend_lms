@@ -163,7 +163,7 @@ const totalUtilisateurs = computed(() => {
   gap: var(--spacing-sm);
   margin-bottom: var(--spacing-md);
   padding-bottom: var(--spacing-md);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .stat-icon {
@@ -193,7 +193,7 @@ const totalUtilisateurs = computed(() => {
 }
 
 .stat-row.total {
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-primary);
   margin-top: var(--spacing-sm);
   padding-top: var(--spacing-md);
   font-weight: 600;

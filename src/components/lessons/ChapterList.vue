@@ -23,10 +23,12 @@
         v-if="chapter.isEditing"
         :chapter="chapter"
         :quiz="getChapterQuiz(chapter.id)"
+        :quiz-unknown="isQuizUnknown(chapter.id)"
         :saving="saving"
         @save="$emit('save', $event)"
         @cancel="$emit('cancel', $event)"
         @open-quiz-editor="(...args) => $emit('open-quiz-editor', ...args)"
+        @retry-quiz="$emit('retry-quiz', $event)"
       />
 
       <!-- View Mode (#28 : extrait en sous-composant) -->
@@ -34,9 +36,11 @@
         v-else
         :chapter="chapter"
         :quiz="getChapterQuiz(chapter.id)"
+        :quiz-unknown="isQuizUnknown(chapter.id)"
         :readonly="readonly"
         @open-quiz-player="$emit('open-quiz-player', $event)"
         @open-quiz-editor="(...args) => $emit('open-quiz-editor', ...args)"
+        @retry-quiz="$emit('retry-quiz', $event)"
       />
     </div>
 
@@ -65,10 +69,12 @@ defineProps({
   readonly: { type: Boolean, default: false },
   saving: { type: Boolean, default: false },
   // Résout le quiz d'un chapitre depuis l'état knowledgeChecks (au parent).
-  getChapterQuiz: { type: Function, required: true }
+  getChapterQuiz: { type: Function, required: true },
+  // Vrai si le quiz d'un chapitre n'a pas pu être lu (inconnu, pas absent).
+  isQuizUnknown: { type: Function, default: () => false }
 })
 
-defineEmits(['edit', 'delete', 'save', 'cancel', 'open-quiz-editor', 'open-quiz-player', 'add'])
+defineEmits(['edit', 'delete', 'save', 'cancel', 'open-quiz-editor', 'open-quiz-player', 'add', 'retry-quiz'])
 </script>
 
 <style scoped>
@@ -79,7 +85,7 @@ defineEmits(['edit', 'delete', 'save', 'cancel', 'open-quiz-editor', 'open-quiz-
 
 .chapter-block {
   background: var(--card-bg);
-  border: 3px solid var(--border-color);
+  border: 3px solid var(--border-primary);
   border-left: 6px solid var(--color-primary, var(--emerald-500));
   border-radius: 12px;
   margin-bottom: 24px;
@@ -120,7 +126,7 @@ defineEmits(['edit', 'delete', 'save', 'cancel', 'open-quiz-editor', 'open-quiz-
 .btn-delete {
   padding: 6px 12px;
   font-size: 0.8125rem;
-  border: 3px solid var(--border-color);
+  border: 3px solid var(--border-primary);
   border-radius: 6px;
   background: var(--card-bg);
   cursor: pointer;

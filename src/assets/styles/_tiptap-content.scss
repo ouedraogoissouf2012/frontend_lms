@@ -98,7 +98,7 @@
   padding: 1.25rem;
   margin: 1.25rem 0;
   overflow-x: auto;
-  border: 2px solid var(--border-color);
+  border: 2px solid var(--border-primary);
 }
 
 [data-theme="dark"] :deep(.ProseMirror pre) {
@@ -133,7 +133,7 @@
 /* Horizontal Rule */
 :deep(.ProseMirror hr) {
   border: none;
-  border-top: 3px solid var(--border-color);
+  border-top: 3px solid var(--border-primary);
   margin: 2rem 0;
 }
 
@@ -173,13 +173,13 @@
   margin: 1.5rem 0;
   width: 100%;
   overflow: hidden;
-  border: 2px solid var(--border-color);
+  border: 2px solid var(--border-primary);
   border-radius: 10px;
 }
 
 :deep(.ProseMirror table td),
 :deep(.ProseMirror table th) {
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   padding: 12px 16px;
   vertical-align: top;
   position: relative;

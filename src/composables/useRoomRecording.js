@@ -44,21 +44,35 @@ const ECHEC = "L'ordre d'enregistrement n'a pas atteint la salle."
  * ligne « enregistrement en cours » sans que Jibri en sache quoi que ce soit.
  * C'est le miroir qui persiste, sur confirmation du fournisseur.
  *
+ * ## Prêt seulement une fois la salle jointe (#416)
+ *
+ * Avant la jonction, l'ordre de démarrage est refusé par Jitsi sans retour : le
+ * bouton reste donc inactif, et son TEXTE dit pourquoi (« Connexion à la salle… »)
+ * — une infobulle `title` serait hors de portée du clavier et du lecteur d'écran.
+ * Un enregistrement déjà en cours reste toujours arrêtable.
+ *
  * @param {{
  *   isRecording: import('vue').Ref<boolean>,
+ *   isJoined: import('vue').Ref<boolean>,
  *   startRecording: () => Promise<unknown>,
  *   stopRecording: () => Promise<unknown>,
  *   canManageRecording: () => boolean,
  * }} salle
  */
-export function useRoomRecording({ isRecording, startRecording, stopRecording, canManageRecording }) {
+export function useRoomRecording({ isRecording, isJoined, startRecording, stopRecording, canManageRecording }) {
   const enCours = ref(false)
+  // L'ordre est parti ; on attend la confirmation du fournisseur (jusqu'à 120 s).
+  const attente = ref(null)
 
   const peutCommander = computed(() => canManageRecording() === true)
   const enregistre = computed(() => isRecording.value === true)
-  const libelle = computed(() =>
-    enregistre.value ? "Arrêter l'enregistrement" : "Enregistrer le cours"
-  )
+  const pret = computed(() => isJoined?.value === true || enregistre.value)
+  const libelle = computed(() => {
+    if (attente.value === 'arret') return "Arrêt de l'enregistrement…"
+    if (attente.value === 'demarrage') return "Démarrage de l'enregistrement…"
+    if (!pret.value) return 'Connexion à la salle…'
+    return enregistre.value ? "Arrêter l'enregistrement" : 'Enregistrer le cours'
+  })
 
   /**
    * Le consentement ne conditionne QUE le démarrage.
@@ -75,7 +89,7 @@ export function useRoomRecording({ isRecording, startRecording, stopRecording, c
   }
 
   async function basculer() {
-    if (enCours.value || !peutCommander.value) return
+    if (enCours.value || !peutCommander.value || !pret.value) return
     if (!enregistre.value && !autoriseLeDemarrage()) return
 
     const arret = enregistre.value
@@ -93,6 +107,7 @@ export function useRoomRecording({ isRecording, startRecording, stopRecording, c
       )
       if (!confirme) return
 
+      attente.value = arret ? 'arret' : 'demarrage'
       await (arret ? stopRecording() : startRecording())
     } catch (error) {
       // Ce code s'execute depuis un gestionnaire d'evenement d'interface : une
@@ -100,11 +115,12 @@ export function useRoomRecording({ isRecording, startRecording, stopRecording, c
       console.error('[RoomRecording] Ordre non transmis:', error)
       notifyVisioError(ECHEC)
     } finally {
+      attente.value = null
       enCours.value = false
     }
   }
 
-  return { peutCommander, enregistre, libelle, enCours, basculer }
+  return { peutCommander, enregistre, pret, libelle, enCours, basculer }
 }
 
 export { CONSENTEMENT_REQUIS, ECHEC }

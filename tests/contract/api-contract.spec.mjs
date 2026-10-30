@@ -162,6 +162,12 @@ export const contractCases = [
     name: 'R11 — searchService.globalSearch → GET /search',
     _req: 'R11', _ek: 'Ék-10',
     run: () => searchService.globalSearch('x'),
+    // Forme réelle de GET /search (SearchController::globalSearch) : le service exige
+    // `success` et `results`. Le cas vérifie la requête ET que cette forme est acceptée.
+    response: {
+      success: true, query: 'x', total: 0, categories: {}, sources_failed: [],
+      results: { users: [], lessons: [], evaluations: [], classes: [], matieres: [] },
+    },
     method: 'GET', url: '/search',
   },
   {
@@ -435,6 +441,7 @@ export async function runContractAssertions() {
   // 1. Cas positifs : méthode + chemin (+ corps).
   for (const c of contractCases) {
     capture.reset()
+    if (c.response) capture.respondWith(c.response)
     try {
       await c.run()
       const last = capture.last()

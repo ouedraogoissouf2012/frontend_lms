@@ -47,6 +47,9 @@ export function installEnv() {
 export function installCapture() {
   installEnv()
   const calls = []
+  // Réponse propre à un cas (`respondWith`), pour un service qui exige la forme réelle
+  // de sa route ; sinon, l'enveloppe standard ci-dessous. Remise à zéro par `reset`.
+  let suivante = null
 
   api.defaults.adapter = (config) =>
     new Promise((resolve) => {
@@ -66,7 +69,7 @@ export function installCapture() {
       // L'intercepteur de réponse d'api.js renvoie `response.data` : on simule une
       // enveloppe API standard pour que les services ne lèvent pas.
       resolve({
-        data: { success: true, data: [], count: 0 },
+        data: suivante ?? { success: true, data: [], count: 0 },
         status: 200,
         statusText: 'OK',
         headers: {},
@@ -77,7 +80,8 @@ export function installCapture() {
   return {
     calls,
     last: () => calls[calls.length - 1],
-    reset: () => { calls.length = 0 },
+    reset: () => { calls.length = 0; suivante = null },
+    respondWith: (data) => { suivante = data },
   }
 }
 
