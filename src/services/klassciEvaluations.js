@@ -7,17 +7,27 @@
  */
 import api from './api'
 import { endpoints } from './endpoints'
+// Relatif, pas `@/` : ce service est dans le graphe du runner de contrat natif.
+import { invalidResponseError } from './errorHandler'
 
 export const klassciEvaluationsService = {
   /**
    * Récupérer les évaluations depuis KLASSCI
    * @param {Object} filters - Filtres optionnels (matiere_id, classe_id, statut)
-   * @returns {Promise<Object>} Évaluations avec success flag
+   * @returns {Promise<{ success: true, data: Array }>} la liste reçue
+   * @throws {Error} avec `userMessage` : erreur HTTP ou réseau (intercepteur
+   *   d'`api.js`), ou enveloppe non conforme.
    */
   async getEvaluations(filters = {}) {
     try {
       const response = await api.get(endpoints.klassci.evaluations, { params: filters })
-      return { success: true, data: response.data || response }
+      // Forme mesurée : `{ success: true, data: [] }`. Le serveur relaie le corps de
+      // KLASSCI tel quel : sans `success: true` ni liste, c'est une anomalie à
+      // afficher, jamais une liste fabriquée (modèle : klassciCourses, #436).
+      if (response?.success !== true || !Array.isArray(response.data)) {
+        throw invalidResponseError('GET /proxy/evaluations sans success ni liste')
+      }
+      return { success: true, data: response.data }
     } catch (error) {
       console.error('Erreur récupération évaluations KLASSCI:', error)
       throw error
