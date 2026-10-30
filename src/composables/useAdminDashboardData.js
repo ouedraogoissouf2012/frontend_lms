@@ -2,7 +2,7 @@ import { klassciService } from '@/services/klassci'
 import { analyticsService } from '@/services/analytics'
 import { getAdminStatistics, extractAdminStatistics } from '@/services/adminStatistics'
 import { readCache, writeCache } from '@/services/cache'
-import { logError } from '@/services/errorHandler'
+import { logError, normalizeError } from '@/services/errorHandler'
 import { deriveInstitutionCounters } from '@/utils/classStats'
 
 /**
@@ -25,6 +25,7 @@ const measured = (value) => (Number.isFinite(value) ? value : null)
  */
 export function useAdminDashboardData({
   stats, classes, matieres, activityData, pendingTasks, recentUsers, calendarEvents, loading, loadError,
+  analyticsError,
 }) {
   async function loadKlassciData() {
     loading.value.classes = true
@@ -113,26 +114,28 @@ export function useAdminDashboardData({
     }
   }
 
+  /**
+   * Trois sources INDÉPENDANTES, en parallèle : l'échec de l'une n'empêche plus les
+   * autres (elles étaient enchaînées dans un seul `try`). Une part en échec garde sa
+   * valeur précédente — `null` au départ, « non mesuré » — et l'échec se DIT.
+   */
   async function loadAnalytics() {
     loading.value.analytics = true
-    try {
-      // Charger les tendances d'activité
-      const trends = await analyticsService.getActivityTrends()
-      activityData.value = trends
-
-      // Charger les tâches en attente
-      const tasks = await analyticsService.getPendingTasks()
-      pendingTasks.value = tasks
-
-      // Charger les utilisateurs récents
-      const users = await analyticsService.getRecentUsers()
-      recentUsers.value = users
-
-    } catch (error) {
-      console.error('Erreur chargement analytics:', error)
-    } finally {
-      loading.value.analytics = false
+    analyticsError.value = ''
+    const [trends, tasks, users] = await Promise.allSettled([
+      analyticsService.getActivityTrends(),
+      analyticsService.getPendingTasks(),
+      analyticsService.getRecentUsers(),
+    ])
+    if (trends.status === 'fulfilled') activityData.value = trends.value
+    if (tasks.status === 'fulfilled') pendingTasks.value = tasks.value
+    if (users.status === 'fulfilled') recentUsers.value = users.value
+    const echec = [trends, tasks, users].find((r) => r.status === 'rejected')
+    if (echec) {
+      logError(echec.reason, '[useAdminDashboardData] analytics')
+      analyticsError.value = echec.reason?.userMessage ?? normalizeError(echec.reason).userMessage
     }
+    loading.value.analytics = false
   }
 
   async function loadCalendarEvents() {
