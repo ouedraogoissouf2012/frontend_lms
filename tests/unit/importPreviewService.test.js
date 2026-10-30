@@ -15,7 +15,7 @@ function champsEnvoyes() {
   ]))
 }
 
-beforeEach(() => post.mockClear())
+beforeEach(() => { post.mockClear() })
 
 describe('previewImport (#334)', () => {
   const fichier = () => new File(['nom;prenom'], 'eleves.csv', { type: 'text/csv' })
