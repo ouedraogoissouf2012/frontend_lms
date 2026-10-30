@@ -22,7 +22,12 @@ import { useToast } from '@/composables/useToast'
 
 // --- État partagé (une seule source de vérité pour tous les consommateurs) ---
 const notifications = ref([])
-const unreadCount = ref(0)
+/**
+ * Compte RÉEL de non-lues, lu sur `GET /notifications/unread-count`. `null` tant
+ * qu'il n'a jamais été mesuré : ce n'est pas 0, et le badge reste masqué. Une
+ * panne garde la dernière mesure au lieu de la remplacer par un 0 fabriqué.
+ */
+const unreadCount = ref(null)
 const isLoading = ref(false)
 
 // --- Coordination du chargement et du poller (niveau module, volontairement) ---
@@ -43,7 +48,7 @@ const DEFAULT_CHECK_INTERVAL_MS = 120000 // 2 min (limite la charge en mutualis�
 /** Remet à zéro l'état partagé — réservé aux tests (isolation entre cas). */
 export function __resetNotificationsPollingState() {
   notifications.value = []
-  unreadCount.value = 0
+  unreadCount.value = null
   isLoading.value = false
   inFlight = null
   lastCheckTime = null
@@ -55,7 +60,28 @@ export function __resetNotificationsPollingState() {
   consecutiveErrors = 0
 }
 
-const countUnread = (data) => (Array.isArray(data) ? data.filter(n => n.is_unread).length : 0)
+/**
+ * Lit la liste ET le compte, en parallèle. Chaque part qui réussit est appliquée ;
+ * une part en échec garde sa dernière valeur. Lève si l'une des deux a échoué,
+ * pour que l'appelant compte l'échec (frein de scrutation).
+ * @returns {Promise<Array>} la liste reçue (ou la précédente si elle a échoué)
+ */
+async function lireNotifications() {
+  const [liste, compte] = await Promise.allSettled([
+    notificationsService.getRecentNotifications(10),
+    notificationsService.getUnreadCount(),
+  ])
+  if (liste.status === 'fulfilled') notifications.value = liste.value
+  if (compte.status === 'fulfilled') unreadCount.value = compte.value
+  const echec = [liste, compte].find((r) => r.status === 'rejected')
+  if (echec) throw echec.reason
+  return liste.value
+}
+
+/** Retire une non-lue du compte, s'il a été mesuré (un `null` reste `null`). */
+const decompter = () => {
+  if (unreadCount.value !== null) unreadCount.value = Math.max(0, unreadCount.value - 1)
+}
 
 function getNotificationType(type) {
   const typeMap = {
@@ -84,10 +110,8 @@ function loadNotifications() {
   // Marqué AVANT l'attente : ferme la fenêtre entre le test et l'écriture.
   lastCheckTime = Date.now()
 
-  inFlight = notificationsService.getRecentNotifications(10)
-    .then((data) => {
-      notifications.value = Array.isArray(data) ? data : []
-      unreadCount.value = countUnread(data)
+  inFlight = lireNotifications()
+    .then(() => {
       notifications.value.forEach(n => previousNotificationIds.add(n.id))
       consecutiveErrors = 0
       return notifications.value
@@ -109,10 +133,10 @@ function loadNotifications() {
 /** Vérification périodique : met à jour la liste et signale les nouveautés. */
 async function checkNewNotifications(showToast) {
   try {
-    const data = await notificationsService.getRecentNotifications(10)
+    const data = await lireNotifications()
     consecutiveErrors = 0
 
-    const newNotifications = (Array.isArray(data) ? data : []).filter(notif => {
+    const newNotifications = data.filter(notif => {
       const isNew = !previousNotificationIds.has(notif.id)
       previousNotificationIds.add(notif.id)
 
@@ -134,8 +158,6 @@ async function checkNewNotifications(showToast) {
       })
     }
 
-    notifications.value = Array.isArray(data) ? data : []
-    unreadCount.value = countUnread(data)
     lastCheckTime = Date.now()
   } catch (error) {
     consecutiveErrors++
@@ -190,7 +212,7 @@ export function useNotifications(options = {}) {
     if (success) {
       const notif = notifications.value.find(n => n.id === notificationId)
       if (notif) notif.is_unread = false
-      unreadCount.value = Math.max(0, unreadCount.value - 1)
+      decompter()
     }
     return success
   }
@@ -211,7 +233,7 @@ export function useNotifications(options = {}) {
       if (index !== -1) {
         const wasUnread = notifications.value[index].is_unread
         notifications.value.splice(index, 1)
-        if (wasUnread) unreadCount.value = Math.max(0, unreadCount.value - 1)
+        if (wasUnread) decompter()
       }
     }
     return success
