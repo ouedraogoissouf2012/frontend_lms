@@ -85,7 +85,8 @@
 
         <!-- Calendrier des événements -->
         <div v-reveal class="mb-6">
-          <CalendarWidget :events="calendarEvents" height="500px" />
+          <DashboardCalendarPanel :etat="calendarState" :events="calendarEvents"
+                                  :message="calendarError" @charger="loadCalendarEvents" />
         </div>
 
         <!-- Matières -->
@@ -118,7 +119,7 @@
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import GenerateReportModal from '@/components/modals/GenerateReportModal.vue'
-import CalendarWidget from '@/components/widgets/CalendarWidget.vue'
+import DashboardCalendarPanel from '@/components/dashboard/DashboardCalendarPanel.vue'
 import DashboardStatsCards from '@/components/dashboard/DashboardStatsCards.vue'
 import DashboardActivityChart from '@/components/dashboard/DashboardActivityChart.vue'
 import DashboardPendingTasks from '@/components/dashboard/DashboardPendingTasks.vue'
@@ -135,9 +136,9 @@ import { useAdminDashboard } from '@/composables/useAdminDashboard'
 const {
   user, meta, stats, classes, matieres,
   activityData, pendingTasks, recentUsers, calendarEvents,
-  showGenerateReportModal, loading, loadError, analyticsError,
+  showGenerateReportModal, loading, loadError, analyticsError, calendarState, calendarError,
   navigateTo, handleReportGenerated, getDashboardTitle,
-  isCoordinateur, isTeacher, isAdmin, loadDashboard,
+  isCoordinateur, isTeacher, isAdmin, loadDashboard, loadCalendarEvents,
 } = useAdminDashboard()
 </script>
 

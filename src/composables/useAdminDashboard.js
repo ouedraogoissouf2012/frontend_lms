@@ -32,6 +32,9 @@ export function useAdminDashboard() {
   const recentUsers = ref(null)
   /** Message du catalogue si une source d'analytics a échoué ; vide sinon. */
   const analyticsError = ref('')
+  /** 'non-charge' | 'chargement' | 'pret' | 'erreur' — le calendrier se charge à la demande. */
+  const calendarState = ref('non-charge')
+  const calendarError = ref('')
   const calendarEvents = ref([])
   // Échec du chargement des données d'établissement, à AFFICHER : sans lui, une
   // panne KLASSCI laissait le tableau de bord muet, garni de zéros.
@@ -46,7 +49,7 @@ export function useAdminDashboard() {
 
   const { loadKlassciData, loadAnalytics, loadCalendarEvents } = useAdminDashboardData({
     stats, classes, matieres, activityData, pendingTasks, recentUsers, calendarEvents, loading, loadError,
-    analyticsError,
+    analyticsError, calendarState, calendarError,
   })
 
   const { getInitials, getRoleLabel, getRoleClass, formatDate } = useDashboardFormatters()
@@ -117,7 +120,7 @@ export function useAdminDashboard() {
   return {
     user, meta, stats, classes, matieres,
     activityData, pendingTasks, recentUsers, calendarEvents,
-    showGenerateReportModal, loading, loadError, analyticsError,
+    showGenerateReportModal, loading, loadError, analyticsError, calendarState, calendarError,
     loadDashboard: loadKlassciData, loadAnalytics, loadCalendarEvents,
     navigateTo, handleReportGenerated, getDashboardTitle,
     isCoordinateur, isTeacher, isAdmin,

@@ -25,7 +25,7 @@ const measured = (value) => (Number.isFinite(value) ? value : null)
  */
 export function useAdminDashboardData({
   stats, classes, matieres, activityData, pendingTasks, recentUsers, calendarEvents, loading, loadError,
-  analyticsError,
+  analyticsError, calendarState, calendarError,
 }) {
   async function loadKlassciData() {
     loading.value.classes = true
@@ -138,7 +138,14 @@ export function useAdminDashboardData({
     loading.value.analytics = false
   }
 
+  /**
+   * Chargé À LA DEMANDE (bouton), jamais au montage : `/lms/seances/upcoming` a coûté
+   * cher en production (#212). L'état est toujours vrai : non chargé, chargement,
+   * prêt, ou erreur visible — plus de calendrier vide qui affirmait « aucune séance ».
+   */
   async function loadCalendarEvents() {
+    calendarState.value = 'chargement'
+    calendarError.value = ''
     try {
       // Charger les vraies séances depuis KLASSCI (30 prochains jours)
       const seances = await klassciService.getUpcomingSeances({ days: 30 })
@@ -193,10 +200,13 @@ export function useAdminDashboardData({
       })
 
       calendarEvents.value = events
+      calendarState.value = 'pret'
     } catch (error) {
-      // En cas d'erreur backend/proxy, le tableau de bord reste exploitable :
-      // l'intercepteur API journalise déjà l'échec, on évite un doublon ici.
+      // Le reste du tableau de bord reste exploitable ; l'échec du calendrier se DIT.
+      logError(error, '[useAdminDashboardData] calendrier')
       calendarEvents.value = []
+      calendarError.value = error?.userMessage ?? normalizeError(error).userMessage
+      calendarState.value = 'erreur'
     }
   }
 
