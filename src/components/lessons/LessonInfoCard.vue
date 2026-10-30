@@ -76,7 +76,7 @@ function getNiveauLabel(niveau) {
 /* Lesson info card */
 .lesson-info-card {
   background: var(--card-bg);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 12px;
   padding: 24px;
   box-shadow: var(--card-shadow);
@@ -90,7 +90,7 @@ function getNiveauLabel(niveau) {
   gap: 24px;
   margin-bottom: 24px;
   padding-bottom: 24px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .lesson-title {
@@ -179,7 +179,7 @@ function getNiveauLabel(niveau) {
   padding: 10px 20px;
   background-color: var(--bg-secondary);
   color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;

@@ -38,7 +38,7 @@ defineEmits(['export-pdf', 'export-excel', 'close'])
 <style scoped>
 .modal-footer {
   padding: 1.5rem 2rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-primary);
   background: var(--bg-secondary);
   display: flex;
   justify-content: flex-end;
@@ -104,7 +104,7 @@ defineEmits(['export-pdf', 'export-excel', 'close'])
 .btn-modal-close {
   padding: 0.75rem 2rem;
   background: var(--bg-primary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 0.375rem;
   cursor: pointer;
   font-size: 0.875rem;

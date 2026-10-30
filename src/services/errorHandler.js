@@ -146,6 +146,16 @@ export function normalizeError(error) {
  * @param {string} [context] - libellé technique pour les journaux (jamais affiché).
  * @returns {Error}
  */
+/**
+ * Requête annulée par l'appelant (AbortController → `signal`) : ce n'est PAS un échec
+ * à montrer — une requête plus récente l'a remplacée. Axios pose `ERR_CANCELED`.
+ * @param {unknown} error
+ * @returns {boolean}
+ */
+export function isCanceled(error) {
+  return error?.code === 'ERR_CANCELED' || error?.name === 'CanceledError'
+}
+
 export function invalidResponseError(context = '') {
   const error = new Error(context ? `Réponse inattendue : ${context}` : 'Réponse inattendue')
   error.userMessage = ERROR_MESSAGES.unknown

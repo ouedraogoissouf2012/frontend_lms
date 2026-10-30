@@ -165,7 +165,7 @@ defineEmits(['toggle-multiple'])
   align-items: center;
   gap: 0.75rem;
   padding: 0.875rem 1rem;
-  border: 2px solid var(--border-color, #e5e7eb);
+  border: 2px solid var(--border-primary);
   border-radius: 0.5rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -197,7 +197,7 @@ defineEmits(['toggle-multiple'])
 .text-input {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 2px solid var(--border-color, #e5e7eb);
+  border: 2px solid var(--border-primary);
   border-radius: 0.5rem;
   background: var(--card-bg);
   color: var(--text-primary);

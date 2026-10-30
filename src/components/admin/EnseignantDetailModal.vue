@@ -189,7 +189,7 @@ const safeMatieres = computed(() =>
 
 .modal-btn-secondary {
   background: var(--card-bg);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   color: var(--text-primary);
 }
 

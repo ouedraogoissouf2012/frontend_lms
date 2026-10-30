@@ -109,7 +109,7 @@ defineEmits(['reset'])
   width: 100%;
   padding: 0.625rem;
   background: var(--input-bg);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 0.5rem;
   color: var(--text-primary);
   font-size: 0.875rem;
@@ -124,7 +124,7 @@ defineEmits(['reset'])
 .btn-reset {
   padding: 0.625rem 1rem;
   background: var(--card-bg);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 0.5rem;
   color: var(--text-primary);
   cursor: pointer;

@@ -122,7 +122,7 @@ defineEmits(['join', 'view'])
   justify-content: space-between;
   margin-bottom: var(--spacing-md);
   padding-bottom: var(--spacing-md);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .visio-title-group {
@@ -205,7 +205,7 @@ defineEmits(['join', 'view'])
   display: flex;
   gap: var(--spacing-sm);
   padding-top: var(--spacing-md);
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-primary);
 }
 
 .action-btn {
@@ -235,7 +235,7 @@ defineEmits(['join', 'view'])
 .action-btn.secondary {
   background: var(--bg-primary);
   color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
 }
 
 .action-btn.secondary:hover {

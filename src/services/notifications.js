@@ -1,5 +1,7 @@
 import api from './api'
 import { endpoints } from './endpoints'
+// Relatif, pas `@/` : ce service est dans le graphe du runner de contrat natif.
+import { invalidResponseError } from './errorHandler'
 
 /**
  * Service de gestion des notifications
@@ -26,31 +28,43 @@ export const notificationsService = {
   },
 
   /**
-   * Récupérer le nombre de notifications non lues
+   * Nombre RÉEL de notifications non lues (compteur du serveur, pour le badge).
+   * Forme mesurée : `{ success: true, count }`, `count` à la racine de l'enveloppe.
+   * @returns {Promise<number>}
+   * @throws {Error} avec `userMessage` : panne HTTP ou réseau, ou réponse non
+   *   conforme — jamais un 0 fabriqué, que le badge prendrait pour une mesure.
    */
   async getUnreadCount() {
     try {
       const response = await api.get(endpoints.notifications.unreadCount)
-      return response.success ? response.count : 0
+      if (response?.success !== true || !Number.isInteger(response.count) || response.count < 0) {
+        throw invalidResponseError('GET /notifications/unread-count sans success ni compte')
+      }
+      return response.count
     } catch (error) {
       console.error('Erreur récupération count notifications:', error)
-      return 0
+      throw error
     }
   },
 
   /**
-   * Récupérer les notifications récentes (pour widget)
+   * Notifications non lues les plus récentes (le serveur borne à `limit`).
+   * @returns {Promise<Array>}
+   * @throws {Error} avec `userMessage` : panne ou réponse non conforme — jamais
+   *   une liste vide, que l'écran prendrait pour « aucune notification ».
    */
   async getRecentNotifications(limit = 5) {
     try {
       const response = await api.get(endpoints.notifications.recent, {
         params: { limit }
       })
-
-      return response.success ? response.data : []
+      if (response?.success !== true || !Array.isArray(response.data)) {
+        throw invalidResponseError('GET /notifications/recent sans success ni liste')
+      }
+      return response.data
     } catch (error) {
       console.error('Erreur récupération notifications récentes:', error)
-      return []
+      throw error
     }
   },
 

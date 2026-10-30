@@ -44,7 +44,7 @@ defineExpose({
   align-items: center;
   gap: 0.75rem;
   padding: 1.25rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .search-icon {
@@ -70,7 +70,7 @@ defineExpose({
 .shortcut-badge {
   padding: 0.25rem 0.5rem;
   background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 0.375rem;
   font-size: 0.75rem;
   font-family: monospace;
