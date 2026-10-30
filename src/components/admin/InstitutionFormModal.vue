@@ -164,7 +164,7 @@ defineEmits(['close', 'save'])
   width: 100%;
   padding: var(--spacing-md);
   background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
   color: var(--text-primary);
   font-size: var(--font-size-sm);
@@ -200,7 +200,7 @@ defineEmits(['close', 'save'])
   width: 48px;
   height: 42px;
   padding: 2px;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-md);
   cursor: pointer;
   background: none;

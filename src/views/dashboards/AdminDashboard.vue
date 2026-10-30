@@ -36,6 +36,10 @@
         <button class="dashboard-error-retry" @click="loadDashboard()">Réessayer</button>
       </div>
 
+      <!-- Échec d'une source d'analytics : région présente dès le montage. -->
+      <p data-test="erreur-analytics" role="status" class="analytics-error"
+         :class="{ 'analytics-error--visible': analyticsError }">{{ analyticsError }}</p>
+
       <!-- Dashboard Content -->
       <div v-if="!loading.stats && !loading.classes && !loading.matieres">
         <!-- Statistiques admin -->
@@ -81,7 +85,8 @@
 
         <!-- Calendrier des événements -->
         <div v-reveal class="mb-6">
-          <CalendarWidget :events="calendarEvents" height="500px" />
+          <DashboardCalendarPanel :etat="calendarState" :events="calendarEvents"
+                                  :message="calendarError" @charger="loadCalendarEvents" />
         </div>
 
         <!-- Matières -->
@@ -114,7 +119,7 @@
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import GenerateReportModal from '@/components/modals/GenerateReportModal.vue'
-import CalendarWidget from '@/components/widgets/CalendarWidget.vue'
+import DashboardCalendarPanel from '@/components/dashboard/DashboardCalendarPanel.vue'
 import DashboardStatsCards from '@/components/dashboard/DashboardStatsCards.vue'
 import DashboardActivityChart from '@/components/dashboard/DashboardActivityChart.vue'
 import DashboardPendingTasks from '@/components/dashboard/DashboardPendingTasks.vue'
@@ -131,13 +136,25 @@ import { useAdminDashboard } from '@/composables/useAdminDashboard'
 const {
   user, meta, stats, classes, matieres,
   activityData, pendingTasks, recentUsers, calendarEvents,
-  showGenerateReportModal, loading, loadError,
+  showGenerateReportModal, loading, loadError, analyticsError, calendarState, calendarError,
   navigateTo, handleReportGenerated, getDashboardTitle,
-  isCoordinateur, isTeacher, isAdmin, loadDashboard,
+  isCoordinateur, isTeacher, isAdmin, loadDashboard, loadCalendarEvents,
 } = useAdminDashboard()
 </script>
 
 <style scoped>
+.analytics-error {
+  margin: 0;
+}
+
+.analytics-error--visible {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  background: var(--warning-bg);
+  color: var(--warning-text);
+}
+
 .dashboard-content {
   padding: 2rem;
 }

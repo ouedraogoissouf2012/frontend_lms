@@ -16,7 +16,13 @@
 
     <!-- Affichage du Quiz -->
     <div v-if="chapter.content_type === 'quiz' && chapter.id" class="chapter-quiz-view">
-      <div v-if="quiz" class="quiz-view-content">
+      <!-- Quiz illisible : ni « aucun quiz » ni « Créer un quiz » (doublon possible) -->
+      <LoadRetryNotice
+        v-if="quizUnknown"
+        message="Quiz indisponible pour le moment."
+        @retry="$emit('retry-quiz', chapter.id)"
+      />
+      <div v-else-if="quiz" class="quiz-view-content">
         <div class="quiz-view-header">
           <div class="quiz-view-info">
             <i class="material-icons quiz-icon">quiz</i>
@@ -69,15 +75,18 @@ import { useSanitizedHtml } from '@/composables/useSanitizedHtml'
  */
 import { getChapterContentTypeLabel, getChapterContentPreview } from '@/utils/chapterContent'
 import knowledgeCheckService from '@/services/knowledgeCheck'
+import LoadRetryNotice from '@/components/lessons/LoadRetryNotice.vue'
 
 const props = defineProps({
   chapter: { type: Object, required: true },
   // Quiz du chapitre (ou null) — résolu par le parent depuis knowledgeChecks.
   quiz: { type: Object, default: null },
+  // Le chargement du quiz a échoué : null veut alors dire INCONNU, pas absent.
+  quizUnknown: { type: Boolean, default: false },
   readonly: { type: Boolean, default: false }
 })
 
-defineEmits(['open-quiz-player', 'open-quiz-editor'])
+defineEmits(['open-quiz-player', 'open-quiz-editor', 'retry-quiz'])
 
 function getQuizScoreBadge(q) {
   return knowledgeCheckService.getScoreBadge(q.user_best_score || 0, q.passing_score)
@@ -135,7 +144,7 @@ const safeWordContent = useSanitizedHtml(() => props.chapter?.content)
   padding: 16px;
   background: var(--bg-secondary);
   border-radius: 8px;
-  border: 1px solid var(--border-color, #e5e7eb);
+  border: 1px solid var(--border-primary);
   max-height: 400px;
   overflow-y: auto;
 }

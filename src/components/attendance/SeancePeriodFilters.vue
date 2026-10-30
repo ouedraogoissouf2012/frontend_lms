@@ -123,7 +123,7 @@ defineEmits(['select-period', 'apply-custom', 'search', 'clear'])
 .custom-date-section {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-primary);
 }
 
 .date-inputs-row {
@@ -147,7 +147,7 @@ defineEmits(['select-period', 'apply-custom', 'search', 'clear'])
 .date-input {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 0.5rem;
   background: var(--input-bg, var(--bg-primary));
   color: var(--text-primary);
@@ -185,7 +185,7 @@ defineEmits(['select-period', 'apply-custom', 'search', 'clear'])
 .search-section {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-primary);
 }
 
 .search-input-wrapper {
@@ -206,7 +206,7 @@ defineEmits(['select-period', 'apply-custom', 'search', 'clear'])
 .search-input {
   width: 100%;
   padding: 0.875rem 3.5rem 0.875rem 3rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 0.75rem;
   font-size: 0.875rem;
   background: var(--input-bg, var(--bg-primary));

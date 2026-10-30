@@ -136,7 +136,7 @@ defineEmits(['add-link'])
 
 .bubble-btn:hover {
   background: var(--hover-bg);
-  border-color: var(--border-color);
+  border-color: var(--border-primary);
   transform: scale(1.05);
 }
 
@@ -149,14 +149,14 @@ defineEmits(['add-link'])
 .bubble-divider {
   width: 1px;
   height: 20px;
-  background: var(--border-color);
+  background: var(--border-primary);
   margin: 0 4px;
 }
 
 .bubble-color-picker {
   width: 28px;
   height: 28px;
-  border: 2px solid var(--border-color);
+  border: 2px solid var(--border-primary);
   border-radius: 6px;
   cursor: pointer;
   padding: 2px;

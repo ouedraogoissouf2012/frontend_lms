@@ -198,7 +198,7 @@ defineEmits(['retry', 'close'])
 
 .close-btn {
   background: none;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   color: var(--text-secondary);
 }
 

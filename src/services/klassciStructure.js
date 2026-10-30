@@ -11,9 +11,20 @@ import { endpoints } from './endpoints'
 // Import RELATIF (pas l'alias `@`) : ce service est dans le graphe du test de
 // contrat (runner natif Node, sans résolution d'alias Vite) — cf. lint.yml.
 import { extractList } from '../utils/apiList'
+import { invalidResponseError } from './errorHandler'
 
 const getWithOptionalConfig = (url, config = {}) =>
   Object.keys(config).length > 0 ? api.get(url, config) : api.get(url)
+
+/**
+ * Le serveur relaie le corps de KLASSCI tel quel : une réponse sans `success: true`
+ * est une anomalie à afficher — l'erreur prend le chemin d'une erreur HTTP —, jamais
+ * une liste vide, que l'écran compterait « 0 » (modèle : klassciCourses, #436).
+ */
+function exigerSucces(response, route) {
+  if (response?.success !== true) throw invalidResponseError(`GET ${route} sans success`)
+  return response
+}
 
 export const klassciStructureService = {
   /**
@@ -25,7 +36,7 @@ export const klassciStructureService = {
       const response = await getWithOptionalConfig(endpoints.klassci.classes, config)
       // #296 : normalise la frontière → garantit un tableau (gère `{classes:[…]}`
       // comme le plat `[…]`), conforme au JSDoc @returns Array.
-      return response.success ? extractList(response, ['classes']) : []
+      return extractList(exigerSucces(response, '/proxy/classes'), ['classes'])
     } catch (error) {
       console.error('Erreur récupération classes:', error)
       throw error
@@ -40,7 +51,7 @@ export const klassciStructureService = {
     try {
       const response = await getWithOptionalConfig(endpoints.klassci.matieres, config)
       // #296 : normalise la frontière → garantit un tableau.
-      return response.success ? extractList(response, ['matieres']) : []
+      return extractList(exigerSucces(response, '/proxy/matieres'), ['matieres'])
     } catch (error) {
       console.error('Erreur récupération matières:', error)
       throw error
@@ -55,7 +66,7 @@ export const klassciStructureService = {
     try {
       const response = await api.get(endpoints.klassci.enseignants)
       // #296 : normalise la frontière → garantit un tableau.
-      return response.success ? extractList(response, ['enseignants']) : []
+      return extractList(exigerSucces(response, '/proxy/enseignants'), ['enseignants'])
     } catch (error) {
       console.error('Erreur récupération enseignants:', error)
       throw error
@@ -85,7 +96,7 @@ export const klassciStructureService = {
   async getClasseEtudiants(classeId, config = {}) {
     try {
       const response = await getWithOptionalConfig(endpoints.klassci.classeEtudiants(classeId), config)
-      return response.success ? response.data : []
+      return exigerSucces(response, '/proxy/classes/{id}/etudiants').data
     } catch (error) {
       console.error(`Erreur récupération étudiants classe ${classeId}:`, error)
       throw error
@@ -99,7 +110,7 @@ export const klassciStructureService = {
   async getStructure(config = {}) {
     try {
       const response = await getWithOptionalConfig(endpoints.klassci.structure, config)
-      return response.success ? response.data : { filieres: [], niveaux_etude: [] }
+      return exigerSucces(response, '/proxy/structure').data
     } catch (error) {
       console.error('Erreur récupération structure:', error)
       throw error

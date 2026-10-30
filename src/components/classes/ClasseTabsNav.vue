@@ -41,7 +41,7 @@ defineEmits(['select'])
 
 <style scoped>
 .tabs-header {
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .tabs-nav {

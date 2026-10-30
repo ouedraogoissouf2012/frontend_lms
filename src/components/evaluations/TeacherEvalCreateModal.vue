@@ -129,7 +129,7 @@ defineEmits(['close', 'submit'])
 .form-textarea {
   width: 100%;
   padding: 0.625rem 0.75rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 0.5rem;
   background: var(--input-bg);
   color: var(--text-primary);
@@ -175,7 +175,7 @@ defineEmits(['close', 'submit'])
 .btn-cancel {
   background: var(--bg-secondary);
   color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
 }
 
 .btn-cancel:hover {
