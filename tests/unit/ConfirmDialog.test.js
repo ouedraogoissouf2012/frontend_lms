@@ -9,7 +9,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 import { useConfirm } from '@/composables/useConfirm'
 
-beforeEach(() => useConfirm().cancel())
+beforeEach(() => { useConfirm().cancel() })
 afterEach(() => {
   document.body.innerHTML = ''
 })

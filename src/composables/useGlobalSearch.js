@@ -1,6 +1,7 @@
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { searchService } from '@/services/search'
+import { isCanceled, logError, normalizeError } from '@/services/errorHandler'
 import {
   UserIcon,
   BookOpenIcon,
@@ -53,7 +54,19 @@ export function useGlobalSearch({ isOpen, onResultSelected }) {
   const searchHistory = ref([])
   const highlightedCategory = ref(null)
   const highlightedIndex = ref(-1)
+  /** Message du catalogue après un échec ; vide sinon (région `role="status"`). */
+  const searchError = ref('')
   let searchTimeout = null
+  // Seule la DERNIÈRE requête compte : jeton incrémenté à chaque départ, et la
+  // requête précédente annulée (moins de requêtes empilées, donc moins de 429).
+  let jeton = 0
+  let controleur = null
+
+  function abandonnerRecherche() {
+    jeton++
+    controleur?.abort()
+    controleur = null
+  }
 
   const filteredResults = computed(() => {
     return Object.fromEntries(
@@ -79,6 +92,10 @@ export function useGlobalSearch({ isOpen, onResultSelected }) {
 
   function handleInput() {
     if (query.value.length < 2) {
+      abandonnerRecherche()
+      clearTimeout(searchTimeout)
+      searching.value = false
+      searchError.value = ''
       results.value = EMPTY_RESULTS()
       return
     }
@@ -91,25 +108,30 @@ export function useGlobalSearch({ isOpen, onResultSelected }) {
   }
 
   async function performSearch() {
+    abandonnerRecherche()
+    const monJeton = jeton
+    controleur = new AbortController()
     searching.value = true
+    searchError.value = ''
     try {
-      const response = await searchService.globalSearch(query.value)
+      const response = await searchService.globalSearch(query.value, undefined, { signal: controleur.signal })
+      if (monJeton !== jeton) return
 
-      if (response) {
-        results.value = response.results
-        console.log('Résultats recherche:', response)
-
-        // Réinitialiser highlight
-        const firstCategory = Object.keys(filteredResults.value)[0]
-        if (firstCategory) {
-          highlightedCategory.value = firstCategory
-          highlightedIndex.value = 0
-        }
+      results.value = response.results
+      // Réinitialiser highlight
+      const firstCategory = Object.keys(filteredResults.value)[0]
+      if (firstCategory) {
+        highlightedCategory.value = firstCategory
+        highlightedIndex.value = 0
       }
     } catch (error) {
-      console.error('Erreur recherche:', error)
+      // Remplacée par une requête plus récente, ou annulée : ni message, ni vidage.
+      if (monJeton !== jeton || isCanceled(error)) return
+      // Jamais les résultats de la requête précédente sous la nouvelle saisie.
+      results.value = EMPTY_RESULTS()
+      searchError.value = error.userMessage ?? normalizeError(error).userMessage
     } finally {
-      searching.value = false
+      if (monJeton === jeton) searching.value = false
     }
   }
 
@@ -164,8 +186,6 @@ export function useGlobalSearch({ isOpen, onResultSelected }) {
   }
 
   function selectResult(item) {
-    console.log('Sélectionné:', item)
-
     // Sauvegarder dans l'historique
     searchService.saveToHistory(query.value)
 
@@ -182,10 +202,20 @@ export function useGlobalSearch({ isOpen, onResultSelected }) {
   }
 
   async function loadHistory() {
-    searchHistory.value = await searchService.getSearchHistory()
+    try {
+      searchHistory.value = await searchService.getSearchHistory()
+    } catch (error) {
+      // Commodité : un historique indisponible garde l'affichage précédent et ne
+      // bloque pas l'ouverture de la recherche.
+      logError(error, '[useGlobalSearch] historique')
+    }
   }
 
   function close() {
+    abandonnerRecherche()
+    clearTimeout(searchTimeout)
+    searching.value = false
+    searchError.value = ''
     isOpen.value = false
     query.value = ''
     results.value = EMPTY_RESULTS()
@@ -219,7 +249,7 @@ export function useGlobalSearch({ isOpen, onResultSelected }) {
   })
 
   return {
-    searchInput, query, searching, results, searchHistory,
+    searchInput, query, searching, results, searchHistory, searchError,
     highlightedCategory, highlightedIndex,
     filteredResults, hasResults, totalResults,
     getCategoryTitle, getIcon, handleInput, performSearch,

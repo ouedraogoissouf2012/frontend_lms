@@ -3,8 +3,8 @@
     <div class="widget-header">
       <UserGroupIcon class="widget-icon text-blue-600" />
       <h2 class="widget-title">Utilisateurs Récents</h2>
-      <span v-if="users.length > 0" class="widget-count">
-        {{ displayedUsers.length }}/{{ users.length }}
+      <span v-if="liste.length > 0" class="widget-count">
+        {{ displayedUsers.length }}/{{ liste.length }}
       </span>
       <router-link :to="viewAllTo" class="view-all-link">Voir tout</router-link>
     </div>
@@ -37,16 +37,15 @@
     </div>
     <div v-if="displayedUsers.length === 0" class="empty-state-inline">
       <UserGroupIcon class="empty-icon" />
-      <p class="empty-message">Aucun utilisateur récent</p>
+      <p class="empty-message">{{ users === null ? 'Utilisateurs récents indisponibles' : 'Aucun utilisateur récent' }}</p>
     </div>
   </div>
 </template>
 
 <script setup>
 /**
- * Widget utilisateurs récents d'AdminDashboard (#H3 ≤300). Présentation pure : la
- * liste est une prop ; les helpers (initiales/rôle/date) viennent du composable de
- * formatage partagé pour rester verbatim au rendu d'origine.
+ * Widget utilisateurs récents d'AdminDashboard (#H3 ≤300). Présentation pure. `users`
+ * à `null` = non mesuré (« indisponible »), distinct d'une liste vide (« aucun »).
  */
 import { UserGroupIcon } from '@heroicons/vue/24/outline'
 import { computed } from 'vue'
@@ -60,12 +59,13 @@ const props = defineProps({
 
 const { getInitials, getRoleLabel, getRoleClass, formatDate } = useDashboardFormatters()
 
+const liste = computed(() => props.users ?? [])
 const displayedUsers = computed(() => {
-  if (!props.limit || props.limit < 1) return props.users
-  return props.users.slice(0, props.limit)
+  if (!props.limit || props.limit < 1) return liste.value
+  return liste.value.slice(0, props.limit)
 })
 
-const hiddenCount = computed(() => Math.max(props.users.length - displayedUsers.value.length, 0))
+const hiddenCount = computed(() => Math.max(liste.value.length - displayedUsers.value.length, 0))
 </script>
 
 <style scoped>
