@@ -84,7 +84,7 @@ function mountRoom(overrides = {}) {
   return { room, instances, last }
 }
 
-beforeEach(() => vi.useFakeTimers())
+beforeEach(() => { vi.useFakeTimers() })
 afterEach(() => vi.useRealTimers())
 
 describe('useJitsiRoom — montage', () => {
