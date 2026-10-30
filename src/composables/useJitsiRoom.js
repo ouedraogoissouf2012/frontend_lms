@@ -12,7 +12,15 @@ const RECORDING_NOT_CONFIRMED_MESSAGE =
 
 const ROOM_NOT_MOUNTED_MESSAGE = "Aucune salle n'est ouverte."
 
+const ROOM_NOT_JOINED_MESSAGE =
+  "La salle n'est pas encore jointe : l'enregistrement pourra démarrer une fois la connexion établie."
+
 const RECORDING_STATUS_EVENT = 'recordingStatusChanged'
+
+// IFrame API (handbook, dev-guide-iframe-events) : l'utilisateur LOCAL a rejoint
+// la conférence, ou l'a quittée.
+const JOINED_EVENT = 'videoConferenceJoined'
+const LEFT_EVENT = 'videoConferenceLeft'
 
 /** Le seul mode que ce produit utilise : Jibri ecrit un fichier. */
 const RECORDING_MODE = 'file'
@@ -43,6 +51,9 @@ export function useJitsiRoom({
   timeoutMs = RECORDING_CONFIRMATION_TIMEOUT_MS,
 } = {}) {
   const isRecording = ref(false)
+  // Monter l'iframe ne fait pas rejoindre la conférence : la jonction arrive
+  // plus tard (réseau lent, autorisation caméra en attente, périphérique pris).
+  const isJoined = ref(false)
 
   let api = null
   /** @type {Array<[string, Function]>} écouteurs posés, pour un détachement exhaustif */
@@ -94,6 +105,8 @@ export function useJitsiRoom({
     attach(RECORDING_STATUS_EVENT, (payload) => {
       isRecording.value = payload?.on === true
     })
+    attach(JOINED_EVENT, () => { isJoined.value = true })
+    attach(LEFT_EVENT, () => { isJoined.value = false })
     requested.forEach(([event, handler]) => attach(event, handler))
   }
 
@@ -104,6 +117,7 @@ export function useJitsiRoom({
     api.dispose()
     api = null
     isRecording.value = false
+    isJoined.value = false
   }
 
   /**
@@ -161,6 +175,12 @@ export function useJitsiRoom({
    */
   function command(name, expectedOn, argument) {
     if (!api) return Promise.reject(new Error(ROOM_NOT_MOUNTED_MESSAGE))
+    // #416 — avant la jonction, Jitsi refuse le DÉMARRAGE dans son propre journal
+    // (« Conference is not defined ») sans rien émettre : seul le délai de garde
+    // aurait conclu, 120 s plus tard. On refuse donc ici, tout de suite. Ce garde
+    // est à la frontière : il couvre le bouton ET les commandes publiées au store.
+    // L'ARRÊT n'est jamais bloqué — on n'empêche pas d'interrompre une captation.
+    if (expectedOn && !isJoined.value) return Promise.reject(new Error(ROOM_NOT_JOINED_MESSAGE))
     const confirmed = awaitRecordingState(expectedOn)
     api.executeCommand(name, argument)
     return confirmed
@@ -169,7 +189,7 @@ export function useJitsiRoom({
   const startRecording = () => command('startRecording', true, { mode: RECORDING_MODE })
   const stopRecording = () => command('stopRecording', false, RECORDING_MODE)
 
-  return { isRecording, mount, dispose, on, startRecording, stopRecording }
+  return { isRecording, isJoined, mount, dispose, on, startRecording, stopRecording }
 }
 
-export { RECORDING_NOT_CONFIRMED_MESSAGE, ROOM_NOT_MOUNTED_MESSAGE }
+export { RECORDING_NOT_CONFIRMED_MESSAGE, ROOM_NOT_JOINED_MESSAGE, ROOM_NOT_MOUNTED_MESSAGE }
