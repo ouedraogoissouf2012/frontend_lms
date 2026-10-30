@@ -30,7 +30,7 @@ describe('capacité exigée par une route', () => {
     )
   }
 
-  beforeEach(() => sessionStorage.clear())
+  beforeEach(() => { sessionStorage.clear() })
 
   it('la route d import declare la capacite qu elle exige', () => {
     const route = teacherRoutes.find((r) => r.path === '/teacher/import')
