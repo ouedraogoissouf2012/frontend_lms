@@ -130,7 +130,7 @@ function toggleCorrectMultiple(optionIndex) {
 .option-input {
   flex: 1;
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 6px;
   font-size: 0.875rem;
   background: var(--bg-primary);
@@ -166,7 +166,7 @@ function toggleCorrectMultiple(optionIndex) {
   gap: 0.25rem;
   padding: 0.375rem 0.75rem;
   background: none;
-  border: 1px dashed var(--border-color);
+  border: 1px dashed var(--border-primary);
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.8125rem;

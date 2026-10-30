@@ -101,7 +101,7 @@ defineEmits(['export'])
   align-items: center;
   justify-content: space-between;
   padding: 1.5rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .results-title {
@@ -142,7 +142,7 @@ defineEmits(['export'])
 
 .results-table thead {
   background: var(--bg-secondary);
-  border-bottom: 2px solid var(--border-color);
+  border-bottom: 2px solid var(--border-primary);
 }
 
 .results-table th {
@@ -164,7 +164,7 @@ defineEmits(['export'])
 }
 
 .table-row {
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-primary);
   transition: background 0.2s;
 }
 

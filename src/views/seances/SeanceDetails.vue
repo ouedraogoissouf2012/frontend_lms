@@ -128,7 +128,7 @@ const {
 /* Cards - Style cohérent avec le reste de l'app */
 .seance-details > div {
   background: var(--card-bg);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 1rem;
   padding: 1.5rem;
   box-shadow: var(--card-shadow, 0 1px 3px rgba(0, 0, 0, 0.1));

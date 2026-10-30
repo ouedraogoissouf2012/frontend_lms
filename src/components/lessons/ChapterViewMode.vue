@@ -135,7 +135,7 @@ const safeWordContent = useSanitizedHtml(() => props.chapter?.content)
   padding: 16px;
   background: var(--bg-secondary);
   border-radius: 8px;
-  border: 1px solid var(--border-color, #e5e7eb);
+  border: 1px solid var(--border-primary);
   max-height: 400px;
   overflow-y: auto;
 }

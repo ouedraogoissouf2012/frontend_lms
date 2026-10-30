@@ -32,6 +32,8 @@ export const ERROR_MESSAGES = Object.freeze({
   // KLASSCI restaient muets après expiration du token ou indisponibilité).
   klassciExpired: 'Votre session KLASSCI a expiré. Reconnectez-vous à KLASSCI pour actualiser ces données.',
   klassciUnavailable: 'Service KLASSCI temporairement indisponible. Veuillez réessayer dans quelques instants.',
+  // #420 : constat, sans consigne de reconnexion — se reconnecter ne pose aucun accès.
+  klassciTokenMissing: "Aucun accès KLASSCI n'est enregistré pour ce compte : les données qui en proviennent ne peuvent pas être affichées.",
   // #391, ADR-906-01 : motifs de refus des portes d'inscription par code.
   // 409 : l'adhésion existe mais n'est pas active (élève suspendu) : une décision de
   // l'établissement (StudentEnrolmentService), pas un code périmé. Régénérer le code

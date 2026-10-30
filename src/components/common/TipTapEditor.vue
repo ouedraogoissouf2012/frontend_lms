@@ -100,7 +100,7 @@ const {
   gap: 4px;
   padding: 12px 16px;
   background: var(--bg-secondary);
-  border-bottom: 2px solid var(--border-color);
+  border-bottom: 2px solid var(--border-primary);
   overflow-x: auto;
   overflow-y: hidden;
 }
@@ -146,7 +146,7 @@ const {
 .editor-footer-modern {
   padding: 12px 20px;
   background: var(--bg-secondary);
-  border-top: 2px solid var(--border-color);
+  border-top: 2px solid var(--border-primary);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -175,7 +175,7 @@ const {
 }
 
 .editor-content-wrapper::-webkit-scrollbar-thumb {
-  background: var(--border-color);
+  background: var(--scrollbar-thumb);
   border-radius: 6px;
   border: 2px solid var(--bg-secondary);
 }

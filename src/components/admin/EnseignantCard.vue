@@ -73,7 +73,7 @@ defineEmits(['view'])
 <style scoped lang="scss">
 .enseignant-card {
   background: var(--card-bg);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-xl);
   padding: var(--spacing-lg);
   cursor: pointer;
@@ -95,7 +95,7 @@ defineEmits(['view'])
   align-items: center;
   gap: var(--spacing-md);
   padding-bottom: var(--spacing-md);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .enseignant-avatar {
@@ -174,7 +174,7 @@ defineEmits(['view'])
   flex-wrap: wrap;
   gap: var(--spacing-sm);
   padding-top: var(--spacing-sm);
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-primary);
 }
 
 .tag {

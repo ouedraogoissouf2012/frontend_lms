@@ -26,7 +26,7 @@ function mountView() {
 }
 
 describe('LessonChapters (G5) — montage', () => {
-  beforeEach(() => getLesson.mockReset())
+  beforeEach(() => { getLesson.mockReset() })
 
   it('monte sans erreur et charge la leçon par son id de route', async () => {
     getLesson.mockResolvedValue({ success: true, data: { id: 12, title: 'L', matiere_id: 3 } })

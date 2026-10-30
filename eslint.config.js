@@ -33,4 +33,17 @@ export default [
     files: ['src/constants/roles.js'],
     rules: { 'local/no-raw-role-string': 'off' },
   },
+  // Fichiers de test : UNE seule règle, pour ne pas faire surgir les écarts préexistants
+  // aux autres règles (chantier séparé). Une fonction RENDUE par beforeEach ou beforeAll
+  // est un nettoyage que Vitest appelle après le test : `beforeEach(() => fn.mockReset())`
+  // rend le mock, qui est alors rappelé sans argument. On écrit le hook en bloc { }.
+  {
+    files: ['tests/**/*.{js,mjs}', 'src/**/__tests__/**/*.js'],
+    rules: {
+      'no-restricted-syntax': ['error', {
+        selector: 'CallExpression[callee.name=/^(beforeEach|beforeAll)$/] > ArrowFunctionExpression[body.type!="BlockStatement"]',
+        message: "Écrire ce hook en bloc { } : une fonction qu'il rendrait serait appelée comme nettoyage après le test.",
+      }],
+    },
+  },
 ]

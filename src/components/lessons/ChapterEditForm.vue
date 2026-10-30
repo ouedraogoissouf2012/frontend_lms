@@ -96,7 +96,7 @@ defineEmits(['save', 'cancel', 'open-quiz-editor'])
   width: 100%;
   padding: 12px 16px;
   font-size: 1rem;
-  border: 3px solid var(--border-color);
+  border: 3px solid var(--border-primary);
   border-radius: 8px;
   transition: all 0.3s ease;
   background-color: rgba(0, 0, 0, 0.03);
@@ -129,7 +129,7 @@ defineEmits(['save', 'cancel', 'open-quiz-editor'])
   width: 100%;
   padding: 10px 12px;
   font-size: 0.875rem;
-  border: 3px solid var(--border-color);
+  border: 3px solid var(--border-primary);
   border-radius: 8px;
   background-color: rgba(0, 0, 0, 0.03);
   color: var(--text-primary);
@@ -183,7 +183,7 @@ defineEmits(['save', 'cancel', 'open-quiz-editor'])
   gap: 12px;
   margin-top: 24px;
   padding-top: 20px;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-primary);
 }
 
 .btn-cancel {
@@ -192,7 +192,7 @@ defineEmits(['save', 'cancel', 'open-quiz-editor'])
   font-weight: 500;
   color: var(--text-primary);
   background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s;
