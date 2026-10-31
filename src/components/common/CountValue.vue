@@ -17,5 +17,5 @@ const props = defineProps({
   value: { type: [Number, String], default: null },
 })
 
-const mesure = computed(() => Boolean(props.value))
+const mesure = computed(() => formatCount(props.value, { fallback: '' }) !== '')
 </script>
