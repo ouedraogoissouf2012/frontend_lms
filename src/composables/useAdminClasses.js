@@ -5,6 +5,7 @@ import { readCache, writeCache } from '@/services/cache'
 import { getClassCapacity, getClassMatiereCount, getClassStudentCount } from '@/utils/classStats'
 import { extractList } from '@/utils/apiList'
 import { toId } from '@/utils/toId'
+import { normalizeError } from '@/services/errorHandler'
 
 const ADMIN_CLASSES_CACHE_KEY = 'admin_classes_v3'
 const ADMIN_CLASSES_TIMEOUT_MS = 20000
@@ -152,7 +153,7 @@ export function useAdminClasses() {
       queueMetadataRefresh(rawClasses)
     } catch (err) {
       console.error('[ERREUR] Chargement classes admin:', err)
-      error.value = 'Impossible de charger les classes. Veuillez réessayer.'
+      error.value = err.userMessage ?? normalizeError(err).userMessage
     } finally {
       loading.value = false
     }
