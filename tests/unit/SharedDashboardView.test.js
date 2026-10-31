@@ -95,7 +95,10 @@ describe('Dashboard.vue (route partagée) — rôle normalisé', () => {
 
   it('charge leçons récentes et notifications, quel que soit le rôle', async () => {
     await mountDashboard('teacher')
-    expect(h.lessonsAll).toHaveBeenCalledWith({ limit: 5 })
+    // Test inversé (M3b) : il exigeait `{ limit: 5 }` pour les leçons, paramètre que
+    // FilterLessonsRequest ne lit pas ; le serveur lit `per_page`. Le service des
+    // notifications, lui, lit bien `limit` (notifications.getAll).
+    expect(h.lessonsAll).toHaveBeenCalledWith({ per_page: 5 })
     expect(h.notifsAll).toHaveBeenCalledWith({ limit: 5 })
   })
 })
