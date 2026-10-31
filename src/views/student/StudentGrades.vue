@@ -9,6 +9,7 @@
         </h1>
 
         <GradesStatsCards
+          v-if="mesure"
           :moyenne-generale="moyenneGenerale"
           :total-matieres="totalMatieres"
           :total-evaluations="totalEvaluations"
@@ -102,6 +103,7 @@ const {
   moyenneGenerale,
   totalMatieres,
   totalEvaluations,
+  mesure,
   fetchGrades
 } = useStudentGrades()
 
