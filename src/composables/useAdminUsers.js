@@ -186,7 +186,7 @@ export function useAdminUsers() {
     if (loadedClasses !== null) classes.value = loadedClasses
     if (loadedEnseignants !== null) enseignants.value = loadedEnseignants
     if (loadedAdministration !== null) administration.value = loadedAdministration
-    administrationEchec.value = false
+    administrationEchec.value = loadedAdministration === null
     rosterForbidden.value = forbidden
 
     // Roster nominatif : on n'applique le résultat frais que s'il fait AUTORITÉ —
