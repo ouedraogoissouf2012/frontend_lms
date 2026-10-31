@@ -159,13 +159,27 @@ describe('constants/visioNetwork (#327)', () => {
   })
 
   /**
-   * Les modes econome et audio masquent deliberement la video de soi : c\'est
-   * leur raison d\'etre. Ce test empeche qu\'une correction du mode complet ne les
-   * detende par effet de bord.
+   * #415 — AUCUN mode ne masque la video de soi, et chacun le dit (false, pas
+   * une cle absente). Ce test remplace l'ancien M3b, qui exigeait l'inverse.
+   *
+   * Masquer sa propre vignette n'economise rien : elle montre le flux LOCAL, qui
+   * ne passe pas par le reseau. L'economie tient a `startWithVideoMuted` (rien
+   * n'est envoye) et a `channelLastN` (ce qui est recu).
+   *
+   * Et ce reglage n'est pas anodin : Jitsi COPIE `disableSelfView` de la config
+   * dans ses reglages persistes (base/config/middleware.any.ts:76-80, au tag
+   * stable/jitsi-meet_11248), puis les combine par un OU (getHideSelfView,
+   * base/settings/functions.any.ts:123-125). Une seule entree en mode econome
+   * laissait donc l'ecran noir dans tous les modes suivants.
    */
-  it('M3b — les modes econome et audio masquent toujours la video de soi', () => {
-    expect(jitsiConfigForMode(VISIO_MODES.AUDIO).disableSelfView).toBe(true)
-    expect(jitsiConfigForMode(VISIO_MODES.ECONOME).disableSelfView).toBe(true)
+  it('M3b — aucun mode ne masque la video de soi (#415)', () => {
+    for (const mode of Object.values(VISIO_MODES)) {
+      expect(jitsiConfigForMode(mode).disableSelfView, mode).toBe(false)
+    }
+  })
+
+  it('M3c — la config par defaut (salle montee sans mode) ne la masque pas non plus', () => {
+    expect(jitsiConfigOverwrite().disableSelfView).toBe(false)
   })
 
   /**

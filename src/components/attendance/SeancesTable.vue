@@ -122,7 +122,7 @@ defineEmits(['view-attendances', 'delete-seance', 'change-page'])
 
 .data-table thead {
   background: var(--bg-secondary);
-  border-bottom: 2px solid var(--border-color);
+  border-bottom: 2px solid var(--border-primary);
 }
 
 .data-table th {
@@ -136,7 +136,7 @@ defineEmits(['view-attendances', 'delete-seance', 'change-page'])
 }
 
 .data-table tbody tr {
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-primary);
   transition: background-color 0.15s ease;
 }
 

@@ -4,6 +4,8 @@ import { auth } from '@/services/api'
 import { isStudent, isTeacher, isAdminScope } from '@/constants/roles'
 import { getInitials } from '@/utils/formatters'
 import { useNotifications } from '@/composables/useNotifications'
+import { toast } from '@/composables/useToast'
+import { resolveNotificationTarget } from '@/utils/security/notificationTarget'
 
 /**
  * Couche logique de Navbar (#H12 ≤300) : titre/fil d'Ariane dérivés de la route,
@@ -16,6 +18,8 @@ import { useNotifications } from '@/composables/useNotifications'
  * `event.target.closest('.user-menu')` au lieu d'un template ref — équivalent,
  * car il n'existe qu'un seul `.user-menu` dans le DOM.
  */
+const NEW_TAB_FEATURES = 'noopener,noreferrer'
+
 export function useNavbar() {
   const route = useRoute()
   const router = useRouter()
@@ -159,18 +163,28 @@ export function useNavbar() {
     showUserMenu.value = false
   }
 
-  // Clic sur une notification avec navigation (Option 3 - Pro)
+  // Clic sur une notification : marquée lue d'abord, puis la cible décidée par
+  // resolveNotificationTarget (garde commune des liens + contrôle d'origine).
+  // Un nouvel onglet ne reçoit jamais d'accès à cette fenêtre (noopener).
   const handleNotificationClick = async (notification, event) => {
     await markNotificationAsRead(notification.id)
+    if (!notification.action_url) return
 
-    if (notification.action_url) {
-      if (event.ctrlKey || event.metaKey) {
-        // Ctrl+Clic (Windows) ou Cmd+Clic (Mac) = nouvel onglet
-        window.open(notification.action_url, '_blank')
-      } else {
-        router.push(notification.action_url)
-        showNotifications.value = false
-      }
+    const cible = resolveNotificationTarget(notification.action_url)
+    if (cible.kind === 'none') {
+      // Ni l'URL ni un journal : le message dit seulement que le lien ne mène nulle part.
+      toast.info("Ce lien n'est pas disponible.")
+      return
+    }
+
+    if (cible.kind === 'external') {
+      window.open(cible.href, '_blank', NEW_TAB_FEATURES)
+    } else if (event.ctrlKey || event.metaKey) {
+      // Ctrl+Clic (Windows) ou Cmd+Clic (Mac) = nouvel onglet
+      window.open(cible.href, '_blank', NEW_TAB_FEATURES)
+    } else {
+      router.push(cible.path)
+      showNotifications.value = false
     }
   }
 

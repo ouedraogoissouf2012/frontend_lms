@@ -139,7 +139,7 @@ function isActive(path) {
 .logout-link {
   color: var(--red-500);
   margin-top: 0.5rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-primary);
   padding-top: 1rem;
 }
 </style>

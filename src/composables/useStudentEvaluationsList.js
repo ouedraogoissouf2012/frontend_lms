@@ -5,6 +5,7 @@ import api, { auth } from '@/services/api'
 import { isExpired } from '@/utils/studentEvaluationStatus'
 import { toast } from '@/composables/useToast'
 import { endpoints } from '@/services/endpoints'
+import { normalizeError } from '@/services/errorHandler'
 
 /**
  * Couche données de StudentEvaluationsList (H2 ≤300) : charge les évaluations de
@@ -74,11 +75,10 @@ export function useStudentEvaluationsList() {
       }
     } catch (err) {
       console.error('[ERREUR] Erreur chargement évaluations:', err)
-      if (err.response?.status === 401) {
-        error.value = 'Session expirée. Veuillez vous reconnecter.'
-      } else {
-        error.value = err.response?.data?.message || 'Impossible de charger vos évaluations. Veuillez réessayer.'
-      }
+      // Message sûr posé par l'intercepteur selon le `reason` du serveur (D0) : un 401
+      // `klassci_token_missing` n'est pas une session expirée, et le texte du serveur
+      // n'atteint jamais l'écran.
+      error.value = err.userMessage ?? normalizeError(err).userMessage
     } finally {
       loading.value = false
     }

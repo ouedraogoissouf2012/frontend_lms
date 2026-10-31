@@ -57,7 +57,7 @@
    =========================== */
 :deep(.tiptap-fullscreen-header) {
   background: var(--bg-secondary);
-  border-bottom: 2px solid var(--border-color);
+  border-bottom: 2px solid var(--border-primary);
   padding: 20px 30px;
   display: flex;
   justify-content: space-between;
@@ -107,7 +107,7 @@
   gap: 6px;
   padding: 16px 30px;
   background: var(--bg-secondary);
-  border-bottom: 2px solid var(--border-color);
+  border-bottom: 2px solid var(--border-primary);
   overflow-x: auto;
   overflow-y: hidden;
   flex-shrink: 0;
@@ -152,7 +152,7 @@
 :deep(.tiptap-fullscreen-footer) {
   padding: 16px 30px;
   background: var(--bg-secondary);
-  border-top: 2px solid var(--border-color);
+  border-top: 2px solid var(--border-primary);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -184,7 +184,7 @@
 
 .fullscreen-hint kbd {
   background: var(--card-bg);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 4px;
   padding: 3px 8px;
   font-family: monospace;
@@ -216,7 +216,7 @@
 }
 
 .modal-content-wrapper::-webkit-scrollbar-thumb {
-  background: var(--border-color);
+  background: var(--scrollbar-thumb);
   border-radius: 6px;
   border: 2px solid var(--bg-secondary);
 }

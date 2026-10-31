@@ -151,7 +151,7 @@ const {
 /* Loading */
 .loading-card {
   background: var(--card-bg);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 12px;
   padding: 48px;
   text-align: center;
@@ -161,7 +161,7 @@ const {
 .spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid var(--border-color);
+  border: 3px solid var(--border-primary);
   border-top-color: var(--color-primary, #3b82f6);
   border-radius: 50%;
   animation: spin 1s linear infinite;

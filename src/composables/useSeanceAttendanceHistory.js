@@ -7,6 +7,7 @@ import attendanceExportService from '@/services/attendanceExport'
 import { getPeriodDates as computePeriodDates } from '@/utils/attendance'
 import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
+import { normalizeError } from '@/services/errorHandler'
 
 /**
  * Couche données de l'historique des séances + présences (H7, ≤300) extraite de
@@ -85,7 +86,7 @@ export function useSeanceAttendanceHistory() {
         pagination.value = response.pagination
       }
     } catch (err) {
-      error.value = err.message || 'Erreur lors du chargement des séances'
+      error.value = err.userMessage ?? normalizeError(err).userMessage
     } finally {
       loading.value = false
     }
@@ -155,7 +156,7 @@ export function useSeanceAttendanceHistory() {
           }
         }
       } catch (err) {
-        attendancesError.value = err.message || 'Erreur lors du chargement des présences'
+        attendancesError.value = err.userMessage ?? normalizeError(err).userMessage
       } finally {
         loadingAttendances.value = false
       }
@@ -174,7 +175,7 @@ export function useSeanceAttendanceHistory() {
         attendances.value = response
       }
     } catch (err) {
-      attendancesError.value = err.message || 'Erreur lors du chargement des présences'
+      attendancesError.value = err.userMessage ?? normalizeError(err).userMessage
     } finally {
       loadingAttendances.value = false
     }
@@ -225,7 +226,7 @@ export function useSeanceAttendanceHistory() {
       toast.success('Séance supprimée avec succès')
       loadSeances() // Recharger la liste
     } catch (err) {
-      toast.error(err.message || 'Erreur lors de la suppression de la séance')
+      toast.error(err.userMessage ?? normalizeError(err).userMessage)
     }
   }
 

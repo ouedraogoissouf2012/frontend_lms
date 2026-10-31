@@ -14,7 +14,8 @@ export const lmsSeancesService = {
   /**
    * Récupérer séances à venir avec filtres
    * @param {Object} params - { days, teacher_id, classe_id }
-   * @returns {Promise<Array>}
+   * @returns {Promise<{success: boolean, data: Array, meta: Object}>} le CORPS, non
+   *   déballé : la liste est `data` (LMSSeancesListController::upcomingSeances).
    */
   async getUpcomingSeances(params = {}) {
     try {

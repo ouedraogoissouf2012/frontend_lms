@@ -21,7 +21,7 @@
         type="button"
         class="visio-room__record"
         :class="{ 'visio-room__record--active': enregistrement.enregistre.value }"
-        :disabled="enregistrement.enCours.value"
+        :disabled="enregistrement.enCours.value || !enregistrement.pret.value"
         @click="enregistrement.basculer"
       >
         <i class="fa fa-circle" aria-hidden="true"></i> {{ enregistrement.libelle.value }}
@@ -82,6 +82,7 @@ const mirror = useVisioRecordingMirror({ getSeanceId: () => visioStore.activeSea
 // car ce composant est monte pour TOUS les participants.
 const enregistrement = useRoomRecording({
   isRecording: room.isRecording,
+  isJoined: room.isJoined,
   startRecording: room.startRecording,
   stopRecording: room.stopRecording,
   canManageRecording: () => visioStore.roomConfig?.canManageRecording === true,
@@ -137,8 +138,10 @@ watch(
         parentNode: container.value,
         configOverwrite: jitsiConfigForMode(mode),
       })
-      // Publiees seulement APRES un montage reussi : c'est ce qui garantit
-      // qu'un ordre d'enregistrement atteint une salle reellement ouverte.
+      // Publiees seulement APRES un montage reussi : un ordre ne vise jamais une
+      // instance Jitsi detruite. Monter l'iframe ne fait pas encore REJOINDRE la
+      // conference : c'est `useJitsiRoom` qui refuse le demarrage avant
+      // `videoConferenceJoined` (#416).
       visioStore.registerRoomCommands({
         startRecording: room.startRecording,
         stopRecording: room.stopRecording,

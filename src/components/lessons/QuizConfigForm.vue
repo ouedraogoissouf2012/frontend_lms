@@ -112,7 +112,7 @@ defineProps({
 .config-input {
   width: 100%;
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 6px;
   background: var(--bg-primary);
   color: var(--text-primary);

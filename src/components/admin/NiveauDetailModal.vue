@@ -139,7 +139,7 @@ defineEmits(['close', 'view-matiere'])
   white-space: nowrap;
 }
 .matieres-table tbody tr {
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-primary);
   transition: background 0.2s;
 }
 .matieres-table tbody tr:hover {
@@ -153,7 +153,7 @@ defineEmits(['close', 'view-matiere'])
   width: 40px;
   height: 40px;
   border-radius: 0.5rem;
-  border: 3px solid var(--border-color);
+  border: 3px solid var(--border-primary);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
 }
@@ -182,7 +182,7 @@ defineEmits(['close', 'view-matiere'])
   border-radius: 0.375rem;
   font-size: 0.75rem;
   font-weight: 500;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
 }
 .code-badge {
   display: inline-block;
@@ -192,7 +192,7 @@ defineEmits(['close', 'view-matiere'])
   border-radius: 0.5rem;
   font-size: 0.8125rem;
   font-weight: 600;
-  border: 2px solid var(--border-color);
+  border: 2px solid var(--border-primary);
   font-family: 'Courier New', monospace;
 }
 .col-center {
@@ -219,7 +219,7 @@ defineEmits(['close', 'view-matiere'])
 .action-btn {
   padding: 0.625rem;
   background: var(--card-bg);
-  border: 2px solid var(--border-color);
+  border: 2px solid var(--border-primary);
   border-radius: 0.5rem;
   color: var(--text-secondary);
   cursor: pointer;

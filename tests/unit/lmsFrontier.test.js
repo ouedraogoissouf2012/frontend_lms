@@ -13,7 +13,7 @@ import { lmsMatieresService } from '@/services/lmsMatieres'
 import { lmsSeancesService } from '@/services/lmsSeances'
 
 describe('frontière lms* — dé-wrap d\'enveloppe en tableau (#296)', () => {
-  beforeEach(() => getMock.mockReset())
+  beforeEach(() => { getMock.mockReset() })
 
   it('getEnseignants : enveloppe nommée { data: { enseignants: [...] } } → tableau', async () => {
     getMock.mockResolvedValue({ success: true, data: { enseignants: [{ id: 1 }] } })

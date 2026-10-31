@@ -82,7 +82,7 @@ const {
   right: 0;
   height: 56px;
   background: var(--card-bg);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-primary);
   display: flex;
   align-items: center;
   justify-content: space-between;

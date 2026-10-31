@@ -11,80 +11,10 @@
  * en cours » sur la foi d'une écriture locale, pendant que Jibri restait IDLE.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { useJitsiRoom } from '@/composables/useJitsiRoom'
+// Double de l'IFrame API, partagé avec les tests qui montent la salle (#416).
+import { ROOM, mountRoom } from '../../../tests/helpers/fakeJitsiApi'
 
-const ROOM = {
-  domain: 'visio.klassci.com',
-  roomName: 'lms_cf185e304cbe2bd81a2e1e57adc555e0036f47f7',
-  jwt: 'eyJhbG.payload.sig',
-  displayName: 'Awa Koné',
-}
-
-/**
- * Double de `JitsiMeetExternalAPI`.
- *
- * Il ÉCHOUE s'il est construit sans les options indispensables. Un double
- * permissif laisserait passer un composable qui instancie l'API sans la
- * configurer : le test serait vert et la salle ne s'ouvrirait jamais.
- */
-function createFakeJitsiApi() {
-  const instances = []
-
-  class FakeApi {
-    constructor(domain, options) {
-      if (!domain) throw new Error('domaine manquant')
-      if (!options?.roomName) throw new Error('roomName manquant')
-      if (!options?.jwt) throw new Error('jwt manquant : la salle refuserait l\'entrée')
-      if (!options?.parentNode) throw new Error('parentNode manquant : rien ne serait affiché')
-
-      this.domain = domain
-      this.options = options
-      this.listeners = new Map()
-      this.commands = []
-      this.disposed = false
-      instances.push(this)
-    }
-
-    addListener(event, handler) {
-      if (!this.listeners.has(event)) this.listeners.set(event, new Set())
-      this.listeners.get(event).add(handler)
-    }
-
-    removeListener(event, handler) {
-      this.listeners.get(event)?.delete(handler)
-    }
-
-    executeCommand(name, ...args) {
-      this.commands.push({ name, args })
-    }
-
-    dispose() {
-      this.disposed = true
-    }
-
-    /** Simule un événement émis par Jitsi. */
-    emit(event, payload) {
-      this.listeners.get(event)?.forEach((handler) => handler(payload))
-    }
-
-    countListeners() {
-      return [...this.listeners.values()].reduce((total, set) => total + set.size, 0)
-    }
-  }
-
-  return { FakeApi, instances, last: () => instances[instances.length - 1] }
-}
-
-function mountRoom(overrides = {}) {
-  const { FakeApi, instances, last } = createFakeJitsiApi()
-  const room = useJitsiRoom({
-    loadExternalApi: vi.fn(async () => FakeApi),
-    ...overrides,
-  })
-  return { room, instances, last }
-}
-
-beforeEach(() => vi.useFakeTimers())
+beforeEach(() => { vi.useFakeTimers() })
 afterEach(() => vi.useRealTimers())
 
 describe('useJitsiRoom — montage', () => {
@@ -138,6 +68,9 @@ describe('useJitsiRoom — enregistrement (le cœur de #673)', () => {
   async function mounted() {
     const ctx = mountRoom()
     await ctx.room.mount({ ...ROOM, parentNode: document.createElement('div') })
+    // #416 : le démarrage exige une conférence JOINTE ; ces tests portent sur la
+    // confirmation du fournisseur, pas sur la jonction (cf. visioEnregistrementJonction).
+    ctx.last().emit('videoConferenceJoined', { roomName: ROOM.roomName })
     return ctx
   }
 
@@ -204,16 +137,19 @@ describe('useJitsiRoom — enregistrement (le cœur de #673)', () => {
   it('J9 — après confirmation, ni écouteur ni minuteur ne survivent', async () => {
     const { room, last } = await mounted()
 
+    // Compte les seuls écouteurs d'enregistrement : la salle en pose d'autres,
+    // permanents (jonction et départ, #416), hors du sujet de ce test.
+    const ecouteursEnregistrement = () => last().listeners.get('recordingStatusChanged').size
     const started = room.startRecording()
     // 2 écouteurs : le suivi permanent de `isRecording`, plus celui de la commande.
-    expect(last().countListeners()).toBe(2)
+    expect(ecouteursEnregistrement()).toBe(2)
 
     last().emit('recordingStatusChanged', { on: true, mode: 'file' })
     await started
 
-    expect(last().countListeners()).toBe(1)
+    expect(ecouteursEnregistrement()).toBe(1)
     await vi.advanceTimersByTimeAsync(300_000)
-    expect(last().countListeners()).toBe(1)
+    expect(ecouteursEnregistrement()).toBe(1)
   })
 
   it('J10 — l\'arrêt suit la même règle : confirmation avant résolution', async () => {

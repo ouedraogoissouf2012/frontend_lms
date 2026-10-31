@@ -23,6 +23,7 @@ vi.mock('@/services/evaluation', () => ({ default: evaluation }))
 vi.mock('@/services/cache', () => ({ readCache: vi.fn(() => null), writeCache: vi.fn() }))
 
 import { useTeacherEvaluations } from '@/composables/useTeacherEvaluations'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -50,11 +51,13 @@ describe('useTeacherEvaluations (#278) — chargement & replis', () => {
     expect(c.evaluationsKlassci.value).toEqual([{ id: 9 }])
   })
 
-  it('KLASSCI ET dashboard échouent → reste vide, aucun crash', async () => {
+  // #420 : un double échec n'est plus rendu comme une liste vide. L'échec
+  // remonte à loadData, qui le dit (voir le bloc #420 ci-dessous).
+  it('KLASSCI ET dashboard échouent → reste vide, et l échec remonte', async () => {
     klassci.getEvaluations.mockRejectedValue(new Error('403'))
     klassci.getTeacherDashboard.mockRejectedValue(new Error('500'))
     const c = useTeacherEvaluations()
-    await c.loadEvaluationsKlassci()
+    await expect(c.loadEvaluationsKlassci()).rejects.toThrow('403')
     expect(c.evaluationsKlassci.value).toEqual([])
   })
 
@@ -134,5 +137,94 @@ describe('useTeacherEvaluations — le compteur de copies est celui du serveur',
     const c = useTeacherEvaluations()
     await c.loadEvaluationsLMS()
     expect(c.evaluationsLMS.value[0].submissions_count).toBe(0)
+  })
+})
+
+/**
+ * #420 — « aucune évaluation » et « je n'ai pas pu charger » ne se confondent plus.
+ *
+ * Un compte sans accès KLASSCI (`klassci_token_missing`) reçoit une MENTION vraie,
+ * pas l'état d'erreur, et sans repli vers le dashboard (même cause, même refus).
+ * Toute autre panne, repli compris, renseigne `error`.
+ */
+describe('#420 — accès KLASSCI absent et panne réelle', () => {
+  // Source unique : le message du catalogue (aucune copie locale du texte).
+  const MENTION = ERROR_MESSAGES.klassciTokenMissing
+  const http = (status, data = {}, headers = {}) =>
+    Object.assign(new Error(`HTTP ${status}`), {
+      isAxiosError: true,
+      response: { status, data: { success: false, ...data }, headers },
+    })
+  const jetonAbsent = () => http(401, { reason: 'klassci_token_missing', message: 'KLASSCI' })
+  const klassciEnPanne = () => http(503, { message: 'KLASSCI' }, { 'retry-after': '30' })
+
+  it('jeton absent → mention vraie, aucun repli vers le dashboard, aucune erreur', async () => {
+    klassci.getEvaluations.mockRejectedValue(jetonAbsent())
+    const c = useTeacherEvaluations()
+    await c.loadData()
+    expect(klassci.getTeacherDashboard).not.toHaveBeenCalled()
+    expect(c.evaluationsKlassci.value).toEqual([])
+    expect(c.mentionSource.value).toBe(MENTION)
+    expect(c.error.value).toBeNull()
+  })
+
+  it('jeton absent constaté par le repli → mention vraie, aucune erreur', async () => {
+    klassci.getEvaluations.mockRejectedValue(new Error('403 par classe'))
+    klassci.getTeacherDashboard.mockRejectedValue(jetonAbsent())
+    const c = useTeacherEvaluations()
+    await c.loadData()
+    expect(c.mentionSource.value).toBe(MENTION)
+    expect(c.error.value).toBeNull()
+  })
+
+  it('panne KLASSCI et repli en échec → error dit la panne, au message du catalogue', async () => {
+    klassci.getEvaluations.mockRejectedValue(klassciEnPanne())
+    klassci.getTeacherDashboard.mockRejectedValue(klassciEnPanne())
+    const c = useTeacherEvaluations()
+    await c.loadData()
+    expect(c.error.value).toBe(ERROR_MESSAGES.klassciUnavailable)
+    expect(c.mentionSource.value).toBe('')
+    expect(c.loading.value).toBe(false)
+  })
+
+  it('repli sans évaluations exploitables (réponse refusée) → error, pas une liste vide', async () => {
+    klassci.getEvaluations.mockRejectedValue(klassciEnPanne())
+    klassci.getTeacherDashboard.mockResolvedValue(null)
+    const c = useTeacherEvaluations()
+    await c.loadData()
+    expect(c.error.value).toBe(ERROR_MESSAGES.klassciUnavailable)
+  })
+
+  it('un repli qui répond une liste vide reste « aucune évaluation »', async () => {
+    klassci.getEvaluations.mockRejectedValue(new Error('403 par classe'))
+    klassci.getTeacherDashboard.mockResolvedValue({ evaluations: [] })
+    const c = useTeacherEvaluations()
+    await c.loadData()
+    expect(c.error.value).toBeNull()
+    expect(c.mentionSource.value).toBe('')
+  })
+
+  it('un rechargement retire la mention AVANT tout await, pas à la réponse', async () => {
+    klassci.getEvaluations.mockRejectedValueOnce(jetonAbsent())
+    const c = useTeacherEvaluations()
+    await c.loadData()
+    expect(c.mentionSource.value).toBe(MENTION)
+    let libererClasses
+    klassci.getClasses.mockReturnValueOnce(new Promise((r) => { libererClasses = r }))
+    const enCours = c.loadData()
+    expect(c.mentionSource.value).toBe('')
+    libererClasses([])
+    await enCours
+  })
+
+  it('un rechargement réussi retire la mention', async () => {
+    klassci.getEvaluations.mockRejectedValueOnce(jetonAbsent())
+    const c = useTeacherEvaluations()
+    await c.loadData()
+    expect(c.mentionSource.value).toBe(MENTION)
+    klassci.getEvaluations.mockResolvedValue({ success: true, data: [{ id: 1 }] })
+    await c.loadData()
+    expect(c.mentionSource.value).toBe('')
+    expect(c.evaluationsKlassci.value).toEqual([{ id: 1 }])
   })
 })

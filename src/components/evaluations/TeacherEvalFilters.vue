@@ -165,7 +165,7 @@ defineEmits(['apply', 'reset', 'update:hideExpired'])
   cursor: pointer;
   transition: all 0.2s;
   background: var(--card-bg);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   color: var(--text-secondary);
 }
 
@@ -193,7 +193,7 @@ defineEmits(['apply', 'reset', 'update:hideExpired'])
 .filter-select {
   width: 100%;
   padding: 0.625rem 0.75rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 0.5rem;
   background: var(--input-bg);
   color: var(--text-primary);
@@ -224,7 +224,7 @@ defineEmits(['apply', 'reset', 'update:hideExpired'])
   padding: 0.625rem 1rem;
   background: var(--bg-secondary);
   color: var(--text-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 0.5rem;
   font-size: 0.875rem;
   font-weight: 500;
