@@ -16,6 +16,9 @@ export function useAdminVisio() {
   const loading = ref(true)
   const error = ref(null)
   const visioconferences = ref([])
+  // Les séances ont-elles été lues au moins une fois (réseau ou cache) ? Sinon les
+  // compteurs ne sont pas mesurés : « — », pas quatre 0 sous un refus.
+  const mesure = ref(false)
 
   const filters = ref({
     days: '7',
@@ -25,6 +28,7 @@ export function useAdminVisio() {
 
   // Stats computées
   const stats = computed(() => {
+    if (!mesure.value) return { active: null, scheduled: null, completed: null, total: null }
     const allVisio = visioconferences.value
     return {
       active: allVisio.filter(v => v.status === 'active').length,
@@ -95,6 +99,7 @@ export function useAdminVisio() {
   }
 
   function processVisioData(seances) {
+    mesure.value = true
     // Transformer les séances en données de visioconférence
     visioconferences.value = seances
       .filter(s => s.visio_enabled)

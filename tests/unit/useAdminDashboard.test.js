@@ -232,17 +232,22 @@ describe('useAdminDashboard (#H3)', () => {
   })
 
   describe('échec de chargement KLASSCI : jamais des zéros muets', () => {
-    it('marque les compteurs NON MESURÉS (null) au lieu de les laisser à zéro', async () => {
+    // Test inversé (M2b) : il exigeait que l'échec des SEULES classes efface aussi les
+    // compteurs d'enseignants et de matières, dont les sources avaient répondu. Les
+    // sources sont désormais indépendantes : seuls les compteurs tirés des classes
+    // restent non mesurés.
+    it('marque NON MESURÉS (null) les seuls compteurs de la source refusée', async () => {
       mockKlassci.getClasses.mockRejectedValue(new Error('proxy down'))
 
       const s = await setup()
 
-      // L'écran affichait « Enseignants 0 / Étudiants 0 / Classes 0 / Matières 0 »
-      // alors qu'aucun comptage n'avait abouti : la panne se lisait comme un fait.
-      expect(s.stats.value.nb_enseignants).toBe(null)
+      // L'écran affichait « Étudiants 0 / Classes 0 » alors qu'aucun comptage des
+      // classes n'avait abouti : la panne se lisait comme un fait.
       expect(s.stats.value.nb_etudiants).toBe(null)
       expect(s.stats.value.nb_classes_actives).toBe(null)
-      expect(s.stats.value.nb_matieres_actives).toBe(null)
+      // Sources qui ont répondu (listes vides) : mesurées à 0.
+      expect(s.stats.value.nb_enseignants).toBe(0)
+      expect(s.stats.value.nb_matieres_actives).toBe(0)
     })
 
     it('expose une erreur affichable (le tableau de bord était muet)', async () => {

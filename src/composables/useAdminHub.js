@@ -7,12 +7,13 @@ function firstNumber(source, keys) {
   return coalesceNumberFrom(source, keys, 0)
 }
 
+// `null` = source refusée, donc NON MESURÉE : rendue « — », jamais 0.
 function countItems(value) {
-  return Array.isArray(value) ? value.length : 0
+  return Array.isArray(value) ? value.length : null
 }
 
 function countStudents(classes) {
-  if (!Array.isArray(classes)) return 0
+  if (!Array.isArray(classes)) return null
 
   return classes.reduce((sum, classe) => {
     const count = firstNumber(classe, [
@@ -34,10 +35,10 @@ export function useAdminHub() {
   const loading = ref(true)
   const error = ref(null) // #238 : signale un chargement partiel (chiffres incomplets)
   const stats = ref({
-    classes: 0,
-    matieres: 0,
-    enseignants: 0,
-    etudiants: 0,
+    classes: null,
+    matieres: null,
+    enseignants: null,
+    etudiants: null,
     // `null` = NON MESURÉ, rendu « — » : le serveur ne compte ni l'un ni l'autre (cf. loadStats).
     seances: null,
     evaluations: null
@@ -53,10 +54,12 @@ export function useAdminHub() {
       // chiffres sont incomplets — au lieu d'afficher 0 en silence.
       const failed = []
       const [classes, matieres, enseignants, dashboardStats] = await Promise.all([
-        klassciService.getClasses().catch(() => { failed.push('classes'); return [] }),
-        klassciService.getMatieres().catch(() => { failed.push('matières'); return [] }),
-        klassciService.getEnseignants().catch(() => { failed.push('enseignants'); return [] }),
-        dashboard.getStats().catch(() => { failed.push('statistiques'); return {} })
+        // Une source refusée rend `null` (non mesurée) : son compteur s'affiche « — »,
+        // pas 0. Le bandeau `failed` (#238) continue de prévenir l'admin.
+        klassciService.getClasses().catch(() => { failed.push('classes'); return null }),
+        klassciService.getMatieres().catch(() => { failed.push('matières'); return null }),
+        klassciService.getEnseignants().catch(() => { failed.push('enseignants'); return null }),
+        dashboard.getStats().catch(() => { failed.push('statistiques'); return null })
       ])
 
       if (failed.length > 0) {
@@ -64,6 +67,7 @@ export function useAdminHub() {
       }
 
       const etudiantsFromClasses = countStudents(classes)
+      const etudiantsFromStats = dashboardStats ? firstNumber(dashboardStats.data, ['users.students']) : null
 
       stats.value = {
         classes: countItems(classes),
@@ -72,7 +76,8 @@ export function useAdminHub() {
         // `/dashboard/stats` rend `{ success, data: { users, lessons, quizzes, forum,
         // notifications, recent_activity } }` (AdminDashboardService::aggregate) :
         // les compteurs sont SOUS `data`. Lus à la racine, ils valaient toujours 0.
-        etudiants: etudiantsFromClasses || firstNumber(dashboardStats?.data, ['users.students']),
+        // Les classes d'abord ; sinon les statistiques ; `null` si aucune des deux n'a répondu.
+        etudiants: etudiantsFromClasses || (etudiantsFromStats ?? etudiantsFromClasses),
         // Aucun compteur de séances ni d'évaluations dans cette réponse ; `quizzes.total`
         // compte des QUIZ, pas des évaluations. Non mesuré → « — », jamais un 0.
         seances: null,
