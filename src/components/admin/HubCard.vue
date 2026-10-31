@@ -7,7 +7,7 @@
       <h2 class="card-title">{{ title }}</h2>
       <p class="card-description">{{ description }}</p>
       <div class="card-stat">
-        <span class="stat-number">{{ stat }}</span>
+        <span class="stat-number"><CountValue :value="stat" /></span>
         <span class="stat-label">{{ statLabel }}</span>
       </div>
     </div>
@@ -25,6 +25,7 @@
  * par la vue (orchestration), la carte ne fait qu'afficher.
  */
 import { ArrowRightIcon } from '@heroicons/vue/24/outline'
+import CountValue from '@/components/common/CountValue.vue'
 
 defineProps({
   to: { type: String, required: true },
@@ -32,7 +33,8 @@ defineProps({
   iconClass: { type: String, default: '' },
   title: { type: String, required: true },
   description: { type: String, default: '' },
-  stat: { type: [Number, String], default: 0 },
+  // `null` = non mesuré (source refusée) : rendu « — », jamais 0.
+  stat: { type: [Number, String], default: null },
   statLabel: { type: String, default: '' },
   footerText: { type: String, default: '' },
 })

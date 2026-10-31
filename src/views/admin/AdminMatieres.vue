@@ -7,7 +7,7 @@
           <BookOpenIcon class="page-icon" />
           <div>
             <h1 class="page-title">Gestion des Matières</h1>
-            <p class="page-subtitle">{{ stats.total }} matière(s) · {{ stats.totalHeures }}h au total</p>
+            <p v-if="statsMesurees" class="page-subtitle">{{ stats.total }} matière(s) · {{ stats.totalHeures }}h au total</p>
           </div>
         </div>
         <div class="header-actions">
@@ -85,7 +85,7 @@ import { BookOpenIcon, ArrowPathIcon } from '@heroicons/vue/24/outline'
 const {
   filieres, niveaux, loading, error, filters,
   showNiveauModal, selectedNiveau, showMatiereModal, selectedMatiere,
-  filteredMatieres, stats,
+  filteredMatieres, stats, statsMesurees,
   closeNiveauModal, viewMatiereDetails, closeMatiereModal,
   loadMatieres, refreshData, resetFilters,
 } = useAdminMatieres()
