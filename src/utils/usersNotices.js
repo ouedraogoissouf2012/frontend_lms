@@ -7,10 +7,11 @@
  * a été mesuré, ce qui évite l'arbitrage insoluble « quel échec tue la page ? ».
  *
  * @param {{counts: {classes: number|null, enseignants: number|null, classesOk: number|null},
- *   hasClasses: boolean, hasEnseignants: boolean, rosterForbidden: boolean}} state
+ *   hasClasses: boolean, hasEnseignants: boolean, rosterForbidden: boolean,
+ *   administrationEchec?: boolean}} state
  * @returns {string[]}
  */
-export function buildUsersNotices({ counts, hasClasses, hasEnseignants, rosterForbidden }) {
+export function buildUsersNotices({ counts, hasClasses, hasEnseignants, rosterForbidden, administrationEchec = false }) {
   const { classes: nbClasses, enseignants: nbEnseignants, classesOk } = counts
   const out = []
 
@@ -23,6 +24,12 @@ export function buildUsersNotices({ counts, hasClasses, hasEnseignants, rosterFo
     out.push(hasEnseignants
       ? 'Enseignants : actualisation impossible, la liste peut être périmée.'
       : "Les enseignants n'ont pas pu être chargés.")
+  }
+
+  // Source des comptes d'administration (base LMS) : son échec était muet, et une
+  // liste vide se lisait « aucun utilisateur ».
+  if (administrationEchec) {
+    out.push("Les comptes d'administration (coordinateurs, administrateurs) n'ont pas pu être chargés.")
   }
 
   // Refus de droits : cause distincte d'un échec, et sans issue par un réessai.

@@ -50,9 +50,13 @@
         <!-- Empty State -->
         <div v-if="filteredUsers.length === 0" class="empty-state">
           <i class="fa fa-users empty-icon"></i>
-          <h3 class="empty-title">Aucun Utilisateur Trouvé</h3>
+          <h3 class="empty-title">{{ notices.length > 0 ? 'Liste indisponible' : 'Aucun Utilisateur Trouvé' }}</h3>
           <p class="empty-message" v-if="searchQuery || filterRole !== 'all' || filterClasse !== 'all'">
             Aucun résultat pour les filtres sélectionnés. Essayez de modifier vos critères.
+          </p>
+          <!-- Une source en échec (bannières ci-dessus) : la liste vide n'est pas un constat. -->
+          <p class="empty-message" v-else-if="notices.length > 0">
+            Aucune liste n'a pu être chargée entièrement : voir les avertissements ci-dessus.
           </p>
           <p class="empty-message" v-else>
             Aucun utilisateur n'a été trouvé.
