@@ -56,7 +56,7 @@ export function useAdminHub() {
       const [classes, matieres, enseignants, dashboardStats] = await Promise.all([
         // Une source refusée rend `null` (non mesurée) : son compteur s'affiche « — »,
         // pas 0. Le bandeau `failed` (#238) continue de prévenir l'admin.
-        klassciService.getClasses().catch(() => { failed.push('classes'); return null }),
+        klassciService.getClasses().catch(() => { failed.push('classes'); return [] }),
         klassciService.getMatieres().catch(() => { failed.push('matières'); return null }),
         klassciService.getEnseignants().catch(() => { failed.push('enseignants'); return null }),
         dashboard.getStats().catch(() => { failed.push('statistiques'); return null })
