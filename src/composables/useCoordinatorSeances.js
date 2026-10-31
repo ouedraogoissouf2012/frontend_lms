@@ -2,6 +2,7 @@ import { ref, reactive, computed } from 'vue'
 import lmsService from '@/services/lms'
 import { klassciService } from '@/services/klassci'
 import { useCachedResource } from '@/composables/useCachedResource'
+import { normalizeError } from '@/services/errorHandler'
 
 /**
  * Composable de données des séances côté coordinateur (G7).
@@ -71,7 +72,9 @@ export function useCoordinatorSeances() {
     try {
       data = await lmsService.getUpcomingSeances(params)
     } catch (err) {
-      err.userMessage = 'Impossible de charger les séances. Veuillez réessayer.'
+      // Le motif posé par l'intercepteur (selon le `reason` du serveur) est gardé :
+      // « réessayez » serait faux sur un refus définitif.
+      err.userMessage ??= normalizeError(err).userMessage
       throw err
     }
 
