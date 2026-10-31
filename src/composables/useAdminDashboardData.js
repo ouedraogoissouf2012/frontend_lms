@@ -95,7 +95,7 @@ export function useAdminDashboardData({
         ...deriveInstitutionCounters({
           // `null` pour une source refusée : non mesurée. Une source servie par le
           // cache arrive ici telle quelle (Promise.resolve du cache).
-          classes: classesData,
+          classes: needClasses ? classesData : null,
           matieres: matieresData,
           enseignants,
         }),
