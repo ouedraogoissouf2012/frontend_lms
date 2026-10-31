@@ -69,6 +69,7 @@
 
       <!-- Bouton nouveau topic : jamais sous un refus (créer échouerait aussi). -->
       <button
+        v-if="!loading && !loadError"
         @click="showNewTopicModal = true"
         class="fixed bottom-8 right-8 bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg shadow-lg font-semibold flex items-center gap-2"
       >
