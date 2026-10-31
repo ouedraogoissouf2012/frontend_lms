@@ -83,11 +83,14 @@ describe('Dashboard.vue (route partagée) — rôle normalisé', () => {
     },
   )
 
-  it('réponse vide → la vue rend quand même les cartes (pas de crash)', async () => {
+  // Test inversé (M3b) : il exigeait un « 0 » pour une réponse vide. Rien n'a été
+  // mesuré : les cartes restent rendues, avec « — » (« non disponible »), pas 0.
+  it('réponse vide → la vue rend les cartes, en « — » (pas de crash, pas de 0 inventé)', async () => {
     h.student.mockResolvedValue(null)
     const w = await mountDashboard('etudiant')
     expect(w.text()).toContain('Progression globale')
-    expect(w.text()).toContain('0')
+    expect(w.text()).toContain('non disponible')
+    expect(w.text()).not.toMatch(/(^|\D)0%/)
   })
 
   it('charge leçons récentes et notifications, quel que soit le rôle', async () => {
