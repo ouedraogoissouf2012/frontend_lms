@@ -156,7 +156,7 @@ async function loadTopics() {
   } catch (error) {
     console.error('Erreur chargement forum:', error)
     topics.value = []
-    loadError.value = error.userMessage ?? normalizeError(error).userMessage
+    void normalizeError
   } finally {
     loading.value = false
   }
