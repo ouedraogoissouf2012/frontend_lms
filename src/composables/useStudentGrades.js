@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import api from '@/services/api'
 import { endpoints } from '@/services/endpoints'
+import { invalidResponseError, normalizeError } from '@/services/errorHandler'
 
 /**
  * État + chargement des notes de l'élève (G4 — décomposition de StudentGrades.vue
@@ -18,6 +19,9 @@ export function useStudentGrades() {
   const moyenneGenerale = ref(0)
   const totalMatieres = ref(0)
   const totalEvaluations = ref(0)
+  // Les notes ont-elles été lues ? Sinon les cartes de synthèse ne s'affichent pas :
+  // « 0/20 » sous un refus se lisait comme une moyenne réelle.
+  const mesure = ref(false)
 
   async function fetchGrades() {
     loading.value = true
@@ -32,12 +36,14 @@ export function useStudentGrades() {
         moyenneGenerale.value = data.moyenne_generale || 0
         totalMatieres.value = data.total_matieres || 0
         totalEvaluations.value = data.total_evaluations || 0
+        mesure.value = true
       } else {
-        error.value = response.message || 'Erreur lors du chargement des notes'
+        // Jamais le texte du serveur à l'écran (D0) : message du catalogue.
+        error.value = invalidResponseError('GET /my-grades sans success').userMessage
       }
     } catch (err) {
       console.error('Erreur récupération notes:', err)
-      error.value = err.response?.data?.message || 'Erreur de connexion au serveur'
+      error.value = err.userMessage ?? normalizeError(err).userMessage
     } finally {
       loading.value = false
     }
@@ -50,6 +56,7 @@ export function useStudentGrades() {
     moyenneGenerale,
     totalMatieres,
     totalEvaluations,
+    mesure,
     fetchGrades
   }
 }
