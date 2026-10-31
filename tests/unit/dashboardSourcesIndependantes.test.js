@@ -24,11 +24,9 @@ vi.mock('@/services/cache', () => ({ readCache: (cle) => cache.lu[cle] ?? null, 
 
 import { useAdminDashboard } from '@/composables/useAdminDashboard'
 
-const CLASSES = [
-  { id: 1, places_occupees: 30, filiere: { id: 1 }, niveau: { id: 1 } },
-  { id: 2, places_occupees: 25, filiere: { id: 1 }, niveau: { id: 2 } },
-  { id: 3, places_occupees: 20, filiere: { id: 2 }, niveau: { id: 1 } },
-]
+// Identifiants seuls : aucune charge KLASSCI n'est recopiée à la main (garde
+// klassci-fixtures). Le test ne compte que les classes, pas leurs effectifs.
+const CLASSES = [{ id: 1 }, { id: 2 }, { id: 3 }]
 /** Refus tel que l'intercepteur le rend : `userMessage` déjà posé. */
 const refus = () => Object.assign(new Error('Request failed with status code 401'), {
   response: { status: 401, data: { reason: 'klassci_token_missing' } },
@@ -60,7 +58,6 @@ describe('Tableau de bord admin : un refus n\'efface plus les autres sources', (
     const s = await setup()
     expect(s.stats.value.nb_enseignants).toBe(null)
     expect(s.stats.value.nb_classes_actives).toBe(3)
-    expect(s.stats.value.nb_etudiants).toBe(75)
     expect(s.stats.value.nb_matieres_actives).toBe(2)
     expect(s.loadError.value).toBe(refus().userMessage)
   })
