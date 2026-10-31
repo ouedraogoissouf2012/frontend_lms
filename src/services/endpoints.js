@@ -138,6 +138,15 @@ export const endpoints = {
       grades: '/admin/reports/grades',
       activity: '/admin/reports/activity',
     },
+    // Suivi et téléchargement d'un rapport ASYNCHRONE (D10, spec #991), bâtis
+    // depuis l'id (validé par le service) : les `status_url`/`download_url` du
+    // serveur sont relatifs à son ORIGINE (« /api/… »), pas à `VITE_API_URL`.
+    // Groupe à part : `reports` reste une carte de chemins FIXES, lisible par la
+    // garde de contrat même en accès calculé (`reports[type]`).
+    reportsAsync: {
+      status: (id) => `/admin/reports/async/${id}`,
+      download: (id) => `/admin/reports/async/${id}/download`,
+    },
   },
 
   auth: {
