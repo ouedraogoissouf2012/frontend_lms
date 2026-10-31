@@ -85,6 +85,9 @@ describe('Mes notes : un refus n\'est pas une moyenne de 0/20', () => {
 describe('Tableau de bord générique : « — » et motif sous un refus', () => {
   const monter = async () => {
     const w = mount(Dashboard, { global: { stubs: { DashboardLayout: Coquille, ContentLoader: true } } })
+    // Le service des leçons est chargé par import dynamique (`lessonClient()`) :
+    // flushPromises seul ne l'attend pas, et l'écran restait « en chargement ».
+    await vi.dynamicImportSettled()
     await flushPromises()
     return w
   }
@@ -97,6 +100,33 @@ describe('Tableau de bord générique : « — » et motif sous un refus', () =>
     expect(w.findAll('.sr-only').map((s) => s.text())).toContain('non disponible')
     expect(w.find('[role="alert"]').text()).toBe(ERROR_MESSAGES.noInstitution)
     expect(w.text()).not.toMatch(/Aucune leçon disponible/)
+  })
+
+  it('« Leçons récentes » lit la page paginée du serveur (elle restait toujours vide)', async () => {
+    utilisateur.courant = { name: 'Eleve', role: 'etudiant' }
+    // `GET /lessons` : LessonCrudController::index → successResponse(paginate()) :
+    // la liste est sous `data.data`, à côté des clés de pagination de Laravel.
+    const page = {
+      success: true,
+      data: {
+        current_page: 1,
+        data: [{ id: 22, title: 'Fractions, introduction', description: 'Premier cours', type: 'cours', status: 'published' }],
+        per_page: 5,
+        total: 1,
+        last_page: 1,
+      },
+    }
+    const parametres = []
+    servir({ reponses: { '/lessons': page } })
+    const adaptateurServi = api.defaults.adapter
+    api.defaults.adapter = async (config) => {
+      if (config.url.includes('/lessons')) parametres.push(config.params)
+      return adaptateurServi(config)
+    }
+    const w = await monter()
+    expect(w.text()).toMatch(/Fractions, introduction/)
+    expect(w.text()).not.toMatch(/Aucune leçon disponible/)
+    expect(parametres[0]).toMatchObject({ per_page: 5 })
   })
 
   it('élève, tableau de bord lu : les compteurs mesurés s\'affichent, même 0', async () => {
