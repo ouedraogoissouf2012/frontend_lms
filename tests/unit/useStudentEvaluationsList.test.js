@@ -22,6 +22,7 @@ vi.mock('@/services/evaluation', () => ({
 }))
 
 import { useStudentEvaluationsList } from '@/composables/useStudentEvaluationsList'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 // Fenêtre ouverte = à faire ; soumission soumise = terminée ; fenêtre fermée sans
 // soumission = s'entraîner.
@@ -77,10 +78,13 @@ describe('useStudentEvaluationsList (H2)', () => {
     expect(push).toHaveBeenCalledWith({ name: 'EvaluationResults', params: { id: 5 } })
   })
 
-  it('gère l\'erreur 401 (session expirée)', async () => {
+  // Test inversé (A-E23) : il exigeait « Session expirée » écrit en dur pour TOUT 401.
+  // Un vrai 401 sans motif reste une session expirée, dite par le catalogue ; le 401
+  // `klassci_token_missing` est couvert par messagesBruts.test.js (vrai client).
+  it('un 401 sans motif dit le message de session du catalogue', async () => {
     apiGet.mockRejectedValue({ response: { status: 401 } })
     const u = await setup()
-    expect(u.error.value).toBe('Session expirée. Veuillez vous reconnecter.')
+    expect(u.error.value).toBe(ERROR_MESSAGES.auth)
     expect(u.loading.value).toBe(false)
   })
 })

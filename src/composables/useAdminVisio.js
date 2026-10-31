@@ -4,6 +4,7 @@ import { readCache, writeCache } from '@/services/cache'
 import { buildJitsiUrl, getVisioRoomId } from '@/constants/visio'
 import { notifyVisioError } from '@/services/visioFeedback'
 import { extractList } from '@/utils/apiList'
+import { invalidResponseError, normalizeError } from '@/services/errorHandler'
 
 /**
  * Couche données d'AdminVisio (#G1 ≤300) : dérive les visioconférences depuis les
@@ -82,11 +83,12 @@ export function useAdminVisio() {
         // Mettre en cache
         writeCache('admin_visio', seances)
       } else {
-        throw new Error(response.message || 'Erreur lors du chargement des visioconférences')
+        // Jamais le texte du serveur à l'écran (D0) : message du catalogue.
+        throw invalidResponseError('GET /lms/seances/upcoming sans success')
       }
     } catch (err) {
       console.error('❌ Erreur chargement visioconférences:', err)
-      error.value = err.message || 'Impossible de charger les visioconférences'
+      error.value = err.userMessage ?? normalizeError(err).userMessage
     } finally {
       loading.value = false
     }

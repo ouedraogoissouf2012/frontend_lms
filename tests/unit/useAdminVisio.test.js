@@ -15,6 +15,7 @@ vi.mock('@/services/klassci', () => ({
 }))
 
 import { useAdminVisio } from '@/composables/useAdminVisio'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 // Dates relatives à "maintenant" pour piloter le statut temporel.
 const now = Date.now()
@@ -162,10 +163,13 @@ describe('useAdminVisio (#G1)', () => {
     vi.unstubAllGlobals()
   })
 
-  it('expose une erreur quand le service échoue', async () => {
+  // Test inversé : il exigeait que le texte du serveur (« Boom ») s'affiche tel quel.
+  // L'écran dit désormais le message du catalogue, jamais le texte du serveur (D0).
+  it('expose le message du catalogue quand le service échoue, pas le texte du serveur', async () => {
     getSeances.mockResolvedValue({ success: false, message: 'Boom' })
     const v = await setup()
-    expect(v.error.value).toBe('Boom')
+    expect(v.error.value).toBe(ERROR_MESSAGES.unknown)
+    expect(v.error.value).not.toContain('Boom')
     expect(v.loading.value).toBe(false)
   })
 })
