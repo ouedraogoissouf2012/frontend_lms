@@ -44,3 +44,14 @@ describe('vite config — console production guard (#15, révisé #234)', () => 
     }
   })
 })
+
+describe('vite config — navigateurs cibles du build', () => {
+  it('garde la cible de vite 6, Safari 14 compris, quelle que soit la version de vite', () => {
+    // Le défaut de `build.target` a changé avec vite 7 : `'modules'` (ESBUILD_MODULES_TARGET,
+    // vite 6.4.5 packages/vite/src/node/constants.ts:79) devient la « Baseline Widely
+    // Available », soit Chrome 107, Edge 107, Firefox 104 et Safari 16. Suivre ce défaut
+    // retirerait sans décision les navigateurs que l'école supporte. La cible est donc
+    // ÉCRITE : la relever est une décision produit, pas l'effet d'une montée de version.
+    expect(viteConfig.build?.target).toEqual(['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'])
+  })
+})
