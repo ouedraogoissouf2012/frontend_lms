@@ -24,6 +24,9 @@ export function useStudentLessonView() {
   const sidebarCollapsed = ref(false)
   const loading = ref(true)
   const error = ref(null)
+  // Un refus DÉFINITIF (403, 404 : leçon non ouverte, inscription inactive) n'offre pas de
+  // nouvel essai ; seule une panne passagère (5xx, réseau) le fait.
+  const canRetry = ref(true)
   const markingComplete = ref(false)
   const quizzes = ref({})
   const chapterStartTime = ref(null)
@@ -54,6 +57,7 @@ export function useStudentLessonView() {
   async function loadAll() {
     loading.value = true
     error.value = null
+    canRetry.value = true
     try {
       // Load lesson details
       const lessonRes = await lessonService.getLesson(lessonId.value)
@@ -99,9 +103,11 @@ export function useStudentLessonView() {
     } catch (err) {
       console.error('[StudentLesson] Load error:', err)
       // #26 : messages spécifiques portés depuis l'ex-vue /lessons/:id.
-      if (err.response?.status === 403) {
+      const status = err.response?.status
+      canRetry.value = status !== 403 && status !== 404
+      if (status === 403) {
         error.value = "Cette leçon n'est pas encore disponible"
-      } else if (err.response?.status === 404) {
+      } else if (status === 404) {
         error.value = 'Leçon introuvable'
       } else {
         error.value = 'Impossible de charger le cours. Veuillez réessayer.'
@@ -249,7 +255,7 @@ export function useStudentLessonView() {
 
   return {
     lesson, chapters, completedChapters, activeChapterIndex, sidebarCollapsed,
-    loading, error, markingComplete, quizzes, contentAreaRef,
+    loading, error, canRetry, markingComplete, quizzes, contentAreaRef,
     lessonId, activeChapter, chapterQuiz, overallProgress,
     loadAll, setActiveChapter, prevChapter, nextChapter, isChapterCompleted,
     markChapterComplete, onQuizCompleted, onQuizClose, goBack
