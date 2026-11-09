@@ -193,8 +193,8 @@ describe('deriveInstitutionCounters', () => {
     })
   })
 
-  it('ignore un effectif non numérique au lieu de propager NaN', () => {
+  it('un effectif non numérique n’est pas mesuré : ni NaN propagé, ni somme partielle (4) présentée comme le total', () => {
     const c = deriveInstitutionCounters({ classes: [{ id: 1, places_occupees: 'douze' }, { id: 2, places_occupees: 4 }] })
-    expect(c.nb_etudiants).toBe(4)
+    expect(c.nb_etudiants).toBeNull()
   })
 })
