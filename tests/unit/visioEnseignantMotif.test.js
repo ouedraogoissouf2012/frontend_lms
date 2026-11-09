@@ -12,6 +12,7 @@ import { defineComponent } from 'vue'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { normalizeError } from '@/services/errorHandler'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
+import { userError } from '@/utils/userError'
 
 const { getMyTeachingSeances, joinTrackedVisio } = vi.hoisted(() => ({
   getMyTeachingSeances: vi.fn(),
@@ -67,10 +68,20 @@ describe('handleJoinVisio — le motif du refus, jamais le texte technique', () 
     expect(u.error.value).toBe(ERROR_MESSAGES.server)
   })
 
-  it('une erreur PROPRE au front (sans userMessage) garde son message en français', async () => {
-    joinTrackedVisio.mockRejectedValue(new Error('Identifiant de séance visio introuvable.'))
+  // Depuis #500, une erreur PROPRE au front porte son texte dans `userMessage` (userError),
+  // comme le vrai joinTrackedVisio. Une erreur SANS userMessage n'est pas rédigée par le front
+  // (TypeError, clé de fournisseur) : son message technique n'est jamais affiché (#506).
+  it('une erreur PROPRE au front (userError) garde son message en français', async () => {
+    joinTrackedVisio.mockRejectedValue(userError('Identifiant de séance visio introuvable.'))
     const u = await monter()
     await u.handleJoinVisio({ id: 12 })
     expect(u.error.value).toBe('Identifiant de séance visio introuvable.')
+  })
+
+  it('une erreur sans userMessage : le repli du front, jamais son message technique', async () => {
+    joinTrackedVisio.mockRejectedValue(new Error('service_unavailable'))
+    const u = await monter()
+    await u.handleJoinVisio({ id: 12 })
+    expect(u.error.value).toBe('Erreur lors de la connexion à la visio')
   })
 })
