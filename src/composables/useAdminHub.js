@@ -12,18 +12,18 @@ function countItems(value) {
   return Array.isArray(value) ? value.length : null
 }
 
+// Somme des effectifs des classes, ou `null` si UNE classe n'en porte pas : la somme partielle
+// passerait pour le total ; le compte du serveur (users.students) prend alors le relais.
 function countStudents(classes) {
   if (!Array.isArray(classes)) return null
 
-  return classes.reduce((sum, classe) => {
-    const count = firstNumber(classe, [
-      'places_occupees',
-      'nb_etudiants',
-      'etudiants_count',
-      'students_count'
-    ])
-    return sum + count
-  }, 0)
+  const counts = classes.map((classe) => coalesceNumberFrom(classe, [
+    'places_occupees',
+    'nb_etudiants',
+    'etudiants_count',
+    'students_count'
+  ], null))
+  return counts.every((count) => count !== null) ? counts.reduce((sum, count) => sum + count, 0) : null
 }
 
 /**

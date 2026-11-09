@@ -1,5 +1,6 @@
 import { extractList, pickList } from './apiList'
 import { enrichTeacherClasses } from './classStats'
+import { countLessons, countStudents, listeMesuree } from './teacherDashboardCounts'
 import { toId } from './toId'
 import { coalesceNumber } from './coalesceNumber'
 
@@ -110,26 +111,12 @@ function collectClassesFromMatieres(matieres = []) {
   return Array.from(byId.values())
 }
 
-function countLessons(matieres = []) {
-  return matieres.reduce((total, matiere) => {
-    if (Array.isArray(matiere?.lessons)) return total + matiere.lessons.length
-    if (Array.isArray(matiere?.lecons)) return total + matiere.lecons.length
-    return total + Number(matiere?.lessons_count ?? matiere?.lecons_count ?? matiere?.nb_lecons ?? 0)
-  }, 0)
-}
-
-function countStudents(classes = []) {
-  return classes.reduce((total, classe) => (
-    total + Number(classe?.places_occupees ?? classe?.nb_etudiants ?? classe?.students_count ?? 0)
-  ), 0)
-}
-
 function isTodaySeance(seance) {
   const date = seance?.date_seance || seance?.date || seance?.programmation?.date_seance
   return date && String(date).slice(0, 10) === new Date().toISOString().slice(0, 10)
 }
 
-function buildDashboardFromTeacher(enseignant) {
+function buildDashboardFromTeacher(enseignant, local = null) {
   // #296 : lecture de CHAMP d'objet (enseignant.matieres…) via pickList, distincte
   // du dé-wrap d'enveloppe d'extractList (réservé aux réponses ci-dessous).
   const matieres = pickList(enseignant, ['matieres'])
@@ -138,9 +125,10 @@ function buildDashboardFromTeacher(enseignant) {
     rawClasses.length > 0 ? rawClasses : collectClassesFromMatieres(matieres),
     matieres
   )
-  const seances = pickList(enseignant, ['seances'])
-  const evaluations = pickList(enseignant, ['evaluations'])
-  const lessons = pickList(enseignant, ['lessons', 'lecons'])
+  // Une liste ABSENTE de la fiche n'a pas été mesurée : `null`, jamais `[]` compté 0.
+  const seances = listeMesuree(enseignant, 'seances')
+  const evaluations = listeMesuree(enseignant, 'evaluations')
+  const lessons = listeMesuree(enseignant, 'lessons') ?? listeMesuree(enseignant, 'lecons')
   const statistiques = enseignant?.statistiques || enseignant?.stats || {}
 
   return normalizeTeacherDashboard({
@@ -160,17 +148,18 @@ function buildDashboardFromTeacher(enseignant) {
         statistiques.total_lecons,
         statistiques.nb_lecons,
         statistiques.lessons_count,
-      ], lessons.length || countLessons(matieres)),
+        local?.lessons?.total,
+      ], lessons ? lessons.length : countLessons(matieres)),
       seances_aujourdhui: firstNumber([
         statistiques.seances_aujourdhui,
         statistiques.nb_seances_aujourdhui,
-      ], seances.filter(isTodaySeance).length),
+      ], seances ? seances.filter(isTodaySeance).length : null),
       evaluations_en_cours: firstNumber([
         statistiques.evaluations_en_cours,
         statistiques.nb_evaluations_en_cours,
-      ], evaluations.filter(evaluation => (
+      ], evaluations ? evaluations.filter(evaluation => (
         ['active', 'en_cours', 'published'].includes(evaluation?.status || evaluation?.statut)
-      )).length),
+      )).length : null),
     },
   })
 }
@@ -186,13 +175,19 @@ export function hasDashboardContent(data) {
   )
 }
 
-export async function buildTeacherDashboardFallback(lmsService, currentUser) {
+/**
+ * @param {Object} lmsService
+ * @param {Object} currentUser
+ * @param {Object|null} local - `data` de `GET /dashboard/teacher` (LMS) : porte `lessons.total`,
+ *   la seule source des leçons quand KLASSCI refuse ; `null` s'il n'a pas répondu.
+ */
+export async function buildTeacherDashboardFallback(lmsService, currentUser, local = null) {
   // #296 : ces méthodes lms* normalisent désormais en tableau à la frontière →
   // plus de `keys`. `extractList` reste seulement pour le null-safe (`.catch(()=>null)`).
   const enseignantsResponse = await lmsService.getEnseignants(true).catch(() => null)
   const currentTeacher = findCurrentTeacher(extractList(enseignantsResponse), currentUser)
   if (currentTeacher) {
-    const teacherDashboard = buildDashboardFromTeacher(currentTeacher)
+    const teacherDashboard = buildDashboardFromTeacher(currentTeacher, local)
     if (hasDashboardContent(teacherDashboard)) return teacherDashboard
   }
 
@@ -204,16 +199,19 @@ export async function buildTeacherDashboardFallback(lmsService, currentUser) {
   const matieres = extractList(matieresResponse)
   const rawClasses = collectClassesFromMatieres(matieres)
   const classes = enrichTeacherClasses(rawClasses, matieres)
-  const seances = extractList(seancesResponse)
+  // Une source refusée n'est pas une liste vide : `null`, rendu « — ».
+  const seances = seancesResponse ? extractList(seancesResponse) : null
 
   return normalizeTeacherDashboard({
     matieres,
     classes,
     seances,
+    // Ce chemin ne demande pas les évaluations : non mesurées.
+    evaluations: null,
     statistiques: {
-      total_etudiants: countStudents(classes),
-      total_lecons: countLessons(matieres),
-      seances_aujourdhui: seances.filter(isTodaySeance).length,
+      total_etudiants: matieresResponse ? countStudents(classes) : null,
+      total_lecons: coalesceNumber([local?.lessons?.total]) ?? (matieresResponse ? countLessons(matieres) : null),
+      seances_aujourdhui: seances ? seances.filter(isTodaySeance).length : null,
     },
   })
 }
