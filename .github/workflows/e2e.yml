@@ -96,6 +96,7 @@ jobs:
           APP_ENV=local
           APP_DEBUG=false
           APP_URL=http://127.0.0.1:8000
+          ACTIVATION_URL_FRONT=http://127.0.0.1:4173
           DB_CONNECTION=sqlite
           DB_DATABASE=$PWD/database/e2e.sqlite
           MAIL_MAILER=log
