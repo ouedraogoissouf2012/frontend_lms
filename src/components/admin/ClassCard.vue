@@ -34,7 +34,7 @@
               <i class="fa fa-user stat-icon"></i>
               <div>
                 <p class="stat-label">Étudiants</p>
-                <p class="stat-value">{{ classe.places_occupees || 0 }}/{{ classe.places_totales || 0 }}</p>
+                <p class="stat-value">{{ formatCount(classe.places_occupees) }}/{{ formatCount(classe.places_totales) }}</p>
               </div>
             </div>
 
