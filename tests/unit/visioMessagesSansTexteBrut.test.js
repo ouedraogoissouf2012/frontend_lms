@@ -97,11 +97,19 @@ describe('garde : aucun appelant ne fabrique une erreur avec le texte du serveur
     'composables/useAdminMatieres.js',
     'composables/useAdminSeances.js',
     'composables/useParticipantsModal.js',
+    'composables/useStudentEvaluationsList.js',
   ]
 
-  it('aucun NOUVEAU `new Error(result.message` ni `new Error(response.message` dans src/ (cliquet)', () => {
+  // Les quatre façons de porter le texte du serveur à l'écran : une erreur fabriquée (y compris
+  // par userError, qui le blanchirait en message « du front »), un toast, un `userMessage` affecté.
+  const SOURCE = String.raw`(?:result|response|res|data)\??\.(?:data\??\.)?message`
+  const TEXTE_SERVEUR = new RegExp(
+    String.raw`(?:new Error|userError)\(\s*${SOURCE}|toast\.[a-z]+\(\s*${SOURCE}|userMessage\s*=\s*${SOURCE}`,
+  )
+
+  it('aucun NOUVEAU site ne porte le texte du serveur à l’écran dans src/ (cliquet)', () => {
     const fautifs = fichiers(racine)
-      .filter((f) => /new Error\(\s*(?:result|response)\??\.message/.test(readFileSync(f, 'utf8')))
+      .filter((f) => TEXTE_SERVEUR.test(readFileSync(f, 'utf8')))
       .map((f) => relative(racine, f).split(sep).join('/'))
       .sort()
     expect(fautifs).toEqual(CONNUS)
