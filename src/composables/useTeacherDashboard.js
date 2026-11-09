@@ -58,7 +58,7 @@ export function useTeacherDashboard() {
     const localDashboard = normalizeTeacherDashboardPayload(brutLocal)
     if (hasDashboardContent(localDashboard)) return localDashboard
     // Ses compteurs (le total de leçons du LMS) servent au repli au lieu d'être jetés.
-    return await buildTeacherDashboardFallback(lmsService, user.value, null)
+    return await buildTeacherDashboardFallback(lmsService, user.value, brutLocal?.data ?? null)
   }
 
   async function loadDashboard(forceRefresh = false) {
