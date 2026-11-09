@@ -13,7 +13,7 @@ function messageFrom(error, fallback) {
   if (!error) return fallback
   if (error.userMessage) return error.userMessage
   if (error.response) return normalizeError(error).userMessage
-  return fallback
+  return error.message || fallback
 }
 
 export function notifyVisioSuccess(message) {
