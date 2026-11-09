@@ -93,23 +93,68 @@ describe('garde : aucun appelant ne fabrique une erreur avec le texte du serveur
 
   // Cliquet : les sites hors visio connus le 09/11/2026, à corriger dans une PR à part. Un site
   // nouveau fait rougir ; un site corrigé mais encore listé aussi (la liste doit rétrécir).
+  // Liste élargie le 10/11/2026 (PR « texte serveur hors visio », puis sa revue) : toute lecture
+  // du texte d'une réponse ou du message d'une erreur portée à l'écran (toast, `.value`,
+  // `userMessage`, concaténation, gabarit). Les 23 sites gelés ici restent à trier : des 422 de
+  // validation peuvent être légitimes, des messages de SUCCÈS du serveur sont recopiés dans une
+  // notice ; useStudentEvaluationsList attend les `reason` des refus de démarrage (#1011).
   const CONNUS = [
-    'composables/useAdminMatieres.js',
-    'composables/useAdminSeances.js',
-    'composables/useParticipantsModal.js',
+    'composables/useActivation.js',
+    'composables/useAdminEvaluationDetails.js',
+    'composables/useAdminEvaluationResults.js',
+    'composables/useAdminInstitutions.js',
+    'composables/useAdminSchoolRequests.js',
+    'composables/useAdminTrainingSessions.js',
+    'composables/useClasseDetails.js',
+    'composables/useCoordinatorEvaluations.js',
+    'composables/useEnrolmentCodes.js',
+    'composables/useEvaluationCorrections.js',
+    'composables/useEvaluationResults.js',
+    'composables/useImportJob.js',
+    'composables/useImportWizard.js',
+    'composables/useJoinClass.js',
+    'composables/useLessonChapters.js',
+    'composables/useMatiereDetails.js',
+    'composables/usePasswordReset.js',
+    'composables/usePreviewEvaluation.js',
+    'composables/useSchoolRequest.js',
+    'composables/useSeanceAttendanceHistory.js',
     'composables/useStudentEvaluationsList.js',
+    'composables/useTeacherEvaluationActions.js',
+    'views/Login.vue',
   ]
 
-  // Les quatre façons de porter le texte du serveur à l'écran : une erreur fabriquée (y compris
-  // par userError, qui le blanchirait en message « du front »), un toast, un `userMessage` affecté.
-  const SOURCE = String.raw`(?:result|response|res|data)\??\.(?:data\??\.)?message`
-  const TEXTE_SERVEUR = new RegExp(
-    String.raw`(?:new Error|userError)\(\s*${SOURCE}|toast\.[a-z]+\(\s*${SOURCE}|userMessage\s*=\s*${SOURCE}`,
-  )
+  // Le texte d'une réponse (`response.message`, `response.data.message`) ou le message d'une erreur
+  // (`err.message`), et toutes les façons de le porter à l'écran.
+  const SRC = String.raw`(?:result|response|res|data)\??\.(?:data\??\.)?message`
+  const ERR = String.raw`\b(?:err|error|e|erreur)\??\.message\b`
+  const TXT = `(?:${SRC}|${ERR})`
+  const MOTIFS = [
+    String.raw`(?:new Error|userError)\(\s*${SRC}`,
+    String.raw`toast\.[a-z]+\([^)\n]*${TXT}`,
+    String.raw`userMessage\s*(?:=(?!=)|:)\s*[^;\n]*${TXT}`,
+    String.raw`\b\w+\??\.response\??\.data\??\.message`,
+    String.raw`\+\s*\(?\s*${TXT}`,
+    String.raw`\$\{\s*${TXT}`,
+    String.raw`\.value\s*=(?!=)\s*[^;\n]*${TXT}`,
+  ].map((m) => new RegExp(m))
+  // Un commentaire DÉCRIT un site, il n'en est pas un. Retrait LIGNE PAR LIGNE (lignes qui
+  // commencent par //, *, /*, <!--) : un « /* » au milieu d'une chaîne (`'image/*'`) ne doit
+  // jamais ouvrir un bloc qui effacerait du vrai code.
+  function sansCommentaires(texte) {
+    let bloc = false
+    return texte.split('\n').filter((ligne) => {
+      const t = ligne.trim()
+      if (bloc) { if (t.includes('*/') || t.includes('-->')) bloc = false; return false }
+      if (t.startsWith('/*')) { if (!t.includes('*/')) bloc = true; return false }
+      if (t.startsWith('<!--')) { if (!t.includes('-->')) bloc = true; return false }
+      return !(t.startsWith('//') || t.startsWith('*'))
+    }).join('\n')
+  }
 
   it('aucun NOUVEAU site ne porte le texte du serveur à l’écran dans src/ (cliquet)', () => {
     const fautifs = fichiers(racine)
-      .filter((f) => TEXTE_SERVEUR.test(readFileSync(f, 'utf8')))
+      .filter((f) => { const t = sansCommentaires(readFileSync(f, 'utf8')); return MOTIFS.some((re) => re.test(t)) })
       .map((f) => relative(racine, f).split(sep).join('/'))
       .sort()
     expect(fautifs).toEqual(CONNUS)

@@ -19,7 +19,7 @@ vi.mock('@/services/lms', () => ({
   lmsService: { getVisioParticipants }
 }))
 vi.mock('@/composables/useToast', () => ({ toast: { error: vi.fn(), success: vi.fn() } }))
-vi.mock('@/services/errorHandler', () => ({ normalizeError: (e) => ({ userMessage: String(e) }) }))
+vi.mock('@/services/errorHandler', () => ({ normalizeError: (e) => ({ userMessage: String(e) }), messageForReason: () => null }))
 vi.mock('@/constants/http', () => ({ apiBaseUrl: () => 'http://test', API_TIMEOUT_MS: 30000 }))
 
 import { useParticipantsModal } from '@/composables/useParticipantsModal'
@@ -81,7 +81,8 @@ describe('useParticipantsModal (#H13)', () => {
     getVisioParticipants.mockRejectedValue(new Error('boom'))
     const { api } = setup()
     await flushPromises()
-    expect(api.error.value).toBe('boom')
+    // Jamais le message technique de l'erreur (D0) : le repli du front.
+    expect(api.error.value).toBe('Erreur lors du chargement de la liste de présence')
     expect(api.loading.value).toBe(false)
   })
 
@@ -89,7 +90,8 @@ describe('useParticipantsModal (#H13)', () => {
     getVisioParticipants.mockResolvedValue({ success: false, message: 'refus' })
     const { api } = setup()
     await flushPromises()
-    expect(api.error.value).toBe('refus')
+    // Jamais le texte du serveur (D0) : le repli du front.
+    expect(api.error.value).toBe('Erreur lors du chargement de la liste de présence')
   })
 
   it('relance loadParticipants en silencieux toutes les 15 s (auto-refresh)', async () => {
