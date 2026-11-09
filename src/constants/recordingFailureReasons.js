@@ -36,7 +36,7 @@ export const RECORDING_FAILURE_GENERIC = "La cause de l'échec n'est pas précis
 
 /** Libellé d'un motif servi ; `null` sans motif ; jamais la valeur brute. */
 export function recordingFailureLabel(reason) {
-  if (reason === null) return null
+  if (reason === null || reason === undefined || reason === '') return null
   return Object.prototype.hasOwnProperty.call(RECORDING_FAILURE_LABELS, reason)
     ? RECORDING_FAILURE_LABELS[reason]
     : RECORDING_FAILURE_GENERIC
