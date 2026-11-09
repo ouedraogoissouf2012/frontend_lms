@@ -187,9 +187,16 @@ describe('useTeacherHub (#H11)', () => {
   })
 
   describe('D72 : le compteur de leçons ne compte que celles de l’enseignant', () => {
-    it('demande les leçons de l’enseignant connecté', async () => {
+    it('demande les leçons de l’enseignant connecté (une page d’un élément : seul le total compte)', async () => {
       await setup()
-      expect(lessons.getLessons).toHaveBeenCalledWith({ enseignant_id: 42 })
+      expect(lessons.getLessons).toHaveBeenCalledWith({ enseignant_id: 42, per_page: 1 })
+    })
+
+    it('le compteur est le TOTAL du serveur, pas la taille de la première page (pagination)', async () => {
+      klassci.getTeacherDashboard.mockResolvedValue({ classes: [], matieres: [] })
+      lessons.getLessons.mockResolvedValue({ success: true, data: { data: [{ id: 1 }], current_page: 1, last_page: 35, total: 35 } })
+      const h = await setup()
+      expect(h.stats.value.lecons).toBe(35)
     })
 
     it('sans identité, ne compte pas les leçons de l’établissement : non mesuré', async () => {
