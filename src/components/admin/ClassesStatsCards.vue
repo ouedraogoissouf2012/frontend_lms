@@ -21,7 +21,7 @@
         <span class="stat-icon">☷</span>
         <span class="stat-label">Total Matières</span>
       </div>
-      <p class="stat-value">{{ stats.totalMatieres }}</p>
+      <p class="stat-value">{{ formatCount(stats.totalMatieres) }}</p>
     </div>
 
     <div class="stat-card border-l-purple">

@@ -110,7 +110,7 @@ export function clearCacheByPrefix(namePrefix) {
  * version jusqu'au TTL. `admin_users` regroupe classes + enseignants (+ étudiants).
  */
 const ENTITY_CACHE_KEYS = Object.freeze({
-  classes: ['admin_classes_v3', 'admin_klassci_classes', 'admin_users', 'teacher_classes'],
+  classes: ['admin_classes_v4', 'admin_klassci_classes', 'admin_users', 'teacher_classes'],
   matieres: ['admin_matieres', 'admin_klassci_matieres', 'teacher_matieres'],
   enseignants: ['admin_enseignants', 'admin_users'],
 })

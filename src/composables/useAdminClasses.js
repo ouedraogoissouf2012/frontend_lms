@@ -74,6 +74,8 @@ export function useAdminClasses() {
   const filieres = ref([])
   const niveaux = ref([])
   const matieres = ref([])
+  // Les matières ont-elles été OBTENUES ? Sans elles, leur total n'est pas mesuré (« — »), pas 0.
+  const matieresMesurees = ref(false)
   const loading = ref(false)
   const error = ref(null)
 
@@ -109,7 +111,7 @@ export function useAdminClasses() {
     return {
       total: list.length,
       totalEtudiants: sumMeasured(list.map(c => c.places_occupees)),
-      totalMatieres: asObjectArray(matieres.value).length,
+      totalMatieres: matieresMesurees.value ? asObjectArray(matieres.value).length : null,
       actives: list.filter(c => c.is_active).length
     }
   })
@@ -123,6 +125,7 @@ export function useAdminClasses() {
       filieres.value = asObjectArray(cached, ['filieres'])
       niveaux.value = asObjectArray(cached, ['niveaux_etude', 'niveaux'])
       matieres.value = asObjectArray(cached, ['matieres'])
+      matieresMesurees.value = cached?.matieres_mesurees === true
       loading.value = false
       refreshInBackground()
       return
@@ -149,7 +152,8 @@ export function useAdminClasses() {
         classes: classes.value,
         filieres: filieres.value,
         niveaux: niveaux.value,
-        matieres: matieres.value
+        matieres: matieres.value,
+        matieres_mesurees: matieresMesurees.value
       })
 
       queueMetadataRefresh(rawClasses)
@@ -177,7 +181,8 @@ export function useAdminClasses() {
         classes: classes.value,
         filieres: filieres.value,
         niveaux: niveaux.value,
-        matieres: matieres.value
+        matieres: matieres.value,
+        matieres_mesurees: matieresMesurees.value
       })
 
       queueMetadataRefresh(rawClasses)
@@ -202,6 +207,8 @@ export function useAdminClasses() {
     const nextMatieres = normalizeMatieres(matieresData)
 
     if (nextMatieres.length > 0) matieres.value = nextMatieres
+    // `optional` rend null sur échec : une réponse, même vide, est une mesure.
+    if (matieresData != null) matieresMesurees.value = true
     filieres.value = deriveFilieres(rawClasses)
     niveaux.value = deriveNiveaux(rawClasses)
 
@@ -214,7 +221,8 @@ export function useAdminClasses() {
       classes: classes.value,
       filieres: filieres.value,
       niveaux: niveaux.value,
-      matieres: matieres.value
+      matieres: matieres.value,
+      matieres_mesurees: matieresMesurees.value
     })
   }
 

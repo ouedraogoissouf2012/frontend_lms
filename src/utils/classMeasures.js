@@ -8,8 +8,8 @@ import { coalesceNumber } from './coalesceNumber'
  *
  *  - `measure*` rend la valeur réellement portée par la charge utile, ou `null`
  *    quand aucune des variantes de nommage n'est présente ;
- *  - `get*` applique un repli chiffré, pour les appelants historiques qui exigent
- *    un nombre.
+ *  - les replis chiffrés `get*` (effectif 0, capacité 30) ont été retirés (#501) :
+ *    plus aucun écran ne les affichait sans mentir.
  *
  * « Aucune donnée » et « zéro étudiant » sont deux faits différents qu'un `0`
  * confond. Sur l'écran des classes enseignant, le dashboard ne porte ni effectif
@@ -17,8 +17,7 @@ import { coalesceNumber } from './coalesceNumber'
  * deux nombres faux présentés comme des mesures, dont un `30` codé en dur qui
  * tombait juste par coïncidence, donc invisible à la relecture.
  *
- * Extrait de `classStats.js` (limite de 300 lignes) ; ce module reste réexporté
- * par lui, aucun import existant n'a changé.
+ * Extrait de `classStats.js` (limite de 300 lignes), qui réexporte ses `measure*`.
  */
 
 /** Premier nombre fini de la liste, ou `null`. Les chaînes vides ne comptent pas. */
@@ -54,7 +53,6 @@ export function measureClassStudentCount(classe) {
 
   return firstNumber([classe?.effectif])
 }
-
 
 /**
  * Capacité réellement portée par la charge utile, ou `null`.
