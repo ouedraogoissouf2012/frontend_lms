@@ -13,7 +13,7 @@ import { coalesceNumber } from './coalesceNumber'
  * et « rien de mesuré » ne vaut jamais 0. Une liste vide (réellement obtenue) vaut 0.
  */
 function sommeMesuree(valeurs) {
-  return valeurs.filter((v) => v !== null).reduce((s, v) => s + v, 0)
+  return valeurs.every((v) => v !== null) ? valeurs.reduce((s, v) => s + v, 0) : null
 }
 
 /** Leçons portées par chaque matière, ou `null` si une matière ne les porte pas. */
