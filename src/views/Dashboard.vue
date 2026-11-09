@@ -160,7 +160,7 @@ async function loadDashboard() {
     // `GET /lessons` rend `{ success, data: <page Laravel> }` (LessonCrudController::index,
     // successResponse d'un paginate) : la liste est sous `data.data`. Lue comme un
     // tableau, elle restait TOUJOURS vide.
-    recentLessons.value = Array.isArray(rLessons.value) ? rLessons.value : []
+    recentLessons.value = extractList(rLessons.value)
   } else {
     console.error('Erreur chargement leçons récentes:', rLessons.reason)
     lessonsError.value = rLessons.reason?.userMessage ?? normalizeError(rLessons.reason).userMessage
