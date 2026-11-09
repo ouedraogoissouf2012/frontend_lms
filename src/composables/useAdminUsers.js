@@ -59,6 +59,8 @@ export function useAdminUsers() {
   // Le listing nominatif est refusé à ce compte par KLASSCI (403). Distinct d'un
   // échec de chargement : il ne sert à rien de proposer « Réessayer ».
   const rosterForbidden = ref(false)
+  // Dernière lecture des comptes d'administration en échec (signalée, jamais muette).
+  const administrationEchec = ref(false)
   const selectedUser = ref(null)
 
   // Filtres / tri / pagination
@@ -77,6 +79,7 @@ export function useAdminUsers() {
     hasClasses: classes.value.length > 0,
     hasEnseignants: enseignants.value.length > 0,
     rosterForbidden: rosterForbidden.value,
+    administrationEchec: administrationEchec.value,
   }))
 
   // Liste unifiée des TROIS populations. La forme des lignes vit dans
@@ -183,6 +186,7 @@ export function useAdminUsers() {
     if (loadedClasses !== null) classes.value = loadedClasses
     if (loadedEnseignants !== null) enseignants.value = loadedEnseignants
     if (loadedAdministration !== null) administration.value = loadedAdministration
+    administrationEchec.value = loadedAdministration === null
     rosterForbidden.value = forbidden
 
     // Roster nominatif : on n'applique le résultat frais que s'il fait AUTORITÉ —
