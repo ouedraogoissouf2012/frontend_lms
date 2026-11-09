@@ -2,6 +2,7 @@ import { computed } from 'vue'
 import { klassciService } from '@/services/klassci'
 import { lmsService } from '@/services/lms'
 import lessonService from '@/services/lesson'
+import { myLessonsParams } from '@/composables/myLessons'
 import { useCachedResource } from '@/composables/useCachedResource'
 import { enrichTeacherClasses } from '@/utils/classStats'
 import { mergeClassMeasures } from '@/utils/classMeasures'
@@ -55,10 +56,12 @@ function compterSeancesAVenir(seances) {
  * derniers compteurs connus au lieu de les écraser (cf. useCachedResource).
  */
 async function mesurerCompteurs() {
+  // D72 : les leçons de l'enseignant connecté ; sans identité, non mesuré (rejet).
+  const mesLecons = myLessonsParams()
   const resultats = await Promise.allSettled([
     klassciService.getTeacherDashboard(),
     lmsService.getMyTeachingSeances(),
-    lessonService.getLessons(),
+    mesLecons ? lessonService.getLessons(mesLecons) : Promise.reject(new Error('identité inconnue')),
     klassciService.getClasses()
   ])
   const [dashboardIssue, seancesIssue, lessonsIssue, referentielIssue] = resultats
