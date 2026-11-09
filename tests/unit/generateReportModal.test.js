@@ -4,9 +4,11 @@
  * RapportActiviteInput), et l'avancement est annoncé dans une région présente
  * dès l'ouverture.
  *
- * Retirés : « Matière » (aucune route ne l'accepte : le serveur l'ignorait) et
+ * Retirés : « Matière » (aucune route ne l'accepte : le serveur l'ignorait),
  * « Classe » (le catalogue fournissait un id KLASSCI là où le serveur attend un
- * id LOCAL : le filtre visait une AUTRE classe — D41).
+ * id LOCAL : le filtre visait une AUTRE classe — D41) et « Type d'activité »
+ * (`activity_type` est accepté par le serveur mais sans effet sur le contenu,
+ * spec #991 : le choix est retiré jusqu'à ce que le serveur l'applique).
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
@@ -22,6 +24,7 @@ vi.mock('@/composables/useReportGeneration', () => ({
 vi.mock('@/composables/useToast', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
 import GenerateReportModal from '@/components/modals/GenerateReportModal.vue'
+import { filtresDuRapport } from '@/constants/reports'
 
 const STUBS = {
   Modal: { props: ['modelValue'], template: '<div v-if="modelValue"><slot /><slot name="footer" /></div>' },
@@ -43,11 +46,12 @@ beforeEach(() => {
 })
 
 describe('GenerateReportModal — filtres envoyés', () => {
-  it('ni « Classe » ni « Matière » ne sont proposés, quel que soit le type', async () => {
+  it('ni « Classe », ni « Matière », ni « Type d’activité » ne sont proposés, quel que soit le type', async () => {
     const w = await ouvrir()
     for (const type of ['attendance', 'grades', 'activity']) {
       await w.get('select[name="type"]').setValue(type)
-      expect(w.text()).not.toMatch(/Classe|Matière/)
+      expect(w.text()).not.toMatch(/Classe|Matière|Type d'activité/)
+      expect(w.find('[name="activity_type"]').exists()).toBe(false)
     }
   })
 
@@ -60,23 +64,18 @@ describe('GenerateReportModal — filtres envoyés', () => {
     expect(generer).toHaveBeenCalledWith('attendance', { date_start: '2026-10-01', date_end: '2026-10-30' })
   })
 
-  it('activité : le type d’activité choisi est envoyé', async () => {
+  it('activité : seulement la période (le type d’activité serait sans effet)', async () => {
     const w = await ouvrir()
     await w.get('select[name="type"]').setValue('activity')
-    await w.get('select[name="activity_type"]').setValue('login')
+    await w.get('input[name="date_start"]').setValue('2026-10-01')
+    await w.get('input[name="date_end"]').setValue('2026-10-30')
     await boutonGenerer(w).trigger('click')
-    expect(generer.mock.calls[0][0]).toBe('activity')
-    expect(generer.mock.calls[0][1].activity_type).toBe('login')
+    expect(generer).toHaveBeenCalledWith('activity', { date_start: '2026-10-01', date_end: '2026-10-30' })
   })
 
-  it('un filtre choisi puis masqué par un changement de type n’est PAS envoyé', async () => {
-    const w = await ouvrir()
-    await w.get('select[name="type"]').setValue('activity')
-    await w.get('select[name="activity_type"]').setValue('grading')
-    await w.get('select[name="type"]').setValue('grades')
-    await boutonGenerer(w).trigger('click')
-    expect(generer.mock.calls[0][0]).toBe('grades')
-    expect(generer.mock.calls[0][1]).not.toHaveProperty('activity_type')
+  it('un `activity_type` resté dans un formulaire n’est jamais envoyé', () => {
+    const formulaire = { date_start: '2026-10-01', activity_type: 'login' }
+    expect(filtresDuRapport('activity', formulaire)).toEqual({ date_start: '2026-10-01' })
   })
 })
 
