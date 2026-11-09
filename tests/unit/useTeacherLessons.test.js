@@ -30,7 +30,7 @@ const h = vi.hoisted(() => ({
 
 vi.mock('@/services/lesson', () => ({
   default: {
-    getLessons: (...a) => h.getLessons(...a)
+    getAllLessons: (...a) => h.getLessons(...a)
   }
 }))
 vi.mock('@/services/klassci', () => ({
