@@ -19,7 +19,7 @@ const LESSONS_CACHE = 'teacher_lessons_v2'
  */
 function myLessonsParams() {
   const id = useAuthStore().currentUser?.id
-  return id == null ? null : { enseignant_id: id }
+  return id == null ? null : {}
 }
 
 /**
