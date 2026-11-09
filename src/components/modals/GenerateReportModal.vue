@@ -42,16 +42,6 @@
         />
       </div>
 
-      <!-- Seul filtre accepté au-delà de la période (spec #991) : le type d'activité. -->
-      <div v-if="form.type === 'activity'" class="form-group">
-        <label for="report-activity-type" class="form-label">Type d'activité</label>
-        <select id="report-activity-type" v-model="form.activity_type" name="activity_type" class="form-select" :disabled="enCours">
-          <option v-for="activite in ACTIVITY_TYPES" :key="activite.value" :value="activite.value">
-            {{ activite.label }}
-          </option>
-        </select>
-      </div>
-
       <!-- Régions présentes dès l'ouverture : seul leur texte change. -->
       <div role="alert" :class="{ 'error-message': error }">{{ error ?? '' }}</div>
       <div role="status" :class="{ 'info-box': avancement }">{{ avancement }}</div>
@@ -74,9 +64,11 @@
  * ASYNCHRONE ; `useReportGeneration` la suit jusqu'au fichier. Cette fenêtre ne
  * garde que le formulaire et l'annonce de l'avancement.
  *
- * Filtres retirés : « Matière » (aucune route ne l'accepte) et « Classe » (le
+ * Filtres retirés : « Matière » (aucune route ne l'accepte), « Classe » (le
  * catalogue donnait l'id d'un autre espace que celui des classes locales attendu
- * par le serveur : le filtre visait une autre classe — D41). Le choix d'une
+ * par le serveur : le filtre visait une autre classe — D41) et « Type
+ * d'activité » (accepté par le serveur mais sans effet sur le contenu, spec #991 :
+ * le choix est retiré jusqu'à ce que le serveur l'applique). Le choix d'une
  * évaluation pour les notes est une suite.
  */
 import { ref, watch, computed } from 'vue'
@@ -84,7 +76,7 @@ import Modal from '@/components/ui/Modal.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import { toast } from '@/composables/useToast'
 import { useReportGeneration } from '@/composables/useReportGeneration'
-import { ACTIVITY_TYPES, filtresDuRapport } from '@/constants/reports'
+import { filtresDuRapport } from '@/constants/reports'
 
 const props = defineProps({
   modelValue: {
@@ -117,8 +109,7 @@ function formulaireVide() {
   return {
     type: '',
     date_start: lastMonth.toISOString().split('T')[0],
-    date_end: today.value,
-    activity_type: 'all'
+    date_end: today.value
   }
 }
 

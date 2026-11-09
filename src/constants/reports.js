@@ -32,26 +32,19 @@ export const REPORT_STATUS = Object.freeze({
   FAILED: 'failed',
 })
 
-/** Valeurs de `activity_type` acceptées par `RapportActiviteInput`. */
-export const ACTIVITY_TYPES = Object.freeze([
-  { value: 'all', label: 'Toutes les activités' },
-  { value: 'login', label: 'Connexions' },
-  { value: 'logout', label: 'Déconnexions' },
-  { value: 'content_view', label: 'Consultations de contenu' },
-  { value: 'submission', label: 'Remises de travaux' },
-  { value: 'grading', label: 'Corrections' },
-])
-
 /**
  * Les SEULS filtres que chaque route accepte (spec #991). Le contrôleur ne garde
  * que `validated()` : un champ hors de cette liste était silencieusement ignoré.
  * `classe_id` n'y figure pas : le seul catalogue disponible donne des ids KLASSCI,
  * là où le serveur attend des ids LOCAUX (D41).
+ * `activity_type` non plus : accepté par le serveur mais sans effet sur le
+ * contenu du rapport (spec #991). Le choix est retiré jusqu'à ce que le serveur
+ * l'applique.
  */
 const FILTRES_ACCEPTES = Object.freeze({
   attendance: ['date_start', 'date_end'],
   grades: ['date_start', 'date_end'],
-  activity: ['date_start', 'date_end', 'activity_type'],
+  activity: ['date_start', 'date_end'],
 })
 
 /**
