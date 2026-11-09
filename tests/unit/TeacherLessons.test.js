@@ -6,6 +6,8 @@ import { shallowMount, flushPromises } from '@vue/test-utils'
 import { describe, it, expect, vi } from 'vitest'
 
 vi.mock('vue-router', () => ({ useRouter: () => ({ push: vi.fn() }) }))
+// « Mes leçons » est la liste de l'enseignant CONNECTÉ (D72) : il faut une identité.
+vi.mock('@/stores/auth', () => ({ useAuthStore: () => ({ currentUser: { id: 42, role: 'enseignant' } }) }))
 
 const getLessons = vi.fn().mockResolvedValue({ success: true, data: { data: [] } })
 const getMatieres = vi.fn().mockResolvedValue([])
