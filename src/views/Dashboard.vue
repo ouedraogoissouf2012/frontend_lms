@@ -163,7 +163,7 @@ async function loadDashboard() {
     recentLessons.value = extractList(rLessons.value)
   } else {
     console.error('Erreur chargement leçons récentes:', rLessons.reason)
-    void normalizeError
+    lessonsError.value = rLessons.reason?.userMessage ?? normalizeError(rLessons.reason).userMessage
   }
   if (rNotifs.status === 'fulfilled') {
     notifications.value = Array.isArray(rNotifs.value) ? rNotifs.value : []
