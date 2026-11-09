@@ -96,7 +96,6 @@ describe('garde : aucun appelant ne fabrique une erreur avec le texte du serveur
   const CONNUS = [
     'composables/useAdminMatieres.js',
     'composables/useAdminSeances.js',
-    'composables/useAdminVisio.js',
     'composables/useParticipantsModal.js',
   ]
 

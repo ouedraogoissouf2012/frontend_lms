@@ -19,6 +19,7 @@
  */
 import { setActivePinia, createPinia } from 'pinia'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 const { mockJoinVisio, mockLeaveVisio, mockHeartbeat } = vi.hoisted(() => ({
   mockJoinVisio: vi.fn(),
@@ -114,9 +115,21 @@ describe('store visio — la participation (R6)', () => {
     mockJoinVisio.mockResolvedValue({ success: false, message: 'La visio n\'est pas active' })
     const store = useVisioStore()
 
-    await expect(store.joinVisio(SEANCE_ID)).rejects.toThrow(/pas active/)
+    // Le texte du serveur n'est jamais repris (D0) : sans `reason` connu, le repli du front.
+    const erreur = await store.joinVisio(SEANCE_ID).catch((e) => e)
+    expect(erreur.userMessage).toBe('Erreur lors de l'enregistrement de la participation')
+    expect(erreur.userMessage).not.toMatch(/pas active/)
     expect(mockLeaveVisio).not.toHaveBeenCalled()
     expect(store.isInVisio).toBe(false)
+  })
+
+  it('S3 bis — un refus serveur avec un `reason` connu dit son sens par le catalogue', async () => {
+    mockJoinVisio.mockResolvedValue({ success: false, message: 'texte serveur', reason: 'visio_ended' })
+    const store = useVisioStore()
+
+    const erreur = await store.joinVisio(SEANCE_ID).catch((e) => e)
+    expect(erreur.userMessage).toBe(ERROR_MESSAGES.visioEnded)
+    expect(mockLeaveVisio).not.toHaveBeenCalled()
   })
 
   /**
