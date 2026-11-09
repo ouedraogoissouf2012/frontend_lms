@@ -70,8 +70,10 @@ describe('« Mes leçons » ne montre que les leçons de l’enseignant connect�
 
   it('le cache d’avant (qui portait les leçons des collègues) n’est plus relu', async () => {
     cacheStore.teacher_lessons = [{ id: 9, title: 'Lecture suivie', status: 'published', enseignant_id: 77 }]
+    // Le serveur ne répond pas : un rafraîchissement ne peut pas masquer une lecture de l'ancien cache.
+    h.getLessons.mockRejectedValue(new Error('hors ligne'))
     const c = await monter()
-    expect(c.lessons.value.map((l) => l.id)).toEqual([1])
+    expect(c.lessons.value.map((l) => l.id)).not.toContain(9)
   })
 })
 
