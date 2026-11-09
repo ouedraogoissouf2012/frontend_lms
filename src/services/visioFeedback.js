@@ -1,6 +1,6 @@
 import { confirmDialog } from '@/services/confirmDialog'
 import { toast } from '@/composables/useToast'
-import { displayMessage } from '@/services/errorHandler'
+import { displayMessage } from '@/services/displayMessage'
 
 /**
  * Le message d'un toast de visio : le SENS, jamais un texte venu d'ailleurs (D0).

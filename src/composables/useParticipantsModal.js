@@ -2,7 +2,8 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import lmsService from '@/services/lms'
 import attendanceExportService from '@/services/attendanceExport'
 import { toast } from '@/composables/useToast'
-import { displayMessage, messageForReason, normalizeError } from '@/services/errorHandler'
+import { messageForReason, normalizeError } from '@/services/errorHandler'
+import { displayMessage } from '@/services/displayMessage'
 import { userError } from '@/utils/userError'
 
 /**

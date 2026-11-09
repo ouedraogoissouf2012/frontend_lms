@@ -2,7 +2,8 @@ import { ref, reactive } from 'vue'
 import { writeCache } from '@/services/cache'
 import lessonService from '@/services/lesson'
 import { toast } from '@/composables/useToast'
-import { displayMessage, messageForReason } from '@/services/errorHandler'
+import { messageForReason } from '@/services/errorHandler'
+import { displayMessage } from '@/services/displayMessage'
 
 /**
  * Couche formulaire de la modale leçon (#H4 ≤300), extraite de TeacherLessons.

@@ -2,7 +2,8 @@ import { ref, computed, onMounted } from 'vue'
 import { klassciService } from '@/services/klassci'
 import { extractList } from '@/utils/apiList'
 import { useCachedResource } from '@/composables/useCachedResource'
-import { displayMessage, messageForReason } from '@/services/errorHandler'
+import { messageForReason } from '@/services/errorHandler'
+import { displayMessage } from '@/services/displayMessage'
 import { userError } from '@/utils/userError'
 
 /**

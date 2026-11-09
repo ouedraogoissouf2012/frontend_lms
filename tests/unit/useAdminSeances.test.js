@@ -64,17 +64,17 @@ describe('useAdminSeances (#G1)', () => {
     expect(getSeances).toHaveBeenCalledTimes(1)
   })
 
-  it('renseigne error quand la réponse échoue', async () => {
+  it('renseigne error quand la réponse échoue : le repli du front, jamais le texte du serveur (D0)', async () => {
     getSeances.mockResolvedValue({ success: false, message: 'Boom' })
     const s = await setup()
-    expect(s.error.value).toBe('Boom')
+    expect(s.error.value).toBe('Impossible de charger les séances')
     expect(s.loading.value).toBe(false)
   })
 
-  it('renseigne error quand le service rejette', async () => {
+  it('renseigne error quand le service rejette : jamais le message technique de l’erreur', async () => {
     getSeances.mockRejectedValue(new Error('Réseau'))
     const s = await setup()
-    expect(s.error.value).toBe('Réseau')
+    expect(s.error.value).toBe('Impossible de charger les séances')
   })
 
   it('refreshData relance les trois chargements', async () => {
