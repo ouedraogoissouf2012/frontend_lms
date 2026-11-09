@@ -12,6 +12,7 @@ export default defineConfig({
     // Cible ÉCRITE : le défaut documenté de vite 6 (`'modules'`, ESBUILD_MODULES_TARGET),
     // Safari 14 compris. vite 7 a remplacé ce défaut par Chrome 107 / Safari 16 : le suivre
     // retirerait des navigateurs sans décision. Relever la cible est une décision produit.
+    target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'],
   },
   esbuild: {
     // #234/#241 : retirer TOUS les console.* du bundle prod. console.error/warn
