@@ -169,7 +169,7 @@ export function getMatiereNiveaux(matiere) {
  */
 export function getLessonMatiereLabel(lesson, matieres = []) {
   const nom = (m) => m?.libelle || m?.nom || m?.name || null
-  const portee = null
+  const portee = nom(lesson?.matiere)
   if (portee) return portee
   const id = lesson?.matiere_id
   const duCatalogue = id == null ? null : nom(matieres.find((m) => m?.id == id))
