@@ -7,6 +7,7 @@
  */
 import { describe, it, expect } from 'vitest'
 import { normalizeVisioRecording } from '@/utils/visioRecording'
+import { recordingFailureLabel } from '@/constants/recordingFailureReasons'
 
 const CONSIGNE = "Si le problème persiste, prévenez l'administrateur de votre établissement."
 
@@ -66,5 +67,18 @@ describe('motifs d’échec d’enregistrement — un libellé, jamais la valeur
   it('les causes techniques disent quoi faire ; aucun libellé ne nomme un système', () => {
     for (const valeur of TECHNIQUES) expect(echoue({ error_message: valeur }).errorMessage.endsWith(CONSIGNE)).toBe(true)
     for (const libelle of [...Object.values(LIBELLES), GENERIQUE]) expect(libelle).not.toMatch(/klassci|jibri/i)
+  })
+
+  it('une clé du prototype d’objet n’est pas un motif : libellé générique, jamais une fonction', () => {
+    // Une recherche naïve (`LABELS[motif] ?? générique`) rendrait la FONCTION toString à l'écran.
+    for (const motif of ['toString', 'constructor', '__proto__', 'hasOwnProperty', 'valueOf']) {
+      const r = echoue({ error_message: motif })
+      expect(typeof r.errorMessage).toBe('string')
+      expect(r.errorMessage).toBe(GENERIQUE)
+    }
+  })
+
+  it('recordingFailureLabel : sans motif (null, undefined, vide), aucun libellé', () => {
+    for (const motif of [null, undefined, '']) expect(recordingFailureLabel(motif)).toBeNull()
   })
 })
