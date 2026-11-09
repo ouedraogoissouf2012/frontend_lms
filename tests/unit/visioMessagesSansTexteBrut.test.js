@@ -93,23 +93,48 @@ describe('garde : aucun appelant ne fabrique une erreur avec le texte du serveur
 
   // Cliquet : les sites hors visio connus le 09/11/2026, à corriger dans une PR à part. Un site
   // nouveau fait rougir ; un site corrigé mais encore listé aussi (la liste doit rétrécir).
+  // Liste élargie le 10/11/2026 (PR « texte serveur hors visio ») aux lectures de
+  // `err.response.data.message`, aux concaténations et à `err.message` recopié dans
+  // `userMessage`. Les 14 sites gelés ici restent à trier (des 422 de validation peuvent être
+  // légitimes) ; useStudentEvaluationsList attend les `reason` des refus de démarrage.
   const CONNUS = [
-    'composables/useAdminMatieres.js',
-    'composables/useAdminSeances.js',
-    'composables/useParticipantsModal.js',
+    'composables/useAdminEvaluationResults.js',
+    'composables/useAdminInstitutions.js',
+    'composables/useClasseDetails.js',
+    'composables/useCoordinatorEvaluations.js',
+    'composables/useEvaluationCorrections.js',
+    'composables/useImportJob.js',
+    'composables/useImportWizard.js',
+    'composables/useLessonChapters.js',
+    'composables/useMatiereDetails.js',
+    'composables/usePasswordReset.js',
+    'composables/useSchoolRequest.js',
     'composables/useStudentEvaluationsList.js',
+    'composables/useTeacherEvaluationActions.js',
+    'views/Login.vue',
   ]
 
-  // Les quatre façons de porter le texte du serveur à l'écran : une erreur fabriquée (y compris
-  // par userError, qui le blanchirait en message « du front »), un toast, un `userMessage` affecté.
+  // Les façons de porter le texte du serveur à l'écran : une erreur fabriquée (y compris par
+  // userError, qui le blanchirait en message « du front »), un toast, un `userMessage` affecté,
+  // la lecture de `err.response.data.message`, une concaténation, `err.message` recopié.
   const SOURCE = String.raw`(?:result|response|res|data)\??\.(?:data\??\.)?message`
-  const TEXTE_SERVEUR = new RegExp(
-    String.raw`(?:new Error|userError)\(\s*${SOURCE}|toast\.[a-z]+\(\s*${SOURCE}|userMessage\s*=\s*${SOURCE}`,
-  )
+  const MOTIFS = [
+    String.raw`(?:new Error|userError)\(\s*${SOURCE}`,
+    String.raw`toast\.[a-z]+\(\s*${SOURCE}`,
+    String.raw`userMessage\s*=\s*${SOURCE}`,
+    String.raw`\b(?:err|error|e)\??\.response\??\.data\??\.message`,
+    String.raw`\+\s*\(?\s*(?:response|result|res)\??\.message`,
+    String.raw`userMessage\s*=\s*[^;\n]*\b(?:err|error)\.message`,
+  ].map((m) => new RegExp(m))
+  // Un commentaire DÉCRIT un site, il n'en est pas un.
+  const sansCommentaires = (t) => t
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/(^|[^:'"`])\/\/[^\n]*/g, '$1')
 
   it('aucun NOUVEAU site ne porte le texte du serveur à l’écran dans src/ (cliquet)', () => {
     const fautifs = fichiers(racine)
-      .filter((f) => TEXTE_SERVEUR.test(readFileSync(f, 'utf8')))
+      .filter((f) => { const t = sansCommentaires(readFileSync(f, 'utf8')); return MOTIFS.some((re) => re.test(t)) })
       .map((f) => relative(racine, f).split(sep).join('/'))
       .sort()
     expect(fautifs).toEqual(CONNUS)
