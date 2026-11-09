@@ -75,7 +75,8 @@ export function useSeanceManagement() {
         // vide TOUTES les variantes `seances_management_d*`, pas une clé fixe.
         clearCacheByPrefix('seances_management')
 
-        toast.success(response.message || 'Visioconférence mise à jour')
+        // Le sens est rédigé par le front, jamais repris du serveur (D0).
+        toast.success('Visioconférence mise à jour')
       } else {
         toast.error('Erreur lors de la mise à jour')
       }

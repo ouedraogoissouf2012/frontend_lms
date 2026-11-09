@@ -110,7 +110,7 @@ export const useVisioStore = defineStore('visio', () => {
     try {
       const response = await lmsService.joinVisio(seanceId)
 
-      if (!response.success) {
+      if (!response?.success) {
         throw userError(messageForReason(response?.reason) ?? 'Erreur lors de l\'enregistrement de la participation')
       }
 
