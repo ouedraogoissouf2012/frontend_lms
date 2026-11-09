@@ -39,5 +39,5 @@ export function recordingFailureLabel(reason) {
   if (reason === null) return null
   return Object.prototype.hasOwnProperty.call(RECORDING_FAILURE_LABELS, reason)
     ? RECORDING_FAILURE_LABELS[reason]
-    : RECORDING_FAILURE_GENERIC
+    : reason
 }
