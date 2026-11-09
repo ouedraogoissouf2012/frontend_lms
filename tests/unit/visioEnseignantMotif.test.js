@@ -3,9 +3,9 @@
  *
  * `handleJoinVisio` affichait `err.message` : sur un refus serveur (403 avec `reason`,
  * traduit par le catalogue depuis #452), l'enseignant lisait « Request failed with
- * status code 403 ». La forme du dépôt (`useTeacherSeances`, `useSeanceManagement`) est
- * `userMessage ?? message ?? catalogue` : le message du catalogue d'abord, puis le
- * message propre au front (ses `Error` en français, sans `userMessage`).
+ * status code 403 ». La forme du dépôt est `displayMessage(err, repli)` (#506) : le
+ * `userMessage` (catalogue, ou texte du front porté par `userError`), sinon la catégorie
+ * du statut HTTP, sinon le repli. Jamais `err.message`.
  */
 import { mount, flushPromises } from '@vue/test-utils'
 import { defineComponent } from 'vue'
