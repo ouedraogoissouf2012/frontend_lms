@@ -42,7 +42,7 @@ import { readdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
-import yaml from 'js-yaml'
+import { load } from 'js-yaml'
 
 import { catalogueDepuisRoutes, catalogueDepuisSpec, cle, comparer, extraireAppels, resserrerBaseline } from './lib/apiContract.mjs'
 
@@ -61,7 +61,7 @@ function option(nom) {
 function lireJsonOuYaml(fichier, quoi) {
   if (!fichier || !existsSync(fichier)) throw new GardeImpuissante(`${quoi} introuvable : ${fichier ?? '(option absente)'}`)
   try {
-    return fichier.endsWith('.json') ? JSON.parse(readFileSync(fichier, 'utf8')) : yaml.load(readFileSync(fichier, 'utf8'))
+    return fichier.endsWith('.json') ? JSON.parse(readFileSync(fichier, 'utf8')) : load(readFileSync(fichier, 'utf8'))
   } catch (e) {
     throw new GardeImpuissante(`${quoi} illisible (${fichier}) : ${e.message}`)
   }
