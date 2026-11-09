@@ -89,8 +89,11 @@ export function useTeacherLessons() {
     try {
       console.log('[LESSONS] Chargement des leçons via API...')
       const response = await lessonService.getAllLessons(params)
+      // Un refus (même en cours de pagination) n'est pas « aucune leçon » : c'est une erreur.
+      if (!response?.success) throw new Error('liste des leçons refusée')
       lessons.value = extractList(response)
-      writeCache(LESSONS_CACHE, lessons.value)
+      // Une liste tronquée par le garde-fou de pagination n'est jamais cachée comme complète.
+      if (!response.incomplete) writeCache(LESSONS_CACHE, lessons.value)
     } catch (err) {
       console.error('[ERREUR] Erreur chargement leçons:', err)
       error.value = 'Impossible de charger les leçons. Veuillez réessayer.'
@@ -125,7 +128,7 @@ export function useTeacherLessons() {
 
       if (response && response.success) {
         lessons.value = extractList(response)
-        writeCache(LESSONS_CACHE, lessons.value)
+        if (!response.incomplete) writeCache(LESSONS_CACHE, lessons.value)
       }
     } catch (error) {
       console.warn('[BACKGROUND] Erreur rafraîchissement:', error)

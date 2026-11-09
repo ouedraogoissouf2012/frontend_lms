@@ -63,7 +63,7 @@ describe('useTeacherHub (#H11)', () => {
     })
     klassci.getClasseEtudiants.mockResolvedValue([{ id: 1 }, { id: 2 }, { id: 3 }])
     lms.getMyTeachingSeances.mockResolvedValue({ data: [] })
-    lessons.getLessons.mockResolvedValue({ data: [] })
+    lessons.getLessons.mockResolvedValue({ success: true, data: [] })
   })
 
   it('compte classes, matières, leçons et évaluations depuis les services', async () => {
@@ -175,7 +175,7 @@ describe('useTeacherHub (#H11)', () => {
       // Une panne partielle ne doit pas jeter les sources qui ont repondu.
       klassci.getTeacherDashboard.mockRejectedValue(new Error('reseau'))
       klassci.getClasses.mockRejectedValue(new Error('reseau'))
-      lessons.getLessons.mockResolvedValue({ data: [{ id: 1 }, { id: 2 }] })
+      lessons.getLessons.mockResolvedValue({ success: true, data: [{ id: 1 }, { id: 2 }] })
       lms.getMyTeachingSeances.mockResolvedValue({ data: [] })
 
       const h = await setup()

@@ -41,6 +41,22 @@ function compterSeancesAVenir(seances) {
 }
 
 /**
+ * Nombre de leçons d'une réponse de `GET /lessons`, ou `null` s'il n'est pas mesuré.
+ *
+ * Réponse paginée (`last_page` présent) : SEUL le `total` fait foi. La page (une leçon,
+ * `per_page: 1`) et `last_page` (qui vaut 1 même pour 0 leçon) ne sont pas des totaux.
+ * Liste plate : sa taille. Refus : non mesuré.
+ */
+function lessonsTotal(response) {
+  if (!response?.success) return null
+  if (response.data?.last_page != null) {
+    const total = response.data.total
+    return typeof total === 'number' && Number.isFinite(total) ? total : null
+  }
+  return extractList(response).length
+}
+
+/**
  * Interroge les quatre sources et n'en tire QUE des compteurs mesurés.
  *
  * Quatre sources : le dashboard KLASSCI ne porte NI les leçons (entité LMS
@@ -55,16 +71,6 @@ function compterSeancesAVenir(seances) {
  * Rejette si AUCUNE source n'a répondu : c'est ce qui fait conserver les
  * derniers compteurs connus au lieu de les écraser (cf. useCachedResource).
  */
-/**
- * Nombre de leçons d'une réponse de `GET /lessons` : le `total` de la pagination quand le
- * serveur pagine (la page n'en porte qu'une partie), sinon la taille de la liste plate.
- */
-function lessonsTotal(response) {
-  const total = Number(response?.data?.total)
-  if (response?.data?.last_page != null && Number.isFinite(total)) return total
-  return extractList(response).length
-}
-
 async function mesurerCompteurs() {
   // D72 : les leçons de l'enseignant connecté ; sans identité, non mesuré (rejet).
   const mesLecons = myLessonsParams()
