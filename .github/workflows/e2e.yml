@@ -59,7 +59,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: ouedraogoissouf2012/lms_backend
-          ref: ${{ inputs.backend_ref || 'lms' }}
+          ref: ${{ inputs.backend_ref || 'chore/integration-nuit' }}
           path: back
 
       - name: Versions jouées
@@ -67,7 +67,7 @@ jobs:
           {
             echo "### Versions"
             echo "- front : \`$(git -C front rev-parse HEAD)\`"
-            echo "- lms_backend : \`$(git -C back rev-parse HEAD)\` (ref demandée : \`${{ inputs.backend_ref || 'lms' }}\`)"
+            echo "- lms_backend : \`$(git -C back rev-parse HEAD)\` (ref demandée : \`${{ inputs.backend_ref || 'chore/integration-nuit' }}\`)"
           } | tee -a "$GITHUB_STEP_SUMMARY"
 
       - uses: shivammathur/setup-php@v2
