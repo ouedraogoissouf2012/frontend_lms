@@ -2,7 +2,8 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import lmsService from '@/services/lms'
 import attendanceExportService from '@/services/attendanceExport'
 import { toast } from '@/composables/useToast'
-import { normalizeError } from '@/services/errorHandler'
+import { displayMessage, messageForReason, normalizeError } from '@/services/errorHandler'
+import { userError } from '@/utils/userError'
 
 /**
  * Couche données/logique de ParticipantsModal (#G8/H13 ≤300) : charge la liste de
@@ -87,11 +88,11 @@ export function useParticipantsModal(seanceId) {
           seanceTime: seanceTime.value
         })
       } else {
-        throw new Error(response?.message || 'Erreur lors du chargement de la liste de présence')
+        throw userError(messageForReason(response?.reason) ?? 'Erreur lors du chargement de la liste de présence')
       }
     } catch (err) {
       console.error('[ParticipantsModal] Erreur chargement liste de présence:', err)
-      error.value = err.response?.data?.message || err.message || 'Erreur inconnue'
+      error.value = displayMessage(err, 'Erreur lors du chargement de la liste de présence')
     } finally {
       loading.value = false
     }

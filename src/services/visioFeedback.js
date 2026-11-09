@@ -1,6 +1,6 @@
 import { confirmDialog } from '@/services/confirmDialog'
 import { toast } from '@/composables/useToast'
-import { normalizeError } from '@/services/errorHandler'
+import { displayMessage } from '@/services/errorHandler'
 
 /**
  * Le message d'un toast de visio : le SENS, jamais un texte venu d'ailleurs (D0).
@@ -10,10 +10,7 @@ import { normalizeError } from '@/services/errorHandler'
  *   rédigé par l'appelant. Ni `response.data.message`, ni `error.message` ne sont affichés.
  */
 function messageFrom(error, fallback) {
-  if (!error) return fallback
-  if (error.userMessage) return error.userMessage
-  if (error.response) return normalizeError(error).userMessage
-  return fallback
+  return displayMessage(error, fallback)
 }
 
 export function notifyVisioSuccess(message) {

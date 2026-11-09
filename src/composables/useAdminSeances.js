@@ -2,6 +2,8 @@ import { ref, computed, onMounted } from 'vue'
 import { klassciService } from '@/services/klassci'
 import { extractList } from '@/utils/apiList'
 import { useCachedResource } from '@/composables/useCachedResource'
+import { displayMessage, messageForReason } from '@/services/errorHandler'
+import { userError } from '@/utils/userError'
 
 /**
  * Couche données d'AdminSeances (#G1 ≤300) : charge les séances de visioconférence
@@ -45,15 +47,14 @@ export function useAdminSeances() {
         classe_id: filters.value.classe_id
       })
     } catch (err) {
-      // Préfère un message utilisateur posé par l'intercepteur, repli sur le message technique.
-      err.userMessage = err.userMessage || err.message || 'Impossible de charger les séances'
+      // Le message posé par l'intercepteur, sinon la catégorie du statut, sinon le repli du front :
+      // jamais le message technique de l'erreur (D0).
+      err.userMessage = displayMessage(err, 'Impossible de charger les séances')
       throw err
     }
 
     if (!response.success) {
-      const err = new Error(response.message || 'Erreur lors du chargement des séances')
-      err.userMessage = response.message || 'Impossible de charger les séances'
-      throw err
+      throw userError(messageForReason(response?.reason) ?? 'Impossible de charger les séances')
     }
 
     return extractList(response)
