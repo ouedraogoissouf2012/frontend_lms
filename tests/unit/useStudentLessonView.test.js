@@ -139,4 +139,26 @@ describe('useStudentLessonView (#H4)', () => {
     expect(updateProgress.mock.calls[0]).toStrictEqual([5, 50])
     expect(markComplete).not.toHaveBeenCalled()
   })
+
+  // E2E (10/11/2026) : l'élève dont l'inscription est inactive reçoit un 404 sur la leçon, et
+  // l'écran lui offrait « Réessayer » : un refus DÉFINITIF n'est pas une panne passagère.
+  it('403 ou 404 : refus définitif, aucun nouvel essai offert', async () => {
+    for (const status of [403, 404]) {
+      getLesson.mockRejectedValue({ response: { status } })
+      apiGet.mockResolvedValue({ success: true, data: [] })
+      const c = await setup()
+      expect(c.error.value).toBeTruthy()
+      expect(c.canRetry.value).toBe(false)
+    }
+  })
+
+  it('panne passagère (500, réseau) : le nouvel essai reste offert', async () => {
+    for (const erreur of [{ response: { status: 500 } }, new Error('Network Error')]) {
+      getLesson.mockRejectedValue(erreur)
+      apiGet.mockResolvedValue({ success: true, data: [] })
+      const c = await setup()
+      expect(c.error.value).toBe('Impossible de charger le cours. Veuillez réessayer.')
+      expect(c.canRetry.value).toBe(true)
+    }
+  })
 })
