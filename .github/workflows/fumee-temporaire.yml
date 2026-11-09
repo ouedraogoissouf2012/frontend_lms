@@ -1,0 +1,113 @@
+# TEMPORAIRE (#497, D100) : test de fumée du bundle LIVRÉ, dev @c41165be contre la tête de la PR.
+# vite build → vite preview → /login dans chromium headless, puis navigation vers une route
+# paresseuse. Ce fichier sera retiré par un commit de retour.
+name: Fumee temporaire
+
+on:
+  pull_request:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+jobs:
+  fumee:
+    name: Fumee du bundle (dev contre branche)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: c41165bee7b996120a6f336b5f4f6dfdf5366ff7
+          path: dev
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: branche
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Chromium headless (playwright 1.65.0, hors des deux arbres)
+        run: |
+          mkdir fumee && cd fumee && npm init -y >/dev/null
+          npm install --no-audit --no-fund playwright@1.65.0
+          npx playwright install --with-deps chromium
+      - name: Script de fumée
+        run: |
+          cat > fumee/fumee.mjs <<'JS'
+          import { chromium } from 'playwright'
+          import { writeFileSync } from 'node:fs'
+          const [nom, sortie] = process.argv.slice(2)
+          const base = 'http://127.0.0.1:4173'
+          const navigateur = await chromium.launch()
+          const page = await navigateur.newPage()
+          const erreursPage = [], consoleErreurs = [], consoleAvert = [], echecs = [], js = []
+          page.on('pageerror', (e) => erreursPage.push(String(e)))
+          page.on('console', (m) => {
+            if (m.type() === 'error') consoleErreurs.push(m.text())
+            if (m.type() === 'warning') consoleAvert.push(m.text())
+          })
+          page.on('requestfailed', (r) => echecs.push(`${r.url()} : ${r.failure()?.errorText}`))
+          page.on('response', (r) => {
+            const u = new URL(r.url())
+            if (u.pathname.endsWith('.js')) js.push(`${r.status()} ${u.pathname}`)
+          })
+
+          await page.goto(`${base}/login`, { waitUntil: 'networkidle' })
+          await page.waitForTimeout(1500) // le splash part après router.isReady + 500 ms
+          const texteLogin = (await page.locator('#app').innerText()).trim()
+          const champMotDePasse = await page.locator('#app input[type="password"]').count()
+          const splashParti = (await page.locator('#app-loader').count()) === 0
+          const chunkLogin = js.filter((l) => /^200 \/assets\/Login-[^/]+\.js$/.test(l))
+          const preloads = await page.evaluate(() =>
+            [...document.querySelectorAll('link[rel="modulepreload"]')].map((l) => new URL(l.href).pathname))
+          const preloadsEchoues = preloads.filter((p) => !js.includes(`200 ${p}`))
+
+          const avant = js.length
+          await page.click('#app a[href="/forgot-password"]')
+          await page.waitForURL('**/forgot-password')
+          await page.waitForLoadState('networkidle')
+          const chunkOubli = js.slice(avant).filter((l) => /^200 \/assets\/ForgotPassword-[^/]+\.js$/.test(l))
+          const texteOubli = (await page.locator('#app').innerText()).trim()
+          await navigateur.close()
+
+          const verifs = [
+            ['/login : #app a du contenu rendu', texteLogin.length > 0, `${texteLogin.length} caractères`],
+            ['/login : champ mot de passe présent', champMotDePasse === 1, `${champMotDePasse}`],
+            ['/login : splash retiré', splashParti, String(splashParti)],
+            ['/login : chunk paresseux Login chargé (200)', chunkLogin.length === 1, chunkLogin.join(', ') || 'aucun'],
+            ['modulepreload : tous chargés (200)', preloadsEchoues.length === 0, `${preloads.length} préchargés, ${preloadsEchoues.length} en échec`],
+            ['navigation client vers /forgot-password : chunk ForgotPassword chargé (200)', chunkOubli.length === 1, chunkOubli.join(', ') || 'aucun'],
+            ['/forgot-password : contenu rendu', texteOubli.length > 0 && texteOubli !== texteLogin, `${texteOubli.length} caractères`],
+            ['aucune pageerror', erreursPage.length === 0, `${erreursPage.length}`],
+            ['aucune erreur console', consoleErreurs.length === 0, `${consoleErreurs.length}`],
+            ['aucune requête en échec', echecs.length === 0, `${echecs.length}`],
+          ]
+          const lignes = [`### ${nom}`, '', '| vérification | résultat | mesure |', '|---|---|---|',
+            ...verifs.map(([v, ok, m]) => `| ${v} | ${ok ? 'OK' : 'ÉCHEC'} | ${m} |`), '',
+            `- fichiers JS chargés : ${js.length}`,
+            ...erreursPage.map((e) => `- pageerror : ${e}`),
+            ...consoleErreurs.map((e) => `- console.error : ${e}`),
+            ...consoleAvert.map((e) => `- console.warn : ${e}`),
+            ...echecs.map((e) => `- échec : ${e}`), '']
+          writeFileSync(sortie, lignes.join('\n'))
+          console.log(lignes.join('\n'))
+          process.exit(verifs.every(([, ok]) => ok) ? 0 : 1)
+          JS
+      - name: Build, preview et fumée, dev puis branche
+        env:
+          VITE_JITSI_DOMAIN: visio.example.test
+          VITE_API_URL: https://api.example.test/api
+        run: |
+          rc=0
+          for nom in dev branche; do
+            ( cd "$nom" && npm ci --no-audit --no-fund && npm run build )
+            ( cd "$nom" && npx vite preview --host 127.0.0.1 --port 4173 --strictPort > "../preview-$nom.log" 2>&1 & )
+            for i in $(seq 1 30); do curl -sf -o /dev/null http://127.0.0.1:4173/ && break; sleep 1; done
+            node fumee/fumee.mjs "$nom" "resultat-$nom.md" || rc=1
+            pkill -f "vite preview" || true
+            sleep 2
+          done
+          exit $rc
+      - name: Résumé
+        if: always()
+        run: cat resultat-dev.md resultat-branche.md 2>/dev/null | tee -a "$GITHUB_STEP_SUMMARY"
