@@ -23,7 +23,7 @@ export async function fetchAllPages(fetchPage, params, pageSize) {
     if (!response?.success) return response
     tous.push(...extractList(response))
     const derniere = Number(response.data?.last_page)
-    return { ...response, data: tous }
+    if (!Number.isFinite(derniere) || page >= derniere) return { ...response, data: tous }
   }
   return { success: true, data: tous, incomplete: true }
 }
