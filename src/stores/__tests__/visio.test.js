@@ -117,7 +117,7 @@ describe('store visio — la participation (R6)', () => {
 
     // Le texte du serveur n'est jamais repris (D0) : sans `reason` connu, le repli du front.
     const erreur = await store.joinVisio(SEANCE_ID).catch((e) => e)
-    expect(erreur.userMessage).toBe('Erreur lors de l'enregistrement de la participation')
+    expect(erreur.userMessage).toBe("Erreur lors de l'enregistrement de la participation")
     expect(erreur.userMessage).not.toMatch(/pas active/)
     expect(mockLeaveVisio).not.toHaveBeenCalled()
     expect(store.isInVisio).toBe(false)
