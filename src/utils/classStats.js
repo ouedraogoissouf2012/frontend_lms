@@ -8,6 +8,7 @@ import {
 export { measureClassCapacity, measureClassStudentCount } from './classMeasures'
 
 import { toId } from './toId'
+import { measuredSum } from './measuredSum'
 
 function toArray(value) {
   return Array.isArray(value) ? value : []
@@ -169,10 +170,9 @@ export function deriveInstitutionCounters({ classes, matieres, enseignants } = {
 
   return {
     nb_enseignants: enseignantList ? enseignantList.length : null,
-    // `places_occupees` non numérique est ignoré plutôt que propagé en NaN.
-    nb_etudiants: classeList
-      ? classeList.reduce((sum, c) => sum + (Number(c?.places_occupees) || 0), 0)
-      : null,
+    // Somme des effectifs MESURÉS (toutes les clés d'effectif) ; `null` si une classe n'en
+    // a pas : un total partiel passerait pour le total, et « non mesuré » n'est pas 0.
+    nb_etudiants: classeList ? measuredSum(classeList.map((c) => measureClassStudentCount(c))) : null,
     nb_classes_actives: classeList ? classeList.length : null,
     nb_matieres_actives: matiereList ? matiereList.length : null,
     nb_filieres: classeList ? countDistinctFilieres(classeList) : null,
