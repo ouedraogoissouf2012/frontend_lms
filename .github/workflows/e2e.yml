@@ -42,6 +42,9 @@ jobs:
     env:
       E2E_SUPRADMIN_EMAIL: supradmin@e2e.test
       PLAYWRIGHT_BROWSERS_PATH: /opt/ms-playwright
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: Mot de passe du run (aléatoire, masqué)
         run: |
@@ -114,32 +117,54 @@ jobs:
         run: |
           sudo useradd -m e2e
           sudo chmod -R a+rwX "$GITHUB_WORKSPACE"
+          # L'utilisateur e2e doit pouvoir TRAVERSER les parents de l'espace de travail.
+          d="$GITHUB_WORKSPACE"; while [ "$d" != "/" ]; do d=$(dirname "$d"); sudo chmod o+x "$d"; done
+          # `sudo -E` est ignoré sur le runner : les variables sont passées une à une.
+          cat > "$RUNNER_TEMP/en_e2e.sh" <<'SH'
+          en_e2e() {
+            sudo -u e2e env "PATH=$PATH" "HOME=/home/e2e" "E2E_MOT_DE_PASSE=$E2E_MOT_DE_PASSE"               "E2E_SUPRADMIN_EMAIL=$E2E_SUPRADMIN_EMAIL" "PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH" "$@"
+          }
+          attendre() {  # attendre <nom> <url> <journal> : échoue, journal à l'appui, si rien ne répond
+            for i in $(seq 1 60); do
+              code=$(curl -s -o /dev/null -w '%{http_code}' "$2" || true)
+              [ "$code" != "000" ] && { echo "$1 répond (HTTP $code)"; return 0; }
+              sleep 1
+            done
+            echo "::error::$1 ne répond pas"; cat "$3" || true; return 1
+          }
+          SH
           echo "127.0.0.1 klassci.com edu.klassci.com apilms.klassci.com presentation.klassci.com esbtp-abidjan.klassci.com esbtp-yakro.klassci.com" | sudo tee -a /etc/hosts
           sudo iptables -A OUTPUT -m owner --uid-owner e2e ! -o lo -j LOG --log-prefix "E2E-SORTIE "
           sudo iptables -A OUTPUT -m owner --uid-owner e2e ! -o lo -j REJECT
 
       - name: Faux KLASSCI et serveur LMS (sous e2e)
         run: |
+          . "$RUNNER_TEMP/en_e2e.sh"
           mkdir -p sortie && chmod 777 sortie
-          sudo -u e2e -E env "PATH=$PATH" nohup node front/e2e/faux-klassci.mjs 8180 "$PWD/sortie/faux-klassci.jsonl" > sortie/faux-klassci.log 2>&1 &
-          (cd back && sudo -u e2e -E env "PATH=$PATH" PHP_CLI_SERVER_WORKERS=4 nohup php artisan serve --host=127.0.0.1 --port=8000 > ../sortie/serveur.log 2>&1 &)
-          for i in $(seq 1 60); do curl -s -o /dev/null http://127.0.0.1:8000/ && break; sleep 1; done
+          en_e2e nohup node "$PWD/front/e2e/faux-klassci.mjs" 8180 "$PWD/sortie/faux-klassci.jsonl" > sortie/faux-klassci.log 2>&1 &
+          (cd back && en_e2e env PHP_CLI_SERVER_WORKERS=4 nohup php artisan serve --host=127.0.0.1 --port=8000 > ../sortie/serveur.log 2>&1 &)
+          attendre "faux KLASSCI" http://127.0.0.1:8180/ sortie/faux-klassci.log
+          attendre "serveur LMS" http://127.0.0.1:8000/ sortie/serveur.log
 
       - name: Monter l'école créée depuis le LMS (script de Fille 1, chemins du produit)
-        run: sudo -u e2e -E env "PATH=$PATH" pwsh -File front/e2e/ecole-lms.ps1 -Api http://127.0.0.1:8000/api -Backend "$PWD/back" -Sortie "$PWD/sortie"
+        run: |
+          . "$RUNNER_TEMP/en_e2e.sh"
+          en_e2e pwsh -File "$PWD/front/e2e/ecole-lms.ps1" -Api http://127.0.0.1:8000/api -Backend "$PWD/back" -Sortie "$PWD/sortie"             || { echo "::error::montage de l'école en échec"; cat sortie/ecole-lms.log || true; tail -40 back/storage/logs/laravel.log || true; exit 1; }
 
       - name: Routes du routeur, build et aperçu du front
         working-directory: front
         run: |
           E2E_ROUTES_OUT="$GITHUB_WORKSPACE/sortie/routes.json" npx vitest run tests/e2e/routes.extraction.test.js
           VITE_API_URL=/api VITE_JITSI_DOMAIN=visio.example.test npm run build
-          sudo -u e2e -E env "PATH=$PATH" nohup npx vite preview --host 127.0.0.1 --port 4173 --strictPort > ../sortie/apercu.log 2>&1 &
-          for i in $(seq 1 30); do curl -sf -o /dev/null http://127.0.0.1:4173/ && break; sleep 1; done
+          . "$RUNNER_TEMP/en_e2e.sh"
+          en_e2e nohup npx vite preview --host 127.0.0.1 --port 4173 --strictPort > ../sortie/apercu.log 2>&1 &
+          attendre "aperçu du front" http://127.0.0.1:4173/ ../sortie/apercu.log
 
       - name: Parcours écran par écran (chromium, sous e2e)
         run: |
           cp front/e2e/parcours.mjs outils/
-          sudo -u e2e -E env "PATH=$PATH" node outils/parcours.mjs "$PWD/sortie/routes.json" "$PWD/sortie/jeu.json" "$PWD/sortie"
+          . "$RUNNER_TEMP/en_e2e.sh"
+          en_e2e node "$PWD/outils/parcours.mjs" "$PWD/sortie/routes.json" "$PWD/sortie/jeu.json" "$PWD/sortie"
 
       - name: Résumé, sorties réseau et appels à KLASSCI
         if: always()
