@@ -23,11 +23,11 @@ export const RECORDING_FAILURE_LABELS = Object.freeze({
   media_copy_failed: `La copie du fichier vidéo a échoué. ${CONSIGNE}`,
   storage_exception: `La vidéo n'a pas pu être sauvegardée. ${CONSIGNE}`,
   // Traitement de la vidéo prête ; `processing_exception` est aussi le repli du serveur.
-  seance_not_found: 'La séance de cet enregistrement est introuvable.',
+  seance_not_found: "Cet enregistrement n'est plus rattaché à sa séance.",
   processing_exception: `Une erreur est survenue pendant le traitement de la vidéo. ${CONSIGNE}`,
   // Enregistrement resté bloqué : deux PHRASES du registre, appariées sur leur texte exact.
   "Aucun fichier reçu du fournisseur d'enregistrement dans le délai imparti.":
-    "Aucune vidéo n'a été reçue dans le délai prévu.",
+    `Aucune vidéo n'a été reçue dans le délai prévu. ${CONSIGNE}`,
   'Enregistrement jamais arrêté : la visioconférence est terminée ou la durée maximale est dépassée.':
     "L'enregistrement n'a jamais été arrêté : la visioconférence s'est terminée ou la durée maximale a été dépassée.",
 })
