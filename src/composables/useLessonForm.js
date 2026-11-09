@@ -66,7 +66,7 @@ export function useLessonForm(lessons) {
         // #236 : vraie mise à jour serveur (plus de mutation purement locale).
         const response = await lessonService.updateLesson(editingLesson.value.id, { ...lessonForm })
         if (!response?.success) {
-          toast.error(response?.message ?? 'Erreur lors de la sauvegarde. Réessayez.')
+          toast.error(messageForReason(response?.reason) ?? 'Erreur lors de la sauvegarde. Réessayez.')
           return
         }
         const index = lessons.value.findIndex(l => l.id === editingLesson.value.id)
