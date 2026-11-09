@@ -28,7 +28,7 @@ const normalizeMatieres = (response) => {
 const enrichClassSummary = (classe, matieresList) => ({
   ...classe,
   places_occupees: measureClassStudentCount(classe),
-  places_totales: measureClassCapacity(classe),
+  places_totales: measureClassCapacity(classe) ?? 30,
   nb_matieres: measureClassMatiereCountIn(classe, matieresList)
 })
 
