@@ -137,6 +137,12 @@ for (const { compte, email, role } of COMPTES) {
       if (bruts.length) defauts.push(`texte brut : ${bruts.join(', ')}`)
     } else if (final === chemin) {
       defauts.push('accès NON refusé')
+    } else {
+      // Refus tenu : le garde a redirigé AVANT de monter l'écran. Ce qui casse ensuite vient de
+      // l'écran d'arrivée, déjà jugé dans sa propre case : le compter ici le compterait N fois.
+      resultats.push({ ...cas, verdict: 'VERT', defaut: null, arrivee: final,
+        noteArrivee: [...evenements.pageerror.slice(0, 1), ...api5xx.map((a) => `${a.statut} ${a.chemin}`)].join(', ') || null, capture })
+      continue
     }
     if (evenements.pageerror.length) defauts.push(`pageerror : ${evenements.pageerror[0]}`)
     if (api5xx.length) defauts.push(`API 5xx : ${api5xx.map((a) => `${a.statut} ${a.chemin}`).join(', ')}`)
