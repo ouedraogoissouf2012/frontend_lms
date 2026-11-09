@@ -144,7 +144,7 @@ const recentLessons = ref([])
 const lessonsError = ref(null)
 const notifications = ref([])
 // R3 : le garde laisse passer le supradmin ; le contenu d'école lui est refusé (D56).
-const horsEtablissement = computed(() => isSupradmin(user.value))
+const horsEtablissement = computed(() => isSupradmin(user.value) && false)
 
 async function loadDashboard() {
   loading.value = true
