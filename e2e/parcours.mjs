@@ -34,21 +34,44 @@ const BRUT = [
   /Request failed with status code/,
 ]
 
-/** Chemin concret d'une route à paramètres, avec les ids du jeu ; null si aucune donnée ne convient. */
-function concret(route, role) {
-  if (!route.chemin.includes(':')) return route.chemin
+const ID_FICTIF = '999999'
+
+// Objets que le montage a tenté de créer par le produit : un refus de création (jeu.manques) est
+// une fonction absente de ce type d'école, donc un ROUGE, jamais un NON TESTÉ.
+const OBJETS = [
+  { motif: /evaluation/, cle: 'evaluation', manque: 'fonction manquante (D72)' },
+  { motif: /seance/, cle: 'seance', manque: 'création de séance refusée dans ce type d’école' },
+  { motif: /forum|topic/, cle: 'sujet', manque: 'création de sujet de forum refusée dans ce type d’école' },
+]
+
+/**
+ * Chemin concret d'une route à paramètres, avec les ids du jeu.
+ * @returns {{ chemin: string } | { rouge: string } | { nonTeste: string }}
+ */
+function concret(route, role, attendu) {
+  if (!route.chemin.includes(':')) return { chemin: route.chemin }
   const lecon = role === 'etudiant' ? jeu.lecons.publiee : jeu.lecons.brouillon
-  let ok = true
+  const contexte = `${route.chemin} ${route.nom ?? ''}`.toLowerCase()
+  let issue = null
   const chemin = route.chemin.replace(/:([A-Za-z]+)(\([^)]*\))?[*?]?/g, (_, nom) => {
-    const contexte = `${route.chemin} ${route.nom ?? ''}`.toLowerCase()
-    if (/token/.test(nom)) { ok = false; return '' }
+    if (issue) return ''
+    if (/token/.test(nom)) { issue = { nonTeste: 'jeton à usage unique : jamais écrit dans le jeu' }; return '' }
+    const objet = OBJETS.find((o) => o.motif.test(contexte))
+    if (objet) {
+      if (jeu[objet.cle]) return jeu[objet.cle]
+      // Écran refusé au rôle : le garde refuse avant tout chargement, l'id n'est jamais lu.
+      if (!attendu) return ID_FICTIF
+      const refus = jeu.manques?.[objet.cle]
+      issue = refus ? { rouge: `${objet.manque} : ${refus}` } : { nonTeste: `aucun id « ${objet.cle} » dans le jeu` }
+      return ''
+    }
     if (/lesson|lecon|chapter|chapitre/.test(contexte) && nom === 'id') return lecon
     if (/classe|class/.test(contexte)) return jeu.classes[0]
     if (/matiere|subject/.test(contexte)) return jeu.matieres[0]
-    ok = false
+    issue = { nonTeste: `paramètre « ${nom} » sans donnée dans le jeu` }
     return ''
   })
-  return ok ? chemin : null
+  return issue ?? { chemin }
 }
 
 function ouverte(route, role) {
@@ -99,9 +122,11 @@ for (const { compte, email, role } of COMPTES) {
     }
     const attendu = ouverte(route, role)
     if (attendu === null) continue
-    const chemin = concret(route, role)
+    const cible = concret(route, role, attendu)
     const cas = { compte, role, chemin: route.chemin, nom: route.nom, capacite: route.capacite, attendu: attendu ? 'ouvert' : 'refusé' }
-    if (chemin === null) { resultats.push({ ...cas, verdict: 'NON TESTÉ', defaut: 'paramètre sans donnée dans le jeu' }); continue }
+    if (cible.rouge) { resultats.push({ ...cas, verdict: 'ROUGE', defaut: cible.rouge }); continue }
+    if (cible.nonTeste) { resultats.push({ ...cas, verdict: 'NON TESTÉ', defaut: cible.nonTeste }); continue }
+    const { chemin } = cible
 
     evenements = nouveaux()
     await page.goto(`${BASE}${chemin}`, { waitUntil: 'domcontentloaded' }).catch(() => {})

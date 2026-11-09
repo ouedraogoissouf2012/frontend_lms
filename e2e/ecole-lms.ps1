@@ -51,6 +51,21 @@ function Appeler {
     return ($r.Content | ConvertFrom-Json)
 }
 
+# Une fonction du produit dont l'ABSENCE est un résultat, pas une panne du montage : le refus est
+# journalisé et remonté au parcours (« manques »), qui en fait un ROUGE. Jamais de repli par la base.
+function Essayer {
+    param([string]$Etape, [string]$Methode, [string]$Chemin, $Corps = $null, [string]$Jeton = $null)
+    $h = @{ Accept = 'application/json' }
+    if ($Jeton) { $h['Authorization'] = "Bearer $Jeton" }
+    $p = @{ Uri = "$Api$Chemin"; Method = $Methode; Headers = $h; SkipHttpErrorCheck = $true; TimeoutSec = 60 }
+    if ($null -ne $Corps) { $p['Body'] = ($Corps | ConvertTo-Json -Depth 6); $p['ContentType'] = 'application/json' }
+    $r = Invoke-WebRequest @p
+    Add-Content $Journal "$Etape`t$Methode $Chemin`tHTTP $($r.StatusCode)"
+    if (@(200, 201) -contains [int]$r.StatusCode) { return @{ ok = $true; data = ($r.Content | ConvertFrom-Json).data } }
+    Add-Content $Journal "REPONSE BRUTE :`n$($r.Content)"
+    return @{ ok = $false; manque = "$Methode $Chemin a rendu HTTP $($r.StatusCode) ($Etape)" }
+}
+
 function Connecter([string]$Etape, [string]$Email) {
     (Appeler $Etape 'POST' '/auth/login' @{ username = $Email; password = $MotDePasse } -Attendus 200).data.token
 }
@@ -143,6 +158,23 @@ try {
     $l4 = (Appeler '8 lecon a publier' 'POST' '/lessons' @{ title = 'Lecture suivie'; type = 'cours'; classe_id = $c1.id; matiere_id = $m['E2E-FR']; content = 'Contenu fictif.' } -Jeton $e2 -Attendus 201).data
     Appeler '8 publication' 'POST' "/lessons/$($l4.id)/publish" -Jeton $e2 -Attendus 200 | Out-Null
 
+    # 9. Une séance, un sujet de forum, une évaluation publiée, par l'enseignant et par l'écran
+    # du produit. Une création refusée est un résultat (« manques ») : le parcours la rend ROUGE.
+    $manques = @{}
+    $seance = Essayer '9 seance' 'POST' '/lms/seances' @{ titre = 'Fractions, seance E2E'; date_seance = (Get-Date).AddDays(1).ToString('yyyy-MM-dd HH:mm:ss'); classe_id = $c1.id; matiere_nom = 'Mathematiques E2E' } -Jeton $e1
+    if (-not $seance.ok) { $manques['seance'] = $seance.manque }
+    $sujet = Essayer '9 sujet de forum' 'POST' '/forum/topics' @{ title = 'Question sur les fractions'; content = 'Sujet fictif cree par le job E2E.'; classe_id = $c1.id; matiere_id = $m['E2E-MATH'] } -Jeton $e1
+    if (-not $sujet.ok) { $manques['sujet'] = $sujet.manque }
+    $evaluation = Essayer '9 evaluation' 'POST' '/evaluations' @{
+        titre = 'Fractions, controle E2E'; type = 'qcm'; duree_minutes = 30; is_online = $true; show_results = $true
+        questions = @(@{ question = 'Un demi plus un demi ?'; type = 'qcm'; points = 1; options = @('1', '2'); correct_answers = @('1') })
+    } -Jeton $e1
+    if (-not $evaluation.ok) { $manques['evaluation'] = $evaluation.manque }
+    else {
+        $publiee = Essayer '9 evaluation publication' 'POST' "/evaluations/$($evaluation.data.id)/publish" -Jeton $e1
+        if (-not $publiee.ok) { $manques['evaluation_publiee'] = $publiee.manque }
+    }
+
     # Le jeu, pour le parcours (aucun secret : le mot de passe reste dans l'environnement du job).
     @{
         slug = $Slug
@@ -150,6 +182,10 @@ try {
         classes = @($c1.id, $c2.id)
         matieres = @($m['E2E-MATH'], $m['E2E-FR'], $m['E2E-SVT'])
         lecons = @{ publiee = $l1.id; brouillon = $l2.id; archivee = $l3.id; publiee_ens2 = $l4.id }
+        seance = if ($seance.ok) { $seance.data.id } else { $null }
+        sujet = if ($sujet.ok) { $sujet.data.id } else { $null }
+        evaluation = if ($evaluation.ok) { $evaluation.data.id } else { $null }
+        manques = $manques
     } | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $Sortie 'jeu.json')
     Write-Output "Ecole creee depuis le LMS montee. Journal : $Journal"
 }
