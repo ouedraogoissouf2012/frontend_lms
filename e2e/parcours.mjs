@@ -57,6 +57,13 @@ function ouverte(route, role) {
   return true // authentifié sans restriction de rôle, ou public
 }
 
+// Le garde du routeur laisse passer le supradmin PARTOUT (constants/roles.js, canActivate :
+// `hasRole(...) || isSupradmin(user)`). Le contenu d'une école lui est refusé par le SERVEUR (D56) :
+// un écran d'école qui ne le nomme pas dans ses rôles est donc SANS OBJET pour lui, pas un défaut.
+function sansObjetD56(route, role) {
+  return role === 'supradmin' && Array.isArray(route.roles) && !route.roles.includes('supradmin')
+}
+
 const navigateur = await chromium.launch()
 const resultats = []
 
@@ -86,6 +93,10 @@ for (const { compte, email, role } of COMPTES) {
 
   for (const route of routes) {
     if (route.redirection || !route.composant || route.chemin === '/:pathMatch(.*)*') continue
+    if (sansObjetD56(route, role)) {
+      resultats.push({ compte, role, chemin: route.chemin, nom: route.nom, verdict: 'SANS OBJET', defaut: 'D56 : contenu d’école, refusé au supradmin par le serveur' })
+      continue
+    }
     const attendu = ouverte(route, role)
     if (attendu === null) continue
     const chemin = concret(route, role)
@@ -97,7 +108,17 @@ for (const { compte, email, role } of COMPTES) {
     await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {})
     await page.waitForTimeout(800)
     const final = new URL(page.url()).pathname
-    const texte = (await page.locator('#app').innerText().catch(() => '')).trim()
+    const texte = (await page.evaluate(() => {
+      const app = document.querySelector('#app')
+      if (!app) return ''
+      const copie = app.cloneNode(true)
+      copie.querySelectorAll('[class*="material-icons"], [class*="material-symbols"], .fa, [class^="fa-"], [aria-hidden="true"]').forEach((n) => n.remove())
+      document.body.appendChild(copie)
+      copie.style.position = 'absolute'; copie.style.left = '-99999px'
+      const t = copie.innerText
+      copie.remove()
+      return t
+    }).catch(() => '')).trim()
     const alertes = (await page.locator('[role="alert"]').allInnerTexts().catch(() => [])).map((t) => t.trim()).filter(Boolean)
     const bruts = BRUT.map((re) => texte.match(re)?.[0]).filter(Boolean)
     const api5xx = evenements.api.filter((a) => a.statut >= 500)
@@ -108,6 +129,7 @@ for (const { compte, email, role } of COMPTES) {
     if (attendu) {
       if (final !== chemin) {
         if (route.capacite) { resultats.push({ ...cas, verdict: 'NON TESTÉ', defaut: `capacité « ${route.capacite} » absente pour ce compte (redirigé vers ${final})`, capture }); continue }
+        if (chemin.startsWith(`${final}/`)) { resultats.push({ ...cas, verdict: 'NON TESTÉ', defaut: `renvoyé vers l’écran parent ${final} : une donnée requise manque dans le jeu`, capture }); continue }
         defauts.push(`redirigé vers ${final}`)
       }
       if (!texte) defauts.push('aucun contenu rendu')
@@ -129,7 +151,7 @@ writeFileSync(join(sortie, 'resultats.json'), JSON.stringify(resultats, null, 2)
 const compte = (v) => resultats.filter((r) => r.verdict === v).length
 const lignes = [
   `## E2E — école créée depuis le LMS`, '',
-  `Cases : ${resultats.length} — VERT ${compte('VERT')}, ROUGE ${compte('ROUGE')}, NON TESTÉ ${compte('NON TESTÉ')}`, '',
+  `Cases : ${resultats.length} — VERT ${compte('VERT')}, ROUGE ${compte('ROUGE')}, NON TESTÉ ${compte('NON TESTÉ')}, SANS OBJET ${compte('SANS OBJET')}`, '',
   '| compte | écran | attendu | verdict | défaut |', '|---|---|---|---|---|',
   ...resultats.map((r) => `| ${r.compte} | \`${r.chemin}\` | ${r.attendu ?? ''} | ${r.verdict} | ${(r.defaut ?? '').replace(/\|/g, '/')} |`),
 ]
