@@ -1,5 +1,7 @@
 // @vitest-environment node
 import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { resolveConfig } from 'vite'
 import { describe, expect, it } from 'vitest'
 import viteConfig from '../../vite.config.js'
 
@@ -42,5 +44,39 @@ describe('vite config — console production guard (#15, révisé #234)', () => 
     for (const chemin of ['/api', '/storage']) {
       expect(viteConfig.server?.proxy?.[chemin]?.target).not.toMatch(/localhost/)
     }
+  })
+})
+
+// La configuration RÉSOLUE par vite, et non le littéral du fichier : un plugin (crochet `config`)
+// ou une option d'environnement pourrait changer la cible effective sans toucher au littéral.
+const resolue = () =>
+  resolveConfig(
+    { configFile: fileURLToPath(new URL('../../vite.config.js', import.meta.url)), logLevel: 'silent' },
+    'build',
+    'production',
+    'production',
+  )
+
+describe('vite config — ce que le build livre ne change pas avec la version de vite', () => {
+  const CIBLE_VITE_6 = ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14']
+
+  it('garde la cible de vite 6, Safari 14 compris, pour le JS et pour le CSS', async () => {
+    // Le défaut de `build.target` a changé avec vite 7 : `'modules'` (ESBUILD_MODULES_TARGET,
+    // vite 6.4.5 packages/vite/src/node/constants.ts:79) devient la « Baseline Widely
+    // Available », soit Chrome 107, Edge 107, Firefox 104 et Safari 16. Suivre ce défaut
+    // retirerait sans décision les navigateurs que l'école supporte. La cible est donc
+    // ÉCRITE : la relever est une décision produit, pas l'effet d'une montée de version.
+    const { build } = await resolue()
+    expect(build.target).toEqual(CIBLE_VITE_6)
+    expect(build.cssTarget).toEqual(CIBLE_VITE_6)
+  })
+
+  it('garde les notices de licence (/*! … */) dans le JS et le CSS livrés', async () => {
+    // vite 7.3.8 impose `legalComments: 'none'` aux options d'esbuild (config.ts:1529), y compris
+    // pour la minification du CSS (css.ts:2201) ; vite 6.4.5 ne le posait pas, et esbuild gardait
+    // les notices en ligne. Les licences des dépendances livrées (MIT, OFL de Font Awesome…)
+    // demandent que leur notice accompagne les copies : on garde le comportement de vite 6.
+    const { esbuild } = await resolue()
+    expect(esbuild.legalComments).toBe('inline')
   })
 })

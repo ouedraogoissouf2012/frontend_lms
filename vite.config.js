@@ -8,12 +8,23 @@ export default defineConfig({
   // @font-face d'icônes AVANT le scan d'assets de vite:css (sinon eot/ttf/svg/woff
   // sont émis dans dist malgré un CSS final woff2-only).
   plugins: [viteStripDeadFonts(), vue()],
+  build: {
+    // Cible ÉCRITE : le défaut documenté de vite 6 (`'modules'`, ESBUILD_MODULES_TARGET),
+    // Safari 14 compris. vite 7 a remplacé ce défaut par Chrome 107 / Safari 16 : le suivre
+    // retirerait des navigateurs sans décision. Relever la cible est une décision produit.
+    target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'],
+  },
   esbuild: {
     // #234/#241 : retirer TOUS les console.* du bundle prod. console.error/warn
     // recevaient l'objet erreur axios qui porte l'en-tête Authorization (Bearer)
     // → fuite du token/PII en console. Les erreurs à surfacer passent par
     // errorHandler.logError (prod-safe) ou par un toast utilisateur.
     pure: ['console.log', 'console.info', 'console.debug', 'console.error', 'console.warn'],
+    // Notices de licence (/*! … */) gardées dans le JS et le CSS livrés, comme sous vite 6 :
+    // vite 7.3.8 impose `legalComments: 'none'` (config.ts:1529, puis css.ts:2201 pour le CSS),
+    // et notre `esbuild` est fusionné APRÈS ce défaut (config.ts:1530). Les licences des
+    // dépendances livrées (MIT, OFL de Font Awesome…) demandent que la notice les accompagne.
+    legalComments: 'inline',
   },
   resolve: {
     alias: {
