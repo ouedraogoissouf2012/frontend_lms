@@ -7,18 +7,11 @@
  */
 import { measureClassStudentCount } from './classStats'
 import { coalesceNumber } from './coalesceNumber'
-
-/**
- * Somme de mesures, ou `null` si UNE seule manque : un total partiel passerait pour le total,
- * et « rien de mesuré » ne vaut jamais 0. Une liste vide (réellement obtenue) vaut 0.
- */
-function sommeMesuree(valeurs) {
-  return valeurs.every((v) => v !== null) ? valeurs.reduce((s, v) => s + v, 0) : null
-}
+import { measuredSum } from './measuredSum'
 
 /** Leçons portées par chaque matière, ou `null` si une matière ne les porte pas. */
 export function countLessons(matieres = []) {
-  return sommeMesuree(matieres.map((matiere) => {
+  return measuredSum(matieres.map((matiere) => {
     if (Array.isArray(matiere?.lessons)) return matiere.lessons.length
     if (Array.isArray(matiere?.lecons)) return matiere.lecons.length
     return coalesceNumber([matiere?.lessons_count, matiere?.lecons_count, matiere?.nb_lecons])
@@ -27,7 +20,7 @@ export function countLessons(matieres = []) {
 
 /** Effectif total des classes, ou `null` si une classe n'a pas d'effectif mesuré. */
 export function countStudents(classes = []) {
-  return sommeMesuree(classes.map((classe) => measureClassStudentCount(classe)))
+  return measuredSum(classes.map((classe) => measureClassStudentCount(classe)))
 }
 
 /** Une liste de la fiche, ou `null` si le champ est absent (non mesuré, pas « vide »). */

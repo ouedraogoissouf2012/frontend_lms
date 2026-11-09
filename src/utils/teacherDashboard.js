@@ -3,6 +3,7 @@ import { enrichTeacherClasses } from './classStats'
 import { countLessons, countStudents, listeMesuree } from './teacherDashboardCounts'
 import { toId } from './toId'
 import { coalesceNumber } from './coalesceNumber'
+import { measuredSum } from './measuredSum'
 
 const EMPTY_TEACHER_DASHBOARD = {
   matieres: [],
@@ -187,8 +188,11 @@ export async function buildTeacherDashboardFallback(lmsService, currentUser, loc
   const enseignantsResponse = await lmsService.getEnseignants(true).catch(() => null)
   const currentTeacher = findCurrentTeacher(extractList(enseignantsResponse), currentUser)
   if (currentTeacher) {
-    const teacherDashboard = buildDashboardFromTeacher(currentTeacher, local)
-    if (hasDashboardContent(teacherDashboard)) return teacherDashboard
+    // La décision « la fiche suffit » porte sur la FICHE seule : le total de leçons du LMS
+    // ne doit pas faire renvoyer une fiche vide au lieu de poursuivre le repli.
+    if (hasDashboardContent(buildDashboardFromTeacher(currentTeacher))) {
+      return buildDashboardFromTeacher(currentTeacher, local)
+    }
   }
 
   const [matieresResponse, seancesResponse] = await Promise.all([
@@ -230,11 +234,9 @@ function mesure(valeur) {
  */
 function effectifMesure(classes) {
   const liste = Array.isArray(classes) ? classes : []
-  const valeurs = liste
-    .map((c) => mesure(c?.places_occupees ?? c?.nb_etudiants ?? c?.students_count))
-    .filter((n) => n !== null)
-
-  return valeurs.length > 0 ? valeurs.reduce((s, n) => s + n, 0) : null
+  if (liste.length === 0) return null
+  // Même règle que le repli : une classe sans effectif rend le total non mesuré.
+  return measuredSum(liste.map((c) => mesure(c?.places_occupees ?? c?.nb_etudiants ?? c?.students_count)))
 }
 
 /**

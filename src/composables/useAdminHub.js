@@ -2,6 +2,8 @@ import { ref, onMounted } from 'vue'
 import { klassciService } from '@/services/klassci'
 import { dashboard } from '@/services/api'
 import { coalesceNumberFrom } from '@/utils/coalesceNumber'
+import { measureClassStudentCount } from '@/utils/classStats'
+import { measuredSum } from '@/utils/measuredSum'
 
 function firstNumber(source, keys) {
   return coalesceNumberFrom(source, keys, 0)
@@ -17,13 +19,8 @@ function countItems(value) {
 function countStudents(classes) {
   if (!Array.isArray(classes)) return null
 
-  const counts = classes.map((classe) => coalesceNumberFrom(classe, [
-    'places_occupees',
-    'nb_etudiants',
-    'etudiants_count',
-    'students_count'
-  ], null))
-  return counts.every((count) => count !== null) ? counts.reduce((sum, count) => sum + count, 0) : null
+  // Même mesure que /admin/dashboard (deriveInstitutionCounters) : toutes les clés d'effectif.
+  return measuredSum(classes.map((classe) => measureClassStudentCount(classe)))
 }
 
 /**

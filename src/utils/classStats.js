@@ -11,6 +11,7 @@ export { getClassCapacity, getClassStudentCount } from './classMeasures'
 export { measureClassCapacity, measureClassStudentCount } from './classMeasures'
 
 import { toId } from './toId'
+import { measuredSum } from './measuredSum'
 
 function toArray(value) {
   return Array.isArray(value) ? value : []
@@ -149,11 +150,6 @@ export function countDistinctNiveaux(classes) {
   return countDistinct(classes, classNiveauIds)
 }
 
-/** Somme de mesures, ou `null` si une seule manque. Une liste vide vaut 0. */
-function sumMeasuredCounts(values) {
-  return values.every((v) => v !== null) ? values.reduce((sum, v) => sum + v, 0) : null
-}
-
 /**
  * Compteurs d'établissement dérivés des données KLASSCI déjà chargées — source
  * UNIQUE, pure, partagée par le tableau de bord, l'écran Statistiques et le profil.
@@ -179,7 +175,7 @@ export function deriveInstitutionCounters({ classes, matieres, enseignants } = {
     nb_enseignants: enseignantList ? enseignantList.length : null,
     // Somme des effectifs MESURÉS (toutes les clés d'effectif) ; `null` si une classe n'en
     // a pas : un total partiel passerait pour le total, et « non mesuré » n'est pas 0.
-    nb_etudiants: classeList ? sumMeasuredCounts(classeList.map(measureClassStudentCount)) : null,
+    nb_etudiants: classeList ? measuredSum(classeList.map((c) => measureClassStudentCount(c))) : null,
     nb_classes_actives: classeList ? classeList.length : null,
     nb_matieres_actives: matiereList ? matiereList.length : null,
     nb_filieres: classeList ? countDistinctFilieres(classeList) : null,
