@@ -104,7 +104,7 @@ export function useStudentLessonView() {
       console.error('[StudentLesson] Load error:', err)
       // #26 : messages spécifiques portés depuis l'ex-vue /lessons/:id.
       const status = err.response?.status
-      canRetry.value = status !== 403
+      canRetry.value = status !== 403 && status !== 404
       if (status === 403) {
         error.value = "Cette leçon n'est pas encore disponible"
       } else if (status === 404) {
