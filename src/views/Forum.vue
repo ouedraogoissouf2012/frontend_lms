@@ -7,6 +7,10 @@
         <p class="!text-gray-600 dark:!text-gray-400 mt-2">Discutez avec la communauté</p>
       </div>
 
+      <!-- Le supradmin n'a pas d'établissement (D56) : une orientation, pas un refus (R3). -->
+      <HorsEtablissement v-if="horsEtablissement" sujet="Ce forum" class="bg-white dark:bg-gray-800 rounded-lg shadow-lg" />
+
+      <template v-else>
       <!-- Chargement -->
       <div v-if="loading" class="text-center py-12">
         <p class="text-gray-600 dark:text-gray-400">Chargement du forum...</p>
@@ -78,6 +82,7 @@
         </svg>
         Nouvelle discussion
       </button>
+      </template>
 
       <Modal
         v-model="showNewTopicModal"
@@ -121,12 +126,14 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import Modal from '@/components/ui/Modal.vue'
-import { forum } from '@/services/api'
+import { auth, forum } from '@/services/api'
+import { isSupradmin } from '@/constants/roles'
+import HorsEtablissement from '@/components/common/HorsEtablissement.vue'
 import { toast } from '@/composables/useToast'
 import { extractList } from '@/utils/apiList'
 import { normalizeError } from '@/services/errorHandler'
@@ -196,7 +203,10 @@ function formatDate(date) {
   })
 }
 
-onMounted(loadTopics)
+// R3 : le garde laisse passer le supradmin ; le forum d'une école lui est refusé (D56).
+const horsEtablissement = computed(() => isSupradmin(auth?.getUser?.()))
+
+onMounted(() => { if (!horsEtablissement.value) loadTopics() })
 </script>
 
 <style scoped>

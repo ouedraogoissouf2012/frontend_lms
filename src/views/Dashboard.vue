@@ -56,32 +56,36 @@
       <div class="bg-white rounded-lg shadow p-6 mb-6">
         <h2 class="text-xl font-bold mb-4">Leçons récentes</h2>
 
-        <!-- Refus : le motif est dit (région présente dès le montage, seul le texte change). -->
-        <p role="alert" :class="lessonsError ? 'text-center py-8 text-red-700' : 'sr-only'">{{ lessonsError ?? '' }}</p>
-        <div v-if="!lessonsError && recentLessons.length === 0" class="text-center py-8 text-gray-500">
-          Aucune leçon disponible pour le moment
-        </div>
+        <!-- Le supradmin n'a pas d'établissement (D56) : une orientation, pas un refus (R3). -->
+        <HorsEtablissement v-if="horsEtablissement" sujet="Ce contenu" />
+        <template v-else>
+          <!-- Refus : le motif est dit (région présente dès le montage, seul le texte change). -->
+          <p role="alert" :class="lessonsError ? 'text-center py-8 text-red-700' : 'sr-only'">{{ lessonsError ?? '' }}</p>
+          <div v-if="!lessonsError && recentLessons.length === 0" class="text-center py-8 text-gray-500">
+            Aucune leçon disponible pour le moment
+          </div>
 
-        <div v-else class="space-y-4">
-          <div
-            v-for="lesson in recentLessons"
-            :key="lesson.id"
-            class="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
-            @click="$router.push(`/lessons/${lesson.id}`)"
-          >
-            <h3 class="font-semibold text-lg">{{ lesson.title }}</h3>
-            <p class="text-gray-600 text-sm mt-1">{{ lesson.description }}</p>
-            <div class="mt-2 flex items-center justify-between">
-              <span class="text-xs text-gray-500">{{ lesson.type }}</span>
-              <span
-                class="px-2 py-1 text-xs rounded"
-                :class="lesson.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'"
-              >
-                {{ lesson.status }}
-              </span>
+          <div v-else class="space-y-4">
+            <div
+              v-for="lesson in recentLessons"
+              :key="lesson.id"
+              class="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
+              @click="$router.push(`/lessons/${lesson.id}`)"
+            >
+              <h3 class="font-semibold text-lg">{{ lesson.title }}</h3>
+              <p class="text-gray-600 text-sm mt-1">{{ lesson.description }}</p>
+              <div class="mt-2 flex items-center justify-between">
+                <span class="text-xs text-gray-500">{{ lesson.type }}</span>
+                <span
+                  class="px-2 py-1 text-xs rounded"
+                  :class="lesson.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'"
+                >
+                  {{ lesson.status }}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
+        </template>
       </div>
 
       <!-- Notifications récentes -->
@@ -121,14 +125,15 @@
  * Migration Options API → `<script setup>` (CONTRIBUTING §1, opportuniste) :
  * template inchangé, comportement identique hors correction du rôle.
  */
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import CountValue from '@/components/common/CountValue.vue'
+import HorsEtablissement from '@/components/common/HorsEtablissement.vue'
 import { normalizeError } from '@/services/errorHandler'
 import { extractList } from '@/utils/apiList'
 import { dashboard, lessons as lessonsApi, notifications as notificationsApi, auth } from '@/services/api'
-import { isStudent, isTeacher } from '@/constants/roles'
+import { isStudent, isSupradmin, isTeacher } from '@/constants/roles'
 
 const user = ref(null)
 const loading = ref(true)
@@ -138,6 +143,8 @@ const stats = ref(null)
 const recentLessons = ref([])
 const lessonsError = ref(null)
 const notifications = ref([])
+// R3 : le garde laisse passer le supradmin ; le contenu d'école lui est refusé (D56).
+const horsEtablissement = computed(() => isSupradmin(user.value))
 
 async function loadDashboard() {
   loading.value = true
@@ -151,12 +158,15 @@ async function loadDashboard() {
   const [rStats, rLessons, rNotifs] = await Promise.allSettled([
     statsSource,
     // `per_page` : le paramètre que lit FilterLessonsRequest (`limit` était ignoré).
-    lessonsApi.getAll({ per_page: 5 }),
+    // Le supradmin ne demande pas de contenu d'école : le serveur le lui refuse (D56).
+    horsEtablissement.value ? Promise.resolve(null) : lessonsApi.getAll({ per_page: 5 }),
     notificationsApi.getAll({ limit: 5 }),
   ])
 
   stats.value = rStats.status === 'fulfilled' && rStats.value ? rStats.value : null
-  if (rLessons.status === 'fulfilled') {
+  if (horsEtablissement.value) {
+    recentLessons.value = []
+  } else if (rLessons.status === 'fulfilled') {
     // `GET /lessons` rend `{ success, data: <page Laravel> }` (LessonCrudController::index,
     // successResponse d'un paginate) : la liste est sous `data.data`. Lue comme un
     // tableau, elle restait TOUJOURS vide.
