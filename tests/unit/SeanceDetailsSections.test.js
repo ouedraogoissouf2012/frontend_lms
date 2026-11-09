@@ -224,7 +224,25 @@ describe('SeanceDetailsVisio (#H6)', () => {
     expect(w.find('[data-test="recording-link"]').attributes('href')).toBe('https://cdn.example.test/seance.mp4')
   })
 
-  it('recording échoué : affiche le statut et le message backend', () => {
+  it('recording échoué : affiche le statut et le LIBELLÉ du motif, jamais la valeur servie', () => {
+    // Inversé (lot des libellés, D107) : l'écran affichait la valeur brute du serveur.
+    const visio = {
+      enabled: true,
+      status: 'terminee',
+      recording: { status: 'failed', error_message: 'ambiguous_lesson' },
+      window: { has_started: true, has_ended: true }
+    }
+    const w = mount(SeanceDetailsVisio, {
+      props: { visio, seance, isTeacher: false, isStudent: true }
+    })
+
+    const status = w.find('[data-test="recording-status"]').text()
+    expect(status).toContain("Échec de l'enregistrement")
+    expect(status).toContain('Plusieurs leçons correspondent à cette séance')
+    expect(status).not.toContain('ambiguous_lesson')
+  })
+
+  it('recording échoué sur un motif inconnu : libellé générique, jamais le texte reçu', () => {
     const visio = {
       enabled: true,
       status: 'terminee',
@@ -236,8 +254,8 @@ describe('SeanceDetailsVisio (#H6)', () => {
     })
 
     const status = w.find('[data-test="recording-status"]').text()
-    expect(status).toContain("Échec de l'enregistrement")
-    expect(status).toContain('Stockage indisponible')
+    expect(status).toContain("La cause de l'échec n'est pas précisée.")
+    expect(status).not.toContain('Stockage indisponible')
   })
 
   it('cours terminé : affiche recording_url legacy comme lien sécurisé', () => {
