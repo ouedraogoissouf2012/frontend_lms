@@ -60,7 +60,7 @@ jobs:
           path: mesure
       - uses: actions/checkout@v7
         with:
-          ref: ${{ inputs.frontend_ref || github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ inputs.frontend_ref || 'fe6b730fb33719feedc27db9a5fdeb972263b305' }}
           path: front
       - uses: actions/checkout@v7
         with:
