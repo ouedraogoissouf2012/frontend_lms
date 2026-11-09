@@ -88,7 +88,7 @@ export function useTeacherLessons() {
 
     try {
       console.log('[LESSONS] Chargement des leçons via API...')
-      const response = await lessonService.getLessons(params)
+      const response = await lessonService.getAllLessons(params)
       lessons.value = extractList(response)
       writeCache(LESSONS_CACHE, lessons.value)
     } catch (err) {
@@ -121,7 +121,7 @@ export function useTeacherLessons() {
       const params = myLessonsParams()
       if (params === null) return
       console.log('[BACKGROUND] Rafraîchissement leçons...')
-      const response = await lessonService.getLessons(params)
+      const response = await lessonService.getAllLessons(params)
 
       if (response && response.success) {
         lessons.value = extractList(response)

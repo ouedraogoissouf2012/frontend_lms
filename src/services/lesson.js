@@ -1,6 +1,12 @@
 import api from './api'
 import { formatDuration as fmtDuration } from '../utils/formatters'
 import { endpoints } from './endpoints'
+import { extractList } from '../utils/apiList'
+
+// `GET /lessons` est paginé (15 par défaut, `per_page` borné à 100 par FilterLessonsRequest).
+const LESSONS_PAGE_SIZE = 100
+// Garde-fou : 50 pages × 100 = 5 000 leçons. Au-delà, la liste est rendue marquée `incomplete`.
+const LESSONS_MAX_PAGES = 50
 
 /**
  * Service pour la gestion des leçons (Lessons)
@@ -20,6 +26,28 @@ const lessonService = {
       console.error('[LessonService] Erreur getLessons:', error)
       throw error
     }
+  },
+
+  /**
+   * TOUTES les leçons correspondant aux filtres, page après page.
+   *
+   * Sans `page` ni `per_page`, le serveur ne rend que les 15 premières : « Mes leçons »
+   * était tronqué et ses compteurs faux. Un refus en cours de route est rendu tel quel
+   * (`success: false`) : jamais une liste partielle présentée comme complète.
+   *
+   * @param {Object} params - Filtres (enseignant_id, matiere_id, …), sans pagination
+   * @returns {Promise<{ success: boolean, data: Array, incomplete?: boolean }>}
+   */
+  async getAllLessons(params = {}) {
+    const toutes = []
+    for (let page = 1; page <= LESSONS_MAX_PAGES; page++) {
+      const response = await lessonService.getLessons({ ...params, per_page: LESSONS_PAGE_SIZE, page })
+      if (!response?.success) return response
+      toutes.push(...extractList(response))
+      const derniere = Number(response.data?.last_page)
+      if (!Number.isFinite(derniere) || page >= derniere) return { ...response, data: toutes }
+    }
+    return { success: true, data: toutes, incomplete: true }
   },
 
   /**

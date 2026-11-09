@@ -55,13 +55,24 @@ function compterSeancesAVenir(seances) {
  * Rejette si AUCUNE source n'a répondu : c'est ce qui fait conserver les
  * derniers compteurs connus au lieu de les écraser (cf. useCachedResource).
  */
+/**
+ * Nombre de leçons d'une réponse de `GET /lessons` : le `total` de la pagination quand le
+ * serveur pagine (la page n'en porte qu'une partie), sinon la taille de la liste plate.
+ */
+function lessonsTotal(response) {
+  const total = Number(response?.data?.total)
+  if (response?.data?.last_page != null && Number.isFinite(total)) return total
+  return extractList(response).length
+}
+
 async function mesurerCompteurs() {
   // D72 : les leçons de l'enseignant connecté ; sans identité, non mesuré (rejet).
   const mesLecons = myLessonsParams()
   const resultats = await Promise.allSettled([
     klassciService.getTeacherDashboard(),
     lmsService.getMyTeachingSeances(),
-    mesLecons ? lessonService.getLessons(mesLecons) : Promise.reject(new Error('identité inconnue')),
+    // Une page d'un élément suffit : le compteur est le TOTAL que le serveur annonce.
+    mesLecons ? lessonService.getLessons({ ...mesLecons, per_page: 1 }) : Promise.reject(new Error('identité inconnue')),
     klassciService.getClasses()
   ])
   const [dashboardIssue, seancesIssue, lessonsIssue, referentielIssue] = resultats
@@ -81,7 +92,7 @@ async function mesurerCompteurs() {
   // Les leçons ont leur propre source : elles restent mesurables même quand le
   // dashboard tombe, et inversement.
   const lecons = firstDashboardNumber(dashboard, ['nb_lecons', 'total_lessons'])
-    ?? (lessonsIssue.status === 'fulfilled' ? extractList(lessonsIssue.value).length : null)
+    ?? (lessonsIssue.status === 'fulfilled' ? lessonsTotal(lessonsIssue.value) : null)
 
   return {
     classes: dashboardRepondu
