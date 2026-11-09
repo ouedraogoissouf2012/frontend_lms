@@ -125,7 +125,7 @@ jobs:
           # `sudo -E` est ignoré sur le runner : les variables sont passées une à une.
           cat > "$RUNNER_TEMP/en_e2e.sh" <<'SH'
           en_e2e() {
-            sudo -u e2e env "PATH=$PATH" "HOME=/home/e2e" "E2E_MOT_DE_PASSE=$E2E_MOT_DE_PASSE"               "E2E_SUPRADMIN_EMAIL=$E2E_SUPRADMIN_EMAIL" "PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH" "$@"
+            sudo -u e2e env "PATH=$PATH" "HOME=/home/e2e" "XDG_CONFIG_HOME=/home/e2e/.config" "XDG_DATA_HOME=/home/e2e/.local/share" "XDG_CACHE_HOME=/home/e2e/.cache" "E2E_MOT_DE_PASSE=$E2E_MOT_DE_PASSE"               "E2E_SUPRADMIN_EMAIL=$E2E_SUPRADMIN_EMAIL" "PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH" "$@"
           }
           attendre() {  # attendre <nom> <url> <journal> : échoue, journal à l'appui, si rien ne répond
             for i in $(seq 1 60); do
