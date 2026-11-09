@@ -74,6 +74,55 @@ function concret(route, role, attendu) {
   return issue ?? { chemin }
 }
 
+// Assertions de VALEUR (D110) : sur les écrans dont le jeu connaît la réponse, un vert exige que
+// l'écran DISE VRAI. Sans elles, un vert prouve seulement « rendu sans erreur » (constat du run 7 :
+// « Leçons Créées 0 » pour un enseignant qui en a créé 3). Les valeurs viennent du montage
+// (e2e/ecole-lms.ps1) : ens1 a 2 matières dans 2 classes (4 + 2 élèves, dont 1 rendu inactif),
+// 3 leçons (publiée, brouillon, archivée), 1 séance demain, 1 sujet de forum ; ens2 a publié
+// « Lecture suivie » dans la classe de l'élève 1.
+const chiffre = (libelle, attendu) => ({ libelle, attendu: [].concat(attendu) })
+const VERIFS = {
+  'enseignant /teacher/dashboard': {
+    chiffres: [chiffre('Matières Enseignées', 2), chiffre('Classes', 2), chiffre('Leçons Créées', 3), chiffre('Étudiants Totaux', [5, 6]),
+      ...(jeu.seance ? [chiffre('Séances à venir', 1)] : [])],
+  },
+  'enseignant /teacher/lessons': {
+    chiffres: [chiffre('Total', 3), chiffre('Publiées', 1), chiffre('Brouillons', 1), chiffre('Archivées', 1)],
+    contient: ['Fractions, introduction', 'Fractions, exercices'],
+    // D72 : « Mes leçons » ne montre pas les leçons d'un collègue.
+    absent: ['Lecture suivie', 'Matière inconnue'],
+  },
+  'etudiant /student/courses': {
+    contient: ['Fractions, introduction', 'Lecture suivie', '2 cours'],
+    absent: ['Fractions, exercices', 'La cellule, ancien cours'],
+  },
+  'admin /admin/classes': {
+    chiffres: [chiffre('Total Classes', 2), chiffre('Total Étudiants', [5, 6])],
+    contient: ['6e A E2E', '5e B E2E'],
+  },
+  ...(jeu.sujet ? {
+    'enseignant /forum': { contient: ['Question sur les fractions'] },
+    'etudiant /forum': { contient: ['Question sur les fractions'] },
+  } : {}),
+}
+
+const echapper = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/** Écarts entre l'écran et le jeu ; `null` si l'écran n'a pas d'assertion de valeur. */
+function ecartsDeValeur(cle, texte) {
+  const v = VERIFS[cle]
+  if (!v) return null
+  const ecarts = []
+  for (const { libelle, attendu } of v.chiffres ?? []) {
+    const lu = texte.match(new RegExp(`(?:^|\\n)\\s*${echapper(libelle)}\\s*\\n+\\s*([^\\n]+)`))?.[1]?.trim()
+    if (lu === undefined) ecarts.push(`valeur introuvable : « ${libelle} »`)
+    else if (!attendu.includes(Number(lu))) ecarts.push(`« ${libelle} » affiche ${lu}, le jeu en a créé ${attendu.join(' ou ')}`)
+  }
+  for (const t of v.contient ?? []) if (!texte.includes(t)) ecarts.push(`« ${t} » absent de l’écran`)
+  for (const t of v.absent ?? []) if (texte.includes(t)) ecarts.push(`« ${t} » affiché à tort`)
+  return ecarts
+}
+
 function ouverte(route, role) {
   if (route.invite) return null // écran d'invité : hors matrice des rôles connectés
   if (route.roles) return route.roles.includes(role)
@@ -171,8 +220,10 @@ for (const { compte, email, role } of COMPTES) {
     }
     if (evenements.pageerror.length) defauts.push(`pageerror : ${evenements.pageerror[0]}`)
     if (api5xx.length) defauts.push(`API 5xx : ${api5xx.map((a) => `${a.statut} ${a.chemin}`).join(', ')}`)
+    const ecarts = ecartsDeValeur(`${compte} ${route.chemin}`, texte)
+    if (ecarts) defauts.push(...ecarts)
     resultats.push({ ...cas, verdict: defauts.length ? 'ROUGE' : 'VERT', defaut: defauts.join(' ; ') || null,
-      api: evenements.api, console: evenements.console, capture })
+      verification: ecarts ? 'valeurs' : 'rendu', api: evenements.api, console: evenements.console, capture })
   }
   await contexte.close()
 }
