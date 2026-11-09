@@ -81,12 +81,16 @@ describe('StudentGrades (G4) — montage', () => {
     expect(text).toContain('Mathématiques')  // option de filtre matière
   })
 
-  it('reste stable quand le backend répond en échec (aucune donnée)', async () => {
+  // Test inversé (M3b) : il exigeait « 0/20 » (moyenne par défaut) quand le serveur
+  // répond en échec. Aucune moyenne n'a été lue : pas de cartes de synthèse, et le
+  // message du catalogue, jamais le texte du serveur (« Erreur »).
+  it('reste stable quand le backend répond en échec : ni 0/20 ni texte du serveur', async () => {
     getMock.mockResolvedValue({ success: false, message: 'Erreur' })
     const w = mountView()
     await flushPromises()
 
     expect(w.find('.grades-container').exists()).toBe(true)
-    expect(w.text()).toContain('0/20') // moyenne par défaut
+    expect(w.text()).not.toContain('0/20')
+    expect(w.find('.error-text').text()).not.toBe('Erreur')
   })
 })
