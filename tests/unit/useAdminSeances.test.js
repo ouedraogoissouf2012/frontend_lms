@@ -25,6 +25,7 @@ vi.mock('@/services/klassci', () => ({
   },
 }))
 
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 import { useAdminSeances } from '@/composables/useAdminSeances'
 
 async function setup() {
@@ -113,5 +114,17 @@ describe('useAdminSeances (#G1)', () => {
     await flushPromises()
     expect(writeCacheSpy).toHaveBeenCalledWith('admin_seances_d7', expect.any(Array))
     expect(writeCacheSpy).not.toHaveBeenCalledWith('admin_seances_d30', expect.any(Array))
+  })
+
+  it('refus avec un `reason` connu : le catalogue (revue de #506)', async () => {
+    getSeances.mockResolvedValue({ success: false, message: 'Boom', reason: 'no_institution' })
+    const s = await setup()
+    expect(s.error.value).toBe(ERROR_MESSAGES.noInstitution)
+  })
+
+  it('erreur portant déjà le message de l’intercepteur : il est gardé, pas écrasé par le repli', async () => {
+    getSeances.mockRejectedValue(Object.assign(new Error('HTTP 403'), { userMessage: 'Message de l’intercepteur' }))
+    const s = await setup()
+    expect(s.error.value).toBe('Message de l’intercepteur')
   })
 })
