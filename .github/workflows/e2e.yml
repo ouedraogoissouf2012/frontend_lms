@@ -92,6 +92,7 @@ jobs:
         run: |
           cat > .env <<EOF
           APP_NAME=LMS-E2E
+          APP_KEY=
           APP_ENV=local
           APP_DEBUG=false
           APP_URL=http://127.0.0.1:8000
@@ -110,6 +111,8 @@ jobs:
           EOF
           touch database/e2e.sqlite
           php artisan key:generate --force
+          # key:generate n'échoue pas quand il ne peut pas écrire la clé : on le vérifie.
+          grep -q '^APP_KEY=base64:' .env || { echo "::error::APP_KEY absente du .env"; exit 1; }
           php artisan migrate --force
           php artisan db:seed --class=SupradminSeeder --force
 
