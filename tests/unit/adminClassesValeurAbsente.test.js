@@ -71,9 +71,25 @@ describe('useAdminClasses — le résumé d’une classe ne fabrique aucun chiff
     expect(c.stats.value.totalEtudiants).toBe(2)
   })
 
-  it('le cache d’avant (qui portait le 30 inventé) n’est plus relu', async () => {
+  it('le cache d’avant (qui portait le 30 inventé) n’est plus relu ; lecture et écriture partagent la clé v4', async () => {
     await charger()
+    expect(h.readCache).toHaveBeenCalledWith('admin_classes_v4')
+    expect(h.writeCache.mock.calls.map(([cle]) => cle)).toContain('admin_classes_v4')
     expect(h.readCache).not.toHaveBeenCalledWith('admin_classes_v3')
+  })
+
+  it('total des matières : null tant que les matières n’ont pas été obtenues (jamais un 0 inventé)', async () => {
+    const c = await charger() // getMatieres rejeté
+    expect(c.stats.value.totalMatieres).toBeNull()
+  })
+
+  it('total des matières : la mesure dès que les matières sont obtenues, vrai zéro compris', async () => {
+    h.getMatieres.mockResolvedValue([])
+    const vide = await charger()
+    expect(vide.stats.value.totalMatieres).toBe(0)
+    h.getMatieres.mockResolvedValue([{ id: 9, classe_id: 1 }, { id: 10, classe_id: 2 }])
+    const deux = await charger()
+    expect(deux.stats.value.totalMatieres).toBe(2)
   })
 })
 

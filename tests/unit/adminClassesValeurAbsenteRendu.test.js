@@ -23,9 +23,11 @@ describe('rendu : « — » pour une valeur absente, le nombre pour une valeur m
     expect(stats(w)).toEqual(['0/—', '0'])
   })
 
-  it('ClassesStatsCards : total des étudiants non mesuré → « — »', () => {
-    const w = mount(ClassesStatsCards, { props: { stats: { total: 2, totalEtudiants: null, totalMatieres: 0, actives: 1 } } })
-    expect(stats(w)).toEqual(['2', '—', '0', '1'])
+  it('ClassesStatsCards : totaux non mesurés → « — » ; un zéro mesuré reste « 0 »', () => {
+    const w = mount(ClassesStatsCards, { props: { stats: { total: 2, totalEtudiants: null, totalMatieres: null, actives: 1 } } })
+    expect(stats(w)).toEqual(['2', '—', '—', '1'])
+    const z = mount(ClassesStatsCards, { props: { stats: { total: 2, totalEtudiants: 0, totalMatieres: 0, actives: 0 } } })
+    expect(stats(z)).toEqual(['2', '0', '0', '0'])
   })
 
 })
