@@ -19,5 +19,5 @@ export function displayMessage(error, fallback) {
   if (!error) return fallback
   if (error.userMessage) return error.userMessage
   if (error.response) return normalizeError(error).userMessage
-  return error.message || fallback
+  return fallback
 }
