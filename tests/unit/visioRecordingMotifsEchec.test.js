@@ -21,16 +21,22 @@ const LIBELLES = {
   media_not_found: `Le fichier vidéo est introuvable chez le service d'enregistrement. ${CONSIGNE}`,
   media_copy_failed: `La copie du fichier vidéo a échoué. ${CONSIGNE}`,
   storage_exception: `La vidéo n'a pas pu être sauvegardée. ${CONSIGNE}`,
-  seance_not_found: 'La séance de cet enregistrement est introuvable.',
+  seance_not_found: "Cet enregistrement n'est plus rattaché à sa séance.",
   processing_exception: `Une erreur est survenue pendant le traitement de la vidéo. ${CONSIGNE}`,
   // Les deux phrases du registre (StaleRecordingFailer), recopiées à l'identique.
   "Aucun fichier reçu du fournisseur d'enregistrement dans le délai imparti.":
-    "Aucune vidéo n'a été reçue dans le délai prévu.",
+    `Aucune vidéo n'a été reçue dans le délai prévu. ${CONSIGNE}`,
   'Enregistrement jamais arrêté : la visioconférence est terminée ou la durée maximale est dépassée.':
     "L'enregistrement n'a jamais été arrêté : la visioconférence s'est terminée ou la durée maximale a été dépassée.",
 }
 const GENERIQUE = "La cause de l'échec n'est pas précisée."
-const TECHNIQUES = ['media_not_found', 'media_copy_failed', 'storage_exception', 'processing_exception']
+const TECHNIQUES = [
+  'media_not_found',
+  'media_copy_failed',
+  'storage_exception',
+  'processing_exception',
+  "Aucun fichier reçu du fournisseur d'enregistrement dans le délai imparti.",
+]
 
 const echoue = (recording) => normalizeVisioRecording({ recording: { status: 'failed', ...recording } })
 
