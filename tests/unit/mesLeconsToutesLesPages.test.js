@@ -60,11 +60,12 @@ describe('lessonService.getAllLessons — suit toutes les pages', () => {
 })
 
 describe('« Mes leçons » charge toutes les pages', () => {
-  it('l’écran demande la liste complète de l’enseignant', async () => {
+  async function ecran(reponse) {
     vi.resetModules()
-    const tout = vi.fn().mockResolvedValue({ success: true, data: lecons(1, 35) })
+    const tout = vi.fn().mockResolvedValue(reponse)
+    const ecrireCache = vi.fn()
     vi.doMock('vue-router', () => ({ useRouter: () => ({ push: vi.fn() }) }))
-    vi.doMock('@/services/cache', () => ({ readCache: () => null, writeCache: vi.fn() }))
+    vi.doMock('@/services/cache', () => ({ readCache: () => null, writeCache: ecrireCache }))
     vi.doMock('@/services/lesson', () => ({ default: { getAllLessons: tout, getLessons: vi.fn() } }))
     vi.doMock('@/services/teacherReferentials', () => ({ fetchTeacherMatieres: vi.fn().mockResolvedValue([]) }))
     vi.doMock('@/stores/auth', () => ({ useAuthStore: () => ({ currentUser: { id: 42 } }) }))
@@ -72,7 +73,26 @@ describe('« Mes leçons » charge toutes les pages', () => {
     let c
     mount(defineComponent({ setup() { c = useTeacherLessons(); return () => null } }))
     await flushPromises()
+    const leconsEcrites = ecrireCache.mock.calls.filter(([cle]) => cle === 'teacher_lessons_v2')
+    return { c, tout, leconsEcrites }
+  }
+
+  it('l’écran demande la liste complète de l’enseignant', async () => {
+    const { c, tout } = await ecran({ success: true, data: lecons(1, 35) })
     expect(tout).toHaveBeenCalledWith({ enseignant_id: 42 })
     expect(c.stats.value.total).toBe(35)
+  })
+
+  it('un refus en cours de route : erreur affichée, aucune liste vide présentée ni mise en cache', async () => {
+    const { c, leconsEcrites } = await ecran({ success: false })
+    expect(c.error.value).toBeTruthy()
+    expect(c.lessons.value).toEqual([])
+    expect(leconsEcrites).toEqual([])
+  })
+
+  it('une liste tronquée par le garde-fou (incomplete) n’est pas mise en cache comme complète', async () => {
+    const { c, leconsEcrites } = await ecran({ success: true, data: lecons(1, 5), incomplete: true })
+    expect(c.lessons.value).toHaveLength(5)
+    expect(leconsEcrites).toEqual([])
   })
 })

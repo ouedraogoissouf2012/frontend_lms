@@ -192,11 +192,31 @@ describe('useTeacherHub (#H11)', () => {
       expect(lessons.getLessons).toHaveBeenCalledWith({ enseignant_id: 42, per_page: 1 })
     })
 
-    it('le compteur est le TOTAL du serveur, pas la taille de la première page (pagination)', async () => {
+    it('le compteur est le TOTAL du serveur, ni la taille de la page ni last_page', async () => {
       klassci.getTeacherDashboard.mockResolvedValue({ classes: [], matieres: [] })
-      lessons.getLessons.mockResolvedValue({ success: true, data: { data: [{ id: 1 }], current_page: 1, last_page: 35, total: 35 } })
+      lessons.getLessons.mockResolvedValue({ success: true, data: { data: [{ id: 1 }], current_page: 1, last_page: 35, total: 34 } })
       const h = await setup()
-      expect(h.stats.value.lecons).toBe(35)
+      expect(h.stats.value.lecons).toBe(34)
+    })
+
+    it('aucune leçon : 0 (Laravel rend last_page 1 même quand total vaut 0)', async () => {
+      klassci.getTeacherDashboard.mockResolvedValue({ classes: [], matieres: [] })
+      lessons.getLessons.mockResolvedValue({ success: true, data: { data: [], current_page: 1, last_page: 1, total: 0 } })
+      const h = await setup()
+      expect(h.stats.value.lecons).toBe(0)
+    })
+
+    it('réponse paginée sans total, total null ou refus : non mesuré, jamais la taille de la page', async () => {
+      klassci.getTeacherDashboard.mockResolvedValue({ classes: [], matieres: [] })
+      for (const reponse of [
+        { success: true, data: { data: [{ id: 1 }], current_page: 1, last_page: 3 } },
+        { success: true, data: { data: [{ id: 1 }], current_page: 1, last_page: 3, total: null } },
+        { success: false, data: [{ id: 1 }] },
+      ]) {
+        lessons.getLessons.mockResolvedValue(reponse)
+        const h = await setup()
+        expect(h.stats.value.lecons).toBeNull()
+      }
     })
 
     it('sans identité, ne compte pas les leçons de l’établissement : non mesuré', async () => {
