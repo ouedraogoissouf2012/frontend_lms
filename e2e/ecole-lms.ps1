@@ -163,6 +163,8 @@ try {
     $manques = @{}
     $seance = Essayer '9 seance' 'POST' '/lms/seances' @{ titre = 'Fractions, seance E2E'; date_seance = (Get-Date).AddDays(1).ToString('yyyy-MM-dd HH:mm:ss'); classe_id = $c1.id; matiere_nom = 'Mathematiques E2E' } -Jeton $e1
     if (-not $seance.ok) { $manques['seance'] = $seance.manque }
+    $chapitre = Essayer '9 chapitre' 'POST' "/lessons/$($l1.id)/chapters" @{ titre = 'Chapitre 1, les demis'; description = 'Chapitre fictif cree par le job E2E.'; ordre = 0 } -Jeton $e1
+    if (-not $chapitre.ok) { $manques['chapitre'] = $chapitre.manque }
     $sujet = Essayer '9 sujet de forum' 'POST' '/forum/topics' @{ title = 'Question sur les fractions'; content = 'Sujet fictif cree par le job E2E.'; classe_id = $c1.id; matiere_id = $m['E2E-MATH'] } -Jeton $e1
     if (-not $sujet.ok) { $manques['sujet'] = $sujet.manque }
     $evaluation = Essayer '9 evaluation' 'POST' '/evaluations' @{
@@ -184,6 +186,7 @@ try {
         lecons = @{ publiee = $l1.id; brouillon = $l2.id; archivee = $l3.id; publiee_ens2 = $l4.id }
         seance = if ($seance.ok) { $seance.data.id } else { $null }
         sujet = if ($sujet.ok) { $sujet.data.id } else { $null }
+        chapitre = if ($chapitre.ok) { 'Chapitre 1, les demis' } else { $null }
         evaluation = if ($evaluation.ok) { $evaluation.data.id } else { $null }
         manques = $manques
     } | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $Sortie 'jeu.json')

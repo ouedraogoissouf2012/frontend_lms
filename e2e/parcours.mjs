@@ -80,7 +80,8 @@ function concret(route, role, attendu) {
 // (e2e/ecole-lms.ps1) : ens1 a 2 matières dans 2 classes (4 + 2 élèves, dont 1 rendu inactif),
 // 3 leçons (publiée, brouillon, archivée), 1 séance demain, 1 sujet de forum ; ens2 a publié
 // « Lecture suivie » dans la classe de l'élève 1.
-const chiffre = (libelle, attendu) => ({ libelle, attendu: [].concat(attendu) })
+// `ou` : 'apres' (le chiffre suit son libellé) ou 'avant' (il le précède, cartes de /admin/users).
+const chiffre = (libelle, attendu, ou = 'apres') => ({ libelle, attendu: [].concat(attendu), ou })
 const VERIFS = {
   'enseignant /teacher/dashboard': {
     chiffres: [chiffre('Matières Enseignées', 2), chiffre('Classes', 2), chiffre('Leçons Créées', 3), chiffre('Étudiants Totaux', [5, 6]),
@@ -104,7 +105,38 @@ const VERIFS = {
     'enseignant /forum': { contient: ['Question sur les fractions'] },
     'etudiant /forum': { contient: ['Question sur les fractions'] },
   } : {}),
+  // Le parcours réel d'un admin d'école : ses comptes et ses codes d'inscription.
+  'admin /admin/users': {
+    // Sur cet écran, le chiffre est AU-DESSUS de son libellé.
+    chiffres: [chiffre('Étudiants', [5, 6], 'avant'), chiffre('Enseignants', 2, 'avant'), chiffre('Classes', 2, 'avant')],
+    contient: ['Enseignant Un E2E', 'Eleve 1 E2E'],
+  },
+  'admin /admin/enrolment-codes': { contient: ['6e A E2E', '5e B E2E', 'Code actif'] },
+  // Le parcours réel d'un enseignant : sa séance et ses présences.
+  ...(jeu.seance ? {
+    'enseignant /seances/:id': { contient: ['Fractions, seance E2E'] },
+    'enseignant /attendance/seances': { absent: ['Aucune séance trouvée'] },
+    'enseignant /attendance/seances/:seanceId': { contient: ['Mathematiques E2E'] },
+  } : {}),
+  // Le parcours réel d'un élève : la leçon publiée de sa classe, et son chapitre.
+  'etudiant /student/lessons/:id': {
+    contient: ['Fractions, introduction', ...(jeu.chapitre ? [jeu.chapitre] : [])],
+    absent: jeu.chapitre ? ['Aucun contenu disponible'] : [],
+    // Le chapitre est créé par l'enseignant par le produit : un refus est un écart de ce parcours.
+    refus: jeu.manques?.chapitre ? [`création du chapitre refusée : ${jeu.manques.chapitre}`] : [],
+  },
 }
+
+// Écran d'ERREUR sans `role="alert"` (constat du run 42698319144 : /student/dashboard et
+// /seances/:id étaient VERTS en affichant « Erreur de chargement » et un bouton « Réessayer »).
+const ECRAN_ERREUR = [
+  /Erreur (?:de|lors du) chargement[^\n]*/i,
+  /n['’]ont pas pu être chargée?s[^\n]*/i,
+  /n['’]a pas pu être chargée?[^\n]*/i,
+  /temporairement indisponible[^\n]*/i,
+  /Aucun accès KLASSCI[^\n]*/,
+  /\bRéessayer\b/,
+]
 
 const echapper = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
@@ -113,13 +145,17 @@ function ecartsDeValeur(cle, texte) {
   const v = VERIFS[cle]
   if (!v) return null
   const ecarts = []
-  for (const { libelle, attendu } of v.chiffres ?? []) {
-    const lu = texte.match(new RegExp(`(?:^|\\n)\\s*${echapper(libelle)}\\s*\\n+\\s*([^\\n]+)`))?.[1]?.trim()
+  for (const { libelle, attendu, ou } of v.chiffres ?? []) {
+    const motif = ou === 'avant'
+      ? `([^\\n]+)\\n+\\s*${echapper(libelle)}\\s*(?:\\n|$)`
+      : `(?:^|\\n)\\s*${echapper(libelle)}\\s*\\n+\\s*([^\\n]+)`
+    const lu = texte.match(new RegExp(motif))?.[1]?.trim()
     if (lu === undefined) ecarts.push(`valeur introuvable : « ${libelle} »`)
     else if (!attendu.includes(Number(lu))) ecarts.push(`« ${libelle} » affiche ${lu}, le jeu en a créé ${attendu.join(' ou ')}`)
   }
   for (const t of v.contient ?? []) if (!texte.includes(t)) ecarts.push(`« ${t} » absent de l’écran`)
   for (const t of v.absent ?? []) if (texte.includes(t)) ecarts.push(`« ${t} » affiché à tort`)
+  ecarts.push(...(v.refus ?? []))
   return ecarts
 }
 
@@ -186,7 +222,9 @@ for (const { compte, email, role } of COMPTES) {
       const app = document.querySelector('#app')
       if (!app) return ''
       const copie = app.cloneNode(true)
-      copie.querySelectorAll('[class*="material-icons"], [class*="material-symbols"], .fa, [class^="fa-"], [aria-hidden="true"]').forEach((n) => n.remove())
+      // Ni icônes, ni chrome de navigation (barre latérale `aside`, barre du haut `nav`/`header`) :
+      // le « Classes » d'un menu ne doit pas se lire comme le libellé d'un compteur de l'écran.
+      copie.querySelectorAll('[class*="material-icons"], [class*="material-symbols"], .fa, [class^="fa-"], [aria-hidden="true"], aside, nav, header').forEach((n) => n.remove())
       document.body.appendChild(copie)
       copie.style.position = 'absolute'; copie.style.left = '-99999px'
       const t = copie.innerText
@@ -208,6 +246,10 @@ for (const { compte, email, role } of COMPTES) {
       }
       if (!texte) defauts.push('aucun contenu rendu')
       if (alertes.length) defauts.push(`alerte : « ${alertes.join(' | ').slice(0, 200)} »`)
+      else {
+        const erreur = ECRAN_ERREUR.map((re) => texte.match(re)?.[0]).find(Boolean)
+        if (erreur) defauts.push(`écran d’erreur : « ${erreur.slice(0, 160)} »`)
+      }
       if (bruts.length) defauts.push(`texte brut : ${bruts.join(', ')}`)
     } else if (final === chemin) {
       defauts.push('accès NON refusé')
