@@ -2,12 +2,13 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { klassciService } from '@/services/klassci'
 import { readCache, writeCache } from '@/services/cache'
-import { getClassCapacity, getClassMatiereCount, getClassStudentCount } from '@/utils/classStats'
+import { measureClassCapacity, measureClassMatiereCountIn, measureClassStudentCount } from '@/utils/classStats'
 import { extractList } from '@/utils/apiList'
 import { toId } from '@/utils/toId'
 import { normalizeError } from '@/services/errorHandler'
 
-const ADMIN_CLASSES_CACHE_KEY = 'admin_classes_v3'
+// v4 : les entrées v3 portaient une capacité inventée (30) et des zéros non mesurés.
+const ADMIN_CLASSES_CACHE_KEY = 'admin_classes_v4'
 const ADMIN_CLASSES_TIMEOUT_MS = 20000
 const ADMIN_CLASSES_METADATA_TIMEOUT_MS = 25000
 
@@ -23,16 +24,17 @@ const normalizeMatieres = (response) => {
   return asObjectArray(response, ['matieres'])
 }
 
-const enrichClassSummary = (classe, matieresList) => {
-  const studentCount = getClassStudentCount(classe)
+// Une valeur absente reste `null` (affichée « — ») : jamais un 0 ni une capacité inventés.
+const enrichClassSummary = (classe, matieresList) => ({
+  ...classe,
+  places_occupees: measureClassStudentCount(classe),
+  places_totales: measureClassCapacity(classe),
+  nb_matieres: measureClassMatiereCountIn(classe, matieresList)
+})
 
-  return {
-    ...classe,
-    places_occupees: studentCount,
-    places_totales: getClassCapacity(classe, studentCount),
-    nb_matieres: getClassMatiereCount(classe, matieresList)
-  }
-}
+// Un total n'est vrai que si CHAQUE classe est mesurée : un total partiel passerait pour le total.
+const sumMeasured = (values) =>
+  values.every(v => v !== null && v !== undefined) ? values.reduce((sum, v) => sum + v, 0) : null
 
 const uniqueObjectsById = (items) => {
   const byId = new Map()
@@ -106,7 +108,7 @@ export function useAdminClasses() {
     const list = asObjectArray(classes.value)
     return {
       total: list.length,
-      totalEtudiants: list.reduce((sum, c) => sum + (c.places_occupees || 0), 0),
+      totalEtudiants: sumMeasured(list.map(c => c.places_occupees)),
       totalMatieres: asObjectArray(matieres.value).length,
       actives: list.filter(c => c.is_active).length
     }
@@ -205,7 +207,7 @@ export function useAdminClasses() {
 
     classes.value = classes.value.map((classe) => ({
       ...classe,
-      nb_matieres: getClassMatiereCount(classe, matieres.value)
+      nb_matieres: measureClassMatiereCountIn(classe, matieres.value)
     }))
 
     writeCache(ADMIN_CLASSES_CACHE_KEY, {

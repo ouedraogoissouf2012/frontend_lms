@@ -55,10 +55,6 @@ export function measureClassStudentCount(classe) {
   return firstNumber([classe?.effectif])
 }
 
-/** Effectif, avec repli à 0. Contrat INCHANGÉ pour les appelants historiques. */
-export function getClassStudentCount(classe) {
-  return measureClassStudentCount(classe) ?? 0
-}
 
 /**
  * Capacité réellement portée par la charge utile, ou `null`.
@@ -76,16 +72,6 @@ export function measureClassCapacity(classe) {
     classe?.max_students,
     classe?.total_places
   ])
-}
-
-/**
- * Capacité, avec repli à 30. Contrat INCHANGÉ pour les appelants historiques.
- *
- * Ce `30` est une valeur inventée : à n'utiliser que là où un nombre est
- * structurellement exigé, jamais pour un affichage qui peut dire « — ».
- */
-export function getClassCapacity(classe, studentCount = 0) {
-  return measureClassCapacity(classe) ?? (studentCount > 0 ? Math.max(studentCount, 30) : 30)
 }
 
 /**
