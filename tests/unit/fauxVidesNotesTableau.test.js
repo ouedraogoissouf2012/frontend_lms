@@ -84,7 +84,7 @@ describe('Mes notes : un refus n\'est pas une moyenne de 0/20', () => {
 
 describe('Tableau de bord générique : « — » et motif sous un refus', () => {
   const monter = async () => {
-    const w = mount(Dashboard, { global: { stubs: { DashboardLayout: Coquille, ContentLoader: true } } })
+    const w = mount(Dashboard, { global: { stubs: { DashboardLayout: Coquille, ContentLoader: true, 'router-link': true } } })
     // Le service des leçons est chargé par import dynamique (`lessonClient()`) :
     // flushPromises seul ne l'attend pas, et l'écran restait « en chargement ».
     await vi.dynamicImportSettled()
@@ -93,13 +93,24 @@ describe('Tableau de bord générique : « — » et motif sous un refus', () =>
   }
 
   it('compte sans tableau de bord, leçons refusées : « — », motif dit, pas de « Aucune leçon disponible »', async () => {
-    utilisateur.courant = { name: 'Supradmin', role: 'supradmin' }
+    // Un compte d'école sans tableau de bord propre (admin). Le supradmin, lui, n'a pas
+    // d'établissement : il ne demande pas les leçons et il est orienté (R3, test suivant).
+    utilisateur.courant = { name: 'Admin', role: 'admin' }
     servir({ refuses: { '/lessons': 403 } })
     const w = await monter()
     expect(w.text()).not.toMatch(/(^|\D)0%/)
     expect(w.findAll('.sr-only').map((s) => s.text())).toContain('non disponible')
     expect(w.find('[role="alert"]').text()).toBe(ERROR_MESSAGES.noInstitution)
     expect(w.text()).not.toMatch(/Aucune leçon disponible/)
+  })
+
+  it('supradmin (R3) : « — », aucune alerte d’établissement, une orientation vers son espace', async () => {
+    utilisateur.courant = { name: 'Supradmin', role: 'supradmin' }
+    servir({ refuses: { '/lessons': 403 } })
+    const w = await monter()
+    expect(w.text()).not.toMatch(/(^|\D)0%/)
+    expect(w.text()).not.toContain(ERROR_MESSAGES.noInstitution)
+    expect(w.find('[data-test="hors-etablissement"]').exists()).toBe(true)
   })
 
   it('« Leçons récentes » lit la page paginée du serveur (elle restait toujours vide)', async () => {
