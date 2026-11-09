@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { messageForReason } from '@/services/errorHandler'
 import lmsService from '@/services/lms'
 import attendanceExportService from '@/services/attendanceExport'
 import { useVisioStore } from '@/stores/visio'
@@ -94,7 +95,7 @@ export function useVisioActions(props, emit) {
       const result = await lmsService.startVisio(props.seance.id)
 
       if (!result.success) {
-        notifyVisioError(new Error(result.message || 'Impossible de démarrer la visio'))
+        notifyVisioError(null, messageForReason(result?.reason) ?? 'Impossible de démarrer la visio')
         return
       }
 
