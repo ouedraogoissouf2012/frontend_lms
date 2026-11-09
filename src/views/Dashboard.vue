@@ -46,7 +46,7 @@
               <p class="text-3xl font-bold text-purple-600"><CountValue :value="stats?.overall_progress ?? null" /><template v-if="stats?.overall_progress != null">%</template></p>
             </div>
             <div class="bg-purple-100 p-3 rounded-full">
-              <i class="fa fa-bar-chart" aria-hidden="true"></i>
+              fa-bar-chart
             </div>
           </div>
         </div>
