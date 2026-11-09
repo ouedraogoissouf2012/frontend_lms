@@ -89,7 +89,8 @@ export function useLessonForm(lessons) {
       writeCache('teacher_lessons', lessons.value)
       closeModal()
     } catch (err) {
-      toast.error(displayMessage(err, 'Erreur lors de la sauvegarde. Réessayez.'))
+      // Le message du catalogue nomme la cause ; le préfixe dit QUOI a échoué (revue de #506).
+      toast.error(`La sauvegarde a échoué : ${displayMessage(err, 'réessayez.')}`)
     } finally {
       saving.value = false
     }

@@ -9,6 +9,7 @@ import { clearCacheByPrefix } from '@/services/cache'
 import { getVisioRoomId } from '@/constants/visio'
 import { useCoordinatorSeances } from '@/composables/useCoordinatorSeances'
 import { confirmVisioAction } from '@/services/visioFeedback'
+import { displayMessage } from '@/services/displayMessage'
 
 /**
  * Couche logique/UI de la vue SeanceManagement (coordinateur) (#H6 ≤300).
@@ -106,7 +107,7 @@ export function useSeanceManagement() {
       await loadSeances()
     } catch (error) {
       console.error('[ERREUR] Join visio coordinateur:', error)
-      toast.error(error.userMessage ?? error.message ?? normalizeError(error).userMessage)
+      toast.error(displayMessage(error, normalizeError(error).userMessage))
     }
   }
 
