@@ -1,3 +1,5 @@
+// @vitest-environment node
+// (environnement node : jsdom remplace `URL`, et fileURLToPath échoue sous lui.)
 /**
  * Un refus de visio dit son SENS, jamais le TEXTE du serveur ni la clé du fournisseur (D0).
  *
@@ -17,6 +19,7 @@ vi.mock('@/services/confirmDialog', () => ({ confirmDialog: vi.fn() }))
 import { notifyVisioError } from '@/services/visioFeedback'
 import { normalizeError, messageForReason } from '@/services/errorHandler'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
+import { userError } from '@/utils/userError'
 
 const REPLI = 'Erreur lors du démarrage de la visio'
 const affiche = () => toast.error.mock.calls.at(-1)[0]
@@ -41,6 +44,11 @@ describe('visioFeedback — le toast ne montre jamais un texte venu d’ailleurs
   it('le message déjà calculé par l’intercepteur est gardé', () => {
     notifyVisioError(Object.assign(new Error('x'), { userMessage: ERROR_MESSAGES.visioNotEnrolled }), REPLI)
     expect(affiche()).toBe(ERROR_MESSAGES.visioNotEnrolled)
+  })
+
+  it('un message RÉDIGÉ PAR LE FRONT pour l’utilisateur reste affiché (userError)', () => {
+    notifyVisioError(userError('Identifiant de salle visio introuvable.'), REPLI)
+    expect(affiche()).toBe('Identifiant de salle visio introuvable.')
   })
 
   it('sans erreur, le repli', () => {
@@ -83,9 +91,9 @@ describe('garde : aucun appelant ne fabrique une erreur avec le texte du serveur
     return statSync(p).isDirectory() ? fichiers(p) : /\.(js|vue)$/.test(n) ? [p] : []
   })
 
-  it('aucun `new Error(result.message` dans src/', () => {
+  it('aucun `new Error(result.message` ni `new Error(response.message` dans src/', () => {
     const fautifs = fichiers(racine)
-      .filter((f) => /new Error\(\s*result\??\.message/.test(readFileSync(f, 'utf8')))
+      .filter((f) => /new Error\(\s*(?:result|response)\??\.message/.test(readFileSync(f, 'utf8')))
       .map((f) => relative(racine, f))
     expect(fautifs).toEqual([])
   })
