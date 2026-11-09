@@ -6,7 +6,7 @@
       </div>
       <div class="stat-content">
         <p class="stat-label">En cours</p>
-        <p class="stat-value">{{ stats.active }}</p>
+        <p class="stat-value"><CountValue :value="stats.active" /></p>
       </div>
     </div>
 
@@ -16,7 +16,7 @@
       </div>
       <div class="stat-content">
         <p class="stat-label">Planifiées</p>
-        <p class="stat-value">{{ stats.scheduled }}</p>
+        <p class="stat-value"><CountValue :value="stats.scheduled" /></p>
       </div>
     </div>
 
@@ -26,7 +26,7 @@
       </div>
       <div class="stat-content">
         <p class="stat-label">Terminées</p>
-        <p class="stat-value">{{ stats.completed }}</p>
+        <p class="stat-value"><CountValue :value="stats.completed" /></p>
       </div>
     </div>
 
@@ -36,14 +36,18 @@
       </div>
       <div class="stat-content">
         <p class="stat-label">Total</p>
-        <p class="stat-value">{{ stats.total }}</p>
+        <p class="stat-value"><CountValue :value="stats.total" /></p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-/** Cartes de statistiques d'AdminVisio (#G1 ≤300). Présentation pure : 4 compteurs. */
+/**
+ * Cartes de statistiques d'AdminVisio (#G1 ≤300). Présentation pure : 4 compteurs.
+ * `null` = non mesuré (séances jamais lues) : rendu « — », jamais 0.
+ */
+import CountValue from '@/components/common/CountValue.vue'
 import {
   VideoCameraIcon,
   CalendarIcon,
@@ -54,7 +58,7 @@ import {
 defineProps({
   stats: {
     type: Object,
-    default: () => ({ active: 0, scheduled: 0, completed: 0, total: 0 })
+    default: () => ({ active: null, scheduled: null, completed: null, total: null })
   }
 })
 </script>

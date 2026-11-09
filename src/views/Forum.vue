@@ -12,8 +12,11 @@
         <p class="text-gray-600 dark:text-gray-400">Chargement du forum...</p>
       </div>
 
+      <!-- Refus : le motif est dit (région présente dès le montage, seul le texte change). -->
+      <p role="alert" :class="loadError ? 'p-6 text-center text-red-700 dark:text-red-300' : 'sr-only'">{{ loadError ?? '' }}</p>
+
       <!-- Liste des topics -->
-      <div v-else class="bg-white dark:bg-gray-800 rounded-lg shadow-lg divide-y divide-gray-200 dark:divide-gray-700">
+      <div v-if="!loading && !loadError" class="bg-white dark:bg-gray-800 rounded-lg shadow-lg divide-y divide-gray-200 dark:divide-gray-700">
         <div
           v-for="topic in topics"
           :key="topic.id"
@@ -64,8 +67,9 @@
         </div>
       </div>
 
-      <!-- Bouton nouveau topic -->
+      <!-- Bouton nouveau topic : jamais sous un refus (créer échouerait aussi). -->
       <button
+        v-if="!loading && !loadError"
         @click="showNewTopicModal = true"
         class="fixed bottom-8 right-8 bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg shadow-lg font-semibold flex items-center gap-2"
       >
@@ -125,12 +129,15 @@ import Modal from '@/components/ui/Modal.vue'
 import { forum } from '@/services/api'
 import { toast } from '@/composables/useToast'
 import { extractList } from '@/utils/apiList'
+import { normalizeError } from '@/services/errorHandler'
 
 defineOptions({ name: 'Forum' })
 
 const router = useRouter()
 const loading = ref(true)
 const topics = ref([])
+// Motif d'un refus de lecture : une liste refusée n'est pas un forum vide.
+const loadError = ref(null)
 const showNewTopicModal = ref(false)
 const submitting = ref(false) // #235 : garde anti double-soumission de topic
 const newTopic = reactive({
@@ -140,6 +147,7 @@ const newTopic = reactive({
 
 async function loadTopics() {
   loading.value = true
+  loadError.value = null
 
   try {
     // Charger tous les topics (sans filtre)
@@ -148,6 +156,7 @@ async function loadTopics() {
   } catch (error) {
     console.error('Erreur chargement forum:', error)
     topics.value = []
+    loadError.value = error.userMessage ?? normalizeError(error).userMessage
   } finally {
     loading.value = false
   }

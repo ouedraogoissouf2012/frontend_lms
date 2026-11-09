@@ -28,6 +28,7 @@ vi.mock('@/services/cache', () => ({
 }))
 
 import { useCoordinatorSeances } from '@/composables/useCoordinatorSeances'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 describe('useCoordinatorSeances (G7)', () => {
   beforeEach(() => {
@@ -116,11 +117,15 @@ describe('useCoordinatorSeances (G7)', () => {
     expect(c.error.value).toBe('Erreur lors du chargement des séances')
   })
 
-  it('loadSeances met un message d\'erreur si l\'appel jette', async () => {
+  // Test inversé : il exigeait que tout échec soit réécrit en « Impossible de charger
+  // les séances. Veuillez réessayer. », motif du serveur perdu. Une erreur sans
+  // réponse HTTP dit désormais le message du catalogue (le motif serveur : cf.
+  // messagesFiges.test.js, au vrai client).
+  it('loadSeances dit le message du catalogue si l\'appel jette', async () => {
     mockGetUpcoming.mockRejectedValue(new Error('boom'))
     const c = useCoordinatorSeances()
     await c.loadSeances()
-    expect(c.error.value).toBe('Impossible de charger les séances. Veuillez réessayer.')
+    expect(c.error.value).toBe(ERROR_MESSAGES.unknown)
     expect(c.loading.value).toBe(false)
   })
 

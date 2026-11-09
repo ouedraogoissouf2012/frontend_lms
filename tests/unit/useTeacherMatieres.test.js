@@ -11,6 +11,7 @@ vi.mock('vue-router', () => ({ useRouter: () => ({ push }) }))
 vi.mock('@/services/lms', () => ({ default: { getMyMatieres: (...a) => getMyMatieres(...a) } }))
 
 import { useTeacherMatieres } from '@/composables/useTeacherMatieres'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 async function setup() {
   let api
@@ -29,10 +30,13 @@ describe('useTeacherMatieres (#H9)', () => {
     expect(api.error.value).toBe(null)
   })
 
-  it('sur erreur reseau, renseigne error', async () => {
+  // Test inversé : il exigeait le texte figé « Impossible de charger les matières »
+  // pour tout échec. Une erreur sans réponse HTTP dit désormais le message du
+  // catalogue (le motif serveur : cf. messagesFiges.test.js, au vrai client).
+  it('sur erreur sans reponse HTTP, renseigne le message du catalogue', async () => {
     getMyMatieres.mockRejectedValue(new Error('reseau'))
     const api = await setup()
-    expect(api.error.value).toBe('Impossible de charger les matières')
+    expect(api.error.value).toBe(ERROR_MESSAGES.unknown)
   })
 
   it('navigateToMatiere resout l id et pousse la route', async () => {

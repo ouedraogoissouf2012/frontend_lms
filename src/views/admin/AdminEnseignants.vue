@@ -14,7 +14,7 @@
       </div>
 
       <EnseignantsStatsCards
-        :enseignants="enseignants.length"
+        :enseignants="nbEnseignants"
         :total-matieres="totalMatieres"
         :total-classes="totalClasses"
         :actifs="enseignantsActifs"
@@ -68,7 +68,7 @@ import { useAdminEnseignants } from '@/composables/useAdminEnseignants'
 
 const {
   enseignants, loading, error, selectedEnseignant,
-  totalMatieres, totalClasses, enseignantsActifs,
+  nbEnseignants, totalMatieres, totalClasses, enseignantsActifs,
   loadEnseignants, selectEnseignant, closeModal,
 } = useAdminEnseignants()
 </script>

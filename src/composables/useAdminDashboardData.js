@@ -46,23 +46,36 @@ export function useAdminDashboardData({
     const needMatieres = !matieresCached
 
     try {
-      const [classesData, matieresData, enseignants, adminStatsPayload] = await Promise.all([
+      // Sources INDÉPENDANTES : un refus n'efface plus les compteurs des autres (un
+      // seul échec vidait tout l'écran). Une source refusée vaut `null`, donc ses
+      // compteurs restent « — » ; une source servie par le cache n'est pas redemandée.
+      const echecs = []
+      const lire = (resultat, source) => {
+        if (resultat.status === 'fulfilled') return resultat.value
+        logError(resultat.reason, `[useAdminDashboardData] ${source}`)
+        echecs.push(resultat.reason)
+        return null
+      }
+      const [rClasses, rMatieres, rEnseignants, rAdminStats] = await Promise.allSettled([
         needClasses  ? klassciService.getClasses()     : Promise.resolve(classesCached),
         needMatieres ? klassciService.getMatieres()    : Promise.resolve(matieresCached),
         klassciService.getEnseignants(),
-        getAdminStatistics().catch((err) => {
-          logError(err, '[useAdminDashboardData] GET /admin/statistics')
-          return null
-        }),
+        getAdminStatistics(),
       ])
+      const classesData = lire(rClasses, 'classes')
+      const matieresData = lire(rMatieres, 'matières')
+      const enseignants = lire(rEnseignants, 'enseignants')
+      // Les statistiques admin restent en tolérance de panne silencieuse, comme avant.
+      const adminStatsPayload = rAdminStats.status === 'fulfilled' ? rAdminStats.value : null
+      if (rAdminStats.status === 'rejected') logError(rAdminStats.reason, '[useAdminDashboardData] GET /admin/statistics')
 
       if (needClasses) {
-        classes.value = classesData
-        writeCache('admin_klassci_classes', classesData)
+        classes.value = classesData ?? []
+        if (classesData) writeCache('admin_klassci_classes', classesData)
       }
       if (needMatieres) {
-        matieres.value = matieresData
-        writeCache('admin_klassci_matieres', matieresData)
+        matieres.value = matieresData ?? []
+        if (matieresData) writeCache('admin_klassci_matieres', matieresData)
       }
 
       // Les métriques système portent le total d'évaluations. Chargées ici (et non
@@ -80,13 +93,18 @@ export function useAdminDashboardData({
         // `stats.value` — l'objet même que cette affectation remplace, et qu'aucune
         // source ne peuplait : les deux compteurs étaient figés à 0 pour toujours.
         ...deriveInstitutionCounters({
-          classes: classes.value,
-          matieres: matieres.value,
+          // `null` pour une source refusée : non mesurée. Une source servie par le
+          // cache arrive ici telle quelle (Promise.resolve du cache).
+          classes: classesData,
+          matieres: matieresData,
           enseignants,
         }),
         nb_seances_actives: null,
         nb_evaluations: measured(metrics?.evaluations?.total),
         ...extractAdminStatistics(adminStatsPayload),
+      }
+      if (echecs.length > 0) {
+        loadError.value = echecs[0]?.userMessage ?? normalizeError(echecs[0]).userMessage
       }
     } catch (error) {
       logError(error, '[useAdminDashboardData] chargement KLASSCI')

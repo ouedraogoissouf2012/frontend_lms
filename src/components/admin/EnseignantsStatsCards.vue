@@ -3,28 +3,28 @@
     <div class="stat-card">
       <i class="fa fa-user stat-icon"></i>
       <div class="stat-details">
-        <span class="stat-value">{{ enseignants }}</span>
+        <span class="stat-value"><CountValue :value="enseignants" /></span>
         <span class="stat-label">Enseignants</span>
       </div>
     </div>
     <div class="stat-card">
       <i class="fa fa-book stat-icon"></i>
       <div class="stat-details">
-        <span class="stat-value">{{ totalMatieres }}</span>
+        <span class="stat-value"><CountValue :value="totalMatieres" /></span>
         <span class="stat-label">Matières Assignées</span>
       </div>
     </div>
     <div class="stat-card">
       <i class="fa fa-building stat-icon"></i>
       <div class="stat-details">
-        <span class="stat-value">{{ totalClasses }}</span>
+        <span class="stat-value"><CountValue :value="totalClasses" /></span>
         <span class="stat-label">Classes Assignées</span>
       </div>
     </div>
     <div class="stat-card">
       <i class="fa fa-sun-o stat-icon"></i>
       <div class="stat-details">
-        <span class="stat-value">{{ actifs }}</span>
+        <span class="stat-value"><CountValue :value="actifs" /></span>
         <span class="stat-label">Actifs</span>
       </div>
     </div>
@@ -32,12 +32,17 @@
 </template>
 
 <script setup>
-/** Cartes de statistiques d'AdminEnseignants (#G1 ≤300). Présentation pure : 4 compteurs. */
+/**
+ * Cartes de statistiques d'AdminEnseignants (#G1 ≤300). Présentation pure : 4 compteurs.
+ * `null` = non mesuré (liste jamais chargée) : rendu « — », jamais 0.
+ */
+import CountValue from '@/components/common/CountValue.vue'
+
 defineProps({
-  enseignants: { type: Number, default: 0 },
-  totalMatieres: { type: Number, default: 0 },
-  totalClasses: { type: Number, default: 0 },
-  actifs: { type: Number, default: 0 },
+  enseignants: { type: Number, default: null },
+  totalMatieres: { type: Number, default: null },
+  totalClasses: { type: Number, default: null },
+  actifs: { type: Number, default: null },
 })
 </script>
 

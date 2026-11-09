@@ -17,7 +17,7 @@
           <div class="flex items-center justify-between">
             <div>
               <p class="text-gray-500 text-sm">Leçons en cours</p>
-              <p class="text-3xl font-bold text-primary-600">{{ stats.lessons_in_progress || 0 }}</p>
+              <p class="text-3xl font-bold text-primary-600"><CountValue :value="stats?.lessons_in_progress ?? null" /></p>
             </div>
             <div class="bg-primary-100 p-3 rounded-full">
               fa-book
@@ -30,7 +30,7 @@
           <div class="flex items-center justify-between">
             <div>
               <p class="text-gray-500 text-sm">Quiz complétés</p>
-              <p class="text-3xl font-bold text-green-600">{{ stats.quizzes_completed || 0 }}</p>
+              <p class="text-3xl font-bold text-green-600"><CountValue :value="stats?.quizzes_completed ?? null" /></p>
             </div>
             <div class="bg-green-100 p-3 rounded-full">
               fa-check-circle
@@ -43,7 +43,7 @@
           <div class="flex items-center justify-between">
             <div>
               <p class="text-gray-500 text-sm">Progression globale</p>
-              <p class="text-3xl font-bold text-purple-600">{{ stats.overall_progress || 0 }}%</p>
+              <p class="text-3xl font-bold text-purple-600"><CountValue :value="stats?.overall_progress ?? null" /><template v-if="stats?.overall_progress != null">%</template></p>
             </div>
             <div class="bg-purple-100 p-3 rounded-full">
               fa-bar-chart
@@ -56,7 +56,9 @@
       <div class="bg-white rounded-lg shadow p-6 mb-6">
         <h2 class="text-xl font-bold mb-4">Leçons récentes</h2>
 
-        <div v-if="recentLessons.length === 0" class="text-center py-8 text-gray-500">
+        <!-- Refus : le motif est dit (région présente dès le montage, seul le texte change). -->
+        <p role="alert" :class="lessonsError ? 'text-center py-8 text-red-700' : 'sr-only'">{{ lessonsError ?? '' }}</p>
+        <div v-if="!lessonsError && recentLessons.length === 0" class="text-center py-8 text-gray-500">
           Aucune leçon disponible pour le moment
         </div>
 
@@ -122,41 +124,51 @@
 import { ref, onMounted } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
+import CountValue from '@/components/common/CountValue.vue'
+import { normalizeError } from '@/services/errorHandler'
+import { extractList } from '@/utils/apiList'
 import { dashboard, lessons as lessonsApi, notifications as notificationsApi, auth } from '@/services/api'
 import { isStudent, isTeacher } from '@/constants/roles'
 
 const user = ref(null)
 const loading = ref(true)
-const stats = ref({})
+// `null` = non mesuré (pas de tableau de bord pour ce rôle, ou source refusée) :
+// les cartes disent « — », jamais 0.
+const stats = ref(null)
 const recentLessons = ref([])
+const lessonsError = ref(null)
 const notifications = ref([])
 
 async function loadDashboard() {
   loading.value = true
 
-  try {
-    // Charger les stats selon le rôle NORMALISÉ (jamais la valeur brute).
-    // `|| {}` : ce chemin s'exécute enfin réellement pour un étudiant, une
-    // réponse vide ne doit pas casser le rendu des cartes.
-    if (isStudent(user.value)) {
-      stats.value = (await dashboard.getStudentDashboard()) || {}
-    } else if (isTeacher(user.value)) {
-      stats.value = (await dashboard.getTeacherDashboard()) || {}
-    }
+  lessonsError.value = null
+  // Sources INDÉPENDANTES : un refus n'empêche plus les autres blocs (le premier
+  // échec arrêtait tout et laissait 0 / 0 / 0 %). Stats selon le rôle NORMALISÉ.
+  const statsSource = isStudent(user.value) ? dashboard.getStudentDashboard()
+    : isTeacher(user.value) ? dashboard.getTeacherDashboard()
+      : Promise.resolve(null)
+  const [rStats, rLessons, rNotifs] = await Promise.allSettled([
+    statsSource,
+    // `per_page` : le paramètre que lit FilterLessonsRequest (`limit` était ignoré).
+    lessonsApi.getAll({ per_page: 5 }),
+    notificationsApi.getAll({ limit: 5 }),
+  ])
 
-    // Charger les leçons récentes
-    const lessonsData = await lessonsApi.getAll({ limit: 5 })
-    recentLessons.value = Array.isArray(lessonsData) ? lessonsData : []
-
-    // Charger les notifications
-    const notifsData = await notificationsApi.getAll({ limit: 5 })
-    notifications.value = Array.isArray(notifsData) ? notifsData : []
-
-  } catch (error) {
-    console.error('Erreur chargement dashboard:', error)
-  } finally {
-    loading.value = false
+  stats.value = rStats.status === 'fulfilled' && rStats.value ? rStats.value : null
+  if (rLessons.status === 'fulfilled') {
+    // `GET /lessons` rend `{ success, data: <page Laravel> }` (LessonCrudController::index,
+    // successResponse d'un paginate) : la liste est sous `data.data`. Lue comme un
+    // tableau, elle restait TOUJOURS vide.
+    recentLessons.value = extractList(rLessons.value)
+  } else {
+    console.error('Erreur chargement leçons récentes:', rLessons.reason)
+    lessonsError.value = rLessons.reason?.userMessage ?? normalizeError(rLessons.reason).userMessage
   }
+  if (rNotifs.status === 'fulfilled') {
+    notifications.value = Array.isArray(rNotifs.value) ? rNotifs.value : []
+  }
+  loading.value = false
 }
 
 function formatDate(date) {

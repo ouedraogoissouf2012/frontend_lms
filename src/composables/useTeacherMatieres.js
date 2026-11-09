@@ -1,6 +1,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import lmsService from '@/services/lms'
+import { normalizeError } from '@/services/errorHandler'
 
 /**
  * Couche donnees de TeacherMatieres (#H9 ≤300). Charge les matieres de
@@ -24,7 +25,7 @@ export function useTeacherMatieres() {
       console.log('[TeacherMatieres] Matières chargées:', matieres.value.length)
     } catch (err) {
       console.error('[TeacherMatieres] Erreur:', err)
-      error.value = 'Impossible de charger les matières'
+      error.value = err.userMessage ?? normalizeError(err).userMessage
     } finally {
       loading.value = false
     }

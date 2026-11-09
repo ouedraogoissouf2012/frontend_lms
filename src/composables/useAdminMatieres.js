@@ -62,6 +62,9 @@ export function useAdminMatieres() {
     groupMatieresByNiveau(filteredMatieres.value, niveaux.value)
   )
   const stats = computed(() => computeMatieresStats(matieres.value))
+  // Le catalogue a-t-il été chargé au moins une fois (réseau ou cache) ? Sinon les
+  // totaux ne sont pas mesurés : l'écran ne doit pas annoncer « 0 matière(s) · 0h ».
+  const statsMesurees = computed(() => data.value != null)
 
   function viewNiveauDetails(niveauGroup) {
     selectedNiveau.value = niveauGroup
@@ -112,7 +115,7 @@ export function useAdminMatieres() {
   return {
     matieres, filieres, niveaux, loading, error, filters,
     showNiveauModal, selectedNiveau, showMatiereModal, selectedMatiere,
-    filteredMatieres, filteredNiveauxWithMatieres, stats,
+    filteredMatieres, filteredNiveauxWithMatieres, stats, statsMesurees,
     viewNiveauDetails, closeNiveauModal, viewMatiereDetails, closeMatiereModal,
     loadMatieres, refreshData, applyFilters, resetFilters,
   }

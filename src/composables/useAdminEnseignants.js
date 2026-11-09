@@ -65,9 +65,13 @@ export function useAdminEnseignants() {
   const enseignants = computed(() => asObjectArray(data.value, ['enseignants']))
 
   const stats = computed(() => computeEnseignantsStats(enseignants.value))
-  const totalMatieres = computed(() => stats.value.totalMatieres)
-  const totalClasses = computed(() => stats.value.totalClasses)
-  const enseignantsActifs = computed(() => stats.value.actifs)
+  // Liste jamais chargée (ni réseau ni cache) : compteurs NON MESURÉS (`null`,
+  // rendus « — »), jamais quatre 0 sous un refus. Un cache périmé reste une mesure.
+  const mesure = computed(() => data.value != null)
+  const nbEnseignants = computed(() => (mesure.value ? enseignants.value.length : null))
+  const totalMatieres = computed(() => (mesure.value ? stats.value.totalMatieres : null))
+  const totalClasses = computed(() => (mesure.value ? stats.value.totalClasses : null))
+  const enseignantsActifs = computed(() => (mesure.value ? stats.value.actifs : null))
 
   /**
    * Rechargement. `forceReload` invalide TOUTES les clés « enseignants »
@@ -89,7 +93,7 @@ export function useAdminEnseignants() {
 
   return {
     enseignants, loading, error, selectedEnseignant,
-    totalMatieres, totalClasses, enseignantsActifs,
+    nbEnseignants, totalMatieres, totalClasses, enseignantsActifs,
     loadEnseignants, selectEnseignant, closeModal,
   }
 }
