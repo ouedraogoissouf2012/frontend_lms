@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { userError } from '@/utils/userError'
 import { messageForReason } from '@/services/errorHandler'
 import lmsService from '@/services/lms'
 import attendanceExportService from '@/services/attendanceExport'
@@ -45,7 +46,7 @@ export function useVisioActions(props, emit) {
         emit('visio-updated', response.data)
         notifyVisioSuccess('Visioconférence programmée avec succès.')
       } else {
-        throw new Error(response?.message || 'Erreur lors de la programmation')
+        throw userError(messageForReason(response?.reason) ?? 'Erreur lors de la programmation')
       }
     } catch (error) {
       console.error('[VisioManager] Erreur programmation visio:', error)
@@ -73,7 +74,7 @@ export function useVisioActions(props, emit) {
         emit('visio-updated', response.data)
         notifyVisioSuccess('Visioconférence désactivée avec succès.')
       } else {
-        throw new Error(response?.message || 'Erreur lors de la désactivation')
+        throw userError(messageForReason(response?.reason) ?? 'Erreur lors de la désactivation')
       }
     } catch (error) {
       console.error('[VisioManager] Erreur désactivation visio:', error)
@@ -153,7 +154,7 @@ export function useVisioActions(props, emit) {
         // Rafraîchir les données
         emit('visio-updated', { ...props.seance, visio_active: false })
       } else {
-        throw new Error(response.message || 'Erreur lors de la fermeture')
+        throw userError(messageForReason(response?.reason) ?? 'Erreur lors de la fermeture')
       }
     } catch (error) {
       console.error('[VisioManager] Erreur fermeture séance:', error)
