@@ -23,6 +23,9 @@ const { klassci, lms, lessons, cache } = vi.hoisted(() => ({
   lessons: { getLessons: vi.fn() },
   cache: { readCacheStale: vi.fn(), writeCache: vi.fn() },
 }))
+// D72 : le compteur de leçons est celui de l'enseignant CONNECTÉ (id LMS, pas klassci_id).
+const auth = vi.hoisted(() => ({ user: null }))
+vi.mock('@/stores/auth', () => ({ useAuthStore: () => ({ get currentUser() { return auth.user } }) }))
 
 vi.mock('@/services/klassci', () => ({ klassciService: klassci }))
 vi.mock('@/services/lms', () => ({ lmsService: lms }))
@@ -48,6 +51,7 @@ async function setup() {
 describe('useTeacherHub (#H11)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    auth.user = { id: 42, klassci_id: 7, role: 'enseignant' }
     cache.readCacheStale.mockReturnValue({ data: null })
     klassci.getClasses.mockResolvedValue([])
     klassci.getMatieres.mockResolvedValue([])
@@ -179,6 +183,21 @@ describe('useTeacherHub (#H11)', () => {
       expect(h.stats.value.lecons).toBe(2)
       expect(h.stats.value.seancesAVenir).toBe(0)
       expect(h.stats.value.classes).toBeNull()
+    })
+  })
+
+  describe('D72 : le compteur de leçons ne compte que celles de l’enseignant', () => {
+    it('demande les leçons de l’enseignant connecté', async () => {
+      await setup()
+      expect(lessons.getLessons).toHaveBeenCalledWith({ enseignant_id: 42 })
+    })
+
+    it('sans identité, ne compte pas les leçons de l’établissement : non mesuré', async () => {
+      auth.user = null
+      klassci.getTeacherDashboard.mockResolvedValue({ classes: [], matieres: [] })
+      const h = await setup()
+      expect(lessons.getLessons).not.toHaveBeenCalled()
+      expect(h.stats.value.lecons).toBeNull()
     })
   })
 })

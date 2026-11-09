@@ -53,6 +53,12 @@ describe('« Mes leçons » ne montre que les leçons de l’enseignant connect�
     expect(h.getLessons).toHaveBeenCalledWith({ enseignant_id: 42 })
   })
 
+  it('le filtre porte l’id LMS (lessons.enseignant_id), jamais klassci_id', async () => {
+    h.user.value = { id: 42, klassci_id: 7, role: 'enseignant' }
+    await monter()
+    expect(h.getLessons).toHaveBeenCalledWith({ enseignant_id: 42 })
+  })
+
   it('le rafraîchissement d’arrière-plan aussi', async () => {
     await monter() // remplit le cache
     await monter() // lit le cache, puis rafraîchit
@@ -80,6 +86,14 @@ describe('« Mes leçons » ne montre que les leçons de l’enseignant connect�
 describe('le libellé de matière vient d’abord de la leçon elle-même', () => {
   it('la matière portée par la leçon, catalogue vide', () => {
     expect(getLessonMatiereLabel(MIENNE, [])).toBe('Mathematiques')
+  })
+
+  it('la matière portée par la leçon PRIME sur un catalogue qui la contredit', () => {
+    expect(getLessonMatiereLabel(MIENNE, [{ id: 7, name: 'Catalogue' }])).toBe('Mathematiques')
+  })
+
+  it('un catalogue absent (null) ne casse pas le libellé', () => {
+    expect(getLessonMatiereLabel({ matiere_id: 7 }, null)).toBe('Matière inconnue')
   })
 
   it('le catalogue de l’enseignant quand la leçon ne porte pas sa matière', () => {
