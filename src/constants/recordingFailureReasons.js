@@ -16,6 +16,8 @@ export const RECORDING_FAILURE_LABELS = Object.freeze({
   missing_klassci_matiere_id: "La séance n'est rattachée à aucune matière : la vidéo n'a pas pu être ajoutée à une leçon.",
   matiere_not_found: "La matière de la séance est introuvable : la vidéo n'a pas pu être ajoutée à une leçon.",
   lesson_not_found: "Aucune leçon de cette matière n'a été trouvée pour cette classe : la vidéo n'a pas pu y être ajoutée.",
+  ambiguous_lesson:
+    "Plusieurs leçons correspondent à cette séance : la vidéo n'a pas été ajoutée automatiquement, pour ne pas la ranger au mauvais endroit.",
   // Import du fichier vidéo.
   media_not_found: `Le fichier vidéo est introuvable chez le service d'enregistrement. ${CONSIGNE}`,
   media_copy_failed: `La copie du fichier vidéo a échoué. ${CONSIGNE}`,
