@@ -6,21 +6,8 @@ import { fetchTeacherMatieres } from '@/services/teacherReferentials'
 import { readCache, writeCache } from '@/services/cache'
 import { useLessonForm } from '@/composables/useLessonForm'
 import { extractList } from '@/utils/apiList'
-import { getLessonMatiereLabel } from '@/utils/matieres'
-import { useAuthStore } from '@/stores/auth'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
-
-// v2 : les entrées v1 portaient aussi les leçons des collègues (liste non filtrée, D72).
-const LESSONS_CACHE = 'teacher_lessons_v2'
-
-/**
- * « Mes leçons » = les leçons de l'enseignant connecté (D72), jamais celles de ses collègues.
- * Sans identité, aucune liste n'est demandée : sans filtre, le serveur rendrait celles de l'école.
- */
-function myLessonsParams() {
-  const id = useAuthStore().currentUser?.id
-  return id == null ? null : { enseignant_id: id }
-}
+import { myLessonsParams, TEACHER_LESSONS_CACHE as LESSONS_CACHE } from '@/composables/myLessons'
 
 /**
  * Couche données de TeacherLessons (#H4 ≤300) : charge leçons + matières (cache +
@@ -173,10 +160,6 @@ export function useTeacherLessons() {
     return labels[status] || 'Brouillon'
   }
 
-  function getMatiereLabel(lesson) {
-    return getLessonMatiereLabel(lesson, matieres.value)
-  }
-
   // #283 : délègue au formatter canonique (repli local conservé).
   function formatDate(dateString) {
     return formatDateLong(dateString, { fallback: 'N/A' })
@@ -210,7 +193,6 @@ export function useTeacherLessons() {
     resetFilters,
     getStatusClass,
     getStatusLabel,
-    getMatiereLabel,
     formatDate,
     viewChapters,
     saveLesson,

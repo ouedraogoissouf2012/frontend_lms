@@ -172,6 +172,6 @@ export function getLessonMatiereLabel(lesson, matieres = []) {
   const portee = nom(lesson?.matiere)
   if (portee) return portee
   const id = lesson?.matiere_id
-  const duCatalogue = id == null ? null : nom(matieres.find((m) => m?.id == id))
+  const duCatalogue = id == null ? null : nom((matieres ?? []).find((m) => m?.id == id))
   return duCatalogue || 'Matière inconnue'
 }

@@ -46,7 +46,8 @@ import { getLessonMatiereLabel } from '@/utils/matieres'
 /**
  * Carte d'une leçon enseignant (#H4 ≤300) : icône type, statut, titre, matière,
  * méta (date/vues) et action « Voir les chapitres » (emit `view`). Présentationnel ;
- * libellé matière résolu via la prop `matieres`, helpers statut/date locaux (parité).
+ * libellé matière : celle que porte la leçon, puis la prop `matieres` (getLessonMatiereLabel) ;
+ * helpers statut/date locaux (parité).
  */
 import {
   BookOpenIcon,
