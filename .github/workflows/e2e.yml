@@ -60,7 +60,7 @@ jobs:
           path: mesure
       - uses: actions/checkout@v7
         with:
-          ref: ${{ inputs.frontend_ref || 'b9b13f2afe6d5d91a9e1be9dbcceaa89313f583b' }}
+          ref: ${{ inputs.frontend_ref || '0b8f45d42101a800dc2a6755f567dae434166675' }}
           path: front
       - uses: actions/checkout@v7
         with:
