@@ -61,7 +61,7 @@ function compterSeancesAVenir(seances) {
  */
 function lessonsTotal(response) {
   const total = Number(response?.data?.total)
-  if (response?.data?.last_page != null && Number.isFinite(total) && false) return total
+  if (response?.data?.last_page != null && Number.isFinite(total)) return total
   return extractList(response).length
 }
 
