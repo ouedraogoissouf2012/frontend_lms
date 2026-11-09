@@ -14,7 +14,7 @@
  */
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi } from 'vitest'
-import { buildTeacherDashboardFallback } from '@/utils/teacherDashboard'
+import { buildTeacherDashboardFallback, deriveTeacherCounters } from '@/utils/teacherDashboard'
 import { deriveInstitutionCounters } from '@/utils/classStats'
 import DashboardStatCards from '@/components/teacher/DashboardStatCards.vue'
 
@@ -101,4 +101,40 @@ describe('compteur « Étudiants » de l’établissement (/admin/dashboard, pro
     expect(deriveInstitutionCounters({}).nb_etudiants).toBeNull()
     expect(deriveInstitutionCounters({ classes: [] }).nb_etudiants).toBe(0)
   })
+
+describe('repli par la fiche enseignant (/lms/enseignants répond) : même règle', () => {
+  const avecFiche = (fiche, reste = {}) => ({
+    getEnseignants: vi.fn(() => Promise.resolve({ success: true, data: [{ id: 3, ...fiche }] })),
+    getMyMatieres: vi.fn(() => Promise.resolve({ success: true, data: reste.matieres ?? [] })),
+    getMyTeachingSeances: vi.fn(() => Promise.resolve({ success: true, data: reste.seances ?? [] })),
+  })
+
+  it('une fiche sans séances ni évaluations : non mesurées, jamais un 0', async () => {
+    const fiche = { matieres: [{ id: 1, nom: 'Mathematiques', classes: [{ id: 5, nb_etudiants: 4 }] }] }
+    const d = await buildTeacherDashboardFallback(avecFiche(fiche), ENSEIGNANT, null)
+    expect(d.seances).toBeNull()
+    expect(d.evaluations).toBeNull()
+    expect(d.statistiques.seances_aujourdhui).toBeNull()
+    expect(d.statistiques.evaluations_en_cours).toBeNull()
+  })
+
+  it('une fiche sans total de leçons : celui du LMS', async () => {
+    const fiche = { matieres: [{ id: 1, nom: 'Mathematiques', classes: [{ id: 5, nb_etudiants: 4 }] }] }
+    const d = await buildTeacherDashboardFallback(avecFiche(fiche), ENSEIGNANT, { lessons: { total: 3 } })
+    expect(d.statistiques.total_lecons).toBe(3)
+  })
+
+  it('une fiche vide ne court-circuite pas le repli parce que le LMS compte des leçons', async () => {
+    const lms = avecFiche({}, { matieres: [{ id: 2, nom: 'Francais', classes: [{ id: 6, nb_etudiants: 2 }] }] })
+    const d = await buildTeacherDashboardFallback(lms, ENSEIGNANT, { lessons: { total: 3 } })
+    expect(lms.getMyMatieres).toHaveBeenCalled()
+    expect(d.matieres).toHaveLength(1)
+  })
+})
+
+describe('compteur du chemin nominal (KLASSCI répond) : pas de somme partielle', () => {
+  it('une classe sans effectif → total des étudiants non mesuré', () => {
+    expect(deriveTeacherCounters({ classes: [{ id: 5, nb_etudiants: 4 }, { id: 6 }] }, null).total_etudiants).toBeNull()
+  })
+})
 })
