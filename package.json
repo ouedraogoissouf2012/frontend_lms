@@ -66,7 +66,7 @@
     "dompurify": "^3.4.17",
     "font-awesome": "^4.7.0",
     "material-icons": "^1.13.14",
-    "pinia": "^2.1.7",
+    "pinia": "^4.1.0",
     "vue": "^3.5.44",
     "vue-chartjs": "^5.3.4",
     "vue-router": "^5.4.0",
