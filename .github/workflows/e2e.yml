@@ -160,6 +160,8 @@ jobs:
         run: |
           E2E_ROUTES_OUT="$GITHUB_WORKSPACE/sortie/routes.json" npx vitest run tests/e2e/routes.extraction.test.js
           VITE_API_URL=/api VITE_JITSI_DOMAIN=visio.example.test npm run build
+          # Le build (runner) a créé dist/ et node_modules/.vite-temp après le chmod : e2e doit pouvoir y écrire.
+          sudo chmod -R a+rwX "$GITHUB_WORKSPACE/front"
           . "$RUNNER_TEMP/en_e2e.sh"
           en_e2e nohup npx vite preview --host 127.0.0.1 --port 4173 --strictPort > ../sortie/apercu.log 2>&1 &
           attendre "aperçu du front" http://127.0.0.1:4173/ ../sortie/apercu.log
