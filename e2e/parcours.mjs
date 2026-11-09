@@ -32,6 +32,10 @@ const BRUT = [
   /\b(?:undefined|NaN)\b/,
   /\[object Object\]/,
   /Request failed with status code/,
+  // v3 : un nom de classe d'icône écrit en texte (« fa-book » sur /dashboard, constat du run v2).
+  /fa-[a-z0-9]+(?:-[a-z0-9]+)*/,
+  // v3 : un statut anglais brut à l'écran d'une interface française (« published » sur /dashboard).
+  /(?:published|draft|archived)/,
 ]
 
 const ID_FICTIF = '999999'
@@ -125,6 +129,20 @@ const VERIFS = {
     // Le chapitre est créé par l'enseignant par le produit : un refus est un écart de ce parcours.
     refus: jeu.manques?.chapitre ? [`création du chapitre refusée : ${jeu.manques.chapitre}`] : [],
   },
+  // v3 — la classe 6e A (jeu.classes[0]) : 4 élèves (le 6e, rendu inactif, est en 5e B), 2 matières
+  // (Mathematiques par ens1, Francais par ens2), vue par le personnel et par l'élève qui y est inscrit.
+  ...Object.fromEntries(['admin', 'coordinateur', 'enseignant'].map((c) => [`${c} /classes/:id`, {
+    chiffres: [chiffre('Étudiants', 4), chiffre('Matières', 2)],
+    contient: ['6e A E2E', 'Mathematiques E2E', 'Francais E2E', 'Enseignant Un E2E', 'Enseignant Deux E2E'],
+  }])),
+  'etudiant /classes/:id': {
+    chiffres: [chiffre('Matières', 2)],
+    contient: ['6e A E2E', 'Mathematiques E2E', 'Enseignant Un E2E'],
+  },
+  // v3 — le sujet de forum créé par ens1, lu par lui et par l'élève de sa classe.
+  ...(jeu.sujet ? Object.fromEntries(['enseignant', 'etudiant'].map((c) => [`${c} /forum/topics/:id`, {
+    contient: ['Question sur les fractions', 'Sujet fictif cree par le job E2E', 'Enseignant Un E2E'],
+  }])) : {}),
 }
 
 // Écran d'ERREUR sans `role="alert"` (constat du run 42698319144 : /student/dashboard et
