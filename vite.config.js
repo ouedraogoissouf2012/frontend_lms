@@ -20,6 +20,11 @@ export default defineConfig({
     // → fuite du token/PII en console. Les erreurs à surfacer passent par
     // errorHandler.logError (prod-safe) ou par un toast utilisateur.
     pure: ['console.log', 'console.info', 'console.debug', 'console.error', 'console.warn'],
+    // Notices de licence (/*! … */) gardées dans le JS et le CSS livrés, comme sous vite 6 :
+    // vite 7.3.8 impose `legalComments: 'none'` (config.ts:1529, puis css.ts:2201 pour le CSS),
+    // et notre `esbuild` est fusionné APRÈS ce défaut (config.ts:1530). Les licences des
+    // dépendances livrées (MIT, OFL de Font Awesome…) demandent que la notice les accompagne.
+    legalComments: 'inline',
   },
   resolve: {
     alias: {
