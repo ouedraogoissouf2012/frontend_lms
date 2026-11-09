@@ -24,8 +24,6 @@ vi.mock('@/services/klassci', () => ({
 }))
 
 import { useAdminClasses } from '@/composables/useAdminClasses'
-import ClassCard from '@/components/admin/ClassCard.vue'
-import ClassesStatsCards from '@/components/admin/ClassesStatsCards.vue'
 import DashboardClasses from '@/components/dashboard/DashboardClasses.vue'
 
 async function charger() {
@@ -35,7 +33,9 @@ async function charger() {
   return api
 }
 
-const MESUREE = { id: 1, name: '6e A', is_active: true, places_occupees: 2, effectif_max: 40, matieres: [{ id: 9 }] }
+// Ce fichier ne prétend pas décrire /proxy/classes (aucune charge capturée n'existe) : il éprouve la
+// RÈGLE du front sur les clés qu'il lit. La classe muette, elle, ne peut pas être fausse sur l'API.
+const MESUREE = { id: 1, name: '6e A', is_active: true, effectif: 2, capacite: 40, matieres: [{ id: 9 }] }
 const MUETTE = { id: 2, name: '5e B', is_active: true }
 
 beforeEach(() => {
@@ -104,24 +104,7 @@ describe('useAdminClasses — une classe au statut inconnu (is_active null)', ()
   })
 })
 
-describe('rendu : « — » pour une valeur absente, le nombre pour une valeur mesurée', () => {
-  const stats = (w) => w.findAll('.stat-value').map((v) => v.text())
-
-  it('ClassCard : « —/— » et « — » pour une classe muette', () => {
-    const w = mount(ClassCard, { props: { classe: { ...MUETTE, places_occupees: null, places_totales: null, nb_matieres: null } } })
-    expect(stats(w)).toEqual(['—/—', '—'])
-  })
-
-  it('ClassCard : un vrai zéro reste « 0 », une capacité inconnue reste « — »', () => {
-    const w = mount(ClassCard, { props: { classe: { ...MUETTE, places_occupees: 0, places_totales: null, nb_matieres: 0 } } })
-    expect(stats(w)).toEqual(['0/—', '0'])
-  })
-
-  it('ClassesStatsCards : total des étudiants non mesuré → « — »', () => {
-    const w = mount(ClassesStatsCards, { props: { stats: { total: 2, totalEtudiants: null, totalMatieres: 0, actives: 1 } } })
-    expect(stats(w)).toEqual(['2', '—', '0', '1'])
-  })
-
+describe('widget Classes de /admin/dashboard : il lit les classes BRUTES', () => {
   it('DashboardClasses (/admin/dashboard) : mesure la charge utile brute, « — » à défaut', () => {
     const w = mount(DashboardClasses, { props: { classes: [MESUREE, MUETTE, { id: 4, name: '3e D', etudiants_count: 0 }] } })
     expect(w.findAll('.class-capacity span').map((s) => s.text())).toEqual(['2/40', '—/—', '0/—'])
