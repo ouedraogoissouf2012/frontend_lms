@@ -12,6 +12,7 @@ const deleteSeance = vi.fn()
 const routerPush = vi.fn()
 const clearCacheByPrefix = vi.fn()
 const toastError = vi.fn()
+const toastSuccess = vi.fn()
 const storeJoinVisio = vi.fn()
 const confirmVisioAction = vi.fn()
 
@@ -34,7 +35,7 @@ vi.mock('@/stores/auth', () => ({
 vi.mock('@/stores/visio', () => ({
   useVisioStore: () => ({ joinVisio: (...a) => storeJoinVisio(...a) })
 }))
-vi.mock('@/composables/useToast', () => ({ toast: { success: vi.fn(), error: (...a) => toastError(...a), info: vi.fn() } }))
+vi.mock('@/composables/useToast', () => ({ toast: { success: (...a) => toastSuccess(...a), error: (...a) => toastError(...a), info: vi.fn() } }))
 vi.mock('@/services/errorHandler', () => ({ normalizeError: () => ({ userMessage: 'err' }) }))
 vi.mock('@/services/visioFeedback', () => ({ confirmVisioAction: (...a) => confirmVisioAction(...a) }))
 vi.mock('@/constants/visio', () => ({
@@ -65,6 +66,7 @@ describe('useSeanceManagement (#H6)', () => {
     routerPush.mockReset()
     clearCacheByPrefix.mockReset()
     toastError.mockReset()
+    toastSuccess.mockReset()
     storeJoinVisio.mockReset()
     storeJoinVisio.mockResolvedValue({ success: true })
     confirmVisioAction.mockReset()
@@ -134,5 +136,13 @@ describe('useSeanceManagement (#H6)', () => {
   it('viewMode démarre en "list"', async () => {
     const u = await setup()
     expect(u.viewMode.value).toBe('list')
+  })
+
+  it('le toast de succès dit le sens rédigé par le front, jamais le texte du serveur (D0)', async () => {
+    toggleVisio.mockResolvedValue({ success: true, message: 'Texte serveur détaillé', data: { visio_room_id: 'room-3-api' } })
+    const u = await setup()
+    await u.toggleSeanceVisio({ id: 3, visio_enabled: false })
+    expect(toastSuccess).toHaveBeenCalledTimes(1)
+    expect(toastSuccess.mock.calls[0][0]).not.toContain('Texte serveur')
   })
 })
