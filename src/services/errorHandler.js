@@ -30,7 +30,6 @@ const REASON_CATEGORIES = Object.freeze({
   visio_not_enabled: 'visioNotEnabled',
   // VisioStatusRefusal (serveur) : attendre (`visio_not_started`) ou renoncer (`visio_ended`).
   visio_not_started: 'visioNotStarted',
-  visio_ended: 'visioEnded',
   teacher_not_owner: 'visioTeacherNotOwner',
   actor_not_authorized: 'visioRoleRefused',
   invalid_role: 'visioRoleRefused',
