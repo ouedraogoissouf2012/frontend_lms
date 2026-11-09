@@ -52,6 +52,12 @@ jobs:
           echo "::add-mask::$p"
           echo "E2E_MOT_DE_PASSE=$p" >> "$GITHUB_ENV"
 
+      # L'OUTIL de mesure (ce dépôt, à la tête de la PR) et le FRONT mesuré sont deux checkouts :
+      # une branche d'intégration qui n'inclut pas cette PR doit pouvoir être mesurée.
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          path: mesure
       - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.frontend_ref || github.event.pull_request.head.sha || github.sha }}
@@ -66,9 +72,13 @@ jobs:
         run: |
           {
             echo "### Versions"
-            echo "- front : \`$(git -C front rev-parse HEAD)\`"
+            echo "- outil de mesure (e2e/, version du script) : \`$(git -C mesure rev-parse HEAD)\`"
+            echo "- front mesuré : \`$(git -C front rev-parse HEAD)\`"
             echo "- lms_backend : \`$(git -C back rev-parse HEAD)\` (ref demandée : \`${{ inputs.backend_ref || 'de97d1903b14f223dab8c3f3ecce37def1350439' }}\`)"
           } | tee -a "$GITHUB_STEP_SUMMARY"
+          # Les trois shas LUS (pas demandés), pour l'en-tête de la matrice.
+          mkdir -p sortie
+          jq -n --arg mesure "$(git -C mesure rev-parse HEAD)" --arg front "$(git -C front rev-parse HEAD)"             --arg back "$(git -C back rev-parse HEAD)" '{mesure: $mesure, front: $front, back: $back}' > sortie/versions.json
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -145,7 +155,7 @@ jobs:
         run: |
           . "$RUNNER_TEMP/en_e2e.sh"
           mkdir -p sortie && chmod 777 sortie
-          en_e2e nohup node "$PWD/front/e2e/faux-klassci.mjs" 8180 "$PWD/sortie/faux-klassci.jsonl" > sortie/faux-klassci.log 2>&1 &
+          en_e2e nohup node "$PWD/mesure/e2e/faux-klassci.mjs" 8180 "$PWD/sortie/faux-klassci.jsonl" > sortie/faux-klassci.log 2>&1 &
           (cd back && en_e2e env PHP_CLI_SERVER_WORKERS=4 nohup php artisan serve --host=127.0.0.1 --port=8000 > ../sortie/serveur.log 2>&1 &)
           attendre "faux KLASSCI" http://127.0.0.1:8180/ sortie/faux-klassci.log
           attendre "serveur LMS" http://127.0.0.1:8000/ sortie/serveur.log
@@ -153,11 +163,13 @@ jobs:
       - name: Monter l'école créée depuis le LMS (script de Fille 1, chemins du produit)
         run: |
           . "$RUNNER_TEMP/en_e2e.sh"
-          en_e2e pwsh -File "$PWD/front/e2e/ecole-lms.ps1" -Api http://127.0.0.1:8000/api -Backend "$PWD/back" -Sortie "$PWD/sortie"             || { echo "::error::montage de l'école en échec"; cat sortie/ecole-lms.log || true; tail -40 back/storage/logs/laravel.log || true; exit 1; }
+          en_e2e pwsh -File "$PWD/mesure/e2e/ecole-lms.ps1" -Api http://127.0.0.1:8000/api -Backend "$PWD/back" -Sortie "$PWD/sortie"             || { echo "::error::montage de l'école en échec"; cat sortie/ecole-lms.log || true; tail -40 back/storage/logs/laravel.log || true; exit 1; }
 
       - name: Routes du routeur, build et aperçu du front
         working-directory: front
         run: |
+          # L'extraction des routes est un outil : elle vient de la mesure, et lit le routeur du front mesuré.
+          mkdir -p tests/e2e && cp "$GITHUB_WORKSPACE/mesure/tests/e2e/routes.extraction.test.js" tests/e2e/
           E2E_ROUTES_OUT="$GITHUB_WORKSPACE/sortie/routes.json" npx vitest run tests/e2e/routes.extraction.test.js
           VITE_API_URL=/api VITE_JITSI_DOMAIN=visio.example.test npm run build
           # Le build (runner) a créé dist/ et node_modules/.vite-temp après le chmod : e2e doit pouvoir y écrire.
@@ -168,7 +180,7 @@ jobs:
 
       - name: Parcours écran par écran (chromium, sous e2e)
         run: |
-          cp front/e2e/parcours.mjs outils/
+          cp mesure/e2e/parcours.mjs outils/
           . "$RUNNER_TEMP/en_e2e.sh"
           en_e2e node "$PWD/outils/parcours.mjs" "$PWD/sortie/routes.json" "$PWD/sortie/jeu.json" "$PWD/sortie"
 
@@ -195,6 +207,7 @@ jobs:
           name: e2e-sortie
           path: |
             sortie/resultats.json
+            sortie/versions.json
             sortie/resume.md
             sortie/captures/
             sortie/ecole-lms.log
