@@ -21,7 +21,7 @@ export function useStudentGrades() {
   const totalEvaluations = ref(0)
   // Les notes ont-elles été lues ? Sinon les cartes de synthèse ne s'affichent pas :
   // « 0/20 » sous un refus se lisait comme une moyenne réelle.
-  const mesure = ref(true)
+  const mesure = ref(false)
 
   async function fetchGrades() {
     loading.value = true
