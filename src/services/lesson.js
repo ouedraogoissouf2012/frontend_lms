@@ -1,6 +1,7 @@
 import api from './api'
 import { formatDuration as fmtDuration } from '../utils/formatters'
 import { endpoints } from './endpoints'
+import { lessonStatusLabel, lessonTypeLabel } from '../utils/lessonStatus'
 
 /**
  * Service pour la gestion des leçons (Lessons)
@@ -195,31 +196,33 @@ const lessonService = {
   /**
    * Obtenir le badge de statut
    * @param {String} status - draft, published, archived
-   * @returns {Object} - { class, text }
+   * @returns {Object|null} - { class, text } ; `null` pour un statut inconnu (aucun badge)
    */
   getStatusBadge(status) {
-    const badges = {
-      draft: { class: 'bg-gray-200 text-gray-700', text: 'Brouillon' },
-      published: { class: 'bg-green-100 text-green-700', text: 'Publié' },
-      archived: { class: 'bg-orange-100 text-orange-700', text: 'Archivé' }
+    const classes = {
+      draft: 'bg-gray-200 text-gray-700',
+      published: 'bg-green-100 text-green-700',
+      archived: 'bg-orange-100 text-orange-700'
     }
-    return badges[status] || badges.draft
+    const text = lessonStatusLabel(status)
+    return text ? { class: classes[status], text } : null
   },
 
   /**
    * Obtenir le badge de type
    * @param {String} type - cours, tp, td, projet, autre
-   * @returns {Object} - { class, text, icon }
+   * @returns {Object|null} - { class, text, icon } ; `null` pour un type inconnu (aucun badge)
    */
   getTypeBadge(type) {
-    const badges = {
-      cours: { class: 'bg-blue-100 text-blue-700', text: 'Cours', icon: 'fa-book' },
-      tp: { class: 'bg-purple-100 text-purple-700', text: 'TP', icon: 'fa-laptop' },
-      td: { class: 'bg-indigo-100 text-indigo-700', text: 'TD', icon: 'fa-pencil' },
-      projet: { class: 'bg-pink-100 text-pink-700', text: 'Projet', icon: 'fa-rocket' },
-      autre: { class: 'bg-gray-100 text-gray-700', text: 'Autre', icon: 'fa-file-text-o' }
+    const styles = {
+      cours: { class: 'bg-blue-100 text-blue-700', icon: 'fa-book' },
+      tp: { class: 'bg-purple-100 text-purple-700', icon: 'fa-laptop' },
+      td: { class: 'bg-indigo-100 text-indigo-700', icon: 'fa-pencil' },
+      projet: { class: 'bg-pink-100 text-pink-700', icon: 'fa-rocket' },
+      autre: { class: 'bg-gray-100 text-gray-700', icon: 'fa-file-text-o' }
     }
-    return badges[type] || badges.cours
+    const text = lessonTypeLabel(type)
+    return text ? { ...styles[type], text } : null
   },
 
   /**

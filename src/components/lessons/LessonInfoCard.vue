@@ -11,9 +11,9 @@
           <span v-if="lesson.duree_estimee_minutes" class="meta-info">
             ⏱ {{ lesson.duree_estimee_minutes }} min
           </span>
-          <span class="meta-info status-badge" :class="lesson.status === 'published' ? 'status-published' : 'status-draft'">
-            <i :class="lesson.status === 'published' ? 'fa fa-check' : 'fa fa-pencil'"></i>
-            {{ lesson.status === 'published' ? 'Publiee' : 'Brouillon' }}
+          <span v-if="lessonStatusLabel(lesson.status)" class="meta-info status-badge" :class="lesson.status === 'published' ? 'status-published' : 'status-draft'">
+            <i :class="lesson.status === 'published' ? 'fa fa-check' : lesson.status === 'archived' ? 'fa fa-archive' : 'fa fa-pencil'"></i>
+            {{ lessonStatusLabel(lesson.status) }}
           </span>
         </div>
       </div>
