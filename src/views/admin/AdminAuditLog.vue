@@ -22,17 +22,19 @@
 
       <!-- Région présente DÈS le montage : seule la présentation suit l'erreur. -->
       <p class="annonce" :class="{ 'error-banner': erreur }" role="alert">{{ erreur }}</p>
-      <button v-if="erreur && peutReessayer" type="button" class="refresh-btn btn-reessayer" @click="charger()">Réessayer</button>
+      <button v-if="erreur && peutReessayer" type="button" class="refresh-btn btn-reessayer" @click="reessayer">Réessayer</button>
 
-      <!-- Premier chargement : le chargeur. Rechargement (page, filtre) : les lignes restent, l'état est annoncé. -->
+      <!-- Région d'annonce présente DÈS le montage (une région créée remplie n'est pas annoncée).
+           Premier chargement : le chargeur ; rechargement (page, filtre) : les lignes restent. -->
+      <p class="annonce" role="status">{{ annonceChargement }}</p>
       <ContentLoader v-if="chargement && !entrees.length" text="Chargement du journal..." />
-      <p v-if="chargement && entrees.length" class="annonce" role="status">Mise à jour…</p>
       <p v-if="!(chargement && !entrees.length) && etatVide" class="journal-vide">
         {{ etatVide === 'filtre' ? 'Aucune entrée pour ce filtre.' : 'Aucune entrée dans le journal.' }}
       </p>
       <template v-else-if="entrees.length && !etatVide">
         <div class="table-wrap">
           <table class="journal">
+            <caption class="journal-legende">Entrées du journal, de la plus récente à la plus ancienne</caption>
             <thead>
               <tr>
                 <th scope="col">Date</th>
@@ -50,7 +52,7 @@
         </div>
         <nav class="pagination" aria-label="Pages du journal">
           <button type="button" class="refresh-btn page-precedente" :aria-disabled="page <= 1 ? 'true' : 'false'" @click="pagePrecedente">Précédent</button>
-          <span>Page {{ page }} sur {{ dernierePage }} · {{ total }} entrées</span>
+          <span>Page {{ page }} sur {{ dernierePage }} · {{ total }} {{ total > 1 ? 'entrées' : 'entrée' }}</span>
           <button type="button" class="refresh-btn page-suivante" :aria-disabled="page >= dernierePage ? 'true' : 'false'" @click="pageSuivante">Suivant</button>
         </nav>
       </template>
@@ -68,14 +70,20 @@
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import AuditLogRow from '@/components/admin/AuditLogRow.vue'
+import { computed } from 'vue'
 import { useAdminAuditLog } from '@/composables/useAdminAuditLog'
 import { AUDIT_FILTRE_ACTIONS } from '@/utils/auditLogLabels'
 
 const {
   entrees, chargement, erreur, peutReessayer, etatVide,
   page, dernierePage, total, action, acteur,
-  charger, pagePrecedente, pageSuivante, choisirAction, filtrerActeur, retirerActeur,
+  reessayer, pagePrecedente, pageSuivante, choisirAction, filtrerActeur, retirerActeur,
 } = useAdminAuditLog()
+
+const annonceChargement = computed(() => {
+  if (!chargement.value) return ''
+  return entrees.value.length ? 'Mise à jour…' : 'Chargement du journal…'
+})
 </script>
 
 <style scoped lang="scss">
@@ -125,6 +133,14 @@ const {
   border-collapse: collapse;
 }
 
+.journal-legende {
+  caption-side: top;
+  text-align: left;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  padding-bottom: var(--spacing-sm);
+}
+
 .journal :deep(th),
 .journal :deep(td) {
   padding: var(--spacing-sm);
@@ -141,8 +157,13 @@ const {
   margin-top: var(--spacing-md);
 }
 
-.refresh-btn[aria-disabled='true'] {
+// Un bouton présenté inactif ne réagit pas au survol (le style partagé ne voit que `:disabled`).
+.refresh-btn[aria-disabled='true'],
+.refresh-btn[aria-disabled='true']:hover {
   cursor: not-allowed;
   opacity: 0.6;
+  transform: none;
+  box-shadow: none;
+  background: var(--card-bg);
 }
 </style>

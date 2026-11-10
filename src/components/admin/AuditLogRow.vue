@@ -16,7 +16,7 @@
     <td>
       <!-- Q2 (D127) : l'IP et le navigateur, repliés ; l'e-mail de l'acteur n'est jamais affiché. -->
       <details class="entree-detail">
-        <summary>Provenance</summary>
+        <summary :aria-label="`Provenance de l’entrée n° ${entree.id}`">Provenance</summary>
         <dl>
           <dt>Adresse IP</dt>
           <dd>{{ entree.ip_address || AUCUNE_VALEUR }}</dd>
