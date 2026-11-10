@@ -41,6 +41,22 @@ function compterSeancesAVenir(seances) {
 }
 
 /**
+ * Nombre de leçons d'une réponse de `GET /lessons`, ou `null` s'il n'est pas mesuré.
+ *
+ * Réponse paginée (`last_page` présent) : SEUL le `total` fait foi. La page (une leçon,
+ * `per_page: 1`) et `last_page` (qui vaut 1 même pour 0 leçon) ne sont pas des totaux.
+ * Liste plate : sa taille. Refus : non mesuré.
+ */
+function lessonsTotal(response) {
+  if (!response?.success) return null
+  if (response.data?.last_page != null) {
+    const total = response.data.total
+    return typeof total === 'number' && Number.isFinite(total) ? total : null
+  }
+  return extractList(response).length
+}
+
+/**
  * Interroge les quatre sources et n'en tire QUE des compteurs mesurés.
  *
  * Quatre sources : le dashboard KLASSCI ne porte NI les leçons (entité LMS
@@ -61,7 +77,8 @@ async function mesurerCompteurs() {
   const resultats = await Promise.allSettled([
     klassciService.getTeacherDashboard(),
     lmsService.getMyTeachingSeances(),
-    mesLecons ? lessonService.getLessons(mesLecons) : Promise.reject(new Error('identité inconnue')),
+    // Une page d'un élément suffit : le compteur est le TOTAL que le serveur annonce.
+    mesLecons ? lessonService.getLessons({ ...mesLecons, per_page: 1 }) : Promise.reject(new Error('identité inconnue')),
     klassciService.getClasses()
   ])
   const [dashboardIssue, seancesIssue, lessonsIssue, referentielIssue] = resultats
@@ -81,7 +98,7 @@ async function mesurerCompteurs() {
   // Les leçons ont leur propre source : elles restent mesurables même quand le
   // dashboard tombe, et inversement.
   const lecons = firstDashboardNumber(dashboard, ['nb_lecons', 'total_lessons'])
-    ?? (lessonsIssue.status === 'fulfilled' ? extractList(lessonsIssue.value).length : null)
+    ?? (lessonsIssue.status === 'fulfilled' ? lessonsTotal(lessonsIssue.value) : null)
 
   return {
     classes: dashboardRepondu

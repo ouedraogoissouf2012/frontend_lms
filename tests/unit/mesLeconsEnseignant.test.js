@@ -23,7 +23,8 @@ vi.mock('@/services/cache', () => ({
 }))
 
 const h = vi.hoisted(() => ({ getLessons: vi.fn(), matieres: vi.fn(), user: { value: null } }))
-vi.mock('@/services/lesson', () => ({ default: { getLessons: (...a) => h.getLessons(...a) } }))
+// L'écran demande la liste COMPLÈTE (getAllLessons, toutes les pages) : même espion.
+vi.mock('@/services/lesson', () => ({ default: { getAllLessons: (...a) => h.getLessons(...a) } }))
 vi.mock('@/services/teacherReferentials', () => ({ fetchTeacherMatieres: (...a) => h.matieres(...a) }))
 vi.mock('@/stores/auth', () => ({ useAuthStore: () => ({ get currentUser() { return h.user.value } }) }))
 

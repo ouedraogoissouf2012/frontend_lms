@@ -11,7 +11,7 @@ vi.mock('@/stores/auth', () => ({ useAuthStore: () => ({ currentUser: { id: 42, 
 
 const getLessons = vi.fn().mockResolvedValue({ success: true, data: { data: [] } })
 const getMatieres = vi.fn().mockResolvedValue([])
-vi.mock('@/services/lesson', () => ({ default: { getLessons: (...a) => getLessons(...a) } }))
+vi.mock('@/services/lesson', () => ({ default: { getAllLessons: (...a) => getLessons(...a) } }))
 vi.mock('@/services/klassci', () => ({ klassciService: { getMatieres: (...a) => getMatieres(...a) } }))
 vi.mock('@/services/cache', () => ({ readCache: () => null, writeCache: vi.fn() }))
 
