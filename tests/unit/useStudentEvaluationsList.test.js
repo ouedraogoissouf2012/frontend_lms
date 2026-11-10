@@ -116,3 +116,14 @@ describe('useStudentEvaluationsList — Réessayer seulement sur une panne passa
     expect(u.canRetry.value).toBe(true)
   })
 })
+
+describe('useStudentEvaluationsList — canRetry suit le dernier chargement', () => {
+  it('refus, puis rechargement réussi : Réessayer revient', async () => {
+    apiGet.mockRejectedValue(refusDefinitif())
+    const u = await setup()
+    expect(u.canRetry.value).toBe(false)
+    apiGet.mockResolvedValue({ success: true, data: EVALS })
+    await u.loadEvaluations()
+    expect(u.canRetry.value).toBe(true)
+  })
+})

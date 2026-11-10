@@ -421,3 +421,29 @@ describe('useSeanceDetails — le motif d’un refus est dit, Réessayer seuleme
     expect(u.error.value).not.toContain(PIEGE_SERVEUR)
   })
 })
+
+// Revue de #517 : les transitions réelles, sur la MÊME instance (canRetry démarre vrai : un test isolé
+// « panne → vrai » ne prouvait rien).
+describe('useSeanceDetails — canRetry suit le dernier chargement', () => {
+  it('refus, puis rechargement réussi : le bouton revient ; refus puis panne : il revient aussi', async () => {
+    getSeanceDetails.mockRejectedValue(refusDefinitif())
+    const u = await setup()
+    expect(u.canRetry.value).toBe(false)
+    getSeanceDetails.mockRejectedValue(pannePassagere())
+    await u.loadSeanceDetails()
+    expect(u.canRetry.value).toBe(true)
+    getSeanceDetails.mockRejectedValue(refusDefinitif())
+    await u.loadSeanceDetails()
+    getSeanceDetails.mockResolvedValue({ success: true, data: { seance: { id: 42 }, visio: null, participants: null } })
+    await u.loadSeanceDetails()
+    expect(u.canRetry.value).toBe(true)
+    expect(u.error.value).toBeNull()
+  })
+
+  it('séance non trouvée (réponse sans succès) : pas de Réessayer', async () => {
+    getSeanceDetails.mockResolvedValue({ success: false, data: {} })
+    const u = await setup()
+    expect(u.error.value).toBe('Séance non trouvée')
+    expect(u.canRetry.value).toBe(false)
+  })
+})

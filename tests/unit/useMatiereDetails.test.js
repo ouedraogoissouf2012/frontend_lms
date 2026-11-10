@@ -130,3 +130,21 @@ describe('useMatiereDetails — le motif d’un refus est dit, jamais le texte d
     expect(api.error.value).toBe('Impossible de charger les détails de la matière')
   })
 })
+
+describe('useMatiereDetails — canRetry suit le dernier chargement', () => {
+  it('refus, puis panne au rechargement : Réessayer revient', async () => {
+    getMatiereDetails.mockRejectedValue(refusDefinitif())
+    const { api } = await setup('1')
+    expect(api.canRetry.value).toBe(false)
+    getMatiereDetails.mockRejectedValue(pannePassagere())
+    await api.loadMatiereDetails()
+    expect(api.canRetry.value).toBe(true)
+  })
+
+  it('réponse « success: false » (2xx) : pas une panne, pas de Réessayer ; son motif connu est dit', async () => {
+    getMatiereDetails.mockResolvedValue({ success: false, message: PIEGE_SERVEUR, reason: 'enrolment_not_active' })
+    const { api } = await setup('1')
+    expect(api.canRetry.value).toBe(false)
+    expect(api.error.value).toBe("Votre inscription dans cette classe n'est pas active. Adressez-vous à votre établissement.")
+  })
+})

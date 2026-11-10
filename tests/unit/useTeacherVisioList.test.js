@@ -229,3 +229,24 @@ describe('useTeacherVisioList — le motif d’un refus est dit, Réessayer seul
     expect(v.canRetry.value).toBe(true)
   })
 })
+
+describe('useTeacherVisioList — canRetry suit le dernier chargement ; une action dit son motif', () => {
+  it('refus, puis panne au rechargement : Réessayer revient', async () => {
+    getMyTeachingSeances.mockRejectedValue(refusDefinitif())
+    let api
+    mount(defineComponent({ setup() { api = useTeacherVisioList(); return () => null } }))
+    await flushPromises()
+    expect(api.canRetry.value).toBe(false)
+    getMyTeachingSeances.mockRejectedValue(pannePassagere())
+    await api.loadVisioConferences()
+    expect(api.canRetry.value).toBe(true)
+  })
+
+  it('démarrage de la visio refusé : le motif, et pas de Réessayer (il ne relancerait que la liste)', async () => {
+    const u = await setup([makeSeance()])
+    startVisio.mockRejectedValueOnce(refusDefinitif())
+    await u.handleStartVisio({ id: 42 })
+    expect(u.error.value).toBe(MOTIF_JETON)
+    expect(u.canRetry.value).toBe(false)
+  })
+})

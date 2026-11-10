@@ -124,3 +124,25 @@ describe('useTeacherSeances — le motif d’un refus est dit, Réessayer seulem
     expect(u.canRetry.value).toBe(true)
   })
 })
+
+describe('useTeacherSeances — canRetry suit le dernier chargement ; une action dit son motif', () => {
+  it('refus, puis panne au rechargement : Réessayer revient', async () => {
+    getMyTeachingSeances.mockRejectedValue(refusDefinitif())
+    const u = await setup()
+    expect(u.canRetry.value).toBe(false)
+    getMyTeachingSeances.mockRejectedValue(pannePassagere())
+    await u.loadSeances()
+    expect(u.canRetry.value).toBe(true)
+  })
+
+  // Revue de #517 : une action en échec écrivait un texte générique dans `error`, avec un Réessayer
+  // hérité qui ne relance que la LISTE (bouton mort).
+  it('activation de la visio refusée : le motif, et pas de Réessayer (il ne relancerait que la liste)', async () => {
+    getMyTeachingSeances.mockResolvedValue({ data: sampleSeances })
+    const u = await setup()
+    activateVisio.mockRejectedValue(refusDefinitif())
+    await u.handleActivateVisio({ id: 2 })
+    expect(u.error.value).toBe(MOTIF_JETON)
+    expect(u.canRetry.value).toBe(false)
+  })
+})

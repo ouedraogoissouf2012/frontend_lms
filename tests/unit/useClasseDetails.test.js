@@ -195,3 +195,20 @@ describe('useClasseDetails — le motif d’un refus est dit, jamais le texte du
     expect(api.error.value).toBe('Impossible de charger les détails de la classe')
   })
 })
+
+describe('useClasseDetails — canRetry suit le dernier chargement', () => {
+  it('refus, puis panne au rechargement : Réessayer revient', async () => {
+    getClasseDetails.mockRejectedValue(refusDefinitif())
+    const { api } = await setup('5')
+    expect(api.canRetry.value).toBe(false)
+    getClasseDetails.mockRejectedValue(pannePassagere())
+    await api.loadClasseDetails()
+    expect(api.canRetry.value).toBe(true)
+  })
+
+  it('réponse « success: false » (2xx) : pas une panne, pas de Réessayer', async () => {
+    getClasseDetails.mockResolvedValue({ success: false, message: PIEGE_SERVEUR })
+    const { api } = await setup('5')
+    expect(api.canRetry.value).toBe(false)
+  })
+})
