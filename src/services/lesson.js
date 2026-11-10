@@ -192,6 +192,10 @@ const lessonService = {
     }
   },
 
+  getStatusBadge(status) {
+    return { class: '', text: status }
+  },
+
   /**
    * Obtenir le badge de progression
    * @param {Number} percentage - 0-100
