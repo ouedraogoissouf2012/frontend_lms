@@ -8,6 +8,7 @@
     <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
       <p class="text-red-900 font-medium">{{ error }}</p>
       <button
+        v-if="canRetry"
         @click="loadSeanceDetails"
         class="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition"
       >
@@ -108,7 +109,7 @@ import SeanceDetailsVisio from '@/components/seances/SeanceDetailsVisio.vue'
 import { useSeanceDetails } from '@/composables/useSeanceDetails'
 
 const {
-  loading, error, seance, visio, participants, roomActive, joiningVisio,
+  loading, error, canRetry, seance, visio, participants, roomActive, joiningVisio,
   recordingActionLoading, recordingPolling,
   isTeacher, isStudent, canManageRecording, recordingProviderEnabled,
   loadSeanceDetails, startVisio, joinVisio, startRecording, stopRecording, hideSeance,

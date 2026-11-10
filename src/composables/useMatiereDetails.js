@@ -5,6 +5,9 @@ import { auth } from '@/services/api'
 import { useConfirm } from '@/composables/useConfirm'
 import { createEmptyLesson, buildLessonPayload, resolveEvaluationRoute } from '@/utils/matiereDetails'
 import { hasRole, ROLES } from '@/constants/roles'
+import { messageForReason } from '@/services/errorHandler'
+import { displayMessage } from '@/services/displayMessage'
+import { estPannePassagere } from '@/utils/pannePassagere'
 
 /**
  * Couche données/logique de MatiereDetails (#H9 ≤300). Charge le détail matière
@@ -19,6 +22,9 @@ export function useMatiereDetails() {
 
   const loading = ref(false)
   const error = ref(null)
+  // Un nouvel essai seulement sur une panne passagère (5xx, 429, réseau) : un refus définitif ne se
+  // lève pas en réessayant (lot « retour honnête », 10/11).
+  const canRetry = ref(true)
   const activeTab = ref('lessons')
   const viewMode = ref('grid') // 'grid' ou 'list'
   const matiere = ref(null)
@@ -91,14 +97,16 @@ export function useMatiereDetails() {
       } else {
         console.error('[MatiereDetails] Response success = false ou undefined')
         console.error('[MatiereDetails] Full response:', JSON.stringify(data, null, 2))
-        error.value = data?.message || 'Impossible de charger les détails de la matière'
+        // Réponse hors intercepteur : son motif traduit, jamais son `message` (D0).
+        error.value = messageForReason(data?.reason) ?? 'Impossible de charger les détails de la matière'
       }
     } catch (err) {
       console.error('[MatiereDetails] Erreur chargement matière:', err)
       console.error('[MatiereDetails] Error message:', err.message)
       console.error('[MatiereDetails] Error response:', err.response)
       console.error('[MatiereDetails] Error response data:', err.response?.data)
-      error.value = err.response?.data?.message || 'Erreur lors du chargement des données'
+      error.value = displayMessage(err, 'Erreur lors du chargement des données')
+      canRetry.value = estPannePassagere(err)
     } finally {
       loading.value = false
     }
@@ -154,7 +162,7 @@ export function useMatiereDetails() {
       }
     } catch (err) {
       console.error('[MatiereDetails] Erreur création leçon:', err)
-      showNotification('Erreur lors de la création: ' + (err.response?.data?.message || err.message), 'error')
+      showNotification('Erreur lors de la création : ' + displayMessage(err, 'réessayez.'), 'error')
     } finally {
       creatingLesson.value = false
     }
@@ -178,7 +186,7 @@ export function useMatiereDetails() {
       }
     } catch (err) {
       console.error('[MatiereDetails] Erreur deleteLesson:', err)
-      showNotification('Erreur lors de la suppression: ' + (err.response?.data?.message || err.message), 'error')
+      showNotification('Erreur lors de la suppression : ' + displayMessage(err, 'réessayez.'), 'error')
     }
   }
 
@@ -191,7 +199,7 @@ export function useMatiereDetails() {
       }
     } catch (err) {
       console.error('[MatiereDetails] Erreur publishLesson:', err)
-      showNotification('Erreur lors de la publication: ' + (err.response?.data?.message || err.message), 'error')
+      showNotification('Erreur lors de la publication : ' + displayMessage(err, 'réessayez.'), 'error')
     }
   }
 
@@ -204,7 +212,7 @@ export function useMatiereDetails() {
       }
     } catch (err) {
       console.error('[MatiereDetails] Erreur unpublishLesson:', err)
-      showNotification('Erreur lors de la dépublication: ' + (err.response?.data?.message || err.message), 'error')
+      showNotification('Erreur lors de la dépublication : ' + displayMessage(err, 'réessayez.'), 'error')
     }
   }
 
@@ -235,7 +243,7 @@ export function useMatiereDetails() {
       }
     } catch (err) {
       console.error('[MatiereDetails] Erreur masquage séance:', err)
-      showNotification('Erreur lors du masquage: ' + (err.response?.data?.message || err.message), 'error')
+      showNotification('Erreur lors du masquage : ' + displayMessage(err, 'réessayez.'), 'error')
     }
   }
 
@@ -263,7 +271,7 @@ export function useMatiereDetails() {
   })
 
   return {
-    loading, error, activeTab, viewMode, matiere, lessons, seances, evaluations,
+    loading, error, canRetry, activeTab, viewMode, matiere, lessons, seances, evaluations,
     classes, statistiques, showCreateLessonModal, creatingLesson, newLesson,
     notifications, matiereId, tabs, canManageVisio, isTeacher,
     loadMatiereDetails, viewLesson, createLesson, closeCreateLessonModal,

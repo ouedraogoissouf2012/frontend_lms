@@ -2,6 +2,9 @@ import { ref, computed, onMounted, getCurrentInstance } from 'vue'
 import lmsService from '@/services/lms'
 import { auth } from '@/services/api'
 import { hasRole, ROLES } from '@/constants/roles'
+import { messageForReason } from '@/services/errorHandler'
+import { estPannePassagere } from '@/utils/pannePassagere'
+import { displayMessage } from '@/services/displayMessage'
 
 const asArray = (value) => Array.isArray(value) ? value : []
 
@@ -18,6 +21,9 @@ export function useClasseDetails() {
 
   const loading = ref(false)
   const error = ref(null)
+  // Un nouvel essai seulement sur une panne passagère (5xx, 429, réseau) : un refus définitif ne se
+  // lève pas en réessayant (lot « retour honnête », 10/11).
+  const canRetry = ref(true)
   const activeTab = ref('matieres')
   const classe = ref(null)
   const matieres = ref([])
@@ -127,11 +133,13 @@ export function useClasseDetails() {
         // Charger les séances à venir
         await loadSeances()
       } else {
-        error.value = data?.message || 'Impossible de charger les détails de la classe'
+        // Réponse hors intercepteur : son motif traduit, jamais son `message` (D0).
+        error.value = messageForReason(data?.reason) ?? 'Impossible de charger les détails de la classe'
       }
     } catch (err) {
       console.error('[ClasseDetails] Erreur chargement classe:', err)
-      error.value = err.response?.data?.message || 'Erreur lors du chargement des données'
+      error.value = displayMessage(err, 'Erreur lors du chargement des données')
+      canRetry.value = estPannePassagere(err)
     } finally {
       loading.value = false
     }
@@ -181,7 +189,7 @@ export function useClasseDetails() {
   })
 
   return {
-    loading, error, activeTab, classe, matieres, etudiants, evaluations, rosterVisible,
+    loading, error, canRetry, activeTab, classe, matieres, etudiants, evaluations, rosterVisible,
     emploiTemps, seances, statistiques, classeId, tabs, canManageVisio,
     loadClasseDetails, loadSeances, viewMatiere, viewEvaluation, goBack,
   }

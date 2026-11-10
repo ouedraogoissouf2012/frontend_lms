@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { estPannePassagere } from '@/utils/pannePassagere'
 import { readCacheStale, writeCache } from '@/services/cache'
 
 /**
@@ -41,6 +42,9 @@ export function useCachedResource(name, fetcher, options = {}) {
   const loading = ref(false)
   const revalidating = ref(false)
   const error = ref(null)
+  // Un nouvel essai seulement sur une panne passagère (5xx, 429, réseau) : un refus définitif ne se
+  // lève pas en réessayant (lot « retour honnête », 10/11).
+  const canRetry = ref(true)
   // #315 : mise en cache conditionnelle. Par défaut on met toujours en cache
   // (comportement historique, inchangé pour les consommateurs existants).
   const isCacheable = typeof options.cacheable === 'function' ? options.cacheable : () => true
@@ -59,9 +63,11 @@ export function useCachedResource(name, fetcher, options = {}) {
       data.value = fresh
       if (isCacheable()) writeCache(key, fresh)
       error.value = null
+      canRetry.value = true
     } catch (e) {
       // On CONSERVE la donnée déjà affichée (stale) et on signale l'erreur.
       error.value = e?.userMessage || 'Impossible de charger les données.'
+      canRetry.value = estPannePassagere(e)
       if (typeof options.onError === 'function') options.onError(e)
     } finally {
       revalidating.value = false
@@ -90,5 +96,5 @@ export function useCachedResource(name, fetcher, options = {}) {
     load()
   }
 
-  return { data, loading, revalidating, error, load, refresh: revalidate }
+  return { data, loading, revalidating, error, canRetry, load, refresh: revalidate }
 }

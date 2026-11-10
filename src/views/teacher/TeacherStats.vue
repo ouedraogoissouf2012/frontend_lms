@@ -19,7 +19,7 @@
           <h3 class="error-title">Erreur de chargement</h3>
           <p class="error-message">{{ error }}</p>
         </div>
-        <button @click="loadStats" class="error-retry-btn">
+        <button v-if="canRetry" @click="loadStats" class="error-retry-btn">
           Réessayer
         </button>
       </div>
@@ -61,7 +61,7 @@ import TeacherStatsParClasse from '@/components/teacher/TeacherStatsParClasse.vu
 import TeacherStatsQuickActions from '@/components/teacher/TeacherStatsQuickActions.vue'
 import { useTeacherStats } from '@/composables/useTeacherStats'
 
-const { stats, loading, error, loadStats } = useTeacherStats()
+const { stats, loading, error, canRetry, loadStats } = useTeacherStats()
 </script>
 
 <style scoped>

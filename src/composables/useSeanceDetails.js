@@ -5,6 +5,8 @@ import lmsService from '@/services/lms'
 import { auth } from '@/services/api'
 import { toast } from '@/composables/useToast'
 import { normalizeError, messageForReason } from '@/services/errorHandler'
+import { estPannePassagere } from '@/utils/pannePassagere'
+import { displayMessage } from '@/services/displayMessage'
 import { hasRole, isStudent as roleIsStudent, isTeacher as roleIsTeacher, ROLES } from '@/constants/roles'
 import { isVisioRecordingProviderEnabled } from '@/constants/visio'
 import { useTrackedVisioJoin } from '@/composables/useTrackedVisioJoin'
@@ -28,6 +30,9 @@ export function useSeanceDetails() {
 
   const loading = ref(false)
   const error = ref(null)
+  // Un nouvel essai seulement sur une panne passagère (5xx, 429, réseau) : un refus définitif ne se
+  // lève pas en réessayant (lot « retour honnête », 10/11).
+  const canRetry = ref(true)
   const seance = ref(null)
   const visio = ref(null)
   const participants = ref({
@@ -101,7 +106,9 @@ export function useSeanceDetails() {
       }
     } catch (err) {
       console.error('fa-times-circle Erreur chargement séance:', err)
-      error.value = 'Erreur lors du chargement de la séance'
+      // Le motif du refus (ex. 401 `klassci_token_missing`, lot 3d), jamais un texte générique qui le cache.
+      error.value = displayMessage(err, 'Erreur lors du chargement de la séance')
+      canRetry.value = estPannePassagere(err)
     } finally {
       loading.value = false
     }
@@ -226,7 +233,7 @@ export function useSeanceDetails() {
   })
 
   return {
-    loading, error, seance, visio, participants, roomActive, joiningVisio,
+    loading, error, canRetry, seance, visio, participants, roomActive, joiningVisio,
     recordingActionLoading, recordingPolling,
     seanceId, user, isTeacher, isStudent, canManageRecording, recordingProviderEnabled,
     loadSeanceDetails, startVisio, joinVisio,

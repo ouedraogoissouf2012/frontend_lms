@@ -14,6 +14,7 @@
     <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
       <p class="text-red-900 font-medium">{{ error }}</p>
       <button
+        v-if="canRetry"
         @click="loadMatiereDetails"
         class="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition"
       >
@@ -127,7 +128,7 @@ import MatiereClassesTab from '@/components/matieres/MatiereClassesTab.vue'
 import { useMatiereDetails } from '@/composables/useMatiereDetails'
 
 const {
-  loading, error, activeTab, viewMode, matiere, lessons, seances, evaluations,
+  loading, error, canRetry, activeTab, viewMode, matiere, lessons, seances, evaluations,
   classes, statistiques, showCreateLessonModal, creatingLesson, newLesson, notifications,
   tabs, isTeacher,
   loadMatiereDetails, viewLesson, createLesson, closeCreateLessonModal, submitCreateLesson,
