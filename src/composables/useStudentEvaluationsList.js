@@ -64,7 +64,6 @@ export function useStudentEvaluationsList() {
   async function loadEvaluations() {
     loading.value = true
     error.value = null
-    canRetry.value = true
 
     try {
       const response = await api.get(endpoints.evaluations.student)

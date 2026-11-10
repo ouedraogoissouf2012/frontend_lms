@@ -69,7 +69,6 @@ export function useSeanceDetails() {
   async function loadSeanceDetails() {
     loading.value = true
     error.value = null
-    canRetry.value = true
 
     try {
       console.log('fa-calendar Chargement détails séance:', seanceId.value)
