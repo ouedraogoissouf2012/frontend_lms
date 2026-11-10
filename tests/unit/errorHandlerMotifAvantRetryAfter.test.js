@@ -35,6 +35,25 @@ describe('normalizeError : un motif connu avant Retry-After', () => {
     expect(n.userMessage).toBe('Service KLASSCI temporairement indisponible. Réessayez dans 2 minutes.')
   })
 
+  it('délai de plus de 24 h : « Réessayez plus tard », jamais « dans un instant »', () => {
+    const n = normalizeError(reponse(503, { reason: 'evaluation_window_unverifiable' }, { 'retry-after': '86401' }))
+    expect(n.userMessage).toBe('La disponibilité de cette évaluation ne peut pas être vérifiée pour le moment. Réessayez plus tard.')
+  })
+
+  // frontend_lms#426 : en production (front et API cross-origin, `exposed_headers: []`), le navigateur
+  // ne laisse pas lire Retry-After : la panne KLASSCI s'affichait « erreur serveur ». Elle se classe
+  // désormais par le `reason` du corps ; l'en-tête ne sert plus qu'à dire le délai.
+  it('#426 : 503 `klassci_unavailable` SANS en-tête lisible (production) → KLASSCI indisponible, « dans un instant »', () => {
+    const n = normalizeError(reponse(503, { message: PIEGE, reason: 'klassci_unavailable' }))
+    expect(n.category).toBe('klassciUnavailable')
+    expect(n.userMessage).toBe('Service KLASSCI temporairement indisponible. Réessayez dans un instant.')
+  })
+
+  it('#426 : 503 `klassci_unavailable` avec en-tête lisible → le délai est dit', () => {
+    const n = normalizeError(reponse(503, { reason: 'klassci_unavailable' }, { 'retry-after': '30' }))
+    expect(n.userMessage).toBe('Service KLASSCI temporairement indisponible. Réessayez dans 30 secondes.')
+  })
+
   it('503 sans Retry-After ni motif : « server », inchangé', () => {
     expect(normalizeError(reponse(503, {})).category).toBe('server')
   })
