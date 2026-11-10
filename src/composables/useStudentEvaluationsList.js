@@ -1,14 +1,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import evaluationService from '@/services/evaluation'
 import api, { auth } from '@/services/api'
 import { isExpired } from '@/utils/studentEvaluationStatus'
-import { toast } from '@/composables/useToast'
 import { endpoints } from '@/services/endpoints'
-import { normalizeError, messageForReason } from '@/services/errorHandler'
-import { displayMessage } from '@/services/displayMessage'
-
-const DEMARRAGE_IMPOSSIBLE = 'Impossible de démarrer l’évaluation.'
+import { normalizeError } from '@/services/errorHandler'
+import { useStartEvaluation } from '@/composables/useStartEvaluation'
 
 /**
  * Couche données de StudentEvaluationsList (H2 ≤300) : charge les évaluations de
@@ -18,6 +14,8 @@ const DEMARRAGE_IMPOSSIBLE = 'Impossible de démarrer l’évaluation.'
  */
 export function useStudentEvaluationsList() {
   const router = useRouter()
+  // La seule porte de démarrage, partagée avec le calendrier (revue de #514).
+  const { startEvaluation } = useStartEvaluation()
 
   const evaluations = ref([])
   const loading = ref(false)
@@ -84,31 +82,6 @@ export function useStudentEvaluationsList() {
       error.value = err.userMessage ?? normalizeError(err).userMessage
     } finally {
       loading.value = false
-    }
-  }
-
-  async function startEvaluation(evaluation) {
-    if (!user.value) return
-
-    try {
-      const result = await evaluationService.startEvaluation(evaluation.id, user.value.klassci_id)
-      if (result.success) {
-        const query = { submission_id: result.data.id }
-        if (result.is_practice) query.practice = '1'
-        router.push({
-          name: 'TakeEvaluation',
-          params: { id: evaluation.id },
-          query
-        })
-      } else {
-        // Réponse hors intercepteur : son `reason` traduit, jamais son `message` (D0).
-        toast.error(messageForReason(result.reason) ?? DEMARRAGE_IMPOSSIBLE)
-      }
-    } catch (err) {
-      console.error('Erreur démarrage évaluation:', err)
-      // Le motif du refus (#1011 : fenêtre fermée, tentatives, reprise, hors ligne), jamais le
-      // texte du serveur (D0).
-      toast.error(displayMessage(err, DEMARRAGE_IMPOSSIBLE))
     }
   }
 
