@@ -22,7 +22,9 @@ vi.mock('@/services/lesson', () => ({
     unpublishLesson: vi.fn()
   }
 }))
-vi.mock('@/services/api', () => ({ auth: { getUser: () => ({ id: 1, role: 'enseignant' }) } }))
+const porte = vi.hoisted(() => ({ ouvrirEvaluation: vi.fn(), role: { valeur: 'enseignant' } }))
+vi.mock('@/services/api', () => ({ auth: { getUser: () => ({ id: 1, role: porte.role.valeur }) } }))
+vi.mock('@/composables/useStartEvaluation', () => ({ useStartEvaluation: () => ({ ouvrirEvaluation: porte.ouvrirEvaluation }) }))
 
 import { useMatiereDetails } from '@/composables/useMatiereDetails'
 
@@ -91,5 +93,21 @@ describe('useMatiereDetails (#H9)', () => {
     getMatiereDetails.mockResolvedValue({ success: false, message: 'KO' })
     const { api } = await setup('1')
     expect(api.error.value).toBe('KO')
+  })
+})
+
+// Revue de #515 : la page d'une matière était une 3e entrée vers la page de passage, sans /start.
+describe('useMatiereDetails — l’élève ouvre une évaluation par la porte unique', () => {
+  it('viewEvaluation : la porte reçoit l’évaluation en ligne ; aucune route poussée', async () => {
+    porte.role.valeur = 'etudiant'
+    porte.ouvrirEvaluation.mockReset()
+    try {
+      const { api, push } = await setup()
+      api.viewEvaluation({ online_version: { id: 100 }, student_submission: null })
+      expect(porte.ouvrirEvaluation).toHaveBeenCalledWith({ id: 100, student_submission: null })
+      expect(push).not.toHaveBeenCalled()
+    } finally {
+      porte.role.valeur = 'enseignant'
+    }
   })
 })
