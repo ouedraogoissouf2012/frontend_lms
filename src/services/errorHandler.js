@@ -46,6 +46,9 @@ const REASON_CATEGORIES = Object.freeze({
   evaluation_retake_forbidden: 'evaluationRetakeForbidden',
   evaluation_offline_only: 'evaluationOfflineOnly',
   evaluation_window_unverifiable: 'evaluationWindowUnverifiable',
+  // frontend_lms#426 : la panne KLASSCI se classe par son motif (le 503 canonique le porte), pas par
+  // l'en-tête Retry-After, que le navigateur cache en cross-origin (`exposed_headers: []`).
+  klassci_unavailable: 'klassciUnavailable',
 })
 
 /**
@@ -69,7 +72,7 @@ const DANS_UN_INSTANT = 'Réessayez dans un instant.'
 function avecDelai(category, message, error) {
   if (!CATEGORIES_A_DELAI.has(category) || !message?.endsWith(DANS_UN_INSTANT)) return message
   const delai = libelleDelai(error.response?.headers?.['retry-after'])
-  return `${message.slice(0, -DANS_UN_INSTANT.length)}Réessayez dans ${delai}.`
+  return `${message.slice(0, -DANS_UN_INSTANT.length)}Réessayez ${delai}.`
 }
 
 /** Catégorie d'erreur depuis le code HTTP. */
@@ -135,8 +138,9 @@ export function normalizeError(error) {
     const category = REASON_CATEGORIES[reason]
     return { category, userMessage: avecDelai(category, ERROR_MESSAGES[category], error), fieldErrors: null }
   }
-  // Repli, sans motif connu : le 503 KLASSCI porte TOUJOURS un en-tête Retry-After
-  // (RendersKlassciProxyErrors), c'est le marqueur distinctif. Sans lui, un 503 reste « server ».
+  // Repli, sans motif connu, pour un serveur qui ne pose pas encore `klassci_unavailable` (#426) : le
+  // 503 KLASSCI porte un en-tête Retry-After (RendersKlassciProxyErrors). Invisible en cross-origin,
+  // ce repli ne vaut qu'en même origine. Sans lui, un 503 reste « server ».
   if (status === 503 && error.response?.headers?.['retry-after'] != null) {
     return { category: 'klassciUnavailable', userMessage: avecDelai('klassciUnavailable', ERROR_MESSAGES.klassciUnavailable, error), fieldErrors: null }
   }

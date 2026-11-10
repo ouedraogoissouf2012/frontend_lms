@@ -1,22 +1,29 @@
 /**
- * Le délai d'un nouvel essai, dit à un élève à partir de l'en-tête `Retry-After` (décision de la
- * superviseure : pas de « N s »). Seule la forme « nombre de secondes » est lue ; la forme date HTTP,
- * une valeur absente ou hors bornes (1 à 3600 s) rend « un instant ».
- * À partir de 60 s, le délai s'arrondit à la minute SUPÉRIEURE : l'élève ne réessaie pas trop tôt.
+ * Le délai d'un nouvel essai, dit à un élève à partir de l'en-tête `Retry-After` (décisions de la
+ * superviseure : pas de « N s »). Seule la forme « nombre de secondes » est lue.
+ * - moins d'une minute : « dans 30 secondes » ;
+ * - de 60 s à 60 min : la minute SUPÉRIEURE (« dans 2 minutes ») ;
+ * - au-delà de 60 min : l'heure SUPÉRIEURE (« dans 2 heures ») ;
+ * - au-delà de 24 h : « plus tard ».
+ * « Dans un instant » est réservé à un délai absent ou illisible (forme date HTTP, nul, négatif, non
+ * entier) : un long délai ne doit pas pousser à réessayer trop tôt.
  */
 
-export const SANS_DELAI = 'un instant'
+export const SANS_DELAI = 'dans un instant'
+
+const pluriel = (n, mot) => `${n} ${mot}${n > 1 ? 's' : ''}`
 
 /**
  * @param {*} entete valeur de `Retry-After`
- * @returns {string} « 30 secondes », « 2 minutes », ou « un instant »
+ * @returns {string} « dans 30 secondes », « dans 2 heures », « plus tard », ou « dans un instant »
  */
 export function libelleDelai(entete) {
   const brut = entete == null ? '' : String(entete).trim()
   if (!/^\d+$/.test(brut)) return SANS_DELAI
   const secondes = Number(brut)
-  if (secondes < 1 || secondes > 3600) return SANS_DELAI
-  if (secondes < 60) return secondes === 1 ? '1 seconde' : `${secondes} secondes`
-  const minutes = Math.ceil(secondes / 60)
-  return minutes === 1 ? '1 minute' : `${minutes} minutes`
+  if (secondes < 1) return SANS_DELAI
+  if (secondes < 60) return `dans ${pluriel(secondes, 'seconde')}`
+  if (secondes <= 3600) return `dans ${pluriel(Math.ceil(secondes / 60), 'minute')}`
+  if (secondes <= 86400) return `dans ${pluriel(Math.ceil(secondes / 3600), 'heure')}`
+  return 'plus tard'
 }
