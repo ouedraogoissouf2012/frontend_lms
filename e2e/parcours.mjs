@@ -33,9 +33,9 @@ const BRUT = [
   /\[object Object\]/,
   /Request failed with status code/,
   // v3 : un nom de classe d'icône écrit en texte (« fa-book » sur /dashboard, constat du run v2).
-  /fa-[a-z0-9]+(?:-[a-z0-9]+)*/,
+  /\bfa-[a-z0-9]+(?:-[a-z0-9]+)*\b/,
   // v3 : un statut anglais brut à l'écran d'une interface française (« published » sur /dashboard).
-  /(?:published|draft|archived)/,
+  /\b(?:published|draft|archived)\b/,
 ]
 
 const ID_FICTIF = '999999'
