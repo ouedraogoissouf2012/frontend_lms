@@ -1,14 +1,16 @@
 import { confirmDialog } from '@/services/confirmDialog'
 import { toast } from '@/composables/useToast'
-import { normalizeError } from '@/services/errorHandler'
+import { displayMessage } from '@/services/displayMessage'
 
+/**
+ * Le message d'un toast de visio : le SENS, jamais un texte venu d'ailleurs (D0).
+ * - une erreur de l'intercepteur porte déjà `userMessage` (son `reason` traduit) ;
+ * - une erreur HTTP sans `userMessage` : la catégorie de `normalizeError` (statut ou `reason`) ;
+ * - toute autre erreur (le fournisseur de visio rejette avec `service_unavailable`…) : le repli
+ *   rédigé par l'appelant. Ni `response.data.message`, ni `error.message` ne sont affichés.
+ */
 function messageFrom(error, fallback) {
-  if (!error) return fallback
-  return error.userMessage ||
-    error.response?.data?.message ||
-    error.message ||
-    normalizeError(error).userMessage ||
-    fallback
+  return displayMessage(error, fallback)
 }
 
 export function notifyVisioSuccess(message) {

@@ -30,7 +30,7 @@
         <div class="class-footer">
           <div class="class-capacity">
             <AcademicCapIcon class="w-4 h-4" />
-            <span>{{ classe.places_occupees || 0 }}/{{ classe.places_totales || 0 }}</span>
+            <span>{{ formatCount(measureClassStudentCount(classe)) }}/{{ formatCount(measureClassCapacity(classe)) }}</span>
           </div>
           <span v-if="classe.is_active" class="active-badge">
             Active
@@ -60,6 +60,9 @@ import {
   AcademicCapIcon,
   BuildingLibraryIcon
 } from '@heroicons/vue/24/outline'
+import { formatCount } from '@/utils/formatters'
+// Classes brutes de KLASSCI : on MESURE la charge utile, « — » quand elle ne dit rien.
+import { measureClassCapacity, measureClassStudentCount } from '@/utils/classMeasures'
 
 const props = defineProps({
   classes: { type: Array, default: () => [] },

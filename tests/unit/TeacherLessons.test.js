@@ -6,10 +6,12 @@ import { shallowMount, flushPromises } from '@vue/test-utils'
 import { describe, it, expect, vi } from 'vitest'
 
 vi.mock('vue-router', () => ({ useRouter: () => ({ push: vi.fn() }) }))
+// « Mes leçons » est la liste de l'enseignant CONNECTÉ (D72) : il faut une identité.
+vi.mock('@/stores/auth', () => ({ useAuthStore: () => ({ currentUser: { id: 42, role: 'enseignant' } }) }))
 
 const getLessons = vi.fn().mockResolvedValue({ success: true, data: { data: [] } })
 const getMatieres = vi.fn().mockResolvedValue([])
-vi.mock('@/services/lesson', () => ({ default: { getLessons: (...a) => getLessons(...a) } }))
+vi.mock('@/services/lesson', () => ({ default: { getAllLessons: (...a) => getLessons(...a) } }))
 vi.mock('@/services/klassci', () => ({ klassciService: { getMatieres: (...a) => getMatieres(...a) } }))
 vi.mock('@/services/cache', () => ({ readCache: () => null, writeCache: vi.fn() }))
 

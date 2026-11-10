@@ -53,16 +53,19 @@ const props = defineProps({
   dashboardData: { type: Object, required: true }
 })
 
-/** Compteur animé (arrondi) pour un getter numérique. */
-function counter(getter) {
-  const { value } = useCountUp(getter)
-  return computed(() => Math.round(value.value))
+/**
+ * Compteur animé de la taille d'une liste, ou « — » si la liste n'a pas été MESURÉE
+ * (`null` : source refusée ou jamais demandée). Une liste vide obtenue vaut 0.
+ */
+function counter(getList) {
+  const { value } = useCountUp(() => (Array.isArray(getList()) ? getList().length : 0))
+  return computed(() => (Array.isArray(getList()) ? Math.round(value.value) : '—'))
 }
 
-const nbMatieres = counter(() => Number(props.dashboardData?.matieres?.length) || 0)
-const nbClasses = counter(() => Number(props.dashboardData?.classes?.length) || 0)
-const nbEvaluations = counter(() => Number(props.dashboardData?.evaluations?.length) || 0)
-const nbSeances = counter(() => Number(props.dashboardData?.seances?.length) || 0)
+const nbMatieres = counter(() => props.dashboardData?.matieres)
+const nbClasses = counter(() => props.dashboardData?.classes)
+const nbEvaluations = counter(() => props.dashboardData?.evaluations)
+const nbSeances = counter(() => props.dashboardData?.seances)
 </script>
 
 <style scoped>

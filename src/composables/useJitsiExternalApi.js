@@ -1,4 +1,5 @@
 import { jitsiExternalApiSrc } from '@/constants/visio'
+import { userError } from '@/utils/userError'
 
 export const JITSI_API_LOAD_FAILED_MESSAGE =
   "Le module de visioconférence n'a pas pu être chargé. Vérifiez votre connexion, puis réessayez."
@@ -41,14 +42,14 @@ export function loadJitsiExternalApi() {
       // Script servi mais constructeur absent : serveur Jitsi mal configuré, ou
       // page d'erreur renvoyee avec un code 200. Ne pas laisser passer.
       pending = null
-      reject(new Error(JITSI_API_LOAD_FAILED_MESSAGE))
+      reject(userError(JITSI_API_LOAD_FAILED_MESSAGE))
     })
 
     script.addEventListener('error', () => {
       // Une promesse rejetee memoisee condamnerait toute tentative ulterieure,
       // y compris apres retour du reseau.
       pending = null
-      reject(new Error(JITSI_API_LOAD_FAILED_MESSAGE))
+      reject(userError(JITSI_API_LOAD_FAILED_MESSAGE))
     })
 
     document.head.appendChild(script)

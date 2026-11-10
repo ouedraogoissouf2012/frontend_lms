@@ -17,7 +17,7 @@
 
     <div class="lesson-matiere">
       <BookOpenIcon class="w-4 h-4" />
-      <span>{{ getMatiereLabel(lesson.matiere_id) }}</span>
+      <span>{{ getLessonMatiereLabel(lesson, matieres) }}</span>
     </div>
 
     <div class="lesson-meta">
@@ -42,10 +42,12 @@
 
 <script setup>
 import { formatDateLong } from '@/utils/formatters'
+import { getLessonMatiereLabel } from '@/utils/matieres'
 /**
  * Carte d'une leçon enseignant (#H4 ≤300) : icône type, statut, titre, matière,
  * méta (date/vues) et action « Voir les chapitres » (emit `view`). Présentationnel ;
- * libellé matière résolu via la prop `matieres`, helpers statut/date locaux (parité).
+ * libellé matière : celle que porte la leçon, puis la prop `matieres` (getLessonMatiereLabel) ;
+ * helpers statut/date locaux (parité).
  */
 import {
   BookOpenIcon,
@@ -57,7 +59,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import { lessonStatusLabel } from '@/utils/lessonStatus'
 
-const props = defineProps({
+defineProps({
   lesson: { type: Object, required: true },
   matieres: { type: Array, default: () => [] }
 })
@@ -71,11 +73,6 @@ function getStatusClass(status) {
     archived: 'status-archived'
   }
   return classes[status] || 'status-draft'
-}
-
-function getMatiereLabel(matiereId) {
-  const matiere = props.matieres.find(m => m.id == matiereId)
-  return matiere ? (matiere.name || matiere.nom) : 'Matière inconnue'
 }
 
 // #283 : délègue au formatter canonique (repli local conservé).

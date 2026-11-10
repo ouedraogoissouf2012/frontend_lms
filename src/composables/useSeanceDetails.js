@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import lmsService from '@/services/lms'
 import { auth } from '@/services/api'
 import { toast } from '@/composables/useToast'
-import { normalizeError } from '@/services/errorHandler'
+import { normalizeError, messageForReason } from '@/services/errorHandler'
 import { hasRole, isStudent as roleIsStudent, isTeacher as roleIsTeacher, ROLES } from '@/constants/roles'
 import { isVisioRecordingProviderEnabled } from '@/constants/visio'
 import { useTrackedVisioJoin } from '@/composables/useTrackedVisioJoin'
@@ -122,7 +122,7 @@ export function useSeanceDetails() {
       console.log('fa-check-circle Visio démarrée:', result)
 
       if (!result.success) {
-        notifyVisioError(new Error(result.message || 'Impossible de démarrer la visioconférence'))
+        notifyVisioError(null, messageForReason(result?.reason) ?? 'Impossible de démarrer la visioconférence')
         return
       }
 

@@ -1,3 +1,4 @@
+import { userError } from '@/utils/userError'
 /**
  * Constantes & helpers visioconférence (#24) — domaine Jitsi et profil réseau.
  *
@@ -63,7 +64,7 @@ export const RECORDING_CONFIRMATION_TIMEOUT_MS = VISIO_CONFIG.RECORDING_CONFIRMA
 export function getJitsiDomain() {
   const d = import.meta.env?.VITE_JITSI_DOMAIN
   const domain = d ? String(d).trim() : ''
-  if (!domain) throw new Error(VISIO_DOMAIN_REQUIRED_MESSAGE)
+  if (!domain) throw userError(VISIO_DOMAIN_REQUIRED_MESSAGE)
   return domain
 }
 
@@ -155,7 +156,7 @@ export function getVisioRoomId(source) {
 
 export function requireVisioRoomId(source, message = VISIO_ROOM_REQUIRED_MESSAGE) {
   const roomId = getVisioRoomId(source)
-  if (!roomId) throw new Error(message)
+  if (!roomId) throw userError(message)
   return roomId
 }
 
@@ -255,7 +256,7 @@ export function buildRoomConfigFromResponse(response, options = {}) {
   // Le drapeau ET la valeur doivent tenir : un `available: true` accompagné
   // d'un jeton vide est une incohérence serveur, pas un cas dégradé à absorber.
   const usable = typeof token === 'string' && token.trim() !== ''
-  if (!usable) throw new Error(VISIO_TOKEN_REQUIRED_MESSAGE)
+  if (!usable) throw userError(VISIO_TOKEN_REQUIRED_MESSAGE)
 
   return {
     domain: getJitsiDomain(),

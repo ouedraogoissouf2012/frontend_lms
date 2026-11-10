@@ -120,4 +120,10 @@ describe('cache — scope par institution ET par utilisateur (#230)', () => {
     mockAuth.getUser.mockReturnValue({ id: 2 })
     expect(readCache('b')).toBeNull()
   })
+
+  it('« rafraîchir » les classes vide aussi le cache de /admin/classes (clé v4, revue de #501)', () => {
+    writeCache('admin_classes_v4', 'classes')
+    invalidateEntity('classes')
+    expect(readCache('admin_classes_v4')).toBeNull()
+  })
 })

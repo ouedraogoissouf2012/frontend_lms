@@ -23,6 +23,9 @@ const { klassci, lms, lessons, cache } = vi.hoisted(() => ({
   lessons: { getLessons: vi.fn() },
   cache: { readCacheStale: vi.fn(), writeCache: vi.fn() },
 }))
+// D72 : le compteur de leçons est celui de l'enseignant CONNECTÉ (id LMS, pas klassci_id).
+const auth = vi.hoisted(() => ({ user: null }))
+vi.mock('@/stores/auth', () => ({ useAuthStore: () => ({ get currentUser() { return auth.user } }) }))
 
 vi.mock('@/services/klassci', () => ({ klassciService: klassci }))
 vi.mock('@/services/lms', () => ({ lmsService: lms }))
@@ -48,6 +51,7 @@ async function setup() {
 describe('useTeacherHub (#H11)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    auth.user = { id: 42, klassci_id: 7, role: 'enseignant' }
     cache.readCacheStale.mockReturnValue({ data: null })
     klassci.getClasses.mockResolvedValue([])
     klassci.getMatieres.mockResolvedValue([])
@@ -59,7 +63,7 @@ describe('useTeacherHub (#H11)', () => {
     })
     klassci.getClasseEtudiants.mockResolvedValue([{ id: 1 }, { id: 2 }, { id: 3 }])
     lms.getMyTeachingSeances.mockResolvedValue({ data: [] })
-    lessons.getLessons.mockResolvedValue({ data: [] })
+    lessons.getLessons.mockResolvedValue({ success: true, data: [] })
   })
 
   it('compte classes, matières, leçons et évaluations depuis les services', async () => {
@@ -171,7 +175,7 @@ describe('useTeacherHub (#H11)', () => {
       // Une panne partielle ne doit pas jeter les sources qui ont repondu.
       klassci.getTeacherDashboard.mockRejectedValue(new Error('reseau'))
       klassci.getClasses.mockRejectedValue(new Error('reseau'))
-      lessons.getLessons.mockResolvedValue({ data: [{ id: 1 }, { id: 2 }] })
+      lessons.getLessons.mockResolvedValue({ success: true, data: [{ id: 1 }, { id: 2 }] })
       lms.getMyTeachingSeances.mockResolvedValue({ data: [] })
 
       const h = await setup()
@@ -179,6 +183,48 @@ describe('useTeacherHub (#H11)', () => {
       expect(h.stats.value.lecons).toBe(2)
       expect(h.stats.value.seancesAVenir).toBe(0)
       expect(h.stats.value.classes).toBeNull()
+    })
+  })
+
+  describe('D72 : le compteur de leçons ne compte que celles de l’enseignant', () => {
+    it('demande les leçons de l’enseignant connecté (une page d’un élément : seul le total compte)', async () => {
+      await setup()
+      expect(lessons.getLessons).toHaveBeenCalledWith({ enseignant_id: 42, per_page: 1 })
+    })
+
+    it('le compteur est le TOTAL du serveur, ni la taille de la page ni last_page', async () => {
+      klassci.getTeacherDashboard.mockResolvedValue({ classes: [], matieres: [] })
+      lessons.getLessons.mockResolvedValue({ success: true, data: { data: [{ id: 1 }], current_page: 1, last_page: 35, total: 34 } })
+      const h = await setup()
+      expect(h.stats.value.lecons).toBe(34)
+    })
+
+    it('aucune leçon : 0 (Laravel rend last_page 1 même quand total vaut 0)', async () => {
+      klassci.getTeacherDashboard.mockResolvedValue({ classes: [], matieres: [] })
+      lessons.getLessons.mockResolvedValue({ success: true, data: { data: [], current_page: 1, last_page: 1, total: 0 } })
+      const h = await setup()
+      expect(h.stats.value.lecons).toBe(0)
+    })
+
+    it('réponse paginée sans total, total null ou refus : non mesuré, jamais la taille de la page', async () => {
+      klassci.getTeacherDashboard.mockResolvedValue({ classes: [], matieres: [] })
+      for (const reponse of [
+        { success: true, data: { data: [{ id: 1 }], current_page: 1, last_page: 3 } },
+        { success: true, data: { data: [{ id: 1 }], current_page: 1, last_page: 3, total: null } },
+        { success: false, data: [{ id: 1 }] },
+      ]) {
+        lessons.getLessons.mockResolvedValue(reponse)
+        const h = await setup()
+        expect(h.stats.value.lecons).toBeNull()
+      }
+    })
+
+    it('sans identité, ne compte pas les leçons de l’établissement : non mesuré', async () => {
+      auth.user = null
+      klassci.getTeacherDashboard.mockResolvedValue({ classes: [], matieres: [] })
+      const h = await setup()
+      expect(lessons.getLessons).not.toHaveBeenCalled()
+      expect(h.stats.value.lecons).toBeNull()
     })
   })
 })

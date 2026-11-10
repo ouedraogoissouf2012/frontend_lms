@@ -2,12 +2,13 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { klassciService } from '@/services/klassci'
 import { readCache, writeCache } from '@/services/cache'
-import { getClassCapacity, getClassMatiereCount, getClassStudentCount } from '@/utils/classStats'
+import { measureClassCapacity, measureClassMatiereCountIn, measureClassStudentCount } from '@/utils/classStats'
 import { extractList } from '@/utils/apiList'
 import { toId } from '@/utils/toId'
 import { normalizeError } from '@/services/errorHandler'
 
-const ADMIN_CLASSES_CACHE_KEY = 'admin_classes_v3'
+// v4 : les entrées v3 portaient une capacité inventée (30) et des zéros non mesurés.
+const ADMIN_CLASSES_CACHE_KEY = 'admin_classes_v4'
 const ADMIN_CLASSES_TIMEOUT_MS = 20000
 const ADMIN_CLASSES_METADATA_TIMEOUT_MS = 25000
 
@@ -23,16 +24,17 @@ const normalizeMatieres = (response) => {
   return asObjectArray(response, ['matieres'])
 }
 
-const enrichClassSummary = (classe, matieresList) => {
-  const studentCount = getClassStudentCount(classe)
+// Une valeur absente reste `null` (affichée « — ») : jamais un 0 ni une capacité inventés.
+const enrichClassSummary = (classe, matieresList) => ({
+  ...classe,
+  places_occupees: measureClassStudentCount(classe),
+  places_totales: measureClassCapacity(classe),
+  nb_matieres: measureClassMatiereCountIn(classe, matieresList)
+})
 
-  return {
-    ...classe,
-    places_occupees: studentCount,
-    places_totales: getClassCapacity(classe, studentCount),
-    nb_matieres: getClassMatiereCount(classe, matieresList)
-  }
-}
+// Un total n'est vrai que si CHAQUE classe est mesurée : un total partiel passerait pour le total.
+const sumMeasured = (values) =>
+  values.every(v => v !== null && v !== undefined) ? values.reduce((sum, v) => sum + v, 0) : null
 
 const uniqueObjectsById = (items) => {
   const byId = new Map()
@@ -72,6 +74,8 @@ export function useAdminClasses() {
   const filieres = ref([])
   const niveaux = ref([])
   const matieres = ref([])
+  // Les matières ont-elles été OBTENUES ? Sans elles, leur total n'est pas mesuré (« — »), pas 0.
+  const matieresMesurees = ref(false)
   const loading = ref(false)
   const error = ref(null)
 
@@ -106,8 +110,8 @@ export function useAdminClasses() {
     const list = asObjectArray(classes.value)
     return {
       total: list.length,
-      totalEtudiants: list.reduce((sum, c) => sum + (c.places_occupees || 0), 0),
-      totalMatieres: asObjectArray(matieres.value).length,
+      totalEtudiants: sumMeasured(list.map(c => c.places_occupees)),
+      totalMatieres: matieresMesurees.value ? asObjectArray(matieres.value).length : null,
       actives: list.filter(c => c.is_active).length
     }
   })
@@ -121,6 +125,7 @@ export function useAdminClasses() {
       filieres.value = asObjectArray(cached, ['filieres'])
       niveaux.value = asObjectArray(cached, ['niveaux_etude', 'niveaux'])
       matieres.value = asObjectArray(cached, ['matieres'])
+      matieresMesurees.value = cached?.matieres_mesurees === true
       loading.value = false
       refreshInBackground()
       return
@@ -147,7 +152,8 @@ export function useAdminClasses() {
         classes: classes.value,
         filieres: filieres.value,
         niveaux: niveaux.value,
-        matieres: matieres.value
+        matieres: matieres.value,
+        matieres_mesurees: matieresMesurees.value
       })
 
       queueMetadataRefresh(rawClasses)
@@ -175,7 +181,8 @@ export function useAdminClasses() {
         classes: classes.value,
         filieres: filieres.value,
         niveaux: niveaux.value,
-        matieres: matieres.value
+        matieres: matieres.value,
+        matieres_mesurees: matieresMesurees.value
       })
 
       queueMetadataRefresh(rawClasses)
@@ -200,19 +207,22 @@ export function useAdminClasses() {
     const nextMatieres = normalizeMatieres(matieresData)
 
     if (nextMatieres.length > 0) matieres.value = nextMatieres
+    // `optional` rend null sur échec : une réponse, même vide, est une mesure.
+    if (matieresData != null) matieresMesurees.value = true
     filieres.value = deriveFilieres(rawClasses)
     niveaux.value = deriveNiveaux(rawClasses)
 
     classes.value = classes.value.map((classe) => ({
       ...classe,
-      nb_matieres: getClassMatiereCount(classe, matieres.value)
+      nb_matieres: measureClassMatiereCountIn(classe, matieres.value)
     }))
 
     writeCache(ADMIN_CLASSES_CACHE_KEY, {
       classes: classes.value,
       filieres: filieres.value,
       niveaux: niveaux.value,
-      matieres: matieres.value
+      matieres: matieres.value,
+      matieres_mesurees: matieresMesurees.value
     })
   }
 
