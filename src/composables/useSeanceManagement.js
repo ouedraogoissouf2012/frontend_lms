@@ -9,6 +9,7 @@ import { clearCacheByPrefix } from '@/services/cache'
 import { getVisioRoomId } from '@/constants/visio'
 import { useCoordinatorSeances } from '@/composables/useCoordinatorSeances'
 import { confirmVisioAction } from '@/services/visioFeedback'
+import { displayMessage } from '@/services/displayMessage'
 
 /**
  * Couche logique/UI de la vue SeanceManagement (coordinateur) (#H6 ≤300).
@@ -75,7 +76,8 @@ export function useSeanceManagement() {
         // vide TOUTES les variantes `seances_management_d*`, pas une clé fixe.
         clearCacheByPrefix('seances_management')
 
-        toast.success(response.message || 'Visioconférence mise à jour')
+        // Le sens est rédigé par le front, jamais repris du serveur (D0).
+        toast.success('Visioconférence mise à jour')
       } else {
         toast.error('Erreur lors de la mise à jour')
       }
@@ -105,7 +107,7 @@ export function useSeanceManagement() {
       await loadSeances()
     } catch (error) {
       console.error('[ERREUR] Join visio coordinateur:', error)
-      toast.error(error.userMessage ?? error.message ?? normalizeError(error).userMessage)
+      toast.error(displayMessage(error, normalizeError(error).userMessage))
     }
   }
 

@@ -1,4 +1,5 @@
 import { safeUrl } from '@/utils/security/safeUrl'
+import { recordingFailureLabel } from '@/constants/recordingFailureReasons'
 
 export const RECORDING_STATUSES = Object.freeze({
   IDLE: 'idle',
@@ -89,6 +90,10 @@ export function normalizeVisioRecording(visio) {
     hasUrl
   )
 
+  // Le motif ne vient que de `recording.error_message` : le serveur ne sert ni
+  // `failure_reason` ni `recording_error` (SeanceRecording::toRecordingPayload, lms #1002).
+  const failureReason = stringOrNull(recording.error_message)
+
   return {
     status,
     url,
@@ -100,11 +105,8 @@ export function normalizeVisioRecording(visio) {
     isPending: PENDING_STATUSES.has(status),
     isReady: status === RECORDING_STATUSES.READY,
     isFailed: status === RECORDING_STATUSES.FAILED,
-    errorMessage: firstString(
-      recording.error_message,
-      recording.failure_reason,
-      visio?.recording_error
-    ),
+    failureReason,
+    errorMessage: recordingFailureLabel(failureReason),
   }
 }
 
