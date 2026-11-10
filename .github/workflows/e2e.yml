@@ -180,7 +180,8 @@ jobs:
 
       - name: Parcours écran par écran (chromium, sous e2e)
         run: |
-          cp mesure/e2e/parcours.mjs outils/
+          # Le parcours ET ses modules (acces.mjs) : une copie partielle casse ses imports.
+          cp mesure/e2e/*.mjs outils/
           . "$RUNNER_TEMP/en_e2e.sh"
           en_e2e node "$PWD/outils/parcours.mjs" "$PWD/sortie/routes.json" "$PWD/sortie/jeu.json" "$PWD/sortie"
 
