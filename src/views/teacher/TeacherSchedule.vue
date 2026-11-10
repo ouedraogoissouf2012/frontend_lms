@@ -32,6 +32,7 @@ import { lmsService } from '@/services/lms'
 import { useTrackedVisioJoin } from '@/composables/useTrackedVisioJoin'
 import { useScheduleActorId } from '@/composables/useScheduleActorId'
 import { notifyVisioError } from '@/services/visioFeedback'
+import { messageForReason } from '@/services/errorHandler'
 
 const router = useRouter()
 const calendarRef = ref(null)
@@ -68,7 +69,7 @@ async function handleEventAction({ type, data }) {
             await calendarRef.value.refreshEvents()
           }
         } else {
-          notifyVisioError(new Error(result.message || 'Impossible de demarrer la visio'))
+          notifyVisioError(null, messageForReason(result?.reason) ?? 'Impossible de demarrer la visio')
         }
       } catch (error) {
         console.error('[TeacherSchedule] Erreur demarrage visio:', error)

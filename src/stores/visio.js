@@ -1,4 +1,6 @@
 import { defineStore } from 'pinia'
+import { messageForReason } from '@/services/errorHandler'
+import { userError } from '@/utils/userError'
 import { ref } from 'vue'
 import lmsService from '@/services/lms'
 import { useAuthStore } from '@/stores/auth'
@@ -108,8 +110,8 @@ export const useVisioStore = defineStore('visio', () => {
     try {
       const response = await lmsService.joinVisio(seanceId)
 
-      if (!response.success) {
-        throw new Error(response.message || 'Erreur lors de l\'enregistrement de la participation')
+      if (!response?.success) {
+        throw userError(messageForReason(response?.reason) ?? 'Erreur lors de l\'enregistrement de la participation')
       }
 
       // ⚠️ La présence est désormais ÉCRITE. Tout échec au-delà se compense.
@@ -223,7 +225,7 @@ export const useVisioStore = defineStore('visio', () => {
    */
   const commandRoom = (name) => {
     if (!roomCommands) {
-      return Promise.reject(new Error(ROOM_NOT_JOINED_MESSAGE))
+      return Promise.reject(userError(ROOM_NOT_JOINED_MESSAGE))
     }
     return roomCommands[name]()
   }

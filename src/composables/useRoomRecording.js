@@ -113,7 +113,7 @@ export function useRoomRecording({ isRecording, isJoined, startRecording, stopRe
       // Ce code s'execute depuis un gestionnaire d'evenement d'interface : une
       // exception qui remonte casserait la salle en plein cours.
       console.error('[RoomRecording] Ordre non transmis:', error)
-      notifyVisioError(ECHEC)
+      notifyVisioError(null, ECHEC)
     } finally {
       attente.value = null
       enCours.value = false
