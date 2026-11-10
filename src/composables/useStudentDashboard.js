@@ -14,7 +14,7 @@ import { useCachedResource } from '@/composables/useCachedResource'
 export function useStudentDashboard() {
   const user = ref(null)
 
-  const { data: dashboardData, loading, error, load, refresh } = useCachedResource(
+  const { data: dashboardData, loading, error, canRetry, load, refresh } = useCachedResource(
     'student_dashboard',
     () => klassciService.getStudentDashboard(),
     { immediate: false },
@@ -30,5 +30,5 @@ export function useStudentDashboard() {
     loadDashboard()
   })
 
-  return { user, dashboardData, loading, error, loadDashboard }
+  return { user, dashboardData, loading, error, canRetry, loadDashboard }
 }

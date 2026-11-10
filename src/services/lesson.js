@@ -1,6 +1,10 @@
 import api from './api'
 import { formatDuration as fmtDuration } from '../utils/formatters'
 import { endpoints } from './endpoints'
+import { fetchAllPages } from '../utils/fetchAllPages'
+
+// `GET /lessons` est paginé (15 par défaut, `per_page` borné à 100 par FilterLessonsRequest).
+const LESSONS_PAGE_SIZE = 100
 
 /**
  * Service pour la gestion des leçons (Lessons)
@@ -20,6 +24,15 @@ const lessonService = {
       console.error('[LessonService] Erreur getLessons:', error)
       throw error
     }
+  },
+
+  /**
+   * TOUTES les leçons des filtres, page après page (sans pagination, le serveur n'en rend
+   * que 15 : « Mes leçons » était tronqué et ses compteurs faux). Voir fetchAllPages.
+   * @param {Object} params - Filtres (enseignant_id, matiere_id, …), sans pagination
+   */
+  getAllLessons(params = {}) {
+    return fetchAllPages((p) => lessonService.getLessons(p), params, LESSONS_PAGE_SIZE)
   },
 
   /**
@@ -190,36 +203,6 @@ const lessonService = {
       console.error('[LessonService] Erreur rateLesson:', error)
       throw error
     }
-  },
-
-  /**
-   * Obtenir le badge de statut
-   * @param {String} status - draft, published, archived
-   * @returns {Object} - { class, text }
-   */
-  getStatusBadge(status) {
-    const badges = {
-      draft: { class: 'bg-gray-200 text-gray-700', text: 'Brouillon' },
-      published: { class: 'bg-green-100 text-green-700', text: 'Publié' },
-      archived: { class: 'bg-orange-100 text-orange-700', text: 'Archivé' }
-    }
-    return badges[status] || badges.draft
-  },
-
-  /**
-   * Obtenir le badge de type
-   * @param {String} type - cours, tp, td, projet, autre
-   * @returns {Object} - { class, text, icon }
-   */
-  getTypeBadge(type) {
-    const badges = {
-      cours: { class: 'bg-blue-100 text-blue-700', text: 'Cours', icon: 'fa-book' },
-      tp: { class: 'bg-purple-100 text-purple-700', text: 'TP', icon: 'fa-laptop' },
-      td: { class: 'bg-indigo-100 text-indigo-700', text: 'TD', icon: 'fa-pencil' },
-      projet: { class: 'bg-pink-100 text-pink-700', text: 'Projet', icon: 'fa-rocket' },
-      autre: { class: 'bg-gray-100 text-gray-700', text: 'Autre', icon: 'fa-file-text-o' }
-    }
-    return badges[type] || badges.cours
   },
 
   /**

@@ -5,6 +5,10 @@ import { auth } from '@/services/api'
 import { useConfirm } from '@/composables/useConfirm'
 import { createEmptyLesson, buildLessonPayload, resolveEvaluationRoute } from '@/utils/matiereDetails'
 import { hasRole, ROLES } from '@/constants/roles'
+import { messageForReason } from '@/services/errorHandler'
+import { displayMessage } from '@/services/displayMessage'
+import { estPannePassagere } from '@/utils/pannePassagere'
+import { useStartEvaluation } from '@/composables/useStartEvaluation'
 
 /**
  * Couche données/logique de MatiereDetails (#H9 ≤300). Charge le détail matière
@@ -16,9 +20,14 @@ import { hasRole, ROLES } from '@/constants/roles'
  */
 export function useMatiereDetails() {
   const inst = getCurrentInstance()
+  // L'élève ouvre une évaluation par la porte unique (revue de #515).
+  const { ouvrirEvaluation } = useStartEvaluation()
 
   const loading = ref(false)
   const error = ref(null)
+  // Un nouvel essai seulement sur une panne passagère (5xx, 429, réseau) : un refus définitif ne se
+  // lève pas en réessayant (lot « retour honnête », 10/11).
+  const canRetry = ref(true)
   const activeTab = ref('lessons')
   const viewMode = ref('grid') // 'grid' ou 'list'
   const matiere = ref(null)
@@ -60,6 +69,7 @@ export function useMatiereDetails() {
   async function loadMatiereDetails() {
     loading.value = true
     error.value = null
+    canRetry.value = true
 
     try {
       console.log('[MatiereDetails] Chargement détails matière:', matiereId.value)
@@ -91,14 +101,18 @@ export function useMatiereDetails() {
       } else {
         console.error('[MatiereDetails] Response success = false ou undefined')
         console.error('[MatiereDetails] Full response:', JSON.stringify(data, null, 2))
-        error.value = data?.message || 'Impossible de charger les détails de la matière'
+        // Réponse hors intercepteur : son motif traduit, jamais son `message` (D0).
+        error.value = messageForReason(data?.reason) ?? 'Impossible de charger les détails de la matière'
+        // Une réponse 2xx sans succès n'est pas une panne passagère.
+        canRetry.value = false
       }
     } catch (err) {
       console.error('[MatiereDetails] Erreur chargement matière:', err)
       console.error('[MatiereDetails] Error message:', err.message)
       console.error('[MatiereDetails] Error response:', err.response)
       console.error('[MatiereDetails] Error response data:', err.response?.data)
-      error.value = err.response?.data?.message || 'Erreur lors du chargement des données'
+      error.value = displayMessage(err, 'Erreur lors du chargement des données')
+      canRetry.value = estPannePassagere(err)
     } finally {
       loading.value = false
     }
@@ -123,7 +137,7 @@ export function useMatiereDetails() {
   async function submitCreateLesson() {
     // Validation
     if (!newLesson.value.title || newLesson.value.title.trim() === '') {
-      showNotification('fa-exclamation-triangle️ Le titre de la leçon est obligatoire', 'warning')
+      showNotification('Le titre de la leçon est obligatoire', 'warning')
       return
     }
 
@@ -154,7 +168,7 @@ export function useMatiereDetails() {
       }
     } catch (err) {
       console.error('[MatiereDetails] Erreur création leçon:', err)
-      showNotification('Erreur lors de la création: ' + (err.response?.data?.message || err.message), 'error')
+      showNotification('Erreur lors de la création : ' + displayMessage(err, 'réessayez.'), 'error')
     } finally {
       creatingLesson.value = false
     }
@@ -173,12 +187,12 @@ export function useMatiereDetails() {
     try {
       const response = await lessonService.deleteLesson(lessonId)
       if (response.success) {
-        showNotification('fa-check Leçon supprimée avec succès', 'success')
+        showNotification('Leçon supprimée avec succès', 'success')
         loadMatiereDetails()
       }
     } catch (err) {
       console.error('[MatiereDetails] Erreur deleteLesson:', err)
-      showNotification('Erreur lors de la suppression: ' + (err.response?.data?.message || err.message), 'error')
+      showNotification('Erreur lors de la suppression : ' + displayMessage(err, 'réessayez.'), 'error')
     }
   }
 
@@ -186,12 +200,12 @@ export function useMatiereDetails() {
     try {
       const response = await lessonService.publishLesson(lessonId)
       if (response.success) {
-        showNotification('fa-check Leçon publiée avec succès ! Elle est maintenant visible par les étudiants.', 'success')
+        showNotification('Leçon publiée avec succès ! Elle est maintenant visible par les étudiants.', 'success')
         loadMatiereDetails()
       }
     } catch (err) {
       console.error('[MatiereDetails] Erreur publishLesson:', err)
-      showNotification('Erreur lors de la publication: ' + (err.response?.data?.message || err.message), 'error')
+      showNotification('Erreur lors de la publication : ' + displayMessage(err, 'réessayez.'), 'error')
     }
   }
 
@@ -199,12 +213,12 @@ export function useMatiereDetails() {
     try {
       const response = await lessonService.unpublishLesson(lessonId)
       if (response.success) {
-        showNotification('fa-check Leçon dépubliée avec succès ! Elle est maintenant en mode brouillon.', 'success')
+        showNotification('Leçon dépubliée avec succès ! Elle est maintenant en mode brouillon.', 'success')
         loadMatiereDetails()
       }
     } catch (err) {
       console.error('[MatiereDetails] Erreur unpublishLesson:', err)
-      showNotification('Erreur lors de la dépublication: ' + (err.response?.data?.message || err.message), 'error')
+      showNotification('Erreur lors de la dépublication : ' + displayMessage(err, 'réessayez.'), 'error')
     }
   }
 
@@ -229,13 +243,13 @@ export function useMatiereDetails() {
       const response = await lmsService.hideSeance(seanceId)
 
       if (response.success) {
-        showNotification('fa-check Séance masquée avec succès', 'success')
+        showNotification('Séance masquée avec succès', 'success')
         // Recharger les données pour voir la séance disparaître
         await loadMatiereDetails()
       }
     } catch (err) {
       console.error('[MatiereDetails] Erreur masquage séance:', err)
-      showNotification('Erreur lors du masquage: ' + (err.response?.data?.message || err.message), 'error')
+      showNotification('Erreur lors du masquage : ' + displayMessage(err, 'réessayez.'), 'error')
     }
   }
 
@@ -244,7 +258,10 @@ export function useMatiereDetails() {
     const role = auth.getUser()?.role
     const action = resolveEvaluationRoute(evaluation, { role, matiereId: matiereId.value })
 
-    if (action.route) {
+    if (action.ouvrir) {
+      // L'élève : la porte unique (reprise, résultats, ou démarrage par le serveur).
+      ouvrirEvaluation(action.ouvrir)
+    } else if (action.route) {
       inst.proxy.$router.push(action.route)
     } else {
       showNotification(action.notify.message, action.notify.level)
@@ -263,7 +280,7 @@ export function useMatiereDetails() {
   })
 
   return {
-    loading, error, activeTab, viewMode, matiere, lessons, seances, evaluations,
+    loading, error, canRetry, activeTab, viewMode, matiere, lessons, seances, evaluations,
     classes, statistiques, showCreateLessonModal, creatingLesson, newLesson,
     notifications, matiereId, tabs, canManageVisio, isTeacher,
     loadMatiereDetails, viewLesson, createLesson, closeCreateLessonModal,

@@ -8,6 +8,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const push = vi.fn()
 vi.mock('vue-router', () => ({ useRouter: () => ({ push }) }))
+// « Mes leçons » est la liste de l'enseignant CONNECTÉ (D72) : il faut une identité.
+vi.mock('@/stores/auth', () => ({ useAuthStore: () => ({ currentUser: { id: 42, role: 'enseignant' } }) }))
 
 let cacheStore = {}
 vi.mock('@/services/cache', () => ({
@@ -28,7 +30,7 @@ const h = vi.hoisted(() => ({
 
 vi.mock('@/services/lesson', () => ({
   default: {
-    getLessons: (...a) => h.getLessons(...a)
+    getAllLessons: (...a) => h.getLessons(...a)
   }
 }))
 vi.mock('@/services/klassci', () => ({

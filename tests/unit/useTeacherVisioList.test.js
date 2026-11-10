@@ -187,4 +187,66 @@ describe('useTeacherVisioList (#G1)', () => {
     expect(u.formatTime(null)).toBe('N/A')
     expect(u.formatTime('08:30:00')).toBe('08:30')
   })
+
+  it('rejoindre échoue hors HTTP : le repli du front, jamais le message technique (revue de #506)', async () => {
+    joinTrackedVisio.mockRejectedValueOnce(new TypeError("Cannot read properties of undefined (reading 'success')"))
+    const v = await setup([])
+    await v.handleJoinVisio({ id: 1 })
+    expect(v.error.value).toBe('Erreur lors de la connexion à la visio')
+  })
+})
+
+// Lot « retour honnête » (instruction des rouges du 10/11) : erreurs telles que l'intercepteur les rend.
+// Le 401 `klassci_token_missing` est un refus DÉFINITIF (lot 3d, école autonome) ; le 500 une panne.
+const PIEGE_SERVEUR = 'Texte serveur, jamais affiché'
+const refusDefinitif = () => Object.assign(new Error('HTTP 401'), {
+  response: { status: 401, data: { success: false, message: PIEGE_SERVEUR, reason: 'klassci_token_missing' } },
+  userMessage: "Aucun accès KLASSCI n'est enregistré pour ce compte : les données qui en proviennent ne peuvent pas être affichées.",
+})
+const pannePassagere = () => Object.assign(new Error('HTTP 500'), {
+  response: { status: 500, data: { message: PIEGE_SERVEUR } },
+  userMessage: 'Une erreur est survenue côté serveur. Veuillez réessayer plus tard.',
+})
+const MOTIF_JETON = "Aucun accès KLASSCI n'est enregistré pour ce compte : les données qui en proviennent ne peuvent pas être affichées."
+
+describe('useTeacherVisioList — le motif d’un refus est dit, Réessayer seulement sur une panne', () => {
+  async function monterEnEchec(erreur) {
+    getMyTeachingSeances.mockRejectedValue(erreur)
+    let api
+    mount(defineComponent({ setup() { api = useTeacherVisioList(); return () => null } }))
+    await flushPromises()
+    return api
+  }
+
+  it('refus définitif (401 jeton KLASSCI) : le motif ; pas de Réessayer', async () => {
+    const v = await monterEnEchec(refusDefinitif())
+    expect(v.error.value).toBe(MOTIF_JETON)
+    expect(v.canRetry.value).toBe(false)
+  })
+
+  it('panne passagère (500) : Réessayer reste offert', async () => {
+    const v = await monterEnEchec(pannePassagere())
+    expect(v.canRetry.value).toBe(true)
+  })
+})
+
+describe('useTeacherVisioList — canRetry suit le dernier chargement ; une action dit son motif', () => {
+  it('refus, puis panne au rechargement : Réessayer revient', async () => {
+    getMyTeachingSeances.mockRejectedValue(refusDefinitif())
+    let api
+    mount(defineComponent({ setup() { api = useTeacherVisioList(); return () => null } }))
+    await flushPromises()
+    expect(api.canRetry.value).toBe(false)
+    getMyTeachingSeances.mockRejectedValue(pannePassagere())
+    await api.loadVisioConferences()
+    expect(api.canRetry.value).toBe(true)
+  })
+
+  it('démarrage de la visio refusé : le motif, et pas de Réessayer (il ne relancerait que la liste)', async () => {
+    const u = await setup([makeSeance()])
+    startVisio.mockRejectedValueOnce(refusDefinitif())
+    await u.handleStartVisio({ id: 42 })
+    expect(u.error.value).toBe(MOTIF_JETON)
+    expect(u.canRetry.value).toBe(false)
+  })
 })

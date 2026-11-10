@@ -13,7 +13,7 @@
         <i class="fa fa-user stat-icon"></i>
         <span class="stat-label">Total Étudiants</span>
       </div>
-      <p class="stat-value">{{ stats.totalEtudiants }}</p>
+      <p class="stat-value">{{ formatCount(stats.totalEtudiants) }}</p>
     </div>
 
     <div class="stat-card border-l-orange">
@@ -21,7 +21,7 @@
         <span class="stat-icon">☷</span>
         <span class="stat-label">Total Matières</span>
       </div>
-      <p class="stat-value">{{ stats.totalMatieres }}</p>
+      <p class="stat-value">{{ formatCount(stats.totalMatieres) }}</p>
     </div>
 
     <div class="stat-card border-l-purple">
@@ -39,6 +39,8 @@
  * Cartes de statistiques d'AdminClasses (#G1 ≤300). Présentation pure : reçoit
  * l'objet stats (total / totalEtudiants / totalMatieres / actives) et l'affiche.
  */
+import { formatCount } from '@/utils/formatters'
+
 defineProps({
   stats: {
     type: Object,

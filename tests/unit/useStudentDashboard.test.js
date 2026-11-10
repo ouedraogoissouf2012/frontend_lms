@@ -82,3 +82,26 @@ describe('useStudentDashboard (#G1)', () => {
     expect(d.loading.value).toBe(false)
   })
 })
+
+// Lot « retour honnête » (instruction des rouges du 10/11) : erreurs telles que l'intercepteur les rend.
+// Le 401 `klassci_token_missing` est un refus DÉFINITIF (lot 3d, école autonome) ; le 500 une panne.
+const PIEGE_SERVEUR = 'Texte serveur, jamais affiché'
+const refusDefinitif = () => Object.assign(new Error('HTTP 401'), {
+  response: { status: 401, data: { success: false, message: PIEGE_SERVEUR, reason: 'klassci_token_missing' } },
+  userMessage: "Aucun accès KLASSCI n'est enregistré pour ce compte : les données qui en proviennent ne peuvent pas être affichées.",
+})
+const pannePassagere = () => Object.assign(new Error('HTTP 500'), {
+  response: { status: 500, data: { message: PIEGE_SERVEUR } },
+  userMessage: 'Une erreur est survenue côté serveur. Veuillez réessayer plus tard.',
+})
+const MOTIF_JETON = "Aucun accès KLASSCI n'est enregistré pour ce compte : les données qui en proviennent ne peuvent pas être affichées."
+
+describe('useStudentDashboard — Réessayer seulement sur une panne passagère', () => {
+  it('refus définitif (401 jeton KLASSCI) : le motif ; pas de Réessayer', async () => {
+    h.readCacheStale.mockReturnValue({ data: null, fresh: false })
+    h.getStudentDashboard.mockRejectedValue(refusDefinitif())
+    const d = await setup()
+    expect(d.error.value).toBe(MOTIF_JETON)
+    expect(d.canRetry.value).toBe(false)
+  })
+})

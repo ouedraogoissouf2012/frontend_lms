@@ -31,9 +31,18 @@ export const ERROR_MESSAGES = Object.freeze({
   // (RendersKlassciProxyErrors) — messages actionnables (sans quoi les dashboards
   // KLASSCI restaient muets après expiration du token ou indisponibilité).
   klassciExpired: 'Votre session KLASSCI a expiré. Reconnectez-vous à KLASSCI pour actualiser ces données.',
-  klassciUnavailable: 'Service KLASSCI temporairement indisponible. Veuillez réessayer dans quelques instants.',
+  // Fin « Réessayez dans un instant. » : errorHandler la remplace par le délai de Retry-After.
+  klassciUnavailable: 'Service KLASSCI temporairement indisponible. Réessayez dans un instant.',
   // #420 : constat, sans consigne de reconnexion — se reconnecter ne pose aucun accès.
   klassciTokenMissing: "Aucun accès KLASSCI n'est enregistré pour ce compte : les données qui en proviennent ne peuvent pas être affichées.",
+  // lms_backend #1011 : refus de démarrage d'une évaluation. `offline_only` ne suppose pas le mode :
+  // le serveur dit seulement « is_online=false, pas de passage LMS » (EvaluationAttemptStateService).
+  evaluationWindowClosed: 'Cette évaluation n’est pas ouverte en ce moment.',
+  evaluationMaxAttempts: 'Vous avez utilisé toutes vos tentatives pour cette évaluation.',
+  evaluationRetakeForbidden: 'Cette évaluation ne peut pas être reprise.',
+  evaluationOfflineOnly: 'Cette évaluation ne se passe pas en ligne.',
+  // lms_backend #1019 : 503 + Retry-After, KLASSCI ne rend pas la fenêtre de l'évaluation.
+  evaluationWindowUnverifiable: 'La disponibilité de cette évaluation ne peut pas être vérifiée pour le moment. Réessayez dans un instant.',
   // #391, ADR-906-01 : motifs de refus des portes d'inscription par code.
   // 409 : l'adhésion existe mais n'est pas active (élève suspendu) : une décision de
   // l'établissement (StudentEnrolmentService), pas un code périmé. Régénérer le code
@@ -53,6 +62,8 @@ export const ERROR_MESSAGES = Object.freeze({
   // formateur ne peut pas la rattacher depuis l'écran : seul l'établissement le peut.
   visioNoClasse: "Cette séance n'est rattachée à aucune classe : la visioconférence n'est pas accessible. Adressez-vous à votre établissement.",
   visioNotEnabled: "La visioconférence n'est pas activée pour cette séance.",
+  visioNotStarted: "La visioconférence n'a pas encore commencé. Attendez que l'enseignant la démarre.",
+  visioEnded: 'La visioconférence est terminée.',
   visioTeacherNotOwner: "Vous n'êtes pas l'enseignant de cette séance : vous ne pouvez pas en rejoindre la visioconférence.",
   visioRoleRefused: 'Votre rôle ne permet pas de rejoindre cette visioconférence.',
   // tenant_not_resolved : le COMPTE n'a pas d'établissement ; se reconnecter n'y change rien.

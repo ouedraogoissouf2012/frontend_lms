@@ -10,6 +10,7 @@
  * SRP : ce module NORMALISE et JOURNALISE — il N'AFFICHE rien (aucune dépendance d'affichage).
  */
 import { ERROR_MESSAGES } from '../constants/errorMessages'
+import { libelleDelai } from '../utils/delaiReessai'
 
 /**
  * Motifs de refus (#391, ADR-906-01) : quand un même statut porte plusieurs sens, le
@@ -28,6 +29,9 @@ const REASON_CATEGORIES = Object.freeze({
   not_enrolled: 'visioNotEnrolled',
   no_classe_id: 'visioNoClasse',
   visio_not_enabled: 'visioNotEnabled',
+  // VisioStatusRefusal (serveur) : attendre (`visio_not_started`) ou renoncer (`visio_ended`).
+  visio_not_started: 'visioNotStarted',
+  visio_ended: 'visioEnded',
   teacher_not_owner: 'visioTeacherNotOwner',
   actor_not_authorized: 'visioRoleRefused',
   invalid_role: 'visioRoleRefused',
@@ -36,7 +40,40 @@ const REASON_CATEGORIES = Object.freeze({
   // (compte local, école autonome). Ni une session LMS morte, ni une session KLASSCI
   // expirée : se reconnecter n'y change rien (contrat `KlassciUnauthorized`).
   klassci_token_missing: 'klassciTokenMissing',
+  // lms_backend #1011 : refus de démarrage d'une évaluation (POST /evaluations/{id}/start, 403).
+  evaluation_window_closed: 'evaluationWindowClosed',
+  evaluation_max_attempts: 'evaluationMaxAttempts',
+  evaluation_retake_forbidden: 'evaluationRetakeForbidden',
+  evaluation_offline_only: 'evaluationOfflineOnly',
+  evaluation_window_unverifiable: 'evaluationWindowUnverifiable',
+  // frontend_lms#426 : la panne KLASSCI se classe par son motif (le 503 canonique le porte), pas par
+  // l'en-tête Retry-After, que le navigateur cache en cross-origin (`exposed_headers: []`).
+  klassci_unavailable: 'klassciUnavailable',
 })
+
+/**
+ * Le message du catalogue pour un `reason` du serveur, ou `null` s'il est inconnu. Sert aux
+ * réponses `success: false` qui ne passent pas par l'intercepteur : leur `message` n'est
+ * jamais affiché (D0), seul leur `reason` l'est, traduit.
+ * @param {unknown} reason
+ * @returns {string|null}
+ */
+export function messageForReason(reason) {
+  if (typeof reason !== 'string' || !Object.hasOwn(REASON_CATEGORIES, reason)) return null
+  return ERROR_MESSAGES[REASON_CATEGORIES[reason]] ?? null
+}
+
+// Catégories TRANSITOIRES : leur message finit par « Réessayez dans un instant. », que le délai
+// de Retry-After précise. Un refus définitif ne prend jamais de délai.
+export const CATEGORIES_A_DELAI = Object.freeze(new Set(['klassciUnavailable', 'evaluationWindowUnverifiable']))
+const DANS_UN_INSTANT = 'Réessayez dans un instant.'
+
+/** Le message d'une catégorie transitoire, avec le délai de `Retry-After` s'il est lisible. */
+function avecDelai(category, message, error) {
+  if (!CATEGORIES_A_DELAI.has(category) || !message?.endsWith(DANS_UN_INSTANT)) return message
+  const delai = libelleDelai(error.response?.headers?.['retry-after'])
+  return `${message.slice(0, -DANS_UN_INSTANT.length)}Réessayez ${delai}.`
+}
 
 /** Catégorie d'erreur depuis le code HTTP. */
 function categoryFromStatus(status) {
@@ -94,14 +131,18 @@ export function normalizeError(error) {
   if (reason === 'klassci_session_expired') {
     return { category: 'klassciExpired', userMessage: ERROR_MESSAGES.klassciExpired, fieldErrors: null }
   }
-  // Le 503 KLASSCI porte TOUJOURS un en-tête Retry-After (RendersKlassciProxyErrors) ;
-  // c'est le marqueur distinctif. Un 503 générique (sans Retry-After) reste « server ».
-  if (status === 503 && error.response?.headers?.['retry-after'] != null) {
-    return { category: 'klassciUnavailable', userMessage: ERROR_MESSAGES.klassciUnavailable, fieldErrors: null }
-  }
+  // Un motif CONNU prime sur la règle générique du Retry-After (décision de la superviseure) : un
+  // 503 qui dit son motif (`evaluation_window_unverifiable`, #1019) ne devient pas « KLASSCI
+  // indisponible ».
   if (typeof reason === 'string' && Object.hasOwn(REASON_CATEGORIES, reason)) {
     const category = REASON_CATEGORIES[reason]
-    return { category, userMessage: ERROR_MESSAGES[category], fieldErrors: null }
+    return { category, userMessage: avecDelai(category, ERROR_MESSAGES[category], error), fieldErrors: null }
+  }
+  // Repli, sans motif connu, pour un serveur qui ne pose pas encore `klassci_unavailable` (#426) : le
+  // 503 KLASSCI porte un en-tête Retry-After (RendersKlassciProxyErrors). Invisible en cross-origin,
+  // ce repli ne vaut qu'en même origine. Sans lui, un 503 reste « server ».
+  if (status === 503 && error.response?.headers?.['retry-after'] != null) {
+    return { category: 'klassciUnavailable', userMessage: avecDelai('klassciUnavailable', ERROR_MESSAGES.klassciUnavailable, error), fieldErrors: null }
   }
 
   if (status != null) {

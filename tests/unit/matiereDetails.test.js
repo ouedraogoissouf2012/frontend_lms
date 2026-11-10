@@ -115,15 +115,18 @@ describe('utils/matiereDetails — buildLessonPayload', () => {
 })
 
 describe('utils/matiereDetails — resolveEvaluationRoute', () => {
-  it('étudiant sans soumission → TakeEvaluation', () => {
+  // Revue de #515 (tests renversés, déclarés) : l'élève sans copie partait sur TakeEvaluation SANS
+  // /start (« ID de soumission manquant »), et une copie en cours l'envoyait aux résultats. L'élève
+  // reçoit désormais l'évaluation à OUVRIR par la porte unique (useStartEvaluation.ouvrirEvaluation).
+  it('étudiant sans soumission → l’évaluation en ligne à ouvrir, jamais une route de passage', () => {
     const ev = { online_version: { id: 100 } }
     expect(resolveEvaluationRoute(ev, { role: 'etudiant', matiereId: 3 }))
-      .toEqual({ route: { name: 'TakeEvaluation', params: { id: 100 } } })
+      .toEqual({ ouvrir: { id: 100, student_submission: null } })
   })
-  it('étudiant avec soumission → EvaluationResults', () => {
-    const ev = { has_online: true, lms_id: 55, student_submission: { id: 1 } }
+  it('étudiant avec soumission → l’évaluation à ouvrir, avec sa copie (la porte décide)', () => {
+    const ev = { has_online: true, lms_id: 55, student_submission: { id: 1, status: 'en_cours' } }
     expect(resolveEvaluationRoute(ev, { role: 'etudiant', matiereId: 3 }))
-      .toEqual({ route: { name: 'EvaluationResults', params: { id: 55 } } })
+      .toEqual({ ouvrir: { id: 55, student_submission: { id: 1, status: 'en_cours' } } })
   })
   it('coordinateur → CoordinatorPreviewEvaluation', () => {
     expect(resolveEvaluationRoute({ online_version: { id: 8 } }, { role: 'coordinateur', matiereId: 3 }))

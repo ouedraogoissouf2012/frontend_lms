@@ -5,12 +5,14 @@ import { fetchTeacherMatieres } from '@/services/teacherReferentials'
 import { useAuthStore } from '@/stores/auth'
 import { toast } from '@/composables/useToast'
 import { normalizeError } from '@/services/errorHandler'
+import { estPannePassagere } from '@/utils/pannePassagere'
 import { readCache, writeCache, clearCache } from '@/services/cache'
 import { confirmVisioAction } from '@/services/visioFeedback'
 // #28 : logique métier pure extraite (testée dans tests/unit/seances.test.js)
 import { filterSeances, computeSeancesStats } from '@/utils/seances'
 import { extractList } from '@/utils/apiList'
 import { isTeacher } from '@/constants/roles'
+import { displayMessage } from '@/services/displayMessage'
 
 /**
  * Couche données/logique de la vue TeacherSeances (#H6 ≤300).
@@ -24,6 +26,9 @@ export function useTeacherSeances() {
   const matieres = ref([])
   const loading = ref(true)
   const error = ref(null)
+  // Un nouvel essai seulement sur une panne passagère (5xx, 429, réseau) : un refus définitif ne se
+  // lève pas en réessayant (lot « retour honnête », 10/11).
+  const canRetry = ref(true)
   const actionLoading = ref(null)
 
   const { joinTrackedVisio } = useTrackedVisioJoin('Enseignant')
@@ -60,6 +65,7 @@ export function useTeacherSeances() {
     // Load from API
     loading.value = true
     error.value = null
+    canRetry.value = true
 
     try {
       console.log('[API] Chargement séances enseignant...')
@@ -74,7 +80,8 @@ export function useTeacherSeances() {
       console.log(`[SUCCESS] ${seances.value.length} séance(s) chargée(s)`)
     } catch (err) {
       console.error('[ERREUR] Chargement séances:', err)
-      error.value = 'Impossible de charger les séances. Veuillez réessayer.'
+      error.value = displayMessage(err, 'Impossible de charger les séances.')
+      canRetry.value = estPannePassagere(err)
     } finally {
       loading.value = false
     }
@@ -149,7 +156,9 @@ export function useTeacherSeances() {
       await loadSeances()
     } catch (err) {
       console.error('[ERREUR] Activation visio:', err)
-      error.value = 'Erreur lors de l\'activation de la visio'
+      // Une action en échec : son motif ; Réessayer ne relancerait que la liste, pas l'action.
+      error.value = displayMessage(err, 'Erreur lors de l\'activation de la visio')
+      canRetry.value = false
     } finally {
       actionLoading.value = null
     }
@@ -177,7 +186,9 @@ export function useTeacherSeances() {
       await loadSeances()
     } catch (err) {
       console.error('[ERREUR] Désactivation visio:', err)
-      error.value = 'Erreur lors de la désactivation de la visio'
+      // Une action en échec : son motif ; Réessayer ne relancerait que la liste, pas l'action.
+      error.value = displayMessage(err, 'Erreur lors de la désactivation de la visio')
+      canRetry.value = false
     } finally {
       actionLoading.value = null
     }
@@ -199,7 +210,9 @@ export function useTeacherSeances() {
       await loadSeances()
     } catch (err) {
       console.error('[ERREUR] Démarrage visio:', err)
-      error.value = 'Erreur lors du démarrage de la visio'
+      // Une action en échec : son motif ; Réessayer ne relancerait que la liste, pas l'action.
+      error.value = displayMessage(err, 'Erreur lors du démarrage de la visio')
+      canRetry.value = false
     } finally {
       actionLoading.value = null
     }
@@ -220,7 +233,7 @@ export function useTeacherSeances() {
       loadSeances()
     } catch (error) {
       console.error('[ERREUR] Join visio:', error)
-      toast.error(error.userMessage ?? error.message ?? normalizeError(error).userMessage)
+      toast.error(displayMessage(error, normalizeError(error).userMessage))
     }
   }
 
@@ -247,7 +260,9 @@ export function useTeacherSeances() {
       await loadSeances()
     } catch (err) {
       console.error('[ERREUR] Fin visio:', err)
-      error.value = 'Erreur lors de la terminaison de la visio'
+      // Une action en échec : son motif ; Réessayer ne relancerait que la liste, pas l'action.
+      error.value = displayMessage(err, 'Erreur lors de la terminaison de la visio')
+      canRetry.value = false
     } finally {
       actionLoading.value = null
     }
@@ -261,7 +276,7 @@ export function useTeacherSeances() {
   })
 
   return {
-    seances, matieres, loading, error, actionLoading, isEnseignant,
+    seances, matieres, loading, error, canRetry, actionLoading, isEnseignant,
     filters, filteredSeances, stats,
     loadSeances, applyFilters, resetFilters,
     handleActivateVisio, handleDeactivateVisio, handleStartVisio,

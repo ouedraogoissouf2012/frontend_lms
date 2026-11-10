@@ -22,7 +22,9 @@ vi.mock('@/services/lesson', () => ({
     unpublishLesson: vi.fn()
   }
 }))
-vi.mock('@/services/api', () => ({ auth: { getUser: () => ({ id: 1, role: 'enseignant' }) } }))
+const porte = vi.hoisted(() => ({ ouvrirEvaluation: vi.fn(), role: { valeur: 'enseignant' } }))
+vi.mock('@/services/api', () => ({ auth: { getUser: () => ({ id: 1, role: porte.role.valeur }) } }))
+vi.mock('@/composables/useStartEvaluation', () => ({ useStartEvaluation: () => ({ ouvrirEvaluation: porte.ouvrirEvaluation }) }))
 
 import { useMatiereDetails } from '@/composables/useMatiereDetails'
 
@@ -87,9 +89,80 @@ describe('useMatiereDetails (#H9)', () => {
     expect(push).toHaveBeenCalledWith({ name: 'classe-details-local', params: { id: 7 } })
   })
 
-  it('sur reponse en echec, renseigne error', async () => {
+  // Test renversé (lot « retour honnête », déclaré) : il épinglait le texte du serveur affiché (D0).
+  it('sur reponse en echec, renseigne error — le texte du front, jamais le message du serveur', async () => {
     getMatiereDetails.mockResolvedValue({ success: false, message: 'KO' })
     const { api } = await setup('1')
-    expect(api.error.value).toBe('KO')
+    expect(api.error.value).toBe('Impossible de charger les détails de la matière')
+  })
+})
+
+// Lot « retour honnête » (instruction des rouges du 10/11) : erreurs telles que l'intercepteur les rend.
+// Le 401 `klassci_token_missing` est un refus DÉFINITIF (lot 3d, école autonome) ; le 500 une panne.
+const PIEGE_SERVEUR = 'Texte serveur, jamais affiché'
+const refusDefinitif = () => Object.assign(new Error('HTTP 401'), {
+  response: { status: 401, data: { success: false, message: PIEGE_SERVEUR, reason: 'klassci_token_missing' } },
+  userMessage: "Aucun accès KLASSCI n'est enregistré pour ce compte : les données qui en proviennent ne peuvent pas être affichées.",
+})
+const pannePassagere = () => Object.assign(new Error('HTTP 500'), {
+  response: { status: 500, data: { message: PIEGE_SERVEUR } },
+  userMessage: 'Une erreur est survenue côté serveur. Veuillez réessayer plus tard.',
+})
+const MOTIF_JETON = "Aucun accès KLASSCI n'est enregistré pour ce compte : les données qui en proviennent ne peuvent pas être affichées."
+
+// Le site lisait `err.response.data.message` (D0) : il quitte la liste gelée du cliquet.
+describe('useMatiereDetails — le motif d’un refus est dit, jamais le texte du serveur', () => {
+  it('refus définitif : le motif ; pas de Réessayer ; jamais le texte du serveur', async () => {
+    getMatiereDetails.mockRejectedValue(refusDefinitif())
+    const { api } = await setup('1')
+    expect(api.error.value).toBe(MOTIF_JETON)
+    expect(api.canRetry.value).toBe(false)
+  })
+
+  it('panne passagère : Réessayer reste offert, jamais le texte du serveur', async () => {
+    getMatiereDetails.mockRejectedValue(pannePassagere())
+    const { api } = await setup('1')
+    expect(api.canRetry.value).toBe(true)
+    expect(api.error.value).not.toContain(PIEGE_SERVEUR)
+  })
+
+  it('réponse « success: false » : son motif traduit, sinon le texte du front, jamais son message', async () => {
+    getMatiereDetails.mockResolvedValue({ success: false, message: PIEGE_SERVEUR })
+    const { api } = await setup('1')
+    expect(api.error.value).toBe('Impossible de charger les détails de la matière')
+  })
+})
+
+describe('useMatiereDetails — canRetry suit le dernier chargement', () => {
+  it('refus, puis panne au rechargement : Réessayer revient', async () => {
+    getMatiereDetails.mockRejectedValue(refusDefinitif())
+    const { api } = await setup('1')
+    expect(api.canRetry.value).toBe(false)
+    getMatiereDetails.mockRejectedValue(pannePassagere())
+    await api.loadMatiereDetails()
+    expect(api.canRetry.value).toBe(true)
+  })
+
+  it('réponse « success: false » (2xx) : pas une panne, pas de Réessayer ; son motif connu est dit', async () => {
+    getMatiereDetails.mockResolvedValue({ success: false, message: PIEGE_SERVEUR, reason: 'enrolment_not_active' })
+    const { api } = await setup('1')
+    expect(api.canRetry.value).toBe(false)
+    expect(api.error.value).toBe("Votre inscription dans cette classe n'est pas active. Adressez-vous à votre établissement.")
+  })
+})
+
+// Revue de #515 : la page d'une matière était une 3e entrée vers la page de passage, sans /start.
+describe('useMatiereDetails — l’élève ouvre une évaluation par la porte unique', () => {
+  it('viewEvaluation : la porte reçoit l’évaluation en ligne ; aucune route poussée', async () => {
+    porte.role.valeur = 'etudiant'
+    porte.ouvrirEvaluation.mockReset()
+    try {
+      const { api, push } = await setup()
+      api.viewEvaluation({ online_version: { id: 100 }, student_submission: null })
+      expect(porte.ouvrirEvaluation).toHaveBeenCalledWith({ id: 100, student_submission: null })
+      expect(push).not.toHaveBeenCalled()
+    } finally {
+      porte.role.valeur = 'enseignant'
+    }
   })
 })

@@ -1,9 +1,9 @@
 <template>
   <div class="lesson-badges">
-    <span :class="`badge-${lesson.type}`" class="lesson-badge">
+    <span v-if="typeBadge" :class="`badge-${lesson.type}`" class="lesson-badge">
       <i :class="`fa ${getTypeIcon(lesson.type)}`"></i> {{ typeBadge.text }}
     </span>
-    <span v-if="showStatus" :class="`badge-status-${lesson.status}`" class="lesson-badge">
+    <span v-if="showStatus && statusBadge" :class="`badge-status-${lesson.status}`" class="lesson-badge">
       <i :class="`fa ${getStatusIcon(lesson.status)}`"></i> {{ statusBadge.text }}
     </span>
   </div>

@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { userError } from '@/utils/userError'
 import { loadJitsiExternalApi } from '@/composables/useJitsiExternalApi'
 import {
   RECORDING_CONFIRMATION_TIMEOUT_MS,
@@ -85,9 +86,9 @@ export function useJitsiRoom({
   async function mount({ domain, roomName, jwt, displayName, parentNode, configOverwrite }) {
     // Valider AVANT d'instancier : une iframe créée puis abandonnée laisse une
     // connexion ouverte et un nœud orphelin dans la page.
-    if (!roomName) throw new Error(VISIO_ROOM_REQUIRED_MESSAGE)
-    if (typeof jwt !== 'string' || jwt.trim() === '') throw new Error(VISIO_TOKEN_REQUIRED_MESSAGE)
-    if (!parentNode) throw new Error(ROOM_NOT_MOUNTED_MESSAGE)
+    if (!roomName) throw userError(VISIO_ROOM_REQUIRED_MESSAGE)
+    if (typeof jwt !== 'string' || jwt.trim() === '') throw userError(VISIO_TOKEN_REQUIRED_MESSAGE)
+    if (!parentNode) throw userError(ROOM_NOT_MOUNTED_MESSAGE)
 
     const JitsiMeetExternalAPI = await loadExternalApi()
 
@@ -151,7 +152,7 @@ export function useJitsiRoom({
       }
 
       timer = setTimeout(
-        () => settle(() => reject(new Error(RECORDING_NOT_CONFIRMED_MESSAGE))),
+        () => settle(() => reject(userError(RECORDING_NOT_CONFIRMED_MESSAGE))),
         timeoutMs,
       )
       attach(RECORDING_STATUS_EVENT, onStatus)
@@ -174,13 +175,13 @@ export function useJitsiRoom({
    * fait couper la session par Jicofo.
    */
   function command(name, expectedOn, argument) {
-    if (!api) return Promise.reject(new Error(ROOM_NOT_MOUNTED_MESSAGE))
+    if (!api) return Promise.reject(userError(ROOM_NOT_MOUNTED_MESSAGE))
     // #416 — avant la jonction, Jitsi refuse le DÉMARRAGE dans son propre journal
     // (« Conference is not defined ») sans rien émettre : seul le délai de garde
     // aurait conclu, 120 s plus tard. On refuse donc ici, tout de suite. Ce garde
     // est à la frontière : il couvre le bouton ET les commandes publiées au store.
     // L'ARRÊT n'est jamais bloqué — on n'empêche pas d'interrompre une captation.
-    if (expectedOn && !isJoined.value) return Promise.reject(new Error(ROOM_NOT_JOINED_MESSAGE))
+    if (expectedOn && !isJoined.value) return Promise.reject(userError(ROOM_NOT_JOINED_MESSAGE))
     const confirmed = awaitRecordingState(expectedOn)
     api.executeCommand(name, argument)
     return confirmed

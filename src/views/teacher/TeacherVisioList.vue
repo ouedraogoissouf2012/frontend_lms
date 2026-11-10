@@ -24,7 +24,7 @@
             <p class="error-message">{{ error }}</p>
           </div>
         </div>
-        <button @click="loadVisioConferences" class="btn-retry">
+        <button v-if="canRetry" @click="loadVisioConferences" class="btn-retry">
           <ArrowPathIcon class="w-5 h-5" />
           Réessayer
         </button>
@@ -101,7 +101,7 @@ import {
 } from '@heroicons/vue/24/outline'
 
 const {
-  loading, error, actionLoading,
+  loading, error, canRetry, actionLoading,
   visioEnCours, visioAVenir, stats,
   loadVisioConferences,
   handleActivateVisio, handleStartVisio, handleEndVisio, handleJoinVisio,
