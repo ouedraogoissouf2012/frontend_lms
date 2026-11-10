@@ -76,7 +76,7 @@ export function useAdminAuditLog() {
     }
   }
 
-  const reessayer = () => charger(page.value)
+  const reessayer = () => charger(demandee)
   const pagePrecedente = () => { if (page.value > 1) charger(page.value - 1) }
   const pageSuivante = () => { if (page.value < dernierePage.value) charger(page.value + 1) }
 
