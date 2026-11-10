@@ -22,7 +22,7 @@
           <h3 class="error-title">Erreur de chargement</h3>
           <p class="error-message">{{ error }}</p>
         </div>
-        <button @click="loadDashboard(true)" class="error-retry-btn">
+        <button v-if="canRetry" @click="loadDashboard(true)" class="error-retry-btn">
           Réessayer
         </button>
       </div>
@@ -50,7 +50,7 @@ import { useStudentDashboard } from '@/composables/useStudentDashboard'
 
 defineOptions({ name: 'StudentDashboard' })
 
-const { user, dashboardData, loading, error, loadDashboard } = useStudentDashboard()
+const { user, dashboardData, loading, error, canRetry, loadDashboard } = useStudentDashboard()
 </script>
 
 <style scoped>

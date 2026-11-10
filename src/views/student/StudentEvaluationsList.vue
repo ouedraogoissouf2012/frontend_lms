@@ -19,7 +19,7 @@
           <h3 class="error-title">Erreur de chargement</h3>
           <p class="error-message">{{ error }}</p>
         </div>
-        <button @click="loadEvaluations" class="error-retry-btn">
+        <button v-if="canRetry" @click="loadEvaluations" class="error-retry-btn">
           Réessayer
         </button>
       </div>
@@ -103,7 +103,7 @@ import StudentEvalPracticeCard from '@/components/student/StudentEvalPracticeCar
 import { useStudentEvaluationsList } from '@/composables/useStudentEvaluationsList'
 
 const {
-  evaluations, loading, error,
+  evaluations, loading, error, canRetry,
   evaluationsAFaire, evaluationsTerminees, evaluationsEntrainement,
   loadEvaluations, startEvaluation, continueEvaluation, viewResults,
 } = useStudentEvaluationsList()

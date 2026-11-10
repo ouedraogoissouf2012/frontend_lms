@@ -5,6 +5,7 @@ import { isExpired, copieRendue } from '@/utils/studentEvaluationStatus'
 import { endpoints } from '@/services/endpoints'
 import { normalizeError } from '@/services/errorHandler'
 import { useStartEvaluation } from '@/composables/useStartEvaluation'
+import { estPannePassagere } from '@/utils/pannePassagere'
 
 /**
  * Couche données de StudentEvaluationsList (H2 ≤300) : charge les évaluations de
@@ -20,6 +21,9 @@ export function useStudentEvaluationsList() {
   const evaluations = ref([])
   const loading = ref(false)
   const error = ref(null)
+  // Un nouvel essai seulement sur une panne passagère (5xx, 429, réseau) : un refus définitif ne se
+  // lève pas en réessayant (lot « retour honnête », 10/11).
+  const canRetry = ref(true)
   const user = ref(null)
 
   // Évaluations à faire : fenêtre ouverte ou pas encore commencée, pas de soumission terminée
@@ -56,6 +60,7 @@ export function useStudentEvaluationsList() {
   async function loadEvaluations() {
     loading.value = true
     error.value = null
+    canRetry.value = true
 
     try {
       const response = await api.get(endpoints.evaluations.student)
@@ -75,6 +80,7 @@ export function useStudentEvaluationsList() {
       // `klassci_token_missing` n'est pas une session expirée, et le texte du serveur
       // n'atteint jamais l'écran.
       error.value = err.userMessage ?? normalizeError(err).userMessage
+      canRetry.value = estPannePassagere(err)
     } finally {
       loading.value = false
     }
@@ -97,7 +103,7 @@ export function useStudentEvaluationsList() {
   })
 
   return {
-    evaluations, loading, error, user,
+    evaluations, loading, error, canRetry, user,
     evaluationsAFaire, evaluationsTerminees, evaluationsEntrainement,
     loadEvaluations, startEvaluation, continueEvaluation, viewResults,
   }

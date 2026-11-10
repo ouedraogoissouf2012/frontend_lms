@@ -18,6 +18,7 @@
       <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
         <p class="text-red-900 font-medium">{{ error }}</p>
         <button
+          v-if="canRetry"
           @click="loadClasseDetails"
           class="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition"
         >
@@ -84,7 +85,7 @@ import ClasseUpcomingSeances from '@/components/classes/ClasseUpcomingSeances.vu
 import { useClasseDetails } from '@/composables/useClasseDetails'
 
 const {
-  loading, error, activeTab, classe, matieres, etudiants, evaluations, rosterVisible,
+  loading, error, canRetry, activeTab, classe, matieres, etudiants, evaluations, rosterVisible,
   emploiTemps, seances, tabs,
   loadClasseDetails, loadSeances, viewMatiere, viewEvaluation, goBack,
 } = useClasseDetails()

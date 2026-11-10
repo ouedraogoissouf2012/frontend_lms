@@ -37,7 +37,7 @@ async function compteursLocaux() {
 export function useTeacherStats() {
   // #224 : stale-while-revalidate (useCachedResource) — sert les stats en cache
   // même périmées + revalide en arrière-plan (plus de blocage à l'expiration).
-  const { data: stats, loading, error, load } = useCachedResource(
+  const { data: stats, loading, error, canRetry, load } = useCachedResource(
     'teacher_stats',
     async () => {
       const [klassci, local] = await Promise.all([
@@ -58,5 +58,5 @@ export function useTeacherStats() {
     loadStats()
   })
 
-  return { stats, loading, error, loadStats }
+  return { stats, loading, error, canRetry, loadStats }
 }
