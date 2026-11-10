@@ -141,10 +141,11 @@ describe('useClasseDetails (#H9)', () => {
     expect(getClasseEtudiants).not.toHaveBeenCalled()
   })
 
-  it('sur reponse en echec, renseigne error', async () => {
+  // Test renversé (lot « retour honnête », déclaré) : il épinglait le texte du serveur affiché (D0).
+  it('sur reponse en echec, renseigne error — le texte du front, jamais le message du serveur', async () => {
     getClasseDetails.mockResolvedValue({ success: false, message: 'vide' })
     const { api } = await setup('5')
-    expect(api.error.value).toBe('vide')
+    expect(api.error.value).toBe('Impossible de charger les détails de la classe')
   })
 
   it('viewMatiere / viewEvaluation / goBack pilotent le router', async () => {

@@ -87,10 +87,11 @@ describe('useMatiereDetails (#H9)', () => {
     expect(push).toHaveBeenCalledWith({ name: 'classe-details-local', params: { id: 7 } })
   })
 
-  it('sur reponse en echec, renseigne error', async () => {
+  // Test renversé (lot « retour honnête », déclaré) : il épinglait le texte du serveur affiché (D0).
+  it('sur reponse en echec, renseigne error — le texte du front, jamais le message du serveur', async () => {
     getMatiereDetails.mockResolvedValue({ success: false, message: 'KO' })
     const { api } = await setup('1')
-    expect(api.error.value).toBe('KO')
+    expect(api.error.value).toBe('Impossible de charger les détails de la matière')
   })
 })
 
