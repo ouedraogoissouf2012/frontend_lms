@@ -54,6 +54,8 @@
  * durée, status), actions brouillon (prévisualiser/publier) et sections prérequis/
  * objectifs. Présentationnel ; actions relayées via emit (preview/publish).
  */
+import { lessonStatusLabel } from '@/utils/lessonStatus'
+
 defineProps({
   lesson: { type: Object, required: true },
   isReadOnly: { type: Boolean, default: false },
