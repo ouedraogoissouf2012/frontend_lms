@@ -18,7 +18,9 @@ export const routeurFerme = (routes) => routes.some((r) => r.plateforme === true
  */
 export function ouverte(route, role, ferme) {
   if (route.invite) return null
-  if (role === 'supradmin' && ferme) return route.plateforme === true
+  // Seules les routes AUTHENTIFIÉES lui sont fermées : une route publique (lien d'activation, #409)
+  // ne demande ni session ni rôle, le garde n'y juge rien.
+  if (role === 'supradmin' && ferme && route.authentifie) return route.plateforme === true
   if (route.roles) return route.roles.includes(role)
   return true // authentifié sans restriction de rôle, ou public
 }
@@ -29,4 +31,4 @@ export function sansObjetSansVisite(route, role, ferme) {
 }
 
 /** Routeur fermé : le refus vu d'un écran d'école est SANS OBJET pour le supradmin, pas un vert. */
-export const refusD56 = (route, role, ferme) => ferme && role === 'supradmin' && route.plateforme !== true
+export const refusD56 = (route, role, ferme) => ferme && role === 'supradmin' && route.authentifie && route.plateforme !== true
