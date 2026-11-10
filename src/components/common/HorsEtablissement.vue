@@ -1,9 +1,9 @@
 <template>
   <div data-test="hors-etablissement" class="p-8 text-center text-gray-600 dark:text-gray-300">
-    <p>{{ sujet }} appartient aux établissements, et la plateforme n'en a pas.</p>
+    <p>{{ sujet }} relève d'un établissement. Votre compte gère la plateforme, pas un établissement.</p>
     <p class="mt-2">
-      Votre espace est
-      <router-link :to="espace" class="font-semibold text-primary-600 hover:underline">Institutions</router-link>.
+      Votre espace :
+      <router-link :to="espace.chemin" class="font-semibold text-primary-600 hover:underline">{{ espace.libelle }}</router-link>.
     </p>
   </div>
 </template>
@@ -23,5 +23,8 @@ defineProps({
   sujet: { type: String, required: true },
 })
 
-const espace = getDashboardRoute(ROLES.SUPRADMIN)
+// Le libellé suit la cible : l'espace du supradmin est sa page d'accueil (DASHBOARD_ROUTES).
+const LIBELLES = { '/admin/institutions': 'Institutions' }
+const chemin = getDashboardRoute(ROLES.SUPRADMIN)
+const espace = { chemin, libelle: LIBELLES[chemin] ?? 'votre tableau de bord' }
 </script>
