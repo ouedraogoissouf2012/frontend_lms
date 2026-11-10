@@ -34,6 +34,12 @@ export const ERROR_MESSAGES = Object.freeze({
   klassciUnavailable: 'Service KLASSCI temporairement indisponible. Veuillez réessayer dans quelques instants.',
   // #420 : constat, sans consigne de reconnexion — se reconnecter ne pose aucun accès.
   klassciTokenMissing: "Aucun accès KLASSCI n'est enregistré pour ce compte : les données qui en proviennent ne peuvent pas être affichées.",
+  // lms_backend #1011 : refus de démarrage d'une évaluation. `offline_only` ne suppose pas le mode :
+  // le serveur dit seulement « is_online=false, pas de passage LMS » (EvaluationAttemptStateService).
+  evaluationWindowClosed: 'Cette évaluation n’est pas ouverte en ce moment.',
+  evaluationMaxAttempts: 'Vous avez utilisé toutes vos tentatives pour cette évaluation.',
+  evaluationRetakeForbidden: 'Cette évaluation ne peut pas être reprise.',
+  evaluationOfflineOnly: 'Cette évaluation ne se passe pas en ligne.',
   // #391, ADR-906-01 : motifs de refus des portes d'inscription par code.
   // 409 : l'adhésion existe mais n'est pas active (élève suspendu) : une décision de
   // l'établissement (StudentEnrolmentService), pas un code périmé. Régénérer le code
