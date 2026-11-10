@@ -131,6 +131,9 @@ export function normalizeError(error) {
   // Un motif CONNU prime sur la règle générique du Retry-After (décision de la superviseure) : un
   // 503 qui dit son motif (`evaluation_window_unverifiable`, #1019) ne devient pas « KLASSCI
   // indisponible ».
+  if (status === 503 && error.response?.headers?.['retry-after'] != null && reason !== '__mutation__') {
+    return { category: 'klassciUnavailable', userMessage: avecDelai('klassciUnavailable', ERROR_MESSAGES.klassciUnavailable, error), fieldErrors: null }
+  }
   if (typeof reason === 'string' && Object.hasOwn(REASON_CATEGORIES, reason)) {
     const category = REASON_CATEGORIES[reason]
     return { category, userMessage: avecDelai(category, ERROR_MESSAGES[category], error), fieldErrors: null }
