@@ -130,7 +130,9 @@ export function buildLessonPayload(newLesson, { classes, user, matiereIdLocal })
  * `{ route }` (à pousser) ou `{ notify }` (à signaler). Aucun effet de bord.
  * @param {Object} evaluation
  * @param {{ role:string, matiereId:number }} ctx
- * @returns {{ route?:Object, notify?:{ message:string, level:string } }}
+ * L'élève ne reçoit pas une route mais l'évaluation à OUVRIR (`{ ouvrir }`) : la porte unique
+ * (useStartEvaluation.ouvrirEvaluation) reprend, montre les résultats ou démarre par le serveur.
+ * @returns {{ route?:Object, ouvrir?:Object, notify?:{ message:string, level:string } }}
  */
 export function resolveEvaluationRoute(evaluation, { role, matiereId }) {
   // Évaluation disposant d'une version en ligne (quiz LMS)
@@ -138,9 +140,7 @@ export function resolveEvaluationRoute(evaluation, { role, matiereId }) {
     const lmsId = evaluation.online_version?.id || evaluation.lms_id
 
     if (isStudent(role)) {
-      return evaluation.student_submission
-        ? { route: { name: 'EvaluationResults', params: { id: lmsId } } }
-        : { route: { name: 'TakeEvaluation', params: { id: lmsId } } }
+      return { ouvrir: { id: lmsId, student_submission: evaluation.student_submission ?? null } }
     }
     if (hasRole(role, [ROLES.COORDINATEUR, ROLES.ADMIN])) {
       return { route: { name: 'CoordinatorPreviewEvaluation', params: { id: lmsId } } }
