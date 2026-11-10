@@ -10,7 +10,7 @@
       </template>
       <span v-else>{{ AUCUNE_VALEUR }}</span>
     </td>
-    <td>{{ entree.action }}</td>
+    <td>{{ auditActionLabel(entree.action) }}</td>
     <td>{{ auditElementLabel(entree.auditable_type, entree.auditable_id) }}</td>
     <td>{{ auditEcoleLabel(entree) }}</td>
     <td>
