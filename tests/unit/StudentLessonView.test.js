@@ -35,4 +35,21 @@ describe('StudentLessonView (G5 → #H4) — montage', () => {
     expect(getLesson).toHaveBeenCalledWith(5)
     expect(apiGet).toHaveBeenCalledWith('/lessons/5/chapters')
   })
+
+  it('refus définitif (404) : le message, sans bouton « Réessayer »', async () => {
+    getLesson.mockRejectedValue({ response: { status: 404 } })
+    apiGet.mockResolvedValue({ success: true, data: [] })
+    const w = shallowMount(StudentLessonView)
+    await flushPromises()
+    expect(w.find('.content-error').text()).toContain('Leçon introuvable')
+    expect(w.find('.btn-retry').exists()).toBe(false)
+  })
+
+  it('panne passagère (500) : le bouton « Réessayer » reste là', async () => {
+    getLesson.mockRejectedValue({ response: { status: 500 } })
+    apiGet.mockResolvedValue({ success: true, data: [] })
+    const w = shallowMount(StudentLessonView)
+    await flushPromises()
+    expect(w.find('.btn-retry').exists()).toBe(true)
+  })
 })
