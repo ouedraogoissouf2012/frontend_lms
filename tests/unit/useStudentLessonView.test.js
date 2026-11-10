@@ -139,4 +139,53 @@ describe('useStudentLessonView (#H4)', () => {
     expect(updateProgress.mock.calls[0]).toStrictEqual([5, 50])
     expect(markComplete).not.toHaveBeenCalled()
   })
+
+  // E2E (10/11/2026) : l'élève dont l'inscription est inactive reçoit un 404 sur la leçon, et
+  // l'écran lui offrait « Réessayer » : un refus DÉFINITIF n'est pas une panne passagère.
+  it('403 ou 404 : refus définitif, aucun nouvel essai offert', async () => {
+    for (const status of [403, 404]) {
+      getLesson.mockRejectedValue({ response: { status } })
+      apiGet.mockResolvedValue({ success: true, data: [] })
+      const c = await setup()
+      expect(c.error.value).toBeTruthy()
+      expect(c.canRetry.value).toBe(false)
+    }
+  })
+
+  it('panne passagère (500, réseau) : le nouvel essai reste offert', async () => {
+    for (const erreur of [{ response: { status: 500 } }, new Error('Network Error')]) {
+      getLesson.mockRejectedValue(erreur)
+      apiGet.mockResolvedValue({ success: true, data: [] })
+      const c = await setup()
+      expect(c.error.value).toBe('Impossible de charger le cours. Veuillez réessayer.')
+      expect(c.canRetry.value).toBe(true)
+    }
+  })
+
+  // Revue de #508 : la règle doit AUTORISER les pannes passagères, pas refuser deux statuts.
+  it('tout autre refus (400, 401, 409, 422) : définitif, aucun nouvel essai', async () => {
+    for (const status of [400, 401, 409, 422]) {
+      getLesson.mockRejectedValue({ response: { status } })
+      apiGet.mockResolvedValue({ success: true, data: [] })
+      const c = await setup()
+      expect(c.canRetry.value).toBe(false)
+    }
+  })
+
+  it('trop de requêtes (429) ou délai dépassé (ECONNABORTED) : le nouvel essai reste offert', async () => {
+    for (const erreur of [{ response: { status: 429 } }, Object.assign(new Error('timeout of 30000ms exceeded'), { code: 'ECONNABORTED' })]) {
+      getLesson.mockRejectedValue(erreur)
+      apiGet.mockResolvedValue({ success: true, data: [] })
+      const c = await setup()
+      expect(c.canRetry.value).toBe(true)
+    }
+  })
+
+  it('le motif posé par l’intercepteur (userMessage) est dit, pas un texte deviné du statut', async () => {
+    getLesson.mockRejectedValue({ response: { status: 403, data: { reason: 'no_institution' } }, userMessage: 'Motif du catalogue' })
+    apiGet.mockResolvedValue({ success: true, data: [] })
+    const c = await setup()
+    expect(c.error.value).toBe('Motif du catalogue')
+    expect(c.canRetry.value).toBe(false)
+  })
 })

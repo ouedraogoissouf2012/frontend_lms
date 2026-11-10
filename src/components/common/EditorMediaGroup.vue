@@ -11,7 +11,7 @@
       🔗
     </button>
     <button @click="$emit('add-image')" class="toolbar-btn" type="button" title="Insérer image">🖼️</button>
-    <button @click="$emit('add-youtube')" class="toolbar-btn" type="button" title="Insérer vidéo YouTube">fa-play</button>
+    <button @click="$emit('add-youtube')" class="toolbar-btn" type="button" title="Insérer vidéo YouTube" aria-label="Insérer vidéo YouTube"><i class="fa fa-play" aria-hidden="true"></i></button>
   </div>
 
   <div class="toolbar-divider"></div>

@@ -31,7 +31,7 @@
         </div>
 
         <p class="countdown-info">
-          fa-circle Les bonnes réponses seront affichées <strong>{{ formatCorrectionDate }}</strong> (7 jours après la soumission) pour préserver l'intégrité des futures sessions.
+          <i class="fa fa-circle" aria-hidden="true"></i> Les bonnes réponses seront affichées <strong>{{ formatCorrectionDate }}</strong> (7 jours après la soumission) pour préserver l'intégrité des futures sessions.
         </p>
         <p class="countdown-note">
           Vous pouvez consulter vos réponses et votre note, mais les corrections détaillées ne sont pas encore visibles.

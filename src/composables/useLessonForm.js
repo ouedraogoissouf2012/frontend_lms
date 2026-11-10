@@ -1,5 +1,6 @@
 import { ref, reactive } from 'vue'
 import { writeCache } from '@/services/cache'
+import { TEACHER_LESSONS_CACHE } from '@/composables/myLessons'
 import lessonService from '@/services/lesson'
 import { toast } from '@/composables/useToast'
 import { messageForReason } from '@/services/errorHandler'
@@ -71,7 +72,10 @@ export function useLessonForm(lessons) {
         }
         const index = lessons.value.findIndex(l => l.id === editingLesson.value.id)
         if (index !== -1) {
-          lessons.value[index] = { ...lessons.value[index], ...(response.data || lessonForm) }
+          const maj = response.data || lessonForm
+          // La réponse de mise à jour ne recharge pas la relation `matiere` : garder l'ancienne
+          // ferait afficher l'ancienne matière (le libellé lit d'abord `lesson.matiere`).
+          lessons.value[index] = { ...lessons.value[index], ...maj, matiere: maj.matiere ?? null }
         }
       } else {
         // #236 : vraie création serveur — on insère la leçon RENVOYÉE (id réel).
@@ -86,7 +90,7 @@ export function useLessonForm(lessons) {
       }
 
       // Rafraîchir le cache avec l'état réellement persisté.
-      writeCache('teacher_lessons', lessons.value)
+      writeCache(TEACHER_LESSONS_CACHE, lessons.value)
       closeModal()
     } catch (err) {
       // Le message du catalogue nomme la cause ; le préfixe dit QUOI a échoué (revue de #506).
