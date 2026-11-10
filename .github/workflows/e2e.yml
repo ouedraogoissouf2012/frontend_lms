@@ -60,12 +60,12 @@ jobs:
           path: mesure
       - uses: actions/checkout@v7
         with:
-          ref: ${{ inputs.frontend_ref || github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ inputs.frontend_ref || 'f1396b50bb81b77a97fad25b713a70e8c1b22487' }}
           path: front
       - uses: actions/checkout@v7
         with:
           repository: ouedraogoissouf2012/lms_backend
-          ref: ${{ inputs.backend_ref || 'lms' }}
+          ref: ${{ inputs.backend_ref || '15e33ae9bb5f244a179d6e210b8a1a26c67f2772' }}
           path: back
 
       - name: Versions jouées
@@ -74,7 +74,7 @@ jobs:
             echo "### Versions"
             echo "- outil de mesure (e2e/, version du script) : \`$(git -C mesure rev-parse HEAD)\`"
             echo "- front mesuré : \`$(git -C front rev-parse HEAD)\`"
-            echo "- lms_backend : \`$(git -C back rev-parse HEAD)\` (ref demandée : \`${{ inputs.backend_ref || 'lms' }}\`)"
+            echo "- lms_backend : \`$(git -C back rev-parse HEAD)\` (ref demandée : \`${{ inputs.backend_ref || '15e33ae9bb5f244a179d6e210b8a1a26c67f2772' }}\`)"
           } | tee -a "$GITHUB_STEP_SUMMARY"
           # Les trois shas LUS (pas demandés), pour l'en-tête de la matrice.
           mkdir -p sortie
