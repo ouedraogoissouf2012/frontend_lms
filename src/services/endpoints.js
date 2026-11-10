@@ -115,6 +115,8 @@ export const endpoints = {
       toggle: (id) => `/admin/institutions/${id}/toggle`,
       testConnection: (id) => `/admin/institutions/${id}/test-connection`,
     },
+    // Journal d'audit : supradmin strict, lecture seule, toutes écoles (D126).
+    auditLog: '/admin/audit-log',
     schoolRequests: {
       list: '/admin/school-requests',
       validate: (id) => `/admin/school-requests/${id}/validate`,

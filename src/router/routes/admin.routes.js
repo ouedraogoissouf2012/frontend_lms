@@ -159,6 +159,18 @@ export const adminRoutes = [
       title: 'Demandes d\'ouverture'
     }
   },
+  // Journal d'audit - supradmin, lecture seule, toutes écoles (D51, D126)
+  {
+    path: '/admin/audit-log',
+    name: 'AdminAuditLog',
+    component: () => import('@/views/admin/AdminAuditLog.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['supradmin'],
+      plateforme: true,
+      title: 'Journal d\'audit'
+    }
+  },
   {
     path: '/admin/training-sessions',
     name: 'AdminTrainingSessions',

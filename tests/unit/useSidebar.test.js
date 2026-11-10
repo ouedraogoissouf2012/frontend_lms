@@ -82,6 +82,7 @@ describe('useSidebar (#H12)', () => {
     expect(api.menuSections.value.map((s) => s.to)).toEqual([
       '/admin/institutions',
       '/admin/school-requests',
+      '/admin/audit-log',
     ])
   })
 

@@ -58,6 +58,7 @@ import { passwordResetService } from '../../src/services/passwordReset.js'
 import { submitSchoolRequest } from '../../src/services/schoolRegistration.js'
 import { activateAccount } from '../../src/services/activation.js'
 import { schoolRequestsService } from '../../src/services/schoolRequests.js'
+import { auditLogService } from '../../src/services/auditLog.js'
 import { getAdminStatistics } from '../../src/services/adminStatistics.js'
 import { trainingSessionsService } from '../../src/services/trainingSessions.js'
 import { previewImport } from '../../src/services/importPreview.js'
@@ -392,6 +393,13 @@ contractCases.push(
     method: 'POST',
     url: '/admin/school-requests/7/refuse',
     body: (d) => d?.motif_refus === 'Dossier incomplet pour ouvrir.',
+  },
+  {
+    name: 'D126 — journal d’audit GET /admin/audit-log',
+    _req: 'D126',
+    run: () => auditLogService.list({ page: 2, action: 'login', userId: 4 }),
+    method: 'GET',
+    url: '/admin/audit-log',
   },
   {
     name: '#334 — preview import POST /lms/imports/preview',

@@ -96,6 +96,7 @@ export function useMobileSidebar(props, emit) {
       return [
         { path: '/admin/institutions', icon: 'fa-university', label: 'Institutions', badge: null },
         { path: '/admin/school-requests', icon: 'fa-inbox', label: 'Demandes', badge: null },
+        { path: '/admin/audit-log', icon: 'fa-list-alt', label: 'Journal d’audit', badge: null },
       ]
     }
     // Admin d'ÉTABLISSEMENT (rôle LMS 'admin', inclut le 'superAdmin' d'école KLASSCI) :
