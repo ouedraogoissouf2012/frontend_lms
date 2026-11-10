@@ -24,7 +24,7 @@
           :permissions="user.permissions"
         />
 
-        <ProfileActionsCard />
+        <ProfileActionsCard :plateforme="estPlateforme" />
       </div>
     </div>
   </DashboardLayout>
@@ -43,7 +43,7 @@ import ProfilePermissionsCard from '@/components/admin/ProfilePermissionsCard.vu
 import ProfileActionsCard from '@/components/admin/ProfileActionsCard.vue'
 import { useAdminProfile } from '@/composables/useAdminProfile'
 
-const { user, stats, userInitials, roleLabel } = useAdminProfile()
+const { user, stats, estPlateforme, userInitials, roleLabel } = useAdminProfile()
 </script>
 
 <style scoped>
