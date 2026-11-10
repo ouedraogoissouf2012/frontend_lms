@@ -4,8 +4,9 @@ import { describe, it, expect, vi } from 'vitest'
 
 vi.mock('@/services/lesson', () => ({
   default: {
-    getTypeBadge: (type) => ({ text: `T-${type}` }),
-    getStatusBadge: (status) => ({ text: `S-${status}` })
+    // `null` : valeur inconnue, aucun badge (ARRÊT 1 statuts de leçon).
+    getTypeBadge: (type) => (type === 'inconnu' ? null : { text: `T-${type}` }),
+    getStatusBadge: (status) => (status === 'inconnu' ? null : { text: `S-${status}` })
   }
 }))
 
@@ -19,6 +20,11 @@ describe('LessonCardBadges (#H4)', () => {
     expect(w.text()).toContain('T-cours')
     expect(w.find('.badge-cours').exists()).toBe(true)
     expect(w.find('.fa-book').exists()).toBe(true)
+  })
+
+  it('type ou statut inconnu : aucun badge (ni texte brut, ni valeur inventée)', () => {
+    const w = mount(LessonCardBadges, { props: { lesson: { type: 'inconnu', status: 'inconnu' }, showStatus: true } })
+    expect(w.findAll('.lesson-badge')).toHaveLength(0)
   })
 
   it('masque le badge de status par défaut et l\'affiche si showStatus', () => {
