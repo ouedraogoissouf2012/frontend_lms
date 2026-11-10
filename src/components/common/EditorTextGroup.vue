@@ -103,7 +103,7 @@
       title="Aligner à gauche"
       aria-label="Aligner à gauche"
     >
-      <i class="fa fa-bars" aria-hidden="true"></i>
+      <i class="fa fa-align-left" aria-hidden="true"></i>
     </button>
     <button
       @click="editor.chain().focus().setTextAlign('center').run()"
