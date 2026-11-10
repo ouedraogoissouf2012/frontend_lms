@@ -5,6 +5,7 @@ import { useTrackedVisioJoin } from '@/composables/useTrackedVisioJoin'
 import { confirmVisioAction } from '@/services/visioFeedback'
 import { extractList } from '@/utils/apiList'
 import { displayMessage } from '@/services/displayMessage'
+import { estPannePassagere } from '@/utils/pannePassagere'
 
 function parseLocalDateTime(dateStr, timeStr) {
   if (!dateStr || !timeStr) return null
@@ -38,6 +39,9 @@ export function useTeacherVisioList() {
   const seances = ref([])
   const loading = ref(true)
   const error = ref(null)
+  // Un nouvel essai seulement sur une panne passagère (5xx, 429, réseau) : un refus définitif ne se
+  // lève pas en réessayant (lot « retour honnête », 10/11).
+  const canRetry = ref(true)
   const actionLoading = ref(null)
   const { joinTrackedVisio } = useTrackedVisioJoin('Enseignant')
 
@@ -99,6 +103,7 @@ export function useTeacherVisioList() {
 
     loading.value = true
     error.value = null
+    canRetry.value = true
 
     try {
       console.log('[API] Chargement des visioconférences...')
@@ -113,7 +118,8 @@ export function useTeacherVisioList() {
       console.log(`[INFO] ${stats.value.total} avec visio activée`)
     } catch (err) {
       console.error('[ERREUR] Erreur chargement visioconférences:', err)
-      error.value = 'Impossible de charger les visioconférences. Veuillez réessayer.'
+      error.value = displayMessage(err, 'Impossible de charger les visioconférences.')
+      canRetry.value = estPannePassagere(err)
     } finally {
       loading.value = false
     }
@@ -148,7 +154,9 @@ export function useTeacherVisioList() {
       await loadVisioConferences()
     } catch (err) {
       console.error('[ERREUR] Activation visio:', err)
-      error.value = 'Erreur lors de l\'activation de la visio'
+      // Une action en échec : son motif ; Réessayer ne relancerait que la liste, pas l'action.
+      error.value = displayMessage(err, 'Erreur lors de l\'activation de la visio')
+      canRetry.value = false
     } finally {
       actionLoading.value = null
     }
@@ -167,7 +175,9 @@ export function useTeacherVisioList() {
       await loadVisioConferences()
     } catch (err) {
       console.error('[ERREUR] Démarrage visio:', err)
-      error.value = 'Erreur lors du démarrage de la visio'
+      // Une action en échec : son motif ; Réessayer ne relancerait que la liste, pas l'action.
+      error.value = displayMessage(err, 'Erreur lors du démarrage de la visio')
+      canRetry.value = false
     } finally {
       actionLoading.value = null
     }
@@ -193,7 +203,9 @@ export function useTeacherVisioList() {
       await loadVisioConferences()
     } catch (err) {
       console.error('[ERREUR] Fin visio:', err)
-      error.value = 'Erreur lors de la terminaison de la visio'
+      // Une action en échec : son motif ; Réessayer ne relancerait que la liste, pas l'action.
+      error.value = displayMessage(err, 'Erreur lors de la terminaison de la visio')
+      canRetry.value = false
     } finally {
       actionLoading.value = null
     }
@@ -211,7 +223,9 @@ export function useTeacherVisioList() {
       console.error('[ERREUR] Join visio:', err)
       // Le motif du refus (catalogue, #452), puis le message propre au front ; jamais
       // le texte technique d'une erreur, HTTP ou non (D0).
+      // Une action en échec : son motif ; Réessayer ne relancerait que la liste, pas l'action.
       error.value = displayMessage(err, 'Erreur lors de la connexion à la visio')
+      canRetry.value = false
     } finally {
       actionLoading.value = null
     }
@@ -240,7 +254,7 @@ export function useTeacherVisioList() {
   })
 
   return {
-    seances, loading, error, actionLoading,
+    seances, loading, error, canRetry, actionLoading,
     visioEnCours, visioAVenir, stats,
     loadVisioConferences, refreshInBackground,
     handleActivateVisio, handleStartVisio, handleEndVisio, handleJoinVisio,

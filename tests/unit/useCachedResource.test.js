@@ -164,3 +164,36 @@ describe('useCachedResource (#224 SWR)', () => {
     expect(mockCache.writeCache).toHaveBeenCalledWith('k_str', { v: 1 })
   })
 })
+
+// Lot « retour honnête » (instruction des rouges du 10/11) : erreurs telles que l'intercepteur les rend.
+// Le 401 `klassci_token_missing` est un refus DÉFINITIF (lot 3d, école autonome) ; le 500 une panne.
+const PIEGE_SERVEUR = 'Texte serveur, jamais affiché'
+const refusDefinitif = () => Object.assign(new Error('HTTP 401'), {
+  response: { status: 401, data: { success: false, message: PIEGE_SERVEUR, reason: 'klassci_token_missing' } },
+  userMessage: "Aucun accès KLASSCI n'est enregistré pour ce compte : les données qui en proviennent ne peuvent pas être affichées.",
+})
+const pannePassagere = () => Object.assign(new Error('HTTP 500'), {
+  response: { status: 500, data: { message: PIEGE_SERVEUR } },
+  userMessage: 'Une erreur est survenue côté serveur. Veuillez réessayer plus tard.',
+})
+const MOTIF_JETON = "Aucun accès KLASSCI n'est enregistré pour ce compte : les données qui en proviennent ne peuvent pas être affichées."
+
+describe('useCachedResource — canRetry : un nouvel essai seulement sur une panne passagère', () => {
+  it('refus définitif : canRetry faux ; panne : vrai ; succès : vrai', async () => {
+    mockCache.readCacheStale.mockReturnValue({ data: null, fresh: false })
+    const echec = useCachedResource('k', vi.fn().mockRejectedValue(refusDefinitif()), { immediate: false })
+    await echec.load()
+    await flushPromises()
+    expect(echec.canRetry.value).toBe(false)
+
+    const panne = useCachedResource('k2', vi.fn().mockRejectedValue(pannePassagere()), { immediate: false })
+    await panne.load()
+    await flushPromises()
+    expect(panne.canRetry.value).toBe(true)
+
+    const ok = useCachedResource('k3', vi.fn().mockResolvedValue({ v: 1 }), { immediate: false })
+    await ok.load()
+    await flushPromises()
+    expect(ok.canRetry.value).toBe(true)
+  })
+})

@@ -24,7 +24,7 @@
             <p class="error-message">{{ error }}</p>
           </div>
         </div>
-        <button @click="loadSeances" class="btn-retry">
+        <button v-if="canRetry" @click="loadSeances" class="btn-retry">
           <i class="fa fa-refresh icon"></i>
           Réessayer
         </button>
@@ -97,7 +97,7 @@ import TeacherSeancesStats from '@/components/seances/TeacherSeancesStats.vue'
 import { useTeacherSeances } from '@/composables/useTeacherSeances'
 
 const {
-  matieres, loading, error, actionLoading, isEnseignant,
+  matieres, loading, error, canRetry, actionLoading, isEnseignant,
   filters, filteredSeances, stats,
   loadSeances, applyFilters, resetFilters,
   handleActivateVisio, handleDeactivateVisio, handleStartVisio,
