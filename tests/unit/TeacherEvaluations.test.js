@@ -135,7 +135,7 @@ describe('TeacherEvaluations (#420) — mention d accès KLASSCI et panne', () =
     expect(w.find('.error-state').exists()).toBe(true)
     expect(w.find('[data-test="erreur-evaluations"] .error-message').exists()).toBe(true)
     expect(w.find('.error-message').text()).toBe(
-      'Service KLASSCI temporairement indisponible. Veuillez réessayer dans quelques instants.'
+      'Service KLASSCI temporairement indisponible. Réessayez dans 30 secondes.'
     )
     expect(w.find('.empty-state').exists()).toBe(false)
   })

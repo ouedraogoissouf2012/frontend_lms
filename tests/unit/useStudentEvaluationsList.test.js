@@ -92,6 +92,9 @@ describe('useStudentEvaluationsList (H2)', () => {
       ['reprise interdite', refus(403, 'evaluation_retake_forbidden'), 'Cette évaluation ne peut pas être reprise.'],
       ['hors ligne', refus(403, 'evaluation_offline_only'), 'Cette évaluation ne se passe pas en ligne.'],
       ['fenêtre invérifiable (503)', refus(503), ERROR_MESSAGES.server],
+      // Revue de #516 : le parcours réel de l'élève, avec le motif de #1019 et son délai.
+      ['fenêtre invérifiable, motif #1019 (503 + Retry-After 30)', { response: { status: 503, headers: { 'retry-after': '30' }, data: { success: false, message: PIEGE, reason: 'evaluation_window_unverifiable' } } },
+        'La disponibilité de cette évaluation ne peut pas être vérifiée pour le moment. Réessayez dans 30 secondes.'],
       ['évaluation non disponible (404)', refus(404), ERROR_MESSAGES.notFound],
     ]
     for (const [nom, erreur, message] of cas) {

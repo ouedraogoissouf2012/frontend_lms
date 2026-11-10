@@ -182,7 +182,8 @@ describe('#420 — accès KLASSCI absent et panne réelle', () => {
     klassci.getTeacherDashboard.mockRejectedValue(klassciEnPanne())
     const c = useTeacherEvaluations()
     await c.loadData()
-    expect(c.error.value).toBe(ERROR_MESSAGES.klassciUnavailable)
+    // Retry-After 30 : le délai est dit (lot « motif avant Retry-After »).
+    expect(c.error.value).toBe('Service KLASSCI temporairement indisponible. Réessayez dans 30 secondes.')
     expect(c.mentionSource.value).toBe('')
     expect(c.loading.value).toBe(false)
   })
@@ -192,7 +193,8 @@ describe('#420 — accès KLASSCI absent et panne réelle', () => {
     klassci.getTeacherDashboard.mockResolvedValue(null)
     const c = useTeacherEvaluations()
     await c.loadData()
-    expect(c.error.value).toBe(ERROR_MESSAGES.klassciUnavailable)
+    // Retry-After 30 : le délai est dit (lot « motif avant Retry-After »).
+    expect(c.error.value).toBe('Service KLASSCI temporairement indisponible. Réessayez dans 30 secondes.')
   })
 
   it('un repli qui répond une liste vide reste « aucune évaluation »', async () => {
