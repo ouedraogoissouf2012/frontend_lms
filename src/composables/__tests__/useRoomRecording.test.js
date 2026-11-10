@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
-import { useRoomRecording } from '@/composables/useRoomRecording'
+import { useRoomRecording, ECHEC } from '@/composables/useRoomRecording'
 import { resetVisioConsentForTests, useVisioConsent } from '@/composables/useVisioConsent'
 import * as feedback from '@/services/visioFeedback'
 
@@ -163,7 +163,8 @@ describe('useRoomRecording (#673)', () => {
 
     await expect(r.basculer()).resolves.not.toThrow()
 
-    expect(feedback.notifyVisioError).toHaveBeenCalled()
+    // Le texte du front est le REPLI (2e argument) : passé en 1er, il n'était jamais affiché.
+    expect(feedback.notifyVisioError).toHaveBeenCalledWith(null, ECHEC)
     expect(r.enCours.value).toBe(false)
   })
 })

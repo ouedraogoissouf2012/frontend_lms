@@ -27,7 +27,7 @@
         <span class="flex-1 option-text">{{ option }}</span>
         <template v-if="correctionAvailable">
           <span v-if="isOptionCorrect(question, optIndex)" class="text-green-600 text-sm font-medium">
-            fa-check Bonne réponse
+            <i class="fa fa-check" aria-hidden="true"></i> Bonne réponse
           </span>
           <span v-else-if="isOptionSelected(question, optIndex, answers)" class="text-red-600 text-sm font-medium">
             ✗ Votre réponse
@@ -74,7 +74,7 @@
         <span class="flex-1 option-text">{{ option }}</span>
         <template v-if="correctionAvailable">
           <span v-if="isOptionCorrect(question, optIndex)" class="text-green-600 text-sm font-medium">
-            fa-check Bonne réponse
+            <i class="fa fa-check" aria-hidden="true"></i> Bonne réponse
           </span>
           <span v-else-if="isOptionSelected(question, optIndex, answers)" class="text-red-600 text-sm font-medium">
             ✗ Votre réponse
@@ -117,7 +117,7 @@
         <span class="flex-1 font-medium option-text">{{ option }}</span>
         <template v-if="correctionAvailable">
           <span v-if="isVraiFauxCorrect(question, option)" class="text-green-600 text-sm font-medium">
-            fa-check Bonne réponse
+            <i class="fa fa-check" aria-hidden="true"></i> Bonne réponse
           </span>
           <span v-else-if="isVraiFauxSelected(question, option, answers)" class="text-red-600 text-sm font-medium">
             ✗ Votre réponse

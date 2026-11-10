@@ -101,8 +101,9 @@
       class="toolbar-btn"
       type="button"
       title="Aligner à gauche"
+      aria-label="Aligner à gauche"
     >
-      fa-bars
+      <i class="fa fa-align-left" aria-hidden="true"></i>
     </button>
     <button
       @click="editor.chain().focus().setTextAlign('center').run()"

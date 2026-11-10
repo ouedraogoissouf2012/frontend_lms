@@ -49,7 +49,7 @@
         <div v-else-if="error" class="content-error">
           <i class="fa fa-exclamation-triangle"></i>
           <p>{{ error }}</p>
-          <button @click="loadAll" class="btn-retry">Réessayer</button>
+          <button v-if="canRetry" @click="loadAll" class="btn-retry">Réessayer</button>
         </div>
 
         <!-- No chapters -->
@@ -91,7 +91,7 @@ import { useStudentLessonView } from '@/composables/useStudentLessonView'
 
 const {
   lesson, chapters, completedChapters, activeChapterIndex, sidebarCollapsed,
-  loading, error, markingComplete, contentAreaRef,
+  loading, error, canRetry, markingComplete, contentAreaRef,
   activeChapter, chapterQuiz, overallProgress,
   loadAll, setActiveChapter, prevChapter, nextChapter, isChapterCompleted,
   markChapterComplete, onQuizCompleted, onQuizClose, goBack

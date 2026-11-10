@@ -20,7 +20,7 @@
               <p class="text-3xl font-bold text-primary-600"><CountValue :value="stats?.lessons_in_progress ?? null" /></p>
             </div>
             <div class="bg-primary-100 p-3 rounded-full">
-              fa-book
+              <i class="fa fa-book" aria-hidden="true"></i>
             </div>
           </div>
         </div>
@@ -33,7 +33,7 @@
               <p class="text-3xl font-bold text-green-600"><CountValue :value="stats?.quizzes_completed ?? null" /></p>
             </div>
             <div class="bg-green-100 p-3 rounded-full">
-              fa-check-circle
+              <i class="fa fa-check-circle" aria-hidden="true"></i>
             </div>
           </div>
         </div>
@@ -46,7 +46,7 @@
               <p class="text-3xl font-bold text-purple-600"><CountValue :value="stats?.overall_progress ?? null" /><template v-if="stats?.overall_progress != null">%</template></p>
             </div>
             <div class="bg-purple-100 p-3 rounded-full">
-              fa-bar-chart
+              <i class="fa fa-bar-chart" aria-hidden="true"></i>
             </div>
           </div>
         </div>
