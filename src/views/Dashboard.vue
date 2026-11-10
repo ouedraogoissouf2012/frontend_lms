@@ -78,7 +78,7 @@
                 class="px-2 py-1 text-xs rounded"
                 :class="lesson.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'"
               >
-                {{ lesson.status }}
+                {{ lessonStatusLabel(lesson.status) }}
               </span>
             </div>
           </div>
