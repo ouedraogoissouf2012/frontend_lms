@@ -95,6 +95,7 @@ import UsersFilters from '@/components/admin/UsersFilters.vue'
 import UsersTable from '@/components/admin/UsersTable.vue'
 import { computed } from 'vue'
 import { useAdminUsers } from '@/composables/useAdminUsers'
+import { measuredSum } from '@/utils/measuredSum'
 
 const {
   classes, loading, loadingProgress, counts, notices, selectedUser,
@@ -103,12 +104,8 @@ const {
   sortBy, selectUser, closeModal, loadAllUsers,
 } = useAdminUsers()
 
-/** Total affichable : non mesuré tant qu'AUCUNE des deux populations ne l'est. */
-const measuredTotal = computed(() => {
-  const { etudiants, enseignants } = counts.value
-  if (etudiants === null && enseignants === null) return null
-  return (etudiants ?? 0) + (enseignants ?? 0)
-})
+/** Total affichable : non mesuré dès qu'UNE des deux populations ne l'est (jamais l'autre seule). */
+const measuredTotal = computed(() => measuredSum([counts.value.etudiants, counts.value.enseignants]))
 </script>
 
 <style scoped lang="scss">

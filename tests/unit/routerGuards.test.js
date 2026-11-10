@@ -67,11 +67,20 @@ describe('navigationGuard (G9)', () => {
     expect(next).toHaveBeenCalledWith()
   })
 
-  it('supradmin bypass : accède à une route à rôles restreints', () => {
+  // D126 : plus de passe-droit. Une route d'école renvoie le supradmin vers son espace de plateforme.
+  it('supradmin sur une route d\'école : renvoyé vers son espace', () => {
     isAuthenticated.mockReturnValue(true)
     getUser.mockReturnValue({ role: 'supradmin' })
     const next = vi.fn()
     navigationGuard(route({ requiresAuth: true, roles: ['enseignant'] }), route(), next)
+    expect(next).toHaveBeenCalledWith('/admin/institutions')
+  })
+
+  it('supradmin sur une route de plateforme : laisse passer', () => {
+    isAuthenticated.mockReturnValue(true)
+    getUser.mockReturnValue({ role: 'supradmin' })
+    const next = vi.fn()
+    navigationGuard(route({ requiresAuth: true, roles: ['admin'], plateforme: true }), route(), next)
     expect(next).toHaveBeenCalledWith()
   })
 

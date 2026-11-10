@@ -5,12 +5,10 @@ import {
   measureClassStudentCount
 } from './classMeasures'
 
-// Reexport : `getClassStudentCount` et `getClassCapacity` restent importables
-// depuis ce module, comme avant l'extraction (useAdminClasses les consomme).
-export { getClassCapacity, getClassStudentCount } from './classMeasures'
 export { measureClassCapacity, measureClassStudentCount } from './classMeasures'
 
 import { toId } from './toId'
+import { measuredSum } from './measuredSum'
 
 function toArray(value) {
   return Array.isArray(value) ? value : []
@@ -172,10 +170,9 @@ export function deriveInstitutionCounters({ classes, matieres, enseignants } = {
 
   return {
     nb_enseignants: enseignantList ? enseignantList.length : null,
-    // `places_occupees` non numérique est ignoré plutôt que propagé en NaN.
-    nb_etudiants: classeList
-      ? classeList.reduce((sum, c) => sum + (Number(c?.places_occupees) || 0), 0)
-      : null,
+    // Somme des effectifs MESURÉS (toutes les clés d'effectif) ; `null` si une classe n'en
+    // a pas : un total partiel passerait pour le total, et « non mesuré » n'est pas 0.
+    nb_etudiants: classeList ? measuredSum(classeList.map((c) => measureClassStudentCount(c))) : null,
     nb_classes_actives: classeList ? classeList.length : null,
     nb_matieres_actives: matiereList ? matiereList.length : null,
     nb_filieres: classeList ? countDistinctFilieres(classeList) : null,
@@ -191,7 +188,7 @@ export function getAssignedClassIds(matieres = []) {
   return ids
 }
 
-export function getClassMatiereCount(classe, matieres = []) {
+export function measureClassMatiereCountIn(classe, matieres = []) {
   if (Array.isArray(classe?.matieres)) return classe.matieres.length
 
   const matiereList = toArray(matieres)
@@ -218,7 +215,7 @@ export function getClassMatiereCount(classe, matieres = []) {
     classe?.matieres_count,
     classe?.nombre_matieres,
     classe?.total_matieres
-  ]) ?? 0
+  ])
 }
 
 export function enrichTeacherClasses(rawClasses = [], matieres = []) {
@@ -244,6 +241,6 @@ export function enrichTeacherClasses(rawClasses = [], matieres = []) {
       // `matiereList.length` donne le total des matieres de l'enseignant —
       // identique sur chaque carte, donc trompeur (« Matieres 6 » partout).
       nb_matieres: measureClassMatiereCount(classe)
-        ?? (shouldFilterByAssignment ? getClassMatiereCount(classe, matiereList) : matiereList.length)
+        ?? (shouldFilterByAssignment ? measureClassMatiereCountIn(classe, matiereList) : matiereList.length)
     }))
 }

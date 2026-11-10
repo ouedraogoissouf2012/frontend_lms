@@ -1,12 +1,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import evaluationService from '@/services/evaluation'
 import api, { auth } from '@/services/api'
-import { isExpired } from '@/utils/studentEvaluationStatus'
-import { toast } from '@/composables/useToast'
+import { isExpired, copieRendue } from '@/utils/studentEvaluationStatus'
 import { endpoints } from '@/services/endpoints'
 import { normalizeError } from '@/services/errorHandler'
 import { estPannePassagere } from '@/utils/pannePassagere'
+import { useStartEvaluation } from '@/composables/useStartEvaluation'
 
 /**
  * Couche données de StudentEvaluationsList (H2 ≤300) : charge les évaluations de
@@ -16,6 +15,8 @@ import { estPannePassagere } from '@/utils/pannePassagere'
  */
 export function useStudentEvaluationsList() {
   const router = useRouter()
+  // La seule porte d'une évaluation, partagée avec le calendrier et la page d'une matière.
+  const { startEvaluation, continueEvaluation } = useStartEvaluation()
 
   const evaluations = ref([])
   const loading = ref(false)
@@ -28,9 +29,7 @@ export function useStudentEvaluationsList() {
   // Évaluations à faire : fenêtre ouverte ou pas encore commencée, pas de soumission terminée
   const evaluationsAFaire = computed(() => {
     return evaluations.value.filter(e => {
-      const hasFinishedSubmission = e.student_submission &&
-        (e.student_submission.status === 'soumis' || e.student_submission.status === 'corrige')
-      if (hasFinishedSubmission) return false
+      if (copieRendue(e.student_submission)) return false
 
       // Si en cours de tentative, toujours montrer
       if (e.student_submission?.status === 'en_cours') return true
@@ -43,17 +42,14 @@ export function useStudentEvaluationsList() {
   // Évaluations terminées avec soumission
   const evaluationsTerminees = computed(() => {
     return evaluations.value.filter(e => {
-      return e.student_submission &&
-        (e.student_submission.status === 'soumis' || e.student_submission.status === 'corrige')
+      return copieRendue(e.student_submission)
     })
   })
 
   // Évaluations passées sans soumission terminée (pour s'entraîner)
   const evaluationsEntrainement = computed(() => {
     return evaluations.value.filter(e => {
-      const hasFinishedSubmission = e.student_submission &&
-        (e.student_submission.status === 'soumis' || e.student_submission.status === 'corrige')
-      if (hasFinishedSubmission) return false
+      if (copieRendue(e.student_submission)) return false
       if (e.student_submission?.status === 'en_cours') return false
 
       // Seulement les évaluations passées
@@ -88,37 +84,6 @@ export function useStudentEvaluationsList() {
     } finally {
       loading.value = false
     }
-  }
-
-  async function startEvaluation(evaluation) {
-    if (!user.value) return
-
-    try {
-      const result = await evaluationService.startEvaluation(evaluation.id, user.value.klassci_id)
-      if (result.success) {
-        const query = { submission_id: result.data.id }
-        if (result.is_practice) query.practice = '1'
-        router.push({
-          name: 'TakeEvaluation',
-          params: { id: evaluation.id },
-          query
-        })
-      } else {
-        toast.error(result.message || 'Impossible de démarrer l\'évaluation')
-      }
-    } catch (err) {
-      console.error('Erreur démarrage évaluation:', err)
-      const message = err.response?.data?.message || 'Impossible de démarrer l\'évaluation'
-      toast.error(message)
-    }
-  }
-
-  function continueEvaluation(evaluation) {
-    router.push({
-      name: 'TakeEvaluation',
-      params: { id: evaluation.id },
-      query: { submission_id: evaluation.student_submission.id }
-    })
   }
 
   function viewResults(evaluation) {

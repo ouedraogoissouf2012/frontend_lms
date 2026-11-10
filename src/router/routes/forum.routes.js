@@ -4,7 +4,7 @@ import { AUTHENTICATED_ROLES } from './roleGroups'
 export const forumRoutes = [
   // Preuve : navigation.js:56 (étudiant) + navigation.js:85 (enseignant,
   // coordinateur, admin) + useMobileSidebar.js:64,72 → les 4 rôles non
-  // supradmin ; supradmin passe par le bypass de canActivate.
+  // supradmin. Le supradmin n'a pas de forum : il n'a pas d'établissement (D56, D126).
   {
     path: '/forum',
     name: 'Forum',

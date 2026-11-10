@@ -107,6 +107,7 @@ import {
   DocumentTextIcon
 } from '@heroicons/vue/24/outline'
 import { formatCount } from '@/utils/formatters'
+import { measuredSum } from '@/utils/measuredSum'
 
 const props = defineProps({
   stats: { type: Object, default: () => ({}) },
@@ -117,11 +118,8 @@ const props = defineProps({
  * L'ancien `(a || 0) + (b || 0)` transformait une donnée absente en 0 et
  * publiait donc une somme fausse comme si elle avait été comptée.
  */
-const totalUtilisateurs = computed(() => {
-  const t = Number(props.stats?.nb_enseignants)
-  const e = Number(props.stats?.nb_etudiants)
-  return Number.isFinite(t) && Number.isFinite(e) ? t + e : null
-})
+// `Number(null)` vaut 0 : un terme absent passait le test de finitude. measuredSum l'écarte.
+const totalUtilisateurs = computed(() => measuredSum([props.stats?.nb_enseignants, props.stats?.nb_etudiants]))
 </script>
 
 <style scoped>

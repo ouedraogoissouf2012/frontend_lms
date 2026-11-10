@@ -39,6 +39,11 @@ const REASON_CATEGORIES = Object.freeze({
   // (compte local, école autonome). Ni une session LMS morte, ni une session KLASSCI
   // expirée : se reconnecter n'y change rien (contrat `KlassciUnauthorized`).
   klassci_token_missing: 'klassciTokenMissing',
+  // lms_backend #1011 : refus de démarrage d'une évaluation (POST /evaluations/{id}/start, 403).
+  evaluation_window_closed: 'evaluationWindowClosed',
+  evaluation_max_attempts: 'evaluationMaxAttempts',
+  evaluation_retake_forbidden: 'evaluationRetakeForbidden',
+  evaluation_offline_only: 'evaluationOfflineOnly',
 })
 
 /**
