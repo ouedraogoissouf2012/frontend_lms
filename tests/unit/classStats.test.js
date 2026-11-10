@@ -5,26 +5,26 @@ import {
   countDistinctNiveaux,
   enrichTeacherClasses,
   getAssignedClassIds,
-  getClassCapacity,
-  getClassMatiereCount,
-  getClassStudentCount
+  measureClassCapacity,
+  measureClassMatiereCountIn,
+  measureClassStudentCount
 } from '@/utils/classStats'
 
 describe('classStats (#100)', () => {
   it('derive les compteurs depuis les champs de liste sans roster', () => {
     const classe = { places_occupees: 12, places_totales: 28 }
-    expect(getClassStudentCount(classe)).toBe(12)
-    expect(getClassCapacity(classe, 12)).toBe(28)
+    expect(measureClassStudentCount(classe)).toBe(12)
+    expect(measureClassCapacity(classe)).toBe(28)
   })
 
-  it('utilise effectif comme compteur et garde une capacite fallback', () => {
-    expect(getClassStudentCount({ effectif: 34 })).toBe(34)
-    expect(getClassCapacity({}, 34)).toBe(34)
+  it('utilise effectif comme compteur ; une capacite absente reste null, jamais inventee', () => {
+    expect(measureClassStudentCount({ effectif: 34 })).toBe(34)
+    expect(measureClassCapacity({})).toBeNull()
   })
 
-  it('ignore les valeurs vides avant de choisir un compteur fallback', () => {
-    expect(getClassStudentCount({ places_occupees: null, nb_etudiants: 18 })).toBe(18)
-    expect(getClassCapacity({ places_totales: '', capacite: 24 }, 18)).toBe(24)
+  it('ignore les valeurs vides avant de choisir un compteur', () => {
+    expect(measureClassStudentCount({ places_occupees: null, nb_etudiants: 18 })).toBe(18)
+    expect(measureClassCapacity({ places_totales: '', capacite: 24 })).toBe(24)
   })
 
   it('collecte les classes rattachees depuis plusieurs formes de matieres', () => {
@@ -94,11 +94,15 @@ describe('classStats (#100)', () => {
       { id: 12, combinaisons: [{ filiere: { id: 9 }, niveau: { id: 2 } }] }
     ]
 
-    expect(getClassMatiereCount(classe, matieres)).toBe(1)
+    expect(measureClassMatiereCountIn(classe, matieres)).toBe(1)
   })
 
-  it('retourne zero si aucune matiere ne porte de rattachement exploitable', () => {
-    expect(getClassMatiereCount({ id: 5 }, [{ id: 1 }, { id: 2 }])).toBe(0)
+  it('retourne null (non mesure, jamais 0) si aucune matiere ne porte de rattachement exploitable', () => {
+    expect(measureClassMatiereCountIn({ id: 5 }, [{ id: 1 }, { id: 2 }])).toBeNull()
+  })
+
+  it('retourne un vrai zero quand des rattachements existent mais aucun ne vise la classe', () => {
+    expect(measureClassMatiereCountIn({ id: 5 }, [{ id: 1, classe_id: 6 }])).toBe(0)
   })
 })
 

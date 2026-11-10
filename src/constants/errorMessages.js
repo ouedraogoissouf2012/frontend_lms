@@ -53,6 +53,8 @@ export const ERROR_MESSAGES = Object.freeze({
   // formateur ne peut pas la rattacher depuis l'écran : seul l'établissement le peut.
   visioNoClasse: "Cette séance n'est rattachée à aucune classe : la visioconférence n'est pas accessible. Adressez-vous à votre établissement.",
   visioNotEnabled: "La visioconférence n'est pas activée pour cette séance.",
+  visioNotStarted: "La visioconférence n'a pas encore commencé. Attendez que l'enseignant la démarre.",
+  visioEnded: 'La visioconférence est terminée.',
   visioTeacherNotOwner: "Vous n'êtes pas l'enseignant de cette séance : vous ne pouvez pas en rejoindre la visioconférence.",
   visioRoleRefused: 'Votre rôle ne permet pas de rejoindre cette visioconférence.',
   // tenant_not_resolved : le COMPTE n'a pas d'établissement ; se reconnecter n'y change rien.
