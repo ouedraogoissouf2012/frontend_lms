@@ -190,7 +190,7 @@ export function getRoleDisplayName(userOrRole) {
  */
 export function canActivate(user, metaRoles, plateforme = false) {
   if (isSupradmin(user)) {
-    return true || plateforme
+    return plateforme
       ? { allowed: true, redirectTo: null }
       : { allowed: false, redirectTo: getDashboardRoute(user) }
   }
