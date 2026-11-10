@@ -28,11 +28,13 @@ vi.mock('@/services/api', () => ({
 }))
 
 import Dashboard from '@/views/Dashboard.vue'
+import { getDashboardRoute, ROLES } from '@/constants/roles'
 import Forum from '@/views/Forum.vue'
 
 const SUPRADMIN = { id: 1, name: 'Supradmin', role: 'supradmin' }
 const ELEVE = { id: 9, name: 'Eleve', role: 'etudiant' }
-const globale = { stubs: { DashboardLayout: { template: '<div><slot /></div>' }, 'router-link': { template: '<a><slot /></a>' } } }
+// Le lien rend sa CIBLE (`to`) : la revue a relevé qu'un stub muet ne vérifiait pas où il mène.
+const globale = { stubs: { DashboardLayout: { template: '<div><slot /></div>' }, 'router-link': { props: ['to'], template: '<a :href="to"><slot /></a>' } } }
 
 async function monter(vue) {
   const w = mount(vue, { global: globale })
@@ -81,5 +83,23 @@ describe('/forum pour le supradmin', () => {
     const w = await monter(Forum)
     expect(h.getTopics).toHaveBeenCalled()
     expect(w.find('[data-test="hors-etablissement"]').exists()).toBe(false)
+  })
+})
+
+describe('le texte d’orientation dit vrai et mène à l’espace du supradmin (revue de #509)', () => {
+  it('le lien mène à l’espace du supradmin', async () => {
+    h.user = SUPRADMIN
+    const w = await monter(Forum)
+    const lien = w.find('[data-test="hors-etablissement"] a')
+    expect(lien.attributes('href')).toBe(getDashboardRoute(ROLES.SUPRADMIN))
+  })
+
+  it('le texte ne prétend pas que la plateforme n’a pas d’établissements', async () => {
+    h.user = SUPRADMIN
+    const w = await monter(Forum)
+    const texte = w.find('[data-test="hors-etablissement"]').text()
+    expect(texte).not.toMatch(/la plateforme n.en a pas/)
+    expect(texte).toMatch(/relève d.un établissement/)
+    expect(texte).toMatch(/Votre compte gère la plateforme/)
   })
 })

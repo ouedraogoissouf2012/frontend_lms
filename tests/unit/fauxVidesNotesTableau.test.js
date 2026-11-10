@@ -1,5 +1,5 @@
 /**
- * Faux vides, suite (E2E local du 30/10, A-E24 ; production, compte supradmin) :
+ * Faux vides, suite (E2E local du 30/10, A-E24) :
  *  - Mes notes, refusées (401 `klassci_token_missing`), affichaient « MOYENNE
  *    GÉNÉRALE 0/20 · 0 évaluations · 0 % » au-dessus du message d'erreur, et le
  *    message lisait le texte du serveur ;
@@ -30,6 +30,8 @@ import Dashboard from '@/views/Dashboard.vue'
 const REFUS = {
   401: { success: false, message: "Aucun accès KLASSCI n'est enregistré pour ce compte : ces données, qui proviennent de KLASSCI, ne peuvent pas être affichées.", reason: 'klassci_token_missing' },
   403: { success: false, message: "Cet espace est réservé aux comptes d'un établissement.", reason: 'no_institution' },
+  // Panne serveur : le refus qu'un compte d'école peut réellement recevoir sur /lessons.
+  500: { success: false, message: 'Server Error' },
 }
 
 let adaptateurOrigine
@@ -93,19 +95,21 @@ describe('Tableau de bord générique : « — » et motif sous un refus', () =>
   }
 
   it('compte sans tableau de bord, leçons refusées : « — », motif dit, pas de « Aucune leçon disponible »', async () => {
-    // Un compte d'école sans tableau de bord propre (admin). Le supradmin, lui, n'a pas
+    // Un compte d'école sans tableau de bord propre (admin), sous une PANNE réelle (500) : le
+    // couple « admin + no_institution » n'existe pas côté serveur. Le supradmin, lui, n'a pas
     // d'établissement : il ne demande pas les leçons et il est orienté (R3, test suivant).
     utilisateur.courant = { name: 'Admin', role: 'admin' }
-    servir({ refuses: { '/lessons': 403 } })
+    servir({ refuses: { '/lessons': 500 } })
     const w = await monter()
     expect(w.text()).not.toMatch(/(^|\D)0%/)
     expect(w.findAll('.sr-only').map((s) => s.text())).toContain('non disponible')
-    expect(w.find('[role="alert"]').text()).toBe(ERROR_MESSAGES.noInstitution)
+    expect(w.find('[role="alert"]').text()).toBe(ERROR_MESSAGES.server)
     expect(w.text()).not.toMatch(/Aucune leçon disponible/)
   })
 
   it('supradmin (R3) : « — », aucune alerte d’établissement, une orientation vers son espace', async () => {
     utilisateur.courant = { name: 'Supradmin', role: 'supradmin' }
+    // Le refus serait celui-ci, s'il demandait : il ne doit PAS demander.
     servir({ refuses: { '/lessons': 403 } })
     const w = await monter()
     expect(w.text()).not.toMatch(/(^|\D)0%/)
