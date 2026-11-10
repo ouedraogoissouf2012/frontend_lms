@@ -121,7 +121,10 @@ const VERIFS = {
   // Le parcours réel d'un enseignant : sa séance et ses présences.
   ...(jeu.seance ? {
     'enseignant /seances/:id': { contient: ['Fractions, seance E2E'] },
-    'enseignant /attendance/seances': { absent: ['Aucune séance trouvée'] },
+    // L'historique ne liste que les séances dont la visio a DÉMARRÉ (SeancesHistoryQueryService :
+    // `visio_started_at IS NOT NULL`). Le jeu n'en démarre aucune : l'écran doit le dire honnêtement.
+    // (v3.2.1 attendait l'inverse : un faux rouge de l'outil, relevé le 10/11/2026.)
+    'enseignant /attendance/seances': { contient: ['Aucune séance trouvée'] },
     'enseignant /attendance/seances/:seanceId': { contient: ['Mathematiques E2E'] },
   } : {}),
   // Le parcours réel d'un élève : la leçon publiée de sa classe, et son chapitre.
