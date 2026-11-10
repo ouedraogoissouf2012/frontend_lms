@@ -39,9 +39,12 @@ describe('CourseCard (#G1)', () => {
     expect(w.find('.course-type-badge').text()).toBe('TP')
   })
 
-  it('retombe sur "Cours" pour un type inconnu', () => {
-    const w = mountCard({ type: 'inconnu' })
-    expect(w.find('.course-type-badge').text()).toBe('Cours')
+  // Revue de #511 : ce test épinglait une valeur INVENTÉE (« Cours » pour un type inconnu). Règle
+  // (ARRÊT 1 statuts de leçon) : un type inconnu ou absent n'affiche aucun badge.
+  it('type inconnu ou absent : aucun badge, pas un « Cours » inventé', () => {
+    for (const type of ['inconnu', null]) {
+      expect(mountCard({ type }).find('.course-type-badge').exists()).toBe(false)
+    }
   })
 
   it('tronque une description trop longue', () => {
