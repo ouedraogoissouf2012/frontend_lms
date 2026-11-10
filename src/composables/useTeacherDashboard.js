@@ -54,11 +54,11 @@ export function useTeacherDashboard() {
   }
 
   async function loadFallbackDashboard() {
-    const localDashboard = normalizeTeacherDashboardPayload(
-      await dashboardService.getTeacherDashboard().catch(() => null)
-    )
+    const brutLocal = await dashboardService.getTeacherDashboard().catch(() => null)
+    const localDashboard = normalizeTeacherDashboardPayload(brutLocal)
     if (hasDashboardContent(localDashboard)) return localDashboard
-    return await buildTeacherDashboardFallback(lmsService, user.value)
+    // Ses compteurs (le total de leçons du LMS) servent au repli au lieu d'être jetés.
+    return await buildTeacherDashboardFallback(lmsService, user.value, brutLocal?.data ?? null)
   }
 
   async function loadDashboard(forceRefresh = false) {

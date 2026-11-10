@@ -93,15 +93,23 @@ describe('compteurs du tableau de bord enseignant (#371)', () => {
   it('un effectif, quand la charge en porte un, est compté', () => {
     // Certaines charges (fusion avec /proxy/classes) portent `places_occupees`.
     // Le compteur doit alors mesurer, pas rendre `null`.
+    // Chaque classe de la charge capturée reçoit un effectif : seule une somme COMPLÈTE est un total.
+    const effectifs = [6, 5, 4, 3]
     const avecEffectifs = {
       ...TEACHER_DASHBOARD,
-      classes: [
-        { ...TEACHER_DASHBOARD.classes[0], places_occupees: 6 },
-        { ...TEACHER_DASHBOARD.classes[1], places_occupees: 5 },
-      ],
+      classes: TEACHER_DASHBOARD.classes.map((classe, i) => ({ ...classe, places_occupees: effectifs[i] })),
     }
 
-    expect(deriveTeacherCounters(avecEffectifs, LMS).total_etudiants).toBe(11)
+    expect(deriveTeacherCounters(avecEffectifs, LMS).total_etudiants).toBe(18)
+  })
+
+  it('un effectif porté par une partie des classes seulement : non mesuré, jamais la somme partielle', () => {
+    const partiel = {
+      ...TEACHER_DASHBOARD,
+      classes: TEACHER_DASHBOARD.classes.map((classe, i) => (i < 2 ? { ...classe, places_occupees: 6 } : classe)),
+    }
+
+    expect(deriveTeacherCounters(partiel, LMS).total_etudiants).toBeNull()
   })
 
   it('une charge absente ne fabrique aucun chiffre', () => {
