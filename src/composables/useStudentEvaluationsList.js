@@ -108,7 +108,7 @@ export function useStudentEvaluationsList() {
       console.error('Erreur démarrage évaluation:', err)
       // Le motif du refus (#1011 : fenêtre fermée, tentatives, reprise, hors ligne), jamais le
       // texte du serveur (D0).
-      toast.error(displayMessage(err, DEMARRAGE_IMPOSSIBLE))
+      toast.error(err.response?.data?.message || displayMessage(err, DEMARRAGE_IMPOSSIBLE))
     }
   }
 
