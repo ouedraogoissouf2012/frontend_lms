@@ -8,11 +8,13 @@
 import { chromium } from 'playwright'
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
+import { routeurFerme, ouverte, sansObjetSansVisite, refusD56 } from './acces.mjs'
 
 const [fichierRoutes, fichierJeu, sortie] = process.argv.slice(2)
 const BASE = 'http://127.0.0.1:4173'
 const MOT_DE_PASSE = process.env.E2E_MOT_DE_PASSE
 const routes = JSON.parse(readFileSync(fichierRoutes, 'utf8'))
+const ferme = routeurFerme(routes) // D126 : le routeur mesuré ferme-t-il l'école au supradmin ?
 const jeu = JSON.parse(readFileSync(fichierJeu, 'utf8'))
 mkdirSync(join(sortie, 'captures'), { recursive: true })
 
@@ -177,19 +179,6 @@ function ecartsDeValeur(cle, texte) {
   return ecarts
 }
 
-function ouverte(route, role) {
-  if (route.invite) return null // écran d'invité : hors matrice des rôles connectés
-  if (route.roles) return route.roles.includes(role)
-  return true // authentifié sans restriction de rôle, ou public
-}
-
-// Le garde du routeur laisse passer le supradmin PARTOUT (constants/roles.js, canActivate :
-// `hasRole(...) || isSupradmin(user)`). Le contenu d'une école lui est refusé par le SERVEUR (D56) :
-// un écran d'école qui ne le nomme pas dans ses rôles est donc SANS OBJET pour lui, pas un défaut.
-function sansObjetD56(route, role) {
-  return role === 'supradmin' && Array.isArray(route.roles) && !route.roles.includes('supradmin')
-}
-
 const navigateur = await chromium.launch()
 const resultats = []
 
@@ -219,11 +208,11 @@ for (const { compte, email, role } of COMPTES) {
 
   for (const route of routes) {
     if (route.redirection || !route.composant || route.chemin === '/:pathMatch(.*)*') continue
-    if (sansObjetD56(route, role)) {
+    if (sansObjetSansVisite(route, role, ferme)) {
       resultats.push({ compte, role, chemin: route.chemin, nom: route.nom, verdict: 'SANS OBJET', defaut: 'D56 : contenu d’école, refusé au supradmin par le serveur' })
       continue
     }
-    const attendu = ouverte(route, role)
+    const attendu = ouverte(route, role, ferme)
     if (attendu === null) continue
     const cible = concret(route, role, attendu)
     const cas = { compte, role, chemin: route.chemin, nom: route.nom, capacite: route.capacite, attendu: attendu ? 'ouvert' : 'refusé' }
@@ -274,7 +263,10 @@ for (const { compte, email, role } of COMPTES) {
     } else {
       // Refus tenu : le garde a redirigé AVANT de monter l'écran. Ce qui casse ensuite vient de
       // l'écran d'arrivée, déjà jugé dans sa propre case : le compter ici le compterait N fois.
-      resultats.push({ ...cas, verdict: 'VERT', defaut: null, arrivee: final,
+      // Supradmin sur un écran d'école (D126) : le refus est VU, la case reste SANS OBJET (D56).
+      const d56 = refusD56(route, role, ferme)
+      resultats.push({ ...cas, verdict: d56 ? 'SANS OBJET' : 'VERT', arrivee: final,
+        defaut: d56 ? `D56 : contenu d’école ; refus du routeur vérifié (renvoyé vers ${final})` : null,
         noteArrivee: [...evenements.pageerror.slice(0, 1), ...api5xx.map((a) => `${a.statut} ${a.chemin}`)].join(', ') || null, capture })
       continue
     }

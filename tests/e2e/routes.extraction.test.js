@@ -40,6 +40,7 @@ function ecrans(routes, parent = '') {
       authentifie: meta.requiresAuth === true,
       roles,
       capacite: meta.capacite ?? null,
+      plateforme: meta.plateforme === true, // D126 : route ouverte au supradmin (routeur fermé)
     }
     return [ici, ...(r.children ? ecrans(r.children, chemin) : [])]
   })
