@@ -41,7 +41,7 @@ describe('useAdminAuditLog', () => {
     expect(api.etatVide.value).toBeNull()
   })
 
-  it('page suivante puis précédente ; jamais au-delà des bornes', async () => {
+  it('bornes : « précédente » ne part pas en page 1, « suivante » ne part pas en dernière page', async () => {
     h.list.mockResolvedValue(pageDuJournal([CONNEXION], { current_page: 1, last_page: 2, total: 51 }))
     const api = await monter()
     api.pagePrecedente()
@@ -98,6 +98,53 @@ describe('useAdminAuditLog', () => {
     expect(api.erreur.value).toBe('Impossible de charger le journal d’audit.')
   })
 
+  // Revue de #512 : « Réessayer » rechargeait la page AFFICHÉE avec les filtres NOUVEAUX — page 5 d'un
+  // filtre qui n'en a qu'une → écran blanc sans issue. Il rejoue désormais la requête qui a échoué.
+  it('Réessayer après un changement de filtre en échec : page 1 et le nouveau filtre', async () => {
+    h.list.mockResolvedValue(pageDuJournal([CONNEXION], { current_page: 5, last_page: 40, total: 2000 }))
+    const api = await monter()
+    h.list.mockRejectedValueOnce(refus(503, 'Indisponible.'))
+    api.choisirAction('export')
+    await flushPromises()
+    h.list.mockResolvedValue(pageDuJournal([CONNEXION], { current_page: 1, last_page: 1, total: 1 }))
+    api.reessayer()
+    await flushPromises()
+    expect(h.list).toHaveBeenLastCalledWith({ page: 1, action: 'export', userId: null })
+  })
+
+  it('Réessayer après un « Suivant » en échec : la page demandée, pas celle affichée', async () => {
+    h.list.mockResolvedValue(pageDuJournal([CONNEXION], { current_page: 2, last_page: 4, total: 200 }))
+    const api = await monter()
+    h.list.mockRejectedValueOnce(refus(503, 'Indisponible.'))
+    api.pageSuivante()
+    await flushPromises()
+    api.reessayer()
+    expect(h.list).toHaveBeenLastCalledWith({ page: 3, action: '', userId: null })
+  })
+
+  // Revue de #512 : une page au-delà de `last_page` (Laravel rend 200, `data: []`, `total > 0`) laissait
+  // ni lignes, ni vide, ni pagination. La rétention (`audit:purge`) peut raccourcir le journal entre deux clics.
+  it('page au-delà de la dernière : la dernière page est rechargée, une seule fois', async () => {
+    h.list.mockResolvedValue(pageDuJournal([CONNEXION], { current_page: 40, last_page: 40, total: 2000 }))
+    const api = await monter()
+    h.list.mockResolvedValueOnce(pageDuJournal([], { current_page: 39, last_page: 38, total: 1900 }))
+    h.list.mockResolvedValueOnce(pageDuJournal([COPIE_MODIFIEE], { current_page: 38, last_page: 38, total: 1900 }))
+    api.pagePrecedente()
+    await flushPromises()
+    expect(h.list).toHaveBeenLastCalledWith({ page: 38, action: '', userId: null })
+    expect(api.entrees.value.map((e) => e.id)).toEqual([12])
+    expect([api.page.value, api.dernierePage.value]).toEqual([38, 38])
+  })
+
+  // Revue de #512 : `last_page ?? 1` et `total ?? entrees.length` fabriquaient une valeur.
+  it('une page sans pagination lisible est une erreur, pas une pagination inventée', async () => {
+    h.list.mockResolvedValue({ success: true, data: { data: [CONNEXION] } })
+    const api = await monter()
+    expect(api.erreur.value).toBe('La réponse du journal d’audit est illisible.')
+    expect(api.entrees.value).toEqual([])
+    expect(api.peutReessayer.value).toBe(false)
+  })
+
   it('une réponse périmée n’écrase pas la plus récente', async () => {
     h.list.mockResolvedValue(pageDuJournal([CONNEXION]))
     const api = await monter()
@@ -111,5 +158,25 @@ describe('useAdminAuditLog', () => {
     await flushPromises()
     expect(api.entrees.value.map((e) => e.id)).toEqual([12])
     expect(api.action.value).toBe('login')
+    // La garde `finally` : la requête la plus récente a fini, la périmée ne relance pas le chargement.
+    expect(api.chargement.value).toBe(false)
+  })
+
+  it('la garde du chargement : une réponse périmée qui ÉCHOUE ne touche ni l’erreur ni le chargement', async () => {
+    h.list.mockResolvedValue(pageDuJournal([CONNEXION]))
+    const api = await monter()
+    let lente
+    h.list.mockImplementationOnce(() => new Promise((_, rej) => { lente = rej }))
+    api.choisirAction('update')
+    let rapide
+    h.list.mockImplementationOnce(() => new Promise((r) => { rapide = r }))
+    api.choisirAction('login')
+    lente(refus(500, 'Panne.'))
+    await flushPromises()
+    expect(api.chargement.value).toBe(true)
+    expect(api.erreur.value).toBe('')
+    rapide(pageDuJournal([COPIE_MODIFIEE]))
+    await flushPromises()
+    expect(api.chargement.value).toBe(false)
   })
 })

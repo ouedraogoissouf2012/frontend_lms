@@ -75,6 +75,42 @@ describe('AdminAuditLog — ce que l’écran dit', () => {
     expect(horsDetail).not.toContain('203.0.113.5')
   })
 
+  it('pagination en page 2 sur 2 : Précédent actif, Suivant inactif ; « 1 entrée » au singulier', async () => {
+    h.list.mockResolvedValue(pageDuJournal([CONNEXION], { current_page: 2, last_page: 2, total: 51 }))
+    const w = await monter()
+    expect(w.find('.page-precedente').attributes('aria-disabled')).toBe('false')
+    expect(w.find('.page-suivante').attributes('aria-disabled')).toBe('true')
+    h.list.mockResolvedValue(pageDuJournal([CONNEXION], { total: 1 }))
+    await w.find('#filtre-action').setValue('login')
+    await flushPromises()
+    expect(w.find('.pagination').text()).toContain('1 entrée')
+    expect(w.find('.pagination').text()).not.toContain('1 entrées')
+  })
+
+  // Revue de #512 : une région `role=status` créée remplie n'est pas annoncée ; elle existe dès le montage.
+  it('le chargement est ANNONCÉ dans une région présente dès le montage', async () => {
+    let fin
+    h.list.mockImplementationOnce(() => new Promise((r) => { fin = r }))
+    const w = mount(AdminAuditLog, { global: { stubs } })
+    await w.vm.$nextTick()
+    expect(w.find('[role="status"]').text()).toBe('Chargement du journal…')
+    fin(pageDuJournal([CONNEXION]))
+    await flushPromises()
+    expect(w.find('[role="status"]').exists()).toBe(true)
+    expect(w.find('[role="status"]').text()).toBe('')
+    h.list.mockImplementationOnce(() => new Promise(() => {}))
+    await w.find('#filtre-action').setValue('login')
+    expect(w.find('[role="status"]').text()).toBe('Mise à jour…')
+  })
+
+  it('le tableau a une légende ; chaque détail se distingue au lecteur d’écran', async () => {
+    h.list.mockResolvedValue(pageDuJournal([CONNEXION, COPIE_MODIFIEE]))
+    const w = await monter()
+    expect(w.find('table caption').text()).toBe('Entrées du journal, de la plus récente à la plus ancienne')
+    expect(w.findAll('summary').map((s) => s.attributes('aria-label')))
+      .toEqual(['Provenance de l’entrée n° 11', 'Provenance de l’entrée n° 12'])
+  })
+
   it('pagination : « Page 1 sur 3 », Précédent inactif, Suivant charge la page 2', async () => {
     h.list.mockResolvedValue(pageDuJournal([CONNEXION], { current_page: 1, last_page: 3, total: 120 }))
     const w = await monter()
@@ -118,6 +154,8 @@ describe('AdminAuditLog — ce que l’écran dit', () => {
     expect(w.find('.btn-reessayer').exists()).toBe(true)
     h.list.mockRejectedValue(refus(403, 'Accès refusé.'))
     await w.find('.btn-reessayer').trigger('click')
+    // Revue de #512 : « Réessayer » rejoue la requête qui a échoué (ici, la page 1 du montage).
+    expect(h.list).toHaveBeenLastCalledWith({ page: 1, action: '', userId: null })
     await flushPromises()
     expect(w.find('.btn-reessayer').exists()).toBe(false)
   })
