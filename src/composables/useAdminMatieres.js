@@ -2,6 +2,8 @@ import { ref, computed } from 'vue'
 import { klassciService } from '@/services/klassci'
 import { invalidateEntity } from '@/services/cache'
 import { useCachedResource } from '@/composables/useCachedResource'
+import { messageForReason } from '@/services/errorHandler'
+import { userError } from '@/utils/userError'
 // #28 : logique métier pure extraite (testée dans tests/unit/matieres.test.js)
 import {
   filterMatieres,
@@ -22,7 +24,7 @@ async function fetchMatieres() {
     klassciService.getStructure(),
   ])
   if (!response?.success) {
-    throw new Error(response?.message || 'Erreur lors du chargement des matières')
+    throw userError(messageForReason(response?.reason) ?? 'Erreur lors du chargement des matières')
   }
   return {
     matieres: response.data?.matieres || [],

@@ -44,7 +44,8 @@ vi.mock('@/constants/visio', () => ({
   getVisioRoomId: (source) => source?.visio_room_id || source?.room_id || source?.visio?.room_id || null,
   requireVisioRoomId: (source) => {
     const roomId = source?.visio_room_id || source?.room_id || source?.visio?.room_id
-    if (!roomId) throw new Error('Identifiant de salle visio introuvable dans la réponse API.')
+    // Comme le vrai `requireVisioRoomId` (#500) : un texte du FRONT, porté par `userMessage`.
+    if (!roomId) throw Object.assign(new Error('Identifiant de salle visio introuvable dans la réponse API.'), { userMessage: 'Identifiant de salle visio introuvable dans la réponse API.' })
     return roomId
   }
 }))

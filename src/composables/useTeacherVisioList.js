@@ -4,6 +4,7 @@ import { readCache, writeCache, clearCache } from '@/services/cache'
 import { useTrackedVisioJoin } from '@/composables/useTrackedVisioJoin'
 import { confirmVisioAction } from '@/services/visioFeedback'
 import { extractList } from '@/utils/apiList'
+import { displayMessage } from '@/services/displayMessage'
 
 function parseLocalDateTime(dateStr, timeStr) {
   if (!dateStr || !timeStr) return null
@@ -209,8 +210,8 @@ export function useTeacherVisioList() {
     } catch (err) {
       console.error('[ERREUR] Join visio:', err)
       // Le motif du refus (catalogue, #452), puis le message propre au front ; jamais
-      // le texte technique d'une erreur HTTP. Même forme que useTeacherSeances.
-      error.value = err.userMessage ?? err.message ?? 'Erreur lors de la connexion à la visio'
+      // le texte technique d'une erreur, HTTP ou non (D0).
+      error.value = displayMessage(err, 'Erreur lors de la connexion à la visio')
     } finally {
       actionLoading.value = null
     }
