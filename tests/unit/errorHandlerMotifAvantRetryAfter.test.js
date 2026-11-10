@@ -6,7 +6,8 @@
  * catégories transitoires ; un refus définitif ne prend pas de délai.
  */
 import { describe, it, expect } from 'vitest'
-import { normalizeError } from '@/services/errorHandler'
+import { normalizeError, messageForReason, CATEGORIES_A_DELAI } from '@/services/errorHandler'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 const reponse = (status, data, headers = {}) => ({ response: { status, data, headers }, config: { url: '/api/x' } })
 const PIEGE = 'Texte du serveur, jamais affiché'
@@ -36,5 +37,19 @@ describe('normalizeError : un motif connu avant Retry-After', () => {
 
   it('503 sans Retry-After ni motif : « server », inchangé', () => {
     expect(normalizeError(reponse(503, {})).category).toBe('server')
+  })
+})
+
+// Revue de #516 : le délai repose sur la FIN exacte du message. Une catégorie transitoire ajoutée sans
+// cette fin perdrait son délai sans bruit : la garde lie l'ensemble et les textes.
+describe('catégories transitoires : leur message porte la fin que le délai remplace', () => {
+  it('chaque catégorie à délai finit par « Réessayez dans un instant. »', () => {
+    expect([...CATEGORIES_A_DELAI].sort()).toEqual(['evaluationWindowUnverifiable', 'klassciUnavailable'])
+    for (const c of CATEGORIES_A_DELAI) expect(ERROR_MESSAGES[c]).toMatch(/ Réessayez dans un instant\.$/)
+  })
+
+  it('messageForReason (réponse hors intercepteur, sans en-tête) : « dans un instant »', () => {
+    expect(messageForReason('evaluation_window_unverifiable'))
+      .toBe('La disponibilité de cette évaluation ne peut pas être vérifiée pour le moment. Réessayez dans un instant.')
   })
 })
