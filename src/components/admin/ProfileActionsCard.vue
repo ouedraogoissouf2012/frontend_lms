@@ -14,29 +14,32 @@
           </div>
         </router-link>
 
-        <router-link to="/admin/users" class="action-button">
-          <UserGroupIcon class="action-icon" />
-          <div class="action-content">
-            <span class="action-title">Utilisateurs</span>
-            <span class="action-description">Gérer les utilisateurs</span>
-          </div>
-        </router-link>
+        <!-- Écrans d'école : fermés au supradmin (D126), qui n'a pas d'établissement. -->
+        <template v-if="!plateforme">
+          <router-link to="/admin/users" class="action-button">
+            <UserGroupIcon class="action-icon" />
+            <div class="action-content">
+              <span class="action-title">Utilisateurs</span>
+              <span class="action-description">Gérer les utilisateurs</span>
+            </div>
+          </router-link>
 
-        <router-link to="/admin/classes" class="action-button">
-          <BuildingLibraryIcon class="action-icon" />
-          <div class="action-content">
-            <span class="action-title">Classes</span>
-            <span class="action-description">Gérer les classes</span>
-          </div>
-        </router-link>
+          <router-link to="/admin/classes" class="action-button">
+            <BuildingLibraryIcon class="action-icon" />
+            <div class="action-content">
+              <span class="action-title">Classes</span>
+              <span class="action-description">Gérer les classes</span>
+            </div>
+          </router-link>
 
-        <router-link to="/admin/matieres" class="action-button">
-          <BookOpenIcon class="action-icon" />
-          <div class="action-content">
-            <span class="action-title">Matières</span>
-            <span class="action-description">Gérer les matières</span>
-          </div>
-        </router-link>
+          <router-link to="/admin/matieres" class="action-button">
+            <BookOpenIcon class="action-icon" />
+            <div class="action-content">
+              <span class="action-title">Matières</span>
+              <span class="action-description">Gérer les matières</span>
+            </div>
+          </router-link>
+        </template>
       </div>
     </div>
   </div>
@@ -46,6 +49,8 @@
 /**
  * Carte « Actions Rapides » d'AdminProfile (#H3 ≤300). Présentation pure :
  * 4 liens de navigation statiques (router-link). Aucune donnée ni appel API.
+ * `plateforme` (supradmin) : seul le lien Paramètres reste, les trois autres sont des
+ * écrans d'école qui lui sont fermés (D126).
  */
 import {
   BookOpenIcon,
@@ -54,6 +59,10 @@ import {
   BoltIcon,
   CogIcon,
 } from '@heroicons/vue/24/outline'
+
+defineProps({
+  plateforme: { type: Boolean, default: false },
+})
 </script>
 
 <style scoped>
