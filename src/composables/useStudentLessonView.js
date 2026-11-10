@@ -6,6 +6,7 @@ import api from '@/services/api'
 import { toast } from '@/composables/useToast'
 import { endpoints } from '@/services/endpoints'
 import { extractList } from '@/utils/apiList'
+import { estPannePassagere } from '@/utils/pannePassagere'
 
 /**
  * Couche données de StudentLessonView (#H4 ≤300) : charge leçon + chapitres +
@@ -24,8 +25,8 @@ export function useStudentLessonView() {
   const sidebarCollapsed = ref(false)
   const loading = ref(true)
   const error = ref(null)
-  // Un refus DÉFINITIF (403, 404 : leçon non ouverte, inscription inactive) n'offre pas de
-  // nouvel essai ; seule une panne passagère (5xx, réseau) le fait.
+  // Seule une panne passagère (5xx, 429, réseau) offre un nouvel essai : un refus définitif
+  // (403, 404 : leçon non ouverte, inscription inactive ; 400, 401, 409, 422…) n'en offre pas.
   const canRetry = ref(true)
   const markingComplete = ref(false)
   const quizzes = ref({})
@@ -104,8 +105,11 @@ export function useStudentLessonView() {
       console.error('[StudentLesson] Load error:', err)
       // #26 : messages spécifiques portés depuis l'ex-vue /lessons/:id.
       const status = err.response?.status
-      canRetry.value = status !== 403 && status !== 404
-      if (status === 403) {
+      canRetry.value = estPannePassagere(err)
+      if (err.userMessage) {
+        // Le motif déjà posé par l'intercepteur (catalogue, à partir du `reason`) prime.
+        error.value = err.userMessage
+      } else if (status === 403) {
         error.value = "Cette leçon n'est pas encore disponible"
       } else if (status === 404) {
         error.value = 'Leçon introuvable'
