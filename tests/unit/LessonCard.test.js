@@ -7,8 +7,6 @@ import { describe, it, expect, vi } from 'vitest'
 
 vi.mock('@/services/lesson', () => ({
   default: {
-    getTypeBadge: () => ({ text: 'Cours' }),
-    getStatusBadge: () => ({ text: 'Publié' }),
     formatDuration: (m) => `${m} min`
   }
 }))

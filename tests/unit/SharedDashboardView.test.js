@@ -41,6 +41,29 @@ async function mountDashboard(role) {
   return w
 }
 
+// Constat E2E v3.1 : « Leçons récentes » écrivait `published` et `tp` tels quels (ARRÊT 1).
+describe('Dashboard.vue — « Leçons récentes » en français, jamais deviné', () => {
+  it('statut et type traduits ; inconnus : aucun badge, ni brut ni inventé', async () => {
+    vi.clearAllMocks()
+    h.student.mockResolvedValue({ lessons_in_progress: 3 })
+    h.notifsAll.mockResolvedValue([])
+    h.lessonsAll.mockResolvedValue([
+      { id: 1, title: 'Suites', description: '', status: 'published', type: 'tp' },
+      { id: 2, title: 'Limites', description: '', status: 'zzz', type: 'zzz' },
+    ])
+    const w = await mountDashboard('etudiant')
+    // Revue de #511 : le type inconnu laissait un élément vide ; il n'est plus rendu.
+    expect(w.findAll('.lesson-type').map((t) => t.text())).toEqual(['TP'])
+    const texte = w.text()
+    expect(texte).toContain('Suites')
+    expect(texte).toContain('Limites')
+    expect(texte).toContain('Publiée')
+    expect(texte).toContain('TP')
+    expect(texte).not.toMatch(/\b(?:published|tp|zzz)\b/)
+    expect(texte).not.toMatch(/Brouillon|Cours\b/)
+  })
+})
+
 describe('Dashboard.vue (route partagée) — rôle normalisé', () => {
   beforeEach(() => {
     vi.clearAllMocks()

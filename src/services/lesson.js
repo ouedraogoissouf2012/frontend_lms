@@ -206,36 +206,6 @@ const lessonService = {
   },
 
   /**
-   * Obtenir le badge de statut
-   * @param {String} status - draft, published, archived
-   * @returns {Object} - { class, text }
-   */
-  getStatusBadge(status) {
-    const badges = {
-      draft: { class: 'bg-gray-200 text-gray-700', text: 'Brouillon' },
-      published: { class: 'bg-green-100 text-green-700', text: 'Publié' },
-      archived: { class: 'bg-orange-100 text-orange-700', text: 'Archivé' }
-    }
-    return badges[status] || badges.draft
-  },
-
-  /**
-   * Obtenir le badge de type
-   * @param {String} type - cours, tp, td, projet, autre
-   * @returns {Object} - { class, text, icon }
-   */
-  getTypeBadge(type) {
-    const badges = {
-      cours: { class: 'bg-blue-100 text-blue-700', text: 'Cours', icon: 'fa-book' },
-      tp: { class: 'bg-purple-100 text-purple-700', text: 'TP', icon: 'fa-laptop' },
-      td: { class: 'bg-indigo-100 text-indigo-700', text: 'TD', icon: 'fa-pencil' },
-      projet: { class: 'bg-pink-100 text-pink-700', text: 'Projet', icon: 'fa-rocket' },
-      autre: { class: 'bg-gray-100 text-gray-700', text: 'Autre', icon: 'fa-file-text-o' }
-    }
-    return badges[type] || badges.cours
-  },
-
-  /**
    * Obtenir le badge de progression
    * @param {Number} percentage - 0-100
    * @returns {Object} - { class, text, color }

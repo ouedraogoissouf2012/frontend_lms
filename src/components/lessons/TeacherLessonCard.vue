@@ -7,8 +7,8 @@
         <AcademicCapIcon v-else class="w-6 h-6 text-green-600" />
       </div>
       <div class="lesson-badges">
-        <span :class="getStatusClass(lesson.status)" class="status-badge">
-          {{ getStatusLabel(lesson.status) }}
+        <span v-if="lessonStatusLabel(lesson.status)" :class="getStatusClass(lesson.status)" class="status-badge">
+          {{ lessonStatusLabel(lesson.status) }}
         </span>
       </div>
     </div>
@@ -57,6 +57,7 @@ import {
   CalendarIcon,
   EyeIcon
 } from '@heroicons/vue/24/outline'
+import { lessonStatusLabel } from '@/utils/lessonStatus'
 
 defineProps({
   lesson: { type: Object, required: true },
@@ -72,15 +73,6 @@ function getStatusClass(status) {
     archived: 'status-archived'
   }
   return classes[status] || 'status-draft'
-}
-
-function getStatusLabel(status) {
-  const labels = {
-    published: 'Publiée',
-    draft: 'Brouillon',
-    archived: 'Archivée'
-  }
-  return labels[status] || 'Brouillon'
 }
 
 // #283 : délègue au formatter canonique (repli local conservé).
