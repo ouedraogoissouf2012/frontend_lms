@@ -21,3 +21,30 @@ export const lessonStatusLabel = (status) => libelle(STATUTS, status)
 
 /** @param {*} type @returns {string} libellé français, ou '' si inconnu */
 export const lessonTypeLabel = (type) => libelle(TYPES, type)
+
+// Présentation des badges (classes utilitaires et icône), par clé du serveur. Venus de
+// services/lesson (décision de la superviseure) : un badge est de la présentation, pas un appel.
+const CLASSES_STATUT = Object.freeze({
+  draft: 'bg-gray-200 text-gray-700',
+  published: 'bg-green-100 text-green-700',
+  archived: 'bg-orange-100 text-orange-700',
+})
+const STYLES_TYPE = Object.freeze({
+  cours: { class: 'bg-blue-100 text-blue-700', icon: 'fa-book' },
+  tp: { class: 'bg-purple-100 text-purple-700', icon: 'fa-laptop' },
+  td: { class: 'bg-indigo-100 text-indigo-700', icon: 'fa-pencil' },
+  projet: { class: 'bg-pink-100 text-pink-700', icon: 'fa-rocket' },
+  autre: { class: 'bg-gray-100 text-gray-700', icon: 'fa-file-text-o' },
+})
+
+/** @param {*} status @returns {{class: string, text: string}|null} `null` : statut inconnu, aucun badge */
+export function lessonStatusBadge(status) {
+  const text = lessonStatusLabel(status)
+  return text ? { class: CLASSES_STATUT[status], text } : null
+}
+
+/** @param {*} type @returns {{class: string, icon: string, text: string}|null} `null` : type inconnu, aucun badge */
+export function lessonTypeBadge(type) {
+  const text = lessonTypeLabel(type)
+  return text ? { ...STYLES_TYPE[type], text } : null
+}
