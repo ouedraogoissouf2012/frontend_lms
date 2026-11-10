@@ -6,6 +6,7 @@ import api from '@/services/api'
 import { toast } from '@/composables/useToast'
 import { endpoints } from '@/services/endpoints'
 import { extractList } from '@/utils/apiList'
+import { estPannePassagere } from '@/utils/pannePassagere'
 
 /**
  * Couche données de StudentLessonView (#H4 ≤300) : charge leçon + chapitres +
@@ -24,6 +25,9 @@ export function useStudentLessonView() {
   const sidebarCollapsed = ref(false)
   const loading = ref(true)
   const error = ref(null)
+  // Seule une panne passagère (5xx, 429, réseau) offre un nouvel essai : un refus définitif
+  // (403, 404 : leçon non ouverte, inscription inactive ; 400, 401, 409, 422…) n'en offre pas.
+  const canRetry = ref(true)
   const markingComplete = ref(false)
   const quizzes = ref({})
   const chapterStartTime = ref(null)
@@ -54,6 +58,7 @@ export function useStudentLessonView() {
   async function loadAll() {
     loading.value = true
     error.value = null
+    canRetry.value = true
     try {
       // Load lesson details
       const lessonRes = await lessonService.getLesson(lessonId.value)
@@ -99,9 +104,14 @@ export function useStudentLessonView() {
     } catch (err) {
       console.error('[StudentLesson] Load error:', err)
       // #26 : messages spécifiques portés depuis l'ex-vue /lessons/:id.
-      if (err.response?.status === 403) {
+      const status = err.response?.status
+      canRetry.value = estPannePassagere(err)
+      if (err.userMessage) {
+        // Le motif déjà posé par l'intercepteur (catalogue, à partir du `reason`) prime.
+        error.value = err.userMessage
+      } else if (status === 403) {
         error.value = "Cette leçon n'est pas encore disponible"
-      } else if (err.response?.status === 404) {
+      } else if (status === 404) {
         error.value = 'Leçon introuvable'
       } else {
         error.value = 'Impossible de charger le cours. Veuillez réessayer.'
@@ -249,7 +259,7 @@ export function useStudentLessonView() {
 
   return {
     lesson, chapters, completedChapters, activeChapterIndex, sidebarCollapsed,
-    loading, error, markingComplete, quizzes, contentAreaRef,
+    loading, error, canRetry, markingComplete, quizzes, contentAreaRef,
     lessonId, activeChapter, chapterQuiz, overallProgress,
     loadAll, setActiveChapter, prevChapter, nextChapter, isChapterCompleted,
     markChapterComplete, onQuizCompleted, onQuizClose, goBack
