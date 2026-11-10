@@ -23,6 +23,13 @@ describe('TeacherLessonCard (#H4)', () => {
     expect(w.find('.lesson-title').text()).toBe('Sans titre')
   })
 
+  // ARRÊT 1 statuts de leçon : un statut inconnu s'affichait « Brouillon », une valeur inventée.
+  it('statut inconnu : aucun badge, pas un « Brouillon » inventé', () => {
+    const w = mount(TeacherLessonCard, { props: { lesson: { ...lesson, status: 'zzz' } } })
+    expect(w.find('.status-badge').exists()).toBe(false)
+    expect(w.text()).not.toContain('Brouillon')
+  })
+
   it('émet view avec la leçon au clic', async () => {
     const w = mount(TeacherLessonCard, { props: { lesson } })
     await w.find('.btn-view').trigger('click')

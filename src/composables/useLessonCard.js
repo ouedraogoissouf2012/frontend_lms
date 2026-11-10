@@ -1,9 +1,11 @@
 import lessonService from '@/services/lesson'
+import { lessonStatusBadge, lessonTypeBadge } from '@/utils/lessonStatus'
 import { formatDateShort } from '@/utils/formatters'
 
 /**
  * Helpers de présentation de LessonCard (#H4 ≤300). Mappe type/status/contenu vers
- * icônes et libellés, et relaie durée/date/badges au service leçon. Pur (aucun état) :
+ * icônes et libellés, relaie durée au service leçon et prend les badges à la source unique
+ * des libellés (utils/lessonStatus). Pur (aucun état) :
  * partagé tel quel par LessonCard et ses sous-composants (badges, actions).
  */
 const TYPE_ICONS = {
@@ -47,8 +49,8 @@ export function useLessonCard() {
   const getContentTypeLabel = (type) => CONTENT_TYPE_LABELS[type] || 'Inconnu'
   const formatDuration = (minutes) => lessonService.formatDuration(minutes)
   const formatDate = (dateString) => formatDateShort(dateString, { fallback: 'N/A' })
-  const getTypeBadge = (type) => lessonService.getTypeBadge(type)
-  const getStatusBadge = (status) => lessonService.getStatusBadge(status)
+  const getTypeBadge = lessonTypeBadge
+  const getStatusBadge = lessonStatusBadge
 
   return {
     getTypeIcon,

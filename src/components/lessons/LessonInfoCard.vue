@@ -11,9 +11,9 @@
           <span v-if="lesson.duree_estimee_minutes" class="meta-info">
             ⏱ {{ lesson.duree_estimee_minutes }} min
           </span>
-          <span class="meta-info status-badge" :class="lesson.status === 'published' ? 'status-published' : 'status-draft'">
-            <i :class="lesson.status === 'published' ? 'fa fa-check' : 'fa fa-pencil'"></i>
-            {{ lesson.status === 'published' ? 'Publiee' : 'Brouillon' }}
+          <span v-if="lessonStatusLabel(lesson.status)" class="meta-info status-badge" :class="`status-${lesson.status}`">
+            <i :class="lesson.status === 'published' ? 'fa fa-check' : lesson.status === 'archived' ? 'fa fa-archive' : 'fa fa-pencil'"></i>
+            {{ lessonStatusLabel(lesson.status) }}
           </span>
         </div>
       </div>
@@ -54,6 +54,8 @@
  * durée, status), actions brouillon (prévisualiser/publier) et sections prérequis/
  * objectifs. Présentationnel ; actions relayées via emit (preview/publish).
  */
+import { lessonStatusLabel } from '@/utils/lessonStatus'
+
 defineProps({
   lesson: { type: Object, required: true },
   isReadOnly: { type: Boolean, default: false },
@@ -167,6 +169,12 @@ function getNiveauLabel(niveau) {
   background-color: rgba(245, 158, 11, 0.15);
   color: var(--amber-500);
   border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.status-archived {
+  background-color: var(--gray-100);
+  color: var(--gray-500);
+  border: 1px solid var(--gray-200);
 }
 
 .lesson-actions {
