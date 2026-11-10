@@ -5,6 +5,7 @@ import { auth } from '@/services/api'
 import { useConfirm } from '@/composables/useConfirm'
 import { createEmptyLesson, buildLessonPayload, resolveEvaluationRoute } from '@/utils/matiereDetails'
 import { hasRole, ROLES } from '@/constants/roles'
+import { useStartEvaluation } from '@/composables/useStartEvaluation'
 
 /**
  * Couche données/logique de MatiereDetails (#H9 ≤300). Charge le détail matière
@@ -16,6 +17,8 @@ import { hasRole, ROLES } from '@/constants/roles'
  */
 export function useMatiereDetails() {
   const inst = getCurrentInstance()
+  // L'élève ouvre une évaluation par la porte unique (revue de #515).
+  const { ouvrirEvaluation } = useStartEvaluation()
 
   const loading = ref(false)
   const error = ref(null)
@@ -244,7 +247,10 @@ export function useMatiereDetails() {
     const role = auth.getUser()?.role
     const action = resolveEvaluationRoute(evaluation, { role, matiereId: matiereId.value })
 
-    if (action.route) {
+    if (action.ouvrir) {
+      // L'élève : la porte unique (reprise, résultats, ou démarrage par le serveur).
+      ouvrirEvaluation(action.ouvrir)
+    } else if (action.route) {
       inst.proxy.$router.push(action.route)
     } else {
       showNotification(action.notify.message, action.notify.level)

@@ -35,7 +35,7 @@ import { notifyVisioError, notifyVisioWarning } from '@/services/visioFeedback'
 const router = useRouter()
 const { joinTrackedVisio } = useTrackedVisioJoin('Etudiant')
 const { currentUser, actorId } = useScheduleActorId()
-const { startEvaluation } = useStartEvaluation()
+const { ouvrirEvaluation } = useStartEvaluation()
 
 async function handleEventAction({ type, data }) {
   console.log('[StudentSchedule] Action:', type, data)
@@ -59,9 +59,10 @@ async function handleEventAction({ type, data }) {
       }
       break
 
-    // La même porte que « Mes évaluations » : appel au serveur, copie créée, motif d'un refus.
+    // La même porte que « Mes évaluations » : reprise d'une copie en cours, résultats d'une copie
+    // rendue, sinon démarrage par le serveur (copie créée, motif d'un refus).
     case 'startEvaluation':
-      await startEvaluation(data)
+      await ouvrirEvaluation(data)
       break
 
     case 'hideSeance':
