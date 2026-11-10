@@ -161,4 +161,31 @@ describe('useStudentLessonView (#H4)', () => {
       expect(c.canRetry.value).toBe(true)
     }
   })
+
+  // Revue de #508 : la règle doit AUTORISER les pannes passagères, pas refuser deux statuts.
+  it('tout autre refus (400, 401, 409, 422) : définitif, aucun nouvel essai', async () => {
+    for (const status of [400, 401, 409, 422]) {
+      getLesson.mockRejectedValue({ response: { status } })
+      apiGet.mockResolvedValue({ success: true, data: [] })
+      const c = await setup()
+      expect(c.canRetry.value).toBe(false)
+    }
+  })
+
+  it('trop de requêtes (429) ou délai dépassé (ECONNABORTED) : le nouvel essai reste offert', async () => {
+    for (const erreur of [{ response: { status: 429 } }, Object.assign(new Error('timeout of 30000ms exceeded'), { code: 'ECONNABORTED' })]) {
+      getLesson.mockRejectedValue(erreur)
+      apiGet.mockResolvedValue({ success: true, data: [] })
+      const c = await setup()
+      expect(c.canRetry.value).toBe(true)
+    }
+  })
+
+  it('le motif posé par l’intercepteur (userMessage) est dit, pas un texte deviné du statut', async () => {
+    getLesson.mockRejectedValue({ response: { status: 403, data: { reason: 'no_institution' } }, userMessage: 'Motif du catalogue' })
+    apiGet.mockResolvedValue({ success: true, data: [] })
+    const c = await setup()
+    expect(c.error.value).toBe('Motif du catalogue')
+    expect(c.canRetry.value).toBe(false)
+  })
 })
