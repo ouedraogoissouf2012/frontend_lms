@@ -63,7 +63,6 @@ export function useStartEvaluation() {
   /** @param {{id: number, student_submission?: {id: number, status: string}|null}} evaluation */
   function ouvrirEvaluation(evaluation) {
     const copie = evaluation.student_submission
-    if (copie?.status === 'en_cours') return continueEvaluation(evaluation)
     if (copieRendue(copie)) return router.push({ name: 'EvaluationResults', params: { id: evaluation.id } })
     return startEvaluation(evaluation)
   }
