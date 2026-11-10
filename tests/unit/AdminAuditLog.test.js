@@ -8,7 +8,7 @@
  */
 import { mount, flushPromises } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { CONNEXION, COPIE_MODIFIEE, ECHEC_CONNEXION, INCONNUE, pageDuJournal } from '../fixtures/auditLog'
+import { AUDIT_LOG_CAPTURE, CONNEXION, COPIE_MODIFIEE, ECHEC_CONNEXION, INCONNUE, pageDuJournal } from '../fixtures/auditLog'
 
 const h = vi.hoisted(() => ({ list: vi.fn() }))
 vi.mock('@/services/auditLog', () => ({ auditLogService: { list: (...a) => h.list(...a) } }))
@@ -37,6 +37,22 @@ describe('AdminAuditLog — ce que l’écran dit', () => {
     expect(lignes[1]).toContain('Copie d’évaluation n° 31')
     expect(lignes[1]).toContain('École n° 9')
     expect(lignes[2]).toContain('Échec de connexion')
+  })
+
+  it('la réponse CAPTURÉE (#1014) : en français, sans code, sans e-mail, la pagination lue', async () => {
+    h.list.mockResolvedValue(AUDIT_LOG_CAPTURE)
+    const w = await monter()
+    const [echec, visio] = w.findAll('tr.entree').map((l) => l.text())
+    expect(echec).toContain('Échec de connexion')
+    expect(visio).toContain('Awa Koné')
+    expect(visio).toContain('Enregistrement visio démarré')
+    expect(visio).toContain('Enregistrement visio n° 12')
+    expect(visio).toContain('Collège Les Palmiers')
+    for (const brut of ['visio_recording_start', 'login_failed', 'SeanceRecording', 'awa.kone@exemple.test']) {
+      expect(w.text()).not.toContain(brut)
+    }
+    expect(w.find('.pagination').text()).toContain('Page 1 sur 1')
+    expect(w.find('.pagination').text()).toContain('2 entrées')
   })
 
   it('jamais un code du serveur, un nom de classe ni l’e-mail ; l’inconnu rend « — »', async () => {
