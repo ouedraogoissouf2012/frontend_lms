@@ -96,3 +96,31 @@ describe('useTeacherSeances (#H6)', () => {
     expect(u.actionLoading.value).toBe(null)
   })
 })
+
+// Lot « retour honnête » (instruction des rouges du 10/11) : erreurs telles que l'intercepteur les rend.
+// Le 401 `klassci_token_missing` est un refus DÉFINITIF (lot 3d, école autonome) ; le 500 une panne.
+const PIEGE_SERVEUR = 'Texte serveur, jamais affiché'
+const refusDefinitif = () => Object.assign(new Error('HTTP 401'), {
+  response: { status: 401, data: { success: false, message: PIEGE_SERVEUR, reason: 'klassci_token_missing' } },
+  userMessage: "Aucun accès KLASSCI n'est enregistré pour ce compte : les données qui en proviennent ne peuvent pas être affichées.",
+})
+const pannePassagere = () => Object.assign(new Error('HTTP 500'), {
+  response: { status: 500, data: { message: PIEGE_SERVEUR } },
+  userMessage: 'Une erreur est survenue côté serveur. Veuillez réessayer plus tard.',
+})
+const MOTIF_JETON = "Aucun accès KLASSCI n'est enregistré pour ce compte : les données qui en proviennent ne peuvent pas être affichées."
+
+describe('useTeacherSeances — le motif d’un refus est dit, Réessayer seulement sur une panne', () => {
+  it('refus définitif (401 jeton KLASSCI) : le motif, pas « Impossible de charger les séances » ; pas de Réessayer', async () => {
+    getMyTeachingSeances.mockRejectedValue(refusDefinitif())
+    const u = await setup()
+    expect(u.error.value).toBe(MOTIF_JETON)
+    expect(u.canRetry.value).toBe(false)
+  })
+
+  it('panne passagère (500) : Réessayer reste offert', async () => {
+    getMyTeachingSeances.mockRejectedValue(pannePassagere())
+    const u = await setup()
+    expect(u.canRetry.value).toBe(true)
+  })
+})

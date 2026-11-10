@@ -93,3 +93,39 @@ describe('useMatiereDetails (#H9)', () => {
     expect(api.error.value).toBe('KO')
   })
 })
+
+// Lot « retour honnête » (instruction des rouges du 10/11) : erreurs telles que l'intercepteur les rend.
+// Le 401 `klassci_token_missing` est un refus DÉFINITIF (lot 3d, école autonome) ; le 500 une panne.
+const PIEGE_SERVEUR = 'Texte serveur, jamais affiché'
+const refusDefinitif = () => Object.assign(new Error('HTTP 401'), {
+  response: { status: 401, data: { success: false, message: PIEGE_SERVEUR, reason: 'klassci_token_missing' } },
+  userMessage: "Aucun accès KLASSCI n'est enregistré pour ce compte : les données qui en proviennent ne peuvent pas être affichées.",
+})
+const pannePassagere = () => Object.assign(new Error('HTTP 500'), {
+  response: { status: 500, data: { message: PIEGE_SERVEUR } },
+  userMessage: 'Une erreur est survenue côté serveur. Veuillez réessayer plus tard.',
+})
+const MOTIF_JETON = "Aucun accès KLASSCI n'est enregistré pour ce compte : les données qui en proviennent ne peuvent pas être affichées."
+
+// Le site lisait `err.response.data.message` (D0) : il quitte la liste gelée du cliquet.
+describe('useMatiereDetails — le motif d’un refus est dit, jamais le texte du serveur', () => {
+  it('refus définitif : le motif ; pas de Réessayer ; jamais le texte du serveur', async () => {
+    getMatiereDetails.mockRejectedValue(refusDefinitif())
+    const { api } = await setup('1')
+    expect(api.error.value).toBe(MOTIF_JETON)
+    expect(api.canRetry.value).toBe(false)
+  })
+
+  it('panne passagère : Réessayer reste offert, jamais le texte du serveur', async () => {
+    getMatiereDetails.mockRejectedValue(pannePassagere())
+    const { api } = await setup('1')
+    expect(api.canRetry.value).toBe(true)
+    expect(api.error.value).not.toContain(PIEGE_SERVEUR)
+  })
+
+  it('réponse « success: false » : son motif traduit, sinon le texte du front, jamais son message', async () => {
+    getMatiereDetails.mockResolvedValue({ success: false, message: PIEGE_SERVEUR })
+    const { api } = await setup('1')
+    expect(api.error.value).toBe('Impossible de charger les détails de la matière')
+  })
+})
