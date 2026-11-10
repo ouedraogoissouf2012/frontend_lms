@@ -1,6 +1,10 @@
 import api from './api'
 import { formatDuration as fmtDuration } from '../utils/formatters'
 import { endpoints } from './endpoints'
+import { fetchAllPages } from '../utils/fetchAllPages'
+
+// `GET /lessons` est paginé (15 par défaut, `per_page` borné à 100 par FilterLessonsRequest).
+const LESSONS_PAGE_SIZE = 100
 
 /**
  * Service pour la gestion des leçons (Lessons)
@@ -20,6 +24,15 @@ const lessonService = {
       console.error('[LessonService] Erreur getLessons:', error)
       throw error
     }
+  },
+
+  /**
+   * TOUTES les leçons des filtres, page après page (sans pagination, le serveur n'en rend
+   * que 15 : « Mes leçons » était tronqué et ses compteurs faux). Voir fetchAllPages.
+   * @param {Object} params - Filtres (enseignant_id, matiere_id, …), sans pagination
+   */
+  getAllLessons(params = {}) {
+    return fetchAllPages((p) => lessonService.getLessons(p), params, LESSONS_PAGE_SIZE)
   },
 
   /**

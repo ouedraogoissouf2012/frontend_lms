@@ -1,7 +1,10 @@
 import { ref, reactive } from 'vue'
 import { writeCache } from '@/services/cache'
+import { TEACHER_LESSONS_CACHE } from '@/composables/myLessons'
 import lessonService from '@/services/lesson'
 import { toast } from '@/composables/useToast'
+import { messageForReason } from '@/services/errorHandler'
+import { displayMessage } from '@/services/displayMessage'
 
 /**
  * Couche formulaire de la modale leçon (#H4 ≤300), extraite de TeacherLessons.
@@ -64,12 +67,15 @@ export function useLessonForm(lessons) {
         // #236 : vraie mise à jour serveur (plus de mutation purement locale).
         const response = await lessonService.updateLesson(editingLesson.value.id, { ...lessonForm })
         if (!response?.success) {
-          toast.error('Erreur lors de la sauvegarde : ' + (response?.message || 'réessayez.'))
+          toast.error(messageForReason(response?.reason) ?? 'Erreur lors de la sauvegarde. Réessayez.')
           return
         }
         const index = lessons.value.findIndex(l => l.id === editingLesson.value.id)
         if (index !== -1) {
-          lessons.value[index] = { ...lessons.value[index], ...(response.data || lessonForm) }
+          const maj = response.data || lessonForm
+          // La réponse de mise à jour ne recharge pas la relation `matiere` : garder l'ancienne
+          // ferait afficher l'ancienne matière (le libellé lit d'abord `lesson.matiere`).
+          lessons.value[index] = { ...lessons.value[index], ...maj, matiere: maj.matiere ?? null }
         }
       } else {
         // #236 : vraie création serveur — on insère la leçon RENVOYÉE (id réel).
@@ -77,17 +83,18 @@ export function useLessonForm(lessons) {
         // dans le cache lu par useTeacherLessons → « leçon fantôme ».
         const response = await lessonService.createLesson({ ...lessonForm })
         if (!response?.success || !response.data) {
-          toast.error('Erreur lors de la sauvegarde : ' + (response?.message || 'réessayez.'))
+          toast.error(messageForReason(response?.reason) ?? 'Erreur lors de la sauvegarde. Réessayez.')
           return
         }
         lessons.value.unshift(response.data)
       }
 
       // Rafraîchir le cache avec l'état réellement persisté.
-      writeCache('teacher_lessons', lessons.value)
+      writeCache(TEACHER_LESSONS_CACHE, lessons.value)
       closeModal()
     } catch (err) {
-      toast.error('Erreur lors de la sauvegarde : ' + (err?.userMessage || 'réessayez.'))
+      // Le message du catalogue nomme la cause ; le préfixe dit QUOI a échoué (revue de #506).
+      toast.error(`La sauvegarde a échoué : ${displayMessage(err, 'réessayez.')}`)
     } finally {
       saving.value = false
     }

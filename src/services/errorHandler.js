@@ -28,6 +28,9 @@ const REASON_CATEGORIES = Object.freeze({
   not_enrolled: 'visioNotEnrolled',
   no_classe_id: 'visioNoClasse',
   visio_not_enabled: 'visioNotEnabled',
+  // VisioStatusRefusal (serveur) : attendre (`visio_not_started`) ou renoncer (`visio_ended`).
+  visio_not_started: 'visioNotStarted',
+  visio_ended: 'visioEnded',
   teacher_not_owner: 'visioTeacherNotOwner',
   actor_not_authorized: 'visioRoleRefused',
   invalid_role: 'visioRoleRefused',
@@ -37,6 +40,18 @@ const REASON_CATEGORIES = Object.freeze({
   // expirée : se reconnecter n'y change rien (contrat `KlassciUnauthorized`).
   klassci_token_missing: 'klassciTokenMissing',
 })
+
+/**
+ * Le message du catalogue pour un `reason` du serveur, ou `null` s'il est inconnu. Sert aux
+ * réponses `success: false` qui ne passent pas par l'intercepteur : leur `message` n'est
+ * jamais affiché (D0), seul leur `reason` l'est, traduit.
+ * @param {unknown} reason
+ * @returns {string|null}
+ */
+export function messageForReason(reason) {
+  if (typeof reason !== 'string' || !Object.hasOwn(REASON_CATEGORIES, reason)) return null
+  return ERROR_MESSAGES[REASON_CATEGORIES[reason]] ?? null
+}
 
 /** Catégorie d'erreur depuis le code HTTP. */
 function categoryFromStatus(status) {
