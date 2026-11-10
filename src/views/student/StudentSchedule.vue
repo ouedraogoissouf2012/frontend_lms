@@ -61,7 +61,7 @@ async function handleEventAction({ type, data }) {
 
     // La même porte que « Mes évaluations » : appel au serveur, copie créée, motif d'un refus.
     case 'startEvaluation':
-      await startEvaluation(data)
+      router.push(`/student/evaluations/${data.id}/take`)
       break
 
     case 'hideSeance':
