@@ -8,7 +8,8 @@
 import { ref } from 'vue'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('@/services/cache', () => ({ writeCache: vi.fn() }))
+const writeCache = vi.hoisted(() => vi.fn())
+vi.mock('@/services/cache', () => ({ writeCache: (...a) => writeCache(...a) }))
 
 const lessonMock = vi.hoisted(() => ({
   createLesson: vi.fn(),
@@ -26,6 +27,7 @@ describe('useLessonForm (#H4 / #236)', () => {
   beforeEach(() => {
     lessonMock.createLesson.mockReset()
     lessonMock.updateLesson.mockReset()
+    writeCache.mockReset()
     Object.values(toastMock).forEach((fn) => fn.mockClear())
   })
 
@@ -81,5 +83,26 @@ describe('useLessonForm (#H4 / #236)', () => {
     expect(lessonMock.updateLesson).toHaveBeenCalledWith(5, expect.objectContaining({ title: 'Modifié' }))
     expect(lessons.value[0].title).toBe('Modifié')
     expect(lessons.value).toHaveLength(1)
+  })
+
+  it('écrit le cache que « Mes leçons » relit (clé v2, revue de #503)', async () => {
+    lessonMock.createLesson.mockResolvedValue({ success: true, data: { id: 9, title: 'Nouvelle' } })
+    const f = useLessonForm(ref([]))
+    f.lessonForm.matiere_id = 3
+    f.lessonForm.title = 'Nouvelle'
+    await f.saveLesson()
+    expect(writeCache.mock.calls.map(([cle]) => cle)).toEqual(['teacher_lessons_v2'])
+  })
+
+  it('après une modification sans matière dans la réponse, l’ancienne matière n’est pas gardée', async () => {
+    lessonMock.updateLesson.mockResolvedValue({ success: true, data: { id: 5, matiere_id: 4 } })
+    const lessons = ref([{ id: 5, title: 'A', matiere_id: 3, matiere: { id: 3, libelle: 'Ancienne' } }])
+    const f = useLessonForm(lessons)
+    f.editingLesson.value = { id: 5 }
+    f.lessonForm.matiere_id = 4
+    f.lessonForm.title = 'A'
+    await f.saveLesson()
+    expect(lessons.value[0].matiere_id).toBe(4)
+    expect(lessons.value[0].matiere?.libelle).not.toBe('Ancienne')
   })
 })

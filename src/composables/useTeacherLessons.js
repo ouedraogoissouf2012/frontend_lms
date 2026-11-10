@@ -6,6 +6,8 @@ import { fetchTeacherMatieres } from '@/services/teacherReferentials'
 import { readCache, writeCache } from '@/services/cache'
 import { useLessonForm } from '@/composables/useLessonForm'
 import { extractList } from '@/utils/apiList'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
+import { myLessonsParams, TEACHER_LESSONS_CACHE as LESSONS_CACHE } from '@/composables/myLessons'
 
 /**
  * Couche données de TeacherLessons (#H4 ≤300) : charge leçons + matières (cache +
@@ -65,7 +67,7 @@ export function useTeacherLessons() {
   // Methods
   async function loadLessons() {
     // Vérifier le cache
-    const cachedData = readCache('teacher_lessons')
+    const cachedData = readCache(LESSONS_CACHE)
     if (cachedData !== null) {
       console.log('[CACHE] Leçons chargées depuis le cache')
       lessons.value = cachedData
@@ -74,14 +76,24 @@ export function useTeacherLessons() {
       return
     }
 
+    const params = myLessonsParams()
+    if (params === null) {
+      lessons.value = []
+      error.value = ERROR_MESSAGES.auth
+      return
+    }
+
     loading.value = true
     error.value = null
 
     try {
       console.log('[LESSONS] Chargement des leçons via API...')
-      const response = await lessonService.getLessons()
+      const response = await lessonService.getAllLessons(params)
+      // Un refus (même en cours de pagination) n'est pas « aucune leçon » : c'est une erreur.
+      if (!response?.success) throw new Error('liste des leçons refusée')
       lessons.value = extractList(response)
-      writeCache('teacher_lessons', lessons.value)
+      // Une liste tronquée par le garde-fou de pagination n'est jamais cachée comme complète.
+      if (!response.incomplete) writeCache(LESSONS_CACHE, lessons.value)
     } catch (err) {
       console.error('[ERREUR] Erreur chargement leçons:', err)
       error.value = 'Impossible de charger les leçons. Veuillez réessayer.'
@@ -109,12 +121,14 @@ export function useTeacherLessons() {
 
   async function refreshInBackground() {
     try {
+      const params = myLessonsParams()
+      if (params === null) return
       console.log('[BACKGROUND] Rafraîchissement leçons...')
-      const response = await lessonService.getLessons()
+      const response = await lessonService.getAllLessons(params)
 
       if (response && response.success) {
         lessons.value = extractList(response)
-        writeCache('teacher_lessons', lessons.value)
+        if (!response.incomplete) writeCache(LESSONS_CACHE, lessons.value)
       }
     } catch (error) {
       console.warn('[BACKGROUND] Erreur rafraîchissement:', error)
@@ -129,29 +143,6 @@ export function useTeacherLessons() {
     filters.matiere_id = ''
     filters.status = ''
     filters.type = ''
-  }
-
-  function getStatusClass(status) {
-    const classes = {
-      published: 'status-published',
-      draft: 'status-draft',
-      archived: 'status-archived'
-    }
-    return classes[status] || 'status-draft'
-  }
-
-  function getStatusLabel(status) {
-    const labels = {
-      published: 'Publiée',
-      draft: 'Brouillon',
-      archived: 'Archivée'
-    }
-    return labels[status] || 'Brouillon'
-  }
-
-  function getMatiereLabel(matiereId) {
-    const matiere = matieres.value.find(m => m.id == matiereId)
-    return matiere ? (matiere.name || matiere.nom) : 'Matière inconnue'
   }
 
   // #283 : délègue au formatter canonique (repli local conservé).
@@ -185,9 +176,6 @@ export function useTeacherLessons() {
     refreshInBackground,
     applyFilters,
     resetFilters,
-    getStatusClass,
-    getStatusLabel,
-    getMatiereLabel,
     formatDate,
     viewChapters,
     saveLesson,

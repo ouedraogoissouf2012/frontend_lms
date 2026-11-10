@@ -34,6 +34,22 @@ describe('LessonInfoCard (#H4)', () => {
     expect(w.find('.lesson-actions').exists()).toBe(false)
   })
 
+  // Statut en français, jamais deviné (ARRÊT 1 statuts de leçon) : l'accent manquait, et une leçon
+  // ARCHIVÉE s'affichait « Brouillon ».
+  it('le statut : « Publiée » avec son accent, « Archivée » pour une archivée, rien pour un inconnu', () => {
+    const statut = (status) => mount(LessonInfoCard, { props: { lesson: { ...draft, status } } }).find('.status-badge')
+    expect(statut('published').text()).toBe('Publiée')
+    expect(statut('archived').text()).toBe('Archivée')
+    expect(statut('zzz').exists()).toBe(false)
+  })
+
+  // Revue de #511 : une archivée avait le libellé juste mais le STYLE d'un brouillon.
+  it('une leçon archivée a son propre style, pas celui d’un brouillon', () => {
+    const badge = mount(LessonInfoCard, { props: { lesson: { ...draft, status: 'archived' } } }).find('.status-badge')
+    expect(badge.classes()).toContain('status-archived')
+    expect(badge.classes()).not.toContain('status-draft')
+  })
+
   it('masque les actions si la leçon est publiée', () => {
     const w = mount(LessonInfoCard, { props: { lesson: { ...draft, status: 'published' } } })
     expect(w.find('.lesson-actions').exists()).toBe(false)
