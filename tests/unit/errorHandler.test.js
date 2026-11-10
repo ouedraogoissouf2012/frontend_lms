@@ -57,13 +57,14 @@ describe('errorHandler — normalizeError (#240 proxy KLASSCI)', () => {
     expect(r.userMessage).toBe(ERROR_MESSAGES.klassciExpired)
   })
 
-  it('503 AVEC Retry-After → message « KLASSCI indisponible »', () => {
+  // Le délai de l'en-tête est désormais dit (décision de la superviseure) : « 30 secondes ».
+  it('503 AVEC Retry-After → message « KLASSCI indisponible », avec le délai', () => {
     const r = normalizeError({
       response: { status: 503, data: {}, headers: { 'retry-after': '30' } },
       config: { url: '/api/proxy/x' },
     })
     expect(r.category).toBe('klassciUnavailable')
-    expect(r.userMessage).toBe(ERROR_MESSAGES.klassciUnavailable)
+    expect(r.userMessage).toBe('Service KLASSCI temporairement indisponible. Réessayez dans 30 secondes.')
   })
 
   it('non-régression : 503 SANS Retry-After reste « server » générique', () => {
