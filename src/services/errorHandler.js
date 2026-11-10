@@ -62,7 +62,7 @@ export function messageForReason(reason) {
 
 // Catégories TRANSITOIRES : leur message finit par « Réessayez dans un instant. », que le délai
 // de Retry-After précise. Un refus définitif ne prend jamais de délai.
-const CATEGORIES_A_DELAI = Object.freeze(new Set(['klassciUnavailable', 'evaluationWindowUnverifiable']))
+export const CATEGORIES_A_DELAI = Object.freeze(new Set(['klassciUnavailable', 'evaluationWindowUnverifiable']))
 const DANS_UN_INSTANT = 'Réessayez dans un instant.'
 
 /** Le message d'une catégorie transitoire, avec le délai de `Retry-After` s'il est lisible. */
