@@ -2,13 +2,8 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi } from 'vitest'
 
-vi.mock('@/services/lesson', () => ({
-  default: {
-    // `null` : valeur inconnue, aucun badge (ARRÊT 1 statuts de leçon).
-    getTypeBadge: (type) => (type === 'inconnu' ? null : { text: `T-${type}` }),
-    getStatusBadge: (status) => (status === 'inconnu' ? null : { text: `S-${status}` })
-  }
-}))
+// Les badges viennent de utils/lessonStatus (source unique) : plus de faux, les VRAIS libellés.
+vi.mock('@/services/lesson', () => ({ default: {} }))
 
 import LessonCardBadges from '@/components/lessons/LessonCardBadges.vue'
 
@@ -17,7 +12,7 @@ const lesson = { type: 'cours', status: 'draft' }
 describe('LessonCardBadges (#H4)', () => {
   it('rend le badge de type avec son icône', () => {
     const w = mount(LessonCardBadges, { props: { lesson } })
-    expect(w.text()).toContain('T-cours')
+    expect(w.text()).toContain('Cours')
     expect(w.find('.badge-cours').exists()).toBe(true)
     expect(w.find('.fa-book').exists()).toBe(true)
   })
@@ -29,9 +24,9 @@ describe('LessonCardBadges (#H4)', () => {
 
   it('masque le badge de status par défaut et l\'affiche si showStatus', () => {
     const sans = mount(LessonCardBadges, { props: { lesson } })
-    expect(sans.text()).not.toContain('S-draft')
+    expect(sans.text()).not.toContain('Brouillon')
     const avec = mount(LessonCardBadges, { props: { lesson, showStatus: true } })
-    expect(avec.text()).toContain('S-draft')
+    expect(avec.text()).toContain('Brouillon')
     expect(avec.find('.badge-status-draft').exists()).toBe(true)
   })
 })

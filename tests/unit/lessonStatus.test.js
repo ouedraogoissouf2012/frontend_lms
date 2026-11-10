@@ -15,7 +15,7 @@ import { describe, it, expect, vi } from 'vitest'
 
 vi.mock('@/services/api', () => ({ default: {} }))
 
-import { lessonStatusLabel, lessonTypeLabel } from '@/utils/lessonStatus'
+import { lessonStatusLabel, lessonTypeLabel, lessonStatusBadge, lessonTypeBadge } from '@/utils/lessonStatus'
 import lessonService from '@/services/lesson'
 
 describe('lessonStatusLabel / lessonTypeLabel', () => {
@@ -35,15 +35,23 @@ describe('lessonStatusLabel / lessonTypeLabel', () => {
   })
 })
 
-describe('services/lesson : les badges disent la même chose', () => {
-  it('getStatusBadge prend le libellé partagé ; inconnu → aucun badge (plus de « Brouillon » inventé)', () => {
-    expect(lessonService.getStatusBadge('published').text).toBe('Publiée')
-    expect(lessonService.getStatusBadge('archived').text).toBe('Archivée')
-    expect(lessonService.getStatusBadge('zzz')).toBeNull()
+// Décision de la superviseure : les badges sont de la PRÉSENTATION ; ils quittent services/lesson
+// (dont l'union avec #504 dépassait la garde de 300 lignes) pour rejoindre leurs libellés.
+describe('badges de leçon : la même source que les libellés', () => {
+  it('lessonStatusBadge : libellé partagé et sa classe ; inconnu → aucun badge (plus de « Brouillon » inventé)', () => {
+    expect(lessonStatusBadge('published')).toEqual({ class: 'bg-green-100 text-green-700', text: 'Publiée' })
+    expect(lessonStatusBadge('archived').text).toBe('Archivée')
+    expect(lessonStatusBadge('zzz')).toBeNull()
+    expect(lessonStatusBadge('toString')).toBeNull()
   })
 
-  it('getTypeBadge : inconnu → aucun badge (plus de « Cours » inventé)', () => {
-    expect(lessonService.getTypeBadge('tp').text).toBe('TP')
-    expect(lessonService.getTypeBadge('zzz')).toBeNull()
+  it('lessonTypeBadge : libellé, classe et icône ; inconnu → aucun badge (plus de « Cours » inventé)', () => {
+    expect(lessonTypeBadge('tp')).toEqual({ class: 'bg-purple-100 text-purple-700', icon: 'fa-laptop', text: 'TP' })
+    expect(lessonTypeBadge('zzz')).toBeNull()
+  })
+
+  it('une seule porte vers la règle : services/lesson ne les expose plus', () => {
+    expect(lessonService.getStatusBadge).toBeUndefined()
+    expect(lessonService.getTypeBadge).toBeUndefined()
   })
 })
