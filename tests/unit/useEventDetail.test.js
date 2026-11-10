@@ -60,6 +60,14 @@ describe('useEventDetail (H8)', () => {
     expect(setup(evaluation({ status: 'terminee' }), 'student').api.canStartEvaluation.value).toBe(false)
   })
 
+  // Revue de #515 : une copie rendue mais pas encore notée affichait « Démarrer ».
+  it('canStartEvaluation : pas pour une copie rendue (soumise ou corrigée), même sans note', () => {
+    for (const status of ['soumis', 'corrige']) {
+      expect(setup(evaluation({ status: 'programmee', student_submission: { id: 5, status } }), 'student').api.canStartEvaluation.value).toBe(false)
+    }
+    expect(setup(evaluation({ status: 'programmee', student_submission: { id: 5, status: 'en_cours' } }), 'student').api.canStartEvaluation.value).toBe(true)
+  })
+
   it('formate la date (fr-FR) et émet une action avec data', () => {
     const { api, emitted } = setup(seance(), 'student')
     expect(api.formattedDate.value).toContain('2025')

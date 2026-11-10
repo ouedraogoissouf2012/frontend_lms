@@ -1,5 +1,6 @@
 import { computed } from 'vue'
 import { formatDateWeekday } from '@/utils/formatters'
+import { copieRendue } from '@/utils/studentEvaluationStatus'
 
 /**
  * Composable de la modale de détail d'événement (H8 — décomposition
@@ -82,7 +83,8 @@ export function useEventDetail(props, emit) {
   const canStartEvaluation = computed(() => {
     if (isSeance.value || props.userRole !== 'student') return false
     const status = eventData.value.status
-    return status !== 'terminee' && !eventData.value.student_submission?.note_sur_20
+    // Même règle que « Mes évaluations » : une copie rendue (même pas encore notée) ne redémarre pas.
+    return status !== 'terminee' && !copieRendue(eventData.value.student_submission)
   })
 
   const canActivateVisio = computed(() => {

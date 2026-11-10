@@ -9,6 +9,13 @@
  */
 
 // Vérifie si l'évaluation est expirée (fenêtre fermée ou date passée)
+/**
+ * Une copie RENDUE (soumise ou corrigée) : l'élève n'a plus à démarrer, il lit ses résultats.
+ * @param {{status?: string}|null|undefined} submission
+ * @returns {boolean}
+ */
+export const copieRendue = (submission) => submission?.status === 'soumis' || submission?.status === 'corrige'
+
 export function isExpired(evaluation) {
   // Vérifier la fenêtre KLASSCI
   const window = evaluation.programmation?.window
