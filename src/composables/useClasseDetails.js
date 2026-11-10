@@ -99,6 +99,7 @@ export function useClasseDetails() {
   async function loadClasseDetails() {
     loading.value = true
     error.value = null
+    canRetry.value = true
 
     try {
       console.log('[ClasseDetails] Chargement détails classe:', classeId.value)
@@ -135,6 +136,8 @@ export function useClasseDetails() {
       } else {
         // Réponse hors intercepteur : son motif traduit, jamais son `message` (D0).
         error.value = messageForReason(data?.reason) ?? 'Impossible de charger les détails de la classe'
+        // Une réponse 2xx sans succès n'est pas une panne passagère.
+        canRetry.value = false
       }
     } catch (err) {
       console.error('[ClasseDetails] Erreur chargement classe:', err)

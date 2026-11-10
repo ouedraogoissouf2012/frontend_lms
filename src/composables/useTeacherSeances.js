@@ -65,6 +65,7 @@ export function useTeacherSeances() {
     // Load from API
     loading.value = true
     error.value = null
+    canRetry.value = true
 
     try {
       console.log('[API] Chargement séances enseignant...')
@@ -155,7 +156,9 @@ export function useTeacherSeances() {
       await loadSeances()
     } catch (err) {
       console.error('[ERREUR] Activation visio:', err)
-      error.value = 'Erreur lors de l\'activation de la visio'
+      // Une action en échec : son motif ; Réessayer ne relancerait que la liste, pas l'action.
+      error.value = displayMessage(err, 'Erreur lors de l\'activation de la visio')
+      canRetry.value = false
     } finally {
       actionLoading.value = null
     }
@@ -183,7 +186,9 @@ export function useTeacherSeances() {
       await loadSeances()
     } catch (err) {
       console.error('[ERREUR] Désactivation visio:', err)
-      error.value = 'Erreur lors de la désactivation de la visio'
+      // Une action en échec : son motif ; Réessayer ne relancerait que la liste, pas l'action.
+      error.value = displayMessage(err, 'Erreur lors de la désactivation de la visio')
+      canRetry.value = false
     } finally {
       actionLoading.value = null
     }
@@ -205,7 +210,9 @@ export function useTeacherSeances() {
       await loadSeances()
     } catch (err) {
       console.error('[ERREUR] Démarrage visio:', err)
-      error.value = 'Erreur lors du démarrage de la visio'
+      // Une action en échec : son motif ; Réessayer ne relancerait que la liste, pas l'action.
+      error.value = displayMessage(err, 'Erreur lors du démarrage de la visio')
+      canRetry.value = false
     } finally {
       actionLoading.value = null
     }
@@ -253,7 +260,9 @@ export function useTeacherSeances() {
       await loadSeances()
     } catch (err) {
       console.error('[ERREUR] Fin visio:', err)
-      error.value = 'Erreur lors de la terminaison de la visio'
+      // Une action en échec : son motif ; Réessayer ne relancerait que la liste, pas l'action.
+      error.value = displayMessage(err, 'Erreur lors de la terminaison de la visio')
+      canRetry.value = false
     } finally {
       actionLoading.value = null
     }

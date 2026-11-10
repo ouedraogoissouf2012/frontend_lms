@@ -66,6 +66,7 @@ export function useMatiereDetails() {
   async function loadMatiereDetails() {
     loading.value = true
     error.value = null
+    canRetry.value = true
 
     try {
       console.log('[MatiereDetails] Chargement détails matière:', matiereId.value)
@@ -99,6 +100,8 @@ export function useMatiereDetails() {
         console.error('[MatiereDetails] Full response:', JSON.stringify(data, null, 2))
         // Réponse hors intercepteur : son motif traduit, jamais son `message` (D0).
         error.value = messageForReason(data?.reason) ?? 'Impossible de charger les détails de la matière'
+        // Une réponse 2xx sans succès n'est pas une panne passagère.
+        canRetry.value = false
       }
     } catch (err) {
       console.error('[MatiereDetails] Erreur chargement matière:', err)

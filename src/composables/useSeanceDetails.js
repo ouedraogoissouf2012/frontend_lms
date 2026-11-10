@@ -69,6 +69,7 @@ export function useSeanceDetails() {
   async function loadSeanceDetails() {
     loading.value = true
     error.value = null
+    canRetry.value = true
 
     try {
       console.log('fa-calendar Chargement détails séance:', seanceId.value)
@@ -103,6 +104,8 @@ export function useSeanceDetails() {
         console.log('fa-users Participants inclus:', data.data.participants ? 'Oui (enseignant)' : 'Non (étudiant)')
       } else {
         error.value = 'Séance non trouvée'
+        // Une réponse sans succès n'est pas une panne passagère : réessayer n'y changera rien.
+        canRetry.value = false
       }
     } catch (err) {
       console.error('fa-times-circle Erreur chargement séance:', err)
