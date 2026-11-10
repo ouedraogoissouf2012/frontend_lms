@@ -12,7 +12,7 @@
         <label for="filtre-action">Action</label>
         <select id="filtre-action" :value="action" class="lien-input" @change="choisirAction($event.target.value)">
           <option value="">Toutes</option>
-          <option v-for="[valeur, libelle] in AUDIT_ACTIONS" :key="valeur" :value="valeur">{{ libelle }}</option>
+          <option v-for="[valeur, libelle] in AUDIT_FILTRE_ACTIONS" :key="valeur" :value="valeur">{{ libelle }}</option>
         </select>
         <p v-if="acteur" class="filtre-acteur">
           Actions de {{ acteur.name }}
@@ -69,7 +69,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import AuditLogRow from '@/components/admin/AuditLogRow.vue'
 import { useAdminAuditLog } from '@/composables/useAdminAuditLog'
-import { AUDIT_ACTIONS } from '@/utils/auditLogLabels'
+import { AUDIT_FILTRE_ACTIONS } from '@/utils/auditLogLabels'
 
 const {
   entrees, chargement, erreur, peutReessayer, etatVide,
