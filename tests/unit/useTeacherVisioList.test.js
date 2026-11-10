@@ -187,4 +187,11 @@ describe('useTeacherVisioList (#G1)', () => {
     expect(u.formatTime(null)).toBe('N/A')
     expect(u.formatTime('08:30:00')).toBe('08:30')
   })
+
+  it('rejoindre échoue hors HTTP : le repli du front, jamais le message technique (revue de #506)', async () => {
+    joinTrackedVisio.mockRejectedValueOnce(new TypeError("Cannot read properties of undefined (reading 'success')"))
+    const v = await setup([])
+    await v.handleJoinVisio({ id: 1 })
+    expect(v.error.value).toBe('Erreur lors de la connexion à la visio')
+  })
 })

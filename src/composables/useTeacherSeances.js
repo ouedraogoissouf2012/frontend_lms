@@ -11,6 +11,7 @@ import { confirmVisioAction } from '@/services/visioFeedback'
 import { filterSeances, computeSeancesStats } from '@/utils/seances'
 import { extractList } from '@/utils/apiList'
 import { isTeacher } from '@/constants/roles'
+import { displayMessage } from '@/services/displayMessage'
 
 /**
  * Couche données/logique de la vue TeacherSeances (#H6 ≤300).
@@ -220,7 +221,7 @@ export function useTeacherSeances() {
       loadSeances()
     } catch (error) {
       console.error('[ERREUR] Join visio:', error)
-      toast.error(error.userMessage ?? error.message ?? normalizeError(error).userMessage)
+      toast.error(displayMessage(error, normalizeError(error).userMessage))
     }
   }
 
