@@ -5,7 +5,10 @@ import api, { auth } from '@/services/api'
 import { isExpired } from '@/utils/studentEvaluationStatus'
 import { toast } from '@/composables/useToast'
 import { endpoints } from '@/services/endpoints'
-import { normalizeError } from '@/services/errorHandler'
+import { normalizeError, messageForReason } from '@/services/errorHandler'
+import { displayMessage } from '@/services/displayMessage'
+
+const DEMARRAGE_IMPOSSIBLE = 'Impossible de démarrer l’évaluation.'
 
 /**
  * Couche données de StudentEvaluationsList (H2 ≤300) : charge les évaluations de
@@ -98,12 +101,14 @@ export function useStudentEvaluationsList() {
           query
         })
       } else {
-        toast.error(result.message || 'Impossible de démarrer l\'évaluation')
+        // Réponse hors intercepteur : son `reason` traduit, jamais son `message` (D0).
+        toast.error(messageForReason(result.reason) ?? DEMARRAGE_IMPOSSIBLE)
       }
     } catch (err) {
       console.error('Erreur démarrage évaluation:', err)
-      const message = err.response?.data?.message || 'Impossible de démarrer l\'évaluation'
-      toast.error(message)
+      // Le motif du refus (#1011 : fenêtre fermée, tentatives, reprise, hors ligne), jamais le
+      // texte du serveur (D0).
+      toast.error(displayMessage(err, DEMARRAGE_IMPOSSIBLE))
     }
   }
 
