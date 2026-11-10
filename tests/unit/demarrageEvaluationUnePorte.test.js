@@ -24,13 +24,33 @@ const fichiers = (motif) => sources(racine)
   .map((f) => relative(racine, f).split(sep).join('/'))
   .sort()
 
-describe('démarrer une évaluation : une seule porte', () => {
-  it('seul useStartEvaluation appelle le démarrage du service', () => {
-    expect(fichiers(/\.startEvaluation\(/).filter((f) => f !== 'services/evaluation.js'))
-      .toEqual(['composables/useStartEvaluation.js'])
+const hors = (liste, ...permis) => liste.filter((f) => !permis.includes(f) && !f.startsWith('router/'))
+
+// Revue de #515 : la première garde ne voyait que le chemin écrit en gabarit ; la page d'une matière
+// passait par la route NOMMÉE et restait verte. Toutes les formes sont lues.
+describe('ouvrir une évaluation (élève) : une seule porte', () => {
+  it('seul useStartEvaluation appelle le démarrage du service (appel, déstructuration, crochets)', () => {
+    const appel = /evaluationService\s*\.\s*startEvaluation\b|\{[^}]*\bstartEvaluation\b[^}]*\}\s*=\s*evaluationService|\[\s*['"]startEvaluation['"]\s*\]/
+    expect(hors(fichiers(appel), 'services/evaluation.js')).toEqual(['composables/useStartEvaluation.js'])
   })
 
-  it('aucun écran ne fabrique le chemin de la page de passage', () => {
-    expect(fichiers(/evaluations\/\$\{[^}]+\}\/take/)).toEqual([])
+  it('seul le service connaît l’endpoint de démarrage', () => {
+    expect(hors(fichiers(/evaluations\s*\.\s*start\b/), 'services/evaluation.js')).toEqual([])
+  })
+
+  it('seul useStartEvaluation ouvre la page de passage (route nommée)', () => {
+    expect(hors(fichiers(/['"`]TakeEvaluation['"`]/))).toEqual(['composables/useStartEvaluation.js'])
+  })
+
+  it('aucun fichier ne fabrique le chemin de la page de passage (gabarit ou concaténation)', () => {
+    expect(hors(fichiers(/\/take['"`]|evaluations\/\$\{[^}]+\}\/take/))).toEqual([])
+  })
+
+  it('la garde voit bien chaque forme (témoins)', () => {
+    const voit = (re, code) => re.test(sansCommentaires(code))
+    expect(voit(/['"`]TakeEvaluation['"`]/, "push({ name: 'TakeEvaluation' })")).toBe(true)
+    expect(voit(/\/take['"`]/, "'/student/evaluations/' + id + '/take'")).toBe(true)
+    expect(voit(/\{[^}]*\bstartEvaluation\b[^}]*\}\s*=\s*evaluationService/, 'const { startEvaluation } = evaluationService')).toBe(true)
+    expect(voit(/['"`]TakeEvaluation['"`]/, "// name: 'TakeEvaluation'")).toBe(false)
   })
 })

@@ -30,7 +30,8 @@ function mountView() {
         DashboardLayout: { template: '<div><slot /></div>' },
         UniversalCalendar: {
           template: '<div><button class="join" @click="$emit(\'event-action\', { type: \'joinVisio\', data: { id: 9, visio_room_id: \'room-event-api\' } })">join</button>'
-            + '<button class="demarrer" @click="$emit(\'event-action\', { type: \'startEvaluation\', data: { id: 3, titre: \'Devoir\' } })">démarrer</button></div>'
+            + '<button class="demarrer" @click="$emit(\'event-action\', { type: \'startEvaluation\', data: { id: 3, titre: \'Devoir\' } })">démarrer</button>'
+            + '<button class="reprendre" @click="$emit(\'event-action\', { type: \'startEvaluation\', data: { id: 3, student_submission: { id: 5, status: \'en_cours\' } } })">reprendre</button></div>'
         }
       }
     }
@@ -90,6 +91,15 @@ describe('StudentSchedule (#184)', () => {
     expect(toastErreur).toHaveBeenCalledWith('Vous avez utilisé toutes vos tentatives pour cette évaluation.')
     expect(toastErreur.mock.calls.flat()).not.toContain('texte serveur')
     expect(push).not.toHaveBeenCalled()
+  })
+
+  // Revue de #515 : une copie en cours se REPREND depuis le calendrier, comme dans « Mes évaluations ».
+  it('copie en cours : le calendrier la reprend, sans nouveau /start', async () => {
+    const w = mountView()
+    await w.find('.reprendre').trigger('click')
+    await new Promise((fin) => setTimeout(fin, 0))
+    expect(demarrer).not.toHaveBeenCalled()
+    expect(push).toHaveBeenCalledWith({ name: 'TakeEvaluation', params: { id: 3 }, query: { submission_id: 5 } })
   })
 
   it('rejoint la visio via le helper tracké', async () => {
