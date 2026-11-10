@@ -43,8 +43,8 @@ const TOUTES = aplatir([...coreRoutes, ...adminRoutes, ...teacherRoutes, ...stud
 
 // La liste FERMÉE des routes de plateforme (D126) : son menu (Institutions, Demandes), son profil et
 // ses paramètres (préférences d'affichage, gardées dans le navigateur : aucune donnée d'école). Le
-// journal d'audit (D51) n'a pas encore d'écran.
-const PLATEFORME = ['/admin/institutions', '/admin/profile', '/admin/school-requests', '/admin/settings']
+// journal d'audit (D51, écran D126).
+const PLATEFORME = ['/admin/audit-log', '/admin/institutions', '/admin/profile', '/admin/school-requests', '/admin/settings']
 
 describe('canActivate — le supradmin n’ouvre que les routes de plateforme', () => {
   it('route d’école (rôles qui ne le nomment pas) : refusée, renvoi vers son espace', () => {

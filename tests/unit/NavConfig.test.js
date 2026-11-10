@@ -70,6 +70,7 @@ const EXPECTED = {
   supradmin: [
     ['Institutions', '/admin/institutions'],
     ['Demandes', '/admin/school-requests'],
+    ['Journal d’audit', '/admin/audit-log'],
   ],
 }
 

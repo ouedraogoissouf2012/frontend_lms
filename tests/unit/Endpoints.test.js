@@ -131,6 +131,7 @@ describe('endpoints — carte unique (#105)', () => {
       expect(endpoints.admin.schoolRequests.list).toBe('/admin/school-requests')
       expect(endpoints.admin.schoolRequests.validate(4)).toBe('/admin/school-requests/4/validate')
       expect(endpoints.admin.schoolRequests.refuse(4)).toBe('/admin/school-requests/4/refuse')
+      expect(endpoints.admin.auditLog).toBe('/admin/audit-log')
       expect(endpoints.admin.analytics.activityTrends).toBe('/admin/analytics/activity-trends')
       expect(endpoints.admin.notifications.create).toBe('/admin/notifications/create')
       expect(endpoints.admin.reports.attendance).toBe('/admin/reports/attendance')
