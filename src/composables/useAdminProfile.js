@@ -2,7 +2,7 @@ import { ref, computed, onMounted } from 'vue'
 import { auth } from '@/services/api'
 import { klassciService } from '@/services/klassci'
 import { logError } from '@/services/errorHandler'
-import { getRoleDisplayName } from '@/constants/roles'
+import { getRoleDisplayName, isSupradmin } from '@/constants/roles'
 import { deriveInstitutionCounters } from '@/utils/classStats'
 import { getInitials, formatDateLong } from '@/utils/formatters'
 
@@ -24,8 +24,11 @@ import { getInitials, formatDateLong } from '@/utils/formatters'
  */
 export function useAdminProfile() {
   const user = ref(null)
-  // `null` = non mesuré (aucun chargement abouti), à distinguer d'un vrai zéro.
-  const stats = ref({
+  // Le supradmin gère la plateforme, pas un établissement (D56, D126) : aucun compteur d'école
+  // à demander ni à afficher. Décidé DÈS la création, pour que la carte ne s'affiche pas un instant.
+  const estPlateforme = isSupradmin(auth.getUser())
+  // `null` (objet entier) = pas de carte ; un champ `null` = non mesuré, à distinguer d'un vrai zéro.
+  const stats = ref(estPlateforme ? null : {
     enseignants: null,
     etudiants: null,
     classes: null,
@@ -82,11 +85,11 @@ export function useAdminProfile() {
 
   onMounted(() => {
     user.value = auth.getUser()
-    loadStats()
+    if (!estPlateforme) loadStats()
   })
 
   return {
-    user, stats,
+    user, stats, estPlateforme,
     userInitials, roleLabel,
     getRoleLabel, formatDate, loadStats,
   }

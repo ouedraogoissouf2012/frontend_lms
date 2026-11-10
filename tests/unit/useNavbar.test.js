@@ -105,6 +105,14 @@ describe('useNavbar (#H12)', () => {
     expect(coordinateurCrumb.to).toBe('/admin/dashboard')
   })
 
+  // D126 (revue de #510) : /admin/dashboard est fermé au supradmin ; le segment « Admin » de son
+  // fil d'Ariane le renvoyait sans un mot vers son espace.
+  it('supradmin : le segment « Admin » mène à son espace, pas au tableau de bord d’école', () => {
+    getUser.mockReturnValue({ role: 'supradmin' })
+    const { api } = run({ path: '/admin/profile', meta: {} })
+    expect(api.breadcrumbs.value.find(c => c.label === 'Admin').to).toBe('/admin/institutions')
+  })
+
   it('ne génère pas de liens invalides pour les parents purement structurels', () => {
     getUser.mockReturnValue({ role: 'coordinateur' })
     const { api } = run({ path: '/classes/12', meta: {} })

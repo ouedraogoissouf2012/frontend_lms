@@ -168,8 +168,11 @@ describe('canActivate — décision partagée guard/tests (R6.3, R5.4)', () => {
     expect(canActivate({ role: 'enseignant' }, ['enseignant', 'coordinateur']).allowed).toBe(true)
   })
 
-  it('bypass réservé au supradmin PLATEFORME ; superAdmin (admin d\'école) ne bypasse pas (R5.4, #659)', () => {
-    expect(canActivate({ role: 'supradmin' }, ['enseignant']).allowed).toBe(true)
+  // D126 : l'ancien passe-droit (« bypass ») ouvrait au supradmin toutes les routes d'école, que le
+  // serveur lui refuse (D56). Il n'ouvre plus que les routes marquées plateforme.
+  it('le supradmin n\'a plus de passe-droit ; superAdmin (admin d\'école) non plus (D126, #659)', () => {
+    expect(canActivate({ role: 'supradmin' }, ['enseignant']).allowed).toBe(false)
+    expect(canActivate({ role: 'supradmin' }, ['enseignant'], true).allowed).toBe(true)
     expect(canActivate({ role: 'superAdmin' }, ['etudiant']).allowed).toBe(false)
   })
 
