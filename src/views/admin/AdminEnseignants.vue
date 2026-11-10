@@ -28,7 +28,7 @@
         <div class="error-icon"><i class="fa fa-exclamation-triangle"></i></div>
         <h3 class="error-title">Erreur de Chargement</h3>
         <p class="error-message">{{ error }}</p>
-        <button @click="loadEnseignants" class="retry-btn">Réessayer</button>
+        <button v-if="canRetry" @click="loadEnseignants" class="retry-btn">Réessayer</button>
       </div>
 
       <!-- Empty State -->
@@ -67,7 +67,7 @@ import EnseignantDetailModal from '@/components/admin/EnseignantDetailModal.vue'
 import { useAdminEnseignants } from '@/composables/useAdminEnseignants'
 
 const {
-  enseignants, loading, error, selectedEnseignant,
+  enseignants, loading, error, canRetry, selectedEnseignant,
   nbEnseignants, totalMatieres, totalClasses, enseignantsActifs,
   loadEnseignants, selectEnseignant, closeModal,
 } = useAdminEnseignants()

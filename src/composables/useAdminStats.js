@@ -6,6 +6,7 @@ import { logError } from '@/services/errorHandler'
 import { deriveInstitutionCounters } from '@/utils/classStats'
 import { getAdminStatistics, extractAdminStatistics } from '@/services/adminStatistics'
 import { useCachedResource } from '@/composables/useCachedResource'
+import { estPannePassagere } from '@/utils/pannePassagere'
 
 /**
  * Couche données d'AdminStats (#H3 ≤300) : statistiques globales de la plateforme
@@ -27,12 +28,13 @@ import { useCachedResource } from '@/composables/useCachedResource'
 /** Nombre fini, ou `null` si la valeur n'a pas été mesurée. */
 const measured = (value) => (Number.isFinite(value) ? value : null)
 
-/** Résout une promesse en tolérant l'échec : renvoie `null` et journalise. */
-async function settle(promise, label) {
+/** Résout une promesse en tolérant l'échec : renvoie `null`, journalise, et range l'erreur dans `echecs`. */
+async function settle(promise, label, echecs) {
   try {
     return await promise
   } catch (error) {
     logError(error, `[useAdminStats] ${label}`)
+    echecs.push(error)
     return null
   }
 }
@@ -63,18 +65,21 @@ const unmeasuredStats = () => ({
  * `useCachedResource` renseigne `error` et conserve l'affichage précédent.
  */
 async function fetchStats() {
+  const echecs = []
   const [classes, matieres, enseignants, metrics, adminStatsPayload] = await Promise.all([
-    settle(klassciService.getClasses(), 'classes'),
-    settle(klassciService.getMatieres(), 'matieres'),
-    settle(klassciService.getEnseignants(), 'enseignants'),
-    settle(analyticsService.getSystemMetrics(), 'métriques système'),
-    settle(getAdminStatistics(), 'GET /admin/statistics'),
+    settle(klassciService.getClasses(), 'classes', echecs),
+    settle(klassciService.getMatieres(), 'matieres', echecs),
+    settle(klassciService.getEnseignants(), 'enseignants', echecs),
+    settle(analyticsService.getSystemMetrics(), 'métriques système', echecs),
+    settle(getAdminStatistics(), 'GET /admin/statistics', echecs),
   ])
 
   // Aucune source n'a répondu : on ne compose rien, on signale l'échec.
   if (classes === null && matieres === null && enseignants === null && metrics === null && adminStatsPayload === null) {
     const err = new Error('Toutes les sources de statistiques ont échoué')
     err.userMessage = 'Impossible de charger les statistiques. Réessayez dans quelques instants.'
+    // Que des refus (401, 403…) : réessayer n'y changera rien. Une seule panne suffit à le proposer.
+    if (echecs.length > 0 && echecs.every((e) => !estPannePassagere(e))) err.definitif = true
     throw err
   }
 
@@ -99,7 +104,7 @@ export function useAdminStats() {
   // La méta de session est locale (auth) et synchrone — hors du cache réseau.
   const meta = ref(auth.getMeta())
 
-  const { data, loading, revalidating, error, load, refresh } =
+  const { data, loading, revalidating, error, canRetry, load, refresh } =
     useCachedResource('admin_stats', fetchStats)
 
   // `data` reste `null` tant qu'aucune mesure n'a abouti (chargement froid ou
@@ -118,7 +123,7 @@ export function useAdminStats() {
   }
 
   return {
-    loading, revalidating, error, stats, meta,
+    loading, revalidating, error, canRetry, stats, meta,
     loadStats, refreshData, refresh,
   }
 }

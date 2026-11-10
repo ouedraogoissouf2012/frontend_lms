@@ -24,7 +24,8 @@ async function fetchMatieres() {
     klassciService.getStructure(),
   ])
   if (!response?.success) {
-    throw userError(messageForReason(response?.reason) ?? 'Erreur lors du chargement des matières')
+    // Atteint seulement sur un 2xx (axios rejette tout non-2xx avant) : un refus, pas une panne.
+    throw userError(messageForReason(response?.reason) ?? 'Erreur lors du chargement des matières', { definitif: true })
   }
   return {
     matieres: response.data?.matieres || [],
@@ -52,7 +53,7 @@ export function useAdminMatieres() {
     niveau_id: ''
   })
 
-  const { data, loading, error, refresh } = useCachedResource('admin_matieres', fetchMatieres)
+  const { data, loading, error, canRetry, refresh } = useCachedResource('admin_matieres', fetchMatieres)
 
   const matieres = computed(() => data.value?.matieres ?? [])
   const filieres = computed(() => data.value?.filieres ?? [])
@@ -115,7 +116,7 @@ export function useAdminMatieres() {
   }
 
   return {
-    matieres, filieres, niveaux, loading, error, filters,
+    matieres, filieres, niveaux, loading, error, canRetry, filters,
     showNiveauModal, selectedNiveau, showMatiereModal, selectedMatiere,
     filteredMatieres, filteredNiveauxWithMatieres, stats, statsMesurees,
     viewNiveauDetails, closeNiveauModal, viewMatiereDetails, closeMatiereModal,

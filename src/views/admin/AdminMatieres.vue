@@ -38,7 +38,7 @@
           <h3 class="error-title">Erreur de chargement</h3>
           <p class="error-message">{{ error }}</p>
         </div>
-        <button @click="loadMatieres" class="error-retry-btn">
+        <button v-if="canRetry" @click="loadMatieres" class="error-retry-btn">
           <ArrowPathIcon class="w-5 h-5" />
           Réessayer
         </button>
@@ -83,7 +83,7 @@ import { useAdminMatieres } from '@/composables/useAdminMatieres'
 import { BookOpenIcon, ArrowPathIcon } from '@heroicons/vue/24/outline'
 
 const {
-  filieres, niveaux, loading, error, filters,
+  filieres, niveaux, loading, error, canRetry, filters,
   showNiveauModal, selectedNiveau, showMatiereModal, selectedMatiere,
   filteredMatieres, stats, statsMesurees,
   closeNiveauModal, viewMatiereDetails, closeMatiereModal,

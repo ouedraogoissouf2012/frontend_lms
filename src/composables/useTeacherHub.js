@@ -148,12 +148,12 @@ async function mesurerCompteurs() {
  * plus frais, pas une rangée de zéros qui prétendrait le contraire.
  */
 export function useTeacherHub() {
-  const { data, loading, revalidating, error, refresh } = useCachedResource(
+  const { data, loading, revalidating, error, canRetry, refresh } = useCachedResource(
     'teacher_hub_stats',
     mesurerCompteurs
   )
 
   const stats = computed(() => data.value ?? AUCUNE_MESURE)
 
-  return { loading, revalidating, error, stats, loadStats: refresh }
+  return { loading, revalidating, error, canRetry, stats, loadStats: refresh }
 }

@@ -16,7 +16,7 @@
       <template v-else>
         <p v-if="error" class="hub-alerte" role="status">
           <span>{{ messageAlerte }}</span>
-          <button type="button" class="hub-reessayer" :disabled="revalidating" @click="loadStats">
+          <button v-if="canRetry" type="button" class="hub-reessayer" :disabled="revalidating" @click="loadStats">
             {{ revalidating ? 'Actualisation...' : 'Reessayer' }}
           </button>
         </p>
@@ -46,7 +46,7 @@ import HubQuickStats from '@/components/teacher/HubQuickStats.vue'
 import { useTeacherHub } from '@/composables/useTeacherHub'
 import { useAuthStore } from '@/stores/auth'
 
-const { loading, revalidating, error, stats, loadStats } = useTeacherHub()
+const { loading, revalidating, error, canRetry, stats, loadStats } = useTeacherHub()
 const { peutInscrireLocalement } = storeToRefs(useAuthStore())
 
 const aDesChiffres = computed(() =>

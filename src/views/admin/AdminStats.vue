@@ -22,7 +22,7 @@
       <div v-else-if="error" class="error-state">
         <ExclamationTriangleIcon class="error-icon" />
         <p class="error-message">⚠ {{ error }}</p>
-        <button @click="loadStats" class="retry-btn">Réessayer</button>
+        <button v-if="canRetry" @click="loadStats" class="retry-btn">Réessayer</button>
       </div>
 
       <!-- Stats Content -->
@@ -62,7 +62,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import { useAdminStats } from '@/composables/useAdminStats'
 
-const { loading, revalidating, error, stats, meta, loadStats, refreshData } = useAdminStats()
+const { loading, revalidating, error, canRetry, stats, meta, loadStats, refreshData } = useAdminStats()
 </script>
 
 <style scoped>

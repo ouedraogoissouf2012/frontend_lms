@@ -33,7 +33,7 @@
       <div v-else-if="error" class="error-state">
         <ExclamationTriangleIcon class="error-icon" />
         <p class="error-message">⚠ {{ error }}</p>
-        <button @click="loadSeances" class="retry-btn">Réessayer</button>
+        <button v-if="canRetry" @click="loadSeances" class="retry-btn">Réessayer</button>
       </div>
 
       <!-- Empty State -->
@@ -78,7 +78,7 @@ import {
 } from '@heroicons/vue/24/outline'
 
 const {
-  loading, error, seances, teachers, classes, filters,
+  loading, error, canRetry, seances, teachers, classes, filters,
   loadSeances, refreshData, viewSeanceDetails, enableVisio,
 } = useAdminSeances()
 </script>

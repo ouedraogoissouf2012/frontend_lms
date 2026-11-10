@@ -55,13 +55,14 @@ export function useAdminSeances() {
     }
 
     if (!response.success) {
-      throw userError(messageForReason(response?.reason) ?? 'Impossible de charger les séances')
+      // Atteint seulement sur un 2xx (le rejet HTTP est relancé plus haut) : un refus, pas une panne.
+      throw userError(messageForReason(response?.reason) ?? 'Impossible de charger les séances', { definitif: true })
     }
 
     return extractList(response)
   }
 
-  const { data, loading, error, load } = useCachedResource(
+  const { data, loading, error, canRetry, load } = useCachedResource(
     () => `admin_seances_d${filters.value.days}`,
     fetchSeances,
     { cacheable: noActiveFilter }
@@ -117,7 +118,7 @@ export function useAdminSeances() {
   })
 
   return {
-    loading, error, seances, teachers, classes, filters,
+    loading, error, canRetry, seances, teachers, classes, filters,
     loadSeances, refreshData, viewSeanceDetails, enableVisio,
   }
 }
