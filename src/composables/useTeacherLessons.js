@@ -6,7 +6,6 @@ import { fetchTeacherMatieres } from '@/services/teacherReferentials'
 import { readCache, writeCache } from '@/services/cache'
 import { useLessonForm } from '@/composables/useLessonForm'
 import { extractList } from '@/utils/apiList'
-import { lessonStatusLabel } from '@/utils/lessonStatus'
 
 /**
  * Couche données de TeacherLessons (#H4 ≤300) : charge leçons + matières (cache +
@@ -132,18 +131,6 @@ export function useTeacherLessons() {
     filters.type = ''
   }
 
-  function getStatusClass(status) {
-    const classes = {
-      published: 'status-published',
-      draft: 'status-draft',
-      archived: 'status-archived'
-    }
-    return classes[status] || 'status-draft'
-  }
-
-  // Source unique (utils/lessonStatus) : un statut inconnu rend '' — plus de « Brouillon » inventé.
-  const getStatusLabel = lessonStatusLabel
-
   function getMatiereLabel(matiereId) {
     const matiere = matieres.value.find(m => m.id == matiereId)
     return matiere ? (matiere.name || matiere.nom) : 'Matière inconnue'
@@ -180,8 +167,6 @@ export function useTeacherLessons() {
     refreshInBackground,
     applyFilters,
     resetFilters,
-    getStatusClass,
-    getStatusLabel,
     getMatiereLabel,
     formatDate,
     viewChapters,

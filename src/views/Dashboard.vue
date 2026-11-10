@@ -72,7 +72,7 @@
             <h3 class="font-semibold text-lg">{{ lesson.title }}</h3>
             <p class="text-gray-600 text-sm mt-1">{{ lesson.description }}</p>
             <div class="mt-2 flex items-center justify-between">
-              <span class="text-xs text-gray-500">{{ lessonTypeLabel(lesson.type) }}</span>
+              <span v-if="lessonTypeLabel(lesson.type)" class="lesson-type text-xs text-gray-500">{{ lessonTypeLabel(lesson.type) }}</span>
               <span
                 v-if="lessonStatusLabel(lesson.status)"
                 class="px-2 py-1 text-xs rounded"
