@@ -94,4 +94,17 @@ describe('useAdminHub (#G1)', () => {
     const h = await setup()
     expect(h.error.value).toBeNull()
   })
+
+  it('une classe sans effectif : la somme des classes n’est pas un total, le compte du serveur prime', async () => {
+    klassciMock.getClasses.mockResolvedValue([{ id: 1, nb_etudiants: 10 }, { id: 2 }])
+    const h = await setup()
+    expect(h.stats.value.etudiants).toBe(42)
+  })
+
+  it('une classe sans effectif et pas de compte serveur : non mesuré, jamais la somme partielle', async () => {
+    klassciMock.getClasses.mockResolvedValue([{ id: 1, nb_etudiants: 10 }, { id: 2 }])
+    dashboardMock.getStats.mockRejectedValue(new Error('indisponible'))
+    const h = await setup()
+    expect(h.stats.value.etudiants).toBeNull()
+  })
 })

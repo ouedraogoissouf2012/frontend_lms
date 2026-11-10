@@ -1,4 +1,5 @@
 import { useAuthStore } from '@/stores/auth'
+import { userError } from '@/utils/userError'
 import { useVisioStore } from '@/stores/visio'
 import { getVisioRoomId, VISIO_ROOM_REQUIRED_MESSAGE } from '@/constants/visio'
 
@@ -16,7 +17,7 @@ export function useTrackedVisioJoin(defaultDisplayName = 'Utilisateur') {
 
   async function joinTrackedVisio(seance, options = {}) {
     const seanceId = resolveSeanceId(seance)
-    if (!seanceId) throw new Error(SEANCE_ID_REQUIRED_MESSAGE)
+    if (!seanceId) throw userError(SEANCE_ID_REQUIRED_MESSAGE)
 
     // Garde AVANT tout appel réseau : une séance sans salle doit échouer ici,
     // et surtout pas après `join`, qui écrit déjà la présence en base. Sans
@@ -29,7 +30,7 @@ export function useTrackedVisioJoin(defaultDisplayName = 'Utilisateur') {
     // l'illusion qu'il fait autorité alors qu'il n'est plus lu.
     const roomSource = options.roomSource ?? seance
     if (!getVisioRoomId(roomSource) && !getVisioRoomId(seance)) {
-      throw new Error(options.roomRequiredMessage || VISIO_ROOM_REQUIRED_MESSAGE)
+      throw userError(options.roomRequiredMessage || VISIO_ROOM_REQUIRED_MESSAGE)
     }
 
     return visioStore.joinVisio(seanceId, {
