@@ -120,6 +120,7 @@ export const adminRoutes = [
     meta: {
       requiresAuth: true,
       roles: ['superAdmin', 'admin', 'coordinateur'],
+      plateforme: true,
       title: 'Mon Profil'
     }
   },
@@ -131,6 +132,7 @@ export const adminRoutes = [
     meta: {
       requiresAuth: true,
       roles: ['superAdmin', 'admin', 'coordinateur'],
+      plateforme: true,
       title: 'Paramètres'
     }
   },
@@ -142,6 +144,7 @@ export const adminRoutes = [
     meta: {
       requiresAuth: true,
       roles: ['supradmin'],
+      plateforme: true,
       title: 'Gestion des Institutions'
     }
   },
@@ -152,6 +155,7 @@ export const adminRoutes = [
     meta: {
       requiresAuth: true,
       roles: ['supradmin'],
+      plateforme: true,
       title: 'Demandes d\'ouverture'
     }
   },

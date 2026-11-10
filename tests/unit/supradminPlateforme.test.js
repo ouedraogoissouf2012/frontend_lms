@@ -98,6 +98,12 @@ describe('le garde du routeur', () => {
   it('ses routes de plateforme lui restent ouvertes', () => {
     for (const path of PLATEFORME) expect(aller(path)).toHaveBeenCalledWith()
   })
+
+  // Témoin de non-régression (#409) : le lien d'activation qu'il vient de remettre, et la page 404,
+  // ne demandent ni session ni rôle ; le garde n'y juge rien.
+  it('le lien d’activation et la page 404 lui restent ouverts', () => {
+    for (const path of ['/activation/:token', '/:pathMatch(.*)*']) expect(aller(path)).toHaveBeenCalledWith()
+  })
 })
 
 describe('/admin/profile pour le supradmin : aucune requête d’école', () => {

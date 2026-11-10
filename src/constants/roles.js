@@ -178,15 +178,26 @@ export function getRoleDisplayName(userOrRole) {
 /**
  * Décision d'accès à une route protégée. Fonction PURE unique, réutilisée par le
  * guard du router ET par les tests (pas de logique dupliquée).
+ *
+ * Le supradmin (plateforme, SANS établissement) n'a pas de passe-droit : il n'ouvre QUE
+ * les routes marquées `meta.plateforme` (liste d'autorisation, D126), quels que soient
+ * leurs rôles. Toute autre route est du contenu d'école que le serveur lui refuse (D56) :
+ * il est renvoyé vers son espace. Une route oubliée lui est donc fermée, jamais ouverte.
  * @param {object|string|null} user
  * @param {string[]|undefined} metaRoles - Rôles requis par la route (`to.meta.roles`).
+ * @param {boolean} [plateforme=false] - La route est-elle de plateforme (`to.meta.plateforme`) ?
  * @returns {{allowed: boolean, redirectTo: string|null}}
  */
-export function canActivate(user, metaRoles) {
+export function canActivate(user, metaRoles, plateforme = false) {
+  if (isSupradmin(user)) {
+    return plateforme
+      ? { allowed: true, redirectTo: null }
+      : { allowed: false, redirectTo: getDashboardRoute(user) }
+  }
   if (!metaRoles || metaRoles.length === 0) {
     return { allowed: true, redirectTo: null }
   }
-  const allowed = hasRole(user, metaRoles) || isSupradmin(user)
+  const allowed = hasRole(user, metaRoles)
   return { allowed, redirectTo: allowed ? null : getDashboardRoute(user) }
 }
 

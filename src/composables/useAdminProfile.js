@@ -2,7 +2,7 @@ import { ref, computed, onMounted } from 'vue'
 import { auth } from '@/services/api'
 import { klassciService } from '@/services/klassci'
 import { logError } from '@/services/errorHandler'
-import { getRoleDisplayName } from '@/constants/roles'
+import { getRoleDisplayName, isSupradmin } from '@/constants/roles'
 import { deriveInstitutionCounters } from '@/utils/classStats'
 import { getInitials, formatDateLong } from '@/utils/formatters'
 
@@ -82,6 +82,12 @@ export function useAdminProfile() {
 
   onMounted(() => {
     user.value = auth.getUser()
+    // Le supradmin n'a pas d'établissement : aucun compteur d'école à demander ni à
+    // afficher (D56, D126). `null` = pas de carte, pas « non mesuré ».
+    if (isSupradmin(user.value)) {
+      stats.value = null
+      return
+    }
     loadStats()
   })
 

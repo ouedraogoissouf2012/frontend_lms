@@ -9,8 +9,9 @@ import { useAuthStore } from '@/stores/auth'
  * Comportement STRICTEMENT identique à l'origine :
  *  1. route protégée sans authentification → /login ;
  *  2. utilisateur authentifié sur une route guest → son dashboard (source unique) ;
- *  3. route à rôles requis → décision unique, normalisée, fail-secure via
- *     `canActivate` (même fonction que celle testée, bypass supradmin inclus).
+ *  3. route authentifiée → décision unique, normalisée, fail-secure via
+ *     `canActivate` (même fonction que celle testée). Le supradmin n'y ouvre
+ *     que les routes `meta.plateforme` (D126).
  *
  * ... à une exception près : les règles 2 et 3 ne se redirigent plus vers la
  * destination courante (cf. `redirectUnlessCurrent`), ce qui faisait boucler
@@ -34,12 +35,13 @@ export function navigationGuard(to, from, next) {
     return redirectUnlessCurrent(to, user ? getDashboardRoute(user) : '/login', next)
   }
 
-  // 3. Route à rôles requis : décision unique, normalisée, fail-secure.
-  //    canActivate est la MÊME fonction que celle testée (pas de logique dupliquée) ;
-  //    le bypass est réservé au supradmin PLATEFORME (rôle normalisé 'supradmin').
-  //    'superAdmin' (admin d'établissement) normalise vers 'admin' et ne bypasse pas (#659).
-  if (to.meta.roles && user) {
-    const decision = canActivate(user, to.meta.roles)
+  // 3. Route authentifiée : décision unique, normalisée, fail-secure.
+  //    canActivate est la MÊME fonction que celle testée (pas de logique dupliquée).
+  //    Elle juge aussi les routes SANS rôles (ex. /dashboard) : le supradmin n'y a pas
+  //    sa place, seules les routes `meta.plateforme` lui sont ouvertes (D126).
+  //    'superAdmin' (admin d'établissement) normalise vers 'admin' (#659).
+  if ((to.meta.requiresAuth || to.meta.roles) && user) {
+    const decision = canActivate(user, to.meta.roles, to.meta.plateforme === true)
     if (!decision.allowed) {
       logRoleDecision('access_denied', { route: to.name ?? to.path })
       return redirectUnlessCurrent(to, decision.redirectTo, next)

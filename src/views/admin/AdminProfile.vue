@@ -17,7 +17,7 @@
           :role-label="roleLabel"
         />
 
-        <ProfileStatsCard :stats="stats" />
+        <ProfileStatsCard v-if="stats" :stats="stats" />
 
         <ProfilePermissionsCard
           v-if="user?.permissions && user.permissions.length > 0"
