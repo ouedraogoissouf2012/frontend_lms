@@ -11,7 +11,7 @@
  * `meta.plateforme: true` ; toute autre route authentifiée le renvoie vers son espace. Un nouvel
  * écran oublié lui est donc FERMÉ par défaut (le côté sûr).
  */
-import { mount, flushPromises } from '@vue/test-utils'
+import { mount, flushPromises, RouterLinkStub } from '@vue/test-utils'
 import { defineComponent } from 'vue'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
@@ -21,6 +21,7 @@ const h = vi.hoisted(() => ({
 }))
 vi.mock('@/services/api', () => ({ auth: { isAuthenticated: () => h.isAuthenticated(), getUser: () => h.getUser(), getMeta: () => null } }))
 vi.mock('@/services/klassci', () => ({ klassciService: h.klassci, default: h.klassci }))
+vi.mock('@/components/layout/DashboardLayout.vue', () => ({ default: { template: '<div><slot /></div>' } }))
 
 import { canActivate, getDashboardRoute, ROLES } from '@/constants/roles'
 import { navigationGuard } from '@/router/guards'
@@ -31,6 +32,9 @@ import { studentRoutes } from '@/router/routes/student.routes'
 import { sharedRoutes } from '@/router/routes/shared.routes'
 import { fallbackRoutes } from '@/router/routes/fallback.routes'
 import { useAdminProfile } from '@/composables/useAdminProfile'
+import AdminProfile from '@/views/admin/AdminProfile.vue'
+import ProfileActionsCard from '@/components/admin/ProfileActionsCard.vue'
+import ProfileStatsCard from '@/components/admin/ProfileStatsCard.vue'
 
 const SUPRADMIN = { id: 1, role: 'supradmin' }
 const ESPACE = getDashboardRoute(ROLES.SUPRADMIN)
@@ -38,7 +42,8 @@ const aplatir = (routes) => routes.flatMap((r) => [r, ...aplatir(r.children ?? [
 const TOUTES = aplatir([...coreRoutes, ...adminRoutes, ...teacherRoutes, ...studentRoutes, ...sharedRoutes, ...fallbackRoutes])
 
 // La liste FERMÉE des routes de plateforme (D126) : son menu (Institutions, Demandes), son profil et
-// ses paramètres (préférences de notification, D54). Le journal d'audit (D51) n'a pas encore d'écran.
+// ses paramètres (préférences d'affichage, gardées dans le navigateur : aucune donnée d'école). Le
+// journal d'audit (D51) n'a pas encore d'écran.
 const PLATEFORME = ['/admin/institutions', '/admin/profile', '/admin/school-requests', '/admin/settings']
 
 describe('canActivate — le supradmin n’ouvre que les routes de plateforme', () => {
@@ -67,6 +72,18 @@ describe('canActivate — le supradmin n’ouvre que les routes de plateforme', 
 describe('le tableau des routes : la liste de plateforme est fermée et suivie', () => {
   it('exactement ces routes portent meta.plateforme', () => {
     expect(TOUTES.filter((r) => r.meta?.plateforme === true).map((r) => r.path).sort()).toEqual(PLATEFORME)
+  })
+
+  // Revue : le refus le renvoie vers son espace ; si cet espace n'était pas marqué, l'anti-boucle
+  // du garde (redirectUnlessCurrent) l'ouvrirait au lieu de le fermer.
+  it('l’espace du supradmin est lui-même une route de plateforme', () => {
+    expect(TOUTES.find((r) => r.path === ESPACE)?.meta?.plateforme).toBe(true)
+  })
+
+  // Revue : vue-router fusionne les `meta` des parents dans `to.meta` ; un enfant d'une route de
+  // plateforme hériterait de `plateforme` SANS marquage — le côté non sûr.
+  it('aucune route de plateforme n’a d’enfants', () => {
+    expect(TOUTES.filter((r) => r.meta?.plateforme === true && r.children?.length).map((r) => r.path)).toEqual([])
   })
 
   it('aucune route d’école ne nomme encore le supradmin dans ses rôles', () => {
@@ -115,6 +132,32 @@ describe('/admin/profile pour le supradmin : aucune requête d’école', () => 
     await flushPromises()
     for (const f of Object.values(h.klassci)) expect(f).not.toHaveBeenCalled()
     expect(api.stats.value).toBeNull()
+  })
+
+  // Revue : `stats` ne passait à null qu'au montage, après un premier rendu de la carte (« — »).
+  it('dès le premier rendu : aucune carte de compteurs, même un instant', () => {
+    h.getUser.mockReturnValue(SUPRADMIN)
+    let initial, api
+    mount(defineComponent({ setup() { api = useAdminProfile(); initial = api.stats.value; return () => null } }))
+    expect(initial).toBeNull()
+    expect(api.estPlateforme).toBe(true)
+  })
+
+  // Revue : « Actions rapides » lui offrait Utilisateurs, Classes, Matières — trois routes d'école
+  // qui le renvoient sans un mot vers son espace.
+  it('Actions rapides : le supradmin n’a que ses paramètres, l’admin d’école garde ses 4 liens', () => {
+    const liens = (props) => mount(ProfileActionsCard, { props, global: { stubs: { RouterLink: RouterLinkStub } } })
+      .findAllComponents(RouterLinkStub).map((l) => l.props('to'))
+    expect(liens({ plateforme: true })).toEqual(['/admin/settings'])
+    expect(liens({})).toEqual(['/admin/settings', '/admin/users', '/admin/classes', '/admin/matieres'])
+  })
+
+  it('la vue câble le tout : ni carte de compteurs, ni lien d’école pour le supradmin', async () => {
+    h.getUser.mockReturnValue(SUPRADMIN)
+    const vue = mount(AdminProfile, { global: { stubs: { ProfileInfoCard: true, ProfilePermissionsCard: true, ProfileStatsCard: true, ProfileActionsCard: true } } })
+    await flushPromises()
+    expect(vue.findComponent(ProfileStatsCard).exists()).toBe(false)
+    expect(vue.findComponent(ProfileActionsCard).props('plateforme')).toBe(true)
   })
 
   it('l’admin d’école garde ses compteurs', async () => {
