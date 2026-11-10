@@ -51,7 +51,10 @@ describe('Dashboard.vue — « Leçons récentes » en français, jamais deviné
       { id: 1, title: 'Suites', description: '', status: 'published', type: 'tp' },
       { id: 2, title: 'Limites', description: '', status: 'zzz', type: 'zzz' },
     ])
-    const texte = (await mountDashboard('etudiant')).text()
+    const w = await mountDashboard('etudiant')
+    // Revue de #511 : le type inconnu laissait un élément vide ; il n'est plus rendu.
+    expect(w.findAll('.lesson-type').map((t) => t.text())).toEqual(['TP'])
+    const texte = w.text()
     expect(texte).toContain('Suites')
     expect(texte).toContain('Limites')
     expect(texte).toContain('Publiée')
