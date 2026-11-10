@@ -145,24 +145,6 @@ export function useTeacherLessons() {
     filters.type = ''
   }
 
-  function getStatusClass(status) {
-    const classes = {
-      published: 'status-published',
-      draft: 'status-draft',
-      archived: 'status-archived'
-    }
-    return classes[status] || 'status-draft'
-  }
-
-  function getStatusLabel(status) {
-    const labels = {
-      published: 'Publiée',
-      draft: 'Brouillon',
-      archived: 'Archivée'
-    }
-    return labels[status] || 'Brouillon'
-  }
-
   // #283 : délègue au formatter canonique (repli local conservé).
   function formatDate(dateString) {
     return formatDateLong(dateString, { fallback: 'N/A' })
@@ -194,8 +176,6 @@ export function useTeacherLessons() {
     refreshInBackground,
     applyFilters,
     resetFilters,
-    getStatusClass,
-    getStatusLabel,
     formatDate,
     viewChapters,
     saveLesson,
