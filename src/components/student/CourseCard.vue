@@ -17,8 +17,8 @@
     :class="{ 'is-inerte': !to }"
   >
     <!-- Badge type -->
-    <div class="course-type-badge" :class="course.type">
-      {{ getTypeLabel(course.type) }}
+    <div v-if="lessonTypeLabel(course.type)" class="course-type-badge" :class="course.type">
+      {{ lessonTypeLabel(course.type) }}
     </div>
 
     <div class="course-header">
@@ -65,26 +65,17 @@
  * Carte de cours de StudentCourses (#G1 ≤300). Présentation pure : reçoit `course`
  * et sa route `to`, déjà calculée par le composable (la carte ne connaît ni le nom
  * de la route ni la forme du cours). `to` null : carte non cliquable. Libellé de type
- * et troncature calculés localement (truncate de @/utils/formatters).
+ * par la source partagée (utils/lessonStatus : type inconnu → aucun badge), troncature
+ * par truncate (@/utils/formatters).
  */
 import { RouterLink } from 'vue-router'
 import { truncate } from '@/utils/formatters'
+import { lessonTypeLabel } from '@/utils/lessonStatus'
 
 defineProps({
   course: { type: Object, required: true },
   to: { type: Object, default: null },
 })
-
-function getTypeLabel(type) {
-  const types = {
-    cours: 'Cours',
-    tp: 'TP',
-    td: 'TD',
-    projet: 'Projet',
-    autre: 'Autre',
-  }
-  return types[type] || 'Cours'
-}
 
 function truncateText(text, maxLength) {
   return truncate(text, maxLength)

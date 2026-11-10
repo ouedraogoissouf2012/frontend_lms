@@ -1,7 +1,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { auth } from '@/services/api'
-import { isStudent, isTeacher, isAdminScope } from '@/constants/roles'
+import { isStudent, isTeacher, isAdminScope, isSupradmin, getDashboardRoute } from '@/constants/roles'
 import { getInitials } from '@/utils/formatters'
 import { useNotifications } from '@/composables/useNotifications'
 import { toast } from '@/composables/useToast'
@@ -131,6 +131,9 @@ export function useNavbar() {
       '/matieres': null
     }
 
+    // Le tableau de bord d'école est fermé au supradmin (D126) : « Admin » mène à son espace.
+    const user = auth.getUser()
+    if (path === '/admin' && isSupradmin(user)) return getDashboardRoute(user)
     if (Object.prototype.hasOwnProperty.call(aliases, path)) return aliases[path]
     return path
   }

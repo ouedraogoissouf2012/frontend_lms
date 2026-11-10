@@ -20,7 +20,7 @@
               <p class="text-3xl font-bold text-primary-600"><CountValue :value="stats?.lessons_in_progress ?? null" /></p>
             </div>
             <div class="bg-primary-100 p-3 rounded-full">
-              fa-book
+              <i class="fa fa-book" aria-hidden="true"></i>
             </div>
           </div>
         </div>
@@ -33,7 +33,7 @@
               <p class="text-3xl font-bold text-green-600"><CountValue :value="stats?.quizzes_completed ?? null" /></p>
             </div>
             <div class="bg-green-100 p-3 rounded-full">
-              fa-check-circle
+              <i class="fa fa-check-circle" aria-hidden="true"></i>
             </div>
           </div>
         </div>
@@ -46,7 +46,7 @@
               <p class="text-3xl font-bold text-purple-600"><CountValue :value="stats?.overall_progress ?? null" /><template v-if="stats?.overall_progress != null">%</template></p>
             </div>
             <div class="bg-purple-100 p-3 rounded-full">
-              fa-bar-chart
+              <i class="fa fa-bar-chart" aria-hidden="true"></i>
             </div>
           </div>
         </div>
@@ -72,12 +72,13 @@
             <h3 class="font-semibold text-lg">{{ lesson.title }}</h3>
             <p class="text-gray-600 text-sm mt-1">{{ lesson.description }}</p>
             <div class="mt-2 flex items-center justify-between">
-              <span class="text-xs text-gray-500">{{ lesson.type }}</span>
+              <span v-if="lessonTypeLabel(lesson.type)" class="lesson-type text-xs text-gray-500">{{ lessonTypeLabel(lesson.type) }}</span>
               <span
+                v-if="lessonStatusLabel(lesson.status)"
                 class="px-2 py-1 text-xs rounded"
                 :class="lesson.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'"
               >
-                {{ lesson.status }}
+                {{ lessonStatusLabel(lesson.status) }}
               </span>
             </div>
           </div>
@@ -129,6 +130,7 @@ import { normalizeError } from '@/services/errorHandler'
 import { extractList } from '@/utils/apiList'
 import { dashboard, lessons as lessonsApi, notifications as notificationsApi, auth } from '@/services/api'
 import { isStudent, isTeacher } from '@/constants/roles'
+import { lessonStatusLabel, lessonTypeLabel } from '@/utils/lessonStatus'
 
 const user = ref(null)
 const loading = ref(true)

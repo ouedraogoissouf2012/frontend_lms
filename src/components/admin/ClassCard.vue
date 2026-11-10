@@ -34,7 +34,7 @@
               <i class="fa fa-user stat-icon"></i>
               <div>
                 <p class="stat-label">Étudiants</p>
-                <p class="stat-value">{{ classe.places_occupees || 0 }}/{{ classe.places_totales || 0 }}</p>
+                <p class="stat-value">{{ formatCount(classe.places_occupees) }}/{{ formatCount(classe.places_totales) }}</p>
               </div>
             </div>
 
@@ -42,7 +42,7 @@
               <span class="stat-icon">☷</span>
               <div>
                 <p class="stat-label">Matières</p>
-                <p class="stat-value">{{ classe.nb_matieres || 0 }}</p>
+                <p class="stat-value">{{ formatCount(classe.nb_matieres) }}</p>
               </div>
             </div>
           </div>
@@ -66,6 +66,8 @@
  * Carte d'une classe (#G1 décompo — extraite d'AdminClasses, grille de classes).
  * Présentation : reçoit la classe, émet view au clic sur « Détails ».
  */
+import { formatCount } from '@/utils/formatters'
+
 defineProps({ classe: { type: Object, required: true } })
 defineEmits(['view'])
 </script>

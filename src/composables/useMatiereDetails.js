@@ -126,7 +126,7 @@ export function useMatiereDetails() {
   async function submitCreateLesson() {
     // Validation
     if (!newLesson.value.title || newLesson.value.title.trim() === '') {
-      showNotification('fa-exclamation-triangle️ Le titre de la leçon est obligatoire', 'warning')
+      showNotification('Le titre de la leçon est obligatoire', 'warning')
       return
     }
 
@@ -176,7 +176,7 @@ export function useMatiereDetails() {
     try {
       const response = await lessonService.deleteLesson(lessonId)
       if (response.success) {
-        showNotification('fa-check Leçon supprimée avec succès', 'success')
+        showNotification('Leçon supprimée avec succès', 'success')
         loadMatiereDetails()
       }
     } catch (err) {
@@ -189,7 +189,7 @@ export function useMatiereDetails() {
     try {
       const response = await lessonService.publishLesson(lessonId)
       if (response.success) {
-        showNotification('fa-check Leçon publiée avec succès ! Elle est maintenant visible par les étudiants.', 'success')
+        showNotification('Leçon publiée avec succès ! Elle est maintenant visible par les étudiants.', 'success')
         loadMatiereDetails()
       }
     } catch (err) {
@@ -202,7 +202,7 @@ export function useMatiereDetails() {
     try {
       const response = await lessonService.unpublishLesson(lessonId)
       if (response.success) {
-        showNotification('fa-check Leçon dépubliée avec succès ! Elle est maintenant en mode brouillon.', 'success')
+        showNotification('Leçon dépubliée avec succès ! Elle est maintenant en mode brouillon.', 'success')
         loadMatiereDetails()
       }
     } catch (err) {
@@ -232,7 +232,7 @@ export function useMatiereDetails() {
       const response = await lmsService.hideSeance(seanceId)
 
       if (response.success) {
-        showNotification('fa-check Séance masquée avec succès', 'success')
+        showNotification('Séance masquée avec succès', 'success')
         // Recharger les données pour voir la séance disparaître
         await loadMatiereDetails()
       }

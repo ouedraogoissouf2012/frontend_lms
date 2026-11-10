@@ -23,4 +23,9 @@ describe('StatsMainGrid (#H3)', () => {
     const values = w.findAll('.stat-value').map(v => v.text())
     expect(values.every(v => v === '—')).toBe(true)
   })
+
+  it('total non mesuré dès qu’un terme manque : jamais les enseignants seuls (revue de #505)', () => {
+    const w = mount(StatsMainGrid, { props: { stats: { nb_enseignants: 2, nb_etudiants: null } } })
+    expect(w.find('.stat-row.total .stat-value').text()).toBe('—')
+  })
 })

@@ -19,17 +19,18 @@ import { ROLES } from '@/constants/roles'
  */
 
 /**
- * Tous les rôles connus de la plateforme. Sémantique : « toute session valide »,
+ * Tous les comptes d'ÉTABLISSEMENT. Sémantique : « toute session d'école valide »,
  * MAIS fail-secure — un rôle absent de la table d'alias (donc non normalisable)
- * est refusé, alors qu'un simple `requiresAuth` le laissait passer.
+ * est refusé, alors qu'un simple `requiresAuth` le laissait passer. Le supradmin
+ * n'y figure pas : il n'a pas d'établissement, il n'ouvre que les routes
+ * `meta.plateforme` (D126).
  * @type {ReadonlyArray<string>}
  */
 export const AUTHENTICATED_ROLES = Object.freeze([
   ROLES.ETUDIANT,
   ROLES.ENSEIGNANT,
   ROLES.COORDINATEUR,
-  ROLES.ADMIN,
-  ROLES.SUPRADMIN
+  ROLES.ADMIN
 ])
 
 /**
@@ -40,6 +41,5 @@ export const AUTHENTICATED_ROLES = Object.freeze([
 export const STAFF_ROLES = Object.freeze([
   ROLES.ENSEIGNANT,
   ROLES.COORDINATEUR,
-  ROLES.ADMIN,
-  ROLES.SUPRADMIN
+  ROLES.ADMIN
 ])

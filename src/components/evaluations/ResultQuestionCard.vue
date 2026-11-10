@@ -15,13 +15,14 @@
               isCorrect(question, answers) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
             ]"
           >
-            {{ isCorrect(question, answers) ? 'fa-check Correct' : '✗ Incorrect' }}
+            <template v-if="isCorrect(question, answers)"><i class="fa fa-check" aria-hidden="true"></i> Correct</template>
+            <template v-else>✗ Incorrect</template>
           </span>
           <span
             v-else
             class="px-3 py-1 rounded-full text-xs font-medium bg-secondary text-secondary"
           >
-            fa-circle En attente de correction
+            <i class="fa fa-circle" aria-hidden="true"></i> En attente de correction
           </span>
         </div>
         <p class="text-lg text-primary">{{ question.question }}</p>
@@ -51,7 +52,7 @@
         </div>
         <div v-else-if="!correctionAvailable" class="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
           <p class="text-sm text-yellow-800">
-            fa-circle La correction sera disponible dans {{ daysUntilCorrection }} jour(s)
+            <i class="fa fa-circle" aria-hidden="true"></i> La correction sera disponible dans {{ daysUntilCorrection }} jour(s)
           </p>
         </div>
       </div>

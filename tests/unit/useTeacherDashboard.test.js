@@ -168,4 +168,20 @@ describe('useTeacherDashboard (#H11)', () => {
     expect(d.formatDate(null)).toBe('N/A')
     expect(d.formatDate('2024-03-10')).toMatch(/2024/)
   })
+
+  it('école créée depuis le LMS : KLASSCI refuse, le repli garde le total de leçons du LMS et ne fabrique aucun 0', async () => {
+    klassciMock.getTeacherDashboard.mockRejectedValue(new Error('aucun accès KLASSCI'))
+    apiDashboardMock.getTeacherDashboard.mockResolvedValue({ success: true, data: { lessons: { total: 3 } } })
+    lmsMock.getEnseignants.mockRejectedValue(new Error('503'))
+    lmsMock.getMyMatieres.mockResolvedValue({ success: true, data: [{ id: 1, nom: 'Maths', classes: [{ id: 5 }, { id: 6 }] }] })
+    lmsMock.getMyTeachingSeances.mockRejectedValue(new Error('jeton KLASSCI requis'))
+
+    const d = await setup()
+
+    expect(d.dashboardData.value.matieres).toHaveLength(1)
+    expect(d.dashboardData.value.statistiques.total_lecons).toBe(3)
+    expect(d.dashboardData.value.statistiques.total_etudiants).toBeNull()
+    expect(d.dashboardData.value.statistiques.seances_aujourdhui).toBeNull()
+    expect(d.dashboardData.value.seances).toBeNull()
+  })
 })

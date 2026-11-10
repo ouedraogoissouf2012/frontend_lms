@@ -155,3 +155,23 @@ export function getMatiereNiveaux(matiere) {
   })
   return Array.from(unique)
 }
+
+/**
+ * Libellé de la matière d'une leçon.
+ *
+ * `GET /lessons` charge la matière de chaque leçon (`with(['matiere', …])`, champ `libelle`) :
+ * c'est la source la plus sûre, présente même quand le catalogue de l'enseignant est vide (école
+ * créée depuis le LMS). Le catalogue ne sert qu'en repli, pour une leçon qui ne la porte pas.
+ *
+ * @param {Object|null} lesson
+ * @param {Array<Object>} matieres - catalogue de l'enseignant
+ * @returns {string}
+ */
+export function getLessonMatiereLabel(lesson, matieres = []) {
+  const nom = (m) => m?.libelle || m?.nom || m?.name || null
+  const portee = nom(lesson?.matiere)
+  if (portee) return portee
+  const id = lesson?.matiere_id
+  const duCatalogue = id == null ? null : nom((matieres ?? []).find((m) => m?.id == id))
+  return duCatalogue || 'Matière inconnue'
+}
