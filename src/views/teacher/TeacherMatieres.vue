@@ -19,7 +19,7 @@
           <h3 class="error-title">Erreur de chargement</h3>
           <p class="error-message">{{ error }}</p>
         </div>
-        <button @click="loadMatieres" class="error-retry-btn">
+        <button v-if="canRetry" @click="loadMatieres" class="error-retry-btn">
           Réessayer
         </button>
       </div>
@@ -52,7 +52,7 @@ import ContentLoader from '@/components/common/ContentLoader.vue'
 import MatiereCourseCard from '@/components/teacher/MatiereCourseCard.vue'
 import { useTeacherMatieres } from '@/composables/useTeacherMatieres'
 
-const { loading, error, matieres, loadMatieres, navigateToMatiere } = useTeacherMatieres()
+const { loading, error, canRetry, matieres, loadMatieres, navigateToMatiere } = useTeacherMatieres()
 </script>
 
 <style scoped>

@@ -28,6 +28,7 @@ export function useSeanceManagement() {
   const {
     loading,
     error,
+    canRetry,
     seances,
     classes,
     enseignants,
@@ -193,7 +194,7 @@ export function useSeanceManagement() {
   })
 
   return {
-    loading, error, seances, classes, enseignants, filters, loadSeances,
+    loading, error, canRetry, seances, classes, enseignants, filters, loadSeances,
     showParticipantsModal, selectedSeanceId, viewMode, calendarRef,
     toggleSeanceVisio, showParticipants, handleJoinVisio, handleCalendarAction,
   }

@@ -3,6 +3,7 @@ import lmsService from '@/services/lms'
 import { klassciService } from '@/services/klassci'
 import { useCachedResource } from '@/composables/useCachedResource'
 import { normalizeError } from '@/services/errorHandler'
+import { userError } from '@/utils/userError'
 
 /**
  * Composable de données des séances côté coordinateur (G7).
@@ -78,16 +79,14 @@ export function useCoordinatorSeances() {
       throw err
     }
 
-    if (!data.success) {
-      const err = new Error('Erreur lors du chargement des séances')
-      err.userMessage = 'Erreur lors du chargement des séances'
-      throw err
-    }
+    // Atteint sur un 2xx seulement (axios rejette le reste) : un refus, pas une panne passagère.
+    if (!data.success) throw userError('Erreur lors du chargement des séances', { definitif: true })
 
     return Array.isArray(data.data) ? data.data : (data.data.seances || [])
   }
 
-  const { data, loading, error, load, refresh } = useCachedResource(
+  // `canRetry` (socle) : « Réessayer » seulement sur une panne passagère, jamais sur un refus.
+  const { data, loading, error, canRetry, load, refresh } = useCachedResource(
     () => `seances_management_d${filters.days}`,
     fetchSeances,
     { cacheable: noActiveFilter, immediate: false }
@@ -101,6 +100,7 @@ export function useCoordinatorSeances() {
   return {
     loading,
     error,
+    canRetry,
     seances,
     classes,
     enseignants,

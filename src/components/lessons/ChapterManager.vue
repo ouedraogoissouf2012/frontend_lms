@@ -8,7 +8,9 @@
 
     <!-- Liste illisible : INCONNUE, pas vide. Région présente dès le montage. -->
     <div role="alert">
-      <LoadRetryNotice v-if="loadError" :message="loadError" :busy="loading" @retry="loadChapters" />
+      <LoadRetryNotice
+        v-if="loadError" :message="loadError" :busy="loading" :can-retry="loadCanRetry" @retry="loadChapters"
+      />
     </div>
 
     <!-- Loading state -->
@@ -112,7 +114,7 @@ const props = defineProps({
 })
 
 const {
-  chapters, loading, loadError, saving, uploadingFile, uploadProgress, uploadStatus,
+  chapters, loading, loadError, loadCanRetry, saving, uploadingFile, uploadProgress, uploadStatus,
   showQuizEditor, showQuizPlayer, selectedChapterId, selectedQuiz, editingQuiz,
   loadChapters, addChapter, editChapter, cancelEdit, saveChapter, deleteChapter,
   openQuizEditor, closeQuizEditor, onQuizSaved, openQuizPlayer, closeQuizPlayer,

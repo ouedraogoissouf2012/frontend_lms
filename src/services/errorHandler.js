@@ -177,17 +177,6 @@ export function normalizeError(error) {
 }
 
 /**
- * Erreur pour une réponse HTTP RÉUSSIE dont l'enveloppe n'est pas celle attendue
- * (`success !== true`). Ne lève jamais : construit l'erreur que l'appelant rejette.
- *
- * Remplacer une telle réponse par une liste vide fabriquait un fait (« aucun cours
- * publié ») à partir d'une anomalie (#436, CONTRIBUTING §10). L'erreur porte un
- * `userMessage` du catalogue, comme celles que pose l'intercepteur d'`api.js` :
- * l'appelant l'affiche sans distinguer les deux origines.
- * @param {string} [context] - libellé technique pour les journaux (jamais affiché).
- * @returns {Error}
- */
-/**
  * Requête annulée par l'appelant (AbortController → `signal`) : ce n'est PAS un échec
  * à montrer — une requête plus récente l'a remplacée. Axios pose `ERR_CANCELED`.
  * @param {unknown} error
@@ -197,10 +186,28 @@ export function isCanceled(error) {
   return error?.code === 'ERR_CANCELED' || error?.name === 'CanceledError'
 }
 
-export function invalidResponseError(context = '') {
+/**
+ * Erreur pour une réponse HTTP RÉUSSIE dont l'enveloppe n'est pas celle attendue
+ * (`success !== true`). Ne lève jamais : construit l'erreur que l'appelant rejette.
+ *
+ * Remplacer une telle réponse par une liste vide fabriquait un fait (« aucun cours
+ * publié ») à partir d'une anomalie (#436, CONTRIBUTING §10). L'erreur porte un
+ * `userMessage` du catalogue, comme celles que pose l'intercepteur d'`api.js` :
+ * l'appelant l'affiche sans distinguer les deux origines.
+ *
+ * Sans `response`, ou sans `reason` connu du catalogue, l'anomalie reste une panne passagère
+ * (`estPannePassagere` : aucune réponse HTTP en échec). Un `reason` CONNU est un refus MOTIVÉ :
+ * son message du catalogue, et `definitif` (pas de « Réessayer »).
+ * @param {string} [context] - libellé technique pour les journaux (jamais affiché).
+ * @param {{ reason?: unknown }|null} [response] - le corps reçu, pour son seul `reason`.
+ * @returns {Error & { userMessage: string, fieldErrors: null, definitif?: true }}
+ */
+export function invalidResponseError(context = '', response = null) {
   const error = new Error(context ? `Réponse inattendue : ${context}` : 'Réponse inattendue')
-  error.userMessage = ERROR_MESSAGES.unknown
+  const motif = messageForReason(response?.reason)
+  error.userMessage = motif ?? ERROR_MESSAGES.unknown
   error.fieldErrors = null
+  if (motif !== null) error.definitif = true
   return error
 }
 

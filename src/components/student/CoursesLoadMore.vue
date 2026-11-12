@@ -12,10 +12,11 @@
     <!--
       aria-disabled et non `disabled` (revue #443) : un bouton désactivé PERD le focus,
       qui retomberait sur <body> pendant le chargement d'une page intermédiaire. Le
-      bouton reste focalisable et ignore le clic tant que la page charge.
+      bouton reste focalisable et ignore le clic tant que la page charge. Après un refus
+      définitif (`canRetry` faux), plus de bouton : réessayer n'y changerait rien.
     -->
     <button
-      v-if="hasMore"
+      v-if="hasMore && (canRetry || !error)"
       type="button"
       class="load-more-btn"
       :aria-disabled="loading ? 'true' : 'false'"
@@ -31,7 +32,7 @@
  * Pied de liste de StudentCourses (#434) : compteur « N cours affichés sur M » et
  * bouton « Charger plus » tant qu'une page reste à charger. Présentation pure :
  * reçoit des nombres déjà calculés, émet `more`. Une erreur du chargement suivant
- * s'affiche ici, sans effacer la liste au-dessus ; le même bouton réessaie.
+ * s'affiche ici, sans effacer la liste au-dessus ; le même bouton réessaie, sur une panne passagère.
  */
 import { computed } from 'vue'
 
@@ -42,6 +43,8 @@ const props = defineProps({
   hasMore: { type: Boolean, default: false },
   loading: { type: Boolean, default: false },
   error: { type: String, default: null },
+  // Faux quand l'erreur est un refus définitif (estPannePassagere) : ni « Réessayer » ni « Charger plus ».
+  canRetry: { type: Boolean, default: true },
 })
 
 defineEmits(['more'])

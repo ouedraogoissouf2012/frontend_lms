@@ -37,7 +37,7 @@
     <div v-else-if="attendancesError" class="modal-error">
       <span><i class="fa fa-exclamation-triangle"></i></span>
       <p>{{ attendancesError }}</p>
-      <button @click="$emit('retry')" class="btn-retry">Réessayer</button>
+      <button v-if="canRetry" @click="$emit('retry')" class="btn-retry">Réessayer</button>
     </div>
 
     <template #footer>
@@ -68,6 +68,8 @@ defineProps({
   attendances: { type: Object, default: null },
   loadingAttendances: { type: Boolean, default: false },
   attendancesError: { type: String, default: null },
+  // Faux sur un refus définitif (estPannePassagere) : réessayer n'y changerait rien.
+  canRetry: { type: Boolean, default: true },
   exporting: { type: Boolean, default: false }
 })
 

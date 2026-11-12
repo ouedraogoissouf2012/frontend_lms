@@ -3,6 +3,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
 import { normalizeError } from '@/services/errorHandler'
+import { displayMessage } from '@/services/displayMessage'
+import { estPannePassagere } from '@/utils/pannePassagere'
 import lessonService from '@/services/lesson'
 
 /**
@@ -23,6 +25,9 @@ export function useLessonChapters() {
   const lesson = ref(null)
   const loadingLesson = ref(false)
   const error = ref(null)
+  // Un nouvel essai seulement sur une panne passagère (5xx, 429, réseau) : un refus définitif ne se
+  // lève pas en réessayant.
+  const canRetry = ref(true)
   const publishing = ref(false)
 
   const lessonId = computed(() => parseInt(route.value?.params?.id))
@@ -32,6 +37,7 @@ export function useLessonChapters() {
   async function loadLesson() {
     loadingLesson.value = true
     error.value = null
+    canRetry.value = true
 
     try {
       const response = await lessonService.getLesson(lessonId.value)
@@ -40,7 +46,9 @@ export function useLessonChapters() {
       }
     } catch (err) {
       console.error('[LessonChapters] Erreur chargement leçon:', err)
-      error.value = err.response?.data?.message || 'Erreur lors du chargement de la leçon'
+      // Le sens du refus (catalogue, via le `reason`), jamais le texte du serveur (D0).
+      error.value = displayMessage(err, 'Erreur lors du chargement de la leçon')
+      canRetry.value = estPannePassagere(err)
     } finally {
       loadingLesson.value = false
     }
@@ -114,6 +122,7 @@ export function useLessonChapters() {
     lesson,
     loadingLesson,
     error,
+    canRetry,
     publishing,
     lessonId,
     isReadOnly,

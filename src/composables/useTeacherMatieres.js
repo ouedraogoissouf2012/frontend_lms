@@ -2,6 +2,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import lmsService from '@/services/lms'
 import { normalizeError } from '@/services/errorHandler'
+import { estPannePassagere } from '@/utils/pannePassagere'
 
 /**
  * Couche donnees de TeacherMatieres (#H9 ≤300). Charge les matieres de
@@ -11,11 +12,15 @@ export function useTeacherMatieres() {
   const router = useRouter()
   const loading = ref(false)
   const error = ref(null)
+  // Un nouvel essai seulement sur une panne passagère (5xx, 429, réseau) : un refus définitif ne se
+  // lève pas en réessayant.
+  const canRetry = ref(true)
   const matieres = ref([])
 
   async function loadMatieres() {
     loading.value = true
     error.value = null
+    canRetry.value = true
 
     try {
       console.log('[TeacherMatieres] Chargement des matières...')
@@ -26,6 +31,7 @@ export function useTeacherMatieres() {
     } catch (err) {
       console.error('[TeacherMatieres] Erreur:', err)
       error.value = err.userMessage ?? normalizeError(err).userMessage
+      canRetry.value = estPannePassagere(err)
     } finally {
       loading.value = false
     }
@@ -46,6 +52,8 @@ export function useTeacherMatieres() {
     } else {
       console.error('[TeacherMatieres] ID matière non trouvé:', matiere)
       error.value = 'Impossible de naviguer vers cette matière'
+      // Aucune requête n'a échoué : recharger la liste ne donnerait pas d'id à cette matière.
+      canRetry.value = false
     }
   }
 
@@ -53,5 +61,5 @@ export function useTeacherMatieres() {
     loadMatieres()
   })
 
-  return { loading, error, matieres, loadMatieres, navigateToMatiere }
+  return { loading, error, canRetry, matieres, loadMatieres, navigateToMatiere }
 }

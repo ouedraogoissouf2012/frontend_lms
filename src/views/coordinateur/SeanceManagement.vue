@@ -35,7 +35,7 @@
             <h3 class="error-title">Erreur de chargement</h3>
             <p class="error-message">{{ error }}</p>
           </div>
-          <button @click="loadSeances" class="error-retry-btn">
+          <button v-if="canRetry" @click="loadSeances" class="error-retry-btn">
             <i class="fa fa-refresh icon"></i>
             Réessayer
           </button>
@@ -96,7 +96,7 @@ import CoordinatorSeanceStats from '@/components/seances/CoordinatorSeanceStats.
 import { useSeanceManagement } from '@/composables/useSeanceManagement'
 
 const {
-  loading, error, seances, classes, enseignants, filters, loadSeances,
+  loading, error, canRetry, seances, classes, enseignants, filters, loadSeances,
   showParticipantsModal, selectedSeanceId, viewMode, calendarRef,
   toggleSeanceVisio, showParticipants, handleJoinVisio, handleCalendarAction,
 } = useSeanceManagement()
