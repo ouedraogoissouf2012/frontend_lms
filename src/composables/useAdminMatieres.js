@@ -24,8 +24,10 @@ async function fetchMatieres() {
     klassciService.getStructure(),
   ])
   if (!response?.success) {
-    // Atteint seulement sur un 2xx (axios rejette tout non-2xx avant) : un refus, pas une panne.
-    throw userError(messageForReason(response?.reason) ?? 'Erreur lors du chargement des matières', { definitif: true })
+    // Atteint seulement sur un 2xx (axios rejette tout non-2xx avant). Un refus définitif seulement
+    // avec un `reason` connu du catalogue ; sans lui, une anomalie qu'un nouvel essai peut lever.
+    const motif = messageForReason(response?.reason)
+    throw userError(motif ?? 'Erreur lors du chargement des matières', { definitif: motif !== null })
   }
   return {
     matieres: response.data?.matieres || [],

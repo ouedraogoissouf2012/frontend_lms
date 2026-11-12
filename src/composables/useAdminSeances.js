@@ -55,8 +55,10 @@ export function useAdminSeances() {
     }
 
     if (!response.success) {
-      // Atteint seulement sur un 2xx (le rejet HTTP est relancé plus haut) : un refus, pas une panne.
-      throw userError(messageForReason(response?.reason) ?? 'Impossible de charger les séances', { definitif: true })
+      // Atteint seulement sur un 2xx (le rejet HTTP est relancé plus haut). Un refus définitif
+      // seulement avec un `reason` connu du catalogue ; sans lui, une anomalie qu'un essai peut lever.
+      const motif = messageForReason(response?.reason)
+      throw userError(motif ?? 'Impossible de charger les séances', { definitif: motif !== null })
     }
 
     return extractList(response)

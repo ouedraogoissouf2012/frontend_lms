@@ -77,9 +77,14 @@ async function fetchStats() {
   // Aucune source n'a répondu : on ne compose rien, on signale l'échec.
   if (classes === null && matieres === null && enseignants === null && metrics === null && adminStatsPayload === null) {
     const err = new Error('Toutes les sources de statistiques ont échoué')
-    err.userMessage = 'Impossible de charger les statistiques. Réessayez dans quelques instants.'
     // Que des refus (401, 403…) : réessayer n'y changera rien. Une seule panne suffit à le proposer.
-    if (echecs.length > 0 && echecs.every((e) => !estPannePassagere(e))) err.definitif = true
+    if (echecs.length > 0 && echecs.every((e) => !estPannePassagere(e))) {
+      err.definitif = true
+      // Le motif du premier refus (message sûr posé par l'intercepteur), jamais « Réessayez ».
+      err.userMessage = echecs[0]?.userMessage || 'Impossible de charger les statistiques.'
+    } else {
+      err.userMessage = 'Impossible de charger les statistiques. Réessayez dans quelques instants.'
+    }
     throw err
   }
 
