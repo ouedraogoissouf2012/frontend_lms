@@ -4,6 +4,7 @@ import { readCache, writeCache } from '@/services/cache'
 import { buildJitsiUrl, getVisioRoomId } from '@/constants/visio'
 import { notifyVisioError } from '@/services/visioFeedback'
 import { extractList } from '@/utils/apiList'
+import { statutSeance, libelleStatutSeance } from '@/utils/seanceStatut'
 import { invalidResponseError, normalizeError } from '@/services/errorHandler'
 
 /**
@@ -147,27 +148,13 @@ export function useAdminVisio() {
     // Le filtrage est géré par le computed filteredVisioconferences
   }
 
-  // Le statut se lit d'abord sur la visio (active, terminée) ; l'horaire seulement ensuite, et une fin
-  // ESTIMÉE (`heure_fin_estimee`, +2 h non mesurée) n'affirme jamais « Terminée ».
+  // Lecture honnête : la règle partagée (utils/seanceStatut) ; jamais « Terminée » sur une fin estimée.
   function getSeanceStatus(seance) {
-    if (seance.visio_status === 'terminee') return 'completed'
-    if (seance.visio_active) return 'active'
-    const now = new Date()
-    const debut = new Date(seance.date_debut)
-    if (now < debut) return 'scheduled'
-    if (seance.heure_fin_estimee) return 'unconfirmed'
-    const fin = new Date(seance.date_fin)
-    return now <= fin ? 'active' : 'completed'
+    return statutSeance(seance)
   }
 
   function getStatusLabel(status) {
-    const labels = {
-      active: 'En cours',
-      scheduled: 'Planifiée',
-      completed: 'Terminée',
-      unconfirmed: 'Non confirmée'
-    }
-    return labels[status] || 'Inconnu'
+    return libelleStatutSeance(status)
   }
 
   function formatDate(dateString) {
