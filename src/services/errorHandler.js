@@ -207,7 +207,6 @@ export function invalidResponseError(context = '', response = null) {
   const motif = messageForReason(response?.reason)
   error.userMessage = motif ?? ERROR_MESSAGES.unknown
   error.fieldErrors = null
-  if (motif !== null) error.definitif = true
   return error
 }
 
