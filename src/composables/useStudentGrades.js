@@ -44,9 +44,10 @@ export function useStudentGrades() {
         mesure.value = true
       } else {
         // Jamais le texte du serveur à l'écran (D0) : message du catalogue (selon le `reason`).
-        error.value = invalidResponseError('GET /my-grades sans success', response).userMessage
-        // Une réponse sans succès n'est pas une panne passagère : réessayer n'y changera rien.
-        canRetry.value = false
+        const refus = invalidResponseError('GET /my-grades sans success', response)
+        error.value = refus.userMessage
+        // Refus définitif seulement avec un `reason` connu (règle commune d'invalidResponseError).
+        canRetry.value = estPannePassagere(refus)
       }
     } catch (err) {
       console.error('Erreur récupération notes:', err)

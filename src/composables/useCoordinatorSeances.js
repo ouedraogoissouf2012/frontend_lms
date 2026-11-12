@@ -2,7 +2,7 @@ import { ref, reactive, computed } from 'vue'
 import lmsService from '@/services/lms'
 import { klassciService } from '@/services/klassci'
 import { useCachedResource } from '@/composables/useCachedResource'
-import { normalizeError } from '@/services/errorHandler'
+import { normalizeError, messageForReason } from '@/services/errorHandler'
 import { userError } from '@/utils/userError'
 
 /**
@@ -79,8 +79,12 @@ export function useCoordinatorSeances() {
       throw err
     }
 
-    // Atteint sur un 2xx seulement (axios rejette le reste) : un refus, pas une panne passagère.
-    if (!data.success) throw userError('Erreur lors du chargement des séances', { definitif: true })
+    // Atteint sur un 2xx seulement (axios rejette le reste). Refus définitif seulement avec un
+    // `reason` connu du catalogue ; sans lui, une anomalie qu'un nouvel essai peut lever.
+    if (!data.success) {
+      const motif = messageForReason(data?.reason)
+      throw userError(motif ?? 'Erreur lors du chargement des séances', { definitif: motif !== null })
+    }
 
     return Array.isArray(data.data) ? data.data : (data.data.seances || [])
   }
