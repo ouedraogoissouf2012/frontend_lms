@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue'
+import { estPannePassagere } from '@/utils/pannePassagere'
 import klassciService from '@/services/klassci'
 import { invalidateEntity } from '@/services/cache'
 import { useCachedResource } from '@/composables/useCachedResource'
@@ -38,16 +39,24 @@ const asObjectArray = (value, keys = []) =>
  * cache et renseigne `error`.
  */
 async function fetchEnseignants() {
+  let echecEnrichi = null
   try {
     const response = await klassciService.getLmsEnseignants({ with_details: true })
     if (response?.success && hasArrayPayload(response.data, ['enseignants'])) {
       return asObjectArray(response.data, ['enseignants'])
     }
-  } catch {
-    // Enrichi indisponible (503…) → repli ci-dessous.
+  } catch (error) {
+    // Enrichi indisponible (503…) → repli ci-dessous ; son échec est gardé.
+    echecEnrichi = error
   }
-  const fallback = await klassciService.getEnseignants()
-  return asObjectArray(fallback, ['enseignants'])
+  try {
+    const fallback = await klassciService.getEnseignants()
+    return asObjectArray(fallback, ['enseignants'])
+  } catch (error) {
+    // Enrichi en PANNE et repli refusé : c'est la panne qu'on rend, un nouvel essai peut atteindre
+    // l'enrichi (règle d'AdminStats : une seule panne suffit à proposer « Réessayer »).
+    throw echecEnrichi && estPannePassagere(echecEnrichi) && !estPannePassagere(error) ? echecEnrichi : error
+  }
 }
 
 /**
