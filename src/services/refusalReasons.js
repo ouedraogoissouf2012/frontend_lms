@@ -60,6 +60,10 @@ export const REASONS = Object.freeze({
   identifier_out_of_scope: motif('evaluationIdentifierOutOfScope'),
   publish_via_dedicated_route: motif('evaluationPublishViaDedicatedRoute'),
   evaluation_without_questions: motif('evaluationWithoutQuestions'),
+  // S-matière (lms_backend) : refus de POST /lms/seances, création d'une séance locale.
+  class_out_of_scope: motif('seanceClasseHorsEtablissement'),
+  subject_out_of_scope: motif('seanceMatiereHorsEtablissement'),
+  subject_not_in_class_program: motif('seanceMatiereHorsProgramme'),
 })
 
 /** L'entrée du catalogue pour un `reason`, ou `null` (inconnu, absent, clé du prototype). */

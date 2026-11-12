@@ -79,5 +79,10 @@ export const ERROR_MESSAGES = Object.freeze({
   evaluationIdentifierOutOfScope: 'Cette classe ou cette matière ne relève pas de votre établissement. Rechargez la page.',
   evaluationPublishViaDedicatedRoute: 'Une évaluation se publie par l’action « Publier », pas par sa modification.',
   evaluationWithoutQuestions: 'Une évaluation publiée doit compter au moins une question.',
+  // S-matière : refus de création d'une séance locale (POST /lms/seances). Le couple vient du
+  // catalogue de l'établissement : un refus dit qu'il a changé depuis le chargement de l'écran.
+  seanceClasseHorsEtablissement: "Cette classe n'est plus disponible dans votre établissement. Choisissez-en une autre.",
+  seanceMatiereHorsEtablissement: "Cette matière n'est plus disponible dans votre établissement. Choisissez-en une autre.",
+  seanceMatiereHorsProgramme: "Cette matière n'est pas au programme de la classe choisie.",
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })

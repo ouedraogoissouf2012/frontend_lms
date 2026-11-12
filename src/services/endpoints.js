@@ -60,6 +60,8 @@ export const endpoints = {
     },
 
     seances: {
+      // Création locale (école créée depuis le LMS) : POST, 201.
+      store: `${LMS}/seances`,
       upcoming: `${LMS}/seances/upcoming`,
       history: `${LMS}/seances/history`,
       myTeaching: `${LMS}/seances/my-teaching`,
