@@ -25,7 +25,7 @@ async function fetchMatieres() {
   ])
   if (!response?.success) {
     // Atteint seulement sur un 2xx (axios rejette tout non-2xx avant) : un refus, pas une panne.
-    throw userError(messageForReason(response?.reason) ?? 'Erreur lors du chargement des matières')
+    throw userError(messageForReason(response?.reason) ?? 'Erreur lors du chargement des matières', { definitif: true })
   }
   return {
     matieres: response.data?.matieres || [],
