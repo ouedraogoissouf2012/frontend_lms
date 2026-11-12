@@ -173,3 +173,42 @@ describe('useAdminVisio (#G1)', () => {
     expect(v.loading.value).toBe(false)
   })
 })
+
+// Lecture honnête (spec 3d à 25728cf8). Le statut se lit d'abord sur visio_active et visio_status ;
+// une fin ESTIMÉE (heure_fin_estimee) n'affirme jamais « Terminée ». Le nombre de participants est
+// dans visio_participants_count ou visio.participants_count (défaut déjà présent : il n'était jamais lu).
+describe('useAdminVisio — statut et participants, école créée depuis le LMS', () => {
+  const seance = (o) => ({ id: 50, visio_enabled: true, matiere: { nom: 'M' }, classe: { name: 'C' }, enseignant: { nom: 'E' }, ...o })
+
+  it('participants : la clé de la projection est lue ; absente → null (jamais 0 inventé)', async () => {
+    getSeances.mockResolvedValue({ success: true, data: [
+      seance({ id: 51, visio_participants_count: 4 }),
+      seance({ id: 52, visio: { participants_count: 2 } }),
+      seance({ id: 53 }),
+    ] })
+    const v = await setup()
+    const par = Object.fromEntries(v.visioconferences.value.map((x) => [x.id, x.participants_count]))
+    expect(par).toEqual({ 51: 4, 52: 2, 53: null })
+  })
+
+  it('statut : visio active → en cours, même après la fin estimée ; terminée → terminée', async () => {
+    getSeances.mockResolvedValue({ success: true, data: [
+      seance({ id: 61, visio_active: true, heure_fin_estimee: true, date_debut: iso(-3 * 3600e3), date_fin: iso(-3600e3) }),
+      seance({ id: 62, visio_status: 'terminee', date_debut: iso(-3 * 3600e3), date_fin: iso(-3600e3) }),
+    ] })
+    const v = await setup()
+    const st = Object.fromEntries(v.visioconferences.value.map((x) => [x.id, x.status]))
+    expect(st).toEqual({ 61: 'active', 62: 'completed' })
+  })
+
+  it('fin ESTIMÉE passée, visio jamais confirmée : jamais « Terminée » affirmé', async () => {
+    getSeances.mockResolvedValue({ success: true, data: [
+      seance({ id: 71, heure_fin_estimee: true, date_debut: iso(-3 * 3600e3), date_fin: iso(-3600e3) }),
+    ] })
+    const v = await setup()
+    const [visio] = v.visioconferences.value
+    expect(visio.status).not.toBe('completed')
+    expect(v.getStatusLabel(visio.status)).not.toBe('Terminée')
+  })
+})
+

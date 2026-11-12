@@ -250,3 +250,34 @@ describe('useTeacherVisioList — canRetry suit le dernier chargement ; une acti
     expect(u.canRetry.value).toBe(false)
   })
 })
+
+// Lecture honnête (école créée depuis le LMS, spec 3d à 25728cf8) : programmation.heure_* peut être un
+// datetime ISO (avec ou sans fuseau), et la fin peut être ESTIMÉE (+2 h, heure_fin_estimee). « En cours »
+// se lit sur visio_active / visio_status, jamais sur une fenêtre dont la fin est supposée.
+describe('useTeacherVisioList — école créée depuis le LMS (heures ISO, fin estimée)', () => {
+  const iso = (d) => d.toISOString()
+
+  it('heure de début en ISO : une séance future est « à venir » (elle était perdue)', async () => {
+    const debut = new Date(Date.now() + 24 * 3600 * 1000)
+    const fin = new Date(debut.getTime() + 2 * 3600 * 1000)
+    const s = makeSeance({ id: 7, programmation: { date: iso(debut), heure_debut: iso(debut), heure_fin: iso(fin), heure_fin_estimee: true } })
+    const u = await setup([s])
+    expect(u.visioAVenir.value.map((x) => x.id)).toEqual([7])
+  })
+
+  it('visio active, fin ESTIMÉE déjà passée : toujours « en cours »', async () => {
+    const debut = new Date(Date.now() - 3 * 3600 * 1000)
+    const fin = new Date(debut.getTime() + 2 * 3600 * 1000)
+    const s = makeSeance({ id: 8, visio_active: true, heure_fin_estimee: true,
+      programmation: { date: iso(debut), heure_debut: iso(debut), heure_fin: iso(fin), heure_fin_estimee: true } })
+    const u = await setup([s])
+    expect(u.visioEnCours.value.map((x) => x.id)).toEqual([8])
+  })
+
+  it('visio terminée (visio_status) : jamais « en cours », même si visio_active reste vrai', async () => {
+    const s = makeSeance({ id: 9, visio_active: true, visio_status: 'terminee' })
+    const u = await setup([s])
+    expect(u.visioEnCours.value).toHaveLength(0)
+  })
+})
+
