@@ -13,7 +13,7 @@ const api = vi.hoisted(() => ({ get: vi.fn() }))
 // Les services importent `./api` : même module que `@/services/api`, un seul mock suffit.
 vi.mock('@/services/api', () => ({ default: api }))
 
-import { invalidResponseError, messageForReason } from '@/services/errorHandler'
+import { invalidResponseError, messageForReason, refusMotive, CATEGORIES_A_DELAI } from '@/services/errorHandler'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
 import { estPannePassagere } from '@/utils/pannePassagere'
 import { klassciStructureService } from '@/services/klassciStructure'
@@ -79,5 +79,32 @@ describe('klassciCourses.getMyCourses — la règle à travers son appel', () =>
     const anomalie = await klassciCoursesService.getMyCourses().catch((err) => err)
     expect(anomalie.definitif).toBeUndefined()
     expect(estPannePassagere(anomalie)).toBe(true)
+  })
+})
+
+// Revue de #519 : « un reason connu = définitif » rendait définitifs des motifs que le catalogue
+// tient lui-même pour TRANSITOIRES (« Réessayez dans un instant »). Le caractère transitoire est
+// lu dans le catalogue, par un champ de chaque entrée, jamais dans une liste à part.
+describe('refusMotive — le catalogue dit lui-même si un motif est transitoire', () => {
+  it('motif transitoire du catalogue : son message, mais pas définitif (Réessayer reste)', () => {
+    for (const reason of ['klassci_unavailable', 'evaluation_window_unverifiable']) {
+      const r = refusMotive({ success: false, reason })
+      expect(r.motif).toBe(messageForReason(reason))
+      expect(r.definitif).toBe(false)
+      expect(estPannePassagere(invalidResponseError('GET /x sans success', { success: false, reason }))).toBe(true)
+    }
+  })
+
+  it('motif définitif du catalogue : définitif ; motif inconnu : ni motif ni définitif', () => {
+    expect(refusMotive({ success: false, reason: MOTIF })).toEqual({ motif: messageForReason(MOTIF), definitif: true })
+    expect(refusMotive({ success: false, reason: 'motif-inconnu' })).toEqual({ motif: null, definitif: false })
+    expect(refusMotive(null)).toEqual({ motif: null, definitif: false })
+  })
+
+  it('les catégories à délai sont exactement celles des entrées transitoires du catalogue', () => {
+    for (const reason of ['klassci_unavailable', 'evaluation_window_unverifiable']) {
+      expect(refusMotive({ reason }).definitif).toBe(false)
+    }
+    expect(CATEGORIES_A_DELAI.size).toBe(2)
   })
 })

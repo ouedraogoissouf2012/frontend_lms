@@ -164,3 +164,38 @@ describe('useSeanceAttendanceHistory — Réessayer seulement sur une panne pass
     expect(u.attendancesCanRetry.value).toBe(false)
   })
 })
+
+// Revue de #519 : openSeanceById(1) trouvait la séance dans la liste et passait par viewAttendances ;
+// la branche refactorée (séance hors de la liste, lien direct) n'était jamais exercée.
+describe('useSeanceAttendanceHistory — lien direct vers une séance hors de la liste', () => {
+  const refus = () => Object.assign(new Error('HTTP 403'), { response: { status: 403, data: {} }, userMessage: 'Accès refusé.' })
+  const panne = () => Object.assign(new Error('HTTP 503'), { response: { status: 503 }, userMessage: 'Service indisponible.' })
+
+  it('succès : les présences, et la séance complétée depuis la réponse', async () => {
+    getSeancesHistory.mockResolvedValue(SEANCES)
+    const u = await setup()
+    getSeanceAttendances.mockResolvedValue({
+      success: true, attendances: [],
+      seance: { matiere_nom: 'Physique', date: '2026-11-01', enseignant_nom: 'M. B', klassci_seance_id: 'S99' },
+    })
+    await u.openSeanceById(99)
+    expect(u.attendances.value).toBeTruthy()
+    expect(u.selectedSeance.value).toMatchObject({ id: 99, matiere_nom: 'Physique', date: '2026-11-01', enseignant_nom: 'M. B', klassci_seance_id: 'S99' })
+    expect(u.loadingAttendances.value).toBe(false)
+  })
+
+  it('refus : le message, sans Réessayer ; panne au nouvel essai : Réessayer', async () => {
+    getSeancesHistory.mockResolvedValue(SEANCES)
+    const u = await setup()
+    getSeanceAttendances.mockRejectedValue(refus())
+    await u.openSeanceById(99)
+    expect(u.attendancesError.value).toBe('Accès refusé.')
+    expect(u.attendancesCanRetry.value).toBe(false)
+    expect(u.selectedSeance.value).toMatchObject({ id: 99, matiere_nom: '' })
+    getSeanceAttendances.mockRejectedValue(panne())
+    await u.openSeanceById(99)
+    expect(u.attendancesError.value).toBe('Service indisponible.')
+    expect(u.attendancesCanRetry.value).toBe(true)
+  })
+})
+

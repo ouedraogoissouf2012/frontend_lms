@@ -9,6 +9,8 @@ const push = vi.fn()
 const getMyMatieres = vi.fn()
 vi.mock('vue-router', () => ({ useRouter: () => ({ push }) }))
 vi.mock('@/services/lms', () => ({ default: { getMyMatieres: (...a) => getMyMatieres(...a) } }))
+const toast = vi.hoisted(() => ({ error: vi.fn(), success: vi.fn(), info: vi.fn(), warning: vi.fn() }))
+vi.mock('@/composables/useToast', () => ({ toast }))
 
 import { useTeacherMatieres } from '@/composables/useTeacherMatieres'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
@@ -71,11 +73,16 @@ describe('useTeacherMatieres — Réessayer seulement sur une panne passagère',
     expect(u.canRetry.value).toBe(true)
   })
 
-  it('matière sans id (erreur locale, aucune requête) : le message, sans Réessayer', async () => {
-    getMyMatieres.mockResolvedValue({ success: true, data: [] })
+  // Revue de #519 : une carte sans id remplaçait toute la grille par une erreur sans bouton (impasse).
+  // C'est une erreur de NAVIGATION, pas de chargement : un toast, et la grille reste.
+  it('matière sans id : un toast, la liste reste affichée, aucune erreur de chargement', async () => {
+    getMyMatieres.mockResolvedValue([{ id: 3, nom: 'Maths' }])
     const u = await setup()
+    toast.error.mockClear()
     u.navigateToMatiere({ nom: 'Sans id' })
-    expect(u.error.value).toBe('Impossible de naviguer vers cette matière')
-    expect(u.canRetry.value).toBe(false)
+    expect(toast.error).toHaveBeenCalledWith('Impossible de naviguer vers cette matière')
+    expect(u.error.value).toBeNull()
+    expect(u.matieres.value).toHaveLength(1)
+    expect(push).not.toHaveBeenCalledWith(expect.objectContaining({ name: 'matiere-details' }))
   })
 })

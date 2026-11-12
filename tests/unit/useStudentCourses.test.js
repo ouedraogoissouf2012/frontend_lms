@@ -159,15 +159,23 @@ describe('useStudentCourses — Réessayer seulement sur une panne passagère', 
     expect(u.canRetry.value).toBe(true)
   })
 
-  it('charger plus : panne → Réessayer ; refus → pas de Réessayer', async () => {
+  it('charger plus : refus → pas de Réessayer ; panne au nouvel essai → Réessayer ; rechargement → remis', async () => {
     getMyCourses.mockResolvedValue(PAGE_1)
     const u = await setup()
+    getMyCourses.mockRejectedValue(erreurHttp(403))
+    await u.loadMore()
+    expect(u.loadMoreError.value).toBeTruthy()
+    expect(u.loadMoreCanRetry.value).toBe(false)
     getMyCourses.mockRejectedValue(erreurHttp(503))
     await u.loadMore()
     expect(u.loadMoreError.value).toBeTruthy()
     expect(u.loadMoreCanRetry.value).toBe(true)
+    // Revue de #519 : un rechargement complet remet aussi le drapeau de « charger plus ».
     getMyCourses.mockRejectedValue(erreurHttp(403))
     await u.loadMore()
     expect(u.loadMoreCanRetry.value).toBe(false)
+    getMyCourses.mockResolvedValue(PAGE_1)
+    await u.loadCourses()
+    expect(u.loadMoreCanRetry.value).toBe(true)
   })
 })

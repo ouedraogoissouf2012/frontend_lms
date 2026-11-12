@@ -134,3 +134,28 @@ describe('useTeacherLessons — Réessayer seulement sur une panne passagère', 
     expect(u.canRetry.value).toBe(true)
   })
 })
+
+// Revue de #519 : le texte disait « Veuillez réessayer » alors que le bouton était caché, et le motif
+// connu n'était jamais dit. Le texte suit maintenant l'erreur : son motif, ou un repli neutre.
+describe('useTeacherLessons — le message suit le motif du refus', () => {
+  beforeEach(() => {
+    cacheStore = {}
+    h.getMatieres.mockReset().mockResolvedValue([{ id: 7, name: 'Maths' }])
+  })
+  const MOTIF = "Aucun accès KLASSCI n'est enregistré pour ce compte : les données qui en proviennent ne peuvent pas être affichées."
+
+  it('refus 401 : le message du catalogue, sans « réessayer » ; 2xx motivé : son motif', async () => {
+    h.getLessons.mockReset().mockRejectedValue(Object.assign(new Error('HTTP 401'), {
+      response: { status: 401, data: { reason: 'klassci_token_missing' } }, userMessage: MOTIF,
+    }))
+    const u = await setup()
+    expect(u.canRetry.value).toBe(false)
+    expect(u.error.value).toBe(MOTIF)
+    h.getLessons.mockResolvedValue({ success: false, reason: 'klassci_token_missing' })
+    await u.loadLessons()
+    expect(u.canRetry.value).toBe(false)
+    expect(u.error.value).toBe(MOTIF)
+    expect(u.error.value).not.toMatch(/r[ée]essayer/i)
+  })
+})
+
