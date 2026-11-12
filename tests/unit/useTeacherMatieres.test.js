@@ -51,13 +51,17 @@ describe('useTeacherMatieres (#H9)', () => {
     expect(push).toHaveBeenCalledWith({ name: 'matiere-details', params: { id: 7 } })
   })
 
-  it('navigateToMatiere sans id renseigne error', async () => {
+  // Renversé par la revue de #519 : l'erreur de navigation n'est plus une erreur de CHARGEMENT
+  // (elle remplaçait toute la grille, sans bouton) ; elle est dite par un toast.
+  it('navigateToMatiere sans id : pas de navigation, un toast, aucune erreur de chargement', async () => {
     getMyMatieres.mockResolvedValue([])
     const api = await setup()
     push.mockClear()
+    toast.error.mockClear()
     api.navigateToMatiere({})
     expect(push).not.toHaveBeenCalled()
-    expect(api.error.value).toBe('Impossible de naviguer vers cette matière')
+    expect(toast.error).toHaveBeenCalledWith('Impossible de naviguer vers cette matière')
+    expect(api.error.value).toBeNull()
   })
 })
 
