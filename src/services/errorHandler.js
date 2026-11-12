@@ -58,7 +58,7 @@ const REASONS = Object.freeze({
   evaluation_window_unverifiable: motif('evaluationWindowUnverifiable', { transitoire: true }),
   // frontend_lms#426 : la panne KLASSCI se classe par son motif (le 503 canonique le porte), pas par
   // l'en-tête Retry-After, que le navigateur cache en cross-origin (`exposed_headers: []`).
-  klassci_unavailable: motif('klassciUnavailable'),
+  klassci_unavailable: motif('klassciUnavailable', { transitoire: true }),
 })
 
 /**
