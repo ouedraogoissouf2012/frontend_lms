@@ -25,6 +25,7 @@
       :saving="saving"
       :get-chapter-quiz="getChapterQuiz"
       :is-quiz-unknown="isQuizUnknown"
+      :quiz-echec="quizEchec"
       @edit="editChapter"
       @delete="deleteChapter"
       @save="saveChapter"
