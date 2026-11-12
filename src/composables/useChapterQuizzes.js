@@ -25,7 +25,7 @@ export function useChapterQuizzes() {
     const echecs = new Map(quizEchecs.value)
     if (inconnu) {
       suivant.add(chapterId)
-      const passagere = estPannePassagere(error) || true
+      const passagere = estPannePassagere(error)
       echecs.set(chapterId, { canRetry: passagere, message: passagere ? 'Quiz indisponible pour le moment.' : (error?.userMessage ?? 'Ce quiz ne peut pas être affiché.') })
     } else {
       suivant.delete(chapterId)
