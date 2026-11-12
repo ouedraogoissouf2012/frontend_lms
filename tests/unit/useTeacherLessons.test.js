@@ -108,7 +108,14 @@ describe('useTeacherLessons (#H4)', () => {
 // Lot « Réessayer », PR B1 : un refus (401, réponse 2xx « success: false ») ne propose pas
 // « Réessayer » ; une panne le propose. Transitions sur la MÊME instance.
 describe('useTeacherLessons — Réessayer seulement sur une panne passagère', () => {
-  it('refus 401, puis panne 503, puis 2xx « success: false »', async () => {
+  // Cache vidé : sinon l'écran se monte depuis le cache d'un test précédent et l'échec ne touche
+  // que le rafraîchissement d'arrière-plan, qui ne pose pas `error`.
+  beforeEach(() => {
+    cacheStore = {}
+    h.getMatieres.mockReset().mockResolvedValue([{ id: 7, name: 'Maths' }])
+  })
+
+  it('refus 401, puis panne 503, puis 2xx « success: false » avec et sans reason connu', async () => {
     h.getLessons.mockReset().mockRejectedValue(Object.assign(new Error('HTTP 401'), { response: { status: 401, data: { reason: 'klassci_token_missing' } } }))
     const u = await setup()
     expect(u.error.value).toBeTruthy()
@@ -116,9 +123,14 @@ describe('useTeacherLessons — Réessayer seulement sur une panne passagère', 
     h.getLessons.mockRejectedValue(Object.assign(new Error('HTTP 503'), { response: { status: 503 } }))
     await u.loadLessons()
     expect(u.canRetry.value).toBe(true)
-    h.getLessons.mockResolvedValue({ success: false })
+    h.getLessons.mockResolvedValue({ success: false, reason: 'klassci_token_missing' })
     await u.loadLessons()
     expect(u.error.value).toBeTruthy()
     expect(u.canRetry.value).toBe(false)
+    // Sans reason : une anomalie qu'un nouvel essai peut lever (règle de l'ARRÊT 1 de la PR B).
+    h.getLessons.mockResolvedValue({ success: false })
+    await u.loadLessons()
+    expect(u.error.value).toBeTruthy()
+    expect(u.canRetry.value).toBe(true)
   })
 })

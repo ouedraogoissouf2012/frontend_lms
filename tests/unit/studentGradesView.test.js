@@ -115,10 +115,15 @@ describe('StudentGrades — Réessayer seulement sur une panne passagère', () =
     expect(bouton(panne)).toBeDefined()
   })
 
-  it('2xx « success: false » : pas de Réessayer', async () => {
-    getMock.mockResolvedValue({ success: false })
-    const w = mountView()
+  it('2xx « success: false » : refus avec reason connu (pas de Réessayer), anomalie sans (Réessayer)', async () => {
+    getMock.mockResolvedValue({ success: false, reason: 'klassci_token_missing' })
+    const refus = mountView()
     await flushPromises()
-    expect(bouton(w)).toBeUndefined()
+    expect(bouton(refus)).toBeUndefined()
+
+    getMock.mockResolvedValue({ success: false })
+    const anomalie = mountView()
+    await flushPromises()
+    expect(bouton(anomalie)).toBeDefined()
   })
 })
