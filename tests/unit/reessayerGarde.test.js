@@ -37,7 +37,8 @@ function boutonsSansCondition(texte) {
 // Dette tracée par la revue de #519, FERMÉE par #520 : les quiz (ChapterQuizField, ChapterViewMode)
 // passent à LoadRetryNotice l'échec gardé par useChapterQuizzes (canRetry et motif). Cette garde ne
 // voit pas ce relais : il est prouvé de bout en bout par chapitresEtatInconnu.test.js (refus 403).
-// B2 (suite) retire AdminDashboard et son calendrier, puis AdminUsers : 9 sites restent.
+// B2 (suite) retire AdminDashboard et son calendrier, AdminUsers, puis TeacherDashboard (bouton mort
+// retiré : son `error` n'est jamais posé par le réseau) : 8 sites restent.
 const CONNUS = [
   'components/evaluations/TeacherEvalErrorState.vue',
   'views/admin/AdminClasses.vue',
@@ -45,7 +46,6 @@ const CONNUS = [
   'views/admin/AdminEvaluationResults.vue',
   'views/admin/AdminVisio.vue',
   'views/coordinateur/CoordinatorEvaluations.vue',
-  'views/dashboards/TeacherDashboard.vue',
   'views/evaluations/PreviewEvaluation.vue',
   'views/teacher/EvaluationCorrections.vue',
 ]
