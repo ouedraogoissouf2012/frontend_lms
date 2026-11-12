@@ -45,7 +45,7 @@ export function useTeacherSeances() {
   })
 
   // Computeds délégués à la logique pure extraite (#28)
-  const filteredSeances = computed(() => filterSeances(seances.value, filters))
+  const filteredSeances = computed(() => filterSeances(seances.value, filters, matieres.value))
 
   const stats = computed(() => computeSeancesStats(seances.value))
 
