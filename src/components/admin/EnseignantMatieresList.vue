@@ -11,18 +11,18 @@
       </div>
 
       <!-- Stats de la matière si disponibles -->
-      <div v-if="matiere.heures_prevues" class="matiere-detail-stats">
+      <div v-if="matiere.heures_prevues != null" class="matiere-detail-stats">
         <div class="matiere-stat">
           <span class="matiere-stat-label">Heures:</span>
-          <span class="matiere-stat-value">{{ matiere.heures_effectuees }}h / {{ matiere.heures_prevues }}h</span>
+          <span class="matiere-stat-value">{{ matiere.heures_effectuees ?? '—' }}h / {{ matiere.heures_prevues }}h</span>
         </div>
         <div class="matiere-stat">
           <span class="matiere-stat-label">Taux:</span>
-          <span class="matiere-stat-value">{{ matiere.taux_realisation.toFixed(0) }}%</span>
+          <span class="matiere-stat-value">{{ matiere.taux_realisation != null ? `${matiere.taux_realisation.toFixed(0)}%` : '—' }}</span>
         </div>
         <div class="matiere-stat">
           <span class="matiere-stat-label">Séances:</span>
-          <span class="matiere-stat-value">{{ matiere.nb_seances_effectuees }}/{{ matiere.nb_seances_total }}</span>
+          <span class="matiere-stat-value">{{ matiere.nb_seances_effectuees ?? '—' }}/{{ matiere.nb_seances_total ?? '—' }}</span>
         </div>
       </div>
 
@@ -52,20 +52,22 @@ const props = defineProps({ matieres: { type: Array, default: () => [] } })
 const asObjectArray = (value) =>
   Array.isArray(value) ? value.filter(item => item && typeof item === 'object') : []
 
-const numberOrZero = (value) => {
+// Lecture honnête : une mesure absente reste inconnue (null), jamais un 0 inventé.
+const numberOrNull = (value) => {
+  if (value === null || value === undefined || value === '') return null
   const number = Number(value)
-  return Number.isFinite(number) ? number : 0
+  return Number.isFinite(number) ? number : null
 }
 
 const safeMatieres = computed(() =>
   asObjectArray(props.matieres).map(matiere => ({
     ...matiere,
     classes: asObjectArray(matiere.classes),
-    heures_prevues: numberOrZero(matiere.heures_prevues),
-    heures_effectuees: numberOrZero(matiere.heures_effectuees),
-    taux_realisation: numberOrZero(matiere.taux_realisation),
-    nb_seances_effectuees: numberOrZero(matiere.nb_seances_effectuees),
-    nb_seances_total: numberOrZero(matiere.nb_seances_total),
+    heures_prevues: numberOrNull(matiere.heures_prevues),
+    heures_effectuees: numberOrNull(matiere.heures_effectuees),
+    taux_realisation: numberOrNull(matiere.taux_realisation),
+    nb_seances_effectuees: numberOrNull(matiere.nb_seances_effectuees),
+    nb_seances_total: numberOrNull(matiere.nb_seances_total),
   }))
 )
 </script>
