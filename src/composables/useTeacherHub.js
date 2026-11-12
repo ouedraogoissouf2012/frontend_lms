@@ -82,7 +82,7 @@ async function mesurerCompteurs() {
     mesLecons
       ? lessonService.getLessons({ ...mesLecons, per_page: 1 })
       // Sans identité, aucune requête : un refus, pas une panne qu'un nouvel essai lèverait.
-      : Promise.reject(new Error('identité inconnue')),
+      : Promise.reject(Object.assign(new Error('identité inconnue'), { definitif: true })),
     klassciService.getClasses()
   ])
   const [dashboardIssue, seancesIssue, lessonsIssue, referentielIssue] = resultats
