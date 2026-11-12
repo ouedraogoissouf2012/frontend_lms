@@ -22,9 +22,8 @@
           <h3 class="error-title">Erreur de chargement</h3>
           <p class="error-message">{{ error }}</p>
         </div>
-        <button @click="loadDashboard(true)" class="error-retry-btn">
-          Réessayer
-        </button>
+        <!-- Pas de « Réessayer » : `error` n'est jamais posé par un échec réseau (le chargement se
+             replie sur le cache ou le calcul local), un nouvel essai n'y changerait rien. -->
       </div>
 
       <!-- Dashboard Content -->
@@ -63,7 +62,7 @@ import DashboardQuickActions from '@/components/teacher/DashboardQuickActions.vu
 import { UserIcon } from '@heroicons/vue/24/outline'
 import { useTeacherDashboard } from '@/composables/useTeacherDashboard'
 
-const { user, dashboardData, loading, error, loadDashboard, formatDate, navigateToMatiere } = useTeacherDashboard()
+const { user, dashboardData, loading, error, formatDate, navigateToMatiere } = useTeacherDashboard()
 </script>
 
 <style scoped>
