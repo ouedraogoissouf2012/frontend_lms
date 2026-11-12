@@ -7,6 +7,7 @@ import { toast } from '@/composables/useToast'
 import { normalizeError } from '@/services/errorHandler'
 import { estPannePassagere } from '@/utils/pannePassagere'
 import { readCache, writeCache, clearCache } from '@/services/cache'
+import { TEACHER_MATIERES_CACHE } from '@/constants/cacheKeys'
 import { confirmVisioAction } from '@/services/visioFeedback'
 // #28 : logique métier pure extraite (testée dans tests/unit/seances.test.js)
 import { filterSeances, computeSeancesStats } from '@/utils/seances'
@@ -17,7 +18,7 @@ import { displayMessage } from '@/services/displayMessage'
 /**
  * Couche données/logique de la vue TeacherSeances (#H6 ≤300).
  *
- * Chargement séances/matières (cache `teacher_seances` / `teacher_matieres` +
+ * Chargement séances/matières (cache `teacher_seances` / `TEACHER_MATIERES_CACHE` +
  * rafraîchissement en arrière-plan), filtres, statistiques (logique pure #28) et
  * actions visio (activer/démarrer/désactiver/rejoindre/terminer).
  */
@@ -104,7 +105,7 @@ export function useTeacherSeances() {
 
   // Load matières with cache
   async function loadMatieres() {
-    const cachedData = readCache('teacher_matieres')
+    const cachedData = readCache(TEACHER_MATIERES_CACHE)
     if (cachedData !== null) {
       console.log('[CACHE] Utilisation du cache matières')
       matieres.value = cachedData
@@ -115,10 +116,10 @@ export function useTeacherSeances() {
       console.log('[API] Chargement matières...')
       // #315 : source + forme canoniques (getMatieres, partagées avec
       // useTeacherEvaluations/Lessons) au lieu de getTeacherDashboard().matieres,
-      // pour que la clé partagée `teacher_matieres` reste cohérente.
+      // pour que la clé partagée `TEACHER_MATIERES_CACHE` reste cohérente.
       matieres.value = await fetchTeacherMatieres()
 
-      writeCache('teacher_matieres', matieres.value)
+      writeCache(TEACHER_MATIERES_CACHE, matieres.value)
 
       console.log('[SUCCESS] Matières chargées')
     } catch (err) {

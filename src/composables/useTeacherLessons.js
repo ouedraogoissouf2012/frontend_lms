@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import lessonService from '@/services/lesson'
 import { fetchTeacherMatieres } from '@/services/teacherReferentials'
 import { readCache, writeCache } from '@/services/cache'
+import { TEACHER_MATIERES_CACHE } from '@/constants/cacheKeys'
 import { useLessonForm } from '@/composables/useLessonForm'
 import { extractList } from '@/utils/apiList'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
@@ -119,7 +120,7 @@ export function useTeacherLessons() {
   }
 
   async function loadMatieres() {
-    const cachedData = readCache('teacher_matieres')
+    const cachedData = readCache(TEACHER_MATIERES_CACHE)
     if (cachedData !== null) {
       matieres.value = cachedData
       return
@@ -128,7 +129,7 @@ export function useTeacherLessons() {
     try {
       // #315 : source + forme canoniques (partagées avec useTeacherEvaluations/Seances).
       matieres.value = await fetchTeacherMatieres()
-      writeCache('teacher_matieres', matieres.value)
+      writeCache(TEACHER_MATIERES_CACHE, matieres.value)
     } catch (err) {
       console.error('[ERREUR] Chargement matières:', err)
     }
