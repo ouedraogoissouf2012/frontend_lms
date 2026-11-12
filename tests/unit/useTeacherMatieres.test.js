@@ -58,3 +58,24 @@ describe('useTeacherMatieres (#H9)', () => {
     expect(api.error.value).toBe('Impossible de naviguer vers cette matière')
   })
 })
+
+// Lot « Réessayer », PR B1 : un refus ne propose pas « Réessayer », une panne le propose ; l'erreur
+// de navigation locale (aucune requête) non plus.
+describe('useTeacherMatieres — Réessayer seulement sur une panne passagère', () => {
+  it('refus 401, puis panne 503 au rechargement', async () => {
+    getMyMatieres.mockRejectedValue(Object.assign(new Error('HTTP 401'), { response: { status: 401, data: { reason: 'klassci_token_missing' } } }))
+    const u = await setup()
+    expect(u.canRetry.value).toBe(false)
+    getMyMatieres.mockRejectedValue(Object.assign(new Error('HTTP 503'), { response: { status: 503 } }))
+    await u.loadMatieres()
+    expect(u.canRetry.value).toBe(true)
+  })
+
+  it('matière sans id (erreur locale, aucune requête) : le message, sans Réessayer', async () => {
+    getMyMatieres.mockResolvedValue({ success: true, data: [] })
+    const u = await setup()
+    u.navigateToMatiere({ nom: 'Sans id' })
+    expect(u.error.value).toBe('Impossible de naviguer vers cette matière')
+    expect(u.canRetry.value).toBe(false)
+  })
+})

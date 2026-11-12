@@ -94,3 +94,31 @@ describe('StudentGrades (G4) — montage', () => {
     expect(w.find('.error-text').text()).not.toBe('Erreur')
   })
 })
+
+// Lot « Réessayer », PR B1 : sur la vue montée, le bouton suit le motif de l'échec.
+describe('StudentGrades — Réessayer seulement sur une panne passagère', () => {
+  const bouton = (w) => w.findAll('button').find((b) => /R[ée]essayer/.test(b.text()))
+
+  it('refus 401 : le motif, sans Réessayer ; panne 503 : Réessayer', async () => {
+    getMock.mockRejectedValue(Object.assign(new Error('HTTP 401'), {
+      response: { status: 401, data: { reason: 'klassci_token_missing' } },
+      userMessage: "Aucun accès KLASSCI n'est enregistré pour ce compte : les données qui en proviennent ne peuvent pas être affichées.",
+    }))
+    const refus = mountView()
+    await flushPromises()
+    expect(refus.text()).toContain('Aucun accès KLASSCI')
+    expect(bouton(refus)).toBeUndefined()
+
+    getMock.mockRejectedValue(Object.assign(new Error('HTTP 503'), { response: { status: 503 }, userMessage: 'Service indisponible.' }))
+    const panne = mountView()
+    await flushPromises()
+    expect(bouton(panne)).toBeDefined()
+  })
+
+  it('2xx « success: false » : pas de Réessayer', async () => {
+    getMock.mockResolvedValue({ success: false })
+    const w = mountView()
+    await flushPromises()
+    expect(bouton(w)).toBeUndefined()
+  })
+})

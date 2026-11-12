@@ -146,3 +146,28 @@ describe('useStudentCourses — messages d\'erreur (#436)', () => {
     expect(c.error.value).toBe(ERROR_MESSAGES.unknown)
   })
 })
+
+// Lot « Réessayer », PR B1 : un drapeau par chargement (la liste, puis « charger plus »).
+describe('useStudentCourses — Réessayer seulement sur une panne passagère', () => {
+  it('liste : refus 401 → pas de Réessayer ; panne 503 au rechargement → Réessayer', async () => {
+    getMyCourses.mockRejectedValue(erreurHttp(401))
+    const u = await setup()
+    expect(u.error.value).toBeTruthy()
+    expect(u.canRetry.value).toBe(false)
+    getMyCourses.mockRejectedValue(erreurHttp(503))
+    await u.loadCourses()
+    expect(u.canRetry.value).toBe(true)
+  })
+
+  it('charger plus : panne → Réessayer ; refus → pas de Réessayer', async () => {
+    getMyCourses.mockResolvedValue(PAGE_1)
+    const u = await setup()
+    getMyCourses.mockRejectedValue(erreurHttp(503))
+    await u.loadMore()
+    expect(u.loadMoreError.value).toBeTruthy()
+    expect(u.loadMoreCanRetry.value).toBe(true)
+    getMyCourses.mockRejectedValue(erreurHttp(403))
+    await u.loadMore()
+    expect(u.loadMoreCanRetry.value).toBe(false)
+  })
+})

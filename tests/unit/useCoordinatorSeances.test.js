@@ -138,3 +138,31 @@ describe('useCoordinatorSeances (G7)', () => {
     expect(mockWriteCache).not.toHaveBeenCalledWith('seances_management_d30', expect.anything())
   })
 })
+
+// Lot « Réessayer », PR B1 : canRetry de useCachedResource relayé ; un 2xx « success: false » (seul
+// à atteindre ce throw, axios rejette le reste) est un refus, pas une panne.
+describe('useCoordinatorSeances — Réessayer seulement sur une panne passagère', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockReadCacheStale.mockReturnValue({ data: null, fresh: false })
+  })
+
+  it('2xx « success: false » : pas de Réessayer ; 503 : Réessayer ; 401 : pas de Réessayer', async () => {
+    mockGetUpcoming.mockResolvedValue({ success: false })
+    const c = useCoordinatorSeances()
+    await c.loadSeances()
+    await flushPromises()
+    expect(c.error.value).toBeTruthy()
+    expect(c.canRetry.value).toBe(false)
+
+    mockGetUpcoming.mockRejectedValue(Object.assign(new Error('HTTP 503'), { response: { status: 503 } }))
+    await c.loadSeances()
+    await flushPromises()
+    expect(c.canRetry.value).toBe(true)
+
+    mockGetUpcoming.mockRejectedValue(Object.assign(new Error('HTTP 401'), { response: { status: 401, data: { reason: 'klassci_token_missing' } } }))
+    await c.loadSeances()
+    await flushPromises()
+    expect(c.canRetry.value).toBe(false)
+  })
+})

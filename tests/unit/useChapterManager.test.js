@@ -148,3 +148,16 @@ describe('useChapterManager (#28 / H5)', () => {
     expect(apiDelete).not.toHaveBeenCalled()
   })
 })
+
+// Lot « Réessayer », PR B1 : le chargement des chapitres ne propose « Réessayer » que sur une panne.
+describe('useChapterManager — Réessayer seulement sur une panne passagère', () => {
+  it('refus 403 → loadCanRetry faux ; panne 503 au rechargement → vrai', async () => {
+    apiGet.mockReset().mockRejectedValue(Object.assign(new Error('HTTP 403'), { response: { status: 403, data: {} } }))
+    const u = await setup()
+    expect(u.loadError.value).toBeTruthy()
+    expect(u.loadCanRetry.value).toBe(false)
+    apiGet.mockRejectedValue(Object.assign(new Error('HTTP 503'), { response: { status: 503, data: {} } }))
+    await u.loadChapters()
+    expect(u.loadCanRetry.value).toBe(true)
+  })
+})

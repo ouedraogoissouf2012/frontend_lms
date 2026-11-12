@@ -30,33 +30,23 @@ function boutonsSansCondition(texte) {
   return [...gabarit.matchAll(BOUTON)].filter(([, attributs]) => !CONDITIONNE.test(attributs))
 }
 
-// Sites connus le 10/11/2026 après la PR A (28 fichiers mesurés par cette garde avant elle, 6
-// corrigés). PR B : vues et composants hors évaluations ; PR C (chantier D72) : les écrans
-// d'évaluation et la visio d'admin. DashboardCalendarPanel et CoursesLoadMore disent « Réessayer »
-// après une erreur : à trier en PR B.
+// Sites connus après la PR B1 (28 fichiers mesurés par cette garde avant la PR A ; A en corrige 6,
+// B1 en corrige 10). Restent : PR B2, agrégats et cas particuliers (AdminDashboard et son calendrier,
+// AdminUsers, TeacherDashboard, AdminClasses après le lot 3a) ; PR C, avec le chantier D72 (écrans
+// d'évaluation et visio d'admin).
 const CONNUS = [
-  'components/attendance/AttendanceDetailModal.vue',
   'components/dashboard/DashboardCalendarPanel.vue',
   'components/evaluations/TeacherEvalErrorState.vue',
-  'components/lessons/LoadRetryNotice.vue',
-  'components/student/CoursesLoadMore.vue',
   'views/admin/AdminClasses.vue',
   'views/admin/AdminEvaluationDetails.vue',
   'views/admin/AdminEvaluationResults.vue',
   'views/admin/AdminUsers.vue',
   'views/admin/AdminVisio.vue',
-  'views/attendance/SeanceAttendanceHistory.vue',
   'views/coordinateur/CoordinatorEvaluations.vue',
-  'views/coordinateur/SeanceManagement.vue',
   'views/dashboards/AdminDashboard.vue',
   'views/dashboards/TeacherDashboard.vue',
   'views/evaluations/PreviewEvaluation.vue',
-  'views/lessons/LessonChapters.vue',
-  'views/lessons/TeacherLessons.vue',
-  'views/student/StudentCourses.vue',
-  'views/student/StudentGrades.vue',
   'views/teacher/EvaluationCorrections.vue',
-  'views/teacher/TeacherMatieres.vue',
 ]
 
 describe('garde : « Réessayer » porte sa condition de panne passagère', () => {

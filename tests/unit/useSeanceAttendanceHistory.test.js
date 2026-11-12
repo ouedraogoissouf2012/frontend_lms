@@ -129,3 +129,38 @@ describe('useSeanceAttendanceHistory (H7)', () => {
     expect(u.formatDate(null)).toBe('-')
   })
 })
+
+// Lot « Réessayer », PR B1 : un drapeau par chargement (la liste, puis les présences de la modale),
+// jugé sur la MÊME instance : refus → pas de Réessayer ; panne au rechargement → Réessayer.
+describe('useSeanceAttendanceHistory — Réessayer seulement sur une panne passagère', () => {
+  const refus = () => Object.assign(new Error('HTTP 401'), { response: { status: 401, data: { reason: 'klassci_token_missing' } } })
+  const panne = () => Object.assign(new Error('HTTP 503'), { response: { status: 503, headers: { 'retry-after': '30' } } })
+
+  it('liste : refus puis panne au rechargement, puis succès', async () => {
+    getSeancesHistory.mockRejectedValue(refus())
+    const u = await setup()
+    expect(u.canRetry.value).toBe(false)
+    getSeancesHistory.mockRejectedValue(panne())
+    await u.loadSeances()
+    expect(u.canRetry.value).toBe(true)
+    getSeancesHistory.mockResolvedValue(SEANCES)
+    await u.loadSeances()
+    expect(u.canRetry.value).toBe(true)
+  })
+
+  it('présences, par la liste (viewAttendances) et par lien direct (openSeanceById)', async () => {
+    getSeancesHistory.mockResolvedValue(SEANCES)
+    const u = await setup()
+    getSeanceAttendances.mockRejectedValue(refus())
+    await u.viewAttendances(SEANCES.data[0])
+    expect(u.attendancesError.value).toBeTruthy()
+    expect(u.attendancesCanRetry.value).toBe(false)
+    getSeanceAttendances.mockRejectedValue(panne())
+    await u.openSeanceById(1)
+    expect(u.attendancesError.value).toBeTruthy()
+    expect(u.attendancesCanRetry.value).toBe(true)
+    getSeanceAttendances.mockRejectedValue(refus())
+    await u.openSeanceById(1)
+    expect(u.attendancesCanRetry.value).toBe(false)
+  })
+})
