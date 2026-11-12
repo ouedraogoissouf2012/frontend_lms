@@ -2,7 +2,7 @@ import { ref, computed, onMounted } from 'vue'
 import { klassciService } from '@/services/klassci'
 import { extractList } from '@/utils/apiList'
 import { useCachedResource } from '@/composables/useCachedResource'
-import { messageForReason } from '@/services/errorHandler'
+import { refusMotive } from '@/services/errorHandler'
 import { displayMessage } from '@/services/displayMessage'
 import { userError } from '@/utils/userError'
 
@@ -55,10 +55,9 @@ export function useAdminSeances() {
     }
 
     if (!response.success) {
-      // Atteint seulement sur un 2xx (le rejet HTTP est relancé plus haut). Un refus définitif
-      // seulement avec un `reason` connu du catalogue ; sans lui, une anomalie qu'un essai peut lever.
-      const motif = messageForReason(response?.reason)
-      throw userError(motif ?? 'Impossible de charger les séances', { definitif: motif !== null })
+      // Atteint seulement sur un 2xx (le rejet HTTP est relancé plus haut) : la règle commune.
+      const refus = refusMotive(response)
+      throw userError(refus.motif ?? 'Impossible de charger les séances', { definitif: refus.definitif })
     }
 
     return extractList(response)

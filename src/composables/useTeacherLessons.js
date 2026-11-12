@@ -7,7 +7,8 @@ import { readCache, writeCache } from '@/services/cache'
 import { useLessonForm } from '@/composables/useLessonForm'
 import { extractList } from '@/utils/apiList'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
-import { messageForReason } from '@/services/errorHandler'
+import { refusMotive } from '@/services/errorHandler'
+import { userError } from '@/utils/userError'
 import { estPannePassagere } from '@/utils/pannePassagere'
 import { myLessonsParams, TEACHER_LESSONS_CACHE as LESSONS_CACHE } from '@/composables/myLessons'
 
@@ -98,17 +99,18 @@ export function useTeacherLessons() {
       console.log('[LESSONS] Chargement des leçons via API...')
       const response = await lessonService.getAllLessons(params)
       // Un refus (même en cours de pagination) n'est pas « aucune leçon » : c'est une erreur.
-      // Atteint sur un 2xx seulement (axios rejette le reste). Refus définitif seulement avec un
-      // `reason` connu du catalogue ; sans lui, une anomalie qu'un nouvel essai peut lever.
+      // Atteint sur un 2xx seulement (axios rejette le reste) : la règle commune du refus motivé.
       if (!response?.success) {
-        throw Object.assign(new Error('liste des leçons refusée'), { definitif: messageForReason(response?.reason) !== null })
+        const refus = refusMotive(response)
+        throw userError(refus.motif ?? 'Impossible de charger les leçons.', { definitif: refus.definitif })
       }
       lessons.value = extractList(response)
       // Une liste tronquée par le garde-fou de pagination n'est jamais cachée comme complète.
       if (!response.incomplete) writeCache(LESSONS_CACHE, lessons.value)
     } catch (err) {
       console.error('[ERREUR] Erreur chargement leçons:', err)
-      error.value = 'Impossible de charger les leçons. Veuillez réessayer.'
+      // Le motif (message sûr de l'intercepteur, ou du catalogue) ; « Réessayer » dépend de canRetry.
+      error.value = err.userMessage ?? 'Impossible de charger les leçons.'
       canRetry.value = estPannePassagere(err)
       lessons.value = []
     } finally {

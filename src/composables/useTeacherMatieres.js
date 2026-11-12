@@ -1,4 +1,5 @@
 import { ref, onMounted } from 'vue'
+import { toast } from '@/composables/useToast'
 import { useRouter } from 'vue-router'
 import lmsService from '@/services/lms'
 import { normalizeError } from '@/services/errorHandler'
@@ -51,9 +52,9 @@ export function useTeacherMatieres() {
       })
     } else {
       console.error('[TeacherMatieres] ID matière non trouvé:', matiere)
-      error.value = 'Impossible de naviguer vers cette matière'
-      // Aucune requête n'a échoué : recharger la liste ne donnerait pas d'id à cette matière.
-      canRetry.value = false
+      // Erreur de NAVIGATION, pas de chargement : un toast, et la liste reste à l'écran (revue de
+      // #519 : remplacer la grille par une erreur sans bouton était une impasse).
+      toast.error('Impossible de naviguer vers cette matière')
     }
   }
 

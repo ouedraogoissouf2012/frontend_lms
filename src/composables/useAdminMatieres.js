@@ -2,7 +2,7 @@ import { ref, computed } from 'vue'
 import { klassciService } from '@/services/klassci'
 import { invalidateEntity } from '@/services/cache'
 import { useCachedResource } from '@/composables/useCachedResource'
-import { messageForReason } from '@/services/errorHandler'
+import { refusMotive } from '@/services/errorHandler'
 import { userError } from '@/utils/userError'
 // #28 : logique métier pure extraite (testée dans tests/unit/matieres.test.js)
 import {
@@ -24,10 +24,9 @@ async function fetchMatieres() {
     klassciService.getStructure(),
   ])
   if (!response?.success) {
-    // Atteint seulement sur un 2xx (axios rejette tout non-2xx avant). Un refus définitif seulement
-    // avec un `reason` connu du catalogue ; sans lui, une anomalie qu'un nouvel essai peut lever.
-    const motif = messageForReason(response?.reason)
-    throw userError(motif ?? 'Erreur lors du chargement des matières', { definitif: motif !== null })
+    // Atteint seulement sur un 2xx (axios rejette tout non-2xx avant) : la règle commune du refus motivé.
+    const refus = refusMotive(response)
+    throw userError(refus.motif ?? 'Erreur lors du chargement des matières', { definitif: refus.definitif })
   }
   return {
     matieres: response.data?.matieres || [],
