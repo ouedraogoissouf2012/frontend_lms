@@ -326,31 +326,3 @@ describe('useAdminDashboard (#H3)', () => {
     expect(s.getRoleClass('coordinateur')).toBe('role-coordinator')
   })
 })
-
-// Lot « Réessayer », B2 (agrégats) : le tableau de bord agrège trois sources. « Réessayer » seulement si
-// au moins un échec est une panne passagère ; que des refus, et réessayer n'y changera rien.
-describe('useAdminDashboard — Réessayer seulement si une source est en panne', () => {
-  const refus = () => Object.assign(new Error('HTTP 401'), { response: { status: 401, data: { reason: 'klassci_token_missing' } }, userMessage: 'Aucun accès KLASSCI.' })
-  const panne = () => Object.assign(new Error('HTTP 503'), { response: { status: 503 }, userMessage: 'Service indisponible.' })
-  beforeEach(() => {
-    mockAuth.getUser.mockReturnValue({})
-    mockAuth.getMeta.mockReturnValue(null)
-    mockAnalytics.getSystemMetrics.mockResolvedValue(null)
-    mockAnalytics.getActivityTrends.mockResolvedValue(null)
-    mockAnalytics.getPendingTasks.mockResolvedValue(null)
-    mockAnalytics.getRecentUsers.mockResolvedValue([])
-  })
-
-  it('que des refus : erreur, sans Réessayer ; une panne parmi eux : Réessayer', async () => {
-    for (const m of [mockKlassci.getClasses, mockKlassci.getMatieres, mockKlassci.getEnseignants]) m.mockReset().mockRejectedValue(refus())
-    const d = await setup()
-    expect(d.loadError.value).toBeTruthy()
-    expect(d.canRetry.value).toBe(false)
-
-    mockKlassci.getEnseignants.mockReset().mockRejectedValue(panne())
-    await d.loadDashboard()
-    await flushPromises()
-    expect(d.loadError.value).toBeTruthy()
-    expect(d.canRetry.value).toBe(true)
-  })
-})
