@@ -59,7 +59,9 @@ export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dat
 
       return seances.map((seance) => ({
         id: `seance-${seance.id}`,
-        title: `${seance.matiere?.nom || seance.matiere_nom || 'Cours'} - ${seance.classe?.nom || seance.classe_nom || ''}`,
+        // Une séance sans classe (école créée depuis le LMS) : la matière seule, pas de « - » orphelin.
+        title: [seance.matiere?.nom || seance.matiere_nom || 'Cours', seance.classe?.nom || seance.classe_nom]
+          .filter(Boolean).join(' - '),
         start: seance.programmation?.heure_debut || seance.date_seance,
         end: seance.programmation?.heure_fin,
         backgroundColor: determineSeanceColor(seance),
