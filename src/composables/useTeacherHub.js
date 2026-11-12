@@ -4,6 +4,7 @@ import { lmsService } from '@/services/lms'
 import lessonService from '@/services/lesson'
 import { myLessonsParams } from '@/composables/myLessons'
 import { useCachedResource } from '@/composables/useCachedResource'
+import { estPannePassagere } from '@/utils/pannePassagere'
 import { enrichTeacherClasses } from '@/utils/classStats'
 import { mergeClassMeasures } from '@/utils/classMeasures'
 import { extractList } from '@/utils/apiList'
@@ -78,13 +79,19 @@ async function mesurerCompteurs() {
     klassciService.getTeacherDashboard(),
     lmsService.getMyTeachingSeances(),
     // Une page d'un élément suffit : le compteur est le TOTAL que le serveur annonce.
-    mesLecons ? lessonService.getLessons({ ...mesLecons, per_page: 1 }) : Promise.reject(new Error('identité inconnue')),
+    mesLecons
+      ? lessonService.getLessons({ ...mesLecons, per_page: 1 })
+      // Sans identité, aucune requête : un refus, pas une panne qu'un nouvel essai lèverait.
+      : Promise.reject(Object.assign(new Error('identité inconnue'), { definitif: true })),
     klassciService.getClasses()
   ])
   const [dashboardIssue, seancesIssue, lessonsIssue, referentielIssue] = resultats
 
   if (resultats.every((issue) => issue.status === 'rejected')) {
-    throw dashboardIssue.reason
+    // Une seule panne parmi les sources suffit à proposer « Réessayer » (cf. useAdminStats) ;
+    // sinon, le refus du tableau de bord, définitif.
+    const panne = resultats.map((issue) => issue.reason).find((raison) => estPannePassagere(raison))
+    throw panne ?? dashboardIssue.reason
   }
 
   const dashboardRepondu = dashboardIssue.status === 'fulfilled'
@@ -148,12 +155,12 @@ async function mesurerCompteurs() {
  * plus frais, pas une rangée de zéros qui prétendrait le contraire.
  */
 export function useTeacherHub() {
-  const { data, loading, revalidating, error, refresh } = useCachedResource(
+  const { data, loading, revalidating, error, canRetry, refresh } = useCachedResource(
     'teacher_hub_stats',
     mesurerCompteurs
   )
 
   const stats = computed(() => data.value ?? AUCUNE_MESURE)
 
-  return { loading, revalidating, error, stats, loadStats: refresh }
+  return { loading, revalidating, error, canRetry, stats, loadStats: refresh }
 }

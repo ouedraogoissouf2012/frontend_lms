@@ -6,6 +6,7 @@
  */
 import { describe, it, expect } from 'vitest'
 import { estPannePassagere } from '@/utils/pannePassagere'
+import { userError } from '@/utils/userError'
 
 describe('estPannePassagere', () => {
   it('5xx, 429 et sans réponse : passagère', () => {
@@ -20,5 +21,26 @@ describe('estPannePassagere', () => {
 
   it('rien à juger : passagère (on laisse l’utilisateur réessayer)', () => {
     expect(estPannePassagere(null)).toBe(true)
+  })
+})
+
+// Lot « Réessayer », PR A : une réponse 2xx « success: false » est levée par userError, SANS
+// `response` ; « sans réponse » vaut panne réseau. L'option explicite `definitif` la classe refus.
+
+describe('estPannePassagere — erreur marquée définitive', () => {
+  it('definitif : jamais passagère, même sans réponse', () => {
+    expect(estPannePassagere(userError('Refus', { definitif: true }))).toBe(false)
+    expect(estPannePassagere({ definitif: true })).toBe(false)
+  })
+
+  it('sans réponse et sans definitif : passagère (inchangé pour les 20 autres appels de userError)', () => {
+    expect(estPannePassagere(userError('Le script de visio ne s’est pas chargé'))).toBe(true)
+  })
+
+  it('userError garde son contrat : le texte du front dans userMessage, definitif seulement si demandé', () => {
+    const e = userError('Texte du front')
+    expect(e.userMessage).toBe('Texte du front')
+    expect(e.definitif).toBeUndefined()
+    expect(userError('Refus', { definitif: true }).definitif).toBe(true)
   })
 })

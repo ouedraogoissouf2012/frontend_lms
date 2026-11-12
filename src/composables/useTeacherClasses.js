@@ -53,7 +53,7 @@ async function fetchClasses() {
  * desormais porte par `useCachedResource` (stale-while-revalidate).
  */
 export function useTeacherClasses() {
-  const { data, loading, error, load } = useCachedResource(TEACHER_CLASSES_CACHE_KEY, fetchClasses)
+  const { data, loading, error, canRetry, load } = useCachedResource(TEACHER_CLASSES_CACHE_KEY, fetchClasses)
 
   const classes = computed(() => data.value ?? [])
 
@@ -61,5 +61,5 @@ export function useTeacherClasses() {
     return load()
   }
 
-  return { classes, loading, error, loadClasses }
+  return { classes, loading, error, canRetry, loadClasses }
 }

@@ -58,7 +58,7 @@ async function fetchEnseignants() {
 export function useAdminEnseignants() {
   const selectedEnseignant = ref(null)
 
-  const { data, loading, error, refresh } = useCachedResource('admin_enseignants', fetchEnseignants)
+  const { data, loading, error, canRetry, refresh } = useCachedResource('admin_enseignants', fetchEnseignants)
 
   // `data` peut être un tableau déjà normalisé (fetcher) ou une entrée de cache
   // corrompue : la normalisation défensive garde l'invariant « tableau d'objets ».
@@ -92,7 +92,7 @@ export function useAdminEnseignants() {
   }
 
   return {
-    enseignants, loading, error, selectedEnseignant,
+    enseignants, loading, error, canRetry, selectedEnseignant,
     nbEnseignants, totalMatieres, totalClasses, enseignantsActifs,
     loadEnseignants, selectEnseignant, closeModal,
   }

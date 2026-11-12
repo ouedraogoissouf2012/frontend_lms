@@ -23,7 +23,7 @@
           <h3 class="error-title">Erreur de chargement</h3>
           <p class="error-message">{{ error }}</p>
         </div>
-        <button @click="loadClasses" class="error-retry-btn">
+        <button v-if="canRetry" @click="loadClasses" class="error-retry-btn">
           Réessayer
         </button>
       </div>
@@ -66,7 +66,7 @@ import TeacherClassCard from '@/components/teacher/TeacherClassCard.vue'
 import { BuildingLibraryIcon } from '@heroicons/vue/24/outline'
 import { useTeacherClasses } from '@/composables/useTeacherClasses'
 
-const { classes, loading, error, loadClasses } = useTeacherClasses()
+const { classes, loading, error, canRetry, loadClasses } = useTeacherClasses()
 </script>
 
 <style scoped>
