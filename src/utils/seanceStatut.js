@@ -29,3 +29,11 @@ const LIBELLES = Object.freeze({
 export function libelleStatutSeance(statut) {
   return LIBELLES[statut] || 'Inconnu'
 }
+
+/**
+ * Vrai si l'heure de fin d'une séance est ESTIMÉE (début + 2 h, non mesurée) : le drapeau est porté à la
+ * racine de la séance ou dans sa `programmation` (spec 3d). L'écran le dit au lieu de l'affirmer.
+ */
+export function finEstimee(seance) {
+  return seance?.heure_fin_estimee === true || seance?.programmation?.heure_fin_estimee === true
+}

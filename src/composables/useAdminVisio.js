@@ -4,7 +4,7 @@ import { readCache, writeCache } from '@/services/cache'
 import { buildJitsiUrl, getVisioRoomId } from '@/constants/visio'
 import { notifyVisioError } from '@/services/visioFeedback'
 import { extractList } from '@/utils/apiList'
-import { statutSeance, libelleStatutSeance } from '@/utils/seanceStatut'
+import { statutSeance, libelleStatutSeance, finEstimee } from '@/utils/seanceStatut'
 import { invalidResponseError, normalizeError } from '@/services/errorHandler'
 
 /**
@@ -113,6 +113,8 @@ export function useAdminVisio() {
           enseignant: `${s.enseignant?.nom || ''} ${s.enseignant?.prenom || ''}`.trim() || 'N/A',
           date_debut: s.date_debut,
           date_fin: s.date_fin,
+          // Lecture honnête : la grille dit « fin estimée » quand la fin n'est pas mesurée.
+          heure_fin_estimee: finEstimee(s),
           status: getSeanceStatus(s),
           room_id: roomId,
           room_name: s.room_name || roomId,

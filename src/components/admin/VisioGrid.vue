@@ -36,6 +36,7 @@
           <ClockIcon class="info-icon" />
           <span class="info-text">
             {{ formatTime(visio.date_debut) }} - {{ formatTime(visio.date_fin) }}
+            <em v-if="visio.heure_fin_estimee" class="fin-estimee">(fin estimée)</em>
           </span>
         </div>
 
