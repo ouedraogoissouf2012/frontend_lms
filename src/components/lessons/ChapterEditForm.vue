@@ -34,6 +34,7 @@
         :chapter="chapter"
         :quiz="quiz"
         :quiz-unknown="quizUnknown"
+        :quiz-echec="quizEchec"
         @open-quiz-editor="(...args) => $emit('open-quiz-editor', ...args)"
         @retry-quiz="$emit('retry-quiz', $event)"
       />
@@ -73,6 +74,8 @@ defineProps({
   quiz: { type: Object, default: null },
   // Quiz illisible (inconnu, pas absent) : relayé à ChapterQuizField.
   quizUnknown: { type: Boolean, default: false },
+  // Échec du quiz ({ canRetry, message }) ou null : relayé au champ du quiz.
+  quizEchec: { type: Object, default: null },
   saving: { type: Boolean, default: false }
 })
 

@@ -4,7 +4,8 @@
       <!-- Quiz illisible : ni « aucun quiz » ni invite de création (doublon possible) -->
       <LoadRetryNotice
         v-if="quizUnknown"
-        message="Quiz indisponible pour le moment."
+        :message="quizEchec?.message ?? 'Quiz indisponible pour le moment.'"
+        :can-retry="quizEchec?.canRetry ?? true"
         @retry="$emit('retry-quiz', chapter.id)"
       />
       <!-- Quiz existant ou creation -->
@@ -50,7 +51,9 @@ defineProps({
   // Quiz du chapitre (résolu par le parent depuis knowledgeChecks), ou null.
   quiz: { type: Object, default: null },
   // Le chargement du quiz a échoué : null veut alors dire INCONNU, pas absent.
-  quizUnknown: { type: Boolean, default: false }
+  quizUnknown: { type: Boolean, default: false },
+  // Échec du quiz : Réessayer seulement sur une panne, et son message (cf. useChapterQuizzes).
+  quizEchec: { type: Object, default: null }
 })
 
 defineEmits(['open-quiz-editor', 'retry-quiz'])

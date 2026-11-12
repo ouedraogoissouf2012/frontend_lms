@@ -24,6 +24,7 @@
         :chapter="chapter"
         :quiz="getChapterQuiz(chapter.id)"
         :quiz-unknown="isQuizUnknown(chapter.id)"
+        :quiz-echec="quizEchec(chapter.id)"
         :saving="saving"
         @save="$emit('save', $event)"
         @cancel="$emit('cancel', $event)"
@@ -37,6 +38,7 @@
         :chapter="chapter"
         :quiz="getChapterQuiz(chapter.id)"
         :quiz-unknown="isQuizUnknown(chapter.id)"
+        :quiz-echec="quizEchec(chapter.id)"
         :readonly="readonly"
         @open-quiz-player="$emit('open-quiz-player', $event)"
         @open-quiz-editor="(...args) => $emit('open-quiz-editor', ...args)"
@@ -71,7 +73,9 @@ defineProps({
   // Résout le quiz d'un chapitre depuis l'état knowledgeChecks (au parent).
   getChapterQuiz: { type: Function, required: true },
   // Vrai si le quiz d'un chapitre n'a pas pu être lu (inconnu, pas absent).
-  isQuizUnknown: { type: Function, default: () => false }
+  isQuizUnknown: { type: Function, default: () => false },
+  // L'échec du quiz d'un chapitre ({ canRetry, message }) ou null (cf. useChapterQuizzes).
+  quizEchec: { type: Function, default: () => null }
 })
 
 defineEmits(['edit', 'delete', 'save', 'cancel', 'open-quiz-editor', 'open-quiz-player', 'add', 'retry-quiz'])
