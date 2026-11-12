@@ -6,22 +6,7 @@ import { confirmVisioAction } from '@/services/visioFeedback'
 import { extractList } from '@/utils/apiList'
 import { displayMessage } from '@/services/displayMessage'
 import { estPannePassagere } from '@/utils/pannePassagere'
-
-function parseLocalDateTime(dateStr, timeStr) {
-  if (!dateStr || !timeStr) return null
-  // École créée depuis le LMS (spec 3d) : programmation.heure_* peut être un datetime ISO, avec ou sans
-  // fuseau. KLASSCI rend « HH:mm[:ss] ». Les deux formes sont acceptées.
-  if (String(timeStr).includes('T')) {
-    const date = new Date(timeStr)
-    return Number.isNaN(date.getTime()) ? null : date
-  }
-
-  const [year, month, day] = String(dateStr).split('T')[0].split('-').map(Number)
-  const [hour = 0, minute = 0, second = 0] = String(timeStr).split(':').map(Number)
-  if ([year, month, day, hour, minute, second].some(Number.isNaN)) return null
-
-  return new Date(year, month - 1, day, hour, minute, second)
-}
+import { dateHeureSeance } from '@/utils/seanceStatut'
 
 /**
  * Couche données de TeacherVisioList (#G1 ≤300) : charge les séances enseignant
@@ -54,7 +39,7 @@ export function useTeacherVisioList() {
       if (visioEnCours.value.includes(s)) return false
 
       const now = new Date()
-      const startDate = parseLocalDateTime(
+      const startDate = dateHeureSeance(
         s.programmation?.date,
         s.programmation?.heure_debut
       )

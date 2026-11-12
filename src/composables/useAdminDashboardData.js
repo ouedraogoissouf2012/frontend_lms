@@ -5,6 +5,7 @@ import { getAdminStatistics, extractAdminStatistics } from '@/services/adminStat
 import { readCache, writeCache } from '@/services/cache'
 import { logError, normalizeError } from '@/services/errorHandler'
 import { deriveInstitutionCounters } from '@/utils/classStats'
+import { dateHeureSeance } from '@/utils/seanceStatut'
 
 /**
  * Nombre fini, ou `null` si la valeur n'a pas été MESURÉE.
@@ -24,10 +25,11 @@ const measured = (value) => (Number.isFinite(value) ? value : null)
  * Reçoit les refs partagées de useAdminDashboard pour centraliser l'état. Logique
  * extraite verbatim de la vue d'origine pour garantir la parité de comportement.
  */
-/** Une date valide depuis un ISO, sinon depuis jour + heure (« HH:mm »), sinon null. */
+/** Une date valide depuis un ISO, sinon depuis jour + heure (dateHeureSeance), sinon null. */
 function dateDe(iso, jour, heure) {
-  const date = iso ? new Date(iso) : (jour && heure ? new Date(`${String(jour).split('T')[0]}T${heure}`) : null)
-  return date && !Number.isNaN(date.getTime()) ? date : null
+  if (!iso) return dateHeureSeance(jour, heure)
+  const date = new Date(iso)
+  return Number.isNaN(date.getTime()) ? null : date
 }
 
 export function useAdminDashboardData({

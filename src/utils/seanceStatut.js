@@ -37,3 +37,27 @@ export function libelleStatutSeance(statut) {
 export function finEstimee(seance) {
   return seance?.heure_fin_estimee === true || seance?.programmation?.heure_fin_estimee === true
 }
+
+/**
+ * La date d'une séance depuis son jour et son heure (« HH:mm[:ss] », KLASSCI), ou depuis l'heure
+ * seule quand elle est un datetime ISO (école créée depuis le LMS, spec 3d). Null si illisible :
+ * rien n'est inventé. Seul analyseur de l'horaire d'une séance (liste des visios, calendrier admin).
+ * @param {string} dateStr
+ * @param {string} timeStr
+ * @returns {Date|null}
+ */
+export function dateHeureSeance(dateStr, timeStr) {
+  if (!dateStr || !timeStr) return null
+  // École créée depuis le LMS (spec 3d) : programmation.heure_* peut être un datetime ISO, avec ou sans
+  // fuseau. KLASSCI rend « HH:mm[:ss] ». Les deux formes sont acceptées.
+  if (String(timeStr).includes('T')) {
+    const date = new Date(timeStr)
+    return Number.isNaN(date.getTime()) ? null : date
+  }
+
+  const [year, month, day] = String(dateStr).split('T')[0].split('-').map(Number)
+  const [hour = 0, minute = 0, second = 0] = String(timeStr).split(':').map(Number)
+  if ([year, month, day, hour, minute, second].some(Number.isNaN)) return null
+
+  return new Date(year, month - 1, day, hour, minute, second)
+}
