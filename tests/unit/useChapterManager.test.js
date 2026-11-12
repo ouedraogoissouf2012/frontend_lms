@@ -161,3 +161,15 @@ describe('useChapterManager — Réessayer seulement sur une panne passagère', 
     expect(u.loadCanRetry.value).toBe(true)
   })
 })
+
+// Lot « Réessayer », PR B2 (dette des quiz) : useChapterManager relaie l'échec de quiz par chapitre.
+describe('useChapterManager — échec du quiz relayé', () => {
+  it('quiz refusé (403) : quizEchec sans Réessayer, relayé par useChapterManager', async () => {
+    apiGet.mockReset().mockResolvedValue({ success: true, data: [{ id: 1, title: 'Q', content_type: 'quiz' }] })
+    const u = await setup()
+    apiGet.mockRejectedValueOnce(Object.assign(new Error('HTTP 403'), { response: { status: 403, data: {} }, userMessage: 'Accès refusé.' }))
+    await u.loadKnowledgeChecks(1)
+    expect(u.isQuizUnknown(1)).toBe(true)
+    expect(u.quizEchec(1)).toEqual({ canRetry: false, message: 'Accès refusé.' })
+  })
+})
