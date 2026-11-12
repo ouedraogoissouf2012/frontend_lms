@@ -19,10 +19,11 @@ const getWithOptionalConfig = (url, config = {}) =>
 /**
  * Le serveur relaie le corps de KLASSCI tel quel : une réponse sans `success: true`
  * est une anomalie à afficher — l'erreur prend le chemin d'une erreur HTTP —, jamais
- * une liste vide, que l'écran compterait « 0 » (modèle : klassciCourses, #436).
+ * une liste vide, que l'écran compterait « 0 » (modèle : klassciCourses, #436). Son
+ * `reason`, s'il est connu, en fait un refus définitif (cf. invalidResponseError).
  */
 function exigerSucces(response, route) {
-  if (response?.success !== true) throw invalidResponseError(`GET ${route} sans success`)
+  if (response?.success !== true) throw invalidResponseError(`GET ${route} sans success`, response)
   return response
 }
 

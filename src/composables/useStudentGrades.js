@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import api from '@/services/api'
 import { endpoints } from '@/services/endpoints'
 import { invalidResponseError, normalizeError } from '@/services/errorHandler'
+import { estPannePassagere } from '@/utils/pannePassagere'
 
 /**
  * État + chargement des notes de l'élève (G4 — décomposition de StudentGrades.vue
@@ -15,6 +16,9 @@ import { invalidResponseError, normalizeError } from '@/services/errorHandler'
 export function useStudentGrades() {
   const loading = ref(false)
   const error = ref(null)
+  // Un nouvel essai seulement sur une panne passagère (5xx, 429, réseau) : un refus définitif ne se
+  // lève pas en réessayant.
+  const canRetry = ref(true)
   const matieres = ref([])
   const moyenneGenerale = ref(0)
   const totalMatieres = ref(0)
@@ -26,6 +30,7 @@ export function useStudentGrades() {
   async function fetchGrades() {
     loading.value = true
     error.value = null
+    canRetry.value = true
 
     try {
       const response = await api.get(endpoints.grades.mine)
@@ -38,12 +43,16 @@ export function useStudentGrades() {
         totalEvaluations.value = data.total_evaluations || 0
         mesure.value = true
       } else {
-        // Jamais le texte du serveur à l'écran (D0) : message du catalogue.
-        error.value = invalidResponseError('GET /my-grades sans success').userMessage
+        // Jamais le texte du serveur à l'écran (D0) : message du catalogue (selon le `reason`).
+        const refus = invalidResponseError('GET /my-grades sans success', response)
+        error.value = refus.userMessage
+        // Refus définitif seulement avec un `reason` connu (règle commune d'invalidResponseError).
+        canRetry.value = estPannePassagere(refus)
       }
     } catch (err) {
       console.error('Erreur récupération notes:', err)
       error.value = err.userMessage ?? normalizeError(err).userMessage
+      canRetry.value = estPannePassagere(err)
     } finally {
       loading.value = false
     }
@@ -52,6 +61,7 @@ export function useStudentGrades() {
   return {
     loading,
     error,
+    canRetry,
     matieres,
     moyenneGenerale,
     totalMatieres,

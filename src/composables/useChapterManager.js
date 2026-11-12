@@ -3,6 +3,7 @@ import api from '@/services/api'
 import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
 import { normalizeError } from '@/services/errorHandler'
+import { estPannePassagere } from '@/utils/pannePassagere'
 import knowledgeCheckService from '@/services/knowledgeCheck'
 import { createEmptyChapter, buildChapterPayload } from '@/utils/chapterManager'
 import { useChapterQuizzes } from '@/composables/useChapterQuizzes'
@@ -25,6 +26,8 @@ export function useChapterManager(lessonId) {
   // Message du catalogue quand la liste n'a pas pu être lue : elle est alors
   // INCONNUE, pas vide — l'écran ne propose pas d'ajouter (doublons possibles).
   const loadError = ref(null)
+  // « Réessayer » seulement sur une panne passagère : un refus définitif ne se lève pas en réessayant.
+  const loadCanRetry = ref(true)
   const saving = ref(false)
   const uploadingFile = ref(false)
   const uploadProgress = ref(0)
@@ -41,6 +44,7 @@ export function useChapterManager(lessonId) {
   async function loadChapters() {
     loading.value = true
     loadError.value = null
+    loadCanRetry.value = true
     try {
       const response = await api.get(endpoints.chapters.ofLesson(lessonId.value))
       if (response.success) {
@@ -57,6 +61,7 @@ export function useChapterManager(lessonId) {
     } catch (error) {
       console.error('[ChapterManager] Erreur chargement:', error)
       loadError.value = error.userMessage ?? normalizeError(error).userMessage
+      loadCanRetry.value = estPannePassagere(error)
     } finally {
       loading.value = false
     }
@@ -256,7 +261,7 @@ export function useChapterManager(lessonId) {
   })
 
   return {
-    chapters, loading, loadError, saving, uploadingFile, uploadProgress, uploadStatus,
+    chapters, loading, loadError, loadCanRetry, saving, uploadingFile, uploadProgress, uploadStatus,
     knowledgeChecks, showQuizEditor, showQuizPlayer, selectedChapterId,
     selectedQuiz, editingQuiz,
     loadChapters, addChapter, editChapter, cancelEdit, saveChapter, uploadFile,

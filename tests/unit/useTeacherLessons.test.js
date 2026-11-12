@@ -104,3 +104,58 @@ describe('useTeacherLessons (#H4)', () => {
     expect(push).toHaveBeenCalledWith('/teacher/lessons/42/chapters')
   })
 })
+
+// Lot « Réessayer », PR B1 : un refus (401, réponse 2xx « success: false ») ne propose pas
+// « Réessayer » ; une panne le propose. Transitions sur la MÊME instance.
+describe('useTeacherLessons — Réessayer seulement sur une panne passagère', () => {
+  // Cache vidé : sinon l'écran se monte depuis le cache d'un test précédent et l'échec ne touche
+  // que le rafraîchissement d'arrière-plan, qui ne pose pas `error`.
+  beforeEach(() => {
+    cacheStore = {}
+    h.getMatieres.mockReset().mockResolvedValue([{ id: 7, name: 'Maths' }])
+  })
+
+  it('refus 401, puis panne 503, puis 2xx « success: false » avec et sans reason connu', async () => {
+    h.getLessons.mockReset().mockRejectedValue(Object.assign(new Error('HTTP 401'), { response: { status: 401, data: { reason: 'klassci_token_missing' } } }))
+    const u = await setup()
+    expect(u.error.value).toBeTruthy()
+    expect(u.canRetry.value).toBe(false)
+    h.getLessons.mockRejectedValue(Object.assign(new Error('HTTP 503'), { response: { status: 503 } }))
+    await u.loadLessons()
+    expect(u.canRetry.value).toBe(true)
+    h.getLessons.mockResolvedValue({ success: false, reason: 'klassci_token_missing' })
+    await u.loadLessons()
+    expect(u.error.value).toBeTruthy()
+    expect(u.canRetry.value).toBe(false)
+    // Sans reason : une anomalie qu'un nouvel essai peut lever (règle de l'ARRÊT 1 de la PR B).
+    h.getLessons.mockResolvedValue({ success: false })
+    await u.loadLessons()
+    expect(u.error.value).toBeTruthy()
+    expect(u.canRetry.value).toBe(true)
+  })
+})
+
+// Revue de #519 : le texte disait « Veuillez réessayer » alors que le bouton était caché, et le motif
+// connu n'était jamais dit. Le texte suit maintenant l'erreur : son motif, ou un repli neutre.
+describe('useTeacherLessons — le message suit le motif du refus', () => {
+  beforeEach(() => {
+    cacheStore = {}
+    h.getMatieres.mockReset().mockResolvedValue([{ id: 7, name: 'Maths' }])
+  })
+  const MOTIF = "Aucun accès KLASSCI n'est enregistré pour ce compte : les données qui en proviennent ne peuvent pas être affichées."
+
+  it('refus 401 : le message du catalogue, sans « réessayer » ; 2xx motivé : son motif', async () => {
+    h.getLessons.mockReset().mockRejectedValue(Object.assign(new Error('HTTP 401'), {
+      response: { status: 401, data: { reason: 'klassci_token_missing' } }, userMessage: MOTIF,
+    }))
+    const u = await setup()
+    expect(u.canRetry.value).toBe(false)
+    expect(u.error.value).toBe(MOTIF)
+    h.getLessons.mockResolvedValue({ success: false, reason: 'klassci_token_missing' })
+    await u.loadLessons()
+    expect(u.canRetry.value).toBe(false)
+    expect(u.error.value).toBe(MOTIF)
+    expect(u.error.value).not.toMatch(/r[ée]essayer/i)
+  })
+})
+

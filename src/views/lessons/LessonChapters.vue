@@ -37,7 +37,7 @@
         <!-- Error -->
         <div v-else-if="error" class="error-card">
           <p class="error-message">{{ error }}</p>
-          <button @click="loadLesson" class="btn-retry">Réessayer</button>
+          <button v-if="canRetry" @click="loadLesson" class="btn-retry">Réessayer</button>
         </div>
       </div>
 
@@ -67,6 +67,7 @@ const {
   lesson,
   loadingLesson,
   error,
+  canRetry,
   publishing,
   lessonId,
   isReadOnly,

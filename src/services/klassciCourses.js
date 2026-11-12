@@ -53,7 +53,8 @@ export const klassciCoursesService = {
       const response = await api.get(url)
       // La réponse porte toujours `success: true` (#436) : son absence est une
       // anomalie à afficher, jamais une liste vide (« aucun cours publié »).
-      if (response?.success !== true) throw invalidResponseError('GET /lessons/my-courses sans success')
+      // Son `reason`, s'il est connu du catalogue, en fait un refus définitif (pas de « Réessayer »).
+      if (response?.success !== true) throw invalidResponseError('GET /lessons/my-courses sans success', response)
       return response
     } catch (error) {
       console.error('Erreur récupération mes cours:', error)

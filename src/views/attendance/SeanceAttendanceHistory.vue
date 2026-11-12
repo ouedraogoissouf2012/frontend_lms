@@ -33,7 +33,7 @@
           <h3 class="error-title">Une erreur est survenue</h3>
           <p class="error-message">{{ error }}</p>
         </div>
-        <button @click="loadSeances" class="error-retry-btn">
+        <button v-if="canRetry" @click="loadSeances" class="error-retry-btn">
           <span>↻</span>
           Réessayer
         </button>
@@ -71,6 +71,7 @@
         :attendances="attendances"
         :loading-attendances="loadingAttendances"
         :attendances-error="attendancesError"
+        :can-retry="attendancesCanRetry"
         :exporting="exporting"
         @close="closeModal"
         @export-pdf="exportPDF"
@@ -95,9 +96,9 @@ import AttendanceDetailModal from '@/components/attendance/AttendanceDetailModal
 import { useSeanceAttendanceHistory } from '@/composables/useSeanceAttendanceHistory'
 
 const {
-  loading, error, seances, pagination,
+  loading, error, canRetry, seances, pagination,
   selectedPeriod, periodTabs, customDates, searchQuery,
-  selectedSeance, loadingAttendances, attendances, attendancesError, exporting,
+  selectedSeance, loadingAttendances, attendances, attendancesError, attendancesCanRetry, exporting,
   loadSeances, selectPeriod, applyCustomDates, debouncedSearch, clearSearch,
   changePage, viewAttendances, closeModal,
   exportPDF, exportExcel, deleteSeance,

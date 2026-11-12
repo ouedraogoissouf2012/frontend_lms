@@ -29,7 +29,7 @@
           <h3 class="error-title">Erreur de chargement</h3>
           <p class="error-message">{{ error }}</p>
         </div>
-        <button @click="loadLessons" class="error-retry-btn">
+        <button v-if="canRetry" @click="loadLessons" class="error-retry-btn">
           Réessayer
         </button>
       </div>
@@ -95,6 +95,7 @@ const {
   matieres,
   loading,
   error,
+  canRetry,
   showCreateModal,
   editingLesson,
   saving,

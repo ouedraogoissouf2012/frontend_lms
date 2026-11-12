@@ -2,6 +2,7 @@ import { ref, computed, onMounted } from 'vue'
 import { klassciService } from '@/services/klassci'
 import { extractList } from '@/utils/apiList'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
+import { estPannePassagere } from '@/utils/pannePassagere'
 
 /**
  * Couche données de StudentCourses (#G1 ≤300) : charge les cours de l'élève
@@ -30,6 +31,10 @@ export function useStudentCourses() {
   const loadingMore = ref(false)
   const error = ref(null)
   const loadMoreError = ref(null)
+  // « Réessayer » seulement sur une panne passagère (5xx, 429, réseau), un drapeau par chargement :
+  // un refus définitif ne se lève pas en réessayant.
+  const canRetry = ref(true)
+  const loadMoreCanRetry = ref(true)
   // null = « tous » (#437) : une seule forme de valeur, les ids étant des entiers.
   const selectedMatiere = ref(null)
   const selectedEnseignant = ref(null)
@@ -55,11 +60,13 @@ export function useStudentCourses() {
     const seq = ++requestSeq
     loading.value = true
     error.value = null
+    canRetry.value = true
     // Le compteur de l'ancienne sélection ne vaut plus : non mesuré jusqu'à la réponse.
     meta.value = null
     // Un « Charger plus » en vol devient périmé : son état ne doit pas lui survivre.
     loadingMore.value = false
     loadMoreError.value = null
+    loadMoreCanRetry.value = true
 
     try {
       const filters = activeFilters()
@@ -79,6 +86,7 @@ export function useStudentCourses() {
       console.error('[ERREUR] Erreur chargement cours:', err)
       // Le message de la cause (#436), préparé par l'intercepteur ou le service.
       error.value = err?.userMessage || ERROR_MESSAGES.unknown
+      canRetry.value = estPannePassagere(err)
     } finally {
       if (seq === requestSeq) loading.value = false
     }
@@ -89,6 +97,7 @@ export function useStudentCourses() {
     const seq = ++requestSeq
     loadingMore.value = true
     loadMoreError.value = null
+    loadMoreCanRetry.value = true
 
     try {
       const response = await klassciService.getMyCourses(activeFilters(), meta.value.current_page + 1)
@@ -103,6 +112,7 @@ export function useStudentCourses() {
       if (seq !== requestSeq) return
       // La liste déjà chargée reste : l'échec ne concerne que la page suivante.
       loadMoreError.value = err?.userMessage || ERROR_MESSAGES.unknown
+      loadMoreCanRetry.value = estPannePassagere(err)
     } finally {
       if (seq === requestSeq) loadingMore.value = false
     }
@@ -133,6 +143,7 @@ export function useStudentCourses() {
     courses,
     loading,
     error,
+    canRetry,
     selectedMatiere,
     selectedEnseignant,
     availableFilters,
@@ -140,6 +151,7 @@ export function useStudentCourses() {
     hasMore,
     loadingMore,
     loadMoreError,
+    loadMoreCanRetry,
     loadCourses,
     loadMore,
     applyFilters,

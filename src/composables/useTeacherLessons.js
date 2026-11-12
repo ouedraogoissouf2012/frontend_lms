@@ -7,6 +7,9 @@ import { readCache, writeCache } from '@/services/cache'
 import { useLessonForm } from '@/composables/useLessonForm'
 import { extractList } from '@/utils/apiList'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
+import { refusMotive } from '@/services/errorHandler'
+import { userError } from '@/utils/userError'
+import { estPannePassagere } from '@/utils/pannePassagere'
 import { myLessonsParams, TEACHER_LESSONS_CACHE as LESSONS_CACHE } from '@/composables/myLessons'
 
 /**
@@ -21,6 +24,9 @@ export function useTeacherLessons() {
   const matieres = ref([])
   const loading = ref(false)
   const error = ref(null)
+  // Un nouvel essai seulement sur une panne passagère (5xx, 429, réseau) : un refus définitif ne se
+  // lève pas en réessayant.
+  const canRetry = ref(true)
 
   const filters = reactive({
     matiere_id: '',
@@ -80,23 +86,32 @@ export function useTeacherLessons() {
     if (params === null) {
       lessons.value = []
       error.value = ERROR_MESSAGES.auth
+      // Aucune identité d'enseignant : aucune requête faite, réessayer n'y changera rien.
+      canRetry.value = false
       return
     }
 
     loading.value = true
     error.value = null
+    canRetry.value = true
 
     try {
       console.log('[LESSONS] Chargement des leçons via API...')
       const response = await lessonService.getAllLessons(params)
       // Un refus (même en cours de pagination) n'est pas « aucune leçon » : c'est une erreur.
-      if (!response?.success) throw new Error('liste des leçons refusée')
+      // Atteint sur un 2xx seulement (axios rejette le reste) : la règle commune du refus motivé.
+      if (!response?.success) {
+        const refus = refusMotive(response)
+        throw userError(refus.motif ?? 'Impossible de charger les leçons.', { definitif: refus.definitif })
+      }
       lessons.value = extractList(response)
       // Une liste tronquée par le garde-fou de pagination n'est jamais cachée comme complète.
       if (!response.incomplete) writeCache(LESSONS_CACHE, lessons.value)
     } catch (err) {
       console.error('[ERREUR] Erreur chargement leçons:', err)
-      error.value = 'Impossible de charger les leçons. Veuillez réessayer.'
+      // Le motif (message sûr de l'intercepteur, ou du catalogue) ; « Réessayer » dépend de canRetry.
+      error.value = err.userMessage ?? 'Impossible de charger les leçons.'
+      canRetry.value = estPannePassagere(err)
       lessons.value = []
     } finally {
       loading.value = false
@@ -164,6 +179,7 @@ export function useTeacherLessons() {
     matieres,
     loading,
     error,
+    canRetry,
     showCreateModal,
     editingLesson,
     saving,

@@ -1,7 +1,7 @@
 <template>
   <div class="load-retry-notice">
     <p class="load-retry-message">{{ message }}</p>
-    <button type="button" class="load-retry-button" :disabled="busy" @click="$emit('retry')">
+    <button v-if="canRetry" type="button" class="load-retry-button" :disabled="busy" @click="$emit('retry')">
       Réessayer
     </button>
   </div>
@@ -9,14 +9,16 @@
 
 <script setup>
 /**
- * Une donnée qui n'a pas pu être lue : son message et « Réessayer ». Présentation
+ * Une donnée qui n'a pas pu être lue : son message et, sur une panne passagère, « Réessayer ». Présentation
  * pure — le parent relance. Sert là où un état INCONNU ne doit pas passer pour un
  * état vide (liste de chapitres, quiz d'un chapitre).
  */
 defineProps({
   message: { type: String, required: true },
   // Un chargement est en cours : on ne relance pas une seconde fois.
-  busy: { type: Boolean, default: false }
+  busy: { type: Boolean, default: false },
+  // Faux sur un refus définitif (estPannePassagere) : le message reste, sans « Réessayer ».
+  canRetry: { type: Boolean, default: true }
 })
 
 defineEmits(['retry'])

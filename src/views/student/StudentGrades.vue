@@ -35,7 +35,7 @@
       <div v-else-if="error" class="error-container">
         <i class="mdi mdi-alert-circle error-icon"></i>
         <p class="error-text">{{ error }}</p>
-        <button class="btn-refresh" @click="fetchGrades">
+        <button v-if="canRetry" class="btn-refresh" @click="fetchGrades">
           <i class="mdi mdi-refresh refresh-icon"></i>
           Réessayer
         </button>
@@ -99,6 +99,7 @@ const router = useRouter()
 const {
   loading,
   error,
+  canRetry,
   matieres,
   moyenneGenerale,
   totalMatieres,

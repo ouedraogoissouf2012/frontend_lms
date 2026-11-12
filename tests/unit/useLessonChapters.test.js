@@ -98,3 +98,25 @@ describe('useLessonChapters (#H4)', () => {
     vi.unstubAllGlobals()
   })
 })
+
+// Lot « Réessayer », PR B1 : le motif du refus (jamais le texte du serveur, D0), et « Réessayer »
+// seulement sur une panne. Transitions sur la MÊME instance.
+describe('useLessonChapters — motif et Réessayer seulement sur une panne passagère', () => {
+  const PIEGE = 'Texte du serveur, jamais affiché'
+
+  it('refus 403 : pas le texte du serveur, pas de Réessayer ; panne 503 : Réessayer', async () => {
+    getLesson.mockRejectedValueOnce(Object.assign(new Error('HTTP 403'), {
+      response: { status: 403, data: { success: false, message: PIEGE } },
+      userMessage: "Vous n'avez pas les droits nécessaires pour cette action.",
+    }))
+    const u = await setup()
+    expect(u.error.value).toBeTruthy()
+    expect(u.error.value).not.toContain(PIEGE)
+    expect(u.canRetry.value).toBe(false)
+
+    getLesson.mockRejectedValueOnce(Object.assign(new Error('HTTP 503'), { response: { status: 503, data: { message: PIEGE } } }))
+    await u.loadLesson()
+    expect(u.error.value).not.toContain(PIEGE)
+    expect(u.canRetry.value).toBe(true)
+  })
+})

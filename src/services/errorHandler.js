@@ -17,38 +17,48 @@ import { libelleDelai } from '../utils/delaiReessai'
  * corps porte `reason`. Un motif CONNU devient une catégorie du catalogue ; un motif
  * inconnu est ignoré et le statut décide (fail-secure : jamais le texte du serveur).
  */
-const REASON_CATEGORIES = Object.freeze({
-  enrolment_not_active: 'enrolmentNotActive',
-  no_institution: 'noInstitution',
-  account_quota_exceeded: 'accountQuotaExceeded',
-  account_daily_cap_reached: 'accountDailyCapReached',
-  institution_cap_reached: 'institutionCapReached',
+/**
+ * Une entrée du catalogue : la catégorie (clé d'ERROR_MESSAGES) et son caractère TRANSITOIRE.
+ * Transitoire : la cause peut passer d'elle-même (« Réessayez dans un instant », délai de
+ * Retry-After) ; un nouvel essai a un sens. Sinon le motif est un refus définitif. C'est le SEUL
+ * endroit qui le dit : un motif transitoire ajouté ici prend son délai ET garde « Réessayer ».
+ */
+function motif(categorie, { transitoire = false } = {}) {
+  return Object.freeze({ categorie, transitoire })
+}
+
+const REASONS = Object.freeze({
+  enrolment_not_active: motif('enrolmentNotActive'),
+  no_institution: motif('noInstitution'),
+  account_quota_exceeded: motif('accountQuotaExceeded'),
+  account_daily_cap_reached: motif('accountDailyCapReached'),
+  institution_cap_reached: motif('institutionCapReached'),
   // #429 : contrat de POST /lms/seances/{id}/join. Un `reason` serveur est un identifiant de
   // contrat GLOBAL (BusinessException) : s'il prenait un autre sens ailleurs, ce serait un
   // défaut serveur. Catégories préfixées par leur contrat, aucune résolution par écran.
-  not_enrolled: 'visioNotEnrolled',
-  no_classe_id: 'visioNoClasse',
-  visio_not_enabled: 'visioNotEnabled',
+  not_enrolled: motif('visioNotEnrolled'),
+  no_classe_id: motif('visioNoClasse'),
+  visio_not_enabled: motif('visioNotEnabled'),
   // VisioStatusRefusal (serveur) : attendre (`visio_not_started`) ou renoncer (`visio_ended`).
-  visio_not_started: 'visioNotStarted',
-  visio_ended: 'visioEnded',
-  teacher_not_owner: 'visioTeacherNotOwner',
-  actor_not_authorized: 'visioRoleRefused',
-  invalid_role: 'visioRoleRefused',
-  tenant_not_resolved: 'visioNoInstitution',
+  visio_not_started: motif('visioNotStarted'),
+  visio_ended: motif('visioEnded'),
+  teacher_not_owner: motif('visioTeacherNotOwner'),
+  actor_not_authorized: motif('visioRoleRefused'),
+  invalid_role: motif('visioRoleRefused'),
+  tenant_not_resolved: motif('visioNoInstitution'),
   // #420 : 401 d'une route adossée à KLASSCI quand ce compte n'a AUCUN accès KLASSCI
   // (compte local, école autonome). Ni une session LMS morte, ni une session KLASSCI
   // expirée : se reconnecter n'y change rien (contrat `KlassciUnauthorized`).
-  klassci_token_missing: 'klassciTokenMissing',
+  klassci_token_missing: motif('klassciTokenMissing'),
   // lms_backend #1011 : refus de démarrage d'une évaluation (POST /evaluations/{id}/start, 403).
-  evaluation_window_closed: 'evaluationWindowClosed',
-  evaluation_max_attempts: 'evaluationMaxAttempts',
-  evaluation_retake_forbidden: 'evaluationRetakeForbidden',
-  evaluation_offline_only: 'evaluationOfflineOnly',
-  evaluation_window_unverifiable: 'evaluationWindowUnverifiable',
+  evaluation_window_closed: motif('evaluationWindowClosed'),
+  evaluation_max_attempts: motif('evaluationMaxAttempts'),
+  evaluation_retake_forbidden: motif('evaluationRetakeForbidden'),
+  evaluation_offline_only: motif('evaluationOfflineOnly'),
+  evaluation_window_unverifiable: motif('evaluationWindowUnverifiable', { transitoire: true }),
   // frontend_lms#426 : la panne KLASSCI se classe par son motif (le 503 canonique le porte), pas par
   // l'en-tête Retry-After, que le navigateur cache en cross-origin (`exposed_headers: []`).
-  klassci_unavailable: 'klassciUnavailable',
+  klassci_unavailable: motif('klassciUnavailable', { transitoire: true }),
 })
 
 /**
@@ -59,13 +69,34 @@ const REASON_CATEGORIES = Object.freeze({
  * @returns {string|null}
  */
 export function messageForReason(reason) {
-  if (typeof reason !== 'string' || !Object.hasOwn(REASON_CATEGORIES, reason)) return null
-  return ERROR_MESSAGES[REASON_CATEGORIES[reason]] ?? null
+  const entree = entreeDuMotif(reason)
+  return entree ? (ERROR_MESSAGES[entree.categorie] ?? null) : null
+}
+
+/** L'entrée du catalogue pour un `reason`, ou `null` (inconnu, absent, clé du prototype). */
+function entreeDuMotif(reason) {
+  return typeof reason === 'string' && Object.hasOwn(REASONS, reason) ? REASONS[reason] : null
+}
+
+/**
+ * Le refus MOTIVÉ d'une réponse 2xx « success: false » : le message du catalogue de son `reason`,
+ * et s'il est définitif. Définitif = motif connu ET non transitoire (lu dans le catalogue) ; un
+ * motif transitoire ou inconnu laisse « Réessayer ». La seule règle, partagée par tous les sites.
+ * @param {{ reason?: unknown }|null|undefined} response
+ * @returns {{ motif: string|null, definitif: boolean }}
+ */
+export function refusMotive(response) {
+  const entree = entreeDuMotif(response?.reason)
+  const motifConnu = entree ? (ERROR_MESSAGES[entree.categorie] ?? null) : null
+  return { motif: motifConnu, definitif: motifConnu !== null && !entree.transitoire }
 }
 
 // Catégories TRANSITOIRES : leur message finit par « Réessayez dans un instant. », que le délai
 // de Retry-After précise. Un refus définitif ne prend jamais de délai.
-export const CATEGORIES_A_DELAI = Object.freeze(new Set(['klassciUnavailable', 'evaluationWindowUnverifiable']))
+// Dérivées du catalogue (jamais une seconde liste à tenir à jour à la main).
+export const CATEGORIES_A_DELAI = Object.freeze(new Set(
+  Object.values(REASONS).filter((entree) => entree.transitoire).map((entree) => entree.categorie),
+))
 const DANS_UN_INSTANT = 'Réessayez dans un instant.'
 
 /** Le message d'une catégorie transitoire, avec le délai de `Retry-After` s'il est lisible. */
@@ -134,8 +165,8 @@ export function normalizeError(error) {
   // Un motif CONNU prime sur la règle générique du Retry-After (décision de la superviseure) : un
   // 503 qui dit son motif (`evaluation_window_unverifiable`, #1019) ne devient pas « KLASSCI
   // indisponible ».
-  if (typeof reason === 'string' && Object.hasOwn(REASON_CATEGORIES, reason)) {
-    const category = REASON_CATEGORIES[reason]
+  if (entreeDuMotif(reason)) {
+    const category = REASONS[reason].categorie
     return { category, userMessage: avecDelai(category, ERROR_MESSAGES[category], error), fieldErrors: null }
   }
   // Repli, sans motif connu, pour un serveur qui ne pose pas encore `klassci_unavailable` (#426) : le
@@ -177,17 +208,6 @@ export function normalizeError(error) {
 }
 
 /**
- * Erreur pour une réponse HTTP RÉUSSIE dont l'enveloppe n'est pas celle attendue
- * (`success !== true`). Ne lève jamais : construit l'erreur que l'appelant rejette.
- *
- * Remplacer une telle réponse par une liste vide fabriquait un fait (« aucun cours
- * publié ») à partir d'une anomalie (#436, CONTRIBUTING §10). L'erreur porte un
- * `userMessage` du catalogue, comme celles que pose l'intercepteur d'`api.js` :
- * l'appelant l'affiche sans distinguer les deux origines.
- * @param {string} [context] - libellé technique pour les journaux (jamais affiché).
- * @returns {Error}
- */
-/**
  * Requête annulée par l'appelant (AbortController → `signal`) : ce n'est PAS un échec
  * à montrer — une requête plus récente l'a remplacée. Axios pose `ERR_CANCELED`.
  * @param {unknown} error
@@ -197,10 +217,27 @@ export function isCanceled(error) {
   return error?.code === 'ERR_CANCELED' || error?.name === 'CanceledError'
 }
 
-export function invalidResponseError(context = '') {
+/**
+ * Erreur pour une réponse HTTP RÉUSSIE dont l'enveloppe n'est pas celle attendue
+ * (`success !== true`). Ne lève jamais : construit l'erreur que l'appelant rejette.
+ *
+ * Remplacer une telle réponse par une liste vide fabriquait un fait (« aucun cours
+ * publié ») à partir d'une anomalie (#436, CONTRIBUTING §10). L'erreur porte un
+ * `userMessage` du catalogue, comme celles que pose l'intercepteur d'`api.js` :
+ * l'appelant l'affiche sans distinguer les deux origines.
+ *
+ * Le `reason` connu donne son message du catalogue ; il n'est `definitif` (pas de « Réessayer »)
+ * que s'il n'est pas transitoire (refusMotive). Sans `reason` connu, l'anomalie reste une panne.
+ * @param {string} [context] - libellé technique pour les journaux (jamais affiché).
+ * @param {{ reason?: unknown }|null} [response] - le corps reçu, pour son seul `reason`.
+ * @returns {Error & { userMessage: string, fieldErrors: null, definitif?: true }}
+ */
+export function invalidResponseError(context = '', response = null) {
   const error = new Error(context ? `Réponse inattendue : ${context}` : 'Réponse inattendue')
-  error.userMessage = ERROR_MESSAGES.unknown
+  const refus = refusMotive(response)
+  error.userMessage = refus.motif ?? ERROR_MESSAGES.unknown
   error.fieldErrors = null
+  if (refus.definitif) error.definitif = true
   return error
 }
 

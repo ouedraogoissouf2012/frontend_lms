@@ -8,6 +8,7 @@ import { getPeriodDates as computePeriodDates } from '@/utils/attendance'
 import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
 import { normalizeError } from '@/services/errorHandler'
+import { estPannePassagere } from '@/utils/pannePassagere'
 
 /**
  * Couche données de l'historique des séances + présences (H7, ≤300) extraite de
@@ -35,6 +36,9 @@ export function useSeanceAttendanceHistory() {
 
   const loading = ref(false)
   const error = ref(null)
+  // Un nouvel essai seulement sur une panne passagère (5xx, 429, réseau) : un refus définitif ne se
+  // lève pas en réessayant. Un drapeau par chargement : la liste, puis les présences de la modale.
+  const canRetry = ref(true)
   const seances = ref([])
   const pagination = ref({
     current_page: 1,
@@ -59,11 +63,13 @@ export function useSeanceAttendanceHistory() {
   const loadingAttendances = ref(false)
   const attendances = ref(null)
   const attendancesError = ref(null)
+  const attendancesCanRetry = ref(true)
   const exporting = ref(false)
 
   async function loadSeances(page = 1) {
     loading.value = true
     error.value = null
+    canRetry.value = true
 
     try {
       const params = {
@@ -87,6 +93,7 @@ export function useSeanceAttendanceHistory() {
       }
     } catch (err) {
       error.value = err.userMessage ?? normalizeError(err).userMessage
+      canRetry.value = estPannePassagere(err)
     } finally {
       loading.value = false
     }
@@ -136,46 +143,42 @@ export function useSeanceAttendanceHistory() {
     } else {
       // Séance pas dans la liste (autre période), charger directement les présences
       selectedSeance.value = { id: seanceId, klassci_seance_id: seanceId, matiere_nom: '', date: '' }
-      loadingAttendances.value = true
-      attendances.value = null
-      attendancesError.value = null
-
-      try {
-        const response = await lmsService.getSeanceAttendances(seanceId)
-        if (response.success) {
-          attendances.value = response
-          // Mettre à jour les infos de la séance depuis la réponse
-          if (response.seance) {
-            selectedSeance.value = {
-              ...selectedSeance.value,
-              matiere_nom: response.seance.matiere_nom || '',
-              date: response.seance.date || '',
-              enseignant_nom: response.seance.enseignant_nom || '',
-              klassci_seance_id: response.seance.klassci_seance_id || seanceId
-            }
-          }
+      const response = await loadAttendances(seanceId)
+      // Mettre à jour les infos de la séance depuis la réponse
+      if (response?.success && response.seance) {
+        selectedSeance.value = {
+          ...selectedSeance.value,
+          matiere_nom: response.seance.matiere_nom || '',
+          date: response.seance.date || '',
+          enseignant_nom: response.seance.enseignant_nom || '',
+          klassci_seance_id: response.seance.klassci_seance_id || seanceId
         }
-      } catch (err) {
-        attendancesError.value = err.userMessage ?? normalizeError(err).userMessage
-      } finally {
-        loadingAttendances.value = false
       }
     }
   }
 
   async function viewAttendances(seance) {
     selectedSeance.value = seance
+    await loadAttendances(seance.id)
+  }
+
+  // Chargement des présences, commun aux deux ouvertures : rend la réponse, ou null sur échec.
+  async function loadAttendances(seanceId) {
     loadingAttendances.value = true
     attendances.value = null
     attendancesError.value = null
+    attendancesCanRetry.value = true
 
     try {
-      const response = await lmsService.getSeanceAttendances(seance.id)
+      const response = await lmsService.getSeanceAttendances(seanceId)
       if (response.success) {
         attendances.value = response
       }
+      return response
     } catch (err) {
       attendancesError.value = err.userMessage ?? normalizeError(err).userMessage
+      attendancesCanRetry.value = estPannePassagere(err)
+      return null
     } finally {
       loadingAttendances.value = false
     }
@@ -286,9 +289,9 @@ export function useSeanceAttendanceHistory() {
   })
 
   return {
-    loading, error, seances, pagination,
+    loading, error, canRetry, seances, pagination,
     selectedPeriod, periodTabs, customDates, searchQuery,
-    selectedSeance, loadingAttendances, attendances, attendancesError, exporting,
+    selectedSeance, loadingAttendances, attendances, attendancesError, attendancesCanRetry, exporting,
     loadSeances, selectPeriod, applyCustomDates, debouncedSearch, clearSearch,
     changePage, openSeanceById, viewAttendances, closeModal,
     exportPDF, exportExcel, deleteSeance,

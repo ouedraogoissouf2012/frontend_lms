@@ -29,7 +29,7 @@
           <h3 class="error-title">Erreur de chargement</h3>
           <p class="error-message">{{ error }}</p>
         </div>
-        <button @click="loadCourses" class="error-retry-btn">
+        <button v-if="canRetry" @click="loadCourses" class="error-retry-btn">
           Réessayer
         </button>
       </div>
@@ -64,6 +64,7 @@
         :has-more="!loading && !error && hasMore"
         :loading="loadingMore"
         :error="loadMoreError"
+        :can-retry="loadMoreCanRetry"
         @more="onLoadMore"
       />
     </div>
@@ -91,6 +92,7 @@ const {
   courses,
   loading,
   error,
+  canRetry,
   selectedMatiere,
   selectedEnseignant,
   availableFilters,
@@ -98,6 +100,7 @@ const {
   hasMore,
   loadingMore,
   loadMoreError,
+  loadMoreCanRetry,
   loadCourses,
   loadMore,
   applyFilters,
