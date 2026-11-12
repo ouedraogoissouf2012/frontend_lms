@@ -46,7 +46,9 @@ export const klassciSeancesService = {
   async getMyVisioConferences() {
     try {
       const response = await api.get(endpoints.lms.seances.myClasses)
-      return response.success ? response.data : []
+      // Faux vide : un « success: false » n'est pas « aucune visio », c'est une erreur.
+      if (response?.success !== true) throw invalidResponseError('GET mes visioconférences sans success', response)
+      return response.data
     } catch (error) {
       console.error('Erreur récupération mes visioconférences:', error)
       throw error

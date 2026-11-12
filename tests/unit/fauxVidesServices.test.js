@@ -4,7 +4,7 @@
  * (refus avec un reason connu du catalogue ; anomalie sans reason, qu'un nouvel essai peut lever).
  *
  * Trois services rendaient une liste vide sur un « success: false » : lmsMatieres.getMyMatieres (« Aucune
- * matière assignée ») klassciSeances.getUpcomingSeances (calendrier vide) et
+ * matière assignée »), klassciSeances.getUpcomingSeances (calendrier vide) et
  * klassciSeances.getMyVisioConferences (aucune visio). Ils rejettent désormais.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
