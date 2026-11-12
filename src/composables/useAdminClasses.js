@@ -1,4 +1,5 @@
 import { ref, computed, onMounted } from 'vue'
+import { estPannePassagere } from '@/utils/pannePassagere'
 import { useRouter } from 'vue-router'
 import { klassciService } from '@/services/klassci'
 import { readCache, writeCache } from '@/services/cache'
@@ -78,6 +79,8 @@ export function useAdminClasses() {
   const matieresMesurees = ref(false)
   const loading = ref(false)
   const error = ref(null)
+  // « Réessayer » seulement sur une panne passagère (503 KLASSCI) ; un refus (401, 403…) non.
+  const canRetry = ref(true)
 
   const filters = ref({
     filiere_id: '',
@@ -133,6 +136,7 @@ export function useAdminClasses() {
 
     loading.value = true
     error.value = null
+    canRetry.value = true
 
     try {
       console.log('[ADMIN] Chargement de toutes les classes...')
@@ -160,6 +164,7 @@ export function useAdminClasses() {
     } catch (err) {
       console.error('[ERREUR] Chargement classes admin:', err)
       error.value = err.userMessage ?? normalizeError(err).userMessage
+      canRetry.value = estPannePassagere(err)
     } finally {
       loading.value = false
     }
@@ -252,7 +257,7 @@ export function useAdminClasses() {
   })
 
   return {
-    classes, filieres, niveaux, matieres, loading, error, filters,
+    classes, filieres, niveaux, matieres, loading, error, canRetry, filters,
     filteredClasses, stats,
     loadClasses, refreshInBackground, refreshMetadata, applyFilters, resetFilters, viewClasseDetails,
   }
