@@ -3,8 +3,9 @@
  * une liste vide, un FAIT inventé. Il devient une erreur dite ; Réessayer selon la règle commune
  * (refus avec un reason connu du catalogue ; anomalie sans reason, qu'un nouvel essai peut lever).
  *
- * Deux services rendaient une liste vide sur un « success: false » : lmsMatieres.getMyMatieres (« Aucune
- * matière assignée ») et klassciSeances.getUpcomingSeances (calendrier vide). Ils rejettent désormais.
+ * Trois services rendaient une liste vide sur un « success: false » : lmsMatieres.getMyMatieres (« Aucune
+ * matière assignée ») klassciSeances.getUpcomingSeances (calendrier vide) et
+ * klassciSeances.getMyVisioConferences (aucune visio). Ils rejettent désormais.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
@@ -40,5 +41,17 @@ describe('services — un « success: false » rejette, jamais une liste vide', 
     expect(estPannePassagere(refus)).toBe(false)
     api.get.mockResolvedValue({ success: true, data: [{ id: 7 }] })
     expect(await klassciSeancesService.getUpcomingSeances()).toEqual([{ id: 7 }])
+  })
+
+  // Sans consommateur aujourd'hui (aucun appel dans src/) : le défaut est latent, fermé avant tout usage.
+  it('getMyVisioConferences : rejet sur « success: false », la liste sinon', async () => {
+    api.get.mockResolvedValue({ success: false })
+    const anomalie = await klassciSeancesService.getMyVisioConferences().catch((e) => e)
+    expect(anomalie).toBeInstanceOf(Error)
+    expect(estPannePassagere(anomalie)).toBe(true)
+    api.get.mockResolvedValue({ success: false, reason: 'klassci_token_missing' })
+    expect(estPannePassagere(await klassciSeancesService.getMyVisioConferences().catch((e) => e))).toBe(false)
+    api.get.mockResolvedValue({ success: true, data: [{ id: 9 }] })
+    expect(await klassciSeancesService.getMyVisioConferences()).toEqual([{ id: 9 }])
   })
 })
