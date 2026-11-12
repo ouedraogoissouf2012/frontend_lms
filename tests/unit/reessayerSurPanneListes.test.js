@@ -24,6 +24,8 @@ const m = vi.hoisted(() => ({
   analytics: { getSystemMetrics: vi.fn() },
   adminStatistics: { getAdminStatistics: vi.fn(), extractAdminStatistics: vi.fn(() => null) },
   auth: { getUser: vi.fn(), getMeta: vi.fn() },
+  // Utilisateur connecté (store) : `null` = identité inconnue, sans requête de leçons.
+  utilisateur: { courant: { id: 42, role: 'enseignant' } },
 }))
 
 vi.mock('@/services/cache', () => ({
@@ -40,7 +42,7 @@ vi.mock('@/services/lesson', () => ({ default: m.lessons, lessonService: m.lesso
 vi.mock('@/services/analytics', () => ({ analyticsService: m.analytics }))
 vi.mock('@/services/adminStatistics', () => m.adminStatistics)
 vi.mock('@/services/api', () => ({ auth: m.auth, default: {} }))
-vi.mock('@/stores/auth', () => ({ useAuthStore: () => ({ currentUser: { id: 42, role: 'enseignant' } }) }))
+vi.mock('@/stores/auth', () => ({ useAuthStore: () => ({ get currentUser() { return m.utilisateur.courant } }) }))
 
 import { useAdminEnseignants } from '@/composables/useAdminEnseignants'
 import { useAdminMatieres } from '@/composables/useAdminMatieres'
@@ -75,6 +77,7 @@ async function monter(useX) {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  m.utilisateur.courant = { id: 42, role: 'enseignant' }
   m.auth.getUser.mockReturnValue({ id: 42, role: 'superAdmin' })
   m.auth.getMeta.mockReturnValue({})
   m.klassci.getStructure.mockResolvedValue({ filieres: [], niveaux_etude: [] })
@@ -198,5 +201,12 @@ describe('TeacherHub : canRetry relayé ; une seule panne parmi les quatre sourc
     toutEnEchec(refus)
     m.lessons.getLessons.mockRejectedValue(panne500())
     expect(await juger(useTeacherHub)).toBe(true)
+  })
+
+  it('identité inconnue (aucune requête de leçons) et refus partout ailleurs : pas de Réessayer', async () => {
+    toutEnEchec(refus)
+    m.utilisateur.courant = null
+    expect(await juger(useTeacherHub)).toBe(false)
+    expect(m.lessons.getLessons).not.toHaveBeenCalled()
   })
 })
