@@ -7,7 +7,7 @@ import attendanceExportService from '@/services/attendanceExport'
 import { getPeriodDates as computePeriodDates } from '@/utils/attendance'
 import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
-import { normalizeError } from '@/services/errorHandler'
+import { normalizeError, invalidResponseError } from '@/services/errorHandler'
 import { estPannePassagere } from '@/utils/pannePassagere'
 
 /**
@@ -86,11 +86,10 @@ export function useSeanceAttendanceHistory() {
       }
 
       const response = await lmsService.getSeancesHistory(params)
-
-      if (response.success) {
-        seances.value = response.data
-        pagination.value = response.pagination
-      }
+      // Faux vide : un « success: false » est une erreur dite, jamais une liste vide (règle commune).
+      if (response?.success !== true) throw invalidResponseError('GET historique des séances sans success', response)
+      seances.value = response.data
+      pagination.value = response.pagination
     } catch (err) {
       error.value = err.userMessage ?? normalizeError(err).userMessage
       canRetry.value = estPannePassagere(err)
@@ -171,9 +170,8 @@ export function useSeanceAttendanceHistory() {
 
     try {
       const response = await lmsService.getSeanceAttendances(seanceId)
-      if (response.success) {
-        attendances.value = response
-      }
+      if (response?.success !== true) throw invalidResponseError('GET présences de la séance sans success', response)
+      attendances.value = response
       return response
     } catch (err) {
       attendancesError.value = err.userMessage ?? normalizeError(err).userMessage

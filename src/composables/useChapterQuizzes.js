@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { invalidResponseError } from '@/services/errorHandler'
 import knowledgeCheckService from '@/services/knowledgeCheck'
 import { estPannePassagere } from '@/utils/pannePassagere'
 
@@ -45,6 +46,9 @@ export function useChapterQuizzes() {
     try {
       const response = await knowledgeCheckService.getByChapter(chapterId)
       if (derniersAppels.get(chapterId) !== appel) return
+      // Faux vide : un « success: false » n'est pas une liste vide, c'est une erreur dite (règle commune :
+      // un reason connu est un refus, sans reason une anomalie qu'un nouvel essai peut lever).
+      if (response?.success !== true) throw invalidResponseError('GET quiz du chapitre sans success', response)
       if (response.success) {
         knowledgeChecks.value[chapterId] = response.data
         marquerInconnu(chapterId, false)
