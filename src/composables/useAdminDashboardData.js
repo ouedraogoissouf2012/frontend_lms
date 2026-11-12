@@ -5,7 +5,7 @@ import { getAdminStatistics, extractAdminStatistics } from '@/services/adminStat
 import { readCache, writeCache } from '@/services/cache'
 import { logError, normalizeError } from '@/services/errorHandler'
 import { deriveInstitutionCounters } from '@/utils/classStats'
-import { dateHeureSeance } from '@/utils/seanceStatut'
+import { dateHeureSeance, finEstimee } from '@/utils/seanceStatut'
 
 /**
  * Nombre fini, ou `null` si la valeur n'a pas été MESURÉE.
@@ -225,7 +225,7 @@ export function useAdminDashboardData({
             visioEnabled: seance.visio_enabled || false,
             visioActive: seance.visio_active || false,
             visioStatus: seance.visio_status || null,
-            heureFinEstimee: seance.heure_fin_estimee === true,
+            heureFinEstimee: finEstimee(seance),
             description: `${seance.matiere?.libelle || 'Séance'} - Salle: ${seance.salle || 'N/A'}`,
             url: '/coordinateur/seances'
           }

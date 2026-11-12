@@ -38,7 +38,7 @@
           <ClockIcon class="info-icon" />
           <span class="info-text">
             {{ formatTime(seance.date_debut) }} - {{ formatTime(seance.date_fin) }}
-            <em v-if="seance.heure_fin_estimee" class="fin-estimee">(fin estimée)</em>
+            <em v-if="finEstimee(seance)" class="fin-estimee">(fin estimée)</em>
           </span>
         </div>
       </div>
@@ -82,7 +82,7 @@ import {
   ClockIcon,
   EyeIcon
 } from '@heroicons/vue/24/outline'
-import { statutSeance, libelleStatutSeance } from '@/utils/seanceStatut'
+import { statutSeance, libelleStatutSeance, finEstimee } from '@/utils/seanceStatut'
 
 defineProps({
   seances: { type: Array, default: () => [] },
