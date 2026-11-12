@@ -115,7 +115,8 @@ export function useAdminVisio() {
           status: getSeanceStatus(s),
           room_id: roomId,
           room_name: s.room_name || roomId,
-          participants_count: s.participants_count || 0
+          // Défaut déjà présent : la clé lue n'existait pas, le nombre n'était jamais dit. Inconnu → null.
+          participants_count: s.visio_participants_count ?? s.visio?.participants_count ?? s.participants_count ?? null
         }
       })
   }
@@ -146,21 +147,25 @@ export function useAdminVisio() {
     // Le filtrage est géré par le computed filteredVisioconferences
   }
 
+  // Le statut se lit d'abord sur la visio (active, terminée) ; l'horaire seulement ensuite, et une fin
+  // ESTIMÉE (`heure_fin_estimee`, +2 h non mesurée) n'affirme jamais « Terminée ».
   function getSeanceStatus(seance) {
+    if (seance.visio_status === 'terminee') return 'completed'
+    if (seance.visio_active) return 'active'
     const now = new Date()
     const debut = new Date(seance.date_debut)
-    const fin = new Date(seance.date_fin)
-
-    if (now >= debut && now <= fin) return 'active'
     if (now < debut) return 'scheduled'
-    return 'completed'
+    if (seance.heure_fin_estimee) return 'unconfirmed'
+    const fin = new Date(seance.date_fin)
+    return now <= fin ? 'active' : 'completed'
   }
 
   function getStatusLabel(status) {
     const labels = {
       active: 'En cours',
       scheduled: 'Planifiée',
-      completed: 'Terminée'
+      completed: 'Terminée',
+      unconfirmed: 'Non confirmée'
     }
     return labels[status] || 'Inconnu'
   }

@@ -24,6 +24,12 @@ const measured = (value) => (Number.isFinite(value) ? value : null)
  * Reçoit les refs partagées de useAdminDashboard pour centraliser l'état. Logique
  * extraite verbatim de la vue d'origine pour garantir la parité de comportement.
  */
+/** Une date valide depuis un ISO, sinon depuis jour + heure (« HH:mm »), sinon null. */
+function dateDe(iso, jour, heure) {
+  const date = iso ? new Date(iso) : (jour && heure ? new Date(`${String(jour).split('T')[0]}T${heure}`) : null)
+  return date && !Number.isNaN(date.getTime()) ? date : null
+}
+
 export function useAdminDashboardData({
   stats, classes, matieres, activityData, pendingTasks, recentUsers, calendarEvents, loading, loadError,
   analyticsError, calendarState, calendarError, canRetry, calendarCanRetry,
@@ -192,19 +198,19 @@ export function useAdminDashboardData({
           }
         }
 
-        // Parser les dates
-        const dateSeance = seance.date_seance
-        const heureDebut = seance.heure_debut || '08:00'
-        const heureFin = seance.heure_fin || '10:00'
-
-        const start = new Date(`${dateSeance}T${heureDebut}:00`)
-        const end = new Date(`${dateSeance}T${heureFin}:00`)
+        // Dates : date_debut / date_fin ISO d'abord (spec 3d), sinon date_seance + heure. Aucune heure
+        // inventée ; une séance sans date valide est écartée (elle jetait une RangeError qui mettait
+        // tout le calendrier en erreur) ; une fin absente, invalide ou avant le début n'est pas dite.
+        const start = dateDe(seance.date_debut, seance.date_seance, seance.heure_debut)
+        if (!start) return null
+        const fin = dateDe(seance.date_fin, seance.date_seance, seance.heure_fin)
+        const end = fin && fin > start ? fin : null
 
         return {
           id: `seance-${seance.id}`,
           title: `${title} - ${seance.classe?.libelle || seance.classe?.nom || 'N/A'}`,
           start: start.toISOString(),
-          end: end.toISOString(),
+          ...(end ? { end: end.toISOString() } : {}),
           backgroundColor,
           borderColor: backgroundColor,
           extendedProps: {
@@ -217,13 +223,14 @@ export function useAdminDashboardData({
             visioEnabled: seance.visio_enabled || false,
             visioActive: seance.visio_active || false,
             visioStatus: seance.visio_status || null,
+            heureFinEstimee: seance.heure_fin_estimee === true,
             description: `${seance.matiere?.libelle || 'Séance'} - Salle: ${seance.salle || 'N/A'}`,
             url: '/coordinateur/seances'
           }
         }
       })
 
-      calendarEvents.value = events
+      calendarEvents.value = events.filter(Boolean)
       calendarState.value = 'pret'
     } catch (error) {
       // Le reste du tableau de bord reste exploitable ; l'échec du calendrier se DIT.
