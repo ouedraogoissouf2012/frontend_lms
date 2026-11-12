@@ -44,7 +44,7 @@
         <div v-for="notice in notices" :key="notice" class="partial-warning" role="alert">
           <i class="fa fa-exclamation-circle" aria-hidden="true"></i>
           <span>{{ notice }}</span>
-          <button @click="loadAllUsers(true)" class="partial-retry">Réessayer</button>
+          <button v-if="peutReessayer(notice)" @click="loadAllUsers(true)" class="partial-retry">Réessayer</button>
         </div>
 
         <!-- Empty State -->
@@ -101,7 +101,7 @@ const {
   classes, loading, loadingProgress, counts, notices, selectedUser,
   searchQuery, filterRole, filterClasse, currentPage, sortField, sortAsc,
   filteredUsers, totalPages, paginatedUsers,
-  sortBy, selectUser, closeModal, loadAllUsers,
+  sortBy, selectUser, closeModal, loadAllUsers, peutReessayer,
 } = useAdminUsers()
 
 /** Total affichable : non mesuré dès qu'UNE des deux populations ne l'est (jamais l'autre seule). */

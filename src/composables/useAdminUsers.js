@@ -5,7 +5,7 @@ import { logError } from '@/services/errorHandler'
 import { fetchClassRosters } from '@/services/klassciRoster'
 import { deriveInstitutionCounters } from '@/utils/classStats'
 import { buildUserRows } from '@/utils/adminUsersRows'
-import { buildUsersNotices } from '@/utils/usersNotices'
+import { buildUsersNotices, noticePeutReessayer } from '@/utils/usersNotices'
 import { lmsTeachersService } from '@/services/lmsTeachers'
 import { listAdministrationUsers } from '@/services/adminUsers'
 import { toId } from '@/utils/toId'
@@ -261,6 +261,7 @@ export function useAdminUsers() {
 
   return {
     etudiants, enseignants, classes, loading, loadingProgress, counts, notices, rosterForbidden, selectedUser,
+    peutReessayer: noticePeutReessayer,
     searchQuery, filterRole, filterClasse, currentPage, sortField, sortAsc,
     totalUsers, filteredUsers, totalPages, paginatedUsers,
     sortBy, selectUser, closeModal, loadAllUsers,
