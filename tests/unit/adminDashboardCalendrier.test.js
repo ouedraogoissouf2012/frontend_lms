@@ -119,3 +119,32 @@ describe('DashboardCalendarPanel — les états à l écran', () => {
     expect(rendre({ etat: 'pret' }).find('.calendrier').exists()).toBe(true)
   })
 })
+
+// Lot « Réessayer », B2 : le calendrier ne propose « Réessayer » que sur une panne passagère.
+describe('calendrier du tableau de bord — Réessayer seulement sur une panne', () => {
+  const refus = () => Object.assign(new Error('HTTP 403'), { isAxiosError: true, response: { status: 403, data: {} }, userMessage: 'Accès refusé.' })
+
+  it('refus : état erreur, sans Réessayer ; panne au nouvel essai : Réessayer', async () => {
+    const d = await monter()
+    mockKlassci.getUpcomingSeances.mockRejectedValue(refus())
+    await d.loadCalendarEvents()
+    expect(d.calendarState.value).toBe('erreur')
+    expect(d.calendarCanRetry.value).toBe(false)
+    mockKlassci.getUpcomingSeances.mockRejectedValue(panne())
+    await d.loadCalendarEvents()
+    expect(d.calendarState.value).toBe('erreur')
+    expect(d.calendarCanRetry.value).toBe(true)
+  })
+
+  it('le panneau : erreur et refus → le message, sans bouton ; erreur et panne → Réessayer ; non chargé → Afficher', () => {
+    const rendre = (props) => mount(DashboardCalendarPanel, {
+      props: { events: [], message: 'Accès refusé.', ...props },
+      global: { stubs: { CalendarWidget: { template: '<div class="calendrier" />' } } },
+    })
+    const refuse = rendre({ etat: 'erreur', canRetry: false })
+    expect(refuse.text()).toContain('Accès refusé.')
+    expect(refuse.findAll('button').filter((b) => /R[ée]essayer/.test(b.text()))).toHaveLength(0)
+    expect(rendre({ etat: 'erreur', canRetry: true }).find('button').text()).toMatch(/R[ée]essayer/)
+    expect(rendre({ etat: 'non-charge', canRetry: false }).find('button').text()).toMatch(/Afficher le calendrier/)
+  })
+})
