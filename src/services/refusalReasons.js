@@ -52,6 +52,14 @@ export const REASONS = Object.freeze({
   // frontend_lms#426 : la panne KLASSCI se classe par son motif (le 503 canonique le porte), pas par
   // l'en-tête Retry-After, que le navigateur cache en cross-origin (`exposed_headers: []`).
   klassci_unavailable: motif('klassciUnavailable', { transitoire: true }),
+  // D72-a : refus d'écriture d'une évaluation. E1 (#1023) : POST /evaluations ; C14 (#1024) : PUT ;
+  // C16 (#1025, brouillon) : `evaluation_without_questions`, sans effet tant qu'il n'est pas fusionné.
+  klassci_teacher_identity_missing: motif('evaluationTeacherIdentityMissing'),
+  teacher_not_assigned: motif('evaluationTeacherNotAssigned'),
+  klassci_scheduling_required: motif('evaluationSchedulingRequired'),
+  identifier_out_of_scope: motif('evaluationIdentifierOutOfScope'),
+  publish_via_dedicated_route: motif('evaluationPublishViaDedicatedRoute'),
+  evaluation_without_questions: motif('evaluationWithoutQuestions'),
 })
 
 /** L'entrée du catalogue pour un `reason`, ou `null` (inconnu, absent, clé du prototype). */

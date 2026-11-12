@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import evaluationService from '@/services/evaluation'
 import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
+import { messageDe } from '@/services/errorHandler'
 
 /**
  * Actions enseignant de TeacherEvaluations (H1 ≤300). Complète le composable de
@@ -98,7 +99,7 @@ export function useTeacherEvaluationActions({ evaluationsLMS, loadEvaluationsLMS
         await loadEvaluationsLMS()
         closeCreateModal()
       } else {
-        toast.error('Erreur lors de la création de la version en ligne')
+        toast.error(messageDe(err))
       }
     } finally {
       creating.value = false
@@ -179,8 +180,7 @@ export function useTeacherEvaluationActions({ evaluationsLMS, loadEvaluationsLMS
       }
     } catch (err) {
       console.error('[ERREUR] Publication:', err)
-      const message = err.response?.data?.message || 'Erreur lors de la publication'
-      toast.error(message)
+      toast.error(messageDe(err))
     }
   }
 
@@ -210,8 +210,7 @@ export function useTeacherEvaluationActions({ evaluationsLMS, loadEvaluationsLMS
       }
     } catch (err) {
       console.error('[ERREUR] Suppression:', err)
-      const message = err.response?.data?.message || 'Erreur lors de la suppression'
-      toast.error(message)
+      toast.error(messageDe(err))
     }
   }
 

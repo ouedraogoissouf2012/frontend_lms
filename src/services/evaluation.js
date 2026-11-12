@@ -1,5 +1,7 @@
 import api from './api'
 import { endpoints } from './endpoints'
+// D72-a : une écriture sans « success: true » n'a rien fait de connu (pas de faux succès).
+import { invalidResponseError } from './errorHandler'
 
 /**
  * Service pour gérer les évaluations.
@@ -57,6 +59,7 @@ export default {
   async createEvaluation(data) {
     try {
       const response = await api.post(endpoints.evaluations.list, data)
+      if (response?.success !== true) throw invalidResponseError('POST évaluation sans success', response)
       return response
     } catch (error) {
       console.error('Erreur création évaluation:', error)
@@ -70,6 +73,7 @@ export default {
   async updateEvaluation(id, data) {
     try {
       const response = await api.put(endpoints.evaluations.details(id), data)
+      if (response?.success !== true) throw invalidResponseError('PUT évaluation sans success', response)
       return response
     } catch (error) {
       console.error('Erreur mise à jour évaluation:', error)
@@ -83,6 +87,7 @@ export default {
   async deleteEvaluation(id) {
     try {
       const response = await api.delete(endpoints.evaluations.details(id))
+      if (response?.success !== true) throw invalidResponseError('DELETE évaluation sans success', response)
       return response
     } catch (error) {
       console.error('Erreur suppression évaluation:', error)
@@ -96,6 +101,7 @@ export default {
   async publishEvaluation(id) {
     try {
       const response = await api.post(endpoints.evaluations.publish(id))
+      if (response?.success !== true) throw invalidResponseError('POST publication sans success', response)
       return response
     } catch (error) {
       console.error('Erreur publication évaluation:', error)

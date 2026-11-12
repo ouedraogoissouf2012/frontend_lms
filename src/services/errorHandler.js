@@ -155,6 +155,16 @@ export function normalizeError(error) {
 }
 
 /**
+ * Le message à montrer pour une erreur : son `userMessage` (catalogue, posé par l'intercepteur ou
+ * par `invalidResponseError`), sinon celui de `normalizeError`. Jamais le texte du serveur (D0).
+ * @param {unknown} error
+ * @returns {string}
+ */
+export function messageDe(error) {
+  return typeof error?.userMessage === 'string' ? error.userMessage : normalizeError(error).userMessage
+}
+
+/**
  * Requête annulée par l'appelant (AbortController → `signal`) : ce n'est PAS un échec
  * à montrer — une requête plus récente l'a remplacée. Axios pose `ERR_CANCELED`.
  * @param {unknown} error
