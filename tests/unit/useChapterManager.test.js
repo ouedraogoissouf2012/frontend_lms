@@ -23,7 +23,11 @@ vi.mock('@/services/api', () => ({
 }))
 vi.mock('@/composables/useToast', () => ({ toast: { error: vi.fn(), success: (...a) => toastSuccess(...a) } }))
 vi.mock('@/composables/useConfirm', () => ({ useConfirm: () => ({ confirm: (...a) => confirmMock(...a) }) }))
-vi.mock('@/services/errorHandler', () => ({ normalizeError: (e) => ({ userMessage: String(e) }) }))
+// Faux vides : le VRAI module (invalidResponseError, refusMotive), seul normalizeError est remplacé.
+vi.mock('@/services/errorHandler', async (importOriginal) => ({
+  ...(await importOriginal()),
+  normalizeError: (e) => ({ userMessage: String(e) }),
+}))
 vi.mock('@/services/knowledgeCheck', () => ({
   default: { getByChapter: vi.fn().mockResolvedValue({ success: true, data: [] }), delete: vi.fn() }
 }))
@@ -175,5 +179,18 @@ describe('useChapterManager — échec du quiz relayé', () => {
     await u.loadKnowledgeChecks(1)
     expect(u.isQuizUnknown(1)).toBe(true)
     expect(u.quizEchec(1)).toEqual({ canRetry: false, message: 'Accès refusé.' })
+  })
+})
+
+// Faux vides (suite du lot « Réessayer », revue de #519) : un 2xx « success: false » se lisait comme
+// une liste vide, un FAIT inventé. Il devient une erreur dite ; Réessayer selon la règle commune
+// (refus avec un reason connu du catalogue ; anomalie sans reason, qu'un nouvel essai peut lever).
+describe('useChapterManager — un « success: false » est une erreur, pas « aucun chapitre »', () => {
+  it('pas de chapitre ajouté d’office ; l’erreur est dite, Réessayer sur une anomalie sans reason', async () => {
+    apiGet.mockReset().mockResolvedValue({ success: false })
+    const u = await setup()
+    expect(u.loadError.value).toBeTruthy()
+    expect(u.loadCanRetry.value).toBe(true)
+    expect(u.chapters.value).toHaveLength(0)
   })
 })

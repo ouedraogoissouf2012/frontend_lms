@@ -199,3 +199,27 @@ describe('useSeanceAttendanceHistory — lien direct vers une séance hors de la
   })
 })
 
+// Faux vides (suite du lot « Réessayer », revue de #519) : un 2xx « success: false » se lisait comme
+// une liste vide, un FAIT inventé. Il devient une erreur dite ; Réessayer selon la règle commune
+// (refus avec un reason connu du catalogue ; anomalie sans reason, qu'un nouvel essai peut lever).
+describe('useSeanceAttendanceHistory — un « success: false » est une erreur, pas une liste vide', () => {
+  it('liste : anomalie sans reason → erreur et Réessayer ; reason connu → erreur sans Réessayer', async () => {
+    getSeancesHistory.mockResolvedValue({ success: false })
+    const u = await setup()
+    expect(u.error.value).toBeTruthy()
+    expect(u.canRetry.value).toBe(true)
+    getSeancesHistory.mockResolvedValue({ success: false, reason: 'klassci_token_missing' })
+    await u.loadSeances()
+    expect(u.error.value).toBeTruthy()
+    expect(u.canRetry.value).toBe(false)
+  })
+
+  it('présences : « success: false » → erreur dite (plus de modale silencieuse)', async () => {
+    getSeancesHistory.mockResolvedValue(SEANCES)
+    const u = await setup()
+    getSeanceAttendances.mockResolvedValue({ success: false, reason: 'klassci_token_missing' })
+    await u.viewAttendances(SEANCES.data[0])
+    expect(u.attendancesError.value).toBeTruthy()
+    expect(u.attendancesCanRetry.value).toBe(false)
+  })
+})
