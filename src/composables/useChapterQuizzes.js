@@ -2,6 +2,9 @@ import { ref } from 'vue'
 import knowledgeCheckService from '@/services/knowledgeCheck'
 import { estPannePassagere } from '@/utils/pannePassagere'
 
+// Message d'un quiz en PANNE passagère (avec « Réessayer ») ; un refus dit son propre motif.
+export const QUIZ_INDISPONIBLE = 'Quiz indisponible pour le moment.'
+
 /**
  * Quiz (« knowledge checks ») des chapitres d'une leçon, extrait de useChapterManager.
  *
@@ -26,7 +29,8 @@ export function useChapterQuizzes() {
     if (inconnu) {
       suivant.add(chapterId)
       const passagere = estPannePassagere(error)
-      echecs.set(chapterId, { canRetry: passagere, message: passagere ? 'Quiz indisponible pour le moment.' : (error?.userMessage ?? 'Ce quiz ne peut pas être affiché.') })
+      const message = passagere ? QUIZ_INDISPONIBLE : (error?.userMessage ?? 'Ce quiz ne peut pas être affiché.')
+      echecs.set(chapterId, { canRetry: passagere, message })
     } else {
       suivant.delete(chapterId)
       echecs.delete(chapterId)

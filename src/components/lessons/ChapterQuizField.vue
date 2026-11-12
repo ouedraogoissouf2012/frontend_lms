@@ -4,7 +4,7 @@
       <!-- Quiz illisible : ni « aucun quiz » ni invite de création (doublon possible) -->
       <LoadRetryNotice
         v-if="quizUnknown"
-        :message="quizEchec?.message ?? 'Quiz indisponible pour le moment.'"
+        :message="quizEchec?.message ?? QUIZ_INDISPONIBLE"
         :can-retry="quizEchec?.canRetry ?? true"
         @retry="$emit('retry-quiz', chapter.id)"
       />
@@ -45,6 +45,7 @@
  * d'abord le chapitre. L'ouverture de l'éditeur de quiz est émise au parent.
  */
 import LoadRetryNotice from '@/components/lessons/LoadRetryNotice.vue'
+import { QUIZ_INDISPONIBLE } from '@/composables/useChapterQuizzes'
 
 defineProps({
   chapter: { type: Object, required: true },
