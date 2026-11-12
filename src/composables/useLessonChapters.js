@@ -44,9 +44,7 @@ export function useLessonChapters() {
       // Faux vide : un « success: false » n'est pas une liste vide, c'est une erreur dite (règle commune :
       // un reason connu est un refus, sans reason une anomalie qu'un nouvel essai peut lever).
       if (response?.success !== true) throw invalidResponseError('GET leçon sans success', response)
-      if (response.success) {
-        lesson.value = response.data
-      }
+      lesson.value = response.data
     } catch (err) {
       console.error('[LessonChapters] Erreur chargement leçon:', err)
       // Le sens du refus (catalogue, via le `reason`), jamais le texte du serveur (D0).
