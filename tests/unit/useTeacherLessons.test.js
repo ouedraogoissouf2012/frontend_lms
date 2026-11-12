@@ -38,6 +38,7 @@ vi.mock('@/services/klassci', () => ({
 }))
 
 import { useTeacherLessons } from '@/composables/useTeacherLessons'
+import { TEACHER_MATIERES_CACHE } from '@/constants/cacheKeys'
 
 async function setup() {
   let api
@@ -77,7 +78,7 @@ describe('useTeacherLessons (#H4)', () => {
     h.getMatieres.mockResolvedValue({ matieres: [{ id: 7, name: 'Maths' }, { id: 8, name: 'Physique' }] })
     const c = await setup()
     expect(c.matieres.value).toHaveLength(2)
-    expect(cacheStore.teacher_matieres).toHaveLength(2)
+    expect(cacheStore[TEACHER_MATIERES_CACHE]).toHaveLength(2)
   })
 
   it('filtre par statut et par matière', async () => {
