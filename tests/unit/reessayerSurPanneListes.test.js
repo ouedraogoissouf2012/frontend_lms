@@ -89,48 +89,60 @@ beforeEach(() => {
   m.lessons.getLessons.mockResolvedValue({ success: true, data: [] })
 })
 
-describe('AdminEnseignants : canRetry relayé', () => {
-  it('refus du repli : pas de Réessayer ; panne : Réessayer', async () => {
-    m.klassci.getLmsEnseignants.mockRejectedValue(panne503())
-    m.klassci.getEnseignants.mockRejectedValue(refus())
-    expect((await monter(useAdminEnseignants)).canRetry.value).toBe(false)
+// Revue de #518 : un « vrai » de canRetry ne prouve rien seul (il démarre vrai) ; `juger` exige
+// d'abord que l'échec soit bien constaté (`error` posé), puis rend canRetry.
+async function juger(useX) {
+  const u = await monter(useX)
+  expect(u.error.value).toBeTruthy()
+  return u.canRetry.value
+}
 
+describe('AdminEnseignants : canRetry relayé', () => {
+  // Le cas mixte (portail enrichi en panne, repli refusé) relève du lot 3b : non tranché ici.
+  it('les deux sources refusent : pas de Réessayer ; les deux en panne : Réessayer', async () => {
+    m.klassci.getLmsEnseignants.mockRejectedValue(refus())
+    m.klassci.getEnseignants.mockRejectedValue(refus())
+    expect(await juger(useAdminEnseignants)).toBe(false)
+    m.klassci.getLmsEnseignants.mockRejectedValue(panne503())
     m.klassci.getEnseignants.mockRejectedValue(panne503())
-    expect((await monter(useAdminEnseignants)).canRetry.value).toBe(true)
+    expect(await juger(useAdminEnseignants)).toBe(true)
   })
 })
 
-describe('AdminMatieres : canRetry relayé, et « success: false » est un refus', () => {
-  it('2xx « success: false » : pas de Réessayer (refus, pas panne)', async () => {
+// Règle validée (ARRÊT 1 de la PR B), appliquée ici aussi par la revue de #518 : un 2xx
+// « success: false » n'est un refus définitif qu'avec un `reason` CONNU du catalogue ; sans lui,
+// c'est une anomalie qu'un nouvel essai peut lever.
+describe('AdminMatieres : canRetry relayé ; « success: false » refus seulement avec un reason connu', () => {
+  it('2xx « success: false » avec reason connu : pas de Réessayer ; sans reason : Réessayer', async () => {
     m.klassci.getAdminMatieres.mockResolvedValue({ success: false, reason: 'klassci_token_missing' })
-    const u = await monter(useAdminMatieres)
-    expect(u.error.value).toBeTruthy()
-    expect(u.canRetry.value).toBe(false)
+    expect(await juger(useAdminMatieres)).toBe(false)
+    m.klassci.getAdminMatieres.mockResolvedValue({ success: false })
+    expect(await juger(useAdminMatieres)).toBe(true)
   })
 
   it('401 : pas de Réessayer ; 500 et 503 (pannes) : Réessayer', async () => {
     m.klassci.getAdminMatieres.mockRejectedValue(refus())
-    expect((await monter(useAdminMatieres)).canRetry.value).toBe(false)
+    expect(await juger(useAdminMatieres)).toBe(false)
     m.klassci.getAdminMatieres.mockRejectedValue(panne500())
-    expect((await monter(useAdminMatieres)).canRetry.value).toBe(true)
+    expect(await juger(useAdminMatieres)).toBe(true)
     m.klassci.getAdminMatieres.mockRejectedValue(panne503())
-    expect((await monter(useAdminMatieres)).canRetry.value).toBe(true)
+    expect(await juger(useAdminMatieres)).toBe(true)
   })
 })
 
-describe('AdminSeances : canRetry relayé, et « success: false » est un refus', () => {
-  it('2xx « success: false » : pas de Réessayer', async () => {
+describe('AdminSeances : canRetry relayé ; « success: false » refus seulement avec un reason connu', () => {
+  it('2xx « success: false » avec reason connu : pas de Réessayer ; sans reason : Réessayer', async () => {
+    m.klassci.getSeances.mockResolvedValue({ success: false, reason: 'klassci_token_missing' })
+    expect(await juger(useAdminSeances)).toBe(false)
     m.klassci.getSeances.mockResolvedValue({ success: false })
-    const u = await monter(useAdminSeances)
-    expect(u.error.value).toBeTruthy()
-    expect(u.canRetry.value).toBe(false)
+    expect(await juger(useAdminSeances)).toBe(true)
   })
 
   it('401 : pas de Réessayer ; 503 : Réessayer', async () => {
     m.klassci.getSeances.mockRejectedValue(refus())
-    expect((await monter(useAdminSeances)).canRetry.value).toBe(false)
+    expect(await juger(useAdminSeances)).toBe(false)
     m.klassci.getSeances.mockRejectedValue(panne503())
-    expect((await monter(useAdminSeances)).canRetry.value).toBe(true)
+    expect(await juger(useAdminSeances)).toBe(true)
   })
 })
 
@@ -143,30 +155,31 @@ describe('AdminStats : toutes les sources en échec', () => {
     m.adminStatistics.getAdminStatistics.mockRejectedValue(fabrique())
   }
 
-  it('que des refus : pas de Réessayer', async () => {
+  it('que des refus : pas de Réessayer, et le message dit le motif, jamais « Réessayez »', async () => {
     toutesEnEchec(refus)
     const u = await monter(useAdminStats)
-    expect(u.error.value).toBeTruthy()
     expect(u.canRetry.value).toBe(false)
+    expect(u.error.value).toBe(refus().userMessage)
+    expect(u.error.value).not.toMatch(/R[ée]essayez/)
   })
 
   it('une seule source en panne parmi des refus : Réessayer (un essai peut la lever)', async () => {
     toutesEnEchec(refus)
     m.analytics.getSystemMetrics.mockRejectedValue(panne503())
-    expect((await monter(useAdminStats)).canRetry.value).toBe(true)
+    expect(await juger(useAdminStats)).toBe(true)
   })
 })
 
 describe('TeacherClasses : canRetry relayé', () => {
   it('401 : pas de Réessayer ; 503 : Réessayer', async () => {
     m.lmsClasses.getTeacherClasses.mockRejectedValue(refus())
-    expect((await monter(useTeacherClasses)).canRetry.value).toBe(false)
+    expect(await juger(useTeacherClasses)).toBe(false)
     m.lmsClasses.getTeacherClasses.mockRejectedValue(panne503())
-    expect((await monter(useTeacherClasses)).canRetry.value).toBe(true)
+    expect(await juger(useTeacherClasses)).toBe(true)
   })
 })
 
-describe('TeacherHub : canRetry relayé', () => {
+describe('TeacherHub : canRetry relayé ; une seule panne parmi les quatre sources suffit', () => {
   const toutEnEchec = (fabrique) => {
     m.klassci.getTeacherDashboard.mockRejectedValue(fabrique())
     m.lms.getMyTeachingSeances.mockRejectedValue(fabrique())
@@ -174,10 +187,16 @@ describe('TeacherHub : canRetry relayé', () => {
     m.klassci.getClasses.mockRejectedValue(fabrique())
   }
 
-  it('401 : pas de Réessayer ; 503 : Réessayer', async () => {
+  it('que des refus : pas de Réessayer ; que des pannes : Réessayer', async () => {
     toutEnEchec(refus)
-    expect((await monter(useTeacherHub)).canRetry.value).toBe(false)
+    expect(await juger(useTeacherHub)).toBe(false)
     toutEnEchec(panne503)
-    expect((await monter(useTeacherHub)).canRetry.value).toBe(true)
+    expect(await juger(useTeacherHub)).toBe(true)
+  })
+
+  it('tableau de bord refusé mais leçons en panne (source locale du LMS) : Réessayer', async () => {
+    toutEnEchec(refus)
+    m.lessons.getLessons.mockRejectedValue(panne500())
+    expect(await juger(useTeacherHub)).toBe(true)
   })
 })
