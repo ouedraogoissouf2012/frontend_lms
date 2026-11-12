@@ -219,3 +219,39 @@ describe('useAdminClasses (#G1)', () => {
     expect(h.getStructure).not.toHaveBeenCalled()
   })
 })
+
+// Lot « Réessayer », B2 (suite), après le lot 3a (#1021). Spec de /proxy/classes sur lms : école créée
+// depuis le LMS, classes locales sans appel à KLASSCI (refus seuls : 401, 403 `no_institution`, 4xx) ;
+// école créée depuis KLASSCI, panne en 503 avec Retry-After. « Réessayer » seulement sur la panne.
+describe('useAdminClasses — Réessayer seulement sur une panne passagère', () => {
+  beforeEach(() => {
+    h.readCache.mockReset().mockReturnValue(null)
+    h.getMatieres.mockReset().mockResolvedValue([])
+    h.getAdminMatieres.mockReset().mockResolvedValue({ success: true, data: { matieres: [] } })
+    h.getStructure.mockReset().mockResolvedValue({ filieres: [], niveaux_etude: [] })
+  })
+
+  it('403 no_institution : pas de Réessayer ; 503 au nouvel essai : Réessayer ; succès : remis', async () => {
+    h.getClasses.mockReset().mockRejectedValue(Object.assign(new Error('HTTP 403'), {
+      response: { status: 403, data: { reason: 'no_institution' } }, userMessage: 'Aucun établissement.',
+    }))
+    const u = await setup()
+    expect(u.error.value).toBe('Aucun établissement.')
+    expect(u.canRetry.value).toBe(false)
+
+    h.getClasses.mockRejectedValue(Object.assign(new Error('HTTP 503'), {
+      response: { status: 503, headers: { 'retry-after': '30' } }, userMessage: 'Service KLASSCI indisponible.',
+    }))
+    await u.loadClasses()
+    await flushPromises()
+    expect(u.error.value).toBeTruthy()
+    expect(u.canRetry.value).toBe(true)
+
+    h.getClasses.mockResolvedValue([{ id: 1, name: '6e A', is_active: true }])
+    await u.loadClasses()
+    await flushPromises()
+    expect(u.error.value).toBeNull()
+    expect(u.canRetry.value).toBe(true)
+  })
+})
+
