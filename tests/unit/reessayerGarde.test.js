@@ -34,10 +34,9 @@ function boutonsSansCondition(texte) {
 // B1 en corrige 10). Restent : PR B2, agrégats et cas particuliers (AdminDashboard et son calendrier,
 // AdminUsers, TeacherDashboard, AdminClasses après le lot 3a) ; PR C, avec le chantier D72 (écrans
 // d'évaluation et visio d'admin).
-// DETTE TRACÉE (revue de #519), que B2 ferme en premier : LoadRetryNotice est sorti de la liste
-// (son bouton porte `canRetry`), mais ChapterQuizField et ChapterViewMode l'emploient sans
-// passer la prop, qui vaut vrai par défaut. Leurs quiz proposent donc encore « Réessayer » sur un
-// refus (useChapterQuizzes ne garde pas l'erreur), et cette garde ne peut pas le voir.
+// Dette tracée par la revue de #519, FERMÉE par #520 : les quiz (ChapterQuizField, ChapterViewMode)
+// passent à LoadRetryNotice l'échec gardé par useChapterQuizzes (canRetry et motif). Cette garde ne
+// voit pas ce relais : il est prouvé de bout en bout par chapitresEtatInconnu.test.js (refus 403).
 const CONNUS = [
   'components/dashboard/DashboardCalendarPanel.vue',
   'components/evaluations/TeacherEvalErrorState.vue',
