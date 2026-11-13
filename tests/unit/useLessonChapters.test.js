@@ -27,7 +27,11 @@ vi.mock('@/services/lesson', () => ({
 }))
 vi.mock('@/composables/useToast', () => ({ toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn(), show: vi.fn() } }))
 vi.mock('@/composables/useConfirm', () => ({ useConfirm: () => ({ confirm: confirmMock, accept: vi.fn(), cancel: vi.fn(), state: {} }) }))
-vi.mock('@/services/errorHandler', () => ({ normalizeError: () => ({ userMessage: 'err' }) }))
+// Faux vides : le VRAI module (invalidResponseError, refusMotive), seul normalizeError est remplacé.
+vi.mock('@/services/errorHandler', async (importOriginal) => ({
+  ...(await importOriginal()),
+  normalizeError: () => ({ userMessage: 'err' }),
+}))
 
 import { useLessonChapters } from '@/composables/useLessonChapters'
 
@@ -118,5 +122,17 @@ describe('useLessonChapters — motif et Réessayer seulement sur une panne pass
     await u.loadLesson()
     expect(u.error.value).not.toContain(PIEGE)
     expect(u.canRetry.value).toBe(true)
+  })
+})
+
+// Faux vides (suite du lot « Réessayer », revue de #519) : un 2xx « success: false » se lisait comme
+// une liste vide, un FAIT inventé. Il devient une erreur dite ; Réessayer selon la règle commune
+// (refus avec un reason connu du catalogue ; anomalie sans reason, qu'un nouvel essai peut lever).
+describe('useLessonChapters — un « success: false » est une erreur, pas une leçon absente', () => {
+  it('reason connu : l’erreur dite, sans Réessayer', async () => {
+    getLesson.mockResolvedValueOnce({ success: false, reason: 'klassci_token_missing' })
+    const u = await setup()
+    expect(u.error.value).toBeTruthy()
+    expect(u.canRetry.value).toBe(false)
   })
 })

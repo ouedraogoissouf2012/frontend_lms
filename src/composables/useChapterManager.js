@@ -2,7 +2,7 @@ import { ref, watch, onMounted } from 'vue'
 import api from '@/services/api'
 import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
-import { normalizeError } from '@/services/errorHandler'
+import { normalizeError, invalidResponseError } from '@/services/errorHandler'
 import { estPannePassagere } from '@/utils/pannePassagere'
 import knowledgeCheckService from '@/services/knowledgeCheck'
 import { createEmptyChapter, buildChapterPayload } from '@/utils/chapterManager'
@@ -47,16 +47,17 @@ export function useChapterManager(lessonId) {
     loadCanRetry.value = true
     try {
       const response = await api.get(endpoints.chapters.ofLesson(lessonId.value))
-      if (response.success) {
-        chapters.value = response.data.map(ch => ({
-          ...ch,
-          isEditing: false
-        }))
+      // Faux vide : un « success: false » n'est pas une liste vide, c'est une erreur dite (règle commune :
+      // un reason connu est un refus, sans reason une anomalie qu'un nouvel essai peut lever).
+      if (response?.success !== true) throw invalidResponseError('GET chapitres de la leçon sans success', response)
+      chapters.value = response.data.map(ch => ({
+        ...ch,
+        isEditing: false
+      }))
 
-        // Si aucun chapitre, créer automatiquement le premier
-        if (chapters.value.length === 0) {
-          addChapter()
-        }
+      // Si aucun chapitre, créer automatiquement le premier
+      if (chapters.value.length === 0) {
+        addChapter()
       }
     } catch (error) {
       console.error('[ChapterManager] Erreur chargement:', error)

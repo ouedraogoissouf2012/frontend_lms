@@ -7,6 +7,7 @@
  */
 import api from './api'
 import { endpoints } from './endpoints'
+import { invalidResponseError } from './errorHandler'
 
 export const klassciSeancesService = {
   /**
@@ -33,7 +34,9 @@ export const klassciSeancesService = {
    */
   async getUpcomingSeances(filters = {}) {
     const response = await api.get(endpoints.lms.seances.upcoming, { params: filters })
-    return response.success ? response.data : []
+    // Faux vide : un « success: false » n'est pas « aucune séance », c'est une erreur.
+    if (response?.success !== true) throw invalidResponseError('GET séances à venir sans success', response)
+    return response.data
   },
 
   /**
@@ -43,7 +46,9 @@ export const klassciSeancesService = {
   async getMyVisioConferences() {
     try {
       const response = await api.get(endpoints.lms.seances.myClasses)
-      return response.success ? response.data : []
+      // Faux vide : un « success: false » n'est pas « aucune visio », c'est une erreur.
+      if (response?.success !== true) throw invalidResponseError('GET mes visioconférences sans success', response)
+      return response.data
     } catch (error) {
       console.error('Erreur récupération mes visioconférences:', error)
       throw error

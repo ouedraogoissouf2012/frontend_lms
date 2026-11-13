@@ -2,7 +2,7 @@ import { ref, computed, onMounted, getCurrentInstance } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
-import { normalizeError } from '@/services/errorHandler'
+import { normalizeError, invalidResponseError } from '@/services/errorHandler'
 import { displayMessage } from '@/services/displayMessage'
 import { estPannePassagere } from '@/utils/pannePassagere'
 import lessonService from '@/services/lesson'
@@ -41,9 +41,10 @@ export function useLessonChapters() {
 
     try {
       const response = await lessonService.getLesson(lessonId.value)
-      if (response.success) {
-        lesson.value = response.data
-      }
+      // Faux vide : un « success: false » n'est pas une liste vide, c'est une erreur dite (règle commune :
+      // un reason connu est un refus, sans reason une anomalie qu'un nouvel essai peut lever).
+      if (response?.success !== true) throw invalidResponseError('GET leçon sans success', response)
+      lesson.value = response.data
     } catch (err) {
       console.error('[LessonChapters] Erreur chargement leçon:', err)
       // Le sens du refus (catalogue, via le `reason`), jamais le texte du serveur (D0).

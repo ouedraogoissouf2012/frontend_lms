@@ -93,3 +93,16 @@ describe('ChapterList — transmet l’échec du quiz à chaque chapitre', () =>
     expect(w.findComponent(ChapterQuizField).props('quizEchec')).toEqual(echec)
   })
 })
+
+// Faux vides (suite du lot « Réessayer », revue de #519) : un 2xx « success: false » se lisait comme
+// une liste vide, un FAIT inventé. Il devient une erreur dite ; Réessayer selon la règle commune
+// (refus avec un reason connu du catalogue ; anomalie sans reason, qu'un nouvel essai peut lever).
+describe('useChapterQuizzes — un « success: false » rend le quiz INCONNU, pas absent', () => {
+  it('ni « Aucun quiz » ni invite de création : le quiz est inconnu, Réessayer sur une anomalie', async () => {
+    const q = useChapterQuizzes()
+    service.getByChapter.mockResolvedValue({ success: false })
+    await q.loadKnowledgeChecks(9)
+    expect(q.isQuizUnknown(9)).toBe(true)
+    expect(q.quizEchec(9).canRetry).toBe(true)
+  })
+})

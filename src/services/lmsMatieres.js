@@ -2,6 +2,7 @@ import api from './api'
 import { endpoints } from './endpoints'
 // #296 : normalisation d'enveloppe à la frontière (import RELATIF — contrat).
 import { extractList } from '../utils/apiList'
+import { invalidResponseError } from './errorHandler'
 
 /**
  * Service LMS — domaine MATIÈRES (données enrichies `/lms/matieres/*`, `/lms/teacher/*`).
@@ -31,8 +32,11 @@ export const lmsMatieresService = {
    */
   async getMyMatieres() {
     try {
+      const response = await api.get(endpoints.lms.matieres.myTeacher)
+      // Faux vide : un « success: false » n'est pas « aucune matière assignée », c'est une erreur.
+      if (response?.success === false) throw invalidResponseError('GET mes matières sans success', response)
       // #296 : dé-wrap à la frontière → tableau canonique.
-      return extractList(await api.get(endpoints.lms.matieres.myTeacher), ['matieres'])
+      return extractList(response, ['matieres'])
     } catch (error) {
       console.error('Erreur récupération mes matières:', error)
       throw error
