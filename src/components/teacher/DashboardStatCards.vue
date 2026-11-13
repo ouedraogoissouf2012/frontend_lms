@@ -66,7 +66,7 @@ const nbMatieres = counter(() => props.dashboardData?.matieres)
 const nbClasses = counter(() => props.dashboardData?.classes)
 const nbEvaluations = counter(() => props.dashboardData?.evaluations)
 // La clé du contrat (KLASSCI et source locale) : `prochaines_seances`, mesurée ou `null` (« — »).
-const nbSeances = counter(() => props.dashboardData?.seances)
+const nbSeances = counter(() => props.dashboardData?.prochaines_seances)
 </script>
 
 <style scoped>
