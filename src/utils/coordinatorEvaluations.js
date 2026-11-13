@@ -5,26 +5,22 @@
  * passe ses listes en argument.
  */
 import { byId, displayName, firstValue, toId } from '@/utils/evaluationDisplay'
+import { idClasse, idEnseignant, idMatiere } from '@/utils/identiteEvaluation'
 
+// D72-c (L3, D-c1, D-c2) : l'identité se lit par `identiteEvaluation` (champs à plat) ; `klassci_*`
+// n'est JAMAIS réécrit (avant : il recevait `classe_id`, un id local sous un nom KLASSCI, contraire à
+// E1/D132) ; les alias hors contrat (`teacher_id`, `class_id`, `subject_id`, `teacher`,
+// `matiere_name`, `subject_name`, `class_name`), absents d'`EvaluationRecord`, ne sont plus lus.
 export function normalizeEvaluation(evaluation) {
-  const enseignantId = toId(firstValue(
-    evaluation.klassci_enseignant_id,
-    evaluation.enseignant_id,
-    evaluation.teacher_id,
-    evaluation.enseignant,
-    evaluation.teacher
-  ))
-  const classeId = toId(firstValue(evaluation.klassci_classe_id, evaluation.classe_id, evaluation.class_id, evaluation.classe))
-  const matiereId = toId(firstValue(evaluation.klassci_matiere_id, evaluation.matiere_id, evaluation.subject_id, evaluation.matiere))
-  const matiereNom = firstValue(evaluation.matiere_nom, evaluation.matiere_name, evaluation.subject_name, displayName(evaluation.matiere))
-  const classeNom = firstValue(evaluation.classe_nom, evaluation.classe_name, evaluation.class_name, displayName(evaluation.classe))
+  const enseignantId = idEnseignant(evaluation)
+  const classeId = idClasse(evaluation)
+  const matiereId = idMatiere(evaluation)
+  const matiereNom = firstValue(evaluation.matiere_nom, displayName(evaluation.matiere))
+  const classeNom = firstValue(evaluation.classe_nom, evaluation.classe_name, displayName(evaluation.classe))
 
   return {
     ...evaluation,
-    klassci_enseignant_id: firstValue(evaluation.klassci_enseignant_id, enseignantId),
-    klassci_classe_id: firstValue(evaluation.klassci_classe_id, classeId),
-    klassci_matiere_id: firstValue(evaluation.klassci_matiere_id, matiereId),
-    enseignant_nom: firstValue(evaluation.enseignant_nom, displayName(evaluation.enseignant), displayName(evaluation.teacher), enseignantId ? `Enseignant #${enseignantId}` : ''),
+    enseignant_nom: firstValue(evaluation.enseignant_nom, displayName(evaluation.enseignant), enseignantId ? `Enseignant #${enseignantId}` : ''),
     matiere: evaluation.matiere || (matiereNom ? { id: matiereId, nom: matiereNom } : null),
     classe: evaluation.classe || (classeNom ? { id: classeId, nom: classeNom } : null)
   }
@@ -39,9 +35,9 @@ export function enrichEvaluation(evaluation, { enseignants, classes, matieres })
   const enseignantsById = byId(enseignants)
   const classesById = byId(classes)
   const matieresById = byId(matieres)
-  const enseignant = enseignantsById.get(toId(normalized.klassci_enseignant_id))
-  const classe = classesById.get(toId(normalized.klassci_classe_id))
-  const matiere = matieresById.get(toId(normalized.klassci_matiere_id))
+  const enseignant = enseignantsById.get(idEnseignant(normalized))
+  const classe = classesById.get(idClasse(normalized))
+  const matiere = matieresById.get(idMatiere(normalized))
 
   return {
     ...normalized,
@@ -83,8 +79,8 @@ export function deriveEnseignants(enseignants, evaluations) {
     if (option) enseignantsMap.set(toId(option.klassci_id), option)
   })
   evaluations.forEach(evaluation => {
-    if (evaluation.klassci_enseignant_id && (evaluation.enseignant_nom || evaluation.enseignant)) {
-      const joinId = evaluation.klassci_enseignant_id
+    const joinId = idEnseignant(evaluation)
+    if (joinId && (evaluation.enseignant_nom || evaluation.enseignant)) {
       const name = firstValue(evaluation.enseignant_nom, displayName(evaluation.enseignant))
       enseignantsMap.set(toId(joinId), {
         ...(evaluation.enseignant || {}),

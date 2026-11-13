@@ -2,7 +2,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/services/api'
 import { readCache, writeCache } from '@/services/cache'
-import { nonEmptyArray, unwrapArray } from '@/utils/evaluationDisplay'
+import { nonEmptyArray, toId, unwrapArray } from '@/utils/evaluationDisplay'
+import { idClasse, idEnseignant, idMatiere } from '@/utils/identiteEvaluation'
 import { enrichEvaluation, teacherOption, deriveEnseignants as deriveEnseignantsOptions } from '@/utils/coordinatorEvaluations'
 import { endpoints } from '@/services/endpoints'
 
@@ -123,15 +124,16 @@ export function useCoordinatorEvaluations() {
     let filtered = evaluations.value
 
     if (filters.value.enseignant_id) {
-      filtered = filtered.filter(e => e.klassci_enseignant_id == filters.value.enseignant_id)
+      // D72-c (L4) : même règle d'identité que les cartes et les options (champs à plat).
+      filtered = filtered.filter(e => idEnseignant(e) === toId(filters.value.enseignant_id))
     }
 
     if (filters.value.classe_id) {
-      filtered = filtered.filter(e => e.klassci_classe_id == filters.value.classe_id)
+      filtered = filtered.filter(e => idClasse(e) === toId(filters.value.classe_id))
     }
 
     if (filters.value.matiere_id) {
-      filtered = filtered.filter(e => e.klassci_matiere_id == filters.value.matiere_id)
+      filtered = filtered.filter(e => idMatiere(e) === toId(filters.value.matiere_id))
     }
 
     if (filters.value.statut) {
