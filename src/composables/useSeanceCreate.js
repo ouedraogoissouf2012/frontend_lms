@@ -8,7 +8,8 @@
  * - le couple matière/classe vient de la MÊME carte (ids locaux) ;
  * - `date_seance` est le DÉBUT, en ISO 8601 avec décalage (D4). Aucune fin : elle est estimée par
  *   le serveur, et l'écran le dit (lot « lecture honnête ») ;
- * - `matiere_id` n'est PAS envoyé avant que S-matière soit fusionné côté back (D2) ;
+ * - `matiere_id` est l'id local de la MÊME carte que la classe (contrat S-matière fixé ; à déployer
+ *   APRÈS B-source et S-matière côté back) ;
  * - pas de double création : un envoi à la fois ;
  * - D0 : aucun texte du serveur n'est affiché, même sur un 422 (nos messages par champ).
  *
@@ -32,7 +33,8 @@ const MESSAGES = Object.freeze({
   classe: 'Cette classe ne peut pas être retenue. Choisissez-en une autre.',
 })
 const CHAMP_DU_SERVEUR = Object.freeze({
-  titre: 'titre', date_seance: 'date_seance', matiere_nom: 'matiere', classe_id: 'classe', classe_nom: 'classe',
+  titre: 'titre', date_seance: 'date_seance', matiere_id: 'matiere', matiere_nom: 'matiere',
+  classe_id: 'classe', classe_nom: 'classe',
 })
 
 export function useSeanceCreate({ matieres: fournies = null } = {}) {
@@ -79,7 +81,8 @@ export function useSeanceCreate({ matieres: fournies = null } = {}) {
   }
 
   function charge() {
-    const c = { titre: form.titre.trim(), date_seance: isoAvecDecalage(form.debut), matiere_nom: matiereChoisie.value.nom }
+    const matiere = matiereChoisie.value
+    const c = { titre: form.titre.trim(), date_seance: isoAvecDecalage(form.debut), matiere_id: matiere.id, matiere_nom: matiere.nom }
     const classe = classesDisponibles.value.find((x) => x.id === form.classeId)
     if (classe) Object.assign(c, { classe_id: classe.id, classe_nom: classe.nom })
     return c
@@ -107,7 +110,10 @@ export function useSeanceCreate({ matieres: fournies = null } = {}) {
     }
     erreurs.value = champs
     erreur.value = err?.fieldErrors ? ERROR_MESSAGES.validation : (err?.userMessage ?? normalizeError(err).userMessage)
-    if (err?.response?.data?.reason === 'class_out_of_scope') form.classeId = null
+    const reason = err?.response?.data?.reason
+    if (reason === 'class_out_of_scope') form.classeId = null
+    // La matière n'est plus de l'établissement : elle est retirée, et sa classe avec elle (watch).
+    if (reason === 'subject_out_of_scope') form.matiereId = null
     canRetry.value = estPannePassagere(err)
   }
 
