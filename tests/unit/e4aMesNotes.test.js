@@ -105,6 +105,35 @@ describe('écrans — « — » et jamais 0 pour une valeur absente', () => {
     expect(w.text()).not.toContain('null')
   })
 
+  // Contrat #1040 révisé (fdfa7731) : une évaluation aux résultats cachés GARDE sa ligne, SANS la clé
+  // `note` ; `moyenne` (matière) et `moyenne_generale` valent null quand rien n'est mesuré.
+  it('11. ligne sans clé note : « — » et « Résultat non publié », hors de tout calcul', () => {
+    const cachee = { evaluation_id: 2, titre: 'Cachée', type: 'qcm', coefficient: 1, matiere_nom: 'Maths' }
+    const w = mount(GradesTable, { props: { filteredEvaluations: [cachee] } })
+    expect(w.find('.note-value').text()).toBe('—')
+    expect(w.text()).toContain('Résultat non publié')
+    expect(computeStatsReussite([cachee, { note: '14.00' }])).toEqual({ total: 1, reussies: 1, taux: 100 })
+    expect(computeMeilleureNote([cachee])).toBeNull()
+  })
+
+  it('12. une note publiée ne porte pas la mention', () => {
+    const w = mount(GradesTable, { props: { filteredEvaluations: [{ evaluation_id: 3, titre: 'P', type: 'qcm', note: '11.00', coefficient: 1, matiere_nom: 'Maths' }] } })
+    expect(w.text()).not.toContain('Résultat non publié')
+  })
+
+  it('13. moyenne de matière null → « — », sans couleur de palier', () => {
+    const w = mount(GradesSummary, {
+      props: { matieres: [{ matiere_id: 9, matiere_nom: 'Maths', moyenne: null, total_evaluations: 1, evaluations: [{ titre: 'Cachée' }] }] },
+    })
+    expect(w.find('.moyenne-value').text()).toBe('—')
+    expect(w.find('.summary-moyenne').classes()).not.toContain('note-fail')
+  })
+
+  it('14. moyenne générale null du serveur, lignes cachées comptées → null', async () => {
+    const g = await notes({ matieres: [], moyenne_generale: null, total_matieres: 1, total_evaluations: 3 })
+    expect(g.moyenneGenerale.value).toBeNull()
+  })
+
   it('10. synthèse : une matière sans note lisible → max et min « — »', () => {
     const w = mount(GradesSummary, {
       props: { matieres: [{ matiere_id: 9, matiere_nom: 'Maths', moyenne: 0, total_evaluations: 1, evaluations: [{ note: null }] }] },
