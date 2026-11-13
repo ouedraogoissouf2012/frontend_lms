@@ -91,9 +91,10 @@ describe('studentGrades — min/max d\'une matière', () => {
   it('getMinNote', () => {
     expect(getMinNote(matiere)).toBe(8)
   })
-  it('0 si aucune évaluation', () => {
-    expect(getMaxNote({ evaluations: [] })).toBe(0)
-    expect(getMinNote({})).toBe(0)
+  // E4a (renversé, déclaré) : aucune note lisible est une absence, rendue « — » (règle A), jamais 0.
+  it('null si aucune évaluation', () => {
+    expect(getMaxNote({ evaluations: [] })).toBeNull()
+    expect(getMinNote({})).toBeNull()
   })
 })
 
@@ -195,11 +196,13 @@ describe('studentGrades — stats', () => {
     expect(computeStatsReussite(evals)).toEqual({ total: 4, reussies: 3, taux: 75 })
   })
   it('computeStatsReussite tableau vide', () => {
-    expect(computeStatsReussite([])).toEqual({ total: 0, reussies: 0, taux: 0 })
+    // E4a (renversé, déclaré) : sans note, le taux n'est pas mesuré (null), pas 0 %.
+    expect(computeStatsReussite([])).toEqual({ total: 0, reussies: 0, taux: null })
   })
   it('computeMeilleureNote', () => {
     expect(computeMeilleureNote(evals)).toBe(16)
-    expect(computeMeilleureNote([])).toBe(0)
+    // E4a (renversé, déclaré) : aucune note → null, rendu « — », jamais « 0/20 ».
+    expect(computeMeilleureNote([])).toBeNull()
   })
   it('findMeilleureMatiere', () => {
     const flat = [
