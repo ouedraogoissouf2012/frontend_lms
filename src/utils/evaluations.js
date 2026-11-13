@@ -11,14 +11,23 @@
  * Fusionne les évaluations KLASSCI avec leurs versions LMS en ligne.
  * @param {Array<Object>} klassci - évaluations KLASSCI brutes
  * @param {Array<Object>} lms - évaluations LMS (online), liées par klassci_evaluation_id
- * @returns {Array<Object>} évaluations enrichies { ...eval, online_version, has_online }
+ * @returns {Array<Object>} évaluations enrichies { ...eval, cle, online_version, has_online }
+ *
+ * D72-b : une évaluation créée dans une école LMS n'a pas d'id KLASSCI ; elle devient sa propre carte
+ * (version en ligne = elle-même). `cle` porte la famille (`klassci-<id>`, `lms-<id>`) : les deux
+ * espaces d'ids peuvent se recouvrir, la clé d'une liste ne le doit pas.
  */
 export function mergeWithOnlineVersions(klassci = [], lms = []) {
-  return klassci.map((evaluation) => ({
+  const programmees = klassci.map((evaluation) => ({
     ...evaluation,
+    cle: `klassci-${evaluation.id}`,
     online_version: lms.find((e) => e.klassci_evaluation_id === evaluation.id),
     has_online: lms.some((e) => e.klassci_evaluation_id === evaluation.id)
   }))
+  const locales = lms
+    .filter((e) => e.klassci_evaluation_id == null)
+    .map((e) => ({ ...e, cle: `lms-${e.id}`, online_version: e, has_online: true }))
+  return [...programmees, ...locales]
 }
 
 /**

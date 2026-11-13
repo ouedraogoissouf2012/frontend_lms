@@ -41,7 +41,7 @@
         <div v-if="filteredEvaluations.length > 0" class="evaluations-list">
           <EvaluationCard
             v-for="evaluation in filteredEvaluations"
-            :key="evaluation.id"
+            :key="evaluation.cle"
             :evaluation="evaluation"
             :syncing="syncing"
             @create="createOnlineVersion"
