@@ -26,7 +26,7 @@ afterEach(() => {
 describe('DashboardStatCards (#H11)', () => {
   it('affiche les 4 compteurs depuis dashboardData', () => {
     const w = mount(DashboardStatCards, {
-      props: { dashboardData: { matieres: [1, 2], classes: [1], evaluations: [], seances: [1, 2, 3] } },
+      props: { dashboardData: { matieres: [1, 2], classes: [1], evaluations: [], prochaines_seances: [1, 2, 3] } },
     })
     expect(w.findAll('.stat-card')).toHaveLength(4)
     expect(w.findAll('.stat-value').map(n => n.text())).toEqual(['2', '1', '0', '3'])
