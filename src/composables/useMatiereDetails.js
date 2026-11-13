@@ -256,7 +256,7 @@ export function useMatiereDetails() {
   function viewEvaluation(evaluation) {
     // Décision de routage déléguée à une fonction pure (testée unitairement).
     const role = auth.getUser()?.role
-    const action = resolveEvaluationRoute(evaluation, { role, matiereId: matiereId.value })
+    const action = resolveEvaluationRoute(evaluation, { role })
 
     if (action.ouvrir) {
       // L'élève : la porte unique (reprise, résultats, ou démarrage par le serveur).
