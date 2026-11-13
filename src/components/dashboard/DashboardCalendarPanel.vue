@@ -6,7 +6,7 @@
 
     <CalendarWidget v-if="etat === 'pret'" :events="events" height="500px" />
 
-    <button v-if="etat === 'non-charge' || etat === 'erreur'" type="button"
+    <button v-if="etat === 'non-charge' || (etat === 'erreur' && canRetry)" type="button"
             class="calendar-load" @click="$emit('charger')">
       {{ etat === 'erreur' ? 'Réessayer' : 'Afficher le calendrier' }}
     </button>
@@ -26,6 +26,8 @@ const props = defineProps({
   etat: { type: String, required: true },
   events: { type: Array, default: () => [] },
   message: { type: String, default: '' },
+  // Faux sur un refus définitif : le message reste, sans « Réessayer ».
+  canRetry: { type: Boolean, default: true },
 })
 
 defineEmits(['charger'])

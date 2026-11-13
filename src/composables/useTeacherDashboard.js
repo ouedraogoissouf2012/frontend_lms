@@ -1,4 +1,5 @@
 import { ref, onMounted } from 'vue'
+import { toast } from '@/composables/useToast'
 import { formatDateLong } from '@/utils/formatters'
 import { useRouter } from 'vue-router'
 import { auth, dashboard as dashboardService } from '@/services/api'
@@ -136,7 +137,9 @@ export function useTeacherDashboard() {
         params: { id: matiereId }
       })
     } else {
-      error.value = 'Impossible de naviguer vers cette matière'
+      // Erreur de NAVIGATION, pas de chargement : un toast, et le tableau de bord reste à l'écran
+      // (« Erreur de chargement » le remplaçait, avec un Réessayer qui n'y pouvait rien).
+      toast.error('Impossible de naviguer vers cette matière')
     }
   }
 

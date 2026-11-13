@@ -101,7 +101,17 @@ async function juger(useX) {
 }
 
 describe('AdminEnseignants : canRetry relayé', () => {
-  // Le cas mixte (portail enrichi en panne, repli refusé) relève du lot 3b : non tranché ici.
+  // B2 (suite), revue de #518 : enrichi en PANNE et repli REFUSÉ → « Réessayer », car un nouvel essai
+  // peut atteindre l'enrichi (règle d'AdminStats : une seule panne suffit).
+  it('enrichi en panne, repli refusé : Réessayer ; enrichi refusé, repli en panne : Réessayer', async () => {
+    m.klassci.getLmsEnseignants.mockRejectedValue(panne503())
+    m.klassci.getEnseignants.mockRejectedValue(refus())
+    expect(await juger(useAdminEnseignants)).toBe(true)
+    m.klassci.getLmsEnseignants.mockRejectedValue(refus())
+    m.klassci.getEnseignants.mockRejectedValue(panne503())
+    expect(await juger(useAdminEnseignants)).toBe(true)
+  })
+
   it('les deux sources refusent : pas de Réessayer ; les deux en panne : Réessayer', async () => {
     m.klassci.getLmsEnseignants.mockRejectedValue(refus())
     m.klassci.getEnseignants.mockRejectedValue(refus())

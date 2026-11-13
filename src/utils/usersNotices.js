@@ -11,6 +11,20 @@
  *   administrationEchec?: boolean}} state
  * @returns {string[]}
  */
+// Refus de droits sur la liste nominative : une cause, pas une panne. Réessayer n'y changera rien.
+const NOTICE_ROSTER_INTERDIT = "Vous n'avez pas les droits de consulter la liste nominative des étudiants. "
+  + "L'effectif ci-dessus reste exact ; demandez cet accès à l'administrateur KLASSCI."
+
+/**
+ * Un avertissement propose-t-il « Réessayer » ? Pas le refus de droits (sans issue par un réessai).
+ * Les autres disent une source en échec dont l'écran ne garde pas la cause : on laisse réessayer.
+ * @param {string} notice
+ * @returns {boolean}
+ */
+export function noticePeutReessayer(notice) {
+  return notice !== NOTICE_ROSTER_INTERDIT
+}
+
 export function buildUsersNotices({ counts, hasClasses, hasEnseignants, rosterForbidden, administrationEchec = false }) {
   const { classes: nbClasses, enseignants: nbEnseignants, classesOk } = counts
   const out = []
@@ -34,10 +48,7 @@ export function buildUsersNotices({ counts, hasClasses, hasEnseignants, rosterFo
 
   // Refus de droits : cause distincte d'un échec, et sans issue par un réessai.
   if (rosterForbidden) {
-    out.push(
-      "Vous n'avez pas les droits de consulter la liste nominative des étudiants. "
-      + "L'effectif ci-dessus reste exact ; demandez cet accès à l'administrateur KLASSCI."
-    )
+    out.push(NOTICE_ROSTER_INTERDIT)
     return out
   }
 

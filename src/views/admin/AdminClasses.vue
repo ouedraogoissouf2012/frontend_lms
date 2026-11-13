@@ -35,7 +35,7 @@
           <h3 class="error-title">Erreur de chargement</h3>
           <p class="error-message">{{ error }}</p>
         </div>
-        <button @click="loadClasses" class="error-retry-btn">
+        <button v-if="canRetry" @click="loadClasses" class="error-retry-btn">
           <span class="btn-icon">🔄</span>
           Réessayer
         </button>
@@ -86,7 +86,7 @@ import ContentLoader from '@/components/common/ContentLoader.vue'
 import { useAdminClasses } from '@/composables/useAdminClasses'
 
 const {
-  filieres, niveaux, loading, error, filters,
+  filieres, niveaux, loading, error, canRetry, filters,
   filteredClasses, stats,
   loadClasses, applyFilters, resetFilters, viewClasseDetails,
 } = useAdminClasses()

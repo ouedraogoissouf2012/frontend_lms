@@ -25,6 +25,8 @@ vi.mock('@/services/cache', () => ({
   writeCache: cacheMock.writeCache,
 }))
 vi.mock('vue-router', () => ({ useRouter: () => ({ push: pushMock }) }))
+const toast = vi.hoisted(() => ({ error: vi.fn(), success: vi.fn(), info: vi.fn(), warning: vi.fn() }))
+vi.mock('@/composables/useToast', () => ({ toast }))
 
 import { useTeacherDashboard } from '@/composables/useTeacherDashboard'
 
@@ -156,11 +158,15 @@ describe('useTeacherDashboard (#H11)', () => {
     expect(pushMock).toHaveBeenCalledWith({ name: 'matiere-details', params: { id: 42 } })
   })
 
-  it('signale une erreur si aucun id de matière n\'est trouvé', async () => {
+  // Renversé (lot « Réessayer », B2) : l'erreur de navigation n'est plus une erreur de CHARGEMENT ;
+  // elle remplaçait tout le tableau de bord par « Erreur de chargement » et un Réessayer mort.
+  it('sans id de matière : pas de navigation, un toast, le tableau de bord reste', async () => {
     const d = await setup()
+    toast.error.mockClear()
     d.navigateToMatiere({})
     expect(pushMock).not.toHaveBeenCalled()
-    expect(d.error.value).toBe('Impossible de naviguer vers cette matière')
+    expect(toast.error).toHaveBeenCalledWith('Impossible de naviguer vers cette matière')
+    expect(d.error.value).toBeNull()
   })
 
   it('formate les dates et gère l\'absence de date', async () => {

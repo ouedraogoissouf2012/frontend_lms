@@ -35,10 +35,13 @@ export function useAdminDashboard() {
   /** 'non-charge' | 'chargement' | 'pret' | 'erreur' — le calendrier se charge à la demande. */
   const calendarState = ref('non-charge')
   const calendarError = ref('')
+  // « Réessayer » seulement sur une panne passagère (le chargement agrégé, puis le calendrier).
+  const calendarCanRetry = ref(true)
   const calendarEvents = ref([])
   // Échec du chargement des données d'établissement, à AFFICHER : sans lui, une
   // panne KLASSCI laissait le tableau de bord muet, garni de zéros.
   const loadError = ref(null)
+  const canRetry = ref(true)
   const showGenerateReportModal = ref(false)
   const loading = ref({
     stats: false,
@@ -49,7 +52,7 @@ export function useAdminDashboard() {
 
   const { loadKlassciData, loadAnalytics, loadCalendarEvents } = useAdminDashboardData({
     stats, classes, matieres, activityData, pendingTasks, recentUsers, calendarEvents, loading, loadError,
-    analyticsError, calendarState, calendarError,
+    analyticsError, calendarState, calendarError, canRetry, calendarCanRetry,
   })
 
   const { getInitials, getRoleLabel, getRoleClass, formatDate } = useDashboardFormatters()
@@ -120,7 +123,7 @@ export function useAdminDashboard() {
   return {
     user, meta, stats, classes, matieres,
     activityData, pendingTasks, recentUsers, calendarEvents,
-    showGenerateReportModal, loading, loadError, analyticsError, calendarState, calendarError,
+    showGenerateReportModal, loading, loadError, canRetry, analyticsError, calendarState, calendarError, calendarCanRetry,
     loadDashboard: loadKlassciData, loadAnalytics, loadCalendarEvents,
     navigateTo, handleReportGenerated, getDashboardTitle,
     isCoordinateur, isTeacher, isAdmin,

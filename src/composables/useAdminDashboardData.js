@@ -1,4 +1,5 @@
 import { klassciService } from '@/services/klassci'
+import { estPannePassagere } from '@/utils/pannePassagere'
 import { analyticsService } from '@/services/analytics'
 import { getAdminStatistics, extractAdminStatistics } from '@/services/adminStatistics'
 import { readCache, writeCache } from '@/services/cache'
@@ -25,13 +26,14 @@ const measured = (value) => (Number.isFinite(value) ? value : null)
  */
 export function useAdminDashboardData({
   stats, classes, matieres, activityData, pendingTasks, recentUsers, calendarEvents, loading, loadError,
-  analyticsError, calendarState, calendarError,
+  analyticsError, calendarState, calendarError, canRetry, calendarCanRetry,
 }) {
   async function loadKlassciData() {
     loading.value.classes = true
     loading.value.matieres = true
     loading.value.stats = true
     loadError.value = null
+    canRetry.value = true
 
     // Lire les caches existants
     const classesCached = readCache('admin_klassci_classes')
@@ -105,6 +107,8 @@ export function useAdminDashboardData({
       }
       if (echecs.length > 0) {
         loadError.value = echecs[0]?.userMessage ?? normalizeError(echecs[0]).userMessage
+        // Une seule source en panne suffit à proposer « Réessayer » ; que des refus, non.
+        canRetry.value = echecs.some((e) => estPannePassagere(e))
       }
     } catch (error) {
       logError(error, '[useAdminDashboardData] chargement KLASSCI')
@@ -125,6 +129,7 @@ export function useAdminDashboardData({
       }
       loadError.value = error?.userMessage
         || 'Impossible de charger les données de l’établissement. Les compteurs sont indisponibles.'
+      canRetry.value = estPannePassagere(error)
     } finally {
       loading.value.classes = false
       loading.value.matieres = false
@@ -164,6 +169,7 @@ export function useAdminDashboardData({
   async function loadCalendarEvents() {
     calendarState.value = 'chargement'
     calendarError.value = ''
+    calendarCanRetry.value = true
     try {
       // Charger les vraies séances depuis KLASSCI (30 prochains jours)
       const seances = await klassciService.getUpcomingSeances({ days: 30 })
@@ -224,6 +230,7 @@ export function useAdminDashboardData({
       logError(error, '[useAdminDashboardData] calendrier')
       calendarEvents.value = []
       calendarError.value = error?.userMessage ?? normalizeError(error).userMessage
+      calendarCanRetry.value = estPannePassagere(error)
       calendarState.value = 'erreur'
     }
   }

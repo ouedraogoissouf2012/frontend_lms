@@ -33,7 +33,7 @@
       >
         <ExclamationTriangleIcon class="dashboard-error-icon" />
         <span>{{ loadError }}</span>
-        <button class="dashboard-error-retry" @click="loadDashboard()">Réessayer</button>
+        <button v-if="canRetry" class="dashboard-error-retry" @click="loadDashboard()">Réessayer</button>
       </div>
 
       <!-- Échec d'une source d'analytics : région présente dès le montage. -->
@@ -85,7 +85,7 @@
 
         <!-- Calendrier des événements -->
         <div v-reveal class="mb-6">
-          <DashboardCalendarPanel :etat="calendarState" :events="calendarEvents"
+          <DashboardCalendarPanel :etat="calendarState" :events="calendarEvents" :can-retry="calendarCanRetry"
                                   :message="calendarError" @charger="loadCalendarEvents" />
         </div>
 
@@ -136,7 +136,7 @@ import { useAdminDashboard } from '@/composables/useAdminDashboard'
 const {
   user, meta, stats, classes, matieres,
   activityData, pendingTasks, recentUsers, calendarEvents,
-  showGenerateReportModal, loading, loadError, analyticsError, calendarState, calendarError,
+  showGenerateReportModal, loading, loadError, canRetry, analyticsError, calendarState, calendarError, calendarCanRetry,
   navigateTo, handleReportGenerated, getDashboardTitle,
   isCoordinateur, isTeacher, isAdmin, loadDashboard, loadCalendarEvents,
 } = useAdminDashboard()
