@@ -50,6 +50,11 @@ export function enrichEvaluation(evaluation, { enseignants, classes, matieres })
   }
 }
 
+// D72-c (D132) : la clé de jointure d'une option est un id LOCAL dans une école créée depuis le LMS ;
+// elle s'appelle donc `cleJointure`, et une option ne porte JAMAIS de clé `klassci_id` (pas même
+// recopiée d'une ligne source ou d'un cache antérieur).
+const sansKlassciId = ({ klassci_id: _ignore, ...reste }) => reste
+
 export function teacherOption(enseignant) {
   const id = toId(enseignant)
   const name = displayName(enseignant)
@@ -57,9 +62,9 @@ export function teacherOption(enseignant) {
   const source = typeof enseignant === 'object' && enseignant !== null ? enseignant : {}
   const joinId = source.klassci_id ?? source.id ?? source.teacher_id ?? id
   return {
-    ...source,
+    ...sansKlassciId(source),
     id: joinId,
-    klassci_id: joinId,
+    cleJointure: joinId,
     name,
     libelle: name,
     email: source.email || ''
@@ -76,16 +81,16 @@ export function deriveEnseignants(enseignants, evaluations) {
   const enseignantsMap = new Map()
   enseignants.forEach((enseignant) => {
     const option = teacherOption(enseignant)
-    if (option) enseignantsMap.set(toId(option.klassci_id), option)
+    if (option) enseignantsMap.set(toId(option.cleJointure), option)
   })
   evaluations.forEach(evaluation => {
     const joinId = idEnseignant(evaluation)
     if (joinId && (evaluation.enseignant_nom || evaluation.enseignant)) {
       const name = firstValue(evaluation.enseignant_nom, displayName(evaluation.enseignant))
       enseignantsMap.set(toId(joinId), {
-        ...(evaluation.enseignant || {}),
+        ...sansKlassciId(evaluation.enseignant || {}),
         id: joinId,
-        klassci_id: joinId,
+        cleJointure: joinId,
         name,
         libelle: name,
         email: evaluation.enseignant?.email || ''
