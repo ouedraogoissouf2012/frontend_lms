@@ -48,7 +48,7 @@
           <td>
             <span class="note-value" :class="classeDeNote(evaluation)">
               {{ afficherNote(evaluation.note) }}
-            </span>
+            </span><small v-if="noteMasquee(evaluation)" class="note-masquee">Résultat non publié</small>
           </td>
 
           <td class="coef-cell">
@@ -91,7 +91,7 @@ import {
   formatDate,
   formatTemps,
   isNew,
-  classeDeNote,
+  classeDeNote, noteMasquee,
   afficherNote,
 } from '@/utils/studentGrades'
 

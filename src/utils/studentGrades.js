@@ -128,6 +128,16 @@ export function getTrendText(matiere) {
   }
 }
 
+/** Note non publiée (résultats cachés : la clé `note` est absente, #1040) ou absente. */
+export function noteMasquee(evaluation) {
+  return noteLue(evaluation) === null
+}
+
+/** Classe CSS d'une moyenne ; aucune pour une moyenne non mesurée (null, rendue « — »). */
+export function classeDeMoyenne(moyenne) {
+  return moyenne === null || moyenne === undefined ? '' : getMoyenneClass(moyenne)
+}
+
 /** Classe CSS de la note d'une évaluation ; aucune pour une note absente (rendue « — »). */
 export function classeDeNote(evaluation) {
   const note = noteLue(evaluation)

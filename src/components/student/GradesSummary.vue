@@ -21,16 +21,16 @@
               <span class="summary-count">{{ matiere.total_evaluations }} éval.</span>
             </div>
 
-            <div class="summary-moyenne" :class="getMoyenneClass(matiere.moyenne)">
+            <div class="summary-moyenne" :class="classeDeMoyenne(matiere.moyenne)">
               <span class="moyenne-label">Moyenne:</span>
-              <span class="moyenne-value">{{ matiere.moyenne }}/20</span>
+              <span class="moyenne-value">{{ afficherNote(matiere.moyenne) }}</span>
             </div>
 
             <div class="progress-bar">
               <div
                 class="progress-fill"
-                :class="getMoyenneClass(matiere.moyenne)"
-                :style="{ width: `${(matiere.moyenne / 20) * 100}%` }"
+                :class="classeDeMoyenne(matiere.moyenne)"
+                :style="{ width: `${((matiere.moyenne ?? 0) / 20) * 100}%` }"
               ></div>
             </div>
 
@@ -62,7 +62,7 @@
  * (defineModel) ; les calculs viennent des utils purs studentGrades.
  */
 import {
-  getMoyenneClass,
+  classeDeMoyenne,
   getMaxNote,
   getMinNote,
   getTrendIcon,
