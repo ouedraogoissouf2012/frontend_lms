@@ -4,6 +4,7 @@ import { countLessons, countStudents, listeMesuree } from './teacherDashboardCou
 import { toId } from './toId'
 import { coalesceNumber } from './coalesceNumber'
 import { measuredSum } from './measuredSum'
+import { measureClassStudentCount } from './classMeasures'
 
 const EMPTY_TEACHER_DASHBOARD = {
   matieres: [],
@@ -235,8 +236,10 @@ function mesure(valeur) {
 function effectifMesure(classes) {
   const liste = Array.isArray(classes) ? classes : []
   if (liste.length === 0) return null
-  // Même règle que le repli : une classe sans effectif rend le total non mesuré.
-  return measuredSum(liste.map((c) => mesure(c?.places_occupees ?? c?.nb_etudiants ?? c?.students_count)))
+  // Même règle que le repli : une classe sans effectif rend le total non mesuré. L'effectif d'une
+  // classe suit LA règle unique (measureClassStudentCount), qui lit aussi `effectif_actuel` (source
+  // locale des classes de l'enseignant, R4).
+  return measuredSum(liste.map(measureClassStudentCount))
 }
 
 /**
