@@ -28,6 +28,8 @@ export function useCreateQuestions() {
   const questions = ref([])
   const loading = ref(false)
   const isEditMode = ref(false)
+  // L'en-tête montre la programmation KLASSCI, sinon l'évaluation LMS (évaluation locale, D72-b).
+  const evaluationAffichee = computed(() => evaluationKlassci.value ?? evaluationLMS.value)
 
   const isValid = computed(() => {
     return configuration.duree_minutes > 0 && questions.value.length > 0
@@ -258,17 +260,19 @@ export function useCreateQuestions() {
 
   onMounted(async () => {
     const klassciId = route.query.klassci_id
-    if (!klassciId) {
+    // Vérifier si mode édition (route avec paramètre :id)
+    const lmsEvaluationId = route.params.id
+    isEditMode.value = !!lmsEvaluationId
+
+    // D72-b : une évaluation LOCALE n'a pas d'id KLASSCI ; en édition, il est facultatif. La création
+    // depuis une programmation, elle, l'exige toujours (la création locale passe par la liste).
+    if (!klassciId && !isEditMode.value) {
       toast.error('ID évaluation KLASSCI manquant')
       router.back()
       return
     }
 
-    // Vérifier si mode édition (route avec paramètre :id)
-    const lmsEvaluationId = route.params.id
-    isEditMode.value = !!lmsEvaluationId
-
-    await loadEvaluationKlassci(klassciId)
+    if (klassciId) await loadEvaluationKlassci(klassciId)
 
     // Si mode édition, charger l'évaluation LMS existante
     if (isEditMode.value) {
@@ -277,7 +281,7 @@ export function useCreateQuestions() {
   })
 
   return {
-    evaluationKlassci, configuration, questions, loading, isEditMode,
+    evaluationKlassci, evaluationAffichee, configuration, questions, loading, isEditMode,
     isValid,
     addQuestion, removeQuestion, addOption, removeOption,
     setCorrectAnswer, toggleCorrectAnswer,

@@ -110,12 +110,12 @@ export function useTeacherEvaluationActions({ evaluationsLMS, loadEvaluationsLMS
   function editOnlineVersion(evaluation) {
     if (!evaluation.online_version) return
 
+    // D132 : l'id KLASSCI ne part que si l'évaluation en porte un (jamais l'id d'une carte locale).
+    const klassciId = evaluation.online_version.klassci_evaluation_id
     router.push({
       name: 'EditQuestions',
       params: { id: evaluation.online_version.id },
-      query: {
-        klassci_id: evaluation.id
-      }
+      query: klassciId != null ? { klassci_id: klassciId } : {}
     })
   }
 

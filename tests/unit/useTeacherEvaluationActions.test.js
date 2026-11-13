@@ -99,7 +99,8 @@ describe('useTeacherEvaluationActions (H1)', () => {
 
   it('editOnlineVersion et previewEvaluation naviguent', () => {
     const { api } = setup()
-    api.editOnlineVersion({ id: 1, online_version: { id: 5 } })
+    // Fixture complétée (D72-b) : une version en ligne d'une évaluation KLASSCI porte son klassci_evaluation_id.
+    api.editOnlineVersion({ id: 1, online_version: { id: 5, klassci_evaluation_id: 1 } })
     expect(h.push).toHaveBeenCalledWith({ name: 'EditQuestions', params: { id: 5 }, query: { klassci_id: 1 } })
     api.previewEvaluation({ id: 1, online_version: { id: 5 } })
     expect(h.push).toHaveBeenCalledWith({ name: 'PreviewEvaluation', params: { id: 5 } })

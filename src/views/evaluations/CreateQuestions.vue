@@ -21,23 +21,23 @@
         </p>
 
         <!-- Infos évaluation KLASSCI -->
-        <div v-if="evaluationKlassci" class="mt-4 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+        <div v-if="evaluationAffichee" class="mt-4 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <p class="text-xs text-blue-600 dark:text-blue-400">Évaluation</p>
-              <p class="font-medium text-gray-900 dark:text-white">{{ evaluationKlassci.titre }}</p>
+              <p class="font-medium text-gray-900 dark:text-white">{{ evaluationAffichee.titre }}</p>
             </div>
             <div>
               <p class="text-xs text-blue-600 dark:text-blue-400">Matière</p>
-              <p class="font-medium text-gray-900 dark:text-white">{{ evaluationKlassci.matiere?.nom || evaluationKlassci.matiere?.name }}</p>
+              <p class="font-medium text-gray-900 dark:text-white">{{ evaluationAffichee.matiere?.nom || evaluationAffichee.matiere?.name }}</p>
             </div>
             <div>
               <p class="text-xs text-blue-600 dark:text-blue-400">Classe</p>
-              <p class="font-medium text-gray-900 dark:text-white">{{ evaluationKlassci.classe?.nom || evaluationKlassci.classe?.name || evaluationKlassci.classe?.libelle }}</p>
+              <p class="font-medium text-gray-900 dark:text-white">{{ evaluationAffichee.classe?.nom || evaluationAffichee.classe?.name || evaluationAffichee.classe?.libelle }}</p>
             </div>
             <div>
               <p class="text-xs text-blue-600 dark:text-blue-400">Barème</p>
-              <p class="font-medium text-gray-900 dark:text-white">{{ evaluationKlassci.bareme || evaluationKlassci.programmation?.bareme || 20 }}/20</p>
+              <p class="font-medium text-gray-900 dark:text-white">{{ evaluationAffichee.bareme || evaluationAffichee.programmation?.bareme || 20 }}/20</p>
             </div>
           </div>
         </div>
@@ -89,7 +89,7 @@ import QuestionsEditorList from '@/components/evaluations/QuestionsEditorList.vu
 import { useCreateQuestions } from '@/composables/useCreateQuestions'
 
 const {
-  evaluationKlassci, configuration, questions, loading, isEditMode,
+  evaluationAffichee, configuration, questions, loading, isEditMode,
   isValid,
   addQuestion, removeQuestion, addOption, removeOption,
   setCorrectAnswer, toggleCorrectAnswer,
