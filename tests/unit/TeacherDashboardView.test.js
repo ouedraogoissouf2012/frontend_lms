@@ -75,7 +75,6 @@ describe('TeacherDashboard.vue (G9) — montage', () => {
       matieres: [{ id: 1 }],
       classes: [],
       evaluations: [],
-      seances: [],
       // `statistiques` n'est plus VIDE : les quatre indicateurs du tableau de
       // bord y sont désormais greffés (#371). Ils valent `null` ici — aucune
       // source dans cette charge de test — et `null` s'affiche « — », là où
@@ -87,6 +86,11 @@ describe('TeacherDashboard.vue (G9) — montage', () => {
         evaluations_en_cours: null,
       },
     }))
+    // Plus de liste de séances FABRIQUÉE (`seances: []` donnait un 0) : la charge n'en porte pas,
+    // la liste à venir est donc non mesurée (null, « — »).
+    const ecrit = writeCache.mock.calls.find(([cle]) => cle === 'teacher_dashboard')?.[1]
+    expect(ecrit).not.toHaveProperty('seances')
+    expect(ecrit.prochaines_seances).toBeNull()
   })
 
   it('cache vide et réponse vide → ne cache pas un dashboard sans contenu', async () => {

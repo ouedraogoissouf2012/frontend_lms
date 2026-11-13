@@ -58,13 +58,13 @@ describe('repli du tableau de bord enseignant : rien de mesuré n’est un nombr
 
   it('séances refusées par le serveur → liste et compteur du jour non mesurés', async () => {
     const d = await buildTeacherDashboardFallback(lms({ matieres: MATIERES }), ENSEIGNANT, null)
-    expect(d.seances).toBeNull()
+    expect(d.prochaines_seances).toBeNull()
     expect(d.statistiques.seances_aujourdhui).toBeNull()
   })
 
   it('séances obtenues et vides → un vrai 0', async () => {
     const d = await buildTeacherDashboardFallback(lms({ matieres: MATIERES, seances: [] }), ENSEIGNANT, null)
-    expect(d.seances).toEqual([])
+    expect(d.prochaines_seances).toEqual([])
     expect(d.statistiques.seances_aujourdhui).toBe(0)
   })
 
@@ -78,12 +78,12 @@ describe('cartes du tableau de bord enseignant : « — » pour une liste non me
   const valeurs = (w) => w.findAll('.stat-value, .stat-number, p').map((n) => n.text()).filter((t) => t === '—')
 
   it('séances et évaluations non mesurées → deux « — »', () => {
-    const w = mount(DashboardStatCards, { props: { dashboardData: { matieres: [{ id: 1 }], classes: [{ id: 5 }], evaluations: null, seances: null } } })
+    const w = mount(DashboardStatCards, { props: { dashboardData: { matieres: [{ id: 1 }], classes: [{ id: 5 }], evaluations: null, prochaines_seances: null } } })
     expect(valeurs(w)).toHaveLength(2)
   })
 
   it('listes obtenues (même vides) → aucun « — »', () => {
-    const w = mount(DashboardStatCards, { props: { dashboardData: { matieres: [], classes: [], evaluations: [], seances: [] } } })
+    const w = mount(DashboardStatCards, { props: { dashboardData: { matieres: [], classes: [], evaluations: [], prochaines_seances: [] } } })
     expect(valeurs(w)).toHaveLength(0)
   })
 })
@@ -112,7 +112,7 @@ describe('repli par la fiche enseignant (/lms/enseignants répond) : même règl
   it('une fiche sans séances ni évaluations : non mesurées, jamais un 0', async () => {
     const fiche = { matieres: [{ id: 1, nom: 'Mathematiques', classes: [{ id: 5, nb_etudiants: 4 }] }] }
     const d = await buildTeacherDashboardFallback(avecFiche(fiche), ENSEIGNANT, null)
-    expect(d.seances).toBeNull()
+    expect(d.prochaines_seances).toBeNull()
     expect(d.evaluations).toBeNull()
     expect(d.statistiques.seances_aujourdhui).toBeNull()
     expect(d.statistiques.evaluations_en_cours).toBeNull()

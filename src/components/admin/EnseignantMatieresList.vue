@@ -14,7 +14,7 @@
       <div v-if="matiere.heures_prevues != null" class="matiere-detail-stats">
         <div class="matiere-stat">
           <span class="matiere-stat-label">Heures:</span>
-          <span class="matiere-stat-value">{{ matiere.heures_effectuees ?? '—' }}h / {{ matiere.heures_prevues }}h</span>
+          <span class="matiere-stat-value">{{ matiere.heures_effectuees != null ? `${matiere.heures_effectuees}h` : '—' }} / {{ matiere.heures_prevues }}h</span>
         </div>
         <div class="matiere-stat">
           <span class="matiere-stat-label">Taux:</span>

@@ -27,3 +27,18 @@ export function countStudents(classes = []) {
 export function listeMesuree(source, champ) {
   return Array.isArray(source?.[champ]) ? source[champ] : null
 }
+
+/**
+ * Les séances à venir MESURÉES, ou `null` (« — »). Une seule règle, partagée par la carte « Séances à
+ * venir » et par `deriveTeacherCounters` : le serveur dit d'où vient la liste (règle d'origine, D172).
+ * - Source locale (`source: 'lms_local'`, R4) : une liste reçue est une mesure, vide = 0.
+ * - Sans cette marque (école KLASSCI) : une liste VIDE n'est pas tenue pour une mesure, tant que la
+ *   question « KLASSCI remplit-il `prochaines_seances` aujourd'hui ? » (#739) n'est pas tranchée.
+ * @param {object|null} charge le tableau de bord enseignant (`prochaines_seances`, `source`)
+ * @returns {Array|null}
+ */
+export function prochainesSeancesMesurees(charge) {
+  const liste = charge?.prochaines_seances
+  if (!Array.isArray(liste)) return null
+  return liste.length > 0 || charge?.source === 'lms_local' ? liste : null
+}

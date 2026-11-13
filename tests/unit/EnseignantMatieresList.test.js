@@ -64,7 +64,9 @@ describe('EnseignantMatieresList (#G1) — rendu', () => {
     expect(w.find('.matiere-classes').text()).toContain('L1')
   })
 
-  it('ignore les entrées invalides et remplace les stats absentes par zéro (#13)', () => {
+  // Renversé (lot « lecture honnête », point 6) : une mesure ABSENTE reste inconnue (« — »), elle n'est
+  // plus remplacée par un zéro inventé. Le reste (#13 : entrées invalides ignorées) est inchangé.
+  it('ignore les entrées invalides ; une stat absente se dit « — », jamais zéro (#13)', () => {
     const matieres = [
       null,
       {
@@ -78,8 +80,8 @@ describe('EnseignantMatieresList (#G1) — rendu', () => {
     const html = w.html()
 
     expect(w.findAll('.matiere-detail-card')).toHaveLength(1)
-    expect(html).toContain('0h / 30h')
-    expect(html).toContain('0%')
+    expect(w.text()).toContain('— / 30h')
+    expect(w.text()).not.toMatch(/0h \/ 30h|\b0%|—h/)
     expect(w.findAll('.matiere-classe-tag')).toHaveLength(1)
   })
 })
