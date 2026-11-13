@@ -10,6 +10,8 @@
             <p class="page-subtitle">Gérez les évaluations en ligne de vos classes</p>
           </div>
         </div>
+        <!-- D72-b : école créée depuis le LMS (catalogue lms_local), création locale. -->
+        <EvaluationCreateLocaleAction :matieres="matieres" @created="loadEvaluationsLMS" />
       </div>
 
       <!-- #420 : région vivante présente dès le montage ; seul son texte change. -->
@@ -96,6 +98,7 @@ import TeacherEvalStats from '@/components/evaluations/TeacherEvalStats.vue'
 import TeacherEvalEmptyState from '@/components/evaluations/TeacherEvalEmptyState.vue'
 import TeacherEvalErrorState from '@/components/evaluations/TeacherEvalErrorState.vue'
 import TeacherEvalCreateModal from '@/components/evaluations/TeacherEvalCreateModal.vue'
+import EvaluationCreateLocaleAction from '@/components/evaluations/EvaluationCreateLocaleAction.vue'
 
 // Données, filtres & dérivés délégués au composable (#28, tranche 2)
 const {
