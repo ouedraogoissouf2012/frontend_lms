@@ -25,6 +25,7 @@
       :saving="saving"
       :get-chapter-quiz="getChapterQuiz"
       :is-quiz-unknown="isQuizUnknown"
+      :quiz-echec="quizEchec"
       @edit="editChapter"
       @delete="deleteChapter"
       @save="saveChapter"
@@ -118,7 +119,7 @@ const {
   showQuizEditor, showQuizPlayer, selectedChapterId, selectedQuiz, editingQuiz,
   loadChapters, addChapter, editChapter, cancelEdit, saveChapter, deleteChapter,
   openQuizEditor, closeQuizEditor, onQuizSaved, openQuizPlayer, closeQuizPlayer,
-  onQuizCompleted, getChapterQuiz, isQuizUnknown, loadKnowledgeChecks
+  onQuizCompleted, getChapterQuiz, isQuizUnknown, quizEchec, loadKnowledgeChecks
 } = useChapterManager(toRef(props, 'lessonId'))
 </script>
 
