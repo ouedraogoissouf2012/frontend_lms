@@ -13,19 +13,27 @@ const h = vi.hoisted(() => ({
   push: vi.fn(), back: vi.fn(),
   getEvaluations: vi.fn(), getTeacherDashboard: vi.fn(),
   getEvaluation: vi.fn(), updateEvaluation: vi.fn(), previewEvaluation: vi.fn(),
+  createEvaluation: vi.fn(), publishEvaluation: vi.fn(),
   toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn() },
 }))
 vi.mock('vue-router', () => ({ useRoute: () => h.route, useRouter: () => ({ push: h.push, back: h.back }) }))
 vi.mock('@/services/klassci', () => ({ default: { getEvaluations: h.getEvaluations, getTeacherDashboard: h.getTeacherDashboard } }))
 vi.mock('@/services/evaluation', () => ({
-  default: { getEvaluation: h.getEvaluation, updateEvaluation: h.updateEvaluation, previewEvaluation: h.previewEvaluation },
+  default: {
+    getEvaluation: h.getEvaluation, updateEvaluation: h.updateEvaluation, previewEvaluation: h.previewEvaluation,
+    createEvaluation: h.createEvaluation, publishEvaluation: h.publishEvaluation,
+  },
 }))
 vi.mock('@/composables/useToast', () => ({ toast: h.toast }))
 vi.mock('@/composables/useConfirm', () => ({ useConfirm: () => ({ confirm: () => Promise.resolve(true) }) }))
+vi.mock('@/components/layout/DashboardLayout.vue', () => ({ default: { template: '<div><slot /></div>' } }))
+vi.mock('@/components/evaluations/QuestionsConfigForm.vue', () => ({ default: { props: ['configuration'], template: '<section />' } }))
+vi.mock('@/components/evaluations/QuestionsEditorList.vue', () => ({ default: { props: ['questions'], template: '<section />' } }))
 
 import { useCreateQuestions } from '@/composables/useCreateQuestions'
 import { useTeacherEvaluationActions } from '@/composables/useTeacherEvaluationActions'
 import { usePreviewEvaluation } from '@/composables/usePreviewEvaluation'
+import CreateQuestions from '@/views/evaluations/CreateQuestions.vue'
 
 const LOCALE = {
   id: 70, klassci_evaluation_id: null, classe_id: 9, matiere_id: 3, titre: 'Contrôle local', bareme: 20,
@@ -97,5 +105,51 @@ describe('les chemins vers l’édition n’envoient klassci_id que pour une év
     const klassci = await monter(usePreviewEvaluation)
     klassci.goToEdit()
     expect(h.push).toHaveBeenLastCalledWith({ name: 'EditQuestions', params: { id: 50 }, query: { klassci_id: 5 } })
+  })
+})
+
+// D72-b, volet 6 (demande de la superviseure) : le volet 3 rend l'édition d'une évaluation locale
+// atteignable. Un chargement en échec retombait alors sur la CRÉATION (`saveQuestions` : édition
+// sans évaluation LMS → `createEvaluation`, qui déréférence une programmation KLASSCI nulle).
+// En édition, l'échec se dit, l'enregistrement est désactivé, et rien ne part.
+const PIEGE = 'SQLSTATE[42S02] piège serveur'
+const ECHECS = {
+  'refus HTTP': () => h.getEvaluation.mockRejectedValue({ response: { status: 500, data: { message: PIEGE } } }),
+  'réponse 2xx sans success': () => h.getEvaluation.mockResolvedValue({ success: false, message: PIEGE }),
+}
+
+describe('useCreateQuestions — édition : un chargement en échec n’est jamais une création', () => {
+  for (const [cas, provoquer] of Object.entries(ECHECS)) {
+    it(`${cas} : l’erreur est retenue (sans texte serveur), l’enregistrement désactivé, rien ne part`, async () => {
+      h.route = { query: {}, params: { id: '70' } }
+      provoquer()
+      const c = await monter(useCreateQuestions)
+      expect(c.erreurChargement.value).toEqual(expect.any(String))
+      expect(c.erreurChargement.value).not.toContain('SQLSTATE')
+      expect(c.peutEnregistrer.value).toBe(false)
+      c.addQuestion()
+      expect(c.peutEnregistrer.value).toBe(false)
+      await c.saveQuestions()
+      expect(h.createEvaluation).not.toHaveBeenCalled()
+      expect(h.updateEvaluation).not.toHaveBeenCalled()
+    })
+  }
+
+  it('chargement réussi : aucune erreur, l’enregistrement suit les questions', async () => {
+    h.route = { query: {}, params: { id: '70' } }
+    const c = await monter(useCreateQuestions)
+    expect(c.erreurChargement.value).toBeNull()
+    expect(c.peutEnregistrer.value).toBe(true)
+  })
+
+  it('vue : l’erreur de chargement s’affiche et le bouton d’enregistrement est désactivé', async () => {
+    h.route = { query: {}, params: { id: '70' } }
+    ECHECS['refus HTTP']()
+    const w = mount(CreateQuestions)
+    await flushPromises()
+    const alerte = w.find('[role="alert"]')
+    expect(alerte.exists()).toBe(true)
+    expect(alerte.text()).not.toContain('SQLSTATE')
+    expect(w.find('button[type="button"][disabled]').exists()).toBe(true)
   })
 })
