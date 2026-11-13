@@ -1,6 +1,6 @@
 import { extractList, pickList } from './apiList'
 import { enrichTeacherClasses } from './classStats'
-import { countLessons, countStudents, listeMesuree } from './teacherDashboardCounts'
+import { countLessons, countStudents, listeMesuree, prochainesSeancesMesurees } from './teacherDashboardCounts'
 import { toId } from './toId'
 import { coalesceNumber } from './coalesceNumber'
 import { measuredSum } from './measuredSum'
@@ -10,7 +10,6 @@ const EMPTY_TEACHER_DASHBOARD = {
   matieres: [],
   classes: [],
   evaluations: [],
-  seances: [],
   lessons: [],
   statistiques: {},
 }
@@ -137,7 +136,7 @@ function buildDashboardFromTeacher(enseignant, local = null) {
     matieres,
     classes,
     evaluations,
-    seances,
+    prochaines_seances: seances,
     lessons,
     statistiques: {
       ...statistiques,
@@ -171,7 +170,7 @@ export function hasDashboardContent(data) {
     data?.matieres?.length ||
     data?.classes?.length ||
     data?.evaluations?.length ||
-    data?.seances?.length ||
+    data?.prochaines_seances?.length ||
     data?.lessons?.length ||
     Object.values(data?.statistiques || {}).some(value => Number(value) > 0)
   )
@@ -210,7 +209,7 @@ export async function buildTeacherDashboardFallback(lmsService, currentUser, loc
   return normalizeTeacherDashboard({
     matieres,
     classes,
-    seances,
+    prochaines_seances: seances,
     // Ce chemin ne demande pas les évaluations : non mesurées.
     evaluations: null,
     statistiques: {
@@ -280,13 +279,12 @@ export function deriveTeacherCounters(klassci, local) {
   const k = klassci && typeof klassci === 'object' ? klassci : {}
   const l = local && typeof local === 'object' ? local : {}
   const evaluations = Array.isArray(k.evaluations) ? k.evaluations : null
+  const prochaines = prochainesSeancesMesurees(k)
 
   return {
     total_etudiants: effectifMesure(k.classes),
     total_lecons: mesure(l?.lessons?.total),
-    seances_aujourdhui: Array.isArray(k.prochaines_seances) && k.prochaines_seances.length > 0
-      ? k.prochaines_seances.filter(isTodaySeance).length
-      : null,
+    seances_aujourdhui: prochaines ? prochaines.filter(isTodaySeance).length : null,
     evaluations_en_cours: evaluations
       ? evaluations.filter((e) => e?.programmation?.window?.is_open === true).length
       : null,

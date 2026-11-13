@@ -12,6 +12,7 @@ import {
   normalizeTeacherDashboard,
   normalizeTeacherDashboardPayload,
 } from '@/utils/teacherDashboard'
+import { prochainesSeancesMesurees } from '@/utils/teacherDashboardCounts'
 
 const CACHE_NAME = 'teacher_dashboard'
 
@@ -49,6 +50,8 @@ export function useTeacherDashboard() {
   function avecCompteurs(data, brut, local) {
     return {
       ...data,
+      // La carte « Séances à venir » lit la liste MESURÉE (règle d'origine), ou `null` (« — »).
+      prochaines_seances: prochainesSeancesMesurees(brut),
       statistiques: { ...(data.statistiques ?? {}), ...deriveTeacherCounters(brut, local) },
     }
   }
