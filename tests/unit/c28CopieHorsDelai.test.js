@@ -123,6 +123,17 @@ describe('useTakeEvaluation — l’échéance de la copie (C28)', () => {
     expect(vi.getTimerCount()).toBe(0)
   })
 
+  // Ajout déclaré : l'entraînement n'a pas d'échéance (`ends_at` nul, contrat #1037), et /my-submission
+  // rend la tentative de plus haut numéro sans distinguer l'entraînement : la vérification d'id pourrait
+  // y bloquer à tort un élève. L'entraînement ne relit donc pas sa copie (D-28c : la durée).
+  it('7 bis. entraînement : la copie n’est pas relue, le minuteur garde la durée', async () => {
+    h.query = { submission_id: '9', practice: '1' }
+    const c = await monter()
+    expect(h.getMySubmission).not.toHaveBeenCalled()
+    expect(c.error.value).toBeNull()
+    expect(c.timeRemaining.value).toBe(1800)
+  })
+
   it('8. 409 sans reason (aucune tentative en cours) → comportement actuel, pas d’état verrouillé', async () => {
     h.submitEvaluation.mockRejectedValue({ response: { status: 409, data: { success: false, message: PIEGE } } })
     const c = await monter()
