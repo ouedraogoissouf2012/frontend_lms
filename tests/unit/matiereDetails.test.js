@@ -136,14 +136,27 @@ describe('utils/matiereDetails — resolveEvaluationRoute', () => {
     expect(resolveEvaluationRoute({ online_version: { id: 8 } }, { role: 'enseignant', matiereId: 3 }))
       .toEqual({ route: { name: 'PreviewEvaluation', params: { id: 8 } } })
   })
-  it('enseignant sans version en ligne → CreateQuestions (avec contexte)', () => {
+  // D72-b, B-1 (test renversé, déclaré) : la requête figée ici (`klassci_evaluation_id`,
+  // `klassci_matiere_id`, `titre`) n'était lue par personne ; `CreateQuestions` lit `klassci_id`
+  // (useCreateQuestions) et rebondissait donc TOUJOURS. Seule la clé lue part.
+  it('enseignant, évaluation KLASSCI sans version en ligne → CreateQuestions avec klassci_id', () => {
     const ev = { id: 12, titre: 'Devoir 1' }
     expect(resolveEvaluationRoute(ev, { role: 'teacher', matiereId: 3 })).toEqual({
-      route: {
-        name: 'CreateQuestions',
-        query: { klassci_evaluation_id: 12, klassci_matiere_id: 3, titre: 'Devoir 1' }
-      }
+      route: { name: 'CreateQuestions', query: { klassci_id: 12 } }
     })
+  })
+  // D72-b, B-1 : l'origine vient du serveur (D172). Un id LOCAL ne part jamais sous un nom
+  // `klassci_*` (D132) : sans version en ligne, l'élément local rend la notification existante.
+  it('enseignant, élément local sans version en ligne → aucune route, aucune clé klassci_*', () => {
+    const action = resolveEvaluationRoute({ id: 9, source: 'lms_local' }, { role: 'enseignant', matiereId: 3 })
+    expect(action.route).toBeUndefined()
+    expect(JSON.stringify(action)).not.toContain('klassci')
+    expect(action).toEqual({ notify: { message: 'Cette évaluation n\'a pas encore de version en ligne', level: 'info' } })
+  })
+  it('enseignant, élément local avec version en ligne → PreviewEvaluation', () => {
+    const ev = { id: 9, source: 'lms_local', has_online: true, online_version: { id: 9 } }
+    expect(resolveEvaluationRoute(ev, { role: 'enseignant', matiereId: 3 }))
+      .toEqual({ route: { name: 'PreviewEvaluation', params: { id: 9 } } })
   })
   it('rôle non habilité sans version en ligne → notification info', () => {
     expect(resolveEvaluationRoute({ id: 1 }, { role: 'etudiant', matiereId: 3 }))
