@@ -46,8 +46,8 @@
           </td>
 
           <td>
-            <span class="note-value" :class="getNoteClass(parseFloat(evaluation.note))">
-              {{ evaluation.note }}/20
+            <span class="note-value" :class="classeDeNote(evaluation)">
+              {{ afficherNote(evaluation.note) }}
             </span>
           </td>
 
@@ -90,8 +90,9 @@ import {
   formatType,
   formatDate,
   formatTemps,
-  getNoteClass,
   isNew,
+  classeDeNote,
+  afficherNote,
 } from '@/utils/studentGrades'
 
 defineProps({

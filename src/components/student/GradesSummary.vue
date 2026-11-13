@@ -37,11 +37,11 @@
             <div class="summary-stats">
               <div class="stat-item">
                 <i class="mdi mdi-trophy stat-icon"></i>
-                <span class="stat-text">{{ getMaxNote(matiere) }}/20</span>
+                <span class="stat-text">{{ afficherNote(getMaxNote(matiere)) }}</span>
               </div>
               <div class="stat-item">
                 <i class="mdi mdi-arrow-down stat-icon"></i>
-                <span class="stat-text">{{ getMinNote(matiere) }}/20</span>
+                <span class="stat-text">{{ afficherNote(getMinNote(matiere)) }}</span>
               </div>
               <div class="stat-item">
                 <i class="mdi" :class="getTrendIcon(matiere)"></i>
@@ -67,6 +67,7 @@ import {
   getMinNote,
   getTrendIcon,
   getTrendText,
+  afficherNote,
 } from '@/utils/studentGrades'
 
 const showSummary = defineModel('showSummary', { type: Boolean, default: true })

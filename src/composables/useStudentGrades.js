@@ -20,7 +20,8 @@ export function useStudentGrades() {
   // lève pas en réessayant.
   const canRetry = ref(true)
   const matieres = ref([])
-  const moyenneGenerale = ref(0)
+  // null = rien de mesuré (règle A) : jamais un 0 fabriqué.
+  const moyenneGenerale = ref(null)
   const totalMatieres = ref(0)
   const totalEvaluations = ref(0)
   // Les notes ont-elles été lues ? Sinon les cartes de synthèse ne s'affichent pas :
@@ -38,9 +39,12 @@ export function useStudentGrades() {
       if (response.success) {
         const data = response.data
         matieres.value = data.matieres || []
-        moyenneGenerale.value = data.moyenne_generale || 0
-        totalMatieres.value = data.total_matieres || 0
-        totalEvaluations.value = data.total_evaluations || 0
+        // E4a (#1040) : `moyenne_generale` vaut l'entier 0 quand il n'y a RIEN à moyenner (aucune note
+        // finale, ou résultats cachés, C30) : c'est une absence, rendue « — ». Un vrai 0 (des notes) reste 0.
+        const total = Number(data.total_evaluations ?? 0)
+        moyenneGenerale.value = total > 0 ? (data.moyenne_generale ?? null) : null
+        totalMatieres.value = data.total_matieres ?? 0
+        totalEvaluations.value = total
         mesure.value = true
       } else {
         // Jamais le texte du serveur à l'écran (D0) : message du catalogue (selon le `reason`).
