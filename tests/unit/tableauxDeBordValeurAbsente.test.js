@@ -78,12 +78,12 @@ describe('cartes du tableau de bord enseignant : « — » pour une liste non me
   const valeurs = (w) => w.findAll('.stat-value, .stat-number, p').map((n) => n.text()).filter((t) => t === '—')
 
   it('séances et évaluations non mesurées → deux « — »', () => {
-    const w = mount(DashboardStatCards, { props: { dashboardData: { matieres: [{ id: 1 }], classes: [{ id: 5 }], evaluations: null, seances: null } } })
+    const w = mount(DashboardStatCards, { props: { dashboardData: { matieres: [{ id: 1 }], classes: [{ id: 5 }], evaluations: null, prochaines_seances: null } } })
     expect(valeurs(w)).toHaveLength(2)
   })
 
   it('listes obtenues (même vides) → aucun « — »', () => {
-    const w = mount(DashboardStatCards, { props: { dashboardData: { matieres: [], classes: [], evaluations: [], seances: [] } } })
+    const w = mount(DashboardStatCards, { props: { dashboardData: { matieres: [], classes: [], evaluations: [], prochaines_seances: [] } } })
     expect(valeurs(w)).toHaveLength(0)
   })
 })
