@@ -64,7 +64,10 @@ afterEach(() => { vi.useRealTimers() })
 describe('useTakeEvaluation — l’échéance de la copie (C28)', () => {
   it('1. ends_at dans 90 s → 90 s ; rechargée 30 s plus tard → 60 s, pas la durée entière', async () => {
     expect((await monter()).timeRemaining.value).toBe(90)
+    // Rechargement 30 s plus tard : l'heure du SERVEUR avance aussi (sinon le test fabrique un décalage
+    // de -30 s que le code corrige à juste titre ; correction déclarée, vue rouge par la CI, run 43520112702).
     vi.setSystemTime(T0 + 30_000)
+    h.getTimeStatus.mockResolvedValue({ success: true, data: { server_time: iso(T0 + 30_000) } })
     expect((await monter()).timeRemaining.value).toBe(60)
     expect(h.getMySubmission).toHaveBeenCalledWith('42')
   })
