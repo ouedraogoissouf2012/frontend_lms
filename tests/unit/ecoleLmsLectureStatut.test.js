@@ -28,6 +28,29 @@ describe('statutSeance — la visio d’abord, jamais « Terminée » sur une fi
     expect(statutSeance({ heure_fin_estimee: false, date_debut: iso(-3 * H), date_fin: iso(-H) }, maintenant)).toBe('completed')
   })
 
+  // Revue croisée de Fille 1 (D184) : « Non confirmée » seulement une fois la fin estimée PASSÉE.
+  describe('fin estimée, sans visio : un statut par intervalle', () => {
+    const estimee = (debut, fin) => ({ heure_fin_estimee: true, date_debut: iso(debut), date_fin: iso(fin) })
+
+    it('avant le début → planifiée', () => {
+      expect(statutSeance(estimee(H, 3 * H), maintenant)).toBe('scheduled')
+    })
+
+    it('entre le début et la fin estimée → en cours (et l’écran dit « fin estimée »)', () => {
+      expect(statutSeance(estimee(-H, H), maintenant)).toBe('active')
+    })
+
+    it('après la fin estimée → non confirmée, jamais terminée', () => {
+      expect(statutSeance(estimee(-3 * H, -H), maintenant)).toBe('unconfirmed')
+    })
+
+    it('drapeau porté par programmation seulement : même règle (finEstimee)', () => {
+      const prog = (debut, fin) => ({ programmation: { heure_fin_estimee: true }, date_debut: iso(debut), date_fin: iso(fin) })
+      expect(statutSeance(prog(-H, H), maintenant)).toBe('active')
+      expect(statutSeance(prog(-3 * H, -H), maintenant)).toBe('unconfirmed')
+    })
+  })
+
   it('les libellés', () => {
     expect(libelleStatutSeance('unconfirmed')).toBe('Non confirmée')
     expect(libelleStatutSeance('completed')).toBe('Terminée')
