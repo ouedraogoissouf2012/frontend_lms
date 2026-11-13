@@ -34,7 +34,7 @@ export function useChapterManager(lessonId) {
   const uploadStatus = ref('')
   const nextTempId = ref(1)
   // Knowledge Checks
-  const { knowledgeChecks, loadKnowledgeChecks, loadAllKnowledgeChecks, isQuizUnknown, getChapterQuiz } = useChapterQuizzes()
+  const { knowledgeChecks, loadKnowledgeChecks, loadAllKnowledgeChecks, isQuizUnknown, quizEchec, getChapterQuiz } = useChapterQuizzes()
   const showQuizEditor = ref(false)
   const showQuizPlayer = ref(false)
   const selectedChapterId = ref(null)
@@ -268,6 +268,6 @@ export function useChapterManager(lessonId) {
     deleteChapter, restoreChapter, loadKnowledgeChecks,
     loadAllKnowledgeChecks: () => loadAllKnowledgeChecks(chapters.value), openQuizEditor,
     closeQuizEditor, onQuizSaved, openQuizPlayer, closeQuizPlayer, onQuizCompleted,
-    deleteKnowledgeCheck, getChapterQuiz, isQuizUnknown
+    deleteKnowledgeCheck, getChapterQuiz, isQuizUnknown, quizEchec
   }
 }

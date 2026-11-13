@@ -19,7 +19,8 @@
       <!-- Quiz illisible : ni « aucun quiz » ni « Créer un quiz » (doublon possible) -->
       <LoadRetryNotice
         v-if="quizUnknown"
-        message="Quiz indisponible pour le moment."
+        :message="quizEchec?.message ?? QUIZ_INDISPONIBLE"
+        :can-retry="quizEchec?.canRetry ?? true"
         @retry="$emit('retry-quiz', chapter.id)"
       />
       <div v-else-if="quiz" class="quiz-view-content">
@@ -76,6 +77,7 @@ import { useSanitizedHtml } from '@/composables/useSanitizedHtml'
 import { getChapterContentTypeLabel, getChapterContentPreview } from '@/utils/chapterContent'
 import knowledgeCheckService from '@/services/knowledgeCheck'
 import LoadRetryNotice from '@/components/lessons/LoadRetryNotice.vue'
+import { QUIZ_INDISPONIBLE } from '@/composables/useChapterQuizzes'
 
 const props = defineProps({
   chapter: { type: Object, required: true },
@@ -83,6 +85,7 @@ const props = defineProps({
   quiz: { type: Object, default: null },
   // Le chargement du quiz a échoué : null veut alors dire INCONNU, pas absent.
   quizUnknown: { type: Boolean, default: false },
+  quizEchec: { type: Object, default: null },
   readonly: { type: Boolean, default: false }
 })
 

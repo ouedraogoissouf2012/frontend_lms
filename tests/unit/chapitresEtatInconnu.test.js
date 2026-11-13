@@ -185,6 +185,33 @@ describe('ChapterManager — chapitre en édition, quiz en échec', () => {
   })
 })
 
+// Revue de #520 : de bout en bout, à travers le VRAI intercepteur, un REFUS (403) du quiz dit son motif
+// et ne propose pas « Réessayer », en lecture comme en édition. Sans le relais ChapterManager → ChapterList,
+// l'échec arriverait nul et « Réessayer » reviendrait (repli `?? true`).
+describe('ChapterManager — quiz REFUSÉ (403), de bout en bout', () => {
+  const REFUS = { status: 403, data: { success: false, message: 'Texte du serveur, jamais affiché' } }
+  const reessayer = (el) => el.findAll('button').filter((b) => /R[ée]essayer/.test(b.text()))
+
+  it('lecture : le message du catalogue, sans Réessayer ni invite de création', async () => {
+    servir({ '/lessons/3/chapters': CHAPITRES, '/knowledge-checks': REFUS })
+    const w = await ecranEnseignant()
+    const bloc = w.get('.chapter-quiz-view')
+    expect(bloc.text()).toContain(ERROR_MESSAGES.forbidden)
+    expect(bloc.text()).not.toContain('Texte du serveur')
+    expect(bloc.text()).not.toMatch(/Aucun quiz|Cr[ée]er un quiz/i)
+    expect(reessayer(bloc)).toHaveLength(0)
+  })
+
+  it('édition : le même motif jusqu’à ChapterQuizField, sans Réessayer', async () => {
+    servir({ '/lessons/3/chapters': CHAPITRES, '/knowledge-checks': REFUS })
+    const w = await ecranEnseignant()
+    await w.get('.btn-edit').trigger('click')
+    const champ = w.get('.quiz-editor-inline')
+    expect(champ.text()).toContain(ERROR_MESSAGES.forbidden)
+    expect(reessayer(champ)).toHaveLength(0)
+  })
+})
+
 describe('useChapterManager — une réponse périmée ne réécrit pas l’état', () => {
   it('un échec arrivé APRÈS un rechargement réussi ne rend pas le quiz inconnu', async () => {
     servir({ '/lessons/3/chapters': CHAPITRES, '/knowledge-checks': QUIZ_DU_CHAPITRE })
