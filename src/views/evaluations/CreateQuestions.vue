@@ -43,6 +43,11 @@
         </div>
       </div>
 
+      <!-- D72-b : en édition, un chargement en échec se dit ; l'enregistrement reste désactivé. -->
+      <p v-if="erreurChargement" role="alert" class="mb-6 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-800 dark:text-red-200 rounded-lg p-4">
+        {{ erreurChargement }}
+      </p>
+
       <!-- Formulaire -->
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 space-y-6 border border-gray-200 dark:border-gray-700">
         <!-- Configuration -->
@@ -64,7 +69,7 @@
           <button
             @click="saveQuestions"
             type="button"
-            :disabled="loading || !isValid"
+            :disabled="loading || !peutEnregistrer"
             class="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium transition-colors"
           >
             {{ loading ? 'Enregistrement...' : (isEditMode ? 'Enregistrer les modifications' : 'Enregistrer et activer') }}
@@ -90,7 +95,7 @@ import { useCreateQuestions } from '@/composables/useCreateQuestions'
 
 const {
   evaluationAffichee, configuration, questions, loading, isEditMode,
-  isValid,
+  erreurChargement, peutEnregistrer,
   addQuestion, removeQuestion, addOption, removeOption,
   setCorrectAnswer, toggleCorrectAnswer,
   saveQuestions, goBack,
