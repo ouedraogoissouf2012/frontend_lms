@@ -5,6 +5,29 @@
  * présentationnels (matières/étudiants/évaluations/planning/séances) restent de
  * simples composants de rendu testables. Aucun changement de comportement.
  */
+import { hasRole, isStudent, isTeacher, ROLES } from '@/constants/roles'
+
+/**
+ * Destination d'un clic sur une évaluation de la fiche classe (E4c). Décision PURE : `{ ouvrir }` (la
+ * porte unique de l'élève), `{ route }` ou `{ notify }`. L'id ouvert est TOUJOURS l'id LMS
+ * (`online_version.id`) : dans une école KLASSCI, l'id de l'élément est celui de la programmation.
+ * Avant, tous les rôles partaient vers `AdminEvaluationDetails`, réservée à la gestion.
+ * @param {Object} evaluation un élément de `evaluations_programmees`
+ * @param {string} role
+ * @returns {{ route?: Object, ouvrir?: Object, notify?: { message: string, level: string } }}
+ */
+export function routeEvaluationDeClasse(evaluation, role) {
+  const lmsId = evaluation?.has_online ? evaluation.online_version?.id : null
+  if (lmsId == null) {
+    return { notify: { message: 'Cette évaluation n\'a pas encore de version en ligne', level: 'info' } }
+  }
+  if (isStudent(role)) return { ouvrir: { id: lmsId, student_submission: evaluation.student_submission ?? null } }
+  if (isTeacher(role)) return { route: { name: 'PreviewEvaluation', params: { id: lmsId } } }
+  if (hasRole(role, [ROLES.COORDINATEUR, ROLES.ADMIN])) {
+    return { route: { name: 'AdminEvaluationDetails', params: { id: lmsId } } }
+  }
+  return { notify: { message: 'Cette évaluation n\'a pas encore de version en ligne', level: 'info' } }
+}
 
 export function formatDate(dateString) {
   if (!dateString) return 'N/A'

@@ -5,6 +5,9 @@ import { hasRole, ROLES } from '@/constants/roles'
 import { messageForReason } from '@/services/errorHandler'
 import { estPannePassagere } from '@/utils/pannePassagere'
 import { displayMessage } from '@/services/displayMessage'
+import { useStartEvaluation } from '@/composables/useStartEvaluation'
+import { toast } from '@/composables/useToast'
+import { routeEvaluationDeClasse } from '@/utils/classeDetails'
 
 const asArray = (value) => Array.isArray(value) ? value : []
 
@@ -32,6 +35,12 @@ export function useClasseDetails() {
   const emploiTemps = ref([])
   const seances = ref([])
   const statistiques = ref(null)
+  // E4c : le compteur d'évaluations n'existe qu'une fois la fiche lue ; avant (ou en échec), null → « — ».
+  const mesure = ref(false)
+  const compteurEvaluations = computed(() => (mesure.value
+    ? (statistiques.value?.nombre_evaluations_programmees ?? evaluations.value.length)
+    : null))
+  const { ouvrirEvaluation } = useStartEvaluation()
 
   const classeId = computed(() => parseInt(inst.proxy.$route.params.id))
 
@@ -103,6 +112,7 @@ export function useClasseDetails() {
     loading.value = true
     error.value = null
     canRetry.value = true
+    mesure.value = false
 
     try {
       console.log('[ClasseDetails] Chargement détails classe:', classeId.value)
@@ -120,6 +130,7 @@ export function useClasseDetails() {
         emploiTemps.value = data.data.emploi_temps_semaine || []
         matieres.value = asArray(data.data.matieres_disponibles || data.data.matieres || classe.value?.matieres)
         statistiques.value = data.data.statistiques
+        mesure.value = true
 
         console.log('[ClasseDetails] Classe:', classe.value)
         console.log('[ClasseDetails] Matières:', matieres.value.length)
@@ -182,8 +193,12 @@ export function useClasseDetails() {
     inst.proxy.$router.push({ name: 'matiere-details', params: { id: matiereId } })
   }
 
-  function viewEvaluation(evaluationId) {
-    inst.proxy.$router.push({ name: 'AdminEvaluationDetails', params: { id: evaluationId } })
+  /** E4c : le clic suit le rôle et l'id LMS ; l'élève passe par la porte unique. */
+  function viewEvaluation(evaluation) {
+    const action = routeEvaluationDeClasse(evaluation, auth.getUser()?.role)
+    if (action.ouvrir) ouvrirEvaluation(action.ouvrir)
+    else if (action.route) inst.proxy.$router.push(action.route)
+    else toast.info(action.notify.message)
   }
 
   function goBack() {
@@ -196,7 +211,7 @@ export function useClasseDetails() {
 
   return {
     loading, error, canRetry, activeTab, classe, matieres, etudiants, evaluations, rosterVisible,
-    emploiTemps, seances, statistiques, classeId, tabs, canManageVisio,
+    emploiTemps, seances, statistiques, classeId, tabs, canManageVisio, compteurEvaluations,
     loadClasseDetails, loadSeances, viewMatiere, viewEvaluation, goBack,
   }
 }
