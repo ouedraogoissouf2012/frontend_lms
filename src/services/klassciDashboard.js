@@ -30,7 +30,11 @@ export const klassciDashboardService = {
    */
   async getTeacherDashboard() {
     const response = await api.get(endpoints.klassci.teacherDashboard)
-    return response.success ? response.data : null
+    if (!response.success) return null
+    // La marque d'origine du serveur (R4, `meta.source: 'lms_local'`) est gardée sur la charge :
+    // elle décide si une liste vide est une mesure (prochainesSeancesMesurees).
+    const source = response.meta?.source
+    return source ? { ...response.data, source } : response.data
   },
 
   /**
