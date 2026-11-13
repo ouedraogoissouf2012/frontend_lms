@@ -46,7 +46,7 @@
       >
         <option :value="null">Toutes les classes</option>
         <option v-for="classe in classes" :key="classe.id" :value="classe.id">
-          {{ classe.name || classe.nom }} - {{ classe.filiere?.name || classe.filiere?.nom }} {{ classe.niveau?.name || classe.niveau?.nom }}
+          {{ libelleClasse(classe) }}
         </option>
       </select>
     </div>
@@ -69,6 +69,14 @@ const teacherId = defineModel('teacherId', { default: null })
 const classeId = defineModel('classeId', { default: null })
 
 defineEmits(['change'])
+
+// Sans filière ni niveau (école créée depuis le LMS) : le nom seul, pas de « - » orphelin.
+function libelleClasse(classe) {
+  const nom = classe.name || classe.nom
+  const precision = [classe.filiere?.name || classe.filiere?.nom, classe.niveau?.name || classe.niveau?.nom]
+    .filter(Boolean).join(' ')
+  return precision ? `${nom} - ${precision}` : nom
+}
 </script>
 
 <style scoped>

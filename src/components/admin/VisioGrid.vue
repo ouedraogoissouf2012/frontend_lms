@@ -36,10 +36,11 @@
           <ClockIcon class="info-icon" />
           <span class="info-text">
             {{ formatTime(visio.date_debut) }} - {{ formatTime(visio.date_fin) }}
+            <em v-if="visio.heure_fin_estimee" class="fin-estimee">(fin estimée)</em>
           </span>
         </div>
 
-        <div v-if="visio.participants_count" class="info-row" :title="`${visio.participants_count} participant(s)`">
+        <div v-if="visio.participants_count != null" class="info-row" :title="`${visio.participants_count} participant(s)`">
           <UsersIcon class="info-icon" />
           <span class="info-text">{{ visio.participants_count }} participant(s)</span>
         </div>

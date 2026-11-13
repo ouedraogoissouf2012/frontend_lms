@@ -43,7 +43,8 @@ async function fetchEnseignants() {
   try {
     const response = await klassciService.getLmsEnseignants({ with_details: true })
     if (response?.success && hasArrayPayload(response.data, ['enseignants'])) {
-      return asObjectArray(response.data, ['enseignants'])
+      // Lecture honnête : l'origine est gardée (meta.source) pour DIRE ce que la source locale ne suit pas.
+      return { enseignants: asObjectArray(response.data, ['enseignants']), sourceLocale: response.meta?.source === 'lms_local' }
     }
   } catch (error) {
     // Enrichi indisponible (503…) → repli ci-dessous ; son échec est gardé.
@@ -72,6 +73,8 @@ export function useAdminEnseignants() {
   // `data` peut être un tableau déjà normalisé (fetcher) ou une entrée de cache
   // corrompue : la normalisation défensive garde l'invariant « tableau d'objets ».
   const enseignants = computed(() => asObjectArray(data.value, ['enseignants']))
+  // École créée depuis le LMS : heures, taux et séances ne sont pas suivis (cache ancien : faux).
+  const sourceLocale = computed(() => data.value?.sourceLocale === true)
 
   const stats = computed(() => computeEnseignantsStats(enseignants.value))
   // Liste jamais chargée (ni réseau ni cache) : compteurs NON MESURÉS (`null`,
@@ -101,7 +104,7 @@ export function useAdminEnseignants() {
   }
 
   return {
-    enseignants, loading, error, canRetry, selectedEnseignant,
+    enseignants, loading, error, canRetry, sourceLocale, selectedEnseignant,
     nbEnseignants, totalMatieres, totalClasses, enseignantsActifs,
     loadEnseignants, selectEnseignant, closeModal,
   }

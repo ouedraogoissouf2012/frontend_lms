@@ -6,28 +6,7 @@ import { confirmVisioAction } from '@/services/visioFeedback'
 import { extractList } from '@/utils/apiList'
 import { displayMessage } from '@/services/displayMessage'
 import { estPannePassagere } from '@/utils/pannePassagere'
-
-function parseLocalDateTime(dateStr, timeStr) {
-  if (!dateStr || !timeStr) return null
-
-  const [year, month, day] = String(dateStr).split('T')[0].split('-').map(Number)
-  const [hour = 0, minute = 0, second = 0] = String(timeStr).split(':').map(Number)
-  if ([year, month, day, hour, minute, second].some(Number.isNaN)) return null
-
-  return new Date(year, month - 1, day, hour, minute, second)
-}
-
-function getSeanceTimeWindow(programmation) {
-  const startDate = parseLocalDateTime(programmation?.date, programmation?.heure_debut)
-  const endDate = parseLocalDateTime(programmation?.date, programmation?.heure_fin)
-  if (!startDate || !endDate) return null
-
-  if (endDate < startDate) {
-    endDate.setDate(endDate.getDate() + 1)
-  }
-
-  return { startDate, endDate }
-}
+import { dateHeureSeance } from '@/utils/seanceStatut'
 
 /**
  * Couche données de TeacherVisioList (#G1 ≤300) : charge les séances enseignant
@@ -45,18 +24,10 @@ export function useTeacherVisioList() {
   const actionLoading = ref(null)
   const { joinTrackedVisio } = useTrackedVisioJoin('Enseignant')
 
-  // Visio en cours
+  // Visio en cours : celle que le serveur dit active et pas terminée. Jamais une fenêtre horaire,
+  // dont la fin peut être ESTIMÉE (+2 h, `heure_fin_estimee`) et non mesurée.
   const visioEnCours = computed(() => {
-    return seances.value.filter(s => {
-      // Utiliser les champs plats au lieu de l'objet imbriqué
-      if (!s.visio_enabled || !s.visio_active) return false
-
-      const now = new Date()
-      const window = getSeanceTimeWindow(s.programmation)
-      if (!window) return false
-
-      return now >= window.startDate && now <= window.endDate
-    })
+    return seances.value.filter(s => s.visio_enabled && s.visio_active && s.visio_status !== 'terminee')
   })
 
   // Visio à venir
@@ -68,7 +39,7 @@ export function useTeacherVisioList() {
       if (visioEnCours.value.includes(s)) return false
 
       const now = new Date()
-      const startDate = parseLocalDateTime(
+      const startDate = dateHeureSeance(
         s.programmation?.date,
         s.programmation?.heure_debut
       )

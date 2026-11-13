@@ -48,16 +48,19 @@ export function useClasseDetails() {
     : lmsService.getClasseDetails(classeId.value)
 
   /**
-   * L'identifiant a presenter aux endpoints qui parlent KLASSCI.
+   * L'identifiant a presenter a `/seances/upcoming?classe_id=` et a
+   * `/classes/{id}/etudiants` : celui de l'espace de la SOURCE de l'ecole.
    *
-   * `/seances/upcoming?classe_id=` filtre sur `klassci_classe_id`
-   * (ManagerSeancesLocalFetcher:54) et `/classes/{id}/etudiants` transmet son
-   * identifiant brut au systeme central : tous deux attendent l'espace KLASSCI,
-   * meme quand la page a ete ouverte par son identifiant LOCAL.
+   * - Ecole creee depuis KLASSCI : upcoming filtre sur `klassci_classe_id`
+   *   (ManagerSeancesLocalFetcher) et les etudiants viennent du systeme
+   *   central ; l'espace KLASSCI est attendu, meme quand la page a ete ouverte
+   *   par son identifiant LOCAL.
+   * - Ecole creee depuis le LMS : upcoming filtre sur `classe_id` local
+   *   (LocalSeancesListReader, backend #1026) ; il n'y a qu'un espace.
    *
-   * On ne le devine pas, on le LIT : la charge utile des details vient de
-   * `classes/{id}` chez KLASSCI, donc `classe.id` EST son identifiant
-   * (ClasseDetailsQueryService:60, garanti non vide par le 404 de :142).
+   * On ne le devine pas, on le LIT : `classe.id` de la charge utile des details
+   * est l'identifiant de cette source (ClasseDetailsQueryService chez KLASSCI,
+   * LocalClasseDetailsReader en ecole LMS), quelle que soit la porte ouverte.
    *
    * Repli sur l'identifiant d'URL pour la route historique, ou les deux espaces
    * coincident deja par construction.

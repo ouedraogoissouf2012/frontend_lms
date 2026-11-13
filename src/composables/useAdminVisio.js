@@ -4,6 +4,7 @@ import { readCache, writeCache } from '@/services/cache'
 import { buildJitsiUrl, getVisioRoomId } from '@/constants/visio'
 import { notifyVisioError } from '@/services/visioFeedback'
 import { extractList } from '@/utils/apiList'
+import { statutSeance, libelleStatutSeance, finEstimee } from '@/utils/seanceStatut'
 import { invalidResponseError, normalizeError } from '@/services/errorHandler'
 
 /**
@@ -112,10 +113,13 @@ export function useAdminVisio() {
           enseignant: `${s.enseignant?.nom || ''} ${s.enseignant?.prenom || ''}`.trim() || 'N/A',
           date_debut: s.date_debut,
           date_fin: s.date_fin,
+          // Lecture honnête : la grille dit « fin estimée » quand la fin n'est pas mesurée.
+          heure_fin_estimee: finEstimee(s),
           status: getSeanceStatus(s),
           room_id: roomId,
           room_name: s.room_name || roomId,
-          participants_count: s.participants_count || 0
+          // Défaut déjà présent : la clé lue n'existait pas, le nombre n'était jamais dit. Inconnu → null.
+          participants_count: s.visio_participants_count ?? s.visio?.participants_count ?? s.participants_count ?? null
         }
       })
   }
@@ -146,23 +150,13 @@ export function useAdminVisio() {
     // Le filtrage est géré par le computed filteredVisioconferences
   }
 
+  // Lecture honnête : la règle partagée (utils/seanceStatut) ; jamais « Terminée » sur une fin estimée.
   function getSeanceStatus(seance) {
-    const now = new Date()
-    const debut = new Date(seance.date_debut)
-    const fin = new Date(seance.date_fin)
-
-    if (now >= debut && now <= fin) return 'active'
-    if (now < debut) return 'scheduled'
-    return 'completed'
+    return statutSeance(seance)
   }
 
   function getStatusLabel(status) {
-    const labels = {
-      active: 'En cours',
-      scheduled: 'Planifiée',
-      completed: 'Terminée'
-    }
-    return labels[status] || 'Inconnu'
+    return libelleStatutSeance(status)
   }
 
   function formatDate(dateString) {

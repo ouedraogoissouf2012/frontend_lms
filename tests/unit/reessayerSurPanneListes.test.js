@@ -220,3 +220,21 @@ describe('TeacherHub : canRetry relayé ; une seule panne parmi les quatre sourc
     expect(m.lessons.getLessons).not.toHaveBeenCalled()
   })
 })
+
+// Lecture honnête (spec 3b) : dans une école créée depuis le LMS, /lms/enseignants porte
+// `meta.source: 'lms_local'` et ne suit ni heures, ni taux, ni séances. L'écran le garde pour le DIRE.
+describe('AdminEnseignants — l’origine des données est gardée', () => {
+  it('meta.source lms_local → sourceLocale vrai ; les enseignants restent la liste', async () => {
+    m.klassci.getLmsEnseignants.mockResolvedValue({ success: true, data: [{ id: 3, nom: 'Diallo' }], meta: { source: 'lms_local' } })
+    const u = await monter(useAdminEnseignants)
+    expect(u.sourceLocale.value).toBe(true)
+    expect(u.enseignants.value.map((e) => e.id)).toEqual([3])
+  })
+
+  it('sans meta.source (école KLASSCI) → sourceLocale faux', async () => {
+    m.klassci.getLmsEnseignants.mockResolvedValue({ success: true, data: [{ id: 4, nom: 'K' }] })
+    const u = await monter(useAdminEnseignants)
+    expect(u.sourceLocale.value).toBe(false)
+  })
+})
+

@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { cleMatiere } from '@/utils/seances'
 import { lmsService } from '@/services/lms'
 import evaluationService from '@/services/evaluation'
 import {
@@ -58,7 +59,9 @@ export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dat
 
       return seances.map((seance) => ({
         id: `seance-${seance.id}`,
-        title: `${seance.matiere?.nom || seance.matiere_nom || 'Cours'} - ${seance.classe?.nom || seance.classe_nom || ''}`,
+        // Une séance sans classe (école créée depuis le LMS) : la matière seule, pas de « - » orphelin.
+        title: [seance.matiere?.nom || seance.matiere_nom || 'Cours', seance.classe?.nom || seance.classe_nom]
+          .filter(Boolean).join(' - '),
         start: seance.programmation?.heure_debut || seance.date_seance,
         end: seance.programmation?.heure_fin,
         backgroundColor: determineSeanceColor(seance),
@@ -66,7 +69,8 @@ export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dat
         extendedProps: {
           eventType: 'seance',
           data: seance,
-          matiereId: seance.matiere?.id || seance.klassci_matiere_id,
+          // Sans id (séance locale), la clé de nom : options et filtre restent cohérents (cleMatiere).
+          matiereId: cleMatiere(seance) ?? seance.klassci_matiere_id,
           classeId: seance.classe?.id || seance.klassci_classe_id,
           enseignantId: seance.enseignant?.id || seance.klassci_enseignant_id,
           isUrgent: false
@@ -142,8 +146,9 @@ export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dat
 
       events.value.forEach((event) => {
         const data = event.extendedProps.data
-        if (data.matiere?.id) {
-          allMatieres.set(data.matiere.id, { id: data.matiere.id, nom: data.matiere.nom })
+        const cle = event.extendedProps.eventType === 'seance' ? cleMatiere(data) : (data.matiere?.id ?? null)
+        if (cle != null) {
+          allMatieres.set(cle, { id: cle, nom: data.matiere?.nom || data.matiere_nom })
         } else if (data.matiere_nom) {
           allMatieres.set(data.klassci_matiere_id, { id: data.klassci_matiere_id, nom: data.matiere_nom })
         }

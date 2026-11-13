@@ -14,6 +14,7 @@
         <p class="info-label">Horaire</p>
         <p class="info-value">
           {{ formatTime(seance.programmation?.heure_debut) }} - {{ formatTime(seance.programmation?.heure_fin) }}
+          <em v-if="finEstimee(seance)" class="fin-estimee">(fin estimée)</em>
         </p>
       </div>
     </div>
@@ -47,6 +48,7 @@ defineProps({
 
 // #23 : l'heure délègue au formatter centralisé (repli 'N/A' identique).
 import { formatTime as fmtTime } from '@/utils/formatters'
+import { finEstimee } from '@/utils/seanceStatut'
 
 // formatDate gardé local : format « ven. 19 juin 2026 » (weekday court + jour
 // numérique) sans équivalent canonique strict (#23 — pas de convergence forcée).

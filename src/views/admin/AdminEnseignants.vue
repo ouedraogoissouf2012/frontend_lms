@@ -6,6 +6,7 @@
         <div class="header-content">
           <h1 class="page-title">Gestion des Enseignants</h1>
           <p class="page-subtitle">Liste complète des enseignants et leurs affectations</p>
+          <p v-if="sourceLocale" class="page-subtitle">Heures, taux et séances : non suivis par le LMS.</p>
         </div>
         <button @click="loadEnseignants(true)" class="refresh-btn" :disabled="loading">
           <i class="fa fa-refresh btn-icon"></i>
@@ -67,7 +68,7 @@ import EnseignantDetailModal from '@/components/admin/EnseignantDetailModal.vue'
 import { useAdminEnseignants } from '@/composables/useAdminEnseignants'
 
 const {
-  enseignants, loading, error, canRetry, selectedEnseignant,
+  enseignants, loading, error, canRetry, sourceLocale, selectedEnseignant,
   nbEnseignants, totalMatieres, totalClasses, enseignantsActifs,
   loadEnseignants, selectEnseignant, closeModal,
 } = useAdminEnseignants()

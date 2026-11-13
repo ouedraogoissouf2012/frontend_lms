@@ -38,6 +38,7 @@
           <ClockIcon class="info-icon" />
           <span class="info-text">
             {{ formatTime(seance.date_debut) }} - {{ formatTime(seance.date_fin) }}
+            <em v-if="finEstimee(seance)" class="fin-estimee">(fin estimée)</em>
           </span>
         </div>
       </div>
@@ -81,6 +82,7 @@ import {
   ClockIcon,
   EyeIcon
 } from '@heroicons/vue/24/outline'
+import { statutSeance, libelleStatutSeance, finEstimee } from '@/utils/seanceStatut'
 
 defineProps({
   seances: { type: Array, default: () => [] },
@@ -88,24 +90,13 @@ defineProps({
 
 defineEmits(['view-details', 'enable-visio'])
 
+// Lecture honnête : la règle partagée (visio d'abord ; jamais « Terminée » sur une fin estimée).
 function getSeanceStatus(seance) {
-  const now = new Date()
-  const debut = new Date(seance.date_debut)
-  const fin = new Date(seance.date_fin)
-
-  if (now >= debut && now <= fin) return 'active'
-  if (now < debut) return 'scheduled'
-  return 'completed'
+  return statutSeance(seance)
 }
 
 function getSeanceStatusLabel(seance) {
-  const status = getSeanceStatus(seance)
-  const labels = {
-    active: 'En cours',
-    scheduled: 'Planifiée',
-    completed: 'Terminée'
-  }
-  return labels[status] || 'Inconnu'
+  return libelleStatutSeance(getSeanceStatus(seance))
 }
 
 // #283 : délèguent aux formatters canoniques (replis locaux conservés).

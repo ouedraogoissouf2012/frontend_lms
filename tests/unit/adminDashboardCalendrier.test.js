@@ -148,3 +148,31 @@ describe('calendrier du tableau de bord — Réessayer seulement sur une panne',
     expect(rendre({ etat: 'non-charge', canRetry: false }).find('button').text()).toMatch(/Afficher le calendrier/)
   })
 })
+
+// Lecture honnête (spec 3d à 25728cf8 ; défaut déjà présent pour la date nulle) : une séance sans date
+// valide est écartée au lieu de jeter une RangeError qui mettait TOUT le calendrier en erreur ; aucune
+// heure inventée (« 08:00 », « 10:00 ») ; date_debut / date_fin ISO lus d'abord ; fin estimée signalée.
+describe('calendrier du tableau de bord — dates honnêtes', () => {
+  it('une séance sans date est écartée, les autres restent ; plus d’erreur de calendrier', async () => {
+    const d = await monter()
+    mockKlassci.getUpcomingSeances.mockResolvedValue([{ id: 1, matiere: { nom: 'Sans date' } }, seance])
+    await d.loadCalendarEvents()
+    expect(d.calendarState.value).toBe('pret')
+    expect(d.calendarEvents.value.map((e) => e.extendedProps.seanceId)).toEqual([7])
+  })
+
+  it('aucune heure inventée : sans heure de fin, pas de fin ; la fin estimée est signalée', async () => {
+    const d = await monter()
+    mockKlassci.getUpcomingSeances.mockResolvedValue([
+      { id: 2, matiere: { nom: 'A' }, date_seance: '2026-07-02', heure_debut: '09:00' },
+      { id: 3, matiere: { nom: 'B' }, date_debut: '2026-07-03T08:00:00+00:00', date_fin: '2026-07-03T10:00:00+00:00', heure_fin_estimee: true },
+    ])
+    await d.loadCalendarEvents()
+    const [a, b] = d.calendarEvents.value
+    expect(a.end).toBeUndefined()
+    expect(new Date(a.start).getHours()).toBe(9)
+    expect(b.start).toBe(new Date('2026-07-03T08:00:00+00:00').toISOString())
+    expect(b.extendedProps.heureFinEstimee).toBe(true)
+  })
+})
+

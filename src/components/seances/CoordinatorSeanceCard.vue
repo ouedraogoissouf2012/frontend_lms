@@ -20,7 +20,7 @@
             <i class="fa fa-clock-o detail-icon"></i>
             <div>
               <p class="detail-label">Horaire</p>
-              <p class="detail-value">{{ formatTime(seance.programmation?.heure_debut) }} - {{ formatTime(seance.programmation?.heure_fin) }}</p>
+              <p class="detail-value">{{ formatTime(seance.programmation?.heure_debut) }} - {{ formatTime(seance.programmation?.heure_fin) }} <em v-if="finEstimee(seance)" class="fin-estimee">(fin estimée)</em></p>
             </div>
           </div>
 
@@ -71,6 +71,7 @@
 
 <script setup>
 import { formatTime as fmtTime } from '@/utils/formatters'
+import { finEstimee } from '@/utils/seanceStatut'
 /**
  * Carte d'une séance côté coordinateur (#H6 ≤300) : infos (date/horaire/classe/
  * salle), bouton d'activation visio et panneau visio (CoordinatorVisioPanel)
