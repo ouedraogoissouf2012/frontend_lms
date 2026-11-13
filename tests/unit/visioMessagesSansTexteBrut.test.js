@@ -95,10 +95,11 @@ describe('garde : aucun appelant ne fabrique une erreur avec le texte du serveur
   // nouveau fait rougir ; un site corrigé mais encore listé aussi (la liste doit rétrécir).
   // Liste élargie le 10/11/2026 (PR « texte serveur hors visio », puis sa revue) : toute lecture
   // du texte d'une réponse ou du message d'une erreur portée à l'écran (toast, `.value`,
-  // `userMessage`, concaténation, gabarit). Les 19 sites gelés ici restent à trier : des 422 de
+  // `userMessage`, concaténation, gabarit). Les 18 sites gelés ici restent à trier : des 422 de
   // validation peuvent être légitimes, des messages de SUCCÈS du serveur sont recopiés dans une
   // notice. useStudentEvaluationsList en est sorti : ses refus de démarrage passent par leur
-  // `reason` (#1011).
+  // `reason` (#1011). useTeacherEvaluationActions aussi (D72-a) : publication et suppression disent
+  // le motif du catalogue.
   const CONNUS = [
     'composables/useActivation.js',
     'composables/useAdminEvaluationDetails.js',
@@ -117,7 +118,6 @@ describe('garde : aucun appelant ne fabrique une erreur avec le texte du serveur
     'composables/usePreviewEvaluation.js',
     'composables/useSchoolRequest.js',
     'composables/useSeanceAttendanceHistory.js',
-    'composables/useTeacherEvaluationActions.js',
     'views/Login.vue',
   ]
 

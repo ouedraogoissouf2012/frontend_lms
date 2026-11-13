@@ -72,5 +72,12 @@ export const ERROR_MESSAGES = Object.freeze({
   // n'aide pas l'élève ; c'est le CODE qui ne correspond à rien.
   codeInconnu: 'Ce code ne correspond à aucune classe. Vérifiez-le auprès de votre formateur.',
   codeVide: 'Saisissez le code que votre formateur vous a donné.',
+  // D72-a : refus d'écriture d'une évaluation (POST, PUT, /publish). Chaque message dit le recours.
+  evaluationTeacherIdentityMissing: "Votre compte n'est pas encore relié à votre fiche d'enseignant dans KLASSCI. Adressez-vous à votre établissement.",
+  evaluationTeacherNotAssigned: "Vous n'êtes pas désigné pour enseigner cette matière dans cette classe.",
+  evaluationSchedulingRequired: 'Cette évaluation doit d’abord être programmée dans KLASSCI.',
+  evaluationIdentifierOutOfScope: 'Cette classe ou cette matière ne relève pas de votre établissement. Rechargez la page.',
+  evaluationPublishViaDedicatedRoute: 'Une évaluation se publie par l’action « Publier », pas par sa modification.',
+  evaluationWithoutQuestions: 'Une évaluation publiée doit compter au moins une question.',
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })

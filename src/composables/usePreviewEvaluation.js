@@ -2,6 +2,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import evaluationService from '@/services/evaluation'
 import { toast } from '@/composables/useToast'
+import { messageDe } from '@/services/errorHandler'
 import { useConfirm } from '@/composables/useConfirm'
 
 /**
@@ -80,12 +81,10 @@ export function usePreviewEvaluation() {
       if (result.success) {
         toast.success('Évaluation publiée avec succès !')
         router.push({ name: 'TeacherEvaluations' })
-      } else {
-        toast.error('Erreur lors de la publication')
       }
     } catch (err) {
       console.error('[PUBLISH ERROR]', err)
-      toast.error('Erreur lors de la publication')
+      toast.error(messageDe(err))
     } finally {
       publishing.value = false
     }

@@ -3,6 +3,7 @@ import { useRouter, useRoute } from 'vue-router'
 import evaluationService from '@/services/evaluation'
 import klassciService from '@/services/klassci'
 import { toast } from '@/composables/useToast'
+import { messageDe } from '@/services/errorHandler'
 import { extractList } from '@/utils/apiList'
 import { toId } from '@/utils/toId'
 
@@ -187,7 +188,7 @@ export function useCreateQuestions() {
       }
     } catch (error) {
       console.error('Erreur saveQuestions:', error)
-      toast.error('Erreur lors de l\'enregistrement des questions')
+      toast.error(messageDe(error))
     } finally {
       loading.value = false
     }
@@ -217,8 +218,15 @@ export function useCreateQuestions() {
     const result = await evaluationService.createEvaluation(data)
 
     if (result.success) {
-      // Publier immédiatement
-      await evaluationService.publishEvaluation(result.data.id)
+      // Création et publication SÉPARÉES : l'évaluation créée existe, même si sa publication échoue.
+      // On le dit, et on ne propose pas de nouvel essai (il recréerait, d'où un 409).
+      try {
+        await evaluationService.publishEvaluation(result.data.id)
+      } catch (err) {
+        toast.error(`L’évaluation est enregistrée, mais n’a pas pu être publiée : ${messageDe(err)} Publiez-la depuis la liste.`)
+        router.push('/teacher/evaluations')
+        return
+      }
 
       toast.success('Questions enregistrées et évaluation activée avec succès !')
       router.push('/teacher/evaluations')
