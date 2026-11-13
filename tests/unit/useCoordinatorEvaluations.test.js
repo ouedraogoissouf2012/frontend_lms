@@ -168,7 +168,9 @@ describe('useCoordinatorEvaluations (H2)', () => {
       matiere_nom: 'Marketing digital'
     })
     expect(writeCache).toHaveBeenCalledWith('coordinator_evaluation_references', {
-      enseignants: expect.arrayContaining([expect.objectContaining({ klassci_id: '21', name: 'BEDE ABEL TEST' })]),
+      // D72-c (migration déclarée) : la clé de jointure s'appelle `cleJointure` ; dans une école LMS,
+      // c'est un id local, jamais sous un nom `klassci_*` (D132).
+      enseignants: expect.arrayContaining([expect.objectContaining({ cleJointure: '21', name: 'BEDE ABEL TEST' })]),
       classes: [{ id: 5, name: 'B2 COM' }],
       matieres: [{ id: 7, nom: 'Marketing digital' }]
     })

@@ -88,4 +88,15 @@ describe('useCoordinatorEvaluations — les deux familles d’ids (D72-c)', () =
     u.filters.value.enseignant_id = '21'
     expect(u.filteredEvaluations.value).toHaveLength(0)
   })
+
+  // D72-c (demande de la superviseure, D132) : la clé de jointure d'une option d'enseignant est un id
+  // LOCAL dans une école créée depuis le LMS ; elle ne porte donc plus le nom `klassci_id`.
+  it('16 bis. les options d’enseignants portent cleJointure, jamais une clé klassci_id', async () => {
+    repondre([LOCALE, { ...LOCALE, id: 5, enseignant_id: 22, enseignant_nom: 'Awa' }])
+    const u = await monter()
+    expect(u.enseignants.value.map((o) => String(o.cleJointure)).sort()).toEqual(['21', '22'])
+    expect(u.enseignants.value.some((o) => 'klassci_id' in o)).toBe(false)
+    u.filters.value.enseignant_id = u.enseignants.value.find((o) => o.name === 'Awa').id
+    expect(u.filteredEvaluations.value.map((e) => e.id)).toEqual([5])
+  })
 })
