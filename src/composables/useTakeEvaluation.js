@@ -4,6 +4,11 @@ import evaluationService from '@/services/evaluation'
 import { auth } from '@/services/api'
 import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
+import { toId } from '@/utils/toId'
+import { decalageHorloge, secondesAvantEcheance } from '@/utils/echeanceCopie'
+
+const COPIE_INTROUVABLE = 'Cette copie ne correspond pas à votre tentative en cours. Revenez à vos évaluations.'
 
 /**
  * Couche données de TakeEvaluation (H1 ≤300) : chargement de l'évaluation,
@@ -37,6 +42,10 @@ export function useTakeEvaluation() {
   const showResultsModal = ref(false)
   const results = ref(null)
   const isPractice = ref(false)
+  // C28 : copie verrouillée (refus à la remise, ou lue `verrouille`) ; échéance de la copie, si elle en a.
+  const copieVerrouillee = ref(false)
+  const messageVerrou = ref(null)
+  let echeance = null
 
   const answeredCount = computed(() => {
     return Object.values(answers.value).filter(answer => {
@@ -54,9 +63,17 @@ export function useTakeEvaluation() {
     loading.value = true
     try {
       const id = route.value?.params?.id
-      const result = await evaluationService.getEvaluation(id)
-
-      if (result.success) {
+      // L'entraînement n'a pas d'échéance (`ends_at` nul) et /my-submission ne le distingue pas : sa
+      // copie n'est pas relue (D-28c, la durée).
+      const [result, maCopie] = await Promise.all([
+        evaluationService.getEvaluation(id),
+        isPractice.value ? null : evaluationService.getMySubmission(id),
+      ])
+      // D-28a : la copie relue (GET /my-submission) doit être CELLE de la route ; sinon, rien à passer.
+      const copie = isPractice.value ? { ends_at: null } : (maCopie?.success ? maCopie.data : null)
+      if (result.success && !isPractice.value && toId(copie) !== toId(submissionId.value)) {
+        error.value = COPIE_INTROUVABLE
+      } else if (result.success) {
         evaluation.value = result.data
 
         // Initialiser les réponses
@@ -73,8 +90,9 @@ export function useTakeEvaluation() {
           windowTimeLeft.value = evaluation.value.programmation.window.time_left_minutes
         }
 
-        // Démarrer le timer
-        timeRemaining.value = evaluation.value.duree_minutes * 60
+        // D-28e : une copie déjà verrouillée ne se passe plus.
+        if (copie.status === 'verrouille') return verrouiller()
+        await armerEcheance(id, copie.ends_at)
         startTimer()
         startWindowTimeTracking()
       } else {
@@ -88,9 +106,42 @@ export function useTakeEvaluation() {
     }
   }
 
+  /** D-28b/c : temps restant depuis `ends_at` (horloge corrigée de `server_time`) ; sans échéance, la durée. */
+  async function armerEcheance(id, endsAt) {
+    echeance = null
+    if (!endsAt) {
+      timeRemaining.value = evaluation.value.duree_minutes * 60
+      return
+    }
+    let decalage = 0
+    try {
+      decalage = decalageHorloge((await evaluationService.getTimeStatus(id))?.data?.server_time)
+    } catch {
+      // Heure serveur indisponible : l'écart d'horloge restant est couvert par la marge de 60 s.
+    }
+    echeance = { endsAt, decalage }
+    timeRemaining.value = secondesAvantEcheance(endsAt, decalage)
+  }
+
+  function arreterMinuteurs() {
+    if (timer.value) clearInterval(timer.value)
+    if (timeCheckInterval.value) clearInterval(timeCheckInterval.value)
+    timer.value = null
+    timeCheckInterval.value = null
+  }
+
+  /** D-28d/e : la copie est verrouillée ; message du catalogue (D0), plus aucun minuteur ni remise. */
+  function verrouiller() {
+    copieVerrouillee.value = true
+    messageVerrou.value = ERROR_MESSAGES.evaluationAttemptLocked
+    arreterMinuteurs()
+  }
+
   function startTimer() {
     timer.value = setInterval(() => {
-      timeRemaining.value--
+      timeRemaining.value = echeance
+        ? secondesAvantEcheance(echeance.endsAt, echeance.decalage)
+        : timeRemaining.value - 1
       if (timeRemaining.value <= 0) {
         clearInterval(timer.value)
         toast.info('Temps écoulé ! Votre évaluation va être soumise automatiquement.')
@@ -172,11 +223,12 @@ export function useTakeEvaluation() {
 
   async function submitEvaluation() {
     showConfirmModal.value = false
+    // Verrouillée : le serveur refuserait encore, sans rien écrire (C28).
+    if (copieVerrouillee.value) return
     submitting.value = true
 
     try {
-      if (timer.value) clearInterval(timer.value)
-      if (timeCheckInterval.value) clearInterval(timeCheckInterval.value)
+      arreterMinuteurs()
 
       const result = await evaluationService.submitEvaluation(
         evaluation.value.id,
@@ -190,7 +242,9 @@ export function useTakeEvaluation() {
       }
     } catch (error_) {
       console.error('Erreur soumission évaluation:', error_)
-      toast.error('Erreur lors de la soumission de l\'évaluation')
+      // D-28d : un refus hors délai verrouille la copie ; tout autre échec garde le message actuel.
+      if (error_?.response?.data?.reason === 'evaluation_attempt_locked') verrouiller()
+      else toast.error('Erreur lors de la soumission de l\'évaluation')
     } finally {
       submitting.value = false
     }
@@ -218,15 +272,12 @@ export function useTakeEvaluation() {
     await loadEvaluation()
   })
 
-  onBeforeUnmount(() => {
-    if (timer.value) clearInterval(timer.value)
-    if (timeCheckInterval.value) clearInterval(timeCheckInterval.value)
-  })
+  onBeforeUnmount(arreterMinuteurs)
 
   return {
     evaluation, answers, loading, submitting, error,
     submissionId, timeRemaining, windowTimeLeft,
-    showConfirmModal, showResultsModal, results, isPractice,
+    showConfirmModal, showResultsModal, results, isPractice, copieVerrouillee, messageVerrou,
     answeredCount, progressPercentage,
     loadEvaluation, formatTime, formatTimeLeft,
     isAnswered, isOptionSelected, toggleMultipleChoice,

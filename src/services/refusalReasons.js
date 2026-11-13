@@ -48,6 +48,8 @@ export const REASONS = Object.freeze({
   evaluation_max_attempts: motif('evaluationMaxAttempts'),
   evaluation_retake_forbidden: motif('evaluationRetakeForbidden'),
   evaluation_offline_only: motif('evaluationOfflineOnly'),
+  // lms_backend #1037 (C28) : remise refusée hors délai (POST /evaluations/{id}/submit, 409). Définitif.
+  evaluation_attempt_locked: motif('evaluationAttemptLocked'),
   evaluation_window_unverifiable: motif('evaluationWindowUnverifiable', { transitoire: true }),
   // frontend_lms#426 : la panne KLASSCI se classe par son motif (le 503 canonique le porte), pas par
   // l'en-tête Retry-After, que le navigateur cache en cross-origin (`exposed_headers: []`).

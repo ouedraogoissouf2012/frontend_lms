@@ -37,6 +37,16 @@
       <p class="stat-value">{{ statistiques.etudiants_en_cours || 0 }}</p>
       <p class="stat-change">étudiants</p>
     </div>
+
+    <!-- C28/C29 : copies hors délai (verrouillées), visibles, jamais notées ; « — » sans la clé. -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <LockClosedIcon class="stat-icon text-red-600" />
+        <span class="stat-label">Hors délai</span>
+      </div>
+      <p class="stat-value" data-test="stat-hors-delai">{{ statistiques.etudiants_hors_delai ?? '—' }}</p>
+      <p class="stat-change">copies non notées</p>
+    </div>
   </div>
 </template>
 
@@ -46,7 +56,7 @@
  * total / ont composé / moyenne classe / en cours. Section présentationnelle
  * extraite verbatim. Reçoit les statistiques en prop.
  */
-import { UserGroupIcon, CheckCircleIcon, ChartBarIcon, ClockIcon } from '@heroicons/vue/24/outline'
+import { UserGroupIcon, CheckCircleIcon, ChartBarIcon, ClockIcon, LockClosedIcon } from '@heroicons/vue/24/outline'
 
 defineProps({
   statistiques: { type: Object, required: true }

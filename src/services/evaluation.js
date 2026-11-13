@@ -125,6 +125,13 @@ export default {
   },
 
   /**
+   * La dernière copie de l'élève (statut, échéance `ends_at`) : C28, la page de passage la relit.
+   */
+  async getMySubmission(id) {
+    return api.get(endpoints.evaluations.mySubmission(id))
+  },
+
+  /**
    * Soumet les réponses d'une évaluation
    */
   async submitEvaluation(id, submissionId, answers) {

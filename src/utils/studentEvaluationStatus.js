@@ -16,6 +16,14 @@
  */
 export const copieRendue = (submission) => submission?.status === 'soumis' || submission?.status === 'corrige'
 
+/**
+ * Une copie HORS DÉLAI (C28, `verrouille`) : remise refusée ou tentative échue. Jamais une copie rendue ;
+ * l'élève n'y peut plus rien (D-28f), elle va avec les évaluations passées.
+ * @param {{status?: string}|null|undefined} submission
+ * @returns {boolean}
+ */
+export const copieHorsDelai = (submission) => submission?.status === 'verrouille'
+
 export function isExpired(evaluation) {
   // Vérifier la fenêtre KLASSCI
   const window = evaluation.programmation?.window
@@ -57,12 +65,14 @@ export function isWindowOpen(evaluation) {
 }
 
 export function getStatusLabel(evaluation) {
+  if (copieHorsDelai(evaluation.student_submission)) return 'Hors délai, non remise'
   if (evaluation.student_submission?.status === 'en_cours') return 'En cours'
   if (isWindowOpen(evaluation)) return 'Disponible'
   return 'Programmée'
 }
 
 export function getStatusClass(evaluation) {
+  if (copieHorsDelai(evaluation.student_submission)) return 'status-late'
   if (evaluation.student_submission?.status === 'en_cours') return 'status-ongoing'
   if (isWindowOpen(evaluation)) return 'status-active'
   return 'status-planned'

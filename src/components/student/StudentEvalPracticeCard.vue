@@ -10,7 +10,11 @@
           </span>
         </p>
       </div>
-      <span class="evaluation-status status-practice">
+      <!-- C28 (D-28f) : une copie hors délai le dit, jamais confondue avec un entraînement ni une remise. -->
+      <span v-if="copieHorsDelai(evaluation.student_submission)" class="evaluation-status status-late">
+        Hors délai, non remise
+      </span>
+      <span v-else class="evaluation-status status-practice">
         Entraînement
       </span>
     </div>
@@ -49,7 +53,7 @@
  * CSS = partial partagé @use'd (chrome de carte byte-identique).
  */
 import { CalendarIcon, ClockIcon, PlayIcon } from '@heroicons/vue/24/outline'
-import { formatDate } from '@/utils/studentEvaluationStatus'
+import { formatDate, copieHorsDelai } from '@/utils/studentEvaluationStatus'
 
 defineProps({
   evaluation: { type: Object, required: true }

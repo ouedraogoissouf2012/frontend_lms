@@ -4,6 +4,16 @@
       <!-- Loading -->
       <ContentLoader v-if="loading" text="Chargement de l'évaluation..." />
 
+      <!-- C28 : copie verrouillée (hors délai) ; réponses gardées, jamais notée -->
+      <div v-else-if="copieVerrouillee" class="error-state" role="alert">
+        <i class="fa fa-lock error-icon"></i>
+        <p class="error-text">{{ messageVerrou }}</p>
+        <button @click="returnToEvaluations" class="btn-back-error">
+          <i class="fa fa-arrow-left"></i>
+          Retour à mes évaluations
+        </button>
+      </div>
+
       <!-- Évaluation chargée -->
       <template v-else-if="evaluation">
         <TakeEvaluationBanners
@@ -89,7 +99,7 @@ import { useTakeEvaluation } from '@/composables/useTakeEvaluation'
 const {
   evaluation, answers, loading, submitting, error,
   timeRemaining, windowTimeLeft,
-  showConfirmModal, showResultsModal, results, isPractice,
+  showConfirmModal, showResultsModal, results, isPractice, copieVerrouillee, messageVerrou,
   answeredCount, progressPercentage,
   formatTime, formatTimeLeft,
   isAnswered, isOptionSelected, toggleMultipleChoice,
