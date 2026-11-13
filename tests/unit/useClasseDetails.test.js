@@ -168,7 +168,10 @@ describe('useClasseDetails (#H9)', () => {
     const { api, push, back } = await setup('5')
     api.viewMatiere(42)
     expect(push).toHaveBeenCalledWith({ name: 'matiere-details', params: { id: 42 } })
-    api.viewEvaluation(99)
+    // E4c (migration déclarée) : le clic reçoit l'évaluation et suit le rôle ; la gestion ouvre les
+    // résultats par l'id LMS (`online_version.id`), jamais par l'id de l'élément.
+    session.role = 'admin'
+    api.viewEvaluation({ id: 500, has_online: true, online_version: { id: 99 } })
     expect(push).toHaveBeenCalledWith({ name: 'AdminEvaluationDetails', params: { id: 99 } })
     api.goBack()
     expect(back).toHaveBeenCalled()
