@@ -10,6 +10,7 @@
             <p class="page-subtitle">Gérez vos cours et visioconférences</p>
           </div>
         </div>
+        <SeanceCreateAction :matieres="matieres" @created="loadSeances" />
       </div>
 
       <!-- Loading State -->
@@ -94,6 +95,7 @@ import ContentLoader from '@/components/common/ContentLoader.vue'
 import SeanceCard from '@/components/seances/SeanceCard.vue'
 import TeacherSeancesFilters from '@/components/seances/TeacherSeancesFilters.vue'
 import TeacherSeancesStats from '@/components/seances/TeacherSeancesStats.vue'
+import SeanceCreateAction from '@/components/seances/SeanceCreateAction.vue'
 import { useTeacherSeances } from '@/composables/useTeacherSeances'
 
 const {

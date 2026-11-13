@@ -10,6 +10,7 @@
             <p class="page-subtitle">Gérer toutes les séances de visioconférence</p>
           </div>
         </div>
+        <SeanceCreateAction @created="refreshData" />
         <button @click="refreshData" class="refresh-btn" title="Actualiser les données">
           <ArrowPathIcon :class="['w-5 h-5', { 'animate-spin': loading }]" />
         </button>
@@ -70,6 +71,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import SeancesFilters from '@/components/admin/SeancesFilters.vue'
 import SeancesList from '@/components/admin/SeancesList.vue'
+import SeanceCreateAction from '@/components/seances/SeanceCreateAction.vue'
 import { useAdminSeances } from '@/composables/useAdminSeances'
 import {
   CalendarIcon,

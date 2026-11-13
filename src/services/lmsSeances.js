@@ -2,6 +2,7 @@ import api from './api'
 import { endpoints } from './endpoints'
 // #296 : normalisation d'enveloppe à la frontière (import RELATIF — contrat).
 import { extractList } from '../utils/apiList'
+import { invalidResponseError } from './errorHandler'
 
 /**
  * Service LMS — domaine SÉANCES & PRÉSENCES (`/lms/seances/*`, `/lms/attendance*`).
@@ -191,6 +192,18 @@ export const lmsSeancesService = {
       console.error('Erreur récupération présences séance:', error)
       throw error
     }
+  },
+
+  /**
+   * Crée une séance LOCALE (école créée depuis le LMS) — POST /lms/seances, 201.
+   * @param {{ titre: string, date_seance: string, classe_id?: number, classe_nom?: string, matiere_nom?: string }} charge
+   * @returns {Promise<Object>} la séance créée
+   */
+  async createSeance(charge) {
+    const response = await api.post(endpoints.lms.seances.store, charge)
+    // Faux succès : une réponse sans « success: true » n'a rien créé de connu.
+    if (response?.success !== true) throw invalidResponseError('POST séance sans success', response)
+    return response.data
   },
 
   /**

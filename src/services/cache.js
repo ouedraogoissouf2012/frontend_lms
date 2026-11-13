@@ -1,4 +1,5 @@
 import { auth } from './api'
+import { TEACHER_MATIERES_CACHE } from '../constants/cacheKeys'
 
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
@@ -111,7 +112,7 @@ export function clearCacheByPrefix(namePrefix) {
  */
 const ENTITY_CACHE_KEYS = Object.freeze({
   classes: ['admin_classes_v4', 'admin_klassci_classes', 'admin_users', 'teacher_classes'],
-  matieres: ['admin_matieres', 'admin_klassci_matieres', 'teacher_matieres'],
+  matieres: ['admin_matieres', 'admin_klassci_matieres', TEACHER_MATIERES_CACHE],
   enseignants: ['admin_enseignants', 'admin_users'],
 })
 

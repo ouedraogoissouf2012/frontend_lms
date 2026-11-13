@@ -3,6 +3,7 @@ import klassciService from '@/services/klassci'
 import evaluationService from '@/services/evaluation'
 import { fetchTeacherMatieres } from '@/services/teacherReferentials'
 import { readCache, writeCache } from '@/services/cache'
+import { TEACHER_MATIERES_CACHE } from '@/constants/cacheKeys'
 import { normalizeError } from '@/services/errorHandler'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
 import {
@@ -76,7 +77,7 @@ export function useTeacherEvaluations() {
   }
 
   async function loadMatieres() {
-    const cached = readCache('teacher_matieres')
+    const cached = readCache(TEACHER_MATIERES_CACHE)
     if (cached !== null) {
       matieres.value = cached
       return
@@ -84,7 +85,7 @@ export function useTeacherEvaluations() {
     try {
       // #315 : source + forme canoniques (partagées avec useTeacherLessons/Seances).
       matieres.value = await fetchTeacherMatieres()
-      writeCache('teacher_matieres', matieres.value)
+      writeCache(TEACHER_MATIERES_CACHE, matieres.value)
     } catch (err) {
       console.error('[ERREUR] Chargement matières:', err)
     }

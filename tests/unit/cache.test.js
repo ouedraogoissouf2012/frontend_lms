@@ -13,6 +13,7 @@ const { mockAuth } = vi.hoisted(() => ({
 vi.mock('@/services/api', () => ({ auth: mockAuth }))
 
 import { cacheKey, readCache, writeCache, clearAllCache, clearCacheByPrefix, invalidateEntity, readCacheStale } from '@/services/cache'
+import { TEACHER_MATIERES_CACHE } from '@/constants/cacheKeys'
 
 describe('cache — scope par institution ET par utilisateur (#230)', () => {
   beforeEach(() => {
@@ -67,14 +68,14 @@ describe('cache — scope par institution ET par utilisateur (#230)', () => {
   it('invalidateEntity vide toutes les clés sœurs d\'une entité, pas les autres (#237)', () => {
     writeCache('admin_matieres', 1)
     writeCache('admin_klassci_matieres', 2)
-    writeCache('teacher_matieres', 3)
+    writeCache(TEACHER_MATIERES_CACHE, 3)
     writeCache('admin_classes_v3', 'X') // autre entité → NE doit PAS être touchée
 
     invalidateEntity('matieres')
 
     expect(readCache('admin_matieres')).toBeNull()
     expect(readCache('admin_klassci_matieres')).toBeNull()
-    expect(readCache('teacher_matieres')).toBeNull()
+    expect(readCache(TEACHER_MATIERES_CACHE)).toBeNull()
     expect(readCache('admin_classes_v3')).toBe('X') // intacte
   })
 

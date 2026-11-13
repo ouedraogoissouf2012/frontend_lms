@@ -3,6 +3,7 @@
     <div class="seances-container">
       <!-- Header + bascule de vue -->
       <CoordinatorSeanceHeader v-model:view-mode="viewMode" />
+      <SeanceCreateAction @created="loadSeances(); calendarRef?.refreshEvents?.()" />
 
       <!-- Calendar View -->
       <div v-if="viewMode === 'calendar'" class="calendar-section">
@@ -93,6 +94,7 @@ import CoordinatorSeanceHeader from '@/components/seances/CoordinatorSeanceHeade
 import CoordinatorSeanceFilters from '@/components/seances/CoordinatorSeanceFilters.vue'
 import CoordinatorSeanceCard from '@/components/seances/CoordinatorSeanceCard.vue'
 import CoordinatorSeanceStats from '@/components/seances/CoordinatorSeanceStats.vue'
+import SeanceCreateAction from '@/components/seances/SeanceCreateAction.vue'
 import { useSeanceManagement } from '@/composables/useSeanceManagement'
 
 const {
