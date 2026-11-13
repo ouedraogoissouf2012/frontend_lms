@@ -80,14 +80,14 @@ describe('creer — validation locale, charge exacte, refus dits', () => {
     expect(Object.keys(c.erreurs.value).sort()).toEqual(['date_seance', 'matiere', 'titre'])
   })
 
-  it('charge : titre, début ISO avec décalage, classe et noms ; ni matiere_id ni heure de fin', async () => {
+  it('charge : titre, début ISO avec décalage, classe, matiere_id de la MÊME carte et noms ; aucune heure de fin', async () => {
     m.createSeance.mockResolvedValue({ id: 42 })
     const c = useSeanceCreate({ matieres: ref(LOCAL) })
     remplir(c, { titre: '  Révision  ' })
     expect(await c.creer()).toEqual({ id: 42 })
     const charge = m.createSeance.mock.calls[0][0]
-    expect(Object.keys(charge).sort()).toEqual(['classe_id', 'classe_nom', 'date_seance', 'matiere_nom', 'titre'])
-    expect(charge).toMatchObject({ titre: 'Révision', classe_id: 11, classe_nom: '6e A', matiere_nom: 'Maths' })
+    expect(Object.keys(charge).sort()).toEqual(['classe_id', 'classe_nom', 'date_seance', 'matiere_id', 'matiere_nom', 'titre'])
+    expect(charge).toMatchObject({ titre: 'Révision', classe_id: 11, classe_nom: '6e A', matiere_id: 5, matiere_nom: 'Maths' })
     expect(charge.date_seance).toMatch(/^2026-11-13T08:30:00[+-]\d{2}:\d{2}$/)
   })
 
@@ -146,6 +146,39 @@ describe('creer — validation locale, charge exacte, refus dits', () => {
     await c.creer()
     expect(c.erreur.value).toBe('du catalogue')
     expect(c.form.classeId).toBeNull()
+    expect(c.canRetry.value).toBe(false)
+  })
+
+  it('subject_out_of_scope : message du catalogue, matière (et donc classe) effacée, pas de Réessayer', async () => {
+    m.createSeance.mockRejectedValue({ response: { status: 404, data: { reason: 'subject_out_of_scope' } }, userMessage: 'du catalogue' })
+    const c = useSeanceCreate({ matieres: ref(LOCAL) })
+    remplir(c)
+    await c.creer()
+    await nextTick()
+    expect(c.erreur.value).toBe('du catalogue')
+    expect(c.form.matiereId).toBeNull()
+    expect(c.form.classeId).toBeNull()
+    expect(c.canRetry.value).toBe(false)
+  })
+
+  it('422 sur matiere_id : le champ matière dit NOTRE message', async () => {
+    m.createSeance.mockRejectedValue({
+      response: { status: 422, data: { errors: { matiere_id: ['TEXTE SERVEUR'] } } }, fieldErrors: { matiere_id: ['TEXTE SERVEUR'] },
+    })
+    const c = useSeanceCreate({ matieres: ref(LOCAL) })
+    remplir(c)
+    await c.creer()
+    expect(c.erreurs.value.matiere).toBeTruthy()
+    expect(JSON.stringify(c.erreurs.value)).not.toContain('TEXTE SERVEUR')
+  })
+
+  it('403 (rôle admin brut, D197) : le message du catalogue « droits », jamais « Erreur d’enregistrement »', async () => {
+    m.createSeance.mockRejectedValue({ response: { status: 403, data: { message: 'TEXTE SERVEUR' } } })
+    const c = useSeanceCreate({ matieres: ref(LOCAL) })
+    remplir(c)
+    await c.creer()
+    expect(c.erreur.value).toBe(ERROR_MESSAGES.forbidden)
+    expect(c.erreur.value).not.toMatch(/enregistrement|TEXTE SERVEUR/i)
     expect(c.canRetry.value).toBe(false)
   })
 
