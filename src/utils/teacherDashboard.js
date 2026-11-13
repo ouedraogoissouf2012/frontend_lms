@@ -238,7 +238,7 @@ function effectifMesure(classes) {
   // Même règle que le repli : une classe sans effectif rend le total non mesuré. L'effectif d'une
   // classe suit LA règle unique (measureClassStudentCount), qui lit aussi `effectif_actuel` (source
   // locale des classes de l'enseignant, R4).
-  return measuredSum(liste.map(measureClassStudentCount))
+  return measuredSum(liste.map((c) => mesure(c?.places_occupees ?? c?.nb_etudiants ?? c?.students_count)))
 }
 
 /**
