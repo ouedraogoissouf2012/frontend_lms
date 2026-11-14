@@ -11,6 +11,7 @@ import { join } from 'node:path'
 import { routeurFerme, ouverte, sansObjetSansVisite, refusD56, refusServeur } from './acces.mjs'
 import { BRUT, ECRAN_ERREUR, ecartsDeValeur } from './ecran.mjs'
 import { verifsEcoleLms } from './verifs-ecole-lms.mjs'
+import { verifsEcoleKlassci } from './verifs-ecole-klassci.mjs'
 
 const [fichierRoutes, fichierJeu, sortie] = process.argv.slice(2)
 const BASE = 'http://127.0.0.1:4173'
@@ -20,12 +21,12 @@ const ferme = routeurFerme(routes) // D126 : le routeur mesuré ferme-t-il l'éc
 const jeu = JSON.parse(readFileSync(fichierJeu, 'utf8'))
 const ECOLE_KLASSCI = jeu.ecole === 'klassci' // K1 : l'école mesurée (avant tout usage)
 mkdirSync(join(sortie, 'captures'), { recursive: true })
-// K1 : l'école KLASSCI n'a pas encore d'assertions de valeur (K2).
-const VERIFS = ECOLE_KLASSCI ? {} : verifsEcoleLms(jeu)
+const VERIFS = ECOLE_KLASSCI ? verifsEcoleKlassci(jeu) : verifsEcoleLms(jeu)
 
 // Compte → rôle canonique du routeur, dans cet ordre. K1 : les comptes viennent du jeu de l'école
 // mesurée ; le supradmin (plateforme) n'est joué qu'avec l'école LMS, qui le porte depuis D110.
-const ROLES = { admin: 'admin', coordinateur: 'coordinateur', enseignant: 'enseignant', etudiant: 'etudiant', etudiant_inactif: 'etudiant' }
+// `admin_brut` (école KLASSCI, D499) : le rôle KLASSCI brut `admin`, rangé sous ADMIN par le routeur.
+const ROLES = { admin: 'admin', admin_brut: 'admin', coordinateur: 'coordinateur', enseignant: 'enseignant', etudiant: 'etudiant', etudiant_inactif: 'etudiant' }
 const COMPTES = [
   ...(ECOLE_KLASSCI ? [] : [{ compte: 'supradmin', email: process.env.E2E_SUPRADMIN_EMAIL, role: 'supradmin' }]),
   ...Object.keys(ROLES).filter((c) => jeu.comptes[c]).map((c) => ({ compte: c, email: jeu.comptes[c], role: ROLES[c] })),

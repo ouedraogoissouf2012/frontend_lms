@@ -22,9 +22,23 @@ export const MATIERES = [
   { id: 9203, nom: 'Histoire K E2E', code: 'HKE' },
 ]
 
+// K2 : les élèves de chaque classe. L'enveloppe de `classes/{id}` n'expose QUE `nom_complet`, jamais
+// `nom` ni `prenom` (ClasseEnvelope:36), et aucun `statut` (ClasseDetailsQueryService, « 210 = 210 ») ;
+// le front lit aussi `matricule` et `email` (ClasseEtudiantsTab.vue:14-22).
+const eleve = (id, nom, classe) => ({ id, nom_complet: nom, matricule: `MK${id}`, email: `eleve${id}@ecole-klassci.test`, classe })
+export const ELEVES = [
+  eleve(9304, 'Eleve K E2E', 9101), eleve(9501, 'Eleve K1 Deux E2E', 9101), eleve(9502, 'Eleve K1 Trois E2E', 9101),
+  eleve(9503, 'Eleve K2 Un E2E', 9102), eleve(9504, 'Eleve K2 Deux E2E', 9102), eleve(9505, 'Eleve K2 Trois E2E', 9102),
+]
+
 // Les comptes : l'identifiant de connexion est l'e-mail (domaine réservé `.test`).
 export const COMPTES = {
-  admin: { id: 9301, role: 'admin', nom: 'Admin K E2E', email: 'admin.k@ecole-klassci.test' },
+  // L'admin d'ÉTABLISSEMENT : `superAdmin`, le rôle KLASSCI légitime (KlassciRoleSanitizer:28,
+  // KlassciUserSynchronizerTest:141). D499 : un 5e compte garde le rôle brut `admin`, que le front
+  // range sous ADMIN (roles.js:35-49) et que `GET /admin/users` refuse (role:coordinateur,superAdmin) :
+  // son /admin/users est un ROUGE DÉCLARÉ, qui mesure l'incohérence au lieu de la cacher.
+  admin: { id: 9301, role: 'superAdmin', nom: 'Admin K E2E', email: 'admin.k@ecole-klassci.test' },
+  admin_brut: { id: 9305, role: 'admin', nom: 'Admin Brut K E2E', email: 'admin.brut.k@ecole-klassci.test' },
   coordinateur: { id: 9302, role: 'coordinateur', nom: 'Coordinateur K E2E', email: 'coord.k@ecole-klassci.test' },
   enseignant: { id: 9303, role: 'enseignant', nom: 'Enseignant K E2E', email: 'ens.k@ecole-klassci.test', enseignant_id: 9401, matieres: [9201, 9202], classes: [9101, 9102] },
   etudiant: { id: 9304, role: 'etudiant', nom: 'Eleve K E2E', email: 'eleve.k@ecole-klassci.test', classe: 9101 },
