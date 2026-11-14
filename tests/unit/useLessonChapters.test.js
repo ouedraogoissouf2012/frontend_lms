@@ -1,6 +1,6 @@
 /**
  * Test du composable useLessonChapters (#H4 ≤300) : chargement leçon, lecture seule,
- * publication et navigation. vue-router, lessonService, toast et errorHandler mockés.
+ * publication et navigation. vue-router, lessonService et toast mockés ; errorHandler réel.
  */
 import { mount, flushPromises } from '@vue/test-utils'
 import { defineComponent } from 'vue'
@@ -27,18 +27,6 @@ vi.mock('@/services/lesson', () => ({
 }))
 vi.mock('@/composables/useToast', () => ({ toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn(), show: vi.fn() } }))
 vi.mock('@/composables/useConfirm', () => ({ useConfirm: () => ({ confirm: confirmMock, accept: vi.fn(), cancel: vi.fn(), state: {} }) }))
-// Faux vides : le VRAI module (invalidResponseError, refusMotive), seul normalizeError est remplacé.
-// R6 (migration déclarée) : le module réel, un `normalizeError` simulé, et `messageDe` qui suit la règle du
-// vrai (le `userMessage` s'il est une chaîne, sinon `normalizeError`) mais sur le simulé : le vrai `messageDe`
-// appelle le `normalizeError` réel, pas celui-ci.
-vi.mock('@/services/errorHandler', async (importOriginal) => {
-  const normalizeError = () => ({ userMessage: 'err' })
-  return {
-    ...(await importOriginal()),
-    normalizeError,
-    messageDe: (e) => (typeof e?.userMessage === 'string' ? e.userMessage : normalizeError(e).userMessage),
-  }
-})
 
 import { useLessonChapters } from '@/composables/useLessonChapters'
 
