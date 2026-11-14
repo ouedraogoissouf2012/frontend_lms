@@ -30,5 +30,15 @@ export function sansObjetSansVisite(route, role, ferme) {
   return !ferme && role === 'supradmin' && Array.isArray(route.roles) && !route.roles.includes('supradmin')
 }
 
+/**
+ * Refus MÉTIER du serveur sur un écran que le routeur ouvre (décision de la superviseure, 14/11) : la
+ * case attend le refus (son statut HTTP vu pendant la visite), pas l'écran.
+ */
+export const REFUS_SERVEUR = Object.freeze([
+  { chemin: '/coordinateur/evaluations/:id/preview', role: 'coordinateur', statut: 403,
+    regle: 'un coordinateur ne prévisualise que les évaluations terminées (TeacherEvaluationViewService::preview:140-147)' },
+])
+export const refusServeur = (route, role) => REFUS_SERVEUR.find((r) => r.chemin === route.chemin && r.role === role) ?? null
+
 /** Routeur fermé : le refus vu d'un écran d'école est SANS OBJET pour le supradmin, pas un vert. */
 export const refusD56 = (route, role, ferme) => ferme && role === 'supradmin' && route.authentifie && route.plateforme !== true

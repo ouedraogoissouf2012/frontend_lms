@@ -8,7 +8,7 @@
 import { chromium } from 'playwright'
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { routeurFerme, ouverte, sansObjetSansVisite, refusD56 } from './acces.mjs'
+import { routeurFerme, ouverte, sansObjetSansVisite, refusD56, refusServeur } from './acces.mjs'
 
 const [fichierRoutes, fichierJeu, sortie] = process.argv.slice(2)
 const BASE = 'http://127.0.0.1:4173'
@@ -247,6 +247,8 @@ for (const { compte, email, role } of COMPTES) {
     const capture = `captures/${compte}${route.chemin.replace(/[^a-z0-9]+/gi, '_')}.png`
     await page.screenshot({ path: join(sortie, capture) }).catch(() => {})
 
+    const metier = attendu && refusServeur(route, role)
+    if (metier) { const vu = evenements.api.some((a) => a.statut === metier.statut); resultats.push({ ...cas, attendu: 'refusé', verdict: vu ? 'VERT' : 'ROUGE', defaut: vu ? `refus métier du serveur : ${metier.regle}` : `refus ${metier.statut} attendu, non vu : ${metier.regle}`, api: evenements.api, capture }); continue }
     const defauts = []
     if (attendu) {
       if (final !== chemin) {
