@@ -3,7 +3,8 @@ import { useRouter } from 'vue-router'
 import evaluationService from '@/services/evaluation'
 import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
-import { messageDe } from '@/services/errorHandler'
+import { messageDe, messageForReason } from '@/services/errorHandler'
+import { copiesASynchroniser } from '@/utils/evaluations'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 /**
@@ -134,13 +135,15 @@ export function useTeacherEvaluationActions({ evaluationsLMS, loadEvaluationsLMS
   async function syncToKlassci(evaluation) {
     if (!evaluation.online_version) return
 
-    const submissionsCount = evaluation.online_version.submissions_count || 0
-    if (submissionsCount === 0) {
-      toast.warning('Aucune soumission à synchroniser')
+    // D540 : les copies REMISES, comptées par le serveur ; inconnues, aucun nombre n'est annoncé.
+    const remises = copiesASynchroniser(evaluation.online_version)
+    if (remises === 0) {
+      toast.warning(ERROR_MESSAGES.syncAucuneCopieRemise)
       return
     }
 
-    if (!(await useConfirm().confirm({ message: `Synchroniser ${submissionsCount} note(s) vers KLASSCI ?` }))) {
+    const message = remises === null ? 'Synchroniser les notes vers KLASSCI ?' : `Synchroniser ${remises} note(s) vers KLASSCI ?`
+    if (!(await useConfirm().confirm({ message }))) {
       return
     }
 
@@ -154,7 +157,9 @@ export function useTeacherEvaluationActions({ evaluationsLMS, loadEvaluationsLMS
     } catch (err) {
       console.error('[ERREUR] Synchronisation:', err)
       // Lot CORR (ii) : le seul 409 de cette route dit qu'une dissertation attend sa note (spec, sync-klassci).
-      toast.error(err?.response?.status === 409 ? ERROR_MESSAGES.syncDissertationNonNotee : 'Erreur lors de la synchronisation')
+      // D540 : un refus MOTIVÉ (`no_submission_to_sync`) dit son texte du catalogue.
+      toast.error(messageForReason(err?.response?.data?.reason)
+        ?? (err?.response?.status === 409 ? ERROR_MESSAGES.syncDissertationNonNotee : 'Erreur lors de la synchronisation'))
     } finally {
       syncing.value = null
     }
