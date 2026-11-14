@@ -8,7 +8,7 @@
       </div>
 
       <!-- Message d'erreur -->
-      <div v-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+      <div v-if="error" role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
         {{ error }}
       </div>
 
