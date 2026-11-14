@@ -19,16 +19,16 @@ const routes = JSON.parse(readFileSync(fichierRoutes, 'utf8'))
 const ferme = routeurFerme(routes) // D126 : le routeur mesuré ferme-t-il l'école au supradmin ?
 const jeu = JSON.parse(readFileSync(fichierJeu, 'utf8'))
 mkdirSync(join(sortie, 'captures'), { recursive: true })
-const VERIFS = verifsEcoleLms(jeu)
+// K1 : l'école KLASSCI n'a pas encore d'assertions de valeur (K2).
+const VERIFS = ECOLE_KLASSCI ? {} : verifsEcoleLms(jeu)
 
-// Compte → rôle canonique du routeur.
+// Compte → rôle canonique du routeur, dans cet ordre. K1 : les comptes viennent du jeu de l'école
+// mesurée ; le supradmin (plateforme) n'est joué qu'avec l'école LMS, qui le porte depuis D110.
+const ECOLE_KLASSCI = jeu.ecole === 'klassci'
+const ROLES = { admin: 'admin', coordinateur: 'coordinateur', enseignant: 'enseignant', etudiant: 'etudiant', etudiant_inactif: 'etudiant' }
 const COMPTES = [
-  { compte: 'supradmin', email: process.env.E2E_SUPRADMIN_EMAIL, role: 'supradmin' },
-  { compte: 'admin', email: jeu.comptes.admin, role: 'admin' },
-  { compte: 'coordinateur', email: jeu.comptes.coordinateur, role: 'coordinateur' },
-  { compte: 'enseignant', email: jeu.comptes.enseignant, role: 'enseignant' },
-  { compte: 'etudiant', email: jeu.comptes.etudiant, role: 'etudiant' },
-  { compte: 'etudiant_inactif', email: jeu.comptes.etudiant_inactif, role: 'etudiant' },
+  ...(ECOLE_KLASSCI ? [] : [{ compte: 'supradmin', email: process.env.E2E_SUPRADMIN_EMAIL, role: 'supradmin' }]),
+  ...Object.keys(ROLES).filter((c) => jeu.comptes[c]).map((c) => ({ compte: c, email: jeu.comptes[c], role: ROLES[c] })),
 ]
 
 const ID_FICTIF = '999999'
@@ -47,7 +47,7 @@ const OBJETS = [
  */
 function concret(route, role, attendu) {
   if (!route.chemin.includes(':')) return { chemin: route.chemin }
-  const lecon = role === 'etudiant' ? jeu.lecons.publiee : jeu.lecons.brouillon
+  const lecon = role === 'etudiant' ? jeu.lecons?.publiee : jeu.lecons?.brouillon
   const contexte = `${route.chemin} ${route.nom ?? ''}`.toLowerCase()
   let issue = null
   const chemin = route.chemin.replace(/:([A-Za-z]+)(\([^)]*\))?[*?]?/g, (_, nom) => {
@@ -62,7 +62,11 @@ function concret(route, role, attendu) {
       issue = refus ? { rouge: `${objet.manque} : ${refus}` } : { nonTeste: `aucun id « ${objet.cle} » dans le jeu` }
       return ''
     }
-    if (/lesson|lecon|chapter|chapitre/.test(contexte) && nom === 'id') return lecon
+    if (/lesson|lecon|chapter|chapitre/.test(contexte) && nom === 'id') {
+      if (lecon) return lecon
+      issue = { nonTeste: 'aucune leçon dans le jeu de cette école' }
+      return ''
+    }
     if (/classe|class/.test(contexte)) return jeu.classes[0]
     if (/matiere|subject/.test(contexte)) return jeu.matieres[0]
     issue = { nonTeste: `paramètre « ${nom} » sans donnée dans le jeu` }
@@ -178,7 +182,7 @@ await navigateur.close()
 writeFileSync(join(sortie, 'resultats.json'), JSON.stringify(resultats, null, 2))
 const compte = (v) => resultats.filter((r) => r.verdict === v).length
 const lignes = [
-  `## E2E — école créée depuis le LMS`, '',
+  `## E2E — ${ECOLE_KLASSCI ? 'école KLASSCI (faux KLASSCI « école »)' : 'école créée depuis le LMS'}`, '',
   `Cases : ${resultats.length} — VERT ${compte('VERT')}, ROUGE ${compte('ROUGE')}, NON TESTÉ ${compte('NON TESTÉ')}, SANS OBJET ${compte('SANS OBJET')}`, '',
   '| compte | écran | attendu | verdict | défaut |', '|---|---|---|---|---|',
   ...resultats.map((r) => `| ${r.compte} | \`${r.chemin}\` | ${r.attendu ?? ''} | ${r.verdict} | ${(r.defaut ?? '').replace(/\|/g, '/')} |`),
