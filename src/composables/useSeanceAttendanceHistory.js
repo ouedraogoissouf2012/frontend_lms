@@ -9,6 +9,7 @@ import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
 import { normalizeError, invalidResponseError } from '@/services/errorHandler'
 import { estPannePassagere } from '@/utils/pannePassagere'
+import { displayMessage } from '@/services/displayMessage'
 
 /**
  * Couche données de l'historique des séances + présences (H7, ≤300) extraite de
@@ -199,7 +200,7 @@ export function useSeanceAttendanceHistory() {
       await attendanceExportService.exportPdf(selectedSeance.value.id)
     } catch (error) {
       console.error('[SeanceHistory] Erreur export PDF:', error)
-      toast.error('Erreur lors de l\'export PDF : ' + error.message)
+      toast.error(displayMessage(error, 'Erreur lors de l\'export PDF'))
     } finally {
       exporting.value = false
     }
@@ -212,7 +213,7 @@ export function useSeanceAttendanceHistory() {
       await attendanceExportService.exportExcel(selectedSeance.value.id)
     } catch (error) {
       console.error('[SeanceHistory] Erreur export Excel:', error)
-      toast.error('Erreur lors de l\'export Excel : ' + error.message)
+      toast.error(displayMessage(error, 'Erreur lors de l\'export Excel'))
     } finally {
       exporting.value = false
     }

@@ -6,6 +6,7 @@ import { hasRole, ROLES } from '@/constants/roles'
 import { endpoints } from '@/services/endpoints'
 import { klassciService } from '@/services/klassci'
 import { extractList } from '@/utils/apiList'
+import { displayMessage } from '@/services/displayMessage'
 
 /**
  * Couche données d'AdminEvaluationResults (#H3 ≤300) : charge les évaluations
@@ -123,7 +124,7 @@ export function useAdminEvaluationResults() {
 
     } catch (err) {
       console.error('Erreur chargement données:', err)
-      error.value = err.response?.data?.message || 'Erreur lors du chargement des données'
+      error.value = displayMessage(err, 'Erreur lors du chargement des données')
     } finally {
       loading.value = false
     }

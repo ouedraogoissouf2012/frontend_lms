@@ -4,6 +4,7 @@ import api from '@/services/api'
 import { readCache, writeCache } from '@/services/cache'
 import { byId, displayName, firstValue, nonEmptyArray, toId, unwrapArray } from '@/utils/evaluationDisplay'
 import { endpoints } from '@/services/endpoints'
+import { displayMessage } from '@/services/displayMessage'
 
 const EVALUATIONS_CACHE_KEY = 'coordinator_evaluations'
 const REFERENCES_CACHE_KEY = 'coordinator_evaluation_references'
@@ -258,7 +259,7 @@ export function useCoordinatorEvaluations() {
       loadFilterOptions()
     } catch (err) {
       console.error('Erreur chargement données:', err)
-      error.value = err.userMessage || err.response?.data?.message || 'Erreur lors du chargement des évaluations'
+      error.value = displayMessage(err, 'Erreur lors du chargement des évaluations')
     } finally {
       loading.value = false
     }
