@@ -9,6 +9,8 @@
 import { mount, flushPromises } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import Login from '@/views/Login.vue'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
+import { normalizeError } from '@/services/errorHandler'
 
 const { authMock } = vi.hoisted(() => ({
   authMock: { login: vi.fn(), logout: vi.fn(), getMeta: vi.fn() },
@@ -65,26 +67,30 @@ describe('Login.vue (#278)', () => {
     expect(w.find('.bg-red-100').text()).toContain("n'a pas accès au LMS")
   })
 
-  it('réponse success:false → affiche le message serveur, pas de redirection', async () => {
+  // D477 (renversé, déclaré) : le texte du front, jamais celui du serveur (D0).
+  it('réponse success:false → le texte du front, jamais celui du serveur, pas de redirection', async () => {
     authMock.login.mockResolvedValue({ success: false, message: 'Compte désactivé' })
     const { w, push } = mountLogin()
     await submit(w)
-    expect(w.find('.bg-red-100').text()).toContain('Compte désactivé')
+    expect(w.find('.bg-red-100').text()).toBe(ERROR_MESSAGES.connexionEchouee)
     expect(push).not.toHaveBeenCalled()
   })
 
-  it('exception avec message serveur → affiche ce message', async () => {
+  // D477 (renversé, déclaré) : la catégorie de l'erreur, jamais le texte du serveur.
+  it('exception avec message serveur → jamais ce message', async () => {
     authMock.login.mockRejectedValue({ response: { data: { message: 'Trop de tentatives' } } })
     const { w } = mountLogin()
     await submit(w)
-    expect(w.find('.bg-red-100').text()).toContain('Trop de tentatives')
+    expect(w.find('.bg-red-100').text()).not.toContain('Trop de tentatives')
+    expect(w.find('.bg-red-100').text()).toBe(ERROR_MESSAGES.unknown)
   })
 
-  it('exception réseau (sans réponse) → repli « Identifiants incorrects. »', async () => {
+  // D477 (renversé, déclaré) : un échec sans réponse n'est pas « Identifiants incorrects ».
+  it('exception sans réponse → le repli du front, pas « Identifiants incorrects »', async () => {
     authMock.login.mockRejectedValue(new Error('Network Error'))
     const { w } = mountLogin()
     await submit(w)
-    expect(w.find('.bg-red-100').text()).toContain('Identifiants incorrects.')
+    expect(w.find('.bg-red-100').text()).toBe(ERROR_MESSAGES.connexionEchouee)
   })
 
   it('le bouton œil bascule le type du champ mot de passe', async () => {
@@ -93,4 +99,54 @@ describe('Login.vue (#278)', () => {
     await w.find('button[type="button"]').trigger('click')
     expect(w.find('#password').attributes('type')).toBe('text')
   })
+})
+
+// D477 : la connexion a sa règle propre, faute de `reason` côté back (AuthResponsePresenter) : le
+// statut porte le sens. Les erreurs sont telles que l'intercepteur les rend (avec `userMessage`).
+describe('Login.vue — le message d’un échec de connexion (D477)', () => {
+  const erreur = (status, data = {}) => {
+    const err = Object.assign(new Error(`HTTP ${status}`), { response: { status, data: { success: false, message: 'Texte serveur, jamais affiché', ...data } } })
+    err.userMessage = normalizeError(err).userMessage
+    return err
+  }
+  const echouer = async (err) => {
+    authMock.login.mockRejectedValue(err)
+    const { w } = mountLogin()
+    await submit(w)
+    return w.find('.bg-red-100').text()
+  }
+
+  it('401 : « Identifiants incorrects. », pas la catégorie « session » du catalogue', async () => {
+    expect(await echouer(erreur(401))).toBe('Identifiants incorrects.')
+  })
+
+  it('409 : le compte en conflit, et quoi faire', async () => {
+    expect(await echouer(erreur(409))).toBe(ERROR_MESSAGES.compteEnConflit)
+  })
+
+  it('503 : la panne, pas « Identifiants incorrects »', async () => {
+    const err = erreur(503)
+    expect(await echouer(err)).toBe(err.userMessage)
+  })
+
+  it('réseau coupé : la catégorie réseau', async () => {
+    const err = Object.assign(new Error('Network Error'), { code: 'ERR_NETWORK', request: {} })
+    err.userMessage = normalizeError(err).userMessage
+    expect(await echouer(err)).toBe(ERROR_MESSAGES.network)
+  })
+
+  it('jamais le texte du serveur', async () => {
+    for (const status of [401, 409, 422, 500, 503]) {
+      expect(await echouer(erreur(status))).not.toContain('Texte serveur, jamais affiché')
+    }
+  })
+})
+
+it('les textes du front pour la connexion (D477)', () => {
+  expect(ERROR_MESSAGES.identifiantsIncorrects).toBe('Identifiants incorrects.')
+  expect(ERROR_MESSAGES.connexionEchouee).toBe('Échec de la connexion.')
+  // Le 409 : l'adresse e-mail du compte KLASSCI est déjà celle d'un autre compte de l'établissement
+  // (KlassciEmailConflictGuard). Ce qui arrive, et quoi faire, sans détail interne.
+  expect(ERROR_MESSAGES.compteEnConflit)
+    .toBe("Votre adresse e-mail est déjà utilisée par un autre compte de votre établissement. Contactez l'administrateur de votre école.")
 })
