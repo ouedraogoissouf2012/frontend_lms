@@ -35,7 +35,10 @@ function repondre(res, statut, corps) {
 createServer(async (req, res) => {
   const chemin = req.url.split('?')[0].replace(/\/+$/, '') || '/'
   const corps = await lireCorps(req)
-  const cle = `${req.method} ${chemin}`
+  // Une route à identifiant (`/classes/9101`) se cherche sous sa forme `{id}` ; les ids lui sont passés.
+  const ids = chemin.match(/\/\d+(?=\/|$)/g)?.map((x) => x.slice(1)) ?? []
+  const exacte = `${req.method} ${chemin}`
+  const cle = exacte in REPONSES ? exacte : `${req.method} ${chemin.replace(/\/\d+(?=\/|$)/g, '/{id}')}`
   const jeton = (req.headers.authorization ?? '').replace(/^Bearer\s+/i, '')
   const compte = jetons.get(jeton) ?? null
   let statut = 200
@@ -57,8 +60,9 @@ createServer(async (req, res) => {
   } else if (!compte) {
     statut = 401; reponse = { success: false, message: 'Jeton absent ou inconnu (faux KLASSCI)' }
   } else {
-    reponse = REPONSES[cle](compte, corps)
+    reponse = REPONSES[cle](compte, corps, ids)
     if (reponse === null) { statut = 403; reponse = { success: false, message: 'Hors de la portée de ce compte (faux KLASSCI)' } }
+    else if (reponse === undefined) { statut = 404; reponse = { success: false, message: 'Ressource inconnue du jeu (faux KLASSCI)' } }
   }
 
   appendFileSync(journal, JSON.stringify({
