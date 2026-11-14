@@ -169,3 +169,44 @@ describe('D528-3 — deux options au même texte sont refusées avant l’envoi'
     expect(c.isValid.value).toBe(true)
   })
 })
+
+// --- D532 (suite de D528)
+describe('D532 — une question passée en vrai/faux prend les options « Vrai » et « Faux »', () => {
+  it('QCM coché sur « Paris » : les options deviennent Vrai/Faux, la coche est retirée, et la question attend sa réponse', async () => {
+    const c = await ouvrir({ options: ['Paris', 'Lyon'], correct_answers: ['Paris'] })
+    c.changeType(0, 'vrai_faux')
+    expect(c.questions.value[0].options).toEqual(['Vrai', 'Faux'])
+    expect(c.questions.value[0].correctes).toEqual([])
+    await refusee(c, A_CHOISIR)
+    c.setCorrectAnswer(0, 1)
+    await c.saveQuestions()
+    expect(envoyee()).toMatchObject({ options: ['Vrai', 'Faux'], correct_answers: ['Faux'] })
+  })
+
+  it('une coche sur un texte EXACTEMENT « Vrai » est gardée, à la place de « Vrai »', async () => {
+    const c = await ouvrir({ options: ['Faux', 'Vrai', 'Peut-être'], correct_answers: ['Vrai'] })
+    c.changeType(0, 'vrai_faux')
+    expect(c.isValid.value).toBe(true)
+    await c.saveQuestions()
+    expect(envoyee()).toMatchObject({ options: ['Vrai', 'Faux'], correct_answers: ['Vrai'] })
+  })
+
+  it('« vrai » (casse différente) n’est pas « Vrai » : la coche est retirée', async () => {
+    const c = await ouvrir({ options: ['vrai', 'faux'], correct_answers: ['vrai'] })
+    c.changeType(0, 'vrai_faux')
+    await refusee(c, A_CHOISIR)
+  })
+
+  it('sans coche : les options deviennent Vrai/Faux, aucun refus (rien n’était choisi)', async () => {
+    const c = await ouvrir({ options: ['A', 'B'], correct_answers: [] })
+    c.changeType(0, 'vrai_faux')
+    expect(c.questions.value[0].options).toEqual(['Vrai', 'Faux'])
+    expect(c.isValid.value).toBe(true)
+  })
+
+  it('depuis une réponse courte : les options deviennent Vrai/Faux', async () => {
+    const c = await ouvrir({ type: 'reponse_courte', correct_answers: ['x'] })
+    c.changeType(0, 'vrai_faux')
+    expect(c.questions.value[0].options).toEqual(['Vrai', 'Faux'])
+  })
+})
