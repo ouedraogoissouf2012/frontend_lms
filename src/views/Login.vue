@@ -78,6 +78,8 @@
 
 <script>
 import { auth } from '@/services/api'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
+import { messageConnexion } from '@/utils/messageConnexion'
 import { getDashboardRoute, isSupradmin, logRoleDecision, hasLmsAccess } from '@/constants/roles'
 
 export default {
@@ -127,10 +129,10 @@ export default {
 
           this.$router.push(target)
         } else {
-          this.error = response.message || 'Échec de la connexion'
+          this.error = ERROR_MESSAGES.connexionEchouee // D0 : jamais le texte du serveur
         }
       } catch (err) {
-        this.error = err.response?.data?.message || 'Identifiants incorrects.'
+        this.error = messageConnexion(err) // D477 : 401, 409, sinon la catégorie
       } finally {
         this.loading = false
       }

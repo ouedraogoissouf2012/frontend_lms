@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { submitSchoolRequest } from '@/services/schoolRegistration'
+import { displayMessage } from '@/services/displayMessage'
 
 const FALLBACK =
   'Votre demande est enregistrée. Elle sera examinée par notre équipe.'
@@ -14,11 +15,11 @@ export function useSchoolRequest() {
     error.value = ''
     notice.value = ''
     try {
-      const response = await submitSchoolRequest(payload)
-      notice.value = response.message || FALLBACK
+      await submitSchoolRequest(payload)
+      notice.value = FALLBACK
       return true
     } catch (err) {
-      error.value = err.userMessage || err.response?.data?.message || 'La demande a échoué.'
+      error.value = displayMessage(err, 'La demande a échoué.')
       return false
     } finally {
       loading.value = false

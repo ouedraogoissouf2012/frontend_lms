@@ -32,3 +32,32 @@ describe('usePasswordReset (#332)', () => {
     expect(api.error.value).toMatch(/courriel/)
   })
 })
+
+// D477 : les textes du front, jamais ceux du serveur (D0).
+describe('usePasswordReset — jamais le texte du serveur (D477)', () => {
+  const panne = () => ({ response: { status: 500, data: { success: false, message: 'Texte serveur, jamais affiché' } } })
+
+  it('une demande réussie : le texte du front', async () => {
+    requestLink.mockResolvedValue({ success: true, message: 'Texte serveur, jamais affiché' })
+    const api = usePasswordReset()
+    await api.requestLink('esi', 'a@b.test')
+    expect(api.notice.value).toBe('Si un compte existe, un courriel a été envoyé.')
+  })
+
+  it('une réinitialisation réussie : le texte du front', async () => {
+    resetPassword.mockResolvedValue({ success: true, message: 'Texte serveur, jamais affiché' })
+    const api = usePasswordReset()
+    await api.resetPassword('esi', { token: 't', email: 'a@b.test', password: 'x', password_confirmation: 'x' })
+    expect(api.notice.value).toBe('Mot de passe mis à jour.')
+  })
+
+  it('un échec sans message du catalogue : la catégorie, jamais le texte du serveur', async () => {
+    requestLink.mockRejectedValue(panne())
+    const api = usePasswordReset()
+    await api.requestLink('esi', 'a@b.test')
+    expect(api.error.value).not.toContain('Texte serveur, jamais affiché')
+    resetPassword.mockRejectedValue(panne())
+    await api.resetPassword('esi', { token: 't' })
+    expect(api.error.value).not.toContain('Texte serveur, jamais affiché')
+  })
+})

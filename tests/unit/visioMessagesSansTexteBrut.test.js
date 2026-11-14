@@ -91,25 +91,10 @@ describe('garde : aucun appelant ne fabrique une erreur avec le texte du serveur
     return statSync(p).isDirectory() ? fichiers(p) : /\.(js|vue)$/.test(n) ? [p] : []
   })
 
-  // Cliquet : les sites hors visio connus le 09/11/2026, à corriger dans une PR à part. Un site
-  // nouveau fait rougir ; un site corrigé mais encore listé aussi (la liste doit rétrécir).
-  // Liste élargie le 10/11/2026 (PR « texte serveur hors visio », puis sa revue) : toute lecture
-  // du texte d'une réponse ou du message d'une erreur portée à l'écran (toast, `.value`,
-  // `userMessage`, concaténation, gabarit). Le 14/11, 9 fichiers en sont sortis : leurs ERREURS passent par
-  // `displayMessage` (ou le `reason` du catalogue, sinon le repli du front). Restent 8 fichiers, déclarés :
-  // 5 recopient un message de SUCCÈS du serveur, 2 mêlent erreurs et succès, et Login.vue (un 401 y dit
-  // « identifiants incorrects », pas « session expirée »). C43 (D425, D426) : les 5 fichiers aux messages
-  // de SUCCÈS en sont sortis, le front dit ses textes ; « rejoint » / « déjà inscrit » suivent le statut
-  // 201 / 200. Restent 3. Les sites gelés ici restent à trier (usePreviewEvaluation en est sorti le 14/11 : son 2xx sans succès passe par messageDe) : des 422 de
-  // validation peuvent être légitimes, des messages de SUCCÈS du serveur sont recopiés dans une
-  // notice. useStudentEvaluationsList en est sorti : ses refus de démarrage passent par leur
-  // `reason` (#1011). useTeacherEvaluationActions aussi (D72-a) : publication et suppression disent
-  // le motif du catalogue.
-  const CONNUS = [
-    'composables/usePasswordReset.js',
-    'composables/useSchoolRequest.js',
-    'views/Login.vue',
-  ]
+  // Garde STRICTE (D477, 14/11/2026) : aucun fichier de `src` ne porte le texte du serveur à l'écran.
+  // Le cliquet ouvert le 09/11 (17 puis 8 puis 3 fichiers gelés) est fermé : les erreurs passent par
+  // `displayMessage` ou le `reason` du catalogue, les succès disent les textes du front, et la connexion
+  // a sa règle propre (`messageConnexion`).
 
   // Le texte d'une réponse (`response.message`, `response.data.message`) ou le message d'une erreur
   // (`err.message`), et toutes les façons de le porter à l'écran.
@@ -139,11 +124,11 @@ describe('garde : aucun appelant ne fabrique une erreur avec le texte du serveur
     }).join('\n')
   }
 
-  it('aucun NOUVEAU site ne porte le texte du serveur à l’écran dans src/ (cliquet)', () => {
+  it('aucun site ne porte le texte du serveur à l’écran dans src/ (garde stricte)', () => {
     const fautifs = fichiers(racine)
       .filter((f) => { const t = sansCommentaires(readFileSync(f, 'utf8')); return MOTIFS.some((re) => re.test(t)) })
       .map((f) => relative(racine, f).split(sep).join('/'))
       .sort()
-    expect(fautifs).toEqual(CONNUS)
+    expect(fautifs).toEqual([])
   })
 })
