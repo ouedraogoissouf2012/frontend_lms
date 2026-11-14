@@ -18,13 +18,13 @@ const MOT_DE_PASSE = process.env.E2E_MOT_DE_PASSE
 const routes = JSON.parse(readFileSync(fichierRoutes, 'utf8'))
 const ferme = routeurFerme(routes) // D126 : le routeur mesuré ferme-t-il l'école au supradmin ?
 const jeu = JSON.parse(readFileSync(fichierJeu, 'utf8'))
+const ECOLE_KLASSCI = jeu.ecole === 'klassci' // K1 : l'école mesurée (avant tout usage)
 mkdirSync(join(sortie, 'captures'), { recursive: true })
 // K1 : l'école KLASSCI n'a pas encore d'assertions de valeur (K2).
 const VERIFS = ECOLE_KLASSCI ? {} : verifsEcoleLms(jeu)
 
 // Compte → rôle canonique du routeur, dans cet ordre. K1 : les comptes viennent du jeu de l'école
 // mesurée ; le supradmin (plateforme) n'est joué qu'avec l'école LMS, qui le porte depuis D110.
-const ECOLE_KLASSCI = jeu.ecole === 'klassci'
 const ROLES = { admin: 'admin', coordinateur: 'coordinateur', enseignant: 'enseignant', etudiant: 'etudiant', etudiant_inactif: 'etudiant' }
 const COMPTES = [
   ...(ECOLE_KLASSCI ? [] : [{ compte: 'supradmin', email: process.env.E2E_SUPRADMIN_EMAIL, role: 'supradmin' }]),
