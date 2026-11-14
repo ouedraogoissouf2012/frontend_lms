@@ -2,7 +2,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import evaluationService from '@/services/evaluation'
 import { toast } from '@/composables/useToast'
-import { messageDe } from '@/services/errorHandler'
+import { messageDe, invalidResponseError } from '@/services/errorHandler'
 import { entreeDuMotif } from '@/services/refusalReasons'
 import { useConfirm } from '@/composables/useConfirm'
 
@@ -47,7 +47,8 @@ export function usePreviewEvaluation() {
         evaluation.value = result.data
         console.log('[PREVIEW] Évaluation chargée:', evaluation.value)
       } else {
-        error.value = result.message || 'Erreur lors du chargement de la prévisualisation'
+        // D0 : un 2xx sans succès ne montre jamais le texte du serveur ; son motif connu, sinon le catalogue.
+        error.value = messageDe(invalidResponseError('GET /evaluations/{id}/preview sans success', result))
       }
     } catch (err) {
       console.error('[PREVIEW ERROR]', err)
