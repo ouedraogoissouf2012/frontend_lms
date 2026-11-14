@@ -85,8 +85,10 @@ export const REPONSES = {
   'GET /matieres': () => ok(MATIERES.map((m) => ({ ...m, libelle: m.nom, name: m.nom, description: null, coefficient: 1, credit: null, filiere: { id: FILIERE.id }, niveau: { id: NIVEAU.id }, semestre: null }))),
   // KlassciInstitutionStructureReader:28 : `data.filieres`, `data.niveaux_etudes`.
   'GET /structure': () => ok({ filieres: [FILIERE], niveaux_etudes: [NIVEAU] }),
-  // KlassciInstitutionClassesReader:30 : `data[]`.
-  'GET /classes': () => ok(CLASSES),
+  // KlassciInstitutionClassesReader:30 : `data[]`. `places_occupees` (l'effectif actif) : lu sur la classe
+  // KLASSCI par KlassciPayload:136-151, égal à la taille du roster (ClasseDetailsQueryService:229) ; le
+  // front le lit en premier (classMeasures.js:36). `places_totales` n'est pas servi : rien ne l'atteste.
+  'GET /classes': () => ok(CLASSES.map((c) => ({ ...c, places_occupees: ELEVES.filter((e) => e.classe === c.id).length }))),
   'GET /filieres': () => ok([FILIERE]),
   'GET /niveaux-etudes': () => ok([NIVEAU]),
   // KlassciInstitutionTeachersReader:39 : `data[]`.
