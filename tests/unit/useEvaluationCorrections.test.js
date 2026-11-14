@@ -18,6 +18,7 @@ vi.mock('@/services/evaluation', () => ({
 }))
 
 import { useEvaluationCorrections } from '@/composables/useEvaluationCorrections'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 async function setup() {
   let api
@@ -56,7 +57,8 @@ describe('useEvaluationCorrections (H2)', () => {
   it('gère l\'exception (message backend)', async () => {
     getResultsByClass.mockRejectedValue({ response: { data: { message: 'KO' } } })
     const u = await setup()
-    expect(u.error.value).toBe('KO')
+    // D0 (renversé, déclaré) : la catégorie de l'erreur, jamais le texte du serveur.
+    expect(u.error.value).toBe(ERROR_MESSAGES.unknown)
     expect(u.loading.value).toBe(false)
   })
 

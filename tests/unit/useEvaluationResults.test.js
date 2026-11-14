@@ -44,7 +44,8 @@ describe('useEvaluationResults (H2)', () => {
     get.mockResolvedValue({ success: false, message: 'Indispo' })
     const u = await setup()
     expect(u.submission.value).toBe(null)
-    expect(u.error.value).toBe('Indispo')
+    // D0 (renversé, déclaré) : le repli du front, jamais le texte du serveur.
+    expect(u.error.value).toBe('Résultats non disponibles')
   })
 
   it('gère l\'exception réseau', async () => {

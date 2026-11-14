@@ -15,8 +15,11 @@ const api = vi.hoisted(() => ({
   testConnection: vi.fn(),
 }))
 vi.mock('@/services/api', () => ({ institutions: api }))
+const toast = vi.hoisted(() => ({ error: vi.fn(), success: vi.fn() }))
+vi.mock('@/composables/useToast', () => ({ toast }))
 
 import { useAdminInstitutions } from '@/composables/useAdminInstitutions'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 const overview = { total_institutions: 3, active_institutions: 2, total_users: 50, total_lessons: 7, total_evaluations: 4 }
 const inst = { id: 9, slug: 'esbtp', name: 'ESBTP', klassci_api_url: 'https://x', logo_url: 'l', primary_color: '#000', is_active: true }
@@ -119,13 +122,31 @@ describe('useAdminInstitutions (#G1)', () => {
     const c = await setup()
     api.testConnection.mockRejectedValueOnce({ response: { data: { message: 'KO', data: null } } })
     await c.testConnection(inst)
-    expect(c.connectionResult.value).toEqual({ success: false, message: 'KO', data: null })
+    // D0 (renversé, déclaré) : la catégorie de l'erreur, jamais le texte du serveur.
+    expect(c.connectionResult.value).toEqual({ success: false, message: ERROR_MESSAGES.unknown, data: null })
   })
 
   it('error renseignée si le chargement échoue', async () => {
     api.getAll.mockRejectedValueOnce({ message: 'boom' })
     const c = await setup()
-    expect(c.error.value).toBe('boom')
+    // D0 (renversé, déclaré) : le repli du front, jamais le message brut d'une erreur.
+    expect(c.error.value).toBe('Erreur lors du chargement')
+    expect(c.loading.value).toBe(false)
+  })
+
+  it('une bascule de statut en échec dit le sens, jamais le texte du serveur (D0)', async () => {
+    const c = await setup()
+    api.toggle.mockRejectedValueOnce({ response: { status: 500, data: { message: 'SQLSTATE[42S22]' } } })
+    await c.toggleStatus(inst)
+    expect(toast.error).toHaveBeenCalledWith(ERROR_MESSAGES.server)
+  })
+
+  it('un enregistrement en échec (hors 422) dit le sens, jamais le texte du serveur (D0)', async () => {
+    const c = await setup()
+    c.openCreateModal()
+    api.create.mockRejectedValueOnce({ response: { status: 500, data: { message: 'SQLSTATE[42S22]' } } })
+    await c.saveInstitution()
+    expect(c.formErrors.value).toEqual({ general: [ERROR_MESSAGES.server] })
     expect(c.loading.value).toBe(false)
   })
 })

@@ -30,7 +30,12 @@ vi.mock('@/services/attendanceExport', () => ({
   default: { exportPdf: vi.fn(), exportExcel: vi.fn() }
 }))
 
+const toast = vi.hoisted(() => ({ error: vi.fn(), success: vi.fn() }))
+vi.mock('@/composables/useToast', () => ({ toast }))
+
 import { useSeanceAttendanceHistory } from '@/composables/useSeanceAttendanceHistory'
+import attendanceExport from '@/services/attendanceExport'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 const SEANCES = {
   success: true,
@@ -221,5 +226,20 @@ describe('useSeanceAttendanceHistory — un « success: false » est une erreur,
     await u.viewAttendances(SEANCES.data[0])
     expect(u.attendancesError.value).toBeTruthy()
     expect(u.attendancesCanRetry.value).toBe(false)
+  })
+})
+
+describe('useSeanceAttendanceHistory — un export en échec ne montre jamais un texte venu d’ailleurs (D0)', () => {
+  it('erreur HTTP : la catégorie ; erreur locale : le repli du front', async () => {
+    getSeancesHistory.mockReset().mockResolvedValue(SEANCES)
+    getSeanceAttendances.mockReset().mockResolvedValue({ success: true, attendances: [], statistics: {}, seance: {} })
+    const u = await setup()
+    await u.viewAttendances(SEANCES.data[0])
+    attendanceExport.exportPdf.mockRejectedValueOnce({ response: { status: 500, data: { message: 'SQLSTATE[42S22]' } } })
+    await u.exportPDF()
+    expect(toast.error).toHaveBeenLastCalledWith(ERROR_MESSAGES.server)
+    attendanceExport.exportExcel.mockRejectedValueOnce(new Error('Cannot read properties of undefined'))
+    await u.exportExcel()
+    expect(toast.error).toHaveBeenLastCalledWith('Erreur lors de l\'export Excel')
   })
 })
