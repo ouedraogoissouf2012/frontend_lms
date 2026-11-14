@@ -1,4 +1,4 @@
-// Faux KLASSCI « école » de l'E2E (K1, D481) : il SERT le jeu fictif de e2e/klassci-ecole/jeu.mjs.
+// Faux KLASSCI « école » de l'E2E (K1, D481 ; K3 : les écritures) : il SERT le jeu fictif de e2e/klassci-ecole/jeu.mjs.
 //
 // Le faux à 503 (e2e/faux-klassci.mjs) garde son rôle de mesure pour l'école LMS ; celui-ci sert
 // l'école KLASSCI. Chaque appel est journalisé : méthode, chemin, statut rendu, et les CLÉS du corps
@@ -68,6 +68,8 @@ createServer(async (req, res) => {
   appendFileSync(journal, JSON.stringify({
     t: new Date().toISOString(), methode: req.method, chemin, statut, compte: compte?.role ?? null,
     cles: corps && typeof corps === 'object' ? Object.keys(corps) : [],
+    // K3 : les notes envoyées : leur NOMBRE et les CLÉS de leurs éléments, jamais une valeur.
+    ...(Array.isArray(corps?.notes) ? { nb_notes: corps.notes.length, cles_notes: [...new Set(corps.notes.flatMap((n) => Object.keys(n ?? {})))] } : {}),
   }) + '\n')
   repondre(res, statut, reponse)
 }).listen(Number(port), '127.0.0.1', () => console.log(`faux KLASSCI école sur 127.0.0.1:${port}`))
