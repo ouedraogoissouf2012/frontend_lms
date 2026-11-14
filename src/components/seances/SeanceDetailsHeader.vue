@@ -10,7 +10,7 @@
             ← Retour
           </button>
           <div>
-            <!-- Le titre donné à la séance (nullable, null pour une séance KLASSCI), sinon la matière. -->
+            <!-- Le titre donné à la séance (nullable : absent si la séance n’en a pas), sinon la matière. -->
             <h1 class="text-2xl font-bold text-gray-900">
               {{ titre || seance.matiere?.nom || 'Séance' }}
             </h1>
