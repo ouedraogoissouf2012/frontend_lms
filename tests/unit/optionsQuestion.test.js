@@ -37,6 +37,13 @@ describe('lireOptionsQuestion (B7)', () => {
     expect(JSON.stringify(lu)).not.toContain('[object Object]')
   })
 
+  // D446 : un vrai/faux illisible repart avec ses deux réponses fixes, pas quatre options libres.
+  it('un vrai/faux illisible : ses deux réponses fixes, modifiables', () => {
+    const lu = lireOptionsQuestion({ type: 'vrai_faux', options: [{ v: true }, 'Faux'], correct_answers: ['Faux'] })
+    expect(lu).toEqual({ options: ['Vrai', 'Faux'], correct_answers: [], optionsIllisibles: true })
+    expect(() => lu.options.push('x')).not.toThrow()
+  })
+
   it('options ou bonnes réponses absentes : des listes vides, lisibles', () => {
     expect(lireOptionsQuestion({ type: 'qcm' })).toEqual({ options: [], correct_answers: [], optionsIllisibles: false })
   })

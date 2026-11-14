@@ -78,6 +78,19 @@ describe('useCreateQuestions — options d’avant #1059 (B7)', () => {
     expect(envoyees().correct_answers).toEqual(['X'])
   })
 
+  // D446 : une question illisible repart avec les options d'une question NEUVE de son type.
+  it('un qcm illisible repart avec les options d’une question neuve (même source)', async () => {
+    const c = await ouvrir({ options: [{ texte: 'A' }], correct_answers: [] })
+    c.addQuestion()
+    expect(c.questions.value[0].options).toEqual(c.questions.value[1].options)
+  })
+
+  it('un vrai/faux illisible repart avec « Vrai » et « Faux », ceux de la page de passage', async () => {
+    const c = await ouvrir({ type: 'vrai_faux', options: { v: 'Vrai', f: 'Faux' }, correct_answers: ['Vrai'] })
+    expect(c.questions.value[0].optionsIllisibles).toBe(true)
+    expect(c.questions.value[0].options).toEqual(['Vrai', 'Faux'])
+  })
+
   it('verrou : des options en textes restent identiques', async () => {
     const c = await ouvrir({ options: ['A', 'B'], correct_answers: ['A'] })
     expect(c.questions.value[0].optionsIllisibles).toBe(false)
