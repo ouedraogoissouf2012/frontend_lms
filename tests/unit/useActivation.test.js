@@ -12,17 +12,16 @@ describe('useActivation (#394)', () => {
     activateAccount.mockReset()
   })
 
-  it('affiche le message serveur, jamais un courriel', async () => {
-    activateAccount.mockResolvedValue({
-      message: 'Votre mot de passe est enregistré. Vous pouvez vous connecter.',
-    })
+  // C43 (renversé, déclaré) : le texte du FRONT, jamais celui du serveur (D0).
+  it('affiche le message du front, jamais le texte du serveur ni un courriel', async () => {
+    activateAccount.mockResolvedValue({ message: 'Texte serveur, jamais affiché' })
     const api = useActivation()
     await api.submit({
       token: 'jeton',
       password: 'Secret123',
       password_confirmation: 'Secret123',
     })
-    expect(api.notice.value).toMatch(/connecter/)
+    expect(api.notice.value).toBe('Votre mot de passe est enregistré. Vous pouvez vous connecter.')
     expect(api.notice.value).not.toMatch(/e-?mail|courriel envoy/i)
   })
 

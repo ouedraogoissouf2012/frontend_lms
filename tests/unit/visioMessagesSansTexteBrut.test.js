@@ -98,17 +98,14 @@ describe('garde : aucun appelant ne fabrique une erreur avec le texte du serveur
   // `userMessage`, concaténation, gabarit). Le 14/11, 9 fichiers en sont sortis : leurs ERREURS passent par
   // `displayMessage` (ou le `reason` du catalogue, sinon le repli du front). Restent 8 fichiers, déclarés :
   // 5 recopient un message de SUCCÈS du serveur, 2 mêlent erreurs et succès, et Login.vue (un 401 y dit
-  // « identifiants incorrects », pas « session expirée »). Les sites gelés ici restent à trier (usePreviewEvaluation en est sorti le 14/11 : son 2xx sans succès passe par messageDe) : des 422 de
+  // « identifiants incorrects », pas « session expirée »). C43 (D425, D426) : les 5 fichiers aux messages
+  // de SUCCÈS en sont sortis, le front dit ses textes ; « rejoint » / « déjà inscrit » suivent le statut
+  // 201 / 200. Restent 3. Les sites gelés ici restent à trier (usePreviewEvaluation en est sorti le 14/11 : son 2xx sans succès passe par messageDe) : des 422 de
   // validation peuvent être légitimes, des messages de SUCCÈS du serveur sont recopiés dans une
   // notice. useStudentEvaluationsList en est sorti : ses refus de démarrage passent par leur
   // `reason` (#1011). useTeacherEvaluationActions aussi (D72-a) : publication et suppression disent
   // le motif du catalogue.
   const CONNUS = [
-    'composables/useActivation.js',
-    'composables/useAdminSchoolRequests.js',
-    'composables/useAdminTrainingSessions.js',
-    'composables/useEnrolmentCodes.js',
-    'composables/useJoinClass.js',
     'composables/usePasswordReset.js',
     'composables/useSchoolRequest.js',
     'views/Login.vue',

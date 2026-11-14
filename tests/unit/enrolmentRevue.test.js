@@ -207,7 +207,8 @@ describe('R8 : jamais deux bandeaux contradictoires', () => {
     const api = await charge([classe(1, 'absent')])
     emettre.mockResolvedValue({ success: true, message: 'Code émis.', data: { code_inscription: 'AAAAAA' } })
     await api.emettre(api.classes.value[0])
-    expect(api.notice.value).toBe('Code émis.')
+    // C43 (déclaré) : le texte du front dit aussi que le précédent ne fonctionne plus.
+    expect(api.notice.value).toBe('Code émis. Le précédent ne fonctionne plus.')
     listClasses.mockRejectedValue(erreurHttp(500))
     await api.load()
     expect(api.error.value).not.toBe('')

@@ -76,7 +76,7 @@ export function useAdminSchoolRequests() {
     try {
       const response = await schoolRequestsService.validate(id, slug)
       lienActivation.value = response.data?.activation_url || ''
-      messageValidation.value = response.message || 'École ouverte. Transmettez le lien : il ne sera plus affiché.'
+      messageValidation.value = 'École ouverte. Transmettez le lien : il ne sera plus affiché.'
       demandes.value = demandes.value.filter((d) => d.id !== id)
       return true
     } catch (err) {

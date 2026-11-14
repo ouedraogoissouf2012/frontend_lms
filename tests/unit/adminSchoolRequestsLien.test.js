@@ -175,7 +175,8 @@ describe('accessibilité et focus (D17 : A3, A4, N2, C3, R5)', () => {
   it('après « Valider » : la région status annonce, et le focus va au champ du lien, nommé et décrit', async () => {
     const w = await monter()
     await validerA(w)
-    expect(w.find('[role="status"]').text()).toBe('École ouverte.')
+    // C43 (renversé, déclaré) : le texte du front, jamais celui du serveur (« École ouverte. »).
+    expect(w.find('[role="status"]').text()).toBe('École ouverte. Transmettez le lien : il ne sera plus affiché.')
     const champ = w.find('input.lien-input[readonly]')
     expect(document.activeElement).toBe(champ.element)
     expect(champ.attributes('aria-label')).toBe("Lien d'activation")

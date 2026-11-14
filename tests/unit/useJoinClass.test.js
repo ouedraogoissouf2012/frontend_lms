@@ -3,12 +3,16 @@
  * serveur est juge du format ; l'écran normalise seulement la saisie (majuscules, sans
  * espaces). Chaque refus a son message : motifs par le catalogue (ADR-906-01), et un
  * message propre pour le code inconnu (404).
+ *
+ * C43 (D425) : « rejoint » (201) et « déjà inscrit » (200) sont des textes du FRONT, choisis
+ * selon `dejaInscrit`, que le service tire du statut. Le message du serveur n'est jamais affiché.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { normalizeError } from '@/services/errorHandler'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 const rejoindre = vi.fn()
+const PIEGE = 'Texte serveur, jamais affiché'
 vi.mock('@/services/enrolmentCodes', () => ({ enrolmentCodesService: { rejoindre: (...a) => rejoindre(...a) } }))
 
 import { useJoinClass, normaliserCode } from '@/composables/useJoinClass'
@@ -35,8 +39,8 @@ describe('normaliserCode (#391)', () => {
 })
 
 describe('useJoinClass (#391)', () => {
-  it('envoie le code normalisé et garde la classe et le message du serveur', async () => {
-    rejoindre.mockResolvedValue({ success: true, message: 'Vous avez rejoint la classe.', data: { classe: { id: 9, libelle: 'Session Data' } } })
+  it('envoie le code normalisé, garde la classe, et dit « rejoint » (201) par un texte du front', async () => {
+    rejoindre.mockResolvedValue({ success: true, message: PIEGE, data: { classe: { id: 9, libelle: 'Session Data' } }, dejaInscrit: false })
     const j = useJoinClass()
     j.code.value = ' q7rt 4k '
     expect(await j.rejoindre()).toBe(true)
@@ -46,7 +50,7 @@ describe('useJoinClass (#391)', () => {
   })
 
   it('« déjà inscrit » (200) est un succès, pas une erreur', async () => {
-    rejoindre.mockResolvedValue({ success: true, message: 'Vous êtes déjà inscrit dans cette classe.', data: { classe: { id: 9, libelle: 'Session Data' } } })
+    rejoindre.mockResolvedValue({ success: true, message: PIEGE, data: { classe: { id: 9, libelle: 'Session Data' } }, dejaInscrit: true })
     const j = useJoinClass()
     j.code.value = 'Q7RT4K'
     expect(await j.rejoindre()).toBe(true)
@@ -82,7 +86,7 @@ describe('useJoinClass (#391)', () => {
   })
 
   it('un nouvel essai efface le résultat et l’erreur précédents', async () => {
-    rejoindre.mockRejectedValueOnce(erreurHttp(404)).mockResolvedValueOnce({ success: true, message: 'Vous avez rejoint la classe.', data: { classe: { id: 9, libelle: 'S' } } })
+    rejoindre.mockRejectedValueOnce(erreurHttp(404)).mockResolvedValueOnce({ success: true, message: PIEGE, data: { classe: { id: 9, libelle: 'S' } }, dejaInscrit: false })
     const j = useJoinClass()
     j.code.value = 'ZZZZZZ'
     await j.rejoindre()
