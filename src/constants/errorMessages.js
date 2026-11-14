@@ -94,5 +94,11 @@ export const ERROR_MESSAGES = Object.freeze({
   seanceMatiereHorsProgramme: "Cette matière n'est pas au programme de la classe choisie.",
   // B7 (D442) : des options d'avant lms_backend #1059 sans texte fidèle (objet, liste) ; texte du front.
   optionsIllisibles: "Les options de cette question n'ont pas pu être relues. Saisissez-les de nouveau avant d'enregistrer.",
+  // B5 (D461) : les bornes des options d'une question (lms_backend #1069) ; textes du front.
+  optionsMaxAtteint: 'Une question compte au plus 26 options.',
+  optionsHorsBornes: "Cette question dépasse les bornes : 26 options au plus, de 1 000 caractères chacune. Retirez ou raccourcissez des options avant d'enregistrer.",
+  // D466 (D467) : une bonne réponse absente des options, chargée telle, ou refusée par le back (422
+  // `correct_answer_not_among_options`). Texte du front.
+  bonneReponseOrpheline: "La bonne réponse d'une question ne correspond à aucune de ses options. Choisissez-la de nouveau.",
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })

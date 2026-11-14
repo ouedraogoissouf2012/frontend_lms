@@ -78,14 +78,15 @@
       </div>
       <!-- B7 : options d'avant lms_backend #1059 sans texte fidèle, à ressaisir. -->
       <p v-if="!optionsRessaisies(question)" role="alert" class="mb-3 text-sm text-red-600 dark:text-red-400">{{ ERROR_MESSAGES.optionsIllisibles }}</p>
+      <p v-else-if="question.bonneReponseOrpheline" role="alert" class="mb-3 text-sm text-red-600 dark:text-red-400">{{ ERROR_MESSAGES.bonneReponseOrpheline }}</p>
+      <p v-else-if="optionsHorsBornes(question)" role="alert" class="mb-3 text-sm text-red-600 dark:text-red-400">{{ ERROR_MESSAGES.optionsHorsBornes }}</p>
       <div class="space-y-3">
         <div
-          v-for="(option, optIndex) in question.options"
+          v-for="(_, optIndex) in question.options"
           :key="optIndex"
           :class="[
             'flex items-center gap-3 p-3 rounded-lg border-2 transition-all',
-            ((question.type === 'qcm' || question.type === 'vrai_faux') && question.correct_answers && question.correct_answers[0] === option) ||
-            (question.type === 'qcm_multiple' && question.correct_answers && question.correct_answers.includes(option))
+            estCochee(question, optIndex)
               ? 'bg-green-50 dark:bg-green-900/30 border-green-500 dark:border-green-600'
               : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
           ]"
@@ -97,16 +98,16 @@
               v-if="question.type === 'qcm' || question.type === 'vrai_faux'"
               type="radio"
               :name="'correct-' + index"
-              :checked="question.correct_answers && question.correct_answers[0] === option"
-              @change="$emit('set-correct', option)"
+              :checked="estCochee(question, optIndex)"
+              @change="$emit('set-correct', optIndex)"
               class="w-5 h-5 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-green-600 focus:ring-green-500"
               :title="'Marquer comme bonne réponse'"
             />
             <input
               v-else-if="question.type === 'qcm_multiple'"
               type="checkbox"
-              :checked="question.correct_answers && question.correct_answers.includes(option)"
-              @change="$emit('toggle-correct', option)"
+              :checked="estCochee(question, optIndex)"
+              @change="$emit('toggle-correct', optIndex)"
               class="w-5 h-5 rounded bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-green-600 focus:ring-green-500"
               :title="'Marquer comme bonne réponse'"
             />
@@ -115,8 +116,7 @@
           <!-- Icône de validation si c'est la bonne réponse -->
           <div class="flex-shrink-0">
             <svg
-              v-if="((question.type === 'qcm' || question.type === 'vrai_faux') && question.correct_answers && question.correct_answers[0] === option) ||
-                    (question.type === 'qcm_multiple' && question.correct_answers && question.correct_answers.includes(option))"
+              v-if="estCochee(question, optIndex)"
               class="w-6 h-6 text-green-600 dark:text-green-500"
               fill="currentColor"
               viewBox="0 0 20 20"
@@ -132,6 +132,7 @@
           <input
             v-model="question.options[optIndex]"
             type="text"
+            :maxlength="MAX_OPTION_LENGTH"
             class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
             :placeholder="'Option ' + String.fromCharCode(65 + optIndex)"
           />
@@ -150,16 +151,19 @@
           </button>
         </div>
       </div>
+      <!-- B5 : le bouton reste visible, désactivé à 26 options, et le texte dit pourquoi. -->
       <button
         @click="$emit('add-option')"
         type="button"
-        class="mt-3 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium flex items-center gap-1 transition-colors"
+        :disabled="question.options.length >= MAX_OPTIONS"
+        class="mt-3 disabled:opacity-50 disabled:cursor-not-allowed text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium flex items-center gap-1 transition-colors"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
         </svg>
         Ajouter une option
       </button>
+      <p v-if="question.options.length >= MAX_OPTIONS" class="mt-1 text-xs text-gray-600 dark:text-gray-400">{{ ERROR_MESSAGES.optionsMaxAtteint }}</p>
     </div>
 
     <!-- Dissertation (lot CORR) : ni options ni réponse attendue ; l'enseignant la note à la main. -->
@@ -186,7 +190,8 @@
 </template>
 
 <script setup>
-import { optionsRessaisies } from '@/utils/optionsQuestion'
+import { optionsRessaisies, optionsHorsBornes } from '@/utils/optionsQuestion'
+import { MAX_OPTIONS, MAX_OPTION_LENGTH } from '@/constants/evaluationQuestions'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 /**
@@ -201,4 +206,7 @@ defineProps({
 })
 
 defineEmits(['remove', 'add-option', 'remove-option', 'set-correct', 'toggle-correct'])
+
+// D466 : la coche suit l'option par sa POSITION ; set-correct et toggle-correct émettent l'indice.
+const estCochee = (question, optIndex) => (question.correctes || []).includes(optIndex)
 </script>

@@ -71,7 +71,8 @@ describe('useCreateQuestions — options d’avant #1059 (B7)', () => {
     expect(h.toast.warning).toHaveBeenCalledWith(ILLISIBLE)
 
     c.questions.value[0].options = ['X', 'Y', '', '']
-    c.setCorrectAnswer(0, 'X')
+  // D466 (migration déclarée) : l'éditeur coche par POSITION ; la charge envoyée ne change pas.
+    c.setCorrectAnswer(0, 0)
     expect(c.isValid.value).toBe(true)
     await c.saveQuestions()
     expect(envoyees().options).toEqual(['X', 'Y'])
@@ -98,7 +99,8 @@ describe('useCreateQuestions — options d’avant #1059 (B7)', () => {
     await c.saveQuestions()
     expect(h.updateEvaluation).not.toHaveBeenCalled()
     expect(h.toast.warning).toHaveBeenCalledWith(ILLISIBLE)
-    c.setCorrectAnswer(0, 'Vrai')
+  // D466 (migration déclarée) : l'éditeur coche par POSITION ; la charge envoyée ne change pas.
+    c.setCorrectAnswer(0, 0)
     expect(c.isValid.value).toBe(true)
     await c.saveQuestions()
     expect(envoyees().options).toEqual(['Vrai', 'Faux'])
@@ -111,7 +113,8 @@ describe('useCreateQuestions — options d’avant #1059 (B7)', () => {
     expect(c.isValid.value).toBe(false)
     await c.saveQuestions()
     expect(h.updateEvaluation).not.toHaveBeenCalled()
-    c.setCorrectAnswer(0, 'Y')
+  // D466 (migration déclarée) : l'éditeur coche par POSITION ; la charge envoyée ne change pas.
+    c.setCorrectAnswer(0, 1)
     expect(c.isValid.value).toBe(true)
   })
 
