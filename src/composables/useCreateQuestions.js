@@ -6,9 +6,9 @@ import { toast } from '@/composables/useToast'
 import { messageDe, invalidResponseError } from '@/services/errorHandler'
 import { extractList } from '@/utils/apiList'
 import { toId } from '@/utils/toId'
-import { lireOptionsQuestion, optionsRessaisies } from '@/utils/optionsQuestion'
+import { lireOptionsQuestion, optionsRessaisies, optionsHorsBornes } from '@/utils/optionsQuestion'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
-import { optionsParDefaut } from '@/constants/evaluationQuestions'
+import { optionsParDefaut, MAX_OPTIONS } from '@/constants/evaluationQuestions'
 
 /**
  * Couche données de CreateQuestions (H1 ≤300) : chargement de l'évaluation
@@ -35,7 +35,7 @@ export function useCreateQuestions() {
   const evaluationAffichee = computed(() => evaluationKlassci.value ?? evaluationLMS.value)
 
   const isValid = computed(() => {
-    return configuration.duree_minutes > 0 && questions.value.length > 0 && questions.value.every(optionsRessaisies)
+    return configuration.duree_minutes > 0 && questions.value.length > 0 && questions.value.every(optionsRessaisies) && !questions.value.some(optionsHorsBornes)
   })
   // D72-b : en édition, sans évaluation LMS chargée, rien ne s'enregistre (jamais une création).
   const erreurChargement = ref(null)
@@ -130,6 +130,7 @@ export function useCreateQuestions() {
   }
 
   function addOption(questionIndex) {
+    if (questions.value[questionIndex].options.length >= MAX_OPTIONS) return // B5 : 26 au plus
     questions.value[questionIndex].options.push('')
   }
 
@@ -179,7 +180,8 @@ export function useCreateQuestions() {
     // Édition sans évaluation chargée : l'échec est déjà affiché ; ne JAMAIS retomber sur la création.
     if (isEditMode.value && !evaluationLMS.value) return
     if (!isValid.value) {
-      toast.warning(questions.value.every(optionsRessaisies) ? 'Veuillez ajouter au moins une question' : ERROR_MESSAGES.optionsIllisibles)
+      toast.warning(!questions.value.every(optionsRessaisies) ? ERROR_MESSAGES.optionsIllisibles
+        : questions.value.some(optionsHorsBornes) ? ERROR_MESSAGES.optionsHorsBornes : 'Veuillez ajouter au moins une question')
       return
     }
 
