@@ -41,6 +41,9 @@ jobs:
     timeout-minutes: 75
     env:
       E2E_SUPRADMIN_EMAIL: supradmin@e2e.test
+      # K1 (D481) : l'URL KLASSCI de l'école KLASSCI fictive. Tant que le faux « école » n'existe pas,
+      # elle vise le faux à 503 : les 4 connexions KLASSCI doivent y échouer (le rouge attendu).
+      E2E_KLASSCI_ECOLE_URL: http://127.0.0.1:8180
       PLAYWRIGHT_BROWSERS_PATH: /opt/ms-playwright
     defaults:
       run:
@@ -126,6 +129,8 @@ jobs:
           grep -q '^APP_KEY=base64:' .env || { echo "::error::APP_KEY absente du .env"; exit 1; }
           php artisan migrate --force
           php artisan db:seed --class=SupradminSeeder --force
+          # K1 (D481) : l'école KLASSCI fictive, en mode `klassci`, sans utilisateur (la connexion les crée).
+          php "$GITHUB_WORKSPACE/mesure/e2e/ecole-klassci.php" "$PWD" "$E2E_KLASSCI_ECOLE_URL"
 
       - name: Fermer la sortie réseau (utilisateur e2e) et KLASSCI
         run: |
@@ -185,6 +190,14 @@ jobs:
           . "$RUNNER_TEMP/en_e2e.sh"
           en_e2e node "$PWD/outils/parcours.mjs" "$PWD/sortie/routes.json" "$PWD/sortie/jeu.json" "$PWD/sortie"
 
+      - name: Parcours de l'école KLASSCI (K1, chromium, sous e2e)
+        run: |
+          # Le jeu du parcours vient du jeu fictif du faux KLASSCI « école » (e2e/klassci-ecole/jeu.mjs).
+          node --input-type=module -e "import { pathToFileURL } from 'node:url'; import { writeFileSync } from 'node:fs'; const m = await import(pathToFileURL('mesure/e2e/klassci-ecole/jeu.mjs').href); writeFileSync('sortie/jeu-klassci.json', JSON.stringify(m.jeuDuParcours(), null, 2))"
+          mkdir -p sortie/klassci && chmod 777 sortie/klassci
+          . "$RUNNER_TEMP/en_e2e.sh"
+          en_e2e node "$PWD/outils/parcours.mjs" "$PWD/sortie/routes.json" "$PWD/sortie/jeu-klassci.json" "$PWD/sortie/klassci"
+
       - name: Résumé, sorties réseau et appels à KLASSCI
         if: always()
         run: |
@@ -199,6 +212,7 @@ jobs:
             jq -r '"\(.methode) \(.chemin)"' sortie/faux-klassci.jsonl 2>/dev/null | sort | uniq -c || true
             echo '```'
             cat sortie/resume.md 2>/dev/null || echo "(pas de résumé du parcours)"
+            cat sortie/klassci/resume.md 2>/dev/null || echo "(pas de résumé du parcours de l'école KLASSCI)"
           } | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Artefacts (données fictives seulement)
@@ -213,5 +227,9 @@ jobs:
             sortie/captures/
             sortie/ecole-lms.log
             sortie/faux-klassci.jsonl
+            sortie/jeu-klassci.json
+            sortie/klassci/resultats.json
+            sortie/klassci/resume.md
+            sortie/klassci/captures/
             sortie/routes.json
           retention-days: 7
