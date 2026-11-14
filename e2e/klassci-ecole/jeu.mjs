@@ -22,9 +22,23 @@ export const MATIERES = [
   { id: 9203, nom: 'Histoire K E2E', code: 'HKE' },
 ]
 
+// K2 : les élèves de chaque classe. L'enveloppe de `classes/{id}` n'expose QUE `nom_complet`, jamais
+// `nom` ni `prenom` (ClasseEnvelope:36), et aucun `statut` (ClasseDetailsQueryService, « 210 = 210 ») ;
+// le front lit aussi `matricule` et `email` (ClasseEtudiantsTab.vue:14-22).
+const eleve = (id, nom, classe) => ({ id, nom_complet: nom, matricule: `MK${id}`, email: `eleve${id}@ecole-klassci.test`, classe })
+export const ELEVES = [
+  eleve(9304, 'Eleve K E2E', 9101), eleve(9501, 'Eleve K1 Deux E2E', 9101), eleve(9502, 'Eleve K1 Trois E2E', 9101),
+  eleve(9503, 'Eleve K2 Un E2E', 9102), eleve(9504, 'Eleve K2 Deux E2E', 9102), eleve(9505, 'Eleve K2 Trois E2E', 9102),
+]
+
 // Les comptes : l'identifiant de connexion est l'e-mail (domaine réservé `.test`).
 export const COMPTES = {
-  admin: { id: 9301, role: 'admin', nom: 'Admin K E2E', email: 'admin.k@ecole-klassci.test' },
+  // L'admin d'ÉTABLISSEMENT : `superAdmin`, le rôle KLASSCI légitime (KlassciRoleSanitizer:28,
+  // KlassciUserSynchronizerTest:141). D499 : un 5e compte garde le rôle brut `admin`, que le front
+  // range sous ADMIN (roles.js:35-49) et que `GET /admin/users` refuse (role:coordinateur,superAdmin) :
+  // son /admin/users est un ROUGE DÉCLARÉ, qui mesure l'incohérence au lieu de la cacher.
+  admin: { id: 9301, role: 'superAdmin', nom: 'Admin K E2E', email: 'admin.k@ecole-klassci.test' },
+  admin_brut: { id: 9305, role: 'admin', nom: 'Admin Brut K E2E', email: 'admin.brut.k@ecole-klassci.test' },
   coordinateur: { id: 9302, role: 'coordinateur', nom: 'Coordinateur K E2E', email: 'coord.k@ecole-klassci.test' },
   enseignant: { id: 9303, role: 'enseignant', nom: 'Enseignant K E2E', email: 'ens.k@ecole-klassci.test', enseignant_id: 9401, matieres: [9201, 9202], classes: [9101, 9102] },
   etudiant: { id: 9304, role: 'etudiant', nom: 'Eleve K E2E', email: 'eleve.k@ecole-klassci.test', classe: 9101 },
@@ -71,12 +85,39 @@ export const REPONSES = {
   'GET /matieres': () => ok(MATIERES.map((m) => ({ ...m, libelle: m.nom, name: m.nom, description: null, coefficient: 1, credit: null, filiere: { id: FILIERE.id }, niveau: { id: NIVEAU.id }, semestre: null }))),
   // KlassciInstitutionStructureReader:28 : `data.filieres`, `data.niveaux_etudes`.
   'GET /structure': () => ok({ filieres: [FILIERE], niveaux_etudes: [NIVEAU] }),
-  // KlassciInstitutionClassesReader:30 : `data[]`.
-  'GET /classes': () => ok(CLASSES),
+  // KlassciInstitutionClassesReader:30 : `data[]`. `places_occupees` (l'effectif actif) : lu sur la classe
+  // KLASSCI par KlassciPayload:136-151, égal à la taille du roster (ClasseDetailsQueryService:229) ; le
+  // front le lit en premier (classMeasures.js:36). `places_totales` n'est pas servi : rien ne l'atteste.
+  'GET /classes': () => ok(CLASSES.map((c) => ({ ...c, places_occupees: ELEVES.filter((e) => e.classe === c.id).length }))),
   'GET /filieres': () => ok([FILIERE]),
   'GET /niveaux-etudes': () => ok([NIVEAU]),
   // KlassciInstitutionTeachersReader:39 : `data[]`.
   'GET /enseignants': () => ok([{ id: COMPTES.enseignant.enseignant_id, nom: COMPTES.enseignant.nom, prenom: null, nom_complet: COMPTES.enseignant.nom, email: COMPTES.enseignant.email }]),
+  // K2 : l'enveloppe de `classes/{id}` (ClasseDetailsQueryService:121-160, ClasseEnvelope) :
+  // `data.classe`, `data.etudiants` (nom_complet, matricule, email ; aucun statut), `data.matieres` (forme
+  // mesurée {id, nom, code, coefficient, couleur, heures, source}, ClasseMatieresTab.vue:62),
+  // `data.emploi_temps_semaine`. Une classe inconnue rend 404, comme KLASSCI.
+  'GET /classes/{id}': (_c, _corps, [id]) => {
+    const cl = classe(Number(id))
+    if (!cl) return undefined
+    return ok({
+      classe: cl,
+      etudiants: ELEVES.filter((e) => e.classe === cl.id).map(({ classe: _cl, ...e }) => e),
+      matieres: COMPTES.enseignant.matieres.map((mid) => ({ ...matiere(mid), coefficient: 1, couleur: '#336699', heures: 30, source: 'klassci' })),
+      emploi_temps_semaine: [],
+    })
+  },
+  // K2 : `matieres/{id}` (MatiereInfoFetcher:19-55) : `data.matiere`, `data.combinaisons`, `data.enseignants`.
+  'GET /matieres/{id}': (_c, _corps, [id]) => {
+    const m = matiere(Number(id))
+    if (!m) return undefined
+    const ens = COMPTES.enseignant
+    return ok({
+      matiere: { ...m, coefficient: 1, description: null },
+      combinaisons: [],
+      enseignants: ens.matieres.includes(m.id) ? [{ id: ens.enseignant_id, nom_complet: ens.nom, email: ens.email }] : [],
+    })
+  },
   // K2 : l'emploi du temps et les évaluations programmées (vides en K1).
   'GET /emploi-temps': () => ok([]),
   'GET /evaluations': () => ok([]),
