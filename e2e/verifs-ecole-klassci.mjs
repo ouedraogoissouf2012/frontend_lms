@@ -13,7 +13,9 @@ import { chiffre } from './ecran.mjs'
 export function verifsEcoleKlassci(_jeu) {
   const classeK1 = {
     chiffres: [chiffre('Étudiants', 3), chiffre('Matières', 2)],
-    contient: ['Classe K1 E2E', 'Mathematiques K E2E', 'Francais K E2E', 'Eleve K E2E', 'Eleve K1 Deux E2E'],
+    // Les NOMS d'élèves sont dans l'onglet « Étudiants » (ClasseDetails.vue:42), pas dans la vue par défaut :
+    // le parcours ne clique pas d'onglet. Corrigé après le run 43607420046 (une erreur de l'attente, déclarée).
+    contient: ['Classe K1 E2E', 'Mathematiques K E2E', 'Francais K E2E'],
   }
   return {
     'enseignant /teacher/dashboard': { chiffres: [chiffre('Matières Enseignées', 2), chiffre('Classes', 2)] },
