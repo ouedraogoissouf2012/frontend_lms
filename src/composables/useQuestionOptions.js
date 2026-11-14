@@ -1,4 +1,4 @@
-import { MAX_OPTIONS } from '@/constants/evaluationQuestions'
+import { MAX_OPTIONS, OPTIONS_VRAI_FAUX } from '@/constants/evaluationQuestions'
 import { reponsesCourtes } from '@/utils/optionsQuestion'
 
 const TYPES_REPONSE_UNIQUE = new Set(['qcm', 'vrai_faux'])
@@ -40,12 +40,26 @@ export function useQuestionOptions(questions) {
 
   // D528 : vers un type à réponse UNIQUE, plusieurs coches ne se réduisent jamais à une en silence : elles
   // sont retirées, et la question attend sa bonne réponse (l'enregistrement est refusé jusque-là).
+  // D532 : vers vrai/faux, les options deviennent « Vrai » et « Faux », les seules que la page de passage
+  // propose ; une coche n'est gardée que sur un texte EXACTEMENT égal à l'une d'elles, sinon même attente.
   function changeType(questionIndex, type) {
     const question = questions.value[questionIndex]
-    if (TYPES_REPONSE_UNIQUE.has(type) && (question.correctes || []).length > 1) {
-      question.correctes = []
+    let correctes = question.correctes || []
+    if (type === 'vrai_faux' && question.type !== 'vrai_faux') {
+      const gardees = correctes.map((i) => OPTIONS_VRAI_FAUX.indexOf(question.options?.[i])).filter((i) => i >= 0)
+      question.options = [...OPTIONS_VRAI_FAUX]
+      if (gardees.length < correctes.length) {
+        correctes = []
+        question.bonneReponseAChoisir = true
+      } else {
+        correctes = gardees
+      }
+    }
+    if (TYPES_REPONSE_UNIQUE.has(type) && correctes.length > 1) {
+      correctes = []
       question.bonneReponseAChoisir = true
     }
+    question.correctes = correctes
     question.type = type
   }
 
