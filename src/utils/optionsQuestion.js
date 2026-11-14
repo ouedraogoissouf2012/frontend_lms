@@ -7,7 +7,7 @@
  * options : la même règle s'applique aux deux. Rien n'est fabriqué (jamais « [object Object] »),
  * rien n'est retiré sans le dire : ce qui n'a pas de texte fidèle rend la question « illisible ».
  */
-import { optionsParDefaut } from '@/constants/evaluationQuestions'
+import { optionsParDefaut, MAX_OPTIONS, MAX_OPTION_LENGTH } from '@/constants/evaluationQuestions'
 
 const TYPES_A_CHOIX = new Set(['qcm', 'qcm_multiple', 'vrai_faux'])
 const ILLISIBLE = Symbol('illisible')
@@ -55,4 +55,14 @@ export function optionsRessaisies(question) {
   if (!question?.optionsIllisibles) return true
   const remplies = (question.options || []).filter((o) => typeof o === 'string' && o.trim() !== '')
   return remplies.length >= 2 && (question.correct_answers || []).some((c) => remplies.includes(c))
+}
+
+/**
+ * Une question à choix hors des bornes du serveur (B5) : plus de MAX_OPTIONS options remplies, ou une
+ * option de plus de MAX_OPTION_LENGTH caractères. Les options vides ne comptent pas : l'envoi les retire.
+ */
+export function optionsHorsBornes(question) {
+  if (!TYPES_A_CHOIX.has(question?.type) || !Array.isArray(question.options)) return false
+  const remplies = question.options.filter((o) => typeof o === 'string' && o.trim() !== '')
+  return remplies.length > MAX_OPTIONS || remplies.some((o) => o.length > MAX_OPTION_LENGTH)
 }

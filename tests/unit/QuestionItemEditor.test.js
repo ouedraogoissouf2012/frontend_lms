@@ -89,3 +89,34 @@ describe('QuestionItemEditor — la bonne réponse d’un vrai/faux se choisit',
     expect(w.html()).toContain('border-green-500')
   })
 })
+
+// B5 (D461, lms_backend #1069) : au plus 26 options, de 1 000 caractères. Le bouton d'ajout reste
+// visible, DÉSACTIVÉ, avec le texte qui dit pourquoi ; le champ borne la saisie.
+describe('QuestionItemEditor — bornes des options (B5)', () => {
+  const lettres = (k) => Array.from({ length: k }, (_, i) => `O${i}`)
+  const ajouter = (w) => w.findAll('button').find((b) => b.text().includes('Ajouter une option'))
+  const MAX_ATTEINT = 'Une question compte au plus 26 options.'
+
+  it('à 26 options : le bouton est désactivé et le texte du catalogue l’explique', () => {
+    const w = mountEditor({ options: lettres(26), correct_answers: ['O0'] })
+    expect(ajouter(w).attributes('disabled')).toBeDefined()
+    expect(w.text()).toContain(MAX_ATTEINT)
+  })
+
+  it('à 25 options : le bouton est actif, sans texte', () => {
+    const w = mountEditor({ options: lettres(25), correct_answers: ['O0'] })
+    expect(ajouter(w).attributes('disabled')).toBeUndefined()
+    expect(w.text()).not.toContain(MAX_ATTEINT)
+  })
+
+  it('le champ d’une option borne la saisie à 1 000 caractères', () => {
+    const w = mountEditor()
+    expect(w.find('input[type="text"][placeholder="Option A"]').attributes('maxlength')).toBe('1000')
+  })
+
+  it('chargée hors bornes (27 options) : la carte le dit', () => {
+    const w = mountEditor({ options: lettres(27), correct_answers: ['O0'] })
+    expect(w.find('[role="alert"]').text())
+      .toBe("Cette question dépasse les bornes : 26 options au plus, de 1 000 caractères chacune. Retirez ou raccourcissez des options avant d'enregistrer.")
+  })
+})
