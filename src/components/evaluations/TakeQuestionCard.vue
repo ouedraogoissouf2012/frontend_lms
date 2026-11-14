@@ -55,18 +55,13 @@
     <!-- Vrai/Faux -->
     <div v-else-if="question.type === 'vrai_faux'" class="options-list">
       <label
+        v-for="option in OPTIONS_VRAI_FAUX"
+        :key="option"
         class="option-item"
-        :class="{ 'option-selected': answers[question.id] === 'Vrai' }"
+        :class="{ 'option-selected': answers[question.id] === option }"
       >
-        <input type="radio" :name="'question-' + question.id" value="Vrai" v-model="answers[question.id]" class="option-input" />
-        <span class="option-label">Vrai</span>
-      </label>
-      <label
-        class="option-item"
-        :class="{ 'option-selected': answers[question.id] === 'Faux' }"
-      >
-        <input type="radio" :name="'question-' + question.id" value="Faux" v-model="answers[question.id]" class="option-input" />
-        <span class="option-label">Faux</span>
+        <input type="radio" :name="'question-' + question.id" :value="option" v-model="answers[question.id]" class="option-input" />
+        <span class="option-label">{{ option }}</span>
       </label>
     </div>
 
@@ -89,6 +84,8 @@
  * dans l'objet `answers` partagé (même référence) ; `toggle-multiple` est émis
  * pour les QCM multiples. CSS déplacé verbatim depuis TakeEvaluation.
  */
+import { OPTIONS_VRAI_FAUX } from '@/constants/evaluationQuestions'
+
 defineProps({
   question: { type: Object, required: true },
   index: { type: Number, required: true },

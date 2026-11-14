@@ -8,6 +8,7 @@ import { extractList } from '@/utils/apiList'
 import { toId } from '@/utils/toId'
 import { lireOptionsQuestion, optionsRessaisies } from '@/utils/optionsQuestion'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
+import { optionsParDefaut } from '@/constants/evaluationQuestions'
 
 /**
  * Couche données de CreateQuestions (H1 ≤300) : chargement de l'évaluation
@@ -118,7 +119,7 @@ export function useCreateQuestions() {
       question: '',
       type: 'qcm',
       points: 1.00,
-      options: ['', '', '', ''],
+      options: optionsParDefaut('qcm'),
       correct_answers: [],
       correct_answers_text: ''
     })

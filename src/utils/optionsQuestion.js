@@ -7,6 +7,7 @@
  * options : la même règle s'applique aux deux. Rien n'est fabriqué (jamais « [object Object] »),
  * rien n'est retiré sans le dire : ce qui n'a pas de texte fidèle rend la question « illisible ».
  */
+import { optionsParDefaut } from '@/constants/evaluationQuestions'
 
 const TYPES_A_CHOIX = new Set(['qcm', 'qcm_multiple', 'vrai_faux'])
 const ILLISIBLE = Symbol('illisible')
@@ -38,7 +39,8 @@ export function lireOptionsQuestion(question) {
   const options = listeDeTextes(question.options)
   const correctes = listeDeTextes(question.correct_answers)
   if (options === null || correctes === null) {
-    return { options: ['', '', '', ''], correct_answers: [], optionsIllisibles: true }
+    // D446 : les options d'une question NEUVE de son type (Vrai/Faux pour un vrai/faux).
+    return { options: optionsParDefaut(question.type), correct_answers: [], optionsIllisibles: true }
   }
   return { options, correct_answers: correctes, optionsIllisibles: false }
 }

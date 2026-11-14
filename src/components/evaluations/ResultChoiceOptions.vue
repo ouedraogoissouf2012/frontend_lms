@@ -92,7 +92,7 @@
   <!-- Vrai/Faux -->
   <div v-else-if="question.type === 'vrai_faux'" class="space-y-2">
     <div
-      v-for="option in ['Vrai', 'Faux']"
+      v-for="option in OPTIONS_VRAI_FAUX"
       :key="option"
       :class="[
         'p-3 rounded-lg border-2 transition',
@@ -140,6 +140,7 @@
  * et de classes vit dans utils/evaluationResultAnswers (pure). Reçoit la question,
  * les réponses étudiant et la disponibilité de correction en props.
  */
+import { OPTIONS_VRAI_FAUX } from '@/constants/evaluationQuestions'
 import {
   isOptionSelected,
   isOptionCorrect,
