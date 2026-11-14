@@ -94,3 +94,28 @@ describe('Login.vue (#278)', () => {
     expect(w.find('#password').attributes('type')).toBe('text')
   })
 })
+
+// D498 : le bandeau d'échec de connexion est une région ALERT. Sans elle, un lecteur d'écran ne
+// l'annonce pas, et l'E2E lisait « aucun message » sur une connexion refusée.
+describe('Login.vue — l’échec de connexion est annoncé (role="alert")', () => {
+  it('un refus de connexion : le message est dans une région alert', async () => {
+    authMock.login.mockRejectedValue({ response: { status: 401, data: {} } })
+    const { w } = mountLogin()
+    await submit(w)
+    const alerte = w.find('[role="alert"]')
+    expect(alerte.exists()).toBe(true)
+    expect(alerte.text()).not.toBe('')
+  })
+
+  it('un compte sans accès au LMS (#221) : le refus est aussi annoncé', async () => {
+    authMock.login.mockResolvedValue({ success: true, data: { user: { role: 'parent' } } })
+    const { w } = mountLogin()
+    await submit(w)
+    expect(w.find('[role="alert"]').text()).toContain("n'a pas accès au LMS")
+  })
+
+  it('sans échec, aucune région alert', () => {
+    const { w } = mountLogin()
+    expect(w.find('[role="alert"]').exists()).toBe(false)
+  })
+})
