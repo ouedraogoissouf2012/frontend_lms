@@ -76,22 +76,25 @@
           </span>
         </p>
       </div>
+      <!-- B7 : options d'avant lms_backend #1059 sans texte fidèle, à ressaisir. -->
+      <p v-if="!optionsRessaisies(question)" role="alert" class="mb-3 text-sm text-red-600 dark:text-red-400">{{ ERROR_MESSAGES.optionsIllisibles }}</p>
       <div class="space-y-3">
         <div
           v-for="(option, optIndex) in question.options"
           :key="optIndex"
           :class="[
             'flex items-center gap-3 p-3 rounded-lg border-2 transition-all',
-            (question.type === 'qcm' && question.correct_answers && question.correct_answers[0] === option) ||
+            ((question.type === 'qcm' || question.type === 'vrai_faux') && question.correct_answers && question.correct_answers[0] === option) ||
             (question.type === 'qcm_multiple' && question.correct_answers && question.correct_answers.includes(option))
               ? 'bg-green-50 dark:bg-green-900/30 border-green-500 dark:border-green-600'
               : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
           ]"
         >
-          <!-- Radio/Checkbox pour marquer la bonne réponse -->
+          <!-- Radio/Checkbox pour marquer la bonne réponse (vrai/faux : une seule, comme le QCM ; défaut
+               préexistant corrigé par D451, la carte ne permettait pas de la choisir) -->
           <div class="flex items-center">
             <input
-              v-if="question.type === 'qcm'"
+              v-if="question.type === 'qcm' || question.type === 'vrai_faux'"
               type="radio"
               :name="'correct-' + index"
               :checked="question.correct_answers && question.correct_answers[0] === option"
@@ -112,7 +115,7 @@
           <!-- Icône de validation si c'est la bonne réponse -->
           <div class="flex-shrink-0">
             <svg
-              v-if="(question.type === 'qcm' && question.correct_answers && question.correct_answers[0] === option) ||
+              v-if="((question.type === 'qcm' || question.type === 'vrai_faux') && question.correct_answers && question.correct_answers[0] === option) ||
                     (question.type === 'qcm_multiple' && question.correct_answers && question.correct_answers.includes(option))"
               class="w-6 h-6 text-green-600 dark:text-green-500"
               fill="currentColor"
@@ -183,6 +186,9 @@
 </template>
 
 <script setup>
+import { optionsRessaisies } from '@/utils/optionsQuestion'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
+
 /**
  * Éditeur d'UNE question QCM riche (H1, CreateQuestions) : surlignage de la bonne
  * réponse, icône de validation, repères A/B/C. Présentation pure liée au modèle
