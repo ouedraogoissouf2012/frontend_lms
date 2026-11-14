@@ -1,4 +1,5 @@
 import { MAX_OPTIONS } from '@/constants/evaluationQuestions'
+import { reponsesCourtes } from '@/utils/optionsQuestion'
 
 const TYPES_REPONSE_UNIQUE = new Set(['qcm', 'vrai_faux'])
 
@@ -54,7 +55,8 @@ export function useQuestionOptions(questions) {
 /**
  * Les options et les bonnes réponses d'une question, telles qu'elles partent au serveur. Les textes
  * ne sont formés qu'ici (D466) : les options remplies, et les textes des seules options cochées
- * encore remplies. Une option vidée ne part pas, sa coche non plus.
+ * encore remplies. Une option vidée ne part pas, sa coche non plus. Une réponse courte part nettoyée
+ * (reponsesCourtes, D528).
  * @param {object} q - une question de l'éditeur
  * @returns {{ options: string[]|null, correct_answers: string[]|null }}
  */
@@ -64,8 +66,9 @@ export function choixPourEnvoi(q) {
     const correctes = q.correctes || []
     return { options: remplies.map(([o]) => o), correct_answers: remplies.filter(([, i]) => correctes.includes(i)).map(([o]) => o) }
   }
-  if (q.type === 'reponse_courte' && q.correct_answers_text) {
-    return { options: null, correct_answers: q.correct_answers_text.split(',').map(a => a.trim()) }
+  if (q.type === 'reponse_courte') {
+    const reponses = reponsesCourtes(q.correct_answers_text)
+    return { options: null, correct_answers: reponses.length ? reponses : null }
   }
   return { options: null, correct_answers: null }
 }

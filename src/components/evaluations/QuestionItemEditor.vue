@@ -185,6 +185,7 @@
       <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
         Ex: Paris, paris, PARIS (la casse est ignorée)
       </p>
+      <p v-if="motifAvantEnvoi(question)" role="alert" class="mt-2 text-sm text-red-600 dark:text-red-400">{{ ERROR_MESSAGES[motifAvantEnvoi(question)] }}</p>
     </div>
   </div>
 </template>

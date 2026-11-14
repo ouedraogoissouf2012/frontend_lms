@@ -102,5 +102,7 @@ export const ERROR_MESSAGES = Object.freeze({
   bonneReponseOrpheline: "La bonne réponse d'une question ne correspond à aucune de ses options. Choisissez-la de nouveau.",
   // D528 : une question à plusieurs coches passée à un type à réponse unique ; ses coches sont retirées.
   bonneReponseAChoisir: "Cette question n'accepte qu'une bonne réponse : ses coches ont été retirées. Choisissez-la.",
+  // D528 : les bornes des réponses d'une réponse courte, celles des options (lms_backend #1071).
+  reponsesCourtesHorsBornes: "Cette question accepte au plus 26 réponses, de 1 000 caractères chacune. Retirez ou raccourcissez des réponses avant d'enregistrer.",
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })

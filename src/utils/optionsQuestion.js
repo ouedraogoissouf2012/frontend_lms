@@ -78,6 +78,17 @@ export function optionsHorsBornes(question) {
 }
 
 /**
+ * Les réponses acceptées d'une réponse courte, telles qu'elles partent (D528) : découpées aux virgules,
+ * sans les vides (le serveur en ferait null, refusé) ni les doublons exacts. La casse est gardée : la
+ * notation l'ignore, mais c'est le texte que l'enseignant a écrit.
+ * @param {string|null|undefined} texte
+ * @returns {string[]}
+ */
+export function reponsesCourtes(texte) {
+  return [...new Set((texte || '').split(',').map((r) => r.trim()).filter((r) => r !== ''))]
+}
+
+/**
  * Ce qui empêche d'enregistrer une question, ou null : la CLÉ de son texte dans ERROR_MESSAGES. UNE
  * source (D528) pour le bouton (isValid), l'avertissement à l'enregistrement et l'alerte de la question,
  * dans cet ordre de priorité. Les marques d'une question à choix ne valent que pour un type à choix :
@@ -91,6 +102,10 @@ export function motifAvantEnvoi(question) {
     if (question.bonneReponseOrpheline) return 'bonneReponseOrpheline'
     if (question.bonneReponseAChoisir) return 'bonneReponseAChoisir'
     if (optionsHorsBornes(question)) return 'optionsHorsBornes'
+  }
+  if (question?.type === 'reponse_courte') {
+    const reponses = reponsesCourtes(question.correct_answers_text)
+    if (reponses.length > MAX_OPTIONS || reponses.some((r) => r.length > MAX_OPTION_LENGTH)) return 'reponsesCourtesHorsBornes'
   }
   return null
 }
