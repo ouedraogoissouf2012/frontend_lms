@@ -45,8 +45,14 @@ export function lireOptionsQuestion(question) {
   return { options, correct_answers: correctes, optionsIllisibles: false }
 }
 
-/** Une question illisible ne s'enregistre qu'une fois au moins deux options ressaisies. */
+/**
+ * Une question illisible ne s'enregistre qu'une fois RESSAISIE : au moins deux options remplies ET
+ * une bonne réponse choisie parmi elles (D451). Le chargement a effacé sa bonne réponse ; sans cette
+ * condition, elle s'enregistrerait sans bonne réponse, donc plus notée, sans que personne le sache.
+ * La règle ne vaut QUE pour une question illisible : l'éditeur n'exige pas de bonne réponse ailleurs.
+ */
 export function optionsRessaisies(question) {
   if (!question?.optionsIllisibles) return true
-  return (question.options || []).filter((o) => typeof o === 'string' && o.trim() !== '').length >= 2
+  const remplies = (question.options || []).filter((o) => typeof o === 'string' && o.trim() !== '')
+  return remplies.length >= 2 && (question.correct_answers || []).some((c) => remplies.includes(c))
 }
