@@ -43,6 +43,8 @@ export const ERROR_MESSAGES = Object.freeze({
   evaluationOfflineOnly: 'Cette évaluation ne se passe pas en ligne.',
   // lms_backend #1037 (C28) : 409 à la remise, échéance dépassée ; la copie est gardée, jamais notée.
   // Lot CORR : 409 de POST /evaluations/{id}/sync-klassci, une copie à dissertation n'est pas notée.
+  // D540 : aucune copie remise à synchroniser (compteur du serveur, ou 422 `no_submission_to_sync`).
+  syncAucuneCopieRemise: "Aucune copie remise n'est à synchroniser. Les notes partiront une fois des copies remises par les élèves.",
   syncDissertationNonNotee: 'Une copie à dissertation n’est pas encore notée : notez-la depuis « Notes et résultats » avant d’envoyer les notes à KLASSCI.',
   evaluationAttemptLocked: 'Le temps imparti est dépassé : votre copie est verrouillée. Vos réponses sont conservées, mais elle ne sera pas notée.',
   // Motif `student_without_active_class` : un état vide, affiché en information (jamais en alerte).

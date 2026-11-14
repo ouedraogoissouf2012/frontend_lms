@@ -46,7 +46,7 @@
       Prévisualiser
     </button>
     <button
-      v-if="evaluation.can_sync_grades && evaluation.has_online && evaluation.online_version?.submissions_count > 0"
+      v-if="evaluation.can_sync_grades && evaluation.has_online && copiesASynchroniser(evaluation.online_version) !== 0"
       @click="$emit('sync', evaluation)"
       :disabled="syncing === evaluation.id"
       class="btn-action btn-sync"
@@ -82,6 +82,8 @@ import {
   MegaphoneIcon,
   TrashIcon
 } from '@heroicons/vue/24/outline'
+// D540 : les copies REMISES (compteur du serveur) ; inconnu, le bouton reste et le serveur tranche.
+import { copiesASynchroniser } from '@/utils/evaluations'
 
 defineProps({
   evaluation: { type: Object, required: true },

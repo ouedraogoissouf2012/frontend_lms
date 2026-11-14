@@ -80,14 +80,15 @@ describe('useTeacherEvaluationActions (H1)', () => {
 
   it('syncToKlassci sans soumission n\'appelle pas le service', async () => {
     const { api } = setup()
-    await api.syncToKlassci({ id: 1, online_version: { id: 5, submissions_count: 0 } })
+    // D540 : le compteur des copies REMISES (migration déclarée ; `submissions_count` compte aussi les démarrées).
+    await api.syncToKlassci({ id: 1, online_version: { id: 5, submissions_to_sync_count: 0 } })
     expect(h.syncToKlassci).not.toHaveBeenCalled()
   })
 
   it('syncToKlassci avec soumissions + confirmation synchronise', async () => {
     h.syncToKlassci.mockResolvedValue({ success: true })
     const { api } = setup()
-    await api.syncToKlassci({ id: 1, online_version: { id: 5, submissions_count: 3 } })
+    await api.syncToKlassci({ id: 1, online_version: { id: 5, submissions_to_sync_count: 3 } })
     expect(h.syncToKlassci).toHaveBeenCalledWith(5)
   })
 
