@@ -3,6 +3,7 @@ import { useRouter, useRoute } from 'vue-router'
 import evaluationService from '@/services/evaluation'
 import { toast } from '@/composables/useToast'
 import { messageDe } from '@/services/errorHandler'
+import { entreeDuMotif } from '@/services/refusalReasons'
 import { useConfirm } from '@/composables/useConfirm'
 
 /**
@@ -50,7 +51,8 @@ export function usePreviewEvaluation() {
       }
     } catch (err) {
       console.error('[PREVIEW ERROR]', err)
-      error.value = 'Impossible de charger la prévisualisation'
+      // Un refus motivé (catalogue) dit son motif ; tout autre échec garde le message actuel (D0).
+      error.value = entreeDuMotif(err?.response?.data?.reason) ? messageDe(err) : 'Impossible de charger la prévisualisation'
     } finally {
       loading.value = false
     }
