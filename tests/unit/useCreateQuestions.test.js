@@ -82,10 +82,11 @@ describe('useCreateQuestions (H1)', () => {
     expect(c.questions.value[0].options).toHaveLength(5)
     c.removeOption(0, 0)
     expect(c.questions.value[0].options).toHaveLength(4)
-    c.setCorrectAnswer(0, 'A')
-    expect(c.questions.value[0].correct_answers).toEqual(['A'])
-    c.toggleCorrectAnswer(0, 'A')
-    expect(c.questions.value[0].correct_answers).toEqual([])
+    // D466 (migration déclarée) : l'éditeur coche par POSITION ; la charge envoyée ne change pas.
+    c.setCorrectAnswer(0, 0)
+    expect(c.questions.value[0].correctes).toEqual([0])
+    c.toggleCorrectAnswer(0, 0)
+    expect(c.questions.value[0].correctes).toEqual([])
     c.removeQuestion(0)
     expect(c.questions.value).toHaveLength(0)
   })
@@ -102,7 +103,8 @@ describe('useCreateQuestions (H1)', () => {
     c.addQuestion()
     c.questions.value[0].question = 'Q1'
     c.questions.value[0].options = ['A', 'B', '']
-    c.setCorrectAnswer(0, 'A')
+    // D466 (migration déclarée) : l'éditeur coche par POSITION ; la charge envoyée ne change pas.
+    c.setCorrectAnswer(0, 0)
     await c.saveQuestions()
     expect(h.createEvaluation).toHaveBeenCalledTimes(1)
     const payload = h.createEvaluation.mock.calls[0][0]

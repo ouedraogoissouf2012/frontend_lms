@@ -70,7 +70,8 @@ describe('useCreateQuestions — bornes des options (B5)', () => {
     await c.saveQuestions()
     expect(h.updateEvaluation).not.toHaveBeenCalled()
     c.questions.value[0].options[0] = 'A'.repeat(1000)
-    c.setCorrectAnswer(0, 'A'.repeat(1000))
+  // D466 (migration déclarée) : l'éditeur coche par POSITION ; la charge envoyée ne change pas.
+    c.setCorrectAnswer(0, 0)
     expect(c.isValid.value).toBe(true)
   })
 
