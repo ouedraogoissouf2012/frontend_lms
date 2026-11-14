@@ -63,9 +63,12 @@ export function usePreviewEvaluation() {
 
   // Aller à l'édition
   function goToEdit() {
+    // L'id KLASSCI, s'il existe, part avec (en-tête de l'édition) ; une évaluation locale n'en a pas.
+    const klassciId = evaluation.value.klassci_evaluation_id
     router.push({
       name: 'EditQuestions',
-      params: { id: evaluation.value.id }
+      params: { id: evaluation.value.id },
+      query: klassciId != null ? { klassci_id: klassciId } : {}
     })
   }
 

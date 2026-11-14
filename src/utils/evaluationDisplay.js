@@ -1,5 +1,6 @@
 import { extractList } from './apiList'
 import { toId, ENTITY_ID_KEYS } from './toId'
+import { idClasse, idEnseignant, idMatiere } from './identiteEvaluation'
 
 export { toId }
 
@@ -32,6 +33,8 @@ export const nonEmptyArray = (value, envelopeKeys = []) => {
   return list.length > 0 ? list : null
 }
 
+// D72-c, D-c3 : la forme des lignes `/proxy/*` d'une école KLASSCI est indéterminée (schéma ouvert,
+// aucune fixture) : `byId` garde toutes ses clés ; en cas de collision, la première ligne gagne.
 export const byId = (items) => {
   const map = new Map()
   ;(Array.isArray(items) ? items : []).forEach((item) => {
@@ -45,28 +48,28 @@ export const byId = (items) => {
   return map
 }
 
+// D72-c : le repli `#id` suit la règle d'identité (`identiteEvaluation`) ; les alias hors contrat
+// (`teacher`, `matiere_name`, `subject_name`, `class_name`), absents d'`EvaluationRecord`, ne sont plus lus.
+const repliId = (prefixe, id) => (id ? `${prefixe} #${id}` : '')
+
 export const teacherName = (evaluation) => firstValue(
   evaluation.enseignant_nom,
   displayName(evaluation.enseignant),
-  displayName(evaluation.teacher),
-  evaluation.klassci_enseignant_id ? `Enseignant #${evaluation.klassci_enseignant_id}` : '',
+  repliId('Enseignant', idEnseignant(evaluation)),
   'Enseignant inconnu'
 )
 
 export const matiereName = (evaluation) => firstValue(
   evaluation.matiere_nom,
-  evaluation.matiere_name,
-  evaluation.subject_name,
   displayName(evaluation.matiere),
-  evaluation.klassci_matiere_id ? `Matière #${evaluation.klassci_matiere_id}` : '',
+  repliId('Matière', idMatiere(evaluation)),
   'Matière inconnue'
 )
 
 export const classeName = (evaluation) => firstValue(
   evaluation.classe_nom,
   evaluation.classe_name,
-  evaluation.class_name,
   displayName(evaluation.classe),
-  evaluation.klassci_classe_id ? `Classe #${evaluation.klassci_classe_id}` : '',
+  repliId('Classe', idClasse(evaluation)),
   'Classe inconnue'
 )

@@ -3,7 +3,7 @@ import { useRouter, useRoute } from 'vue-router'
 import evaluationService from '@/services/evaluation'
 import klassciService from '@/services/klassci'
 import { toast } from '@/composables/useToast'
-import { messageDe } from '@/services/errorHandler'
+import { messageDe, invalidResponseError } from '@/services/errorHandler'
 import { extractList } from '@/utils/apiList'
 import { toId } from '@/utils/toId'
 
@@ -28,10 +28,15 @@ export function useCreateQuestions() {
   const questions = ref([])
   const loading = ref(false)
   const isEditMode = ref(false)
+  // L'en-tête montre la programmation KLASSCI, sinon l'évaluation LMS (évaluation locale, D72-b).
+  const evaluationAffichee = computed(() => evaluationKlassci.value ?? evaluationLMS.value)
 
   const isValid = computed(() => {
     return configuration.duree_minutes > 0 && questions.value.length > 0
   })
+  // D72-b : en édition, sans évaluation LMS chargée, rien ne s'enregistre (jamais une création).
+  const erreurChargement = ref(null)
+  const peutEnregistrer = computed(() => isValid.value && !(isEditMode.value && !evaluationLMS.value))
 
   async function loadEvaluationKlassci(klassciId) {
     try {
@@ -75,38 +80,35 @@ export function useCreateQuestions() {
     try {
       console.log('📖 Chargement évaluation LMS existante:', lmsEvaluationId)
       const result = await evaluationService.getEvaluation(lmsEvaluationId)
+      if (!(result?.success && result.data)) throw invalidResponseError('GET évaluation LMS sans success', result)
 
-      if (result.success && result.data) {
-        evaluationLMS.value = result.data
-        console.log('✅ Évaluation LMS chargée:', evaluationLMS.value)
+      evaluationLMS.value = result.data
+      console.log('✅ Évaluation LMS chargée:', evaluationLMS.value)
 
-        // Charger la configuration
-        configuration.duree_minutes = evaluationLMS.value.duree_minutes || 60
-        configuration.max_attempts = evaluationLMS.value.max_attempts || 1
-        configuration.shuffle_questions = evaluationLMS.value.shuffle_questions || false
-        configuration.show_results = evaluationLMS.value.show_results || false
+      // Charger la configuration
+      configuration.duree_minutes = evaluationLMS.value.duree_minutes || 60
+      configuration.max_attempts = evaluationLMS.value.max_attempts || 1
+      configuration.shuffle_questions = evaluationLMS.value.shuffle_questions || false
+      configuration.show_results = evaluationLMS.value.show_results || false
 
-        // Charger les questions existantes
-        if (evaluationLMS.value.questions && evaluationLMS.value.questions.length > 0) {
-          questions.value = evaluationLMS.value.questions.map(q => ({
-            question: q.question,
-            type: q.type,
-            points: q.points || 1,
-            options: q.options || [],
-            correct_answers: q.correct_answers || [],
-            correct_answers_text: q.type === 'reponse_courte' && q.correct_answers
-              ? q.correct_answers.join(', ')
-              : ''
-          }))
-          console.log('✅ Questions chargées:', questions.value.length)
-        }
-      } else {
-        console.error('❌ Erreur chargement évaluation LMS')
-        toast.error('Impossible de charger l\'évaluation existante')
+      // Charger les questions existantes
+      if (evaluationLMS.value.questions && evaluationLMS.value.questions.length > 0) {
+        questions.value = evaluationLMS.value.questions.map(q => ({
+          question: q.question,
+          type: q.type,
+          points: q.points || 1,
+          options: q.options || [],
+          correct_answers: q.correct_answers || [],
+          correct_answers_text: q.type === 'reponse_courte' && q.correct_answers
+            ? q.correct_answers.join(', ')
+            : ''
+        }))
+        console.log('✅ Questions chargées:', questions.value.length)
       }
     } catch (error) {
+      // L'échec se dit sur l'écran (catalogue, jamais le texte serveur : D0) ; l'enregistrement reste coupé.
       console.error('❌ Erreur loadExistingEvaluation:', error)
-      toast.error('Erreur lors du chargement de l\'évaluation')
+      erreurChargement.value = messageDe(error)
     }
   }
 
@@ -172,6 +174,8 @@ export function useCreateQuestions() {
   }
 
   async function saveQuestions() {
+    // Édition sans évaluation chargée : l'échec est déjà affiché ; ne JAMAIS retomber sur la création.
+    if (isEditMode.value && !evaluationLMS.value) return
     if (!isValid.value) {
       toast.warning('Veuillez ajouter au moins une question')
       return
@@ -179,7 +183,7 @@ export function useCreateQuestions() {
 
     loading.value = true
     try {
-      if (isEditMode.value && evaluationLMS.value) {
+      if (isEditMode.value) {
         // Mode édition : mettre à jour l'évaluation existante
         await updateEvaluation()
       } else {
@@ -258,17 +262,19 @@ export function useCreateQuestions() {
 
   onMounted(async () => {
     const klassciId = route.query.klassci_id
-    if (!klassciId) {
+    // Vérifier si mode édition (route avec paramètre :id)
+    const lmsEvaluationId = route.params.id
+    isEditMode.value = !!lmsEvaluationId
+
+    // D72-b : une évaluation LOCALE n'a pas d'id KLASSCI ; en édition, il est facultatif. La création
+    // depuis une programmation, elle, l'exige toujours (la création locale passe par la liste).
+    if (!klassciId && !isEditMode.value) {
       toast.error('ID évaluation KLASSCI manquant')
       router.back()
       return
     }
 
-    // Vérifier si mode édition (route avec paramètre :id)
-    const lmsEvaluationId = route.params.id
-    isEditMode.value = !!lmsEvaluationId
-
-    await loadEvaluationKlassci(klassciId)
+    if (klassciId) await loadEvaluationKlassci(klassciId)
 
     // Si mode édition, charger l'évaluation LMS existante
     if (isEditMode.value) {
@@ -277,8 +283,8 @@ export function useCreateQuestions() {
   })
 
   return {
-    evaluationKlassci, configuration, questions, loading, isEditMode,
-    isValid,
+    evaluationKlassci, evaluationAffichee, configuration, questions, loading, isEditMode,
+    isValid, erreurChargement, peutEnregistrer,
     addQuestion, removeQuestion, addOption, removeOption,
     setCorrectAnswer, toggleCorrectAnswer,
     saveQuestions, goBack,

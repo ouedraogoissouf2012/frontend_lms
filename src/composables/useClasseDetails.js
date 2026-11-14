@@ -114,9 +114,9 @@ export function useClasseDetails() {
 
       if (data && data.success) {
         classe.value = data.data.classe
-        // `evaluations` est la clé réellement renvoyée ; `evaluations_programmees`
-        // reste accepté pour les payloads antérieurs.
-        evaluations.value = data.data.evaluations || data.data.evaluations_programmees || []
+        // Les deux sources du serveur (KLASSCI et école LMS) émettent `evaluations_programmees`,
+        // et seulement elle : aucune fiche de classe n'émet de clé `evaluations` (D72-b).
+        evaluations.value = data.data.evaluations_programmees || []
         emploiTemps.value = data.data.emploi_temps_semaine || []
         matieres.value = asArray(data.data.matieres_disponibles || data.data.matieres || classe.value?.matieres)
         statistiques.value = data.data.statistiques

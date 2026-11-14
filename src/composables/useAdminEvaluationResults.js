@@ -6,6 +6,8 @@ import { hasRole, ROLES } from '@/constants/roles'
 import { endpoints } from '@/services/endpoints'
 import { klassciService } from '@/services/klassci'
 import { extractList } from '@/utils/apiList'
+import { toId } from '@/utils/toId'
+import { idClasse, idEnseignant, idMatiere } from '@/utils/identiteEvaluation'
 
 /**
  * Couche données d'AdminEvaluationResults (#H3 ≤300) : charge les évaluations
@@ -43,18 +45,16 @@ export function useAdminEvaluationResults() {
     let filtered = evaluations.value
 
     if (filters.value.enseignant_id) {
-      const enseignantId = Number(filters.value.enseignant_id) || filters.value.enseignant_id
-      filtered = filtered.filter(e => e.klassci_enseignant_id == enseignantId)
+      // D72-c (L5) : l'identité suit la règle des deux familles (champs à plat).
+      filtered = filtered.filter(e => idEnseignant(e) === toId(filters.value.enseignant_id))
     }
 
     if (filters.value.classe_id) {
-      const classeId = Number(filters.value.classe_id) || filters.value.classe_id
-      filtered = filtered.filter(e => e.klassci_classe_id == classeId)
+      filtered = filtered.filter(e => idClasse(e) === toId(filters.value.classe_id))
     }
 
     if (filters.value.matiere_id) {
-      const matiereId = Number(filters.value.matiere_id) || filters.value.matiere_id
-      filtered = filtered.filter(e => e.klassci_matiere_id == matiereId)
+      filtered = filtered.filter(e => idMatiere(e) === toId(filters.value.matiere_id))
     }
 
     if (filters.value.statut) {
@@ -99,10 +99,12 @@ export function useAdminEvaluationResults() {
       // Extraire la liste unique des enseignants
       const enseignantsMap = new Map()
       evaluations.value.forEach(evaluation => {
-        if (evaluation.klassci_enseignant_id && evaluation.enseignant_nom) {
-          enseignantsMap.set(evaluation.klassci_enseignant_id, {
-            id: evaluation.klassci_enseignant_id,
-            klassci_id: evaluation.klassci_enseignant_id,
+        // D72-c (L5) : option clée par la règle d'identité ; `klassci_id` n'est posé que s'il existe.
+        const id = idEnseignant(evaluation)
+        if (id && evaluation.enseignant_nom) {
+          enseignantsMap.set(id, {
+            id,
+            klassci_id: evaluation.klassci_enseignant_id ?? null,
             name: evaluation.enseignant_nom,
             libelle: evaluation.enseignant_nom,
             email: evaluation.enseignant?.email || ''
