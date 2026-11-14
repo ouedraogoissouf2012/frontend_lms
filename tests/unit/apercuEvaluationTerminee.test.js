@@ -41,6 +41,20 @@ describe('aperçu d’une évaluation non terminée — le motif se dit', () => 
     expect(c.error.value).toBe(ERROR_MESSAGES.previewRequiresFinishedEvaluation)
   })
 
+  // Reste D0 (même composable) : un 2xx « success: false » affichait `result.message`, le texte du serveur.
+  // Il passe désormais par invalidResponseError et messageDe, comme ailleurs.
+  it('4. 2xx success:false sans motif → le message générique du catalogue, jamais le texte du serveur', async () => {
+    h.preview.mockResolvedValue({ success: false, message: PIEGE })
+    const c = await monter()
+    expect(c.error.value).toBe(ERROR_MESSAGES.unknown)
+  })
+
+  it('5. 2xx success:false avec le motif → le message du catalogue', async () => {
+    h.preview.mockResolvedValue({ success: false, message: PIEGE, reason: 'preview_requires_finished_evaluation' })
+    const c = await monter()
+    expect(c.error.value).toBe(ERROR_MESSAGES.previewRequiresFinishedEvaluation)
+  })
+
   it('3. un autre échec garde le message actuel', async () => {
     h.preview.mockRejectedValue({ response: { status: 500, data: { message: PIEGE } } })
     const c = await monter()
