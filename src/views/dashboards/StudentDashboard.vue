@@ -15,8 +15,14 @@
       <!-- Loading state -->
       <DashboardSkeleton v-if="loading" />
 
+      <!-- Inscription inactive : un état clair (catalogue), pas une erreur ; aucune donnée en cache. -->
+      <div v-if="inscriptionInactive" class="info-state" role="status">
+        <h3 class="info-title">Inscription inactive</h3>
+        <p class="info-message">{{ error }}</p>
+      </div>
+
       <!-- Error state -->
-      <div v-if="error" class="error-state">
+      <div v-else-if="error" class="error-state">
         <div class="error-icon"><i class="fa fa-exclamation-triangle"></i></div>
         <div class="error-content">
           <h3 class="error-title">Erreur de chargement</h3>
@@ -28,7 +34,7 @@
       </div>
 
       <!-- Dashboard Content -->
-      <DashboardWidgets v-if="!loading && dashboardData" v-reveal="70" :dashboard-data="dashboardData" />
+      <DashboardWidgets v-if="!loading && dashboardData && !inscriptionInactive" v-reveal="70" :dashboard-data="dashboardData" />
     </div>
   </DashboardLayout>
 </template>
@@ -50,7 +56,7 @@ import { useStudentDashboard } from '@/composables/useStudentDashboard'
 
 defineOptions({ name: 'StudentDashboard' })
 
-const { user, dashboardData, loading, error, canRetry, loadDashboard } = useStudentDashboard()
+const { user, dashboardData, loading, error, canRetry, inscriptionInactive, loadDashboard } = useStudentDashboard()
 </script>
 
 <style scoped>
@@ -84,6 +90,21 @@ const { user, dashboardData, loading, error, canRetry, loadDashboard } = useStud
 .page-subtitle {
   color: var(--text-secondary);
   margin-top: 0.25rem;
+}
+
+/* Inscription inactive : un état clair */
+.info-state {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: var(--info-bg);
+  border: 1px solid var(--info-border);
+  border-radius: 0.75rem;
+  color: var(--info-text);
+}
+
+.info-title {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
 }
 
 /* Error State */
