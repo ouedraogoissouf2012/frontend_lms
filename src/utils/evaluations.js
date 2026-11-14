@@ -145,3 +145,16 @@ export function getStatusBadgeClass(evaluation) {
   const suffix = STATUS_BADGE_CLASSES[evaluation.status] || 'status-badge-default'
   return `${base} ${suffix}`
 }
+
+/**
+ * D540 : le nombre de copies que la synchronisation des notes enverrait (`submissions_to_sync_count`,
+ * compté par le serveur avec le filtre même de la synchronisation), ou null s'il n'est pas dans la
+ * réponse. Jamais `submissions_count`, qui compte aussi les copies seulement démarrées : sans le
+ * compteur, rien n'est deviné, et c'est le refus motivé du serveur qui parle.
+ * @param {Object|null|undefined} onlineVersion - la version en ligne d'une évaluation
+ * @returns {number|null}
+ */
+export function copiesASynchroniser(onlineVersion) {
+  const n = onlineVersion?.submissions_to_sync_count
+  return Number.isInteger(n) && n >= 0 ? n : null
+}
