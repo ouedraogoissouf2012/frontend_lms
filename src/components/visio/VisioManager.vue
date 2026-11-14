@@ -159,7 +159,7 @@ export default {
     }
   },
   setup(props, { emit }) {
-    // État (loading / participantCount) + orchestration des appels visio,
+    // État (loading) + orchestration des appels visio,
     // extraits dans le composable useVisioActions (comportement identique).
     return {
       ...useVisioActions(props, emit)
@@ -208,11 +208,8 @@ export default {
       this.currentTime = new Date()
     }, VISIO_CONFIG.HEARTBEAT_INTERVAL_MS)
 
-    // NOTE: loadParticipantCount() désactivé car cause erreur 500
-    // On utilise expectedParticipants (effectif classe) à la place
-    // if (this.seance.visio_enabled) {
-    //   this.loadParticipantCount()
-    // }
+    // Effectif attendu : expectedParticipants (effectif de la classe). L'ancien compteur de participants,
+    // désactivé depuis 1b6276d7 et jamais affiché, a été retiré (14/11) ; le réactiver est une question produit.
   },
   beforeUnmount() {
     if (this.timeCheckInterval) {

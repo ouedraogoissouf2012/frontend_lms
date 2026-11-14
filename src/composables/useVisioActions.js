@@ -15,9 +15,9 @@ import {
 /**
  * Composable d'actions visio (extrait de VisioManager.vue, G8).
  *
- * Encapsule l'état `loading` / `participantCount` et l'orchestration des appels
- * (programmer / désactiver / démarrer / terminer / télécharger PDF / rejoindre /
- * charger le compteur). Les appels services et événements restent stables ; les
+ * Encapsule l'état `loading` et l'orchestration des appels (programmer /
+ * désactiver / démarrer / terminer / télécharger PDF / rejoindre). Les appels
+ * services et événements restent stables ; les
  * retours utilisateur passent par les toasts et confirmations modales du projet.
  *
  * @param {{ seance: Object }} props - props réactives du composant (lit props.seance).
@@ -28,7 +28,6 @@ export function useVisioActions(props, emit) {
   const visioStore = useVisioStore()
 
   const loading = ref(false)
-  const participantCount = ref(0)
 
   /**
    * Coordinateur: Programmer la visio
@@ -208,29 +207,13 @@ export function useVisioActions(props, emit) {
     }
   }
 
-  /**
-   * Charger le nombre de participants
-   */
-  async function loadParticipantCount() {
-    try {
-      const response = await lmsService.getSeanceParticipants(props.seance.id)
-      if (response && response.success) {
-        participantCount.value = response.data.total || 0
-      }
-    } catch (error) {
-      console.error('[VisioManager] Erreur chargement participants:', error)
-    }
-  }
-
   return {
     loading,
-    participantCount,
     programmerVisio,
     desactiverVisio,
     demarrerVisio,
     terminerPourTous,
     telechargerPresences,
-    rejoindreVisio,
-    loadParticipantCount
+    rejoindreVisio
   }
 }
