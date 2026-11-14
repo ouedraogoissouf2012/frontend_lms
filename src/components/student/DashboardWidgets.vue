@@ -38,7 +38,7 @@
           <div class="stat-item">
             <p class="stat-label">Taux de Présence</p>
             <p class="stat-value text-green-600">
-              {{ dashboardData.statistiques?.taux_presence || '0' }}%
+              {{ dashboardData.statistiques?.taux_presence == null ? '—' : `${dashboardData.statistiques.taux_presence}%` }}
             </p>
           </div>
         </div>
