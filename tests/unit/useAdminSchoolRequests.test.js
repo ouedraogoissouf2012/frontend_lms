@@ -98,5 +98,13 @@ describe('useAdminSchoolRequests — 409 (revue #441)', () => {
     expect(api.error.value).toBe(ERROR_MESSAGES.conflict)
     expect(api.error.value).not.toMatch(/actualis/i)
   })
-})
 
+  // C43 : le texte du FRONT, jamais celui du serveur (D0).
+  it('la validation dit le texte du front, jamais celui du serveur', async () => {
+    validate.mockResolvedValue({ data: { activation_url: 'https://lms.test/activer?t=abc' }, message: 'Texte serveur, jamais affiché' })
+    const api = useAdminSchoolRequests()
+    api.demandes.value = [{ id: 7 }]
+    await api.valider(7, 'atelier')
+    expect(api.messageValidation.value).toBe('École ouverte. Transmettez le lien : il ne sera plus affiché.')
+  })
+})

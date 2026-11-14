@@ -15,10 +15,14 @@ export function normaliserCode(saisie) {
 /**
  * « Rejoindre une classe » côté élève (#391) : POST /me/inscriptions { code }.
  *
- * « Déjà inscrit » (200) est un succès comme « rejoint » (201) : le message du serveur
- * les distingue. Les refus passent par le catalogue (motifs ADR-906-01) ; le 404 reçoit
+ * « Déjà inscrit » (200) est un succès comme « rejoint » (201) : le STATUT les distingue
+ * (`dejaInscrit`, relevé par le service), et le front dit ses propres textes, jamais celui du
+ * serveur (C43). Les refus passent par le catalogue (motifs ADR-906-01) ; le 404 reçoit
  * un message propre, car « ressource introuvable » n'aide pas l'élève.
  */
+const REJOINT = 'Vous avez rejoint la classe.'
+const DEJA_INSCRIT = 'Vous êtes déjà inscrit dans cette classe.'
+
 export function useJoinClass() {
   const code = ref('')
   const submitting = ref(false)
@@ -45,7 +49,7 @@ export function useJoinClass() {
     result.value = null
     try {
       const response = await enrolmentCodesService.rejoindre(saisie)
-      result.value = { classe: response.data?.classe ?? null, message: response.message || '' }
+      result.value = { classe: response.data?.classe ?? null, message: response.dejaInscrit ? DEJA_INSCRIT : REJOINT }
       return true
     } catch (err) {
       const status = err?.response?.status

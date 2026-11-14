@@ -71,7 +71,7 @@ export function useAdminTrainingSessions() {
     try {
       const response = await trainingSessionsService.createProgram({ titre, description })
       dernierProgrammeId.value = response.data?.id ?? null
-      notice.value = response.message || 'Programme créé.'
+      notice.value = 'Programme créé.'
       return true
     } catch (err) {
       error.value = err.userMessage || 'La création du programme a échoué.'
@@ -86,8 +86,8 @@ export function useAdminTrainingSessions() {
     error.value = ''
     notice.value = ''
     try {
-      const response = await trainingSessionsService.createPeriod(payload)
-      notice.value = response.message || 'Session de formation créée.'
+      await trainingSessionsService.createPeriod(payload)
+      notice.value = 'Session de formation créée.'
       await load(1)
       return true
     } catch (err) {
@@ -127,7 +127,7 @@ export function useAdminTrainingSessions() {
       const response = await trainingSessionsService.transition(periode.id, action)
       const index = periodes.value.findIndex((p) => p.id === periode.id)
       if (index !== -1) periodes.value[index] = { ...periodes.value[index], ...response.data }
-      notice.value = response.message || 'Période mise à jour.'
+      notice.value = 'Période mise à jour.'
       return true
     } catch (err) {
       const message = err?.userMessage || ERROR_MESSAGES.unknown

@@ -59,7 +59,8 @@ describe('useEnrolmentCodes (#391)', () => {
     expect(await api.emettre(api.classes.value[0])).toBe(true)
     expect(confirmMock).not.toHaveBeenCalled()
     expect(api.classes.value[0].code_inscription).toEqual({ etat: 'actif', valeur: CODE })
-    expect(api.notice.value).toContain('émis')
+    // C43 (durci, déclaré) : le texte du FRONT dit lui-même que le précédent ne fonctionne plus.
+    expect(api.notice.value).toBe('Code émis. Le précédent ne fonctionne plus.')
   })
 
   it('régénérer un code ACTIF demande confirmation ; un refus n’appelle rien', async () => {
@@ -72,12 +73,13 @@ describe('useEnrolmentCodes (#391)', () => {
 
   it('retirer demande confirmation ; au succès, l’état est CONNU (retiré) sans relire la liste', async () => {
     const api = await charge([classe(1, 'actif', CODE)])
-    retirer.mockResolvedValue({ success: true, message: 'Code retiré. Les inscriptions déjà faites sont conservées.', data: null })
+    retirer.mockResolvedValue({ success: true, message: 'Texte serveur, jamais affiché', data: null })
     expect(await api.retirer(api.classes.value[0])).toBe(true)
     expect(confirmMock.mock.calls[0][0].message).toContain('conservées')
     expect(listClasses).not.toHaveBeenCalled()
     expect(api.classes.value[0].code_inscription).toEqual({ etat: 'retire', valeur: null })
-    expect(api.notice.value).toContain('Code retiré')
+    // C43 (durci, déclaré) : le texte du FRONT, jamais celui du serveur (ici un piège).
+    expect(api.notice.value).toBe('Code retiré. Les inscriptions déjà faites sont conservées.')
   })
 
   it('403 (établissement relié à KLASSCI) : message forbidden du catalogue', async () => {

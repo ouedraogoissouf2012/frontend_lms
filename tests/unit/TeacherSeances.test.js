@@ -19,17 +19,6 @@ vi.mock('@/stores/auth', () => ({
   useAuthStore: () => ({ currentUser: { id: 1, role: 'enseignant', name: 'X' } })
 }))
 vi.mock('@/composables/useToast', () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() } }))
-// R6 (migration déclarée) : le module réel, un `normalizeError` simulé, et `messageDe` qui suit la règle du
-// vrai (le `userMessage` s'il est une chaîne, sinon `normalizeError`) mais sur le simulé : le vrai `messageDe`
-// appelle le `normalizeError` réel, pas celui-ci.
-vi.mock('@/services/errorHandler', async (importOriginal) => {
-  const normalizeError = () => ({ userMessage: 'err' })
-  return {
-    ...(await importOriginal()),
-    normalizeError,
-    messageDe: (e) => (typeof e?.userMessage === 'string' ? e.userMessage : normalizeError(e).userMessage),
-  }
-})
 vi.mock('@/services/cache', () => ({ readCache: () => null, writeCache: vi.fn(), clearCache: vi.fn() }))
 vi.mock('@/composables/useTrackedVisioJoin', () => ({
   useTrackedVisioJoin: () => ({ joinTrackedVisio: vi.fn() })
