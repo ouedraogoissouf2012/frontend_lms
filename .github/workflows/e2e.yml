@@ -41,9 +41,8 @@ jobs:
     timeout-minutes: 75
     env:
       E2E_SUPRADMIN_EMAIL: supradmin@e2e.test
-      # K1 (D481) : l'URL KLASSCI de l'école KLASSCI fictive. Tant que le faux « école » n'existe pas,
-      # elle vise le faux à 503 : les 4 connexions KLASSCI doivent y échouer (le rouge attendu).
-      E2E_KLASSCI_ECOLE_URL: http://127.0.0.1:8180
+      # K1 (D481) : l'URL KLASSCI de l'école KLASSCI fictive, le faux « école » (e2e/faux-klassci-ecole.mjs).
+      E2E_KLASSCI_ECOLE_URL: http://127.0.0.1:8181
       PLAYWRIGHT_BROWSERS_PATH: /opt/ms-playwright
     defaults:
       run:
@@ -163,6 +162,9 @@ jobs:
           en_e2e nohup node "$PWD/mesure/e2e/faux-klassci.mjs" 8180 "$PWD/sortie/faux-klassci.jsonl" > sortie/faux-klassci.log 2>&1 &
           (cd back && en_e2e env PHP_CLI_SERVER_WORKERS=4 nohup php artisan serve --host=127.0.0.1 --port=8000 > ../sortie/serveur.log 2>&1 &)
           attendre "faux KLASSCI" http://127.0.0.1:8180/ sortie/faux-klassci.log
+          # K1 : le faux KLASSCI « école », qui SERT le jeu fictif de l'école KLASSCI.
+          en_e2e nohup node "$PWD/mesure/e2e/faux-klassci-ecole.mjs" 8181 "$PWD/sortie/faux-klassci-ecole.jsonl" "$PWD/sortie/jeu-klassci-faux.json" > sortie/faux-klassci-ecole.log 2>&1 &
+          attendre "faux KLASSCI école" http://127.0.0.1:8181/ sortie/faux-klassci-ecole.log
           attendre "serveur LMS" http://127.0.0.1:8000/ sortie/serveur.log
 
       - name: Monter l'école créée depuis le LMS (script de Fille 1, chemins du produit)
@@ -211,6 +213,10 @@ jobs:
             echo '```'
             jq -r '"\(.methode) \(.chemin)"' sortie/faux-klassci.jsonl 2>/dev/null | sort | uniq -c || true
             echo '```'
+            echo "### Appels reçus par le faux KLASSCI « école » : $(wc -l < sortie/faux-klassci-ecole.jsonl 2>/dev/null || echo 0)"
+            echo '```'
+            jq -r '"\(.statut) \(.methode) \(.chemin)"' sortie/faux-klassci-ecole.jsonl 2>/dev/null | sed -E 's#/[0-9]+#/{id}#g' | sort | uniq -c || true
+            echo '```'
             cat sortie/resume.md 2>/dev/null || echo "(pas de résumé du parcours)"
             cat sortie/klassci/resume.md 2>/dev/null || echo "(pas de résumé du parcours de l'école KLASSCI)"
           } | tee -a "$GITHUB_STEP_SUMMARY"
@@ -228,6 +234,7 @@ jobs:
             sortie/ecole-lms.log
             sortie/faux-klassci.jsonl
             sortie/jeu-klassci.json
+            sortie/faux-klassci-ecole.jsonl
             sortie/klassci/resultats.json
             sortie/klassci/resume.md
             sortie/klassci/captures/
