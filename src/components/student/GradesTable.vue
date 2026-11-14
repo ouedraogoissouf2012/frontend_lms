@@ -46,9 +46,9 @@
           </td>
 
           <td>
-            <span class="note-value" :class="getNoteClass(parseFloat(evaluation.note))">
-              {{ evaluation.note }}/20
-            </span>
+            <span class="note-value" :class="classeDeNote(evaluation)">
+              {{ afficherNote(evaluation.note) }}
+            </span><small v-if="noteMasquee(evaluation)" class="note-masquee">Résultat non publié</small>
           </td>
 
           <td class="coef-cell">
@@ -90,8 +90,9 @@ import {
   formatType,
   formatDate,
   formatTemps,
-  getNoteClass,
   isNew,
+  classeDeNote, noteMasquee,
+  afficherNote,
 } from '@/utils/studentGrades'
 
 defineProps({
