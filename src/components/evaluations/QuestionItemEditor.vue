@@ -32,8 +32,10 @@
       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         Type de question
       </label>
+      <!-- D528 : le type change par une ACTION (useQuestionOptions.changeType), qui retire les coches en trop. -->
       <select
-        v-model="question.type"
+        :value="question.type"
+        @change="$emit('change-type', $event.target.value)"
         class="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
       >
         <option value="qcm">QCM (Choix unique)</option>
@@ -76,17 +78,15 @@
           </span>
         </p>
       </div>
-      <!-- B7 : options d'avant lms_backend #1059 sans texte fidèle, à ressaisir. -->
-      <p v-if="!optionsRessaisies(question)" role="alert" class="mb-3 text-sm text-red-600 dark:text-red-400">{{ ERROR_MESSAGES.optionsIllisibles }}</p>
-      <p v-else-if="optionsHorsBornes(question)" role="alert" class="mb-3 text-sm text-red-600 dark:text-red-400">{{ ERROR_MESSAGES.optionsHorsBornes }}</p>
+      <!-- Ce qui empêche d'enregistrer cette question (B7, D466, B5) : UNE source, motifAvantEnvoi (D528). -->
+      <p v-if="motifAvantEnvoi(question)" role="alert" class="mb-3 text-sm text-red-600 dark:text-red-400">{{ ERROR_MESSAGES[motifAvantEnvoi(question)] }}</p>
       <div class="space-y-3">
         <div
-          v-for="(option, optIndex) in question.options"
+          v-for="(_, optIndex) in question.options"
           :key="optIndex"
           :class="[
             'flex items-center gap-3 p-3 rounded-lg border-2 transition-all',
-            ((question.type === 'qcm' || question.type === 'vrai_faux') && question.correct_answers && question.correct_answers[0] === option) ||
-            (question.type === 'qcm_multiple' && question.correct_answers && question.correct_answers.includes(option))
+            estCochee(question, optIndex)
               ? 'bg-green-50 dark:bg-green-900/30 border-green-500 dark:border-green-600'
               : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
           ]"
@@ -98,16 +98,16 @@
               v-if="question.type === 'qcm' || question.type === 'vrai_faux'"
               type="radio"
               :name="'correct-' + index"
-              :checked="question.correct_answers && question.correct_answers[0] === option"
-              @change="$emit('set-correct', option)"
+              :checked="estCochee(question, optIndex)"
+              @change="$emit('set-correct', optIndex)"
               class="w-5 h-5 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-green-600 focus:ring-green-500"
               :title="'Marquer comme bonne réponse'"
             />
             <input
               v-else-if="question.type === 'qcm_multiple'"
               type="checkbox"
-              :checked="question.correct_answers && question.correct_answers.includes(option)"
-              @change="$emit('toggle-correct', option)"
+              :checked="estCochee(question, optIndex)"
+              @change="$emit('toggle-correct', optIndex)"
               class="w-5 h-5 rounded bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-green-600 focus:ring-green-500"
               :title="'Marquer comme bonne réponse'"
             />
@@ -116,8 +116,7 @@
           <!-- Icône de validation si c'est la bonne réponse -->
           <div class="flex-shrink-0">
             <svg
-              v-if="((question.type === 'qcm' || question.type === 'vrai_faux') && question.correct_answers && question.correct_answers[0] === option) ||
-                    (question.type === 'qcm_multiple' && question.correct_answers && question.correct_answers.includes(option))"
+              v-if="estCochee(question, optIndex)"
               class="w-6 h-6 text-green-600 dark:text-green-500"
               fill="currentColor"
               viewBox="0 0 20 20"
@@ -186,12 +185,13 @@
       <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
         Ex: Paris, paris, PARIS (la casse est ignorée)
       </p>
+      <p v-if="motifAvantEnvoi(question)" role="alert" class="mt-2 text-sm text-red-600 dark:text-red-400">{{ ERROR_MESSAGES[motifAvantEnvoi(question)] }}</p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { optionsRessaisies, optionsHorsBornes } from '@/utils/optionsQuestion'
+import { motifAvantEnvoi } from '@/utils/optionsQuestion'
 import { MAX_OPTIONS, MAX_OPTION_LENGTH } from '@/constants/evaluationQuestions'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
@@ -206,5 +206,8 @@ defineProps({
   index: { type: Number, required: true }
 })
 
-defineEmits(['remove', 'add-option', 'remove-option', 'set-correct', 'toggle-correct'])
+defineEmits(['remove', 'add-option', 'remove-option', 'set-correct', 'toggle-correct', 'change-type'])
+
+// D466 : la coche suit l'option par sa POSITION ; set-correct et toggle-correct émettent l'indice.
+const estCochee = (question, optIndex) => (question.correctes || []).includes(optIndex)
 </script>

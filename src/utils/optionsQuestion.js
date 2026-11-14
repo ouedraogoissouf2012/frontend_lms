@@ -29,20 +29,29 @@ function listeDeTextes(liste) {
 }
 
 /**
+ * D466 : dans l'éditeur, la bonne réponse suit son option par sa POSITION (`correctes`), et non par
+ * son texte : renommer, vider puis retaper une option garde sa coche. Une bonne réponse absente des
+ * options (déjà orpheline en base) n'est pas reprise : la question est marquée, jamais en silence.
  * @param {{ type?: string, options?: unknown, correct_answers?: unknown }} question
- * @returns {{ options: unknown[], correct_answers: unknown[], optionsIllisibles: boolean }}
+ * @returns {{ options: unknown[], correctes: number[], optionsIllisibles: boolean, bonneReponseOrpheline: boolean }}
  */
 export function lireOptionsQuestion(question) {
   if (!TYPES_A_CHOIX.has(question?.type)) {
-    return { options: question?.options || [], correct_answers: question?.correct_answers || [], optionsIllisibles: false }
+    return { options: question?.options || [], correctes: [], optionsIllisibles: false, bonneReponseOrpheline: false }
   }
   const options = listeDeTextes(question.options)
-  const correctes = listeDeTextes(question.correct_answers)
-  if (options === null || correctes === null) {
+  const textes = listeDeTextes(question.correct_answers)
+  if (options === null || textes === null) {
     // D446 : les options d'une question NEUVE de son type (Vrai/Faux pour un vrai/faux).
-    return { options: optionsParDefaut(question.type), correct_answers: [], optionsIllisibles: true }
+    return { options: optionsParDefaut(question.type), correctes: [], optionsIllisibles: true, bonneReponseOrpheline: false }
   }
-  return { options, correct_answers: correctes, optionsIllisibles: false }
+  const positions = textes.map((t) => options.indexOf(t))
+  return {
+    options,
+    correctes: positions.filter((i) => i >= 0),
+    optionsIllisibles: false,
+    bonneReponseOrpheline: positions.includes(-1),
+  }
 }
 
 /**
@@ -54,7 +63,8 @@ export function lireOptionsQuestion(question) {
 export function optionsRessaisies(question) {
   if (!question?.optionsIllisibles) return true
   const remplies = (question.options || []).filter((o) => typeof o === 'string' && o.trim() !== '')
-  return remplies.length >= 2 && (question.correct_answers || []).some((c) => remplies.includes(c))
+  const cochee = (i) => typeof question.options[i] === 'string' && question.options[i].trim() !== ''
+  return remplies.length >= 2 && (question.correctes || []).some(cochee)
 }
 
 /**
@@ -65,4 +75,48 @@ export function optionsHorsBornes(question) {
   if (!TYPES_A_CHOIX.has(question?.type) || !Array.isArray(question.options)) return false
   const remplies = question.options.filter((o) => typeof o === 'string' && o.trim() !== '')
   return remplies.length > MAX_OPTIONS || remplies.some((o) => o.length > MAX_OPTION_LENGTH)
+}
+
+/**
+ * Deux options remplies d'une question au même texte, comparé après trim comme le fait le serveur
+ * (TrimStrings) : l'élève ne peut pas les distinguer, et cochées, elles partent en doublon (D528).
+ */
+export function optionsEnDouble(question) {
+  if (!TYPES_A_CHOIX.has(question?.type) || !Array.isArray(question.options)) return false
+  const remplies = question.options.filter((o) => typeof o === 'string' && o.trim() !== '').map((o) => o.trim())
+  return new Set(remplies).size < remplies.length
+}
+
+/**
+ * Les réponses acceptées d'une réponse courte, telles qu'elles partent (D528) : découpées aux virgules,
+ * sans les vides (le serveur en ferait null, refusé) ni les doublons exacts. La casse est gardée : la
+ * notation l'ignore, mais c'est le texte que l'enseignant a écrit.
+ * @param {string|null|undefined} texte
+ * @returns {string[]}
+ */
+export function reponsesCourtes(texte) {
+  return [...new Set((texte || '').split(',').map((r) => r.trim()).filter((r) => r !== ''))]
+}
+
+/**
+ * Ce qui empêche d'enregistrer une question, ou null : la CLÉ de son texte dans ERROR_MESSAGES. UNE
+ * source (D528) pour le bouton (isValid), l'avertissement à l'enregistrement et l'alerte de la question,
+ * dans cet ordre de priorité. Les marques d'une question à choix ne valent que pour un type à choix :
+ * sous un autre type, ses options ne partent pas.
+ * @param {object} question - une question de l'éditeur
+ * @returns {string|null}
+ */
+export function motifAvantEnvoi(question) {
+  if (TYPES_A_CHOIX.has(question?.type)) {
+    if (!optionsRessaisies(question)) return 'optionsIllisibles'
+    if (question.bonneReponseOrpheline) return 'bonneReponseOrpheline'
+    if (question.bonneReponseAChoisir) return 'bonneReponseAChoisir'
+    if (optionsHorsBornes(question)) return 'optionsHorsBornes'
+    if (optionsEnDouble(question)) return 'optionsEnDouble'
+  }
+  if (question?.type === 'reponse_courte') {
+    const reponses = reponsesCourtes(question.correct_answers_text)
+    if (reponses.length > MAX_OPTIONS || reponses.some((r) => r.length > MAX_OPTION_LENGTH)) return 'reponsesCourtesHorsBornes'
+  }
+  return null
 }

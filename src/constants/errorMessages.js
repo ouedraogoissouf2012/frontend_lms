@@ -97,5 +97,14 @@ export const ERROR_MESSAGES = Object.freeze({
   // B5 (D461) : les bornes des options d'une question (lms_backend #1069) ; textes du front.
   optionsMaxAtteint: 'Une question compte au plus 26 options.',
   optionsHorsBornes: "Cette question dépasse les bornes : 26 options au plus, de 1 000 caractères chacune. Retirez ou raccourcissez des options avant d'enregistrer.",
+  // D466 (D467) : une bonne réponse absente des options, chargée telle, ou refusée par le back (422
+  // `correct_answer_not_among_options`). Texte du front.
+  bonneReponseOrpheline: "La bonne réponse d'une question ne correspond à aucune de ses options. Choisissez-la de nouveau.",
+  // D528 : une question à plusieurs coches passée à un type à réponse unique ; ses coches sont retirées.
+  bonneReponseAChoisir: "Cette question n'accepte qu'une bonne réponse : ses coches ont été retirées. Choisissez-la.",
+  // D528 : deux options d'une question au même texte (après trim) sont ambiguës ; cochées, un doublon.
+  optionsEnDouble: "Deux options de cette question ont le même texte. Modifiez-en une avant d'enregistrer.",
+  // D528 : les bornes des réponses d'une réponse courte, celles des options (lms_backend #1071).
+  reponsesCourtesHorsBornes: "Cette question accepte au plus 26 réponses, de 1 000 caractères chacune. Retirez ou raccourcissez des réponses avant d'enregistrer.",
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })

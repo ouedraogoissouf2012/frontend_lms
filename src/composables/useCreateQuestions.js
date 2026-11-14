@@ -6,9 +6,10 @@ import { toast } from '@/composables/useToast'
 import { messageDe, invalidResponseError } from '@/services/errorHandler'
 import { extractList } from '@/utils/apiList'
 import { toId } from '@/utils/toId'
-import { lireOptionsQuestion, optionsRessaisies, optionsHorsBornes } from '@/utils/optionsQuestion'
+import { lireOptionsQuestion, motifAvantEnvoi } from '@/utils/optionsQuestion'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
-import { optionsParDefaut, MAX_OPTIONS } from '@/constants/evaluationQuestions'
+import { optionsParDefaut } from '@/constants/evaluationQuestions'
+import { useQuestionOptions, choixPourEnvoi } from '@/composables/useQuestionOptions'
 
 /**
  * Couche données de CreateQuestions (H1 ≤300) : chargement de l'évaluation
@@ -35,7 +36,7 @@ export function useCreateQuestions() {
   const evaluationAffichee = computed(() => evaluationKlassci.value ?? evaluationLMS.value)
 
   const isValid = computed(() => {
-    return configuration.duree_minutes > 0 && questions.value.length > 0 && questions.value.every(optionsRessaisies) && !questions.value.some(optionsHorsBornes)
+    return configuration.duree_minutes > 0 && questions.value.length > 0 && !questions.value.some(motifAvantEnvoi)
   })
   // D72-b : en édition, sans évaluation LMS chargée, rien ne s'enregistre (jamais une création).
   const erreurChargement = ref(null)
@@ -120,7 +121,7 @@ export function useCreateQuestions() {
       type: 'qcm',
       points: 1.00,
       options: optionsParDefaut('qcm'),
-      correct_answers: [],
+      correctes: [],
       correct_answers_text: ''
     })
   }
@@ -129,59 +130,20 @@ export function useCreateQuestions() {
     questions.value.splice(index, 1)
   }
 
-  function addOption(questionIndex) {
-    if (questions.value[questionIndex].options.length >= MAX_OPTIONS) return // B5 : 26 au plus
-    questions.value[questionIndex].options.push('')
-  }
-
-  function removeOption(questionIndex, optionIndex) {
-    questions.value[questionIndex].options.splice(optionIndex, 1)
-  }
-
-  function setCorrectAnswer(questionIndex, answer) {
-    questions.value[questionIndex].correct_answers = [answer]
-  }
-
-  function toggleCorrectAnswer(questionIndex, answer) {
-    const question = questions.value[questionIndex]
-    if (!question.correct_answers) {
-      question.correct_answers = []
-    }
-    const index = question.correct_answers.indexOf(answer)
-    if (index > -1) {
-      question.correct_answers.splice(index, 1)
-    } else {
-      question.correct_answers.push(answer)
-    }
-  }
+  // D466, étape 0 : options et bonnes réponses dans useQuestionOptions (même comportement).
+  const { addOption, removeOption, setCorrectAnswer, toggleCorrectAnswer, changeType } = useQuestionOptions(questions)
 
   function prepareQuestionsForSubmit() {
-    return questions.value.map(q => {
-      const question = {
-        question: q.question,
-        type: q.type,
-        points: q.points,
-        options: null,
-        correct_answers: null
-      }
-
-      if (q.type === 'qcm' || q.type === 'qcm_multiple' || q.type === 'vrai_faux') {
-        question.options = q.options.filter(o => o.trim() !== '')
-        question.correct_answers = q.correct_answers || []
-      } else if (q.type === 'reponse_courte' && q.correct_answers_text) {
-        question.correct_answers = q.correct_answers_text.split(',').map(a => a.trim())
-      }
-
-      return question
-    })
+    return questions.value.map(q => ({ question: q.question, type: q.type, points: q.points, ...choixPourEnvoi(q) }))
   }
 
   async function saveQuestions() {
     // Édition sans évaluation chargée : l'échec est déjà affiché ; ne JAMAIS retomber sur la création.
     if (isEditMode.value && !evaluationLMS.value) return
     if (!isValid.value) {
-      toast.warning(!questions.value.every(optionsRessaisies) ? ERROR_MESSAGES.optionsIllisibles
-        : questions.value.some(optionsHorsBornes) ? ERROR_MESSAGES.optionsHorsBornes : 'Veuillez ajouter au moins une question')
+      // D528 : le motif de la première question refusée (motifAvantEnvoi), sinon l'absence de question.
+      const motif = questions.value.map(motifAvantEnvoi).find(Boolean)
+      toast.warning(motif ? ERROR_MESSAGES[motif] : 'Veuillez ajouter au moins une question')
       return
     }
 
@@ -290,7 +252,7 @@ export function useCreateQuestions() {
     evaluationKlassci, evaluationAffichee, configuration, questions, loading, isEditMode,
     isValid, erreurChargement, peutEnregistrer,
     addQuestion, removeQuestion, addOption, removeOption,
-    setCorrectAnswer, toggleCorrectAnswer,
+    setCorrectAnswer, toggleCorrectAnswer, changeType,
     saveQuestions, goBack,
   }
 }
