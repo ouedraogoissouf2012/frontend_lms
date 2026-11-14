@@ -1,7 +1,7 @@
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { searchService } from '@/services/search'
-import { isCanceled, logError, normalizeError } from '@/services/errorHandler'
+import { isCanceled, logError, messageDe } from '@/services/errorHandler'
 import {
   UserIcon,
   BookOpenIcon,
@@ -129,7 +129,7 @@ export function useGlobalSearch({ isOpen, onResultSelected }) {
       if (monJeton !== jeton || isCanceled(error)) return
       // Jamais les résultats de la requête précédente sous la nouvelle saisie.
       results.value = EMPTY_RESULTS()
-      searchError.value = error.userMessage ?? normalizeError(error).userMessage
+      searchError.value = messageDe(error)
     } finally {
       if (monJeton === jeton) searching.value = false
     }

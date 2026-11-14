@@ -3,7 +3,7 @@ import { useRouter } from 'vue-router'
 import api, { auth } from '@/services/api'
 import { isExpired, copieRendue } from '@/utils/studentEvaluationStatus'
 import { endpoints } from '@/services/endpoints'
-import { normalizeError } from '@/services/errorHandler'
+import { messageDe } from '@/services/errorHandler'
 import { estPannePassagere } from '@/utils/pannePassagere'
 import { useStartEvaluation } from '@/composables/useStartEvaluation'
 
@@ -79,7 +79,7 @@ export function useStudentEvaluationsList() {
       // Message sûr posé par l'intercepteur selon le `reason` du serveur (D0) : un 401
       // `klassci_token_missing` n'est pas une session expirée, et le texte du serveur
       // n'atteint jamais l'écran.
-      error.value = err.userMessage ?? normalizeError(err).userMessage
+      error.value = messageDe(err)
       canRetry.value = estPannePassagere(err)
     } finally {
       loading.value = false

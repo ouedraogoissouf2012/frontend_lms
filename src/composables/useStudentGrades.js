@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import api from '@/services/api'
 import { endpoints } from '@/services/endpoints'
-import { invalidResponseError, normalizeError } from '@/services/errorHandler'
+import { invalidResponseError, messageDe } from '@/services/errorHandler'
 import { estPannePassagere } from '@/utils/pannePassagere'
 
 /**
@@ -51,7 +51,7 @@ export function useStudentGrades() {
       }
     } catch (err) {
       console.error('Erreur récupération notes:', err)
-      error.value = err.userMessage ?? normalizeError(err).userMessage
+      error.value = messageDe(err)
       canRetry.value = estPannePassagere(err)
     } finally {
       loading.value = false

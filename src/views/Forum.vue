@@ -129,7 +129,7 @@ import Modal from '@/components/ui/Modal.vue'
 import { forum } from '@/services/api'
 import { toast } from '@/composables/useToast'
 import { extractList } from '@/utils/apiList'
-import { normalizeError } from '@/services/errorHandler'
+import { messageDe } from '@/services/errorHandler'
 
 defineOptions({ name: 'Forum' })
 
@@ -156,7 +156,7 @@ async function loadTopics() {
   } catch (error) {
     console.error('Erreur chargement forum:', error)
     topics.value = []
-    loadError.value = error.userMessage ?? normalizeError(error).userMessage
+    loadError.value = messageDe(error)
   } finally {
     loading.value = false
   }

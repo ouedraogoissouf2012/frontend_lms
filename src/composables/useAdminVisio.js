@@ -5,7 +5,7 @@ import { buildJitsiUrl, getVisioRoomId } from '@/constants/visio'
 import { notifyVisioError } from '@/services/visioFeedback'
 import { extractList } from '@/utils/apiList'
 import { statutSeance, libelleStatutSeance, finEstimee } from '@/utils/seanceStatut'
-import { invalidResponseError, normalizeError } from '@/services/errorHandler'
+import { invalidResponseError, messageDe } from '@/services/errorHandler'
 
 /**
  * Couche données d'AdminVisio (#G1 ≤300) : dérive les visioconférences depuis les
@@ -93,7 +93,7 @@ export function useAdminVisio() {
       }
     } catch (err) {
       console.error('❌ Erreur chargement visioconférences:', err)
-      error.value = err.userMessage ?? normalizeError(err).userMessage
+      error.value = messageDe(err)
     } finally {
       loading.value = false
     }

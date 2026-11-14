@@ -6,7 +6,7 @@ import { readCache, writeCache } from '@/services/cache'
 import { measureClassCapacity, measureClassMatiereCountIn, measureClassStudentCount } from '@/utils/classStats'
 import { extractList } from '@/utils/apiList'
 import { toId } from '@/utils/toId'
-import { normalizeError } from '@/services/errorHandler'
+import { messageDe } from '@/services/errorHandler'
 
 // v4 : les entrées v3 portaient une capacité inventée (30) et des zéros non mesurés.
 const ADMIN_CLASSES_CACHE_KEY = 'admin_classes_v4'
@@ -163,7 +163,7 @@ export function useAdminClasses() {
       queueMetadataRefresh(rawClasses)
     } catch (err) {
       console.error('[ERREUR] Chargement classes admin:', err)
-      error.value = err.userMessage ?? normalizeError(err).userMessage
+      error.value = messageDe(err)
       canRetry.value = estPannePassagere(err)
     } finally {
       loading.value = false
