@@ -47,3 +47,19 @@ describe('QuestionItemEditor (H1) — montage', () => {
     expect(w.html()).toContain('Réponse(s) acceptée(s)')
   })
 })
+
+// B7 (#1059) : des options d'avant #1059 illisibles. La carte le dit (texte du catalogue du front),
+// jusqu'à ce qu'elles soient ressaisies ; une question lisible n'affiche rien.
+describe('QuestionItemEditor — options illisibles (B7)', () => {
+  const ILLISIBLE = "Les options de cette question n'ont pas pu être relues. Saisissez-les de nouveau avant d'enregistrer."
+
+  it('options illisibles : la carte le dit dans une région alert', () => {
+    const w = mountEditor({ options: ['', '', '', ''], correct_answers: [], optionsIllisibles: true })
+    expect(w.find('[role="alert"]').text()).toBe(ILLISIBLE)
+  })
+
+  it('une fois ressaisies, et pour une question lisible : rien', () => {
+    expect(mountEditor({ options: ['X', 'Y', '', ''], optionsIllisibles: true }).find('[role="alert"]').exists()).toBe(false)
+    expect(mountEditor().find('[role="alert"]').exists()).toBe(false)
+  })
+})
