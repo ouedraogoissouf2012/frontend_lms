@@ -45,3 +45,11 @@ describe('D528-2 — une réponse courte hors bornes le dit', () => {
     expect(w.find('[role="alert"]').exists()).toBe(false)
   })
 })
+
+// --- D528-3
+describe('D528-3 — deux options au même texte le disent', () => {
+  it('l’alerte de la question donne le texte du catalogue', () => {
+    const w = editeur(question({ type: 'qcm', options: ['Paris', ' Paris'], correctes: [0] }))
+    expect(w.find('[role="alert"]').text()).toBe("Deux options de cette question ont le même texte. Modifiez-en une avant d'enregistrer.")
+  })
+})

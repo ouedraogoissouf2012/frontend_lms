@@ -139,3 +139,33 @@ describe('D528-2 — une réponse courte part nettoyée, et bornée', () => {
     await refusee(await reponseCourte(`Paris, ${'x'.repeat(1001)}`), REPONSES_HORS_BORNES)
   })
 })
+
+// --- D528-3
+const OPTIONS_EN_DOUBLE = "Deux options de cette question ont le même texte. Modifiez-en une avant d'enregistrer."
+
+describe('D528-3 — deux options au même texte sont refusées avant l’envoi', () => {
+  it('« A » et « A  » (le même texte après trim) : refusé ; une fois l’une modifiée, accepté', async () => {
+    const c = await ouvrir({ type: 'qcm_multiple', options: ['A', 'B', 'A '], correct_answers: ['A'] })
+    await refusee(c, OPTIONS_EN_DOUBLE)
+    c.questions.value[0].options[2] = 'C'
+    expect(c.isValid.value).toBe(true)
+  })
+
+  it('des options VIDES ne sont pas des doublons : elles ne partent pas', async () => {
+    const c = await ouvrir({ options: ['A', 'B', '', ''], correct_answers: ['A'] })
+    expect(c.isValid.value).toBe(true)
+    await c.saveQuestions()
+    expect(envoyee().options).toEqual(['A', 'B'])
+  })
+
+  it('le même texte dans DEUX questions différentes n’est pas un doublon', async () => {
+    h.getEvaluation.mockResolvedValue({ success: true, data: { id: 42, duree_minutes: 30, questions: [
+      { question: 'Q1', type: 'qcm', points: 1, options: ['Oui', 'Non'], correct_answers: ['Oui'] },
+      { question: 'Q2', type: 'qcm', points: 1, options: ['Oui', 'Non'], correct_answers: ['Non'] },
+    ] } })
+    let c
+    mount(defineComponent({ setup() { c = useCreateQuestions(); return () => null } }))
+    await flushPromises()
+    expect(c.isValid.value).toBe(true)
+  })
+})
