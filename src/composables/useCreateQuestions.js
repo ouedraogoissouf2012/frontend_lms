@@ -6,7 +6,7 @@ import { toast } from '@/composables/useToast'
 import { messageDe, invalidResponseError } from '@/services/errorHandler'
 import { extractList } from '@/utils/apiList'
 import { toId } from '@/utils/toId'
-import { lireOptionsQuestion, optionsRessaisies, optionsHorsBornes } from '@/utils/optionsQuestion'
+import { lireOptionsQuestion, motifAvantEnvoi } from '@/utils/optionsQuestion'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
 import { optionsParDefaut } from '@/constants/evaluationQuestions'
 import { useQuestionOptions, choixPourEnvoi } from '@/composables/useQuestionOptions'
@@ -36,8 +36,7 @@ export function useCreateQuestions() {
   const evaluationAffichee = computed(() => evaluationKlassci.value ?? evaluationLMS.value)
 
   const isValid = computed(() => {
-    return configuration.duree_minutes > 0 && questions.value.length > 0 && questions.value.every(optionsRessaisies)
-      && !questions.value.some((q) => q.bonneReponseOrpheline) && !questions.value.some(optionsHorsBornes)
+    return configuration.duree_minutes > 0 && questions.value.length > 0 && !questions.value.some(motifAvantEnvoi)
   })
   // D72-b : en édition, sans évaluation LMS chargée, rien ne s'enregistre (jamais une création).
   const erreurChargement = ref(null)
@@ -142,9 +141,9 @@ export function useCreateQuestions() {
     // Édition sans évaluation chargée : l'échec est déjà affiché ; ne JAMAIS retomber sur la création.
     if (isEditMode.value && !evaluationLMS.value) return
     if (!isValid.value) {
-      toast.warning(!questions.value.every(optionsRessaisies) ? ERROR_MESSAGES.optionsIllisibles
-        : questions.value.some((q) => q.bonneReponseOrpheline) ? ERROR_MESSAGES.bonneReponseOrpheline
-          : questions.value.some(optionsHorsBornes) ? ERROR_MESSAGES.optionsHorsBornes : 'Veuillez ajouter au moins une question')
+      // D528 : le motif de la première question refusée (motifAvantEnvoi), sinon l'absence de question.
+      const motif = questions.value.map(motifAvantEnvoi).find(Boolean)
+      toast.warning(motif ? ERROR_MESSAGES[motif] : 'Veuillez ajouter au moins une question')
       return
     }
 

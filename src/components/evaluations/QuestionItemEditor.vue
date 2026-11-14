@@ -76,10 +76,8 @@
           </span>
         </p>
       </div>
-      <!-- B7 : options d'avant lms_backend #1059 sans texte fidèle, à ressaisir. -->
-      <p v-if="!optionsRessaisies(question)" role="alert" class="mb-3 text-sm text-red-600 dark:text-red-400">{{ ERROR_MESSAGES.optionsIllisibles }}</p>
-      <p v-else-if="question.bonneReponseOrpheline" role="alert" class="mb-3 text-sm text-red-600 dark:text-red-400">{{ ERROR_MESSAGES.bonneReponseOrpheline }}</p>
-      <p v-else-if="optionsHorsBornes(question)" role="alert" class="mb-3 text-sm text-red-600 dark:text-red-400">{{ ERROR_MESSAGES.optionsHorsBornes }}</p>
+      <!-- Ce qui empêche d'enregistrer cette question (B7, D466, B5) : UNE source, motifAvantEnvoi (D528). -->
+      <p v-if="motifAvantEnvoi(question)" role="alert" class="mb-3 text-sm text-red-600 dark:text-red-400">{{ ERROR_MESSAGES[motifAvantEnvoi(question)] }}</p>
       <div class="space-y-3">
         <div
           v-for="(_, optIndex) in question.options"
@@ -190,7 +188,7 @@
 </template>
 
 <script setup>
-import { optionsRessaisies, optionsHorsBornes } from '@/utils/optionsQuestion'
+import { motifAvantEnvoi } from '@/utils/optionsQuestion'
 import { MAX_OPTIONS, MAX_OPTION_LENGTH } from '@/constants/evaluationQuestions'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
 

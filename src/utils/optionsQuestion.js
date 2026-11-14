@@ -76,3 +76,17 @@ export function optionsHorsBornes(question) {
   const remplies = question.options.filter((o) => typeof o === 'string' && o.trim() !== '')
   return remplies.length > MAX_OPTIONS || remplies.some((o) => o.length > MAX_OPTION_LENGTH)
 }
+
+/**
+ * Ce qui empêche d'enregistrer une question, ou null : la CLÉ de son texte dans ERROR_MESSAGES. UNE
+ * source (D528) pour le bouton (isValid), l'avertissement à l'enregistrement et l'alerte de la question,
+ * dans cet ordre de priorité.
+ * @param {object} question - une question de l'éditeur
+ * @returns {string|null}
+ */
+export function motifAvantEnvoi(question) {
+  if (!optionsRessaisies(question)) return 'optionsIllisibles'
+  if (question?.bonneReponseOrpheline) return 'bonneReponseOrpheline'
+  if (optionsHorsBornes(question)) return 'optionsHorsBornes'
+  return null
+}
