@@ -161,14 +161,20 @@ try {
     # 9. Une séance, un sujet de forum, une évaluation publiée, par l'enseignant et par l'écran
     # du produit. Une création refusée est un résultat (« manques ») : le parcours la rend ROUGE.
     $manques = @{}
-    $seance = Essayer '9 seance' 'POST' '/lms/seances' @{ titre = 'Fractions, seance E2E'; date_seance = (Get-Date).AddDays(1).ToString('yyyy-MM-dd HH:mm:ss'); classe_id = $c1.id; matiere_nom = 'Mathematiques E2E' } -Jeton $e1
+    # La charge du produit (useSeanceCreate) : début ISO 8601 AVEC décalage (D4), classe et matière de la même
+    # carte, par id (S-matière) et par nom.
+    $seance = Essayer '9 seance' 'POST' '/lms/seances' @{ titre = 'Fractions, seance E2E'; date_seance = (Get-Date).AddDays(1).ToString('yyyy-MM-ddTHH:mm:sszzz'); classe_id = $c1.id; classe_nom = '6e A E2E'; matiere_id = $m['E2E-MATH']; matiere_nom = 'Mathematiques E2E' } -Jeton $e1
     if (-not $seance.ok) { $manques['seance'] = $seance.manque }
     $chapitre = Essayer '9 chapitre' 'POST' "/lessons/$($l1.id)/chapters" @{ titre = 'Chapitre 1, les demis'; description = 'Chapitre fictif cree par le job E2E.'; ordre = 0 } -Jeton $e1
     if (-not $chapitre.ok) { $manques['chapitre'] = $chapitre.manque }
     $sujet = Essayer '9 sujet de forum' 'POST' '/forum/topics' @{ title = 'Question sur les fractions'; content = 'Sujet fictif cree par le job E2E.'; classe_id = $c1.id; matiere_id = $m['E2E-MATH'] } -Jeton $e1
     if (-not $sujet.ok) { $manques['sujet'] = $sujet.manque }
+    # La charge du produit (création locale, D72-b) : classe et matière de l'école (E1), et une date (E2a :
+    # sans elle, la fenêtre locale reste fermée). Ouverte depuis 5 minutes, et assez longue pour tout le parcours.
     $evaluation = Essayer '9 evaluation' 'POST' '/evaluations' @{
-        titre = 'Fractions, controle E2E'; type = 'qcm'; duree_minutes = 30; is_online = $true; show_results = $true
+        titre = 'Fractions, controle E2E'; type = 'qcm'; duree_minutes = 180; is_online = $true; show_results = $true
+        classe_id = $c1.id; matiere_id = $m['E2E-MATH']
+        date_evaluation = (Get-Date).AddMinutes(-5).ToString('yyyy-MM-ddTHH:mm:sszzz')
         questions = @(@{ question = 'Un demi plus un demi ?'; type = 'qcm'; points = 1; options = @('1', '2'); correct_answers = @('1') })
     } -Jeton $e1
     if (-not $evaluation.ok) { $manques['evaluation'] = $evaluation.manque }
