@@ -84,16 +84,17 @@
           :key="optIndex"
           :class="[
             'flex items-center gap-3 p-3 rounded-lg border-2 transition-all',
-            (question.type === 'qcm' && question.correct_answers && question.correct_answers[0] === option) ||
+            ((question.type === 'qcm' || question.type === 'vrai_faux') && question.correct_answers && question.correct_answers[0] === option) ||
             (question.type === 'qcm_multiple' && question.correct_answers && question.correct_answers.includes(option))
               ? 'bg-green-50 dark:bg-green-900/30 border-green-500 dark:border-green-600'
               : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
           ]"
         >
-          <!-- Radio/Checkbox pour marquer la bonne réponse -->
+          <!-- Radio/Checkbox pour marquer la bonne réponse (vrai/faux : une seule, comme le QCM ; défaut
+               préexistant corrigé par D451, la carte ne permettait pas de la choisir) -->
           <div class="flex items-center">
             <input
-              v-if="question.type === 'qcm'"
+              v-if="question.type === 'qcm' || question.type === 'vrai_faux'"
               type="radio"
               :name="'correct-' + index"
               :checked="question.correct_answers && question.correct_answers[0] === option"
@@ -114,7 +115,7 @@
           <!-- Icône de validation si c'est la bonne réponse -->
           <div class="flex-shrink-0">
             <svg
-              v-if="(question.type === 'qcm' && question.correct_answers && question.correct_answers[0] === option) ||
+              v-if="((question.type === 'qcm' || question.type === 'vrai_faux') && question.correct_answers && question.correct_answers[0] === option) ||
                     (question.type === 'qcm_multiple' && question.correct_answers && question.correct_answers.includes(option))"
               class="w-6 h-6 text-green-600 dark:text-green-500"
               fill="currentColor"
