@@ -36,7 +36,8 @@ export function useCreateQuestions() {
   const evaluationAffichee = computed(() => evaluationKlassci.value ?? evaluationLMS.value)
 
   const isValid = computed(() => {
-    return configuration.duree_minutes > 0 && questions.value.length > 0 && questions.value.every(optionsRessaisies) && !questions.value.some(optionsHorsBornes)
+    return configuration.duree_minutes > 0 && questions.value.length > 0 && questions.value.every(optionsRessaisies)
+      && !questions.value.some((q) => q.bonneReponseOrpheline) && !questions.value.some(optionsHorsBornes)
   })
   // D72-b : en édition, sans évaluation LMS chargée, rien ne s'enregistre (jamais une création).
   const erreurChargement = ref(null)
@@ -121,7 +122,7 @@ export function useCreateQuestions() {
       type: 'qcm',
       points: 1.00,
       options: optionsParDefaut('qcm'),
-      correct_answers: [],
+      correctes: [],
       correct_answers_text: ''
     })
   }
@@ -142,7 +143,8 @@ export function useCreateQuestions() {
     if (isEditMode.value && !evaluationLMS.value) return
     if (!isValid.value) {
       toast.warning(!questions.value.every(optionsRessaisies) ? ERROR_MESSAGES.optionsIllisibles
-        : questions.value.some(optionsHorsBornes) ? ERROR_MESSAGES.optionsHorsBornes : 'Veuillez ajouter au moins une question')
+        : questions.value.some((q) => q.bonneReponseOrpheline) ? ERROR_MESSAGES.bonneReponseOrpheline
+          : questions.value.some(optionsHorsBornes) ? ERROR_MESSAGES.optionsHorsBornes : 'Veuillez ajouter au moins une question')
       return
     }
 
