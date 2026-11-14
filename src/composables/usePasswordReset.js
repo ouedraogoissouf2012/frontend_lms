@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import { auth } from '@/services/api'
 import { extractList } from '../utils/apiList'
 import { passwordResetService } from '@/services/passwordReset'
+import { displayMessage } from '@/services/displayMessage'
 
 export function usePasswordReset() {
   const loading = ref(false)
@@ -19,11 +20,11 @@ export function usePasswordReset() {
     error.value = ''
     notice.value = ''
     try {
-      const response = await passwordResetService.requestLink(slug, email)
-      notice.value = response.message || 'Si un compte existe, un courriel a été envoyé.'
+      await passwordResetService.requestLink(slug, email)
+      notice.value = 'Si un compte existe, un courriel a été envoyé.'
       return true
     } catch (err) {
-      error.value = err.userMessage || err.response?.data?.message || 'La demande a échoué.'
+      error.value = displayMessage(err, 'La demande a échoué.')
       return false
     } finally {
       loading.value = false
@@ -35,11 +36,11 @@ export function usePasswordReset() {
     error.value = ''
     notice.value = ''
     try {
-      const response = await passwordResetService.resetPassword(slug, payload)
-      notice.value = response.message || 'Mot de passe mis à jour.'
+      await passwordResetService.resetPassword(slug, payload)
+      notice.value = 'Mot de passe mis à jour.'
       return true
     } catch (err) {
-      error.value = err.userMessage || err.response?.data?.message || 'La réinitialisation a échoué.'
+      error.value = displayMessage(err, 'La réinitialisation a échoué.')
       return false
     } finally {
       loading.value = false

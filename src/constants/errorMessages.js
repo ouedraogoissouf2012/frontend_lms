@@ -106,5 +106,9 @@ export const ERROR_MESSAGES = Object.freeze({
   optionsEnDouble: "Deux options de cette question ont le même texte. Modifiez-en une avant d'enregistrer.",
   // D528 : les bornes des réponses d'une réponse courte, celles des options (lms_backend #1071).
   reponsesCourtesHorsBornes: "Cette question accepte au plus 26 réponses, de 1 000 caractères chacune. Retirez ou raccourcissez des réponses avant d'enregistrer.",
+  // D477 : la connexion (Login.vue, utils/messageConnexion). Textes du front ; le back n'a pas de `reason`.
+  identifiantsIncorrects: 'Identifiants incorrects.',
+  connexionEchouee: 'Échec de la connexion.',
+  compteEnConflit: "Votre adresse e-mail est déjà utilisée par un autre compte de votre établissement. Contactez l'administrateur de votre école.",
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })
