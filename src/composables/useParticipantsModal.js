@@ -2,7 +2,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import lmsService from '@/services/lms'
 import attendanceExportService from '@/services/attendanceExport'
 import { toast } from '@/composables/useToast'
-import { messageForReason, normalizeError } from '@/services/errorHandler'
+import { messageForReason, messageDe } from '@/services/errorHandler'
 import { displayMessage } from '@/services/displayMessage'
 import { userError } from '@/utils/userError'
 
@@ -134,7 +134,7 @@ export function useParticipantsModal(seanceId) {
     try {
       await attendanceExportService.exportPdf(seanceId.value)
     } catch (err) {
-      toast.error(err.userMessage ?? normalizeError(err).userMessage)
+      toast.error(messageDe(err))
     } finally {
       exporting.value = false
     }
@@ -146,7 +146,7 @@ export function useParticipantsModal(seanceId) {
     try {
       await attendanceExportService.exportExcel(seanceId.value)
     } catch (err) {
-      toast.error(err.userMessage ?? normalizeError(err).userMessage)
+      toast.error(messageDe(err))
     } finally {
       exporting.value = false
     }

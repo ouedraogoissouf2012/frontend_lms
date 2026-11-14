@@ -2,7 +2,7 @@ import { ref, computed, onMounted, getCurrentInstance } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
-import { normalizeError, invalidResponseError } from '@/services/errorHandler'
+import { invalidResponseError, messageDe } from '@/services/errorHandler'
 import { displayMessage } from '@/services/displayMessage'
 import { estPannePassagere } from '@/utils/pannePassagere'
 import lessonService from '@/services/lesson'
@@ -94,7 +94,7 @@ export function useLessonChapters() {
       }
     } catch (err) {
       console.error('[LessonChapters] Erreur publication:', err)
-      toast.error(err.userMessage ?? normalizeError(err).userMessage)
+      toast.error(messageDe(err))
     } finally {
       publishing.value = false
     }

@@ -36,7 +36,17 @@ vi.mock('@/stores/visio', () => ({
   useVisioStore: () => ({ joinVisio: (...a) => storeJoinVisio(...a) })
 }))
 vi.mock('@/composables/useToast', () => ({ toast: { success: (...a) => toastSuccess(...a), error: (...a) => toastError(...a), info: vi.fn() } }))
-vi.mock('@/services/errorHandler', () => ({ normalizeError: () => ({ userMessage: 'err' }) }))
+// R6 (migration déclarée) : le module réel, un `normalizeError` simulé, et `messageDe` qui suit la règle du
+// vrai (le `userMessage` s'il est une chaîne, sinon `normalizeError`) mais sur le simulé : le vrai `messageDe`
+// appelle le `normalizeError` réel, pas celui-ci.
+vi.mock('@/services/errorHandler', async (importOriginal) => {
+  const normalizeError = () => ({ userMessage: 'err' })
+  return {
+    ...(await importOriginal()),
+    normalizeError,
+    messageDe: (e) => (typeof e?.userMessage === 'string' ? e.userMessage : normalizeError(e).userMessage),
+  }
+})
 vi.mock('@/services/visioFeedback', () => ({ confirmVisioAction: (...a) => confirmVisioAction(...a) }))
 vi.mock('@/constants/visio', () => ({
   VISIO_ROOM_REQUIRED_MESSAGE: 'Identifiant de salle visio introuvable dans la réponse API.',

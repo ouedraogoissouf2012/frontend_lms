@@ -3,7 +3,7 @@ import { estPannePassagere } from '@/utils/pannePassagere'
 import { analyticsService } from '@/services/analytics'
 import { getAdminStatistics, extractAdminStatistics } from '@/services/adminStatistics'
 import { readCache, writeCache } from '@/services/cache'
-import { logError, normalizeError } from '@/services/errorHandler'
+import { logError, messageDe } from '@/services/errorHandler'
 import { deriveInstitutionCounters } from '@/utils/classStats'
 import { dateHeureSeance, finEstimee } from '@/utils/seanceStatut'
 
@@ -114,7 +114,7 @@ export function useAdminDashboardData({
         ...extractAdminStatistics(adminStatsPayload),
       }
       if (echecs.length > 0) {
-        loadError.value = echecs[0]?.userMessage ?? normalizeError(echecs[0]).userMessage
+        loadError.value = messageDe(echecs[0])
         // Une seule source en panne suffit à proposer « Réessayer » ; que des refus, non.
         canRetry.value = echecs.some((e) => estPannePassagere(e))
       }
@@ -164,7 +164,7 @@ export function useAdminDashboardData({
     const echec = [trends, tasks, users].find((r) => r.status === 'rejected')
     if (echec) {
       logError(echec.reason, '[useAdminDashboardData] analytics')
-      analyticsError.value = echec.reason?.userMessage ?? normalizeError(echec.reason).userMessage
+      analyticsError.value = messageDe(echec.reason)
     }
     loading.value.analytics = false
   }
@@ -238,7 +238,7 @@ export function useAdminDashboardData({
       // Le reste du tableau de bord reste exploitable ; l'échec du calendrier se DIT.
       logError(error, '[useAdminDashboardData] calendrier')
       calendarEvents.value = []
-      calendarError.value = error?.userMessage ?? normalizeError(error).userMessage
+      calendarError.value = messageDe(error)
       calendarCanRetry.value = estPannePassagere(error)
       calendarState.value = 'erreur'
     }

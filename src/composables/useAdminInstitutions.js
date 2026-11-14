@@ -1,6 +1,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { institutions as institutionsApi } from '@/services/api'
 import { toast } from '@/composables/useToast'
+import { displayMessage } from '@/services/displayMessage'
 
 /**
  * Couche données d'AdminInstitutions (#G1 ≤300) : état (liste + overview),
@@ -55,7 +56,7 @@ export function useAdminInstitutions() {
       }
     } catch (err) {
       console.error('Erreur chargement institutions:', err)
-      error.value = err.response?.data?.message || err.message || 'Erreur lors du chargement'
+      error.value = displayMessage(err, 'Erreur lors du chargement')
     } finally {
       loading.value = false
     }
@@ -121,7 +122,7 @@ export function useAdminInstitutions() {
       if (err.response?.status === 422 && err.response?.data?.errors) {
         formErrors.value = err.response.data.errors
       } else {
-        formErrors.value = { general: [err.response?.data?.message || err.message || 'Erreur'] }
+        formErrors.value = { general: [displayMessage(err, 'Erreur')] }
       }
     } finally {
       saving.value = false
@@ -134,7 +135,7 @@ export function useAdminInstitutions() {
       await institutionsApi.toggle(inst.id)
       await loadInstitutions()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Erreur lors du changement de statut')
+      toast.error(displayMessage(err, 'Erreur lors du changement de statut'))
     }
   }
 
@@ -147,7 +148,7 @@ export function useAdminInstitutions() {
     } catch (err) {
       connectionResult.value = {
         success: false,
-        message: err.response?.data?.message || 'Erreur de connexion',
+        message: displayMessage(err, 'Erreur de connexion'),
         data: err.response?.data?.data || null,
       }
     } finally {

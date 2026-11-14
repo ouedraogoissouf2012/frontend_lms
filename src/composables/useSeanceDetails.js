@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import lmsService from '@/services/lms'
 import { auth } from '@/services/api'
 import { toast } from '@/composables/useToast'
-import { normalizeError, messageForReason } from '@/services/errorHandler'
+import { messageForReason, messageDe } from '@/services/errorHandler'
 import { estPannePassagere } from '@/utils/pannePassagere'
 import { displayMessage } from '@/services/displayMessage'
 import { hasRole, isStudent as roleIsStudent, isTeacher as roleIsTeacher, ROLES } from '@/constants/roles'
@@ -220,7 +220,7 @@ export function useSeanceDetails() {
       }
     } catch (err) {
       console.error('[SeanceDetails] Erreur masquage séance:', err)
-      toast.error(err.userMessage ?? normalizeError(err).userMessage)
+      toast.error(messageDe(err))
     }
   }
 

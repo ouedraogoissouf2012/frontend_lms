@@ -20,6 +20,7 @@ vi.mock('@/services/cache', () => ({
 }))
 
 import { useCoordinatorEvaluations } from '@/composables/useCoordinatorEvaluations'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 const EVALS = [
   { id: 1, titre: 'A', klassci_enseignant_id: 10, enseignant_nom: 'Zoé', klassci_classe_id: 5, status: 'en_cours', is_online: true },
@@ -88,7 +89,8 @@ describe('useCoordinatorEvaluations (H2)', () => {
     get.mockReset()
     get.mockRejectedValue({ response: { data: { message: 'Boom' } } })
     const u = await setup()
-    expect(u.error.value).toBe('Boom')
+    // D0 (renversé, déclaré) : la catégorie de l'erreur, jamais le texte du serveur.
+    expect(u.error.value).toBe(ERROR_MESSAGES.unknown)
     expect(u.loading.value).toBe(false)
   })
 

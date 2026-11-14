@@ -2,6 +2,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import api from '@/services/api'
 import { endpoints } from '@/services/endpoints'
+import { refusMotive } from '@/services/errorHandler'
 
 const CORRECTION_DELAY_DAYS = 7 // Délai en jours avant d'afficher les bonnes réponses
 
@@ -108,7 +109,7 @@ export function useEvaluationResults() {
       if (result.success) {
         submission.value = result.data
       } else {
-        error.value = result.message || 'Résultats non disponibles'
+        error.value = refusMotive(result).motif ?? 'Résultats non disponibles'
       }
     } catch (err) {
       console.error('Erreur chargement résultats:', err)
