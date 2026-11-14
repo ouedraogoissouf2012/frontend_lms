@@ -11,22 +11,28 @@
  * Fusionne les évaluations KLASSCI avec leurs versions LMS en ligne.
  * @param {Array<Object>} klassci - évaluations KLASSCI brutes
  * @param {Array<Object>} lms - évaluations LMS (online), liées par klassci_evaluation_id
- * @returns {Array<Object>} évaluations enrichies { ...eval, cle, online_version, has_online }
+ * @returns {Array<Object>} évaluations enrichies { ...eval, cle, online_version, has_online, can_sync_grades }
  *
  * D72-b : une évaluation créée dans une école LMS n'a pas d'id KLASSCI ; elle devient sa propre carte
  * (version en ligne = elle-même). `cle` porte la famille (`klassci-<id>`, `lms-<id>`) : les deux
  * espaces d'ids peuvent se recouvrir, la clé d'une liste ne le doit pas.
+ *
+ * K3 (D526) : `can_sync_grades` (le bouton « Synchroniser les notes ») est NORMALISÉ ici, depuis le droit
+ * que la source envoie : `lms_integration.can_submit_notes` (charge capturée, TEACHER_DASHBOARD). La
+ * source n'envoie aucun `can_sync_grades` : lu tel quel, le bouton ne s'affichait jamais. Une évaluation
+ * locale n'a rien à synchroniser.
  */
 export function mergeWithOnlineVersions(klassci = [], lms = []) {
   const programmees = klassci.map((evaluation) => ({
     ...evaluation,
     cle: `klassci-${evaluation.id}`,
     online_version: lms.find((e) => e.klassci_evaluation_id === evaluation.id),
-    has_online: lms.some((e) => e.klassci_evaluation_id === evaluation.id)
+    has_online: lms.some((e) => e.klassci_evaluation_id === evaluation.id),
+    can_sync_grades: evaluation.lms_integration?.can_submit_notes === true
   }))
   const locales = lms
     .filter((e) => e.klassci_evaluation_id == null)
-    .map((e) => ({ ...e, cle: `lms-${e.id}`, online_version: e, has_online: true }))
+    .map((e) => ({ ...e, cle: `lms-${e.id}`, online_version: e, has_online: true, can_sync_grades: false }))
   return [...programmees, ...locales]
 }
 
