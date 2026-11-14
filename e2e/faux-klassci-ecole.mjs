@@ -61,6 +61,7 @@ createServer(async (req, res) => {
     statut = 401; reponse = { success: false, message: 'Jeton absent ou inconnu (faux KLASSCI)' }
   } else {
     reponse = REPONSES[cle](compte, corps, ids)
+    if (cle === 'POST /evaluations/{id}/notes') { statut = 500; reponse = { success: false, message: 'M1 (faux KLASSCI)' } } // M1 : falsification D74
     if (reponse === null) { statut = 403; reponse = { success: false, message: 'Hors de la portée de ce compte (faux KLASSCI)' } }
     else if (reponse === undefined) { statut = 404; reponse = { success: false, message: 'Ressource inconnue du jeu (faux KLASSCI)' } }
   }
