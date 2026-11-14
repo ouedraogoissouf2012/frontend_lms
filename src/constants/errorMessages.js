@@ -45,6 +45,8 @@ export const ERROR_MESSAGES = Object.freeze({
   // Lot CORR : 409 de POST /evaluations/{id}/sync-klassci, une copie à dissertation n'est pas notée.
   syncDissertationNonNotee: 'Une copie à dissertation n’est pas encore notée : notez-la depuis « Notes et résultats » avant d’envoyer les notes à KLASSCI.',
   evaluationAttemptLocked: 'Le temps imparti est dépassé : votre copie est verrouillée. Vos réponses sont conservées, mais elle ne sera pas notée.',
+  // Motif `student_without_active_class` : un état vide, affiché en information (jamais en alerte).
+  eleveSansClasseActive: 'Vous n’êtes inscrit dans aucune classe active.',
   // lms_backend #1019 : 503 + Retry-After, KLASSCI ne rend pas la fenêtre de l'évaluation.
   evaluationWindowUnverifiable: 'La disponibilité de cette évaluation ne peut pas être vérifiée pour le moment. Réessayez dans un instant.',
   // #391, ADR-906-01 : motifs de refus des portes d'inscription par code.

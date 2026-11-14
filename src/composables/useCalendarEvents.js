@@ -2,6 +2,8 @@ import { ref } from 'vue'
 import { cleMatiere } from '@/utils/seances'
 import { toId } from '@/utils/toId'
 import { idClasse, idEnseignant, idMatiere } from '@/utils/identiteEvaluation'
+import { estEtatVide } from '@/services/refusalReasons'
+import { messageDe } from '@/services/errorHandler'
 import { lmsService } from '@/services/lms'
 import evaluationService from '@/services/evaluation'
 import {
@@ -35,6 +37,8 @@ export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dat
   const loading = ref(true)
   const refreshing = ref(false)
   const error = ref(null) // #238 : message d'erreur distinct d'un agenda vide
+  // Un état vide motivé par le serveur (élève sans classe active) : une information, pas une erreur.
+  const information = ref(null)
 
   async function loadSeances(forceRefresh = false) {
     try {
@@ -79,6 +83,11 @@ export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dat
         }
       }))
     } catch (e) {
+      // Seul un motif « état vide » du catalogue (jamais le texte du serveur, D0) rend un agenda vide honnête.
+      if (estEtatVide(e?.response?.data?.reason)) {
+        information.value = messageDe(e)
+        return []
+      }
       // #238 : ne pas masquer la panne — l'agenda ne doit pas paraître vide.
       error.value = e?.userMessage || 'Impossible de charger les séances.'
       return []
@@ -174,6 +183,7 @@ export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dat
   async function loadEvents(forceRefresh = false) {
     loading.value = true
     error.value = null // #238 : repart d'un état sain à chaque chargement
+    information.value = null
     try {
       const allEvents = []
       if (eventTypeFilter.value !== 'evaluations') {
@@ -203,5 +213,5 @@ export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dat
     }
   }
 
-  return { events, matieres, classes, enseignants, loading, refreshing, error, loadEvents, refreshData }
+  return { events, matieres, classes, enseignants, loading, refreshing, error, information, loadEvents, refreshData }
 }
