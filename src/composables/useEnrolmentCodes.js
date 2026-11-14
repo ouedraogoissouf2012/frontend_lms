@@ -116,7 +116,7 @@ export function useEnrolmentCodes() {
     try {
       const response = await enrolmentCodesService.emettre(classe.id)
       majCode(classe.id, { etat: 'actif', valeur: response.data?.code_inscription ?? null })
-      notice.value = response.message || 'Code émis.'
+      notice.value = 'Code émis. Le précédent ne fonctionne plus.'
       return true
     } catch (err) {
       await signalerEchec(classe, err)
@@ -138,9 +138,9 @@ export function useEnrolmentCodes() {
     error.value = ''
     notice.value = ''
     try {
-      const response = await enrolmentCodesService.retirer(classe.id)
+      await enrolmentCodesService.retirer(classe.id)
       majCode(classe.id, { etat: 'retire', valeur: null })
-      notice.value = response.message || 'Code retiré.'
+      notice.value = 'Code retiré. Les inscriptions déjà faites sont conservées.'
       return true
     } catch (err) {
       await signalerEchec(classe, err)

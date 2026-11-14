@@ -11,8 +11,8 @@ export function useActivation() {
     error.value = ''
     notice.value = ''
     try {
-      const response = await activateAccount({ token, password, password_confirmation })
-      notice.value = response.message || 'Votre mot de passe est enregistré. Vous pouvez vous connecter.'
+      await activateAccount({ token, password, password_confirmation })
+      notice.value = 'Votre mot de passe est enregistré. Vous pouvez vous connecter.'
       return true
     } catch (err) {
       error.value = err.userMessage || 'La demande a échoué.'
