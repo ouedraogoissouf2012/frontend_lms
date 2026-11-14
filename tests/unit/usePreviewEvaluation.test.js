@@ -52,10 +52,12 @@ describe('usePreviewEvaluation (H1)', () => {
     expect(c.evaluation.value.id).toBe(7)
   })
 
-  it('met error si le chargement échoue', async () => {
+  // Renversé, déclaré (D0) : un 2xx « success: false » ne montre jamais le texte du serveur.
+  it('met error si le chargement échoue, sans le texte du serveur', async () => {
     h.preview.mockResolvedValue({ success: false, message: 'KO' })
     const c = await setup()
-    expect(c.error.value).toBe('KO')
+    expect(c.error.value).toEqual(expect.any(String))
+    expect(c.error.value).not.toBe('KO')
   })
 
   it('selectAnswer alimente progression et pourcentage', async () => {

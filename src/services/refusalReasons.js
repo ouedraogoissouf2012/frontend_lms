@@ -54,6 +54,8 @@ export const REASONS = Object.freeze({
   // 404 de GET /lms/seances/my-classes (LMSSeancesListController::myClassesSeances) : l'élève n'a aucune
   // classe active. Un état vide honnête, pas une erreur (décision de la superviseure, E2E de la nuit).
   student_without_active_class: motif('eleveSansClasseActive', { etatVide: true }),
+  // lms_backend #1060 : un coordinateur ne prévisualise que les évaluations terminées (preview:140-147).
+  preview_requires_finished_evaluation: motif('previewRequiresFinishedEvaluation'),
   evaluation_window_unverifiable: motif('evaluationWindowUnverifiable', { transitoire: true }),
   // frontend_lms#426 : la panne KLASSCI se classe par son motif (le 503 canonique le porte), pas par
   // l'en-tête Retry-After, que le navigateur cache en cross-origin (`exposed_headers: []`).
