@@ -78,6 +78,16 @@ export function optionsHorsBornes(question) {
 }
 
 /**
+ * Deux options remplies d'une question au même texte, comparé après trim comme le fait le serveur
+ * (TrimStrings) : l'élève ne peut pas les distinguer, et cochées, elles partent en doublon (D528).
+ */
+export function optionsEnDouble(question) {
+  if (!TYPES_A_CHOIX.has(question?.type) || !Array.isArray(question.options)) return false
+  const remplies = question.options.filter((o) => typeof o === 'string' && o.trim() !== '').map((o) => o.trim())
+  return new Set(remplies).size < remplies.length
+}
+
+/**
  * Les réponses acceptées d'une réponse courte, telles qu'elles partent (D528) : découpées aux virgules,
  * sans les vides (le serveur en ferait null, refusé) ni les doublons exacts. La casse est gardée : la
  * notation l'ignore, mais c'est le texte que l'enseignant a écrit.
@@ -102,6 +112,7 @@ export function motifAvantEnvoi(question) {
     if (question.bonneReponseOrpheline) return 'bonneReponseOrpheline'
     if (question.bonneReponseAChoisir) return 'bonneReponseAChoisir'
     if (optionsHorsBornes(question)) return 'optionsHorsBornes'
+    if (optionsEnDouble(question)) return 'optionsEnDouble'
   }
   if (question?.type === 'reponse_courte') {
     const reponses = reponsesCourtes(question.correct_answers_text)

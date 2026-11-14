@@ -103,6 +103,8 @@ export const ERROR_MESSAGES = Object.freeze({
   // D528 : une question à plusieurs coches passée à un type à réponse unique ; ses coches sont retirées.
   bonneReponseAChoisir: "Cette question n'accepte qu'une bonne réponse : ses coches ont été retirées. Choisissez-la.",
   // D528 : les bornes des réponses d'une réponse courte, celles des options (lms_backend #1071).
+  // D528 : deux options d'une question au même texte (après trim) sont ambiguës ; cochées, un doublon.
+  optionsEnDouble: "Deux options de cette question ont le même texte. Modifiez-en une avant d'enregistrer.",
   reponsesCourtesHorsBornes: "Cette question accepte au plus 26 réponses, de 1 000 caractères chacune. Retirez ou raccourcissez des réponses avant d'enregistrer.",
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })
