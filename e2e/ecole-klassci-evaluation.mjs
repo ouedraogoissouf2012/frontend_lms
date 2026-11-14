@@ -76,8 +76,8 @@ if (!eleve.ok) manque('copie', eleve)
 const demarree = await essayer('5 démarrage', 'POST', `/evaluations/${cree.data.id}/start`, null, eleve.data.token)
 if (!demarree.ok) manque('copie', demarree)
 const question = cree.data.questions?.[0]?.id
-const remise = await essayer('6 remise', 'POST', `/evaluations/${cree.data.id}/submit`, { answers: { [question]: BONNE_REPONSE } }, eleve.data.token)
-if (!remise.ok) manque('copie', remise)
+// M2 : falsification D74, la copie est démarrée mais jamais remise (question : ${question}).
+void question
 
 // Ce que la synchronisation doit envoyer à KLASSCI : une note, pour l'évaluation programmée.
 jeu.ecritures = { notes: { evaluation_klassci: EVALUATION.id, titre: EVALUATION.titre, nb_notes: 1 } }
