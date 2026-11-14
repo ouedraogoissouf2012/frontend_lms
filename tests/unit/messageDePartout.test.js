@@ -5,10 +5,9 @@
  * le `userMessage` du catalogue, sinon celui de `normalizeError`, jamais le texte du serveur (D0). 25
  * sites dans 15 fichiers la réécrivaient à la main (`err.userMessage ?? normalizeError(err).userMessage`).
  *
- * Cliquet : 10 fichiers l'appellent désormais. Les 5 fichiers GELÉS ci-dessous gardent la réécriture,
- * dette déclarée : leurs tests existants mockent `@/services/errorHandler` avec un seul
- * `normalizeError` (sans `messageDe`, ou avec le `messageDe` d'origine qui n'appelle pas le mock). Les
- * passer à `messageDe` changerait ces tests, ce que R6 exclut. La liste ne peut que rétrécir.
+ * Cliquet : les 15 fichiers qui la réécrivaient l'appellent. #538 en avait gelé 5, dont les tests mockaient
+ * `@/services/errorHandler` avec un seul `normalizeError` ; #540 a migré ces mocks (`importOriginal`,
+ * migration déclarée) et vidé la liste. Aucun fichier de `src` ne doit plus réécrire la règle.
  */
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
