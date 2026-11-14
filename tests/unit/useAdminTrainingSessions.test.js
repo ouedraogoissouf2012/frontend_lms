@@ -78,7 +78,8 @@ describe('useAdminTrainingSessions — transitions (#391)', () => {
     expect(await api.transitionner(api.periodes.value[0], 'publier')).toBe(true)
     expect(transition).toHaveBeenCalledWith(4, 'publier')
     expect(api.periodes.value[0]).toMatchObject({ id: 4, status: 'publiee', starts_on: '2026-11-02' })
-    expect(api.notice.value).toBe('Periode publiee.')
+    // C43 (renversé, déclaré) : le texte du FRONT, jamais celui du serveur (« Periode publiee. »).
+    expect(api.notice.value).toBe('Période mise à jour.')
     expect(list).not.toHaveBeenCalled()
   })
 
@@ -166,3 +167,26 @@ describe('useAdminTrainingSessions — transitions (#391)', () => {
   })
 })
 
+// C43 : une création dit le texte du FRONT, jamais celui du serveur (D0).
+describe('useAdminTrainingSessions — textes de succès du front (C43)', () => {
+  beforeEach(() => {
+    list.mockReset()
+    list.mockResolvedValue({ data: [], meta: { current_page: 1, last_page: 1 } })
+    createProgram.mockReset()
+    createPeriod.mockReset()
+  })
+
+  it('programme créé', async () => {
+    createProgram.mockResolvedValue({ data: { id: 12, titre: 'OHADA', version: 1 }, message: 'Texte serveur, jamais affiché' })
+    const api = useAdminTrainingSessions()
+    await api.creerProgramme('OHADA', '')
+    expect(api.notice.value).toBe('Programme créé.')
+  })
+
+  it('session de formation créée', async () => {
+    createPeriod.mockResolvedValue({ data: { id: 5 }, message: 'Texte serveur, jamais affiché' })
+    const api = useAdminTrainingSessions()
+    await api.creerPeriode({ libelle: 'Promo' })
+    expect(api.notice.value).toBe('Session de formation créée.')
+  })
+})
