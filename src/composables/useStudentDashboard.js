@@ -1,4 +1,4 @@
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { auth } from '@/services/api'
 import { klassciService } from '@/services/klassci'
 import { useCachedResource } from '@/composables/useCachedResource'
@@ -14,11 +14,15 @@ import { useCachedResource } from '@/composables/useCachedResource'
 export function useStudentDashboard() {
   const user = ref(null)
 
-  const { data: dashboardData, loading, error, canRetry, load, refresh } = useCachedResource(
+  const { data: dashboardData, loading, error, canRetry, motif, load, refresh } = useCachedResource(
     'student_dashboard',
     () => klassciService.getStudentDashboard(),
     { immediate: false },
   )
+
+  // Refus motivé `enrolment_not_active` (StudentEnrolmentService) : un état clair, pas une panne ; la
+  // donnée en cache (une ancienne classe) ne doit plus être montrée.
+  const inscriptionInactive = computed(() => motif.value === 'enrolment_not_active')
 
   /** `forceRefresh` (bouton « réessayer ») → revalidation directe ; sinon SWR. */
   function loadDashboard(forceRefresh = false) {
@@ -30,5 +34,5 @@ export function useStudentDashboard() {
     loadDashboard()
   })
 
-  return { user, dashboardData, loading, error, canRetry, loadDashboard }
+  return { user, dashboardData, loading, error, canRetry, inscriptionInactive, loadDashboard }
 }

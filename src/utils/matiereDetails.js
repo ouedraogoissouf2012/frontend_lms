@@ -129,12 +129,12 @@ export function buildLessonPayload(newLesson, { classes, user, matiereIdLocal })
  * (version en ligne, soumission étudiant). Décision PURE : renvoie un descripteur
  * `{ route }` (à pousser) ou `{ notify }` (à signaler). Aucun effet de bord.
  * @param {Object} evaluation
- * @param {{ role:string, matiereId:number }} ctx
+ * @param {{ role:string }} ctx
  * L'élève ne reçoit pas une route mais l'évaluation à OUVRIR (`{ ouvrir }`) : la porte unique
  * (useStartEvaluation.ouvrirEvaluation) reprend, montre les résultats ou démarre par le serveur.
  * @returns {{ route?:Object, ouvrir?:Object, notify?:{ message:string, level:string } }}
  */
-export function resolveEvaluationRoute(evaluation, { role, matiereId }) {
+export function resolveEvaluationRoute(evaluation, { role }) {
   // Évaluation disposant d'une version en ligne (quiz LMS)
   if (evaluation.online_version || evaluation.has_online) {
     const lmsId = evaluation.online_version?.id || evaluation.lms_id
@@ -148,17 +148,11 @@ export function resolveEvaluationRoute(evaluation, { role, matiereId }) {
     return { route: { name: 'PreviewEvaluation', params: { id: lmsId } } }
   }
 
-  if (isTeacher(role)) {
-    return {
-      route: {
-        name: 'CreateQuestions',
-        query: {
-          klassci_evaluation_id: evaluation.id,
-          klassci_matiere_id: matiereId,
-          titre: evaluation.titre
-        }
-      }
-    }
+  // D72-b : l'origine vient du serveur (D172). Un élément LOCAL sans version en ligne ne part
+  // jamais vers la création KLASSCI : son id est local, et jamais sous un nom `klassci_*` (D132).
+  // Seule la clé que `CreateQuestions` lit (`klassci_id`) part.
+  if (isTeacher(role) && evaluation.source !== 'lms_local') {
+    return { route: { name: 'CreateQuestions', query: { klassci_id: evaluation.id } } }
   }
 
   return { notify: { message: 'Cette évaluation n\'a pas encore de version en ligne', level: 'info' } }

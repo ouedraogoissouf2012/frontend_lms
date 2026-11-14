@@ -4,6 +4,8 @@ import api from '@/services/api'
 import { endpoints } from '@/services/endpoints'
 import { downloadBlob } from '@/utils/downloadBlob'
 import { coalesceNumber } from '@/utils/coalesceNumber'
+import { displayMessage } from '@/services/displayMessage'
+import { refusMotive } from '@/services/errorHandler'
 
 /**
  * Couche données d'AdminEvaluationDetails (#H3 ≤300) : lit l'id d'évaluation dans
@@ -83,9 +85,7 @@ export function useAdminEvaluationDetails() {
       )
     } catch (fallbackError) {
       console.error('Erreur chargement évaluation fallback:', fallbackError)
-      error.value = initialError?.userMessage
-        || initialError?.response?.data?.message
-        || 'Erreur lors du chargement des résultats'
+      error.value = displayMessage(initialError, 'Erreur lors du chargement des résultats')
     }
   }
 
@@ -100,7 +100,7 @@ export function useAdminEvaluationDetails() {
       const evaluationData = unwrapData(evaluationResponse)
 
       if (evaluationResponse?.success === false || !evaluationData) {
-        error.value = evaluationResponse?.message || 'Erreur lors du chargement de l’évaluation'
+        error.value = refusMotive(evaluationResponse).motif ?? 'Erreur lors du chargement de l’évaluation'
         return
       }
 
@@ -115,7 +115,7 @@ export function useAdminEvaluationDetails() {
       if (response.success) {
         applyResultsPayload(unwrapData(response))
       } else {
-        error.value = response.message || 'Erreur lors du chargement des résultats'
+        error.value = refusMotive(response).motif ?? 'Erreur lors du chargement des résultats'
       }
     } catch (err) {
       console.error('Erreur chargement résultats:', err)
@@ -134,6 +134,7 @@ export function useAdminEvaluationDetails() {
       'soumis': 'status-success',
       'corrige': 'status-success',
       'en_cours': 'status-warning',
+      'verrouille': 'status-error', // C28 : hors délai
       'non_passee': 'status-error'
     }
     return classes[status] || 'status-default'
@@ -144,6 +145,7 @@ export function useAdminEvaluationDetails() {
       'soumis': 'Soumis',
       'corrige': 'Corrigé',
       'en_cours': 'En cours',
+      'verrouille': 'Hors délai',
       'non_passee': 'Non passée'
     }
     return labels[status] || status

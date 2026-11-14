@@ -2,14 +2,14 @@
   <div class="stats-cards">
     <div class="stat-card moyenne-card">
       <div class="stat-label">Moyenne Générale</div>
-      <div class="stat-value" :class="getMoyenneClass(moyenneGenerale)">
-        {{ moyenneGenerale }}/20
+      <div class="stat-value" :class="classeMoyenne">
+        {{ afficherNote(moyenneGenerale) }}
       </div>
       <div class="progress-bar">
         <div
           class="progress-fill"
-          :class="getMoyenneClass(moyenneGenerale)"
-          :style="{ width: `${(moyenneGenerale / 20) * 100}%` }"
+          :class="classeMoyenne"
+          :style="{ width: `${((moyenneGenerale ?? 0) / 20) * 100}%` }"
         ></div>
       </div>
     </div>
@@ -22,13 +22,13 @@
 
     <div class="stat-card">
       <div class="stat-label">Taux de Réussite</div>
-      <div class="stat-value">{{ statsReussite.taux }}%</div>
+      <div class="stat-value">{{ statsReussite.taux == null ? '—' : `${statsReussite.taux}%` }}</div>
       <div class="stat-detail">{{ statsReussite.reussies }}/{{ statsReussite.total }} éval.</div>
     </div>
 
     <div class="stat-card">
       <div class="stat-label">Meilleure Note</div>
-      <div class="stat-value note-excellent">{{ statsMeilleureNote }}/20</div>
+      <div class="stat-value note-excellent">{{ afficherNote(statsMeilleureNote) }}</div>
       <div class="stat-detail" v-if="meilleureMatiere">{{ meilleureMatiere }}</div>
     </div>
   </div>
@@ -40,16 +40,20 @@
  * moyenne générale, matières/évaluations, taux de réussite, meilleure note.
  * La classe couleur de la moyenne provient de l'util pur getMoyenneClass.
  */
-import { getMoyenneClass } from '@/utils/studentGrades'
+import { computed } from 'vue'
+import { getMoyenneClass, afficherNote } from '@/utils/studentGrades'
 
-defineProps({
-  moyenneGenerale: { type: [Number, String], default: 0 },
+// E4a (règle A) : une valeur absente (null) se lit « — », sans couleur de palier, jamais « 0/20 ».
+const props = defineProps({
+  moyenneGenerale: { type: [Number, String], default: null },
   totalMatieres: { type: [Number, String], default: 0 },
   totalEvaluations: { type: [Number, String], default: 0 },
   statsReussite: { type: Object, default: () => ({ total: 0, reussies: 0, taux: 0 }) },
-  statsMeilleureNote: { type: [Number, String], default: 0 },
+  statsMeilleureNote: { type: [Number, String], default: null },
   meilleureMatiere: { type: String, default: '' },
 })
+
+const classeMoyenne = computed(() => (props.moyenneGenerale == null ? '' : getMoyenneClass(props.moyenneGenerale)))
 </script>
 
 <style scoped>

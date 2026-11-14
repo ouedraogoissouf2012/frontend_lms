@@ -126,7 +126,7 @@ import { ref, onMounted } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import CountValue from '@/components/common/CountValue.vue'
-import { normalizeError } from '@/services/errorHandler'
+import { messageDe } from '@/services/errorHandler'
 import { extractList } from '@/utils/apiList'
 import { dashboard, lessons as lessonsApi, notifications as notificationsApi, auth } from '@/services/api'
 import { isStudent, isTeacher } from '@/constants/roles'
@@ -165,7 +165,7 @@ async function loadDashboard() {
     recentLessons.value = extractList(rLessons.value)
   } else {
     console.error('Erreur chargement leçons récentes:', rLessons.reason)
-    lessonsError.value = rLessons.reason?.userMessage ?? normalizeError(rLessons.reason).userMessage
+    lessonsError.value = messageDe(rLessons.reason)
   }
   if (rNotifs.status === 'fulfilled') {
     notifications.value = Array.isArray(rNotifs.value) ? rNotifs.value : []

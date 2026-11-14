@@ -68,6 +68,21 @@ describe('useClasseDetails (#H9)', () => {
     expect(api.loading.value).toBe(false)
   })
 
+  // D72-b, B-2 : les deux sources du serveur (ClasseDetailsQueryService KLASSCI,
+  // LocalClasseDetailsReader LMS) émettent SEULEMENT `evaluations_programmees`. Une clé
+  // `evaluations` n'est émise par aucune fiche de classe : elle n'est plus lue (« sans deviner »).
+  it('les évaluations viennent de evaluations_programmees, jamais d’une clé evaluations', async () => {
+    getClasseDetails.mockResolvedValue({ success: true, data: { classe: { nom: '6e A' }, evaluations: [{ id: 1 }] } })
+    const seule = await setup('5')
+    expect(seule.api.evaluations.value).toEqual([])
+    getClasseDetails.mockResolvedValue({
+      success: true,
+      data: { classe: { nom: '6e A' }, evaluations: [{ id: 1 }], evaluations_programmees: [{ id: 2 }] },
+    })
+    const lue = await setup('5')
+    expect(lue.api.evaluations.value).toEqual([{ id: 2 }])
+  })
+
   // Non-regression #273 (dette declaree en PR) : KLASSCI refuse
   // `classes/{id}/etudiants` par un 403 PAR CLASSE, tous roles confondus, alors
   // que l'enveloppe de `/lms/classes/{id}` porte deja le roster. Ce test verrouille
@@ -153,7 +168,10 @@ describe('useClasseDetails (#H9)', () => {
     const { api, push, back } = await setup('5')
     api.viewMatiere(42)
     expect(push).toHaveBeenCalledWith({ name: 'matiere-details', params: { id: 42 } })
-    api.viewEvaluation(99)
+    // E4c (migration déclarée) : le clic reçoit l'évaluation et suit le rôle ; la gestion ouvre les
+    // résultats par l'id LMS (`online_version.id`), jamais par l'id de l'élément.
+    session.role = 'admin'
+    api.viewEvaluation({ id: 500, has_online: true, online_version: { id: 99 } })
     expect(push).toHaveBeenCalledWith({ name: 'AdminEvaluationDetails', params: { id: 99 } })
     api.goBack()
     expect(back).toHaveBeenCalled()

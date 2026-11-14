@@ -12,6 +12,7 @@ const h = vi.hoisted(() => ({
   getEvaluation: vi.fn(),
   submitEvaluation: vi.fn(),
   getTimeStatus: vi.fn(),
+  getMySubmission: vi.fn(),
   getUser: vi.fn(),
   push: vi.fn(),
   confirm: vi.fn(() => Promise.resolve(true)), // confirm() natif -> useConfirm().confirm() async (F3)
@@ -26,7 +27,8 @@ vi.mock('@/services/evaluation', () => ({
   default: {
     getEvaluation: h.getEvaluation,
     submitEvaluation: h.submitEvaluation,
-    getTimeStatus: h.getTimeStatus
+    getTimeStatus: h.getTimeStatus,
+    getMySubmission: h.getMySubmission
   }
 }))
 vi.mock('@/services/api', () => ({
@@ -66,6 +68,9 @@ describe('useTakeEvaluation (H1)', () => {
     h.getEvaluation.mockResolvedValue({ success: true, data: JSON.parse(JSON.stringify(sampleEval)) })
     h.submitEvaluation.mockResolvedValue({ success: true, data: { note_sur_20: 18, score: 9 } })
     h.getTimeStatus.mockResolvedValue({ success: true, data: {} })
+    // C28 (migration déclarée) : la page relit sa copie ; sans échéance (`ends_at` nul), le
+    // minuteur garde la durée de l'évaluation, comme ces tests l'attendent.
+    h.getMySubmission.mockResolvedValue({ success: true, data: { id: 'sub-1', status: 'en_cours', ends_at: null } })
   })
 
   it('charge l\'évaluation et initialise les réponses selon le type', async () => {

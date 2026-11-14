@@ -45,6 +45,9 @@
 
         <!-- Liste des résultats -->
         <CorrectionResultsTable :resultats="resultats" @export="exportToExcel" />
+
+        <!-- Lot CORR : les copies et leur notation (dissertations). -->
+        <CorrectionCopiesPanel :evaluation="evaluation" :resultats="resultats" :user="utilisateur" @notee="loadResults" />
       </template>
     </div>
   </DashboardLayout>
@@ -62,12 +65,15 @@ import ContentLoader from '@/components/common/ContentLoader.vue'
 import CorrectionEvalInfo from '@/components/evaluations/CorrectionEvalInfo.vue'
 import CorrectionStats from '@/components/evaluations/CorrectionStats.vue'
 import CorrectionResultsTable from '@/components/evaluations/CorrectionResultsTable.vue'
+import CorrectionCopiesPanel from '@/components/evaluations/CorrectionCopiesPanel.vue'
+import { auth } from '@/services/api'
 import { useEvaluationCorrections } from '@/composables/useEvaluationCorrections'
 
 const {
   loading, error, evaluation, resultats, statistiques,
   loadResults, goBack, exportToExcel,
 } = useEvaluationCorrections()
+const utilisateur = auth.getUser()
 </script>
 
 <style scoped>

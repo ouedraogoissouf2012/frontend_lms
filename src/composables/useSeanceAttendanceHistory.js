@@ -7,8 +7,9 @@ import attendanceExportService from '@/services/attendanceExport'
 import { getPeriodDates as computePeriodDates } from '@/utils/attendance'
 import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
-import { normalizeError, invalidResponseError } from '@/services/errorHandler'
+import { invalidResponseError, messageDe } from '@/services/errorHandler'
 import { estPannePassagere } from '@/utils/pannePassagere'
+import { displayMessage } from '@/services/displayMessage'
 
 /**
  * Couche données de l'historique des séances + présences (H7, ≤300) extraite de
@@ -91,7 +92,7 @@ export function useSeanceAttendanceHistory() {
       seances.value = response.data
       pagination.value = response.pagination
     } catch (err) {
-      error.value = err.userMessage ?? normalizeError(err).userMessage
+      error.value = messageDe(err)
       canRetry.value = estPannePassagere(err)
     } finally {
       loading.value = false
@@ -174,7 +175,7 @@ export function useSeanceAttendanceHistory() {
       attendances.value = response
       return response
     } catch (err) {
-      attendancesError.value = err.userMessage ?? normalizeError(err).userMessage
+      attendancesError.value = messageDe(err)
       attendancesCanRetry.value = estPannePassagere(err)
       return null
     } finally {
@@ -199,7 +200,7 @@ export function useSeanceAttendanceHistory() {
       await attendanceExportService.exportPdf(selectedSeance.value.id)
     } catch (error) {
       console.error('[SeanceHistory] Erreur export PDF:', error)
-      toast.error('Erreur lors de l\'export PDF : ' + error.message)
+      toast.error(displayMessage(error, 'Erreur lors de l\'export PDF'))
     } finally {
       exporting.value = false
     }
@@ -212,7 +213,7 @@ export function useSeanceAttendanceHistory() {
       await attendanceExportService.exportExcel(selectedSeance.value.id)
     } catch (error) {
       console.error('[SeanceHistory] Erreur export Excel:', error)
-      toast.error('Erreur lors de l\'export Excel : ' + error.message)
+      toast.error(displayMessage(error, 'Erreur lors de l\'export Excel'))
     } finally {
       exporting.value = false
     }
@@ -227,7 +228,7 @@ export function useSeanceAttendanceHistory() {
       toast.success('Séance supprimée avec succès')
       loadSeances() // Recharger la liste
     } catch (err) {
-      toast.error(err.userMessage ?? normalizeError(err).userMessage)
+      toast.error(messageDe(err))
     }
   }
 

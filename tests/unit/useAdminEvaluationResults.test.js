@@ -47,6 +47,7 @@ vi.mock('@/services/klassci', () => ({
 }))
 
 import { useAdminEvaluationResults } from '@/composables/useAdminEvaluationResults'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 async function setup() {
   let api
@@ -122,5 +123,14 @@ describe('useAdminEvaluationResults (#H3)', () => {
     expect(c.getStatusLabel('en_cours')).toBe('En cours')
     expect(c.getStatusClass('terminee')).toBe('status-completed')
     expect(c.getStatusClass('inconnu')).toBe('status-draft')
+  })
+})
+
+describe('useAdminEvaluationResults — D0', () => {
+  it('un échec de chargement dit le sens, jamais le texte du serveur', async () => {
+    const { default: http } = await import('@/services/api')
+    http.get.mockRejectedValueOnce({ response: { status: 500, data: { message: 'SQLSTATE[42S22]: Column not found' } } })
+    const c = await setup()
+    expect(c.error.value).toBe(ERROR_MESSAGES.server)
   })
 })

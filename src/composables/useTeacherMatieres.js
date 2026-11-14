@@ -2,7 +2,7 @@ import { ref, onMounted } from 'vue'
 import { toast } from '@/composables/useToast'
 import { useRouter } from 'vue-router'
 import lmsService from '@/services/lms'
-import { normalizeError } from '@/services/errorHandler'
+import { messageDe } from '@/services/errorHandler'
 import { estPannePassagere } from '@/utils/pannePassagere'
 
 /**
@@ -31,7 +31,7 @@ export function useTeacherMatieres() {
       console.log('[TeacherMatieres] Matières chargées:', matieres.value.length)
     } catch (err) {
       console.error('[TeacherMatieres] Erreur:', err)
-      error.value = err.userMessage ?? normalizeError(err).userMessage
+      error.value = messageDe(err)
       canRetry.value = estPannePassagere(err)
     } finally {
       loading.value = false

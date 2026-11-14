@@ -2,8 +2,11 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/services/api'
 import { readCache, writeCache } from '@/services/cache'
-import { byId, displayName, firstValue, nonEmptyArray, toId, unwrapArray } from '@/utils/evaluationDisplay'
+import { nonEmptyArray, toId, unwrapArray } from '@/utils/evaluationDisplay'
+import { idClasse, idEnseignant, idMatiere } from '@/utils/identiteEvaluation'
+import { enrichEvaluation, teacherOption, deriveEnseignants as deriveEnseignantsOptions } from '@/utils/coordinatorEvaluations'
 import { endpoints } from '@/services/endpoints'
+import { displayMessage } from '@/services/displayMessage'
 
 const EVALUATIONS_CACHE_KEY = 'coordinator_evaluations'
 const REFERENCES_CACHE_KEY = 'coordinator_evaluation_references'
@@ -35,91 +38,17 @@ export function useCoordinatorEvaluations() {
     return list.length > 0 ? list : null
   }
 
-  function normalizeEvaluation(evaluation) {
-    const enseignantId = toId(firstValue(
-      evaluation.klassci_enseignant_id,
-      evaluation.enseignant_id,
-      evaluation.teacher_id,
-      evaluation.enseignant,
-      evaluation.teacher
-    ))
-    const classeId = toId(firstValue(evaluation.klassci_classe_id, evaluation.classe_id, evaluation.class_id, evaluation.classe))
-    const matiereId = toId(firstValue(evaluation.klassci_matiere_id, evaluation.matiere_id, evaluation.subject_id, evaluation.matiere))
-    const matiereNom = firstValue(evaluation.matiere_nom, evaluation.matiere_name, evaluation.subject_name, displayName(evaluation.matiere))
-    const classeNom = firstValue(evaluation.classe_nom, evaluation.classe_name, evaluation.class_name, displayName(evaluation.classe))
-
-    return {
-      ...evaluation,
-      klassci_enseignant_id: firstValue(evaluation.klassci_enseignant_id, enseignantId),
-      klassci_classe_id: firstValue(evaluation.klassci_classe_id, classeId),
-      klassci_matiere_id: firstValue(evaluation.klassci_matiere_id, matiereId),
-      enseignant_nom: firstValue(evaluation.enseignant_nom, displayName(evaluation.enseignant), displayName(evaluation.teacher), enseignantId ? `Enseignant #${enseignantId}` : ''),
-      matiere: evaluation.matiere || (matiereNom ? { id: matiereId, nom: matiereNom } : null),
-      classe: evaluation.classe || (classeNom ? { id: classeId, nom: classeNom } : null)
-    }
-  }
-
-  function enrichEvaluation(evaluation) {
-    const normalized = normalizeEvaluation(evaluation)
-    const enseignantsById = byId(enseignants.value)
-    const classesById = byId(classes.value)
-    const matieresById = byId(matieres.value)
-    const enseignant = enseignantsById.get(toId(normalized.klassci_enseignant_id))
-    const classe = classesById.get(toId(normalized.klassci_classe_id))
-    const matiere = matieresById.get(toId(normalized.klassci_matiere_id))
-
-    return {
-      ...normalized,
-      enseignant: enseignant || normalized.enseignant || null,
-      classe: classe || normalized.classe || null,
-      matiere: matiere || normalized.matiere || null,
-      enseignant_nom: firstValue(displayName(enseignant), normalized.enseignant_nom),
-      classe_nom: firstValue(displayName(classe), normalized.classe_nom, displayName(normalized.classe)),
-      matiere_nom: firstValue(displayName(matiere), normalized.matiere_nom, displayName(normalized.matiere))
-    }
-  }
-
-  function teacherOption(enseignant) {
-    const id = toId(enseignant)
-    const name = displayName(enseignant)
-    if (!id || !name) return null
-    const source = typeof enseignant === 'object' && enseignant !== null ? enseignant : {}
-    const joinId = source.klassci_id ?? source.id ?? source.teacher_id ?? id
-    return {
-      ...source,
-      id: joinId,
-      klassci_id: joinId,
-      name,
-      libelle: name,
-      email: source.email || ''
-    }
-  }
+  // Logique pure extraite (D72-c) : le composable passe ses référentiels courants.
+  const enrich = (evaluation) => enrichEvaluation(evaluation, {
+    enseignants: enseignants.value, classes: classes.value, matieres: matieres.value
+  })
 
   function deriveEnseignants() {
-    const enseignantsMap = new Map()
-    enseignants.value.forEach((enseignant) => {
-      const option = teacherOption(enseignant)
-      if (option) enseignantsMap.set(toId(option.klassci_id), option)
-    })
-    evaluations.value.forEach(evaluation => {
-      if (evaluation.klassci_enseignant_id && (evaluation.enseignant_nom || evaluation.enseignant)) {
-        const joinId = evaluation.klassci_enseignant_id
-        const name = firstValue(evaluation.enseignant_nom, displayName(evaluation.enseignant))
-        enseignantsMap.set(toId(joinId), {
-          ...(evaluation.enseignant || {}),
-          id: joinId,
-          klassci_id: joinId,
-          name,
-          libelle: name,
-          email: evaluation.enseignant?.email || ''
-        })
-      }
-    })
-    enseignants.value = Array.from(enseignantsMap.values()).sort((a, b) => a.name.localeCompare(b.name))
+    enseignants.value = deriveEnseignantsOptions(enseignants.value, evaluations.value)
   }
 
   function applyEvaluations(list) {
-    evaluations.value = (Array.isArray(list) ? list : []).map(enrichEvaluation)
+    evaluations.value = (Array.isArray(list) ? list : []).map(enrich)
     deriveEnseignants()
   }
 
@@ -132,7 +61,7 @@ export function useCoordinatorEvaluations() {
   }
 
   function refreshEvaluationReferences() {
-    evaluations.value = evaluations.value.map(enrichEvaluation)
+    evaluations.value = evaluations.value.map(enrich)
     deriveEnseignants()
     writeCache(EVALUATIONS_CACHE_KEY, evaluations.value)
     persistReferences()
@@ -196,15 +125,16 @@ export function useCoordinatorEvaluations() {
     let filtered = evaluations.value
 
     if (filters.value.enseignant_id) {
-      filtered = filtered.filter(e => e.klassci_enseignant_id == filters.value.enseignant_id)
+      // D72-c (L4) : même règle d'identité que les cartes et les options (champs à plat).
+      filtered = filtered.filter(e => idEnseignant(e) === toId(filters.value.enseignant_id))
     }
 
     if (filters.value.classe_id) {
-      filtered = filtered.filter(e => e.klassci_classe_id == filters.value.classe_id)
+      filtered = filtered.filter(e => idClasse(e) === toId(filters.value.classe_id))
     }
 
     if (filters.value.matiere_id) {
-      filtered = filtered.filter(e => e.klassci_matiere_id == filters.value.matiere_id)
+      filtered = filtered.filter(e => idMatiere(e) === toId(filters.value.matiere_id))
     }
 
     if (filters.value.statut) {
@@ -258,7 +188,7 @@ export function useCoordinatorEvaluations() {
       loadFilterOptions()
     } catch (err) {
       console.error('Erreur chargement données:', err)
-      error.value = err.userMessage || err.response?.data?.message || 'Erreur lors du chargement des évaluations'
+      error.value = displayMessage(err, 'Erreur lors du chargement des évaluations')
     } finally {
       loading.value = false
     }

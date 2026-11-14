@@ -2,7 +2,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import evaluationService from '@/services/evaluation'
 import { toast } from '@/composables/useToast'
-import { messageDe } from '@/services/errorHandler'
+import { messageDe, invalidResponseError } from '@/services/errorHandler'
+import { entreeDuMotif } from '@/services/refusalReasons'
 import { useConfirm } from '@/composables/useConfirm'
 
 /**
@@ -46,11 +47,13 @@ export function usePreviewEvaluation() {
         evaluation.value = result.data
         console.log('[PREVIEW] Évaluation chargée:', evaluation.value)
       } else {
-        error.value = result.message || 'Erreur lors du chargement de la prévisualisation'
+        // D0 : un 2xx sans succès ne montre jamais le texte du serveur ; son motif connu, sinon le catalogue.
+        error.value = messageDe(invalidResponseError('GET /evaluations/{id}/preview sans success', result))
       }
     } catch (err) {
       console.error('[PREVIEW ERROR]', err)
-      error.value = 'Impossible de charger la prévisualisation'
+      // Un refus motivé (catalogue) dit son motif ; tout autre échec garde le message actuel (D0).
+      error.value = entreeDuMotif(err?.response?.data?.reason) ? messageDe(err) : 'Impossible de charger la prévisualisation'
     } finally {
       loading.value = false
     }
@@ -63,9 +66,12 @@ export function usePreviewEvaluation() {
 
   // Aller à l'édition
   function goToEdit() {
+    // L'id KLASSCI, s'il existe, part avec (en-tête de l'édition) ; une évaluation locale n'en a pas.
+    const klassciId = evaluation.value.klassci_evaluation_id
     router.push({
       name: 'EditQuestions',
-      params: { id: evaluation.value.id }
+      params: { id: evaluation.value.id },
+      query: klassciId != null ? { klassci_id: klassciId } : {}
     })
   }
 

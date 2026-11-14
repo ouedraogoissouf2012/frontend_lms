@@ -5,6 +5,7 @@ import { decodeCsvBytes } from '../utils/decodeText'
 import { autoMap, mappingIssues as issuesFor } from '../utils/importMapping'
 import { previewImport } from '../services/importPreview'
 import { useImportJob } from './useImportJob'
+import { displayMessage } from '../services/displayMessage'
 
 /**
  * Assistant d'import d'apprenants (#334) — dépôt, cartographie, analyse à blanc.
@@ -130,7 +131,7 @@ export function useImportWizard() {
       report.value = payload
       step.value = 3
     } catch (err) {
-      error.value = err?.userMessage || err?.response?.data?.message || 'Analyse impossible.'
+      error.value = displayMessage(err, 'Analyse impossible.')
     } finally {
       loading.value = false
     }
@@ -146,7 +147,7 @@ export function useImportWizard() {
       await job.confirm(id, report.value)
       step.value = 4
     } catch (err) {
-      error.value = err?.userMessage || err?.response?.data?.message || 'Confirmation impossible.'
+      error.value = displayMessage(err, 'Confirmation impossible.')
     } finally {
       loading.value = false
     }

@@ -1,0 +1,217 @@
+# E2E écran par écran, école créée depuis le LMS (D110/D111). Lancé à la demande, et sur les PR
+# qui touchent l'E2E lui-même. NON requis : il ne rallonge pas les autres PR.
+#
+# Garanties :
+#   - aucune requête ne sort vers un hôte réel : le serveur et le navigateur tournent sous un
+#     utilisateur `e2e` dont toute connexion hors boucle locale est REJETÉE et COMPTÉE (iptables) ;
+#   - KLASSCI : `KLASSCI_API_URL` vise un faux local qui répond 503 à tout, et les hôtes KLASSCI
+#     connus sont pointés vers 127.0.0.1 ;
+#   - données FICTIVES (@e2e.test), mot de passe tiré au hasard à chaque run et masqué.
+name: E2E
+
+on:
+  workflow_dispatch:
+    inputs:
+      backend_ref:
+        description: 'Branche ou sha de lms_backend (ex. la branche d intégration)'
+        default: 'lms'
+        required: false
+      frontend_ref:
+        description: 'Branche ou sha du front (vide = la ref du déclenchement)'
+        default: ''
+        required: false
+  pull_request:
+    branches: [dev]
+    paths:
+      - 'e2e/**'
+      - 'tests/e2e/**'
+      - '.github/workflows/e2e.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: E2E école créée depuis le LMS
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      E2E_SUPRADMIN_EMAIL: supradmin@e2e.test
+      PLAYWRIGHT_BROWSERS_PATH: /opt/ms-playwright
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Mot de passe du run (aléatoire, masqué)
+        run: |
+          p="E2e-$(openssl rand -hex 12)"
+          echo "::add-mask::$p"
+          echo "E2E_MOT_DE_PASSE=$p" >> "$GITHUB_ENV"
+
+      # L'OUTIL de mesure (ce dépôt, à la tête de la PR) et le FRONT mesuré sont deux checkouts :
+      # une branche d'intégration qui n'inclut pas cette PR doit pouvoir être mesurée.
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          path: mesure
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.frontend_ref || github.event.pull_request.head.sha || github.sha }}
+          path: front
+      - uses: actions/checkout@v7
+        with:
+          repository: ouedraogoissouf2012/lms_backend
+          ref: ${{ inputs.backend_ref || 'lms' }}
+          path: back
+
+      - name: Versions jouées
+        run: |
+          {
+            echo "### Versions"
+            echo "- outil de mesure (e2e/, version du script) : \`$(git -C mesure rev-parse HEAD)\`"
+            echo "- front mesuré : \`$(git -C front rev-parse HEAD)\`"
+            echo "- lms_backend : \`$(git -C back rev-parse HEAD)\` (ref demandée : \`${{ inputs.backend_ref || 'lms' }}\`)"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          # Les trois shas LUS (pas demandés), pour l'en-tête de la matrice.
+          mkdir -p sortie
+          jq -n --arg mesure "$(git -C mesure rev-parse HEAD)" --arg front "$(git -C front rev-parse HEAD)"             --arg back "$(git -C back rev-parse HEAD)" '{mesure: $mesure, front: $front, back: $back}' > sortie/versions.json
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, intl, gd, zip, bcmath, exif, pdo_sqlite, sqlite3
+          tools: composer
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: Dépendances (réseau autorisé à cette étape seulement)
+        run: |
+          (cd back && composer install --no-interaction --no-progress --prefer-dist)
+          (cd front && npm ci --no-audit --no-fund)
+          mkdir -p outils && (cd outils && npm init -y >/dev/null && npm install --no-audit --no-fund playwright@1.65.0)
+          sudo mkdir -p "$PLAYWRIGHT_BROWSERS_PATH" && sudo chmod 777 "$PLAYWRIGHT_BROWSERS_PATH"
+          (cd outils && npx playwright install --with-deps chromium)
+
+      - name: Serveur LMS (base SQLite neuve, supradmin fictif)
+        working-directory: back
+        run: |
+          cat > .env <<EOF
+          APP_NAME=LMS-E2E
+          APP_KEY=
+          APP_ENV=local
+          APP_DEBUG=false
+          APP_URL=http://127.0.0.1:8000
+          ACTIVATION_URL_FRONT=http://127.0.0.1:4173
+          DB_CONNECTION=sqlite
+          DB_DATABASE=$PWD/database/e2e.sqlite
+          MAIL_MAILER=log
+          QUEUE_CONNECTION=sync
+          CACHE_STORE=file
+          SESSION_DRIVER=file
+          LOG_CHANNEL=single
+          BCRYPT_ROUNDS=4
+          KLASSCI_API_URL=http://127.0.0.1:8180
+          KLASSCI_API_TOKEN=
+          SUPRADMIN_EMAIL=$E2E_SUPRADMIN_EMAIL
+          SUPRADMIN_PASSWORD=$E2E_MOT_DE_PASSE
+          EOF
+          touch database/e2e.sqlite
+          php artisan key:generate --force
+          # key:generate n'échoue pas quand il ne peut pas écrire la clé : on le vérifie.
+          grep -q '^APP_KEY=base64:' .env || { echo "::error::APP_KEY absente du .env"; exit 1; }
+          php artisan migrate --force
+          php artisan db:seed --class=SupradminSeeder --force
+
+      - name: Fermer la sortie réseau (utilisateur e2e) et KLASSCI
+        run: |
+          sudo useradd -m e2e
+          sudo chmod -R a+rwX "$GITHUB_WORKSPACE"
+          # L'utilisateur e2e doit pouvoir TRAVERSER les parents de l'espace de travail.
+          d="$GITHUB_WORKSPACE"; while [ "$d" != "/" ]; do d=$(dirname "$d"); sudo chmod o+x "$d"; done
+          # `sudo -E` est ignoré sur le runner : les variables sont passées une à une.
+          cat > "$RUNNER_TEMP/en_e2e.sh" <<'SH'
+          en_e2e() {
+            sudo -u e2e env "PATH=$PATH" "HOME=/home/e2e" "XDG_CONFIG_HOME=/home/e2e/.config" "XDG_DATA_HOME=/home/e2e/.local/share" "XDG_CACHE_HOME=/home/e2e/.cache" "E2E_MOT_DE_PASSE=$E2E_MOT_DE_PASSE"               "E2E_SUPRADMIN_EMAIL=$E2E_SUPRADMIN_EMAIL" "PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH" "$@"
+          }
+          attendre() {  # attendre <nom> <url> <journal> : échoue, journal à l'appui, si rien ne répond
+            for i in $(seq 1 60); do
+              code=$(curl -s -o /dev/null -w '%{http_code}' "$2" || true)
+              [ "$code" != "000" ] && { echo "$1 répond (HTTP $code)"; return 0; }
+              sleep 1
+            done
+            echo "::error::$1 ne répond pas"; cat "$3" || true; return 1
+          }
+          SH
+          echo "127.0.0.1 klassci.com edu.klassci.com apilms.klassci.com presentation.klassci.com esbtp-abidjan.klassci.com esbtp-yakro.klassci.com" | sudo tee -a /etc/hosts
+          sudo iptables -A OUTPUT -m owner --uid-owner e2e ! -o lo -j LOG --log-prefix "E2E-SORTIE "
+          sudo iptables -A OUTPUT -m owner --uid-owner e2e ! -o lo -j REJECT
+
+      - name: Faux KLASSCI et serveur LMS (sous e2e)
+        run: |
+          . "$RUNNER_TEMP/en_e2e.sh"
+          mkdir -p sortie && chmod 777 sortie
+          en_e2e nohup node "$PWD/mesure/e2e/faux-klassci.mjs" 8180 "$PWD/sortie/faux-klassci.jsonl" > sortie/faux-klassci.log 2>&1 &
+          (cd back && en_e2e env PHP_CLI_SERVER_WORKERS=4 nohup php artisan serve --host=127.0.0.1 --port=8000 > ../sortie/serveur.log 2>&1 &)
+          attendre "faux KLASSCI" http://127.0.0.1:8180/ sortie/faux-klassci.log
+          attendre "serveur LMS" http://127.0.0.1:8000/ sortie/serveur.log
+
+      - name: Monter l'école créée depuis le LMS (script de Fille 1, chemins du produit)
+        run: |
+          . "$RUNNER_TEMP/en_e2e.sh"
+          en_e2e pwsh -File "$PWD/mesure/e2e/ecole-lms.ps1" -Api http://127.0.0.1:8000/api -Backend "$PWD/back" -Sortie "$PWD/sortie"             || { echo "::error::montage de l'école en échec"; cat sortie/ecole-lms.log || true; tail -40 back/storage/logs/laravel.log || true; exit 1; }
+
+      - name: Routes du routeur, build et aperçu du front
+        working-directory: front
+        run: |
+          # L'extraction des routes est un outil : elle vient de la mesure, et lit le routeur du front mesuré.
+          mkdir -p tests/e2e && cp "$GITHUB_WORKSPACE/mesure/tests/e2e/routes.extraction.test.js" tests/e2e/
+          E2E_ROUTES_OUT="$GITHUB_WORKSPACE/sortie/routes.json" npx vitest run tests/e2e/routes.extraction.test.js
+          VITE_API_URL=/api VITE_JITSI_DOMAIN=visio.example.test npm run build
+          # Le build (runner) a créé dist/ et node_modules/.vite-temp après le chmod : e2e doit pouvoir y écrire.
+          sudo chmod -R a+rwX "$GITHUB_WORKSPACE/front"
+          . "$RUNNER_TEMP/en_e2e.sh"
+          en_e2e nohup npx vite preview --host 127.0.0.1 --port 4173 --strictPort > ../sortie/apercu.log 2>&1 &
+          attendre "aperçu du front" http://127.0.0.1:4173/ ../sortie/apercu.log
+
+      - name: Parcours écran par écran (chromium, sous e2e)
+        run: |
+          # Le parcours ET ses modules (acces.mjs) : une copie partielle casse ses imports.
+          cp mesure/e2e/*.mjs outils/
+          . "$RUNNER_TEMP/en_e2e.sh"
+          en_e2e node "$PWD/outils/parcours.mjs" "$PWD/sortie/routes.json" "$PWD/sortie/jeu.json" "$PWD/sortie"
+
+      - name: Résumé, sorties réseau et appels à KLASSCI
+        if: always()
+        run: |
+          {
+            echo "### Connexions sortantes de l'utilisateur e2e (rejetées)"
+            echo '```'
+            sudo iptables -L OUTPUT -v -n | grep -E "owner UID match" || true
+            sudo dmesg | grep "E2E-SORTIE" | grep -oE "DST=[0-9.]+ .*DPT=[0-9]+" | sed -E 's/ LEN.*PROTO=/ /' | sort | uniq -c || true
+            echo '```'
+            echo "### Appels reçus par le faux KLASSCI : $(wc -l < sortie/faux-klassci.jsonl 2>/dev/null || echo 0)"
+            echo '```'
+            jq -r '"\(.methode) \(.chemin)"' sortie/faux-klassci.jsonl 2>/dev/null | sort | uniq -c || true
+            echo '```'
+            cat sortie/resume.md 2>/dev/null || echo "(pas de résumé du parcours)"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Artefacts (données fictives seulement)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-sortie
+          path: |
+            sortie/resultats.json
+            sortie/versions.json
+            sortie/resume.md
+            sortie/captures/
+            sortie/ecole-lms.log
+            sortie/faux-klassci.jsonl
+            sortie/routes.json
+          retention-days: 7

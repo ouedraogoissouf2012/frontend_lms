@@ -24,7 +24,17 @@ vi.mock('@/services/lms', () => ({
   lmsService: { getVisioParticipants }
 }))
 vi.mock('@/composables/useToast', () => ({ toast: { error: vi.fn(), success: vi.fn() } }))
-vi.mock('@/services/errorHandler', () => ({ normalizeError: (e) => ({ userMessage: String(e) }) }))
+// R6 (migration déclarée) : le module réel, un `normalizeError` simulé, et `messageDe` qui suit la règle du
+// vrai (le `userMessage` s'il est une chaîne, sinon `normalizeError`) mais sur le simulé : le vrai `messageDe`
+// appelle le `normalizeError` réel, pas celui-ci.
+vi.mock('@/services/errorHandler', async (importOriginal) => {
+  const normalizeError = (e) => ({ userMessage: String(e) })
+  return {
+    ...(await importOriginal()),
+    normalizeError,
+    messageDe: (e) => (typeof e?.userMessage === 'string' ? e.userMessage : normalizeError(e).userMessage),
+  }
+})
 vi.mock('@/constants/http', () => ({ apiBaseUrl: () => 'http://test', API_TIMEOUT_MS: 30000 }))
 
 import ParticipantsModal from '@/components/visio/ParticipantsModal.vue'

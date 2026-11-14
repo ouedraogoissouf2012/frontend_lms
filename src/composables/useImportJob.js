@@ -2,6 +2,7 @@ import { getCurrentScope, onScopeDispose, ref } from 'vue'
 import { cacheKey } from '@/services/cache'
 import { confirmImport, getImport } from '@/services/importJob'
 import { downloadBlob } from '@/utils/downloadBlob'
+import { displayMessage } from '@/services/displayMessage'
 import { importReportCsv } from '@/utils/importReportCsv'
 
 const STORAGE = 'import_job'
@@ -89,7 +90,7 @@ export function useImportJob() {
         stop()
         return false
       }
-      error.value = err?.userMessage || err?.response?.data?.message || 'Lecture du rapport impossible.'
+      error.value = displayMessage(err, 'Lecture du rapport impossible.')
       stop()
       return false
     }

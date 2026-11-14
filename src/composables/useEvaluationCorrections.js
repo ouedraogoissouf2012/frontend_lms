@@ -4,6 +4,7 @@ import evaluationService from '@/services/evaluation'
 import { formatDateTime, getStatusLabel } from '@/utils/evaluationCorrectionsFormat'
 import { toast } from '@/composables/useToast'
 import { downloadBlob } from '@/utils/downloadBlob'
+import { displayMessage } from '@/services/displayMessage'
 
 /**
  * Couche données de EvaluationCorrections (H2 ≤300) : charge les résultats d'une
@@ -57,7 +58,7 @@ export function useEvaluationCorrections() {
       }
     } catch (err) {
       console.error('[ERREUR] Chargement résultats:', err)
-      error.value = err.response?.data?.message || 'Erreur lors du chargement des résultats'
+      error.value = displayMessage(err, 'Erreur lors du chargement des résultats')
     } finally {
       loading.value = false
     }

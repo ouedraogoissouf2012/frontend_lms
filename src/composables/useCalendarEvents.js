@@ -1,5 +1,9 @@
 import { ref } from 'vue'
 import { cleMatiere } from '@/utils/seances'
+import { toId } from '@/utils/toId'
+import { idClasse, idEnseignant, idMatiere } from '@/utils/identiteEvaluation'
+import { estEtatVide } from '@/services/refusalReasons'
+import { messageDe } from '@/services/errorHandler'
 import { lmsService } from '@/services/lms'
 import evaluationService from '@/services/evaluation'
 import {
@@ -33,6 +37,8 @@ export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dat
   const loading = ref(true)
   const refreshing = ref(false)
   const error = ref(null) // #238 : message d'erreur distinct d'un agenda vide
+  // Un état vide motivé par le serveur (élève sans classe active) : une information, pas une erreur.
+  const information = ref(null)
 
   async function loadSeances(forceRefresh = false) {
     try {
@@ -77,6 +83,11 @@ export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dat
         }
       }))
     } catch (e) {
+      // Seul un motif « état vide » du catalogue (jamais le texte du serveur, D0) rend un agenda vide honnête.
+      if (estEtatVide(e?.response?.data?.reason)) {
+        information.value = messageDe(e)
+        return []
+      }
       // #238 : ne pas masquer la panne — l'agenda ne doit pas paraître vide.
       error.value = e?.userMessage || 'Impossible de charger les séances.'
       return []
@@ -123,9 +134,11 @@ export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dat
           extendedProps: {
             eventType: 'evaluation',
             data: evaluation,
-            matiereId: evaluation.klassci_matiere_id,
-            classeId: evaluation.klassci_classe_id,
-            enseignantId: evaluation.klassci_enseignant_id,
+            // D72-c (L1) : identité par les champs à plat, les deux familles (une évaluation locale
+            // ne disparaît plus dès qu'on filtre).
+            matiereId: idMatiere(evaluation),
+            classeId: idClasse(evaluation),
+            enseignantId: idEnseignant(evaluation),
             isUrgent: isEvaluationUrgent(evaluation)
           }
         }
@@ -144,24 +157,19 @@ export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dat
       const allClasses = new Map()
       const allEnseignants = new Map()
 
+      // D72-c (L2, R7) : une option est clée par la clé MÊME de son événement (séance : `cleMatiere`,
+      // `classe.id`, `enseignant.id` ; évaluation : `identiteEvaluation`). Option et filtre ne
+      // divergent plus. Une entrée sans nom n'a pas d'option (libellé vide, et tri impossible).
+      const ajouter = (map, cle, option) => {
+        if (toId(cle) && option.nom && !map.has(toId(cle))) map.set(toId(cle), { id: cle, ...option })
+      }
       events.value.forEach((event) => {
-        const data = event.extendedProps.data
-        const cle = event.extendedProps.eventType === 'seance' ? cleMatiere(data) : (data.matiere?.id ?? null)
-        if (cle != null) {
-          allMatieres.set(cle, { id: cle, nom: data.matiere?.nom || data.matiere_nom })
-        } else if (data.matiere_nom) {
-          allMatieres.set(data.klassci_matiere_id, { id: data.klassci_matiere_id, nom: data.matiere_nom })
-        }
-        if (data.classe?.id) {
-          allClasses.set(data.classe.id, { id: data.classe.id, nom: data.classe.nom })
-        } else if (data.classe_nom) {
-          allClasses.set(data.klassci_classe_id, { id: data.klassci_classe_id, nom: data.classe_nom })
-        }
-        if (data.enseignant?.id) {
-          allEnseignants.set(data.enseignant.id, { id: data.enseignant.id, nom: data.enseignant.nom, prenom: data.enseignant.prenom || '' })
-        } else if (data.enseignant_nom) {
-          allEnseignants.set(data.klassci_enseignant_id, { id: data.klassci_enseignant_id, nom: data.enseignant_nom, prenom: '' })
-        }
+        const { data, matiereId, classeId, enseignantId } = event.extendedProps
+        ajouter(allMatieres, matiereId, { nom: data.matiere?.nom || data.matiere_nom })
+        ajouter(allClasses, classeId, { nom: data.classe?.nom || data.classe_nom })
+        ajouter(allEnseignants, enseignantId, {
+          nom: data.enseignant?.nom || data.enseignant_nom, prenom: data.enseignant?.prenom || ''
+        })
       })
 
       matieres.value = Array.from(allMatieres.values()).sort((a, b) => a.nom.localeCompare(b.nom))
@@ -175,6 +183,7 @@ export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dat
   async function loadEvents(forceRefresh = false) {
     loading.value = true
     error.value = null // #238 : repart d'un état sain à chaque chargement
+    information.value = null
     try {
       const allEvents = []
       if (eventTypeFilter.value !== 'evaluations') {
@@ -204,5 +213,5 @@ export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dat
     }
   }
 
-  return { events, matieres, classes, enseignants, loading, refreshing, error, loadEvents, refreshData }
+  return { events, matieres, classes, enseignants, loading, refreshing, error, information, loadEvents, refreshData }
 }

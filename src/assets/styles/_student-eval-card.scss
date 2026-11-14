@@ -76,6 +76,12 @@
   color: var(--green-800);
 }
 
+/* C28 : copie hors délai, non remise (paire fixe, comme .note-low) */
+.status-late {
+  background: var(--red-100);
+  color: var(--red-800);
+}
+
 .status-practice {
   background: var(--violet-100);
   color: var(--violet-700);

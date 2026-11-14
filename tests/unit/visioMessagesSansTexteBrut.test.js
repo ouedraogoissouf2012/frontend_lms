@@ -95,29 +95,22 @@ describe('garde : aucun appelant ne fabrique une erreur avec le texte du serveur
   // nouveau fait rougir ; un site corrigé mais encore listé aussi (la liste doit rétrécir).
   // Liste élargie le 10/11/2026 (PR « texte serveur hors visio », puis sa revue) : toute lecture
   // du texte d'une réponse ou du message d'une erreur portée à l'écran (toast, `.value`,
-  // `userMessage`, concaténation, gabarit). Les 18 sites gelés ici restent à trier : des 422 de
+  // `userMessage`, concaténation, gabarit). Le 14/11, 9 fichiers en sont sortis : leurs ERREURS passent par
+  // `displayMessage` (ou le `reason` du catalogue, sinon le repli du front). Restent 8 fichiers, déclarés :
+  // 5 recopient un message de SUCCÈS du serveur, 2 mêlent erreurs et succès, et Login.vue (un 401 y dit
+  // « identifiants incorrects », pas « session expirée »). Les sites gelés ici restent à trier (usePreviewEvaluation en est sorti le 14/11 : son 2xx sans succès passe par messageDe) : des 422 de
   // validation peuvent être légitimes, des messages de SUCCÈS du serveur sont recopiés dans une
   // notice. useStudentEvaluationsList en est sorti : ses refus de démarrage passent par leur
   // `reason` (#1011). useTeacherEvaluationActions aussi (D72-a) : publication et suppression disent
   // le motif du catalogue.
   const CONNUS = [
     'composables/useActivation.js',
-    'composables/useAdminEvaluationDetails.js',
-    'composables/useAdminEvaluationResults.js',
-    'composables/useAdminInstitutions.js',
     'composables/useAdminSchoolRequests.js',
     'composables/useAdminTrainingSessions.js',
-    'composables/useCoordinatorEvaluations.js',
     'composables/useEnrolmentCodes.js',
-    'composables/useEvaluationCorrections.js',
-    'composables/useEvaluationResults.js',
-    'composables/useImportJob.js',
-    'composables/useImportWizard.js',
     'composables/useJoinClass.js',
     'composables/usePasswordReset.js',
-    'composables/usePreviewEvaluation.js',
     'composables/useSchoolRequest.js',
-    'composables/useSeanceAttendanceHistory.js',
     'views/Login.vue',
   ]
 

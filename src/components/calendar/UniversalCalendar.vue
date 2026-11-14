@@ -34,6 +34,10 @@
     <div v-if="error" class="calendar-error" role="alert">
       {{ error }}
     </div>
+    <!-- Un agenda vide motivé (élève sans classe active) : une information, pas une alerte. -->
+    <div v-else-if="information" class="calendar-info" role="status">
+      {{ information }}
+    </div>
 
     <!-- ========== CALENDAR CARD (H8 : extraite en sous-composant) ========== -->
     <div class="desktop-calendar-surface">
@@ -116,7 +120,7 @@ const selectedClasse = ref('')
 const selectedEnseignant = ref('')
 
 // Données + chargement délégués au composable (#28bis : script < 300)
-const { events, matieres, classes, enseignants, loading, refreshing, error, loadEvents, refreshData } = useCalendarEvents({
+const { events, matieres, classes, enseignants, loading, refreshing, error, information, loadEvents, refreshData } = useCalendarEvents({
   getUserRole: () => props.userRole,
   getUserId: () => props.userId,
   eventTypeFilter,
@@ -234,6 +238,15 @@ defineExpose({
   color: var(--red-600);
   border-radius: 0.5rem;
   font-weight: 600;
+}
+
+.calendar-info {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--info-bg);
+  color: var(--info-text);
+  border: 1px solid var(--info-border);
+  border-radius: 0.5rem;
 }
 
 // ========== RESPONSIVE ==========

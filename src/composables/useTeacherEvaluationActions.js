@@ -4,6 +4,7 @@ import evaluationService from '@/services/evaluation'
 import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
 import { messageDe } from '@/services/errorHandler'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 /**
  * Actions enseignant de TeacherEvaluations (H1 ≤300). Complète le composable de
@@ -110,12 +111,12 @@ export function useTeacherEvaluationActions({ evaluationsLMS, loadEvaluationsLMS
   function editOnlineVersion(evaluation) {
     if (!evaluation.online_version) return
 
+    // D132 : l'id KLASSCI ne part que si l'évaluation en porte un (jamais l'id d'une carte locale).
+    const klassciId = evaluation.online_version.klassci_evaluation_id
     router.push({
       name: 'EditQuestions',
       params: { id: evaluation.online_version.id },
-      query: {
-        klassci_id: evaluation.id
-      }
+      query: klassciId != null ? { klassci_id: klassciId } : {}
     })
   }
 
@@ -152,7 +153,8 @@ export function useTeacherEvaluationActions({ evaluationsLMS, loadEvaluationsLMS
       }
     } catch (err) {
       console.error('[ERREUR] Synchronisation:', err)
-      toast.error('Erreur lors de la synchronisation')
+      // Lot CORR (ii) : le seul 409 de cette route dit qu'une dissertation attend sa note (spec, sync-klassci).
+      toast.error(err?.response?.status === 409 ? ERROR_MESSAGES.syncDissertationNonNotee : 'Erreur lors de la synchronisation')
     } finally {
       syncing.value = null
     }

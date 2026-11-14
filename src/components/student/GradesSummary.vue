@@ -21,27 +21,27 @@
               <span class="summary-count">{{ matiere.total_evaluations }} éval.</span>
             </div>
 
-            <div class="summary-moyenne" :class="getMoyenneClass(matiere.moyenne)">
+            <div class="summary-moyenne" :class="classeDeMoyenne(matiere.moyenne)">
               <span class="moyenne-label">Moyenne:</span>
-              <span class="moyenne-value">{{ matiere.moyenne }}/20</span>
+              <span class="moyenne-value">{{ afficherNote(matiere.moyenne) }}</span>
             </div>
 
             <div class="progress-bar">
               <div
                 class="progress-fill"
-                :class="getMoyenneClass(matiere.moyenne)"
-                :style="{ width: `${(matiere.moyenne / 20) * 100}%` }"
+                :class="classeDeMoyenne(matiere.moyenne)"
+                :style="{ width: `${((matiere.moyenne ?? 0) / 20) * 100}%` }"
               ></div>
             </div>
 
             <div class="summary-stats">
               <div class="stat-item">
                 <i class="mdi mdi-trophy stat-icon"></i>
-                <span class="stat-text">{{ getMaxNote(matiere) }}/20</span>
+                <span class="stat-text">{{ afficherNote(getMaxNote(matiere)) }}</span>
               </div>
               <div class="stat-item">
                 <i class="mdi mdi-arrow-down stat-icon"></i>
-                <span class="stat-text">{{ getMinNote(matiere) }}/20</span>
+                <span class="stat-text">{{ afficherNote(getMinNote(matiere)) }}</span>
               </div>
               <div class="stat-item">
                 <i class="mdi" :class="getTrendIcon(matiere)"></i>
@@ -62,11 +62,12 @@
  * (defineModel) ; les calculs viennent des utils purs studentGrades.
  */
 import {
-  getMoyenneClass,
+  classeDeMoyenne,
   getMaxNote,
   getMinNote,
   getTrendIcon,
   getTrendText,
+  afficherNote,
 } from '@/utils/studentGrades'
 
 const showSummary = defineModel('showSummary', { type: Boolean, default: true })

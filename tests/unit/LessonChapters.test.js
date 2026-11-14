@@ -10,7 +10,17 @@ vi.mock('@/services/lesson', () => ({
   default: { getLesson: (...a) => getLesson(...a), publishLesson: vi.fn() }
 }))
 vi.mock('@/composables/useToast', () => ({ toast: { error: vi.fn() } }))
-vi.mock('@/services/errorHandler', () => ({ normalizeError: (e) => ({ userMessage: String(e) }) }))
+// R6 (migration déclarée) : le module réel, un `normalizeError` simulé, et `messageDe` qui suit la règle du
+// vrai (le `userMessage` s'il est une chaîne, sinon `normalizeError`) mais sur le simulé : le vrai `messageDe`
+// appelle le `normalizeError` réel, pas celui-ci.
+vi.mock('@/services/errorHandler', async (importOriginal) => {
+  const normalizeError = (e) => ({ userMessage: String(e) })
+  return {
+    ...(await importOriginal()),
+    normalizeError,
+    messageDe: (e) => (typeof e?.userMessage === 'string' ? e.userMessage : normalizeError(e).userMessage),
+  }
+})
 
 import LessonChapters from '@/views/lessons/LessonChapters.vue'
 

@@ -16,8 +16,9 @@
  * Retry-After) ; un nouvel essai a un sens. Sinon le motif est un refus définitif. C'est le SEUL
  * endroit qui le dit : un motif transitoire ajouté ici prend son délai ET garde « Réessayer ».
  */
-function motif(categorie, { transitoire = false } = {}) {
-  return Object.freeze({ categorie, transitoire })
+function motif(categorie, { transitoire = false, etatVide = false } = {}) {
+  // `etatVide` : le motif dit une ABSENCE légitime (rien à montrer), rendue en information, pas en erreur.
+  return Object.freeze(etatVide ? { categorie, transitoire, etatVide } : { categorie, transitoire })
 }
 
 export const REASONS = Object.freeze({
@@ -48,6 +49,13 @@ export const REASONS = Object.freeze({
   evaluation_max_attempts: motif('evaluationMaxAttempts'),
   evaluation_retake_forbidden: motif('evaluationRetakeForbidden'),
   evaluation_offline_only: motif('evaluationOfflineOnly'),
+  // lms_backend #1037 (C28) : remise refusée hors délai (POST /evaluations/{id}/submit, 409). Définitif.
+  evaluation_attempt_locked: motif('evaluationAttemptLocked'),
+  // 404 de GET /lms/seances/my-classes (LMSSeancesListController::myClassesSeances) : l'élève n'a aucune
+  // classe active. Un état vide honnête, pas une erreur (décision de la superviseure, E2E de la nuit).
+  student_without_active_class: motif('eleveSansClasseActive', { etatVide: true }),
+  // lms_backend #1060 : un coordinateur ne prévisualise que les évaluations terminées (preview:140-147).
+  preview_requires_finished_evaluation: motif('previewRequiresFinishedEvaluation'),
   evaluation_window_unverifiable: motif('evaluationWindowUnverifiable', { transitoire: true }),
   // frontend_lms#426 : la panne KLASSCI se classe par son motif (le 503 canonique le porte), pas par
   // l'en-tête Retry-After, que le navigateur cache en cross-origin (`exposed_headers: []`).
@@ -65,6 +73,11 @@ export const REASONS = Object.freeze({
   subject_out_of_scope: motif('seanceMatiereHorsEtablissement'),
   subject_not_in_class_program: motif('seanceMatiereHorsProgramme'),
 })
+
+/** Le `reason` dit-il un état vide (rien à montrer) plutôt qu'une erreur ? Seul le catalogue en décide. */
+export function estEtatVide(reason) {
+  return entreeDuMotif(reason)?.etatVide === true
+}
 
 /** L'entrée du catalogue pour un `reason`, ou `null` (inconnu, absent, clé du prototype). */
 export function entreeDuMotif(reason) {

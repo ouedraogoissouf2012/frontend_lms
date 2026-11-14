@@ -24,10 +24,17 @@ vi.mock('@/services/api', () => ({
 vi.mock('@/composables/useToast', () => ({ toast: { error: vi.fn(), success: (...a) => toastSuccess(...a) } }))
 vi.mock('@/composables/useConfirm', () => ({ useConfirm: () => ({ confirm: (...a) => confirmMock(...a) }) }))
 // Faux vides : le VRAI module (invalidResponseError, refusMotive), seul normalizeError est remplacé.
-vi.mock('@/services/errorHandler', async (importOriginal) => ({
-  ...(await importOriginal()),
-  normalizeError: (e) => ({ userMessage: String(e) }),
-}))
+// R6 (migration déclarée) : le module réel, un `normalizeError` simulé, et `messageDe` qui suit la règle du
+// vrai (le `userMessage` s'il est une chaîne, sinon `normalizeError`) mais sur le simulé : le vrai `messageDe`
+// appelle le `normalizeError` réel, pas celui-ci.
+vi.mock('@/services/errorHandler', async (importOriginal) => {
+  const normalizeError = (e) => ({ userMessage: String(e) })
+  return {
+    ...(await importOriginal()),
+    normalizeError,
+    messageDe: (e) => (typeof e?.userMessage === 'string' ? e.userMessage : normalizeError(e).userMessage),
+  }
+})
 vi.mock('@/services/knowledgeCheck', () => ({
   default: { getByChapter: vi.fn().mockResolvedValue({ success: true, data: [] }), delete: vi.fn() }
 }))

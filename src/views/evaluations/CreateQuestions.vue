@@ -21,27 +21,32 @@
         </p>
 
         <!-- Infos évaluation KLASSCI -->
-        <div v-if="evaluationKlassci" class="mt-4 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+        <div v-if="evaluationAffichee" class="mt-4 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <p class="text-xs text-blue-600 dark:text-blue-400">Évaluation</p>
-              <p class="font-medium text-gray-900 dark:text-white">{{ evaluationKlassci.titre }}</p>
+              <p class="font-medium text-gray-900 dark:text-white">{{ evaluationAffichee.titre }}</p>
             </div>
             <div>
               <p class="text-xs text-blue-600 dark:text-blue-400">Matière</p>
-              <p class="font-medium text-gray-900 dark:text-white">{{ evaluationKlassci.matiere?.nom || evaluationKlassci.matiere?.name }}</p>
+              <p class="font-medium text-gray-900 dark:text-white">{{ evaluationAffichee.matiere?.nom || evaluationAffichee.matiere?.name }}</p>
             </div>
             <div>
               <p class="text-xs text-blue-600 dark:text-blue-400">Classe</p>
-              <p class="font-medium text-gray-900 dark:text-white">{{ evaluationKlassci.classe?.nom || evaluationKlassci.classe?.name || evaluationKlassci.classe?.libelle }}</p>
+              <p class="font-medium text-gray-900 dark:text-white">{{ evaluationAffichee.classe?.nom || evaluationAffichee.classe?.name || evaluationAffichee.classe?.libelle }}</p>
             </div>
             <div>
               <p class="text-xs text-blue-600 dark:text-blue-400">Barème</p>
-              <p class="font-medium text-gray-900 dark:text-white">{{ evaluationKlassci.bareme || evaluationKlassci.programmation?.bareme || 20 }}/20</p>
+              <p class="font-medium text-gray-900 dark:text-white">{{ evaluationAffichee.bareme || evaluationAffichee.programmation?.bareme || 20 }}/20</p>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- D72-b : en édition, un chargement en échec se dit ; l'enregistrement reste désactivé. -->
+      <p v-if="erreurChargement" role="alert" class="mb-6 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-800 dark:text-red-200 rounded-lg p-4">
+        {{ erreurChargement }}
+      </p>
 
       <!-- Formulaire -->
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 space-y-6 border border-gray-200 dark:border-gray-700">
@@ -64,7 +69,7 @@
           <button
             @click="saveQuestions"
             type="button"
-            :disabled="loading || !isValid"
+            :disabled="loading || !peutEnregistrer"
             class="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium transition-colors"
           >
             {{ loading ? 'Enregistrement...' : (isEditMode ? 'Enregistrer les modifications' : 'Enregistrer et activer') }}
@@ -89,8 +94,8 @@ import QuestionsEditorList from '@/components/evaluations/QuestionsEditorList.vu
 import { useCreateQuestions } from '@/composables/useCreateQuestions'
 
 const {
-  evaluationKlassci, configuration, questions, loading, isEditMode,
-  isValid,
+  evaluationAffichee, configuration, questions, loading, isEditMode,
+  erreurChargement, peutEnregistrer,
   addQuestion, removeQuestion, addOption, removeOption,
   setCorrectAnswer, toggleCorrectAnswer,
   saveQuestions, goBack,

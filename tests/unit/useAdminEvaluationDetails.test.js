@@ -18,6 +18,7 @@ vi.mock('vue-router', () => ({
 }))
 
 import { useAdminEvaluationDetails } from '@/composables/useAdminEvaluationDetails'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 async function setup() {
   let api
@@ -60,14 +61,23 @@ describe('useAdminEvaluationDetails (#H3)', () => {
       .mockResolvedValueOnce({ success: true, data: { id: 42, submissions_count: 1 } })
       .mockResolvedValueOnce({ success: false, message: 'Boom' })
     const c = await setup()
-    expect(c.error.value).toBe('Boom')
+    // D0 (renversé, déclaré) : le repli du front, jamais le texte du serveur.
+    expect(c.error.value).toBe('Erreur lors du chargement des résultats')
     expect(c.loading.value).toBe(false)
   })
 
   it('capture les exceptions réseau dans error', async () => {
     getMock.mockRejectedValue({ response: { data: { message: 'HTTP 500' } } })
     const c = await setup()
-    expect(c.error.value).toBe('HTTP 500')
+    // D0 (renversé, déclaré) : la catégorie de l'erreur, jamais le texte du serveur.
+    expect(c.error.value).toBe(ERROR_MESSAGES.unknown)
+    expect(c.loading.value).toBe(false)
+  })
+
+  it('le détail en échec dit le repli du front, jamais le texte du serveur (D0)', async () => {
+    getMock.mockResolvedValueOnce({ success: false, message: 'Texte serveur détaillé' })
+    const c = await setup()
+    expect(c.error.value).toBe('Erreur lors du chargement de l’évaluation')
     expect(c.loading.value).toBe(false)
   })
 

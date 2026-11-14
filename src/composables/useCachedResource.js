@@ -45,6 +45,8 @@ export function useCachedResource(name, fetcher, options = {}) {
   // Un nouvel essai seulement sur une panne passagère (5xx, 429, réseau) : un refus définitif ne se
   // lève pas en réessayant (lot « retour honnête », 10/11).
   const canRetry = ref(true)
+  // Le `reason` du dernier refus (catalogue), pour qu'un écran distingue un état motivé d'une panne.
+  const motif = ref(null)
   // #315 : mise en cache conditionnelle. Par défaut on met toujours en cache
   // (comportement historique, inchangé pour les consommateurs existants).
   const isCacheable = typeof options.cacheable === 'function' ? options.cacheable : () => true
@@ -64,10 +66,12 @@ export function useCachedResource(name, fetcher, options = {}) {
       if (isCacheable()) writeCache(key, fresh)
       error.value = null
       canRetry.value = true
+      motif.value = null
     } catch (e) {
       // On CONSERVE la donnée déjà affichée (stale) et on signale l'erreur.
       error.value = e?.userMessage || 'Impossible de charger les données.'
       canRetry.value = estPannePassagere(e)
+      motif.value = e?.response?.data?.reason ?? null
       if (typeof options.onError === 'function') options.onError(e)
     } finally {
       revalidating.value = false
@@ -96,5 +100,5 @@ export function useCachedResource(name, fetcher, options = {}) {
     load()
   }
 
-  return { data, loading, revalidating, error, canRetry, load, refresh: revalidate }
+  return { data, loading, revalidating, error, canRetry, motif, load, refresh: revalidate }
 }

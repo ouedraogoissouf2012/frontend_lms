@@ -5,7 +5,7 @@
         v-for="evaluation in evaluations"
         :key="evaluation.id"
         class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition cursor-pointer"
-        @click="$emit('view-evaluation', evaluation.id)"
+        @click="$emit('view-evaluation', evaluation)"
       >
         <div class="flex justify-between items-start">
           <div class="flex-1">
