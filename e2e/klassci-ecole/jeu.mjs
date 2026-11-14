@@ -44,6 +44,33 @@ export const COMPTES = {
   etudiant: { id: 9304, role: 'etudiant', nom: 'Eleve K E2E', email: 'eleve.k@ecole-klassci.test', classe: 9101 },
 }
 
+// K3 : UNE évaluation programmée, aux CLÉS de la charge capturée (teacherDashboard.js, bloc `evaluations`),
+// aux valeurs fictives. Sa fenêtre est OUVERTE à l'heure de la requête : l'élève peut démarrer
+// (EvaluationWindowGate:68-127 lit `programmation.window.is_open`). AUCUNE clé hors capture : le front
+// lit `can_sync_grades` (EvaluationCardActions.vue:49), absent de la capture, donc absent d'ici.
+export const EVALUATION = { id: 9601, titre: 'Devoir K E2E', classe: 9101, matiere: 9201 }
+function evaluationProgrammee() {
+  const debut = new Date(Date.now() - 3600e3)
+  const fin = new Date(Date.now() + 3 * 3600e3)
+  const m = MATIERES.find((x) => x.id === EVALUATION.matiere)
+  return {
+    id: EVALUATION.id, titre: EVALUATION.titre, description: EVALUATION.titre, type: 'devoir', status: 'draft',
+    matiere: { id: m.id, nom: m.nom, code: m.code },
+    classe: { id: EVALUATION.classe, nom: CLASSES.find((c) => c.id === EVALUATION.classe).name },
+    programmation: {
+      date_evaluation: debut.toISOString(), duree_minutes: 240, coefficient: '1.0', bareme: '20.00',
+      window: { start_at: debut.toISOString(), end_at: fin.toISOString(), has_started: true, has_ended: false, is_open: true, time_left_minutes: 180 },
+    },
+    correction: { notes_saisies: 0, notes_attendues: ELEVES.filter((e) => e.classe === EVALUATION.classe).length, progression: 0, is_complete: false },
+    lms_integration: { can_create_online: true, can_submit_notes: true },
+  }
+}
+/** Les évaluations programmées que voit un compte : l'enseignant de la classe, l'élève de la classe. */
+function evaluationsDe(c) {
+  const voit = (c.role === 'enseignant' && c.classes.includes(EVALUATION.classe)) || (c.role === 'etudiant' && c.classe === EVALUATION.classe)
+  return voit ? [evaluationProgrammee()] : []
+}
+
 const ok = (data, extra = {}) => ({ success: true, data, ...extra })
 const classe = (id) => CLASSES.find((c) => c.id === id)
 const matiere = (id) => MATIERES.find((m) => m.id === id)
@@ -78,8 +105,8 @@ export const REPONSES = {
     matieres: c.matieres.map((id) => ({ ...matiere(id), description: null, coefficient: 1, couleur: '#336699', heures_total: 30, combinaisons: [], nb_seances_programmees: 0 })),
     classes: c.classes.map(classe),
     prochaines_seances: [],
-    evaluations: [],
-    statistiques: { heures: { total_seances: 0, seances_effectuees: 0 }, evaluations: { total_programmees: 0, a_corriger: 0 } },
+    evaluations: evaluationsDe(c),
+    statistiques: { heures: { total_seances: 0, seances_effectuees: 0 }, evaluations: { total_programmees: evaluationsDe(c).length, a_corriger: 0 } },
   })),
   // MatiereSyncService:60-121 : `data[]` (id, code, libelle/nom/name, coefficient, filiere, niveau).
   'GET /matieres': () => ok(MATIERES.map((m) => ({ ...m, libelle: m.nom, name: m.nom, description: null, coefficient: 1, credit: null, filiere: { id: FILIERE.id }, niveau: { id: NIVEAU.id }, semestre: null }))),
@@ -118,9 +145,18 @@ export const REPONSES = {
       enseignants: ens.matieres.includes(m.id) ? [{ id: ens.enseignant_id, nom_complet: ens.nom, email: ens.email }] : [],
     })
   },
-  // K2 : l'emploi du temps et les évaluations programmées (vides en K1).
+  // K2 : l'emploi du temps (vide).
   'GET /emploi-temps': () => ok([]),
-  'GET /evaluations': () => ok([]),
+  // K3 : les évaluations programmées (KlassciEvaluationWindowSource:36-80 côté élève ; relayé tel quel
+  // par /proxy/evaluations côté enseignant).
+  'GET /evaluations': (c) => ok(evaluationsDe(c)),
+  // K3 : la SEULE écriture KLASSCI qui a un écran : les notes (EvaluationKlassciSyncController, avec le
+  // jeton de l'ENSEIGNANT, HasKlassciEndpointShortcuts:188-193). Le back n'inspecte pas la réponse : un
+  // 2xx suffit ; on ne sert donc que `success`. Le journal en garde les CLÉS, jamais les valeurs.
+  'POST /evaluations/{id}/notes': (c, _corps, [id]) => {
+    if (c.role !== 'enseignant') return null
+    return Number(id) === EVALUATION.id ? { success: true } : undefined
+  },
 }
 
 /** Le jeu lu par e2e/parcours.mjs pour cette école. */
