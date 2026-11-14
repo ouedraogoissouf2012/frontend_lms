@@ -23,7 +23,9 @@
             <p class="text-gray-600">Horaire</p>
             <p class="font-semibold text-gray-900">
               {{ formatTime(seance.programmation?.heure_debut) }} - {{ formatTime(seance.programmation?.heure_fin) }}
-              <span class="text-gray-500">({{ seance.duree_minutes }} min)</span>
+              <!-- Séance locale (#1053) : fin ESTIMÉE (début + 2 h), dite comme telle ; une durée absente ne s'invente pas. -->
+              <em v-if="finEstimee(seance)" class="text-gray-500">(fin estimée)</em>
+              <span v-else-if="seance.duree_minutes != null" class="text-gray-500">({{ seance.duree_minutes }} min)</span>
             </p>
           </div>
           <div>
@@ -61,6 +63,7 @@
 
 <script setup>
 import { formatDateWeekday, formatTime as fmtTime } from '@/utils/formatters'
+import { finEstimee } from '@/utils/seanceStatut'
 /**
  * En-tête de SeanceDetails (#H6 ≤300) : retour, titre matière, grille
  * d'infos (date/horaire/enseignant/classe/salle) et bouton « Masquer »
