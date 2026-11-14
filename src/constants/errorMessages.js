@@ -94,5 +94,9 @@ export const ERROR_MESSAGES = Object.freeze({
   seanceMatiereHorsProgramme: "Cette matière n'est pas au programme de la classe choisie.",
   // B7 (D442) : des options d'avant lms_backend #1059 sans texte fidèle (objet, liste) ; texte du front.
   optionsIllisibles: "Les options de cette question n'ont pas pu être relues. Saisissez-les de nouveau avant d'enregistrer.",
+  // D477 : la connexion (Login.vue, utils/messageConnexion). Textes du front ; le back n'a pas de `reason`.
+  identifiantsIncorrects: 'Identifiants incorrects.',
+  connexionEchouee: 'Échec de la connexion.',
+  compteEnConflit: "Votre adresse e-mail est déjà utilisée par un autre compte de votre établissement. Contactez l'administrateur de votre école.",
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })
