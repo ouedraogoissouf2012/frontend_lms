@@ -18,9 +18,12 @@ import { TEACHER_DASHBOARD } from '../fixtures/klassci/teacherDashboard'
 const [CAPTUREE] = TEACHER_DASHBOARD.evaluations
 const BOUTON = 'Synchroniser les notes'
 
-/** La carte d'une évaluation KLASSCI, avec une version en ligne portant `copies` copies. */
+/**
+ * La carte d'une évaluation KLASSCI, avec une version en ligne portant `copies` copies REMISES. D540 (#553) :
+ * le bouton compte les remises (`submissions_to_sync_count`), et non toutes les copies (migration déclarée).
+ */
 function carte(klassci, copies = 1) {
-  const [evaluation] = mergeWithOnlineVersions([klassci], [{ id: 77, klassci_evaluation_id: klassci.id, submissions_count: copies, is_published: true }])
+  const [evaluation] = mergeWithOnlineVersions([klassci], [{ id: 77, klassci_evaluation_id: klassci.id, submissions_count: copies, submissions_to_sync_count: copies, is_published: true }])
   return mount(EvaluationCardActions, { props: { evaluation } })
 }
 const bouton = (w) => w.findAll('button').find((b) => b.text().includes(BOUTON))
