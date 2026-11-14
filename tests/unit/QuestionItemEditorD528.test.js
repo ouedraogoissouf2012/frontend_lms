@@ -31,3 +31,17 @@ describe('D528-1 — le type se change par une action, jamais en place', () => {
     expect(w.find('[role="alert"]').text()).toBe("Cette question n'accepte qu'une bonne réponse : ses coches ont été retirées. Choisissez-la.")
   })
 })
+
+// --- D528-2
+describe('D528-2 — une réponse courte hors bornes le dit', () => {
+  it('27 réponses : l’alerte de la question donne le texte du catalogue', () => {
+    const texte = Array.from({ length: 27 }, (_, i) => `r${i}`).join(', ')
+    const w = editeur(question({ type: 'reponse_courte', correctes: [], correct_answers_text: texte }))
+    expect(w.find('[role="alert"]').text()).toBe("Cette question accepte au plus 26 réponses, de 1 000 caractères chacune. Retirez ou raccourcissez des réponses avant d'enregistrer.")
+  })
+
+  it('« Paris, » (une virgule de trop) : aucune alerte, la réponse vide est simplement retirée', () => {
+    const w = editeur(question({ type: 'reponse_courte', correctes: [], correct_answers_text: 'Paris, ' }))
+    expect(w.find('[role="alert"]').exists()).toBe(false)
+  })
+})

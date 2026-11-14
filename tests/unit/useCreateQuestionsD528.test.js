@@ -98,3 +98,44 @@ describe('D528-1 — un changement de type ne choisit jamais une bonne réponse 
     expect(envoyee().correct_answers).toEqual(['Paris'])
   })
 })
+
+// --- D528-2
+const REPONSES_HORS_BORNES = "Cette question accepte au plus 26 réponses, de 1 000 caractères chacune. Retirez ou raccourcissez des réponses avant d'enregistrer."
+const reponseCourte = async (texte) => {
+  const c = await ouvrir({ type: 'reponse_courte', correct_answers: ['x'] })
+  c.questions.value[0].correct_answers_text = texte
+  return c
+}
+
+describe('D528-2 — une réponse courte part nettoyée, et bornée', () => {
+  it('« Paris, » : la réponse vide ne part pas (#1071 la refuserait, null après ConvertEmptyStringsToNull)', async () => {
+    const c = await reponseCourte('Paris, ')
+    await c.saveQuestions()
+    expect(envoyee().correct_answers).toEqual(['Paris'])
+  })
+
+  it('les doublons exacts (après trim) ne partent qu’une fois ; la casse est gardée', async () => {
+    const c = await reponseCourte(' Paris , Paris, paris ')
+    await c.saveQuestions()
+    expect(envoyee().correct_answers).toEqual(['Paris', 'paris'])
+  })
+
+  it('rien que des virgules : aucune réponse ne part', async () => {
+    const c = await reponseCourte(' , ,')
+    await c.saveQuestions()
+    expect(envoyee().correct_answers).toBeNull()
+  })
+
+  it('27 réponses : refusé avant l’envoi ; 26 : accepté', async () => {
+    const liste = (n) => Array.from({ length: n }, (_, i) => `r${i}`).join(', ')
+    await refusee(await reponseCourte(liste(27)), REPONSES_HORS_BORNES)
+    vi.clearAllMocks()
+    const c = await reponseCourte(liste(26))
+    await c.saveQuestions()
+    expect(envoyee().correct_answers).toHaveLength(26)
+  })
+
+  it('une réponse de plus de 1 000 caractères : refusé avant l’envoi', async () => {
+    await refusee(await reponseCourte(`Paris, ${'x'.repeat(1001)}`), REPONSES_HORS_BORNES)
+  })
+})
