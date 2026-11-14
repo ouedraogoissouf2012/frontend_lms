@@ -230,6 +230,8 @@ export const endpoints = {
     syncKlassci: (id) => `/evaluations/${id}/sync-klassci`,
     timeStatus: (id) => `/evaluations/${id}/time-status`,
     resultsByClass: (id) => `/evaluations/${id}/results-by-class`,
+    // Lot CORR : noter les dissertations d'une copie (enseignant auteur ou admin, règle serveur).
+    grade: (id, submissionId) => `/evaluations/${id}/submissions/${submissionId}/grade`,
     preview: (id) => `/evaluations/${id}/preview`,
     mySubmission: (id) => `/evaluations/${id}/my-submission`,
   },

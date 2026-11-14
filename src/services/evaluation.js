@@ -125,6 +125,13 @@ export default {
   },
 
   /**
+   * Lot CORR : les points des dissertations d'une copie (`{ points: { <question_id>: n }, feedback }`).
+   */
+  async gradeSubmission(id, submissionId, charge) {
+    return api.post(endpoints.evaluations.grade(id, submissionId), charge)
+  },
+
+  /**
    * La dernière copie de l'élève (statut, échéance `ends_at`) : C28, la page de passage la relit.
    */
   async getMySubmission(id) {
