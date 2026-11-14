@@ -12,6 +12,7 @@ import { routeurFerme, ouverte, sansObjetSansVisite, refusD56, refusServeur } fr
 import { BRUT, ECRAN_ERREUR, ecartsDeValeur } from './ecran.mjs'
 import { verifsEcoleLms } from './verifs-ecole-lms.mjs'
 import { verifsEcoleKlassci } from './verifs-ecole-klassci.mjs'
+import { synchroniserLesNotes } from './actions.mjs'
 
 const [fichierRoutes, fichierJeu, sortie] = process.argv.slice(2)
 const BASE = 'http://127.0.0.1:4173'
@@ -176,6 +177,8 @@ for (const { compte, email, role } of COMPTES) {
     resultats.push({ ...cas, verdict: defauts.length ? 'ROUGE' : 'VERT', defaut: defauts.join(' ; ') || null,
       verification: ecarts ? 'valeurs' : 'rendu', api: evenements.api, console: evenements.console, capture })
   }
+  // K3 : l'écriture KLASSCI par l'écran, jugée par le journal du faux (e2e/actions.mjs).
+  if (ECOLE_KLASSCI && compte === 'enseignant') resultats.push(await synchroniserLesNotes(page, jeu, BASE))
   await contexte.close()
 }
 await navigateur.close()

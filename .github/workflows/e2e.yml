@@ -194,10 +194,12 @@ jobs:
 
       - name: Parcours de l'école KLASSCI (K1, chromium, sous e2e)
         run: |
-          # Le jeu du parcours vient du jeu fictif du faux KLASSCI « école » (e2e/klassci-ecole/jeu.mjs).
-          node --input-type=module -e "import { pathToFileURL } from 'node:url'; import { writeFileSync } from 'node:fs'; const m = await import(pathToFileURL('mesure/e2e/klassci-ecole/jeu.mjs').href); writeFileSync('sortie/jeu-klassci.json', JSON.stringify(m.jeuDuParcours(), null, 2))"
           mkdir -p sortie/klassci && chmod 777 sortie/klassci
           . "$RUNNER_TEMP/en_e2e.sh"
+          # Le jeu du parcours vient du jeu fictif du faux KLASSCI « école » (e2e/klassci-ecole/jeu.mjs).
+          # K3 : le même script y ajoute l'état de la synchronisation des notes, monté par l'API du produit
+          # (création, publication, démarrage, remise) ; un refus y devient un manque, donc un ROUGE.
+          en_e2e node "$PWD/mesure/e2e/ecole-klassci-evaluation.mjs" http://127.0.0.1:8000/api "$PWD/sortie/jeu-klassci.json" "$PWD/sortie/faux-klassci-ecole.jsonl" "$PWD/sortie/ecole-klassci-evaluation.log"
           en_e2e node "$PWD/outils/parcours.mjs" "$PWD/sortie/routes.json" "$PWD/sortie/jeu-klassci.json" "$PWD/sortie/klassci"
 
       - name: Résumé, sorties réseau et appels à KLASSCI
@@ -234,6 +236,7 @@ jobs:
             sortie/ecole-lms.log
             sortie/faux-klassci.jsonl
             sortie/jeu-klassci.json
+            sortie/ecole-klassci-evaluation.log
             sortie/faux-klassci-ecole.jsonl
             sortie/klassci/resultats.json
             sortie/klassci/resume.md
