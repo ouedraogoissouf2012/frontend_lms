@@ -91,6 +91,31 @@ export const REPONSES = {
   'GET /niveaux-etudes': () => ok([NIVEAU]),
   // KlassciInstitutionTeachersReader:39 : `data[]`.
   'GET /enseignants': () => ok([{ id: COMPTES.enseignant.enseignant_id, nom: COMPTES.enseignant.nom, prenom: null, nom_complet: COMPTES.enseignant.nom, email: COMPTES.enseignant.email }]),
+  // K2 : l'enveloppe de `classes/{id}` (ClasseDetailsQueryService:121-160, ClasseEnvelope) :
+  // `data.classe`, `data.etudiants` (nom_complet, matricule, email ; aucun statut), `data.matieres` (forme
+  // mesurée {id, nom, code, coefficient, couleur, heures, source}, ClasseMatieresTab.vue:62),
+  // `data.emploi_temps_semaine`. Une classe inconnue rend 404, comme KLASSCI.
+  'GET /classes/{id}': (_c, _corps, [id]) => {
+    const cl = classe(Number(id))
+    if (!cl) return undefined
+    return ok({
+      classe: cl,
+      etudiants: ELEVES.filter((e) => e.classe === cl.id).map(({ classe: _cl, ...e }) => e),
+      matieres: COMPTES.enseignant.matieres.map((mid) => ({ ...matiere(mid), coefficient: 1, couleur: '#336699', heures: 30, source: 'klassci' })),
+      emploi_temps_semaine: [],
+    })
+  },
+  // K2 : `matieres/{id}` (MatiereInfoFetcher:19-55) : `data.matiere`, `data.combinaisons`, `data.enseignants`.
+  'GET /matieres/{id}': (_c, _corps, [id]) => {
+    const m = matiere(Number(id))
+    if (!m) return undefined
+    const ens = COMPTES.enseignant
+    return ok({
+      matiere: { ...m, coefficient: 1, description: null },
+      combinaisons: [],
+      enseignants: ens.matieres.includes(m.id) ? [{ id: ens.enseignant_id, nom_complet: ens.nom, email: ens.email }] : [],
+    })
+  },
   // K2 : l'emploi du temps et les évaluations programmées (vides en K1).
   'GET /emploi-temps': () => ok([]),
   'GET /evaluations': () => ok([]),
