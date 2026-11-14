@@ -9,9 +9,13 @@
           >
             ← Retour
           </button>
-          <h1 class="text-2xl font-bold text-gray-900">
-            {{ seance.matiere?.nom || 'Séance' }}
-          </h1>
+          <div>
+            <!-- Le titre donné à la séance (nullable, null pour une séance KLASSCI), sinon la matière. -->
+            <h1 class="text-2xl font-bold text-gray-900">
+              {{ titre || seance.matiere?.nom || 'Séance' }}
+            </h1>
+            <p v-if="titre && seance.matiere?.nom" class="text-sm text-gray-600" data-test="seance-matiere">{{ seance.matiere.nom }}</p>
+          </div>
         </div>
 
         <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
@@ -63,6 +67,7 @@
 
 <script setup>
 import { formatDateWeekday, formatTime as fmtTime } from '@/utils/formatters'
+import { computed } from 'vue'
 import { finEstimee } from '@/utils/seanceStatut'
 /**
  * En-tête de SeanceDetails (#H6 ≤300) : retour, titre matière, grille
@@ -71,13 +76,16 @@ import { finEstimee } from '@/utils/seanceStatut'
  * `formatDate`/`formatTime` redéfinis localement (copie verbatim) pour
  * l'indépendance du composant.
  */
-defineProps({
+const props = defineProps({
   seance: { type: Object, required: true },
   participants: { type: Object, default: () => ({ teacher: null, students: [], total: 0 }) },
   isTeacher: { type: Boolean, default: false }
 })
 
 defineEmits(['hide'])
+
+// Un titre vide ou fait d'espaces ne remplace pas la matière.
+const titre = computed(() => (typeof props.seance.titre === 'string' ? props.seance.titre.trim() : '') || null)
 
 // #283 : délèguent aux formatters canoniques (replis locaux conservés).
 function formatDate(date) {
