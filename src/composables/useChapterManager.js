@@ -2,7 +2,7 @@ import { ref, watch, onMounted } from 'vue'
 import api from '@/services/api'
 import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
-import { normalizeError, invalidResponseError } from '@/services/errorHandler'
+import { invalidResponseError, messageDe } from '@/services/errorHandler'
 import { estPannePassagere } from '@/utils/pannePassagere'
 import knowledgeCheckService from '@/services/knowledgeCheck'
 import { createEmptyChapter, buildChapterPayload } from '@/utils/chapterManager'
@@ -61,7 +61,7 @@ export function useChapterManager(lessonId) {
       }
     } catch (error) {
       console.error('[ChapterManager] Erreur chargement:', error)
-      loadError.value = error.userMessage ?? normalizeError(error).userMessage
+      loadError.value = messageDe(error)
       loadCanRetry.value = estPannePassagere(error)
     } finally {
       loading.value = false
@@ -117,7 +117,7 @@ export function useChapterManager(lessonId) {
       }
     } catch (error) {
       console.error('[ChapterManager] Erreur sauvegarde:', error)
-      toast.error(error.userMessage ?? normalizeError(error).userMessage)
+      toast.error(messageDe(error))
     } finally {
       saving.value = false
     }
@@ -146,7 +146,7 @@ export function useChapterManager(lessonId) {
       }
     } catch (error) {
       console.error('[ChapterManager] Erreur upload:', error)
-      toast.error(error.userMessage ?? normalizeError(error).userMessage)
+      toast.error(messageDe(error))
     } finally {
       setTimeout(() => {
         uploadingFile.value = false
@@ -164,7 +164,7 @@ export function useChapterManager(lessonId) {
       }
     } catch (error) {
       console.error('[ChapterManager] Erreur restauration:', error)
-      toast.error(error.userMessage ?? normalizeError(error).userMessage)
+      toast.error(messageDe(error))
     }
   }
 
@@ -186,7 +186,7 @@ export function useChapterManager(lessonId) {
       }
     } catch (error) {
       console.error('[ChapterManager] Erreur suppression:', error)
-      toast.error(error.userMessage ?? normalizeError(error).userMessage)
+      toast.error(messageDe(error))
     }
   }
 
@@ -244,7 +244,7 @@ export function useChapterManager(lessonId) {
       }
     } catch (error) {
       console.error('[ChapterManager] Erreur suppression quiz:', error)
-      toast.error(error.userMessage ?? normalizeError(error).userMessage)
+      toast.error(messageDe(error))
     }
   }
 

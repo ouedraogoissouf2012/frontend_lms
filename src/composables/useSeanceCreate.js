@@ -20,7 +20,7 @@ import { ref, reactive, computed, watch } from 'vue'
 import { lmsSeancesService } from '@/services/lmsSeances'
 import { fetchTeacherMatieres } from '@/services/teacherReferentials'
 import { clearCache, clearCacheByPrefix } from '@/services/cache'
-import { normalizeError } from '@/services/errorHandler'
+import { messageDe } from '@/services/errorHandler'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
 import { estPannePassagere } from '@/utils/pannePassagere'
 import { isoAvecDecalage } from '@/utils/dateLocale'
@@ -109,7 +109,7 @@ export function useSeanceCreate({ matieres: fournies = null } = {}) {
       if (champ) champs[champ] = MESSAGES[champ]
     }
     erreurs.value = champs
-    erreur.value = err?.fieldErrors ? ERROR_MESSAGES.validation : (err?.userMessage ?? normalizeError(err).userMessage)
+    erreur.value = err?.fieldErrors ? ERROR_MESSAGES.validation : messageDe(err)
     const reason = err?.response?.data?.reason
     if (reason === 'class_out_of_scope') form.classeId = null
     // La matière n'est plus de l'établissement : elle est retirée, et sa classe avec elle (watch).
