@@ -134,6 +134,7 @@ export function useAdminEvaluationDetails() {
       'soumis': 'status-success',
       'corrige': 'status-success',
       'en_cours': 'status-warning',
+      'verrouille': 'status-error', // C28 : hors délai
       'non_passee': 'status-error'
     }
     return classes[status] || 'status-default'
@@ -144,6 +145,7 @@ export function useAdminEvaluationDetails() {
       'soumis': 'Soumis',
       'corrige': 'Corrigé',
       'en_cours': 'En cours',
+      'verrouille': 'Hors délai',
       'non_passee': 'Non passée'
     }
     return labels[status] || status

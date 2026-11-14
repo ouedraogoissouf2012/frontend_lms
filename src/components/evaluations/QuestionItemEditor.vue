@@ -40,6 +40,7 @@
         <option value="qcm_multiple">QCM (Choix multiples)</option>
         <option value="vrai_faux">Vrai/Faux</option>
         <option value="reponse_courte">Réponse courte</option>
+        <option value="dissertation">Dissertation</option>
       </select>
     </div>
 
@@ -157,6 +158,11 @@
         Ajouter une option
       </button>
     </div>
+
+    <!-- Dissertation (lot CORR) : ni options ni réponse attendue ; l'enseignant la note à la main. -->
+    <p v-else-if="question.type === 'dissertation'" class="text-sm text-gray-600 dark:text-gray-400">
+      Réponse libre : vous la noterez à la main depuis « Notes et résultats ».
+    </p>
 
     <!-- Réponses courtes -->
     <div v-else-if="question.type === 'reponse_courte'">

@@ -61,6 +61,12 @@
   color: var(--amber-800);
 }
 
+/* C28 : copie hors délai, visible, jamais notée (paire fixe, comme .note-low) */
+.status-late {
+  background: var(--red-100);
+  color: var(--red-800);
+}
+
 .status-not-taken {
   background: var(--gray-100);
   color: var(--gray-500);

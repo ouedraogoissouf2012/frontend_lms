@@ -41,6 +41,10 @@ export const ERROR_MESSAGES = Object.freeze({
   evaluationMaxAttempts: 'Vous avez utilisé toutes vos tentatives pour cette évaluation.',
   evaluationRetakeForbidden: 'Cette évaluation ne peut pas être reprise.',
   evaluationOfflineOnly: 'Cette évaluation ne se passe pas en ligne.',
+  // lms_backend #1037 (C28) : 409 à la remise, échéance dépassée ; la copie est gardée, jamais notée.
+  // Lot CORR : 409 de POST /evaluations/{id}/sync-klassci, une copie à dissertation n'est pas notée.
+  syncDissertationNonNotee: 'Une copie à dissertation n’est pas encore notée : notez-la depuis « Notes et résultats » avant d’envoyer les notes à KLASSCI.',
+  evaluationAttemptLocked: 'Le temps imparti est dépassé : votre copie est verrouillée. Vos réponses sont conservées, mais elle ne sera pas notée.',
   // lms_backend #1019 : 503 + Retry-After, KLASSCI ne rend pas la fenêtre de l'évaluation.
   evaluationWindowUnverifiable: 'La disponibilité de cette évaluation ne peut pas être vérifiée pour le moment. Réessayez dans un instant.',
   // #391, ADR-906-01 : motifs de refus des portes d'inscription par code.

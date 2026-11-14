@@ -1,7 +1,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api, { auth } from '@/services/api'
-import { isExpired, copieRendue } from '@/utils/studentEvaluationStatus'
+import { isExpired, copieRendue, copieHorsDelai } from '@/utils/studentEvaluationStatus'
 import { endpoints } from '@/services/endpoints'
 import { normalizeError } from '@/services/errorHandler'
 import { estPannePassagere } from '@/utils/pannePassagere'
@@ -30,6 +30,8 @@ export function useStudentEvaluationsList() {
   const evaluationsAFaire = computed(() => {
     return evaluations.value.filter(e => {
       if (copieRendue(e.student_submission)) return false
+      // C28 (D-28f) : une copie hors délai n'est plus à faire.
+      if (copieHorsDelai(e.student_submission)) return false
 
       // Si en cours de tentative, toujours montrer
       if (e.student_submission?.status === 'en_cours') return true
@@ -50,6 +52,8 @@ export function useStudentEvaluationsList() {
   const evaluationsEntrainement = computed(() => {
     return evaluations.value.filter(e => {
       if (copieRendue(e.student_submission)) return false
+      // C28 (D-28f) : une copie hors délai va TOUJOURS avec les évaluations passées.
+      if (copieHorsDelai(e.student_submission)) return true
       if (e.student_submission?.status === 'en_cours') return false
 
       // Seulement les évaluations passées

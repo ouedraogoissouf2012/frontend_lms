@@ -4,6 +4,7 @@ import evaluationService from '@/services/evaluation'
 import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
 import { messageDe } from '@/services/errorHandler'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 /**
  * Actions enseignant de TeacherEvaluations (H1 ≤300). Complète le composable de
@@ -152,7 +153,8 @@ export function useTeacherEvaluationActions({ evaluationsLMS, loadEvaluationsLMS
       }
     } catch (err) {
       console.error('[ERREUR] Synchronisation:', err)
-      toast.error('Erreur lors de la synchronisation')
+      // Lot CORR (ii) : le seul 409 de cette route dit qu'une dissertation attend sa note (spec, sync-klassci).
+      toast.error(err?.response?.status === 409 ? ERROR_MESSAGES.syncDissertationNonNotee : 'Erreur lors de la synchronisation')
     } finally {
       syncing.value = null
     }

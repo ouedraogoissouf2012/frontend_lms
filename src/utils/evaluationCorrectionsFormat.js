@@ -48,6 +48,7 @@ export function getStatusClass(status) {
     'soumis': 'status-submitted',
     'corrige': 'status-corrected',
     'en_cours': 'status-ongoing',
+    'verrouille': 'status-late', // C28 : hors délai, jamais notée
     'non_passee': 'status-not-taken'
   }
   return classes[status] || 'status-default'
@@ -58,6 +59,7 @@ export function getStatusLabel(status) {
     'soumis': 'Soumis',
     'corrige': 'Corrigé',
     'en_cours': 'En cours',
+    'verrouille': 'Hors délai',
     'non_passee': 'Non passée'
   }
   return labels[status] || status
