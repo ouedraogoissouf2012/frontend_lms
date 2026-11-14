@@ -6,6 +6,8 @@ import { toast } from '@/composables/useToast'
 import { messageDe, invalidResponseError } from '@/services/errorHandler'
 import { extractList } from '@/utils/apiList'
 import { toId } from '@/utils/toId'
+import { lireOptionsQuestion, optionsRessaisies } from '@/utils/optionsQuestion'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 /**
  * Couche données de CreateQuestions (H1 ≤300) : chargement de l'évaluation
@@ -32,7 +34,7 @@ export function useCreateQuestions() {
   const evaluationAffichee = computed(() => evaluationKlassci.value ?? evaluationLMS.value)
 
   const isValid = computed(() => {
-    return configuration.duree_minutes > 0 && questions.value.length > 0
+    return configuration.duree_minutes > 0 && questions.value.length > 0 && questions.value.every(optionsRessaisies)
   })
   // D72-b : en édition, sans évaluation LMS chargée, rien ne s'enregistre (jamais une création).
   const erreurChargement = ref(null)
@@ -97,8 +99,7 @@ export function useCreateQuestions() {
           question: q.question,
           type: q.type,
           points: q.points || 1,
-          options: q.options || [],
-          correct_answers: q.correct_answers || [],
+          ...lireOptionsQuestion(q), // B7 : options d'avant #1059 lues en textes, ou « illisibles »
           correct_answers_text: q.type === 'reponse_courte' && q.correct_answers
             ? q.correct_answers.join(', ')
             : ''
@@ -177,7 +178,7 @@ export function useCreateQuestions() {
     // Édition sans évaluation chargée : l'échec est déjà affiché ; ne JAMAIS retomber sur la création.
     if (isEditMode.value && !evaluationLMS.value) return
     if (!isValid.value) {
-      toast.warning('Veuillez ajouter au moins une question')
+      toast.warning(questions.value.every(optionsRessaisies) ? 'Veuillez ajouter au moins une question' : ERROR_MESSAGES.optionsIllisibles)
       return
     }
 

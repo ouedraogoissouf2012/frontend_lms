@@ -92,5 +92,7 @@ export const ERROR_MESSAGES = Object.freeze({
   seanceClasseHorsEtablissement: "Cette classe n'est plus disponible dans votre établissement. Choisissez-en une autre.",
   seanceMatiereHorsEtablissement: "Cette matière n'est plus disponible dans votre établissement. Choisissez-en une autre.",
   seanceMatiereHorsProgramme: "Cette matière n'est pas au programme de la classe choisie.",
+  // B7 (D442) : des options d'avant lms_backend #1059 sans texte fidèle (objet, liste) ; texte du front.
+  optionsIllisibles: "Les options de cette question n'ont pas pu être relues. Saisissez-les de nouveau avant d'enregistrer.",
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })

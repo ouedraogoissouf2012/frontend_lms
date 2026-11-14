@@ -76,6 +76,8 @@
           </span>
         </p>
       </div>
+      <!-- B7 : options d'avant lms_backend #1059 sans texte fidèle, à ressaisir. -->
+      <p v-if="!optionsRessaisies(question)" role="alert" class="mb-3 text-sm text-red-600 dark:text-red-400">{{ ERROR_MESSAGES.optionsIllisibles }}</p>
       <div class="space-y-3">
         <div
           v-for="(option, optIndex) in question.options"
@@ -183,6 +185,9 @@
 </template>
 
 <script setup>
+import { optionsRessaisies } from '@/utils/optionsQuestion'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
+
 /**
  * Éditeur d'UNE question QCM riche (H1, CreateQuestions) : surlignage de la bonne
  * réponse, icône de validation, repères A/B/C. Présentation pure liée au modèle
