@@ -7,7 +7,7 @@
         :loading="loading"
         :etudiants-count="rosterVisible ? (etudiants?.length || 0) : null"
         :matieres-count="matieres?.length || 0"
-        :evaluations-count="evaluations?.length || 0"
+        :evaluations-count="compteurEvaluations"
         @back="goBack"
       />
 
@@ -86,7 +86,7 @@ import { useClasseDetails } from '@/composables/useClasseDetails'
 
 const {
   loading, error, canRetry, activeTab, classe, matieres, etudiants, evaluations, rosterVisible,
-  emploiTemps, seances, tabs,
+  emploiTemps, seances, tabs, compteurEvaluations,
   loadClasseDetails, loadSeances, viewMatiere, viewEvaluation, goBack,
 } = useClasseDetails()
 </script>

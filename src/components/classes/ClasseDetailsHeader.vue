@@ -61,7 +61,7 @@
           <i class="fa fa-check stat-icon-header"></i>
           <span class="stat-label-header">Évaluations</span>
         </div>
-        <p class="stat-value-header">{{ evaluationsCount || 0 }}</p>
+        <p class="stat-value-header">{{ evaluationsCount ?? '—' }}</p>
       </div>
     </div>
   </div>
@@ -85,7 +85,8 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
   etudiantsCount: { type: Number, default: 0 },
   matieresCount: { type: Number, default: 0 },
-  evaluationsCount: { type: Number, default: 0 }
+  // E4c : null = rien de mesuré (fiche non lue) → « — », jamais un 0 fabriqué.
+  evaluationsCount: { type: Number, default: null }
 })
 defineEmits(['back'])
 
