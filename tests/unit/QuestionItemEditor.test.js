@@ -58,8 +58,34 @@ describe('QuestionItemEditor — options illisibles (B7)', () => {
     expect(w.find('[role="alert"]').text()).toBe(ILLISIBLE)
   })
 
+  // D451 : une question illisible n'est « ressaisie » qu'avec des options valides ET une bonne réponse.
+  it('options ressaisies sans bonne réponse : la carte le dit encore', () => {
+    expect(mountEditor({ options: ['X', 'Y', '', ''], correct_answers: [], optionsIllisibles: true }).find('[role="alert"]').text()).toBe(ILLISIBLE)
+  })
+
+  // Migration déclarée (D451) : la bonne réponse choisie fait partie de la ressaisie.
   it('une fois ressaisies, et pour une question lisible : rien', () => {
-    expect(mountEditor({ options: ['X', 'Y', '', ''], optionsIllisibles: true }).find('[role="alert"]').exists()).toBe(false)
+    expect(mountEditor({ options: ['X', 'Y', '', ''], correct_answers: ['X'], optionsIllisibles: true }).find('[role="alert"]').exists()).toBe(false)
     expect(mountEditor().find('[role="alert"]').exists()).toBe(false)
+  })
+})
+
+// Défaut PRÉEXISTANT corrigé (D451) : la carte ne permettait pas de choisir la bonne réponse d'une
+// question vrai/faux ; son aide disait pourtant « Cochez la bonne réponse (Vrai ou Faux) ».
+describe('QuestionItemEditor — la bonne réponse d’un vrai/faux se choisit', () => {
+  it('deux boutons radio, Vrai et Faux, qui émettent set-correct', async () => {
+    const w = mountEditor({ type: 'vrai_faux', options: ['Vrai', 'Faux'], correct_answers: [] })
+    const radios = w.findAll('input[type="radio"]')
+    expect(radios).toHaveLength(2)
+    await radios[0].trigger('change')
+    expect(w.emitted('set-correct')[0]).toEqual(['Vrai'])
+  })
+
+  it('la bonne réponse choisie est cochée et mise en évidence', () => {
+    const w = mountEditor({ type: 'vrai_faux', options: ['Vrai', 'Faux'], correct_answers: ['Faux'] })
+    const radios = w.findAll('input[type="radio"]')
+    expect(radios[1].element.checked).toBe(true)
+    expect(radios[0].element.checked).toBe(false)
+    expect(w.html()).toContain('border-green-500')
   })
 })

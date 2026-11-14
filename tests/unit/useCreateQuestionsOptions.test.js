@@ -91,6 +91,30 @@ describe('useCreateQuestions — options d’avant #1059 (B7)', () => {
     expect(c.questions.value[0].options).toEqual(['Vrai', 'Faux'])
   })
 
+  // D451 : illisible = refusé tant que la bonne réponse n'est pas choisie de nouveau.
+  it('un vrai/faux illisible : refusé tant que la bonne réponse n’est pas choisie, puis accepté', async () => {
+    const c = await ouvrir({ type: 'vrai_faux', options: [{ v: 1 }], correct_answers: ['Vrai'] })
+    expect(c.isValid.value).toBe(false)
+    await c.saveQuestions()
+    expect(h.updateEvaluation).not.toHaveBeenCalled()
+    expect(h.toast.warning).toHaveBeenCalledWith(ILLISIBLE)
+    c.setCorrectAnswer(0, 'Vrai')
+    expect(c.isValid.value).toBe(true)
+    await c.saveQuestions()
+    expect(envoyees().options).toEqual(['Vrai', 'Faux'])
+    expect(envoyees().correct_answers).toEqual(['Vrai'])
+  })
+
+  it('un qcm illisible : ses options ressaisies ne suffisent pas sans bonne réponse', async () => {
+    const c = await ouvrir({ options: [{ texte: 'A' }], correct_answers: ['A'] })
+    c.questions.value[0].options = ['X', 'Y', '', '']
+    expect(c.isValid.value).toBe(false)
+    await c.saveQuestions()
+    expect(h.updateEvaluation).not.toHaveBeenCalled()
+    c.setCorrectAnswer(0, 'Y')
+    expect(c.isValid.value).toBe(true)
+  })
+
   it('verrou : des options en textes restent identiques', async () => {
     const c = await ouvrir({ options: ['A', 'B'], correct_answers: ['A'] })
     expect(c.questions.value[0].optionsIllisibles).toBe(false)

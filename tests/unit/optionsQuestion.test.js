@@ -58,10 +58,20 @@ describe('optionsRessaisies (B7)', () => {
     expect(optionsRessaisies({ optionsIllisibles: false, options: [] })).toBe(true)
   })
 
-  it('une question illisible l’est quand au moins deux options sont ressaisies', () => {
-    expect(optionsRessaisies({ optionsIllisibles: true, options: ['', '', '', ''] })).toBe(false)
-    expect(optionsRessaisies({ optionsIllisibles: true, options: ['X', ' ', '', ''] })).toBe(false)
-    expect(optionsRessaisies({ optionsIllisibles: true, options: ['X', 'Y', '', ''] })).toBe(true)
+  // Migration déclarée (D451) : deux options ne suffisent plus ; il faut aussi une bonne réponse,
+  // et qu'elle soit l'une des options ressaisies.
+  it('une question illisible l’est avec deux options ressaisies ET une bonne réponse parmi elles', () => {
+    const q = (options, correct_answers) => ({ optionsIllisibles: true, options, correct_answers })
+    expect(optionsRessaisies(q(['', '', '', ''], []))).toBe(false)
+    expect(optionsRessaisies(q(['X', ' ', '', ''], ['X']))).toBe(false)
+    expect(optionsRessaisies(q(['X', 'Y', '', ''], []))).toBe(false)
+    expect(optionsRessaisies(q(['X', 'Y', '', ''], ['Z']))).toBe(false)
+    expect(optionsRessaisies(q(['X', 'Y', '', ''], ['X']))).toBe(true)
+  })
+
+  it('un vrai/faux illisible : ses deux réponses fixes ne suffisent pas, il faut en choisir une', () => {
+    expect(optionsRessaisies({ optionsIllisibles: true, options: ['Vrai', 'Faux'], correct_answers: [] })).toBe(false)
+    expect(optionsRessaisies({ optionsIllisibles: true, options: ['Vrai', 'Faux'], correct_answers: ['Vrai'] })).toBe(true)
   })
 })
 
