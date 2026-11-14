@@ -26,6 +26,7 @@
         @remove-option="(optIndex) => $emit('remove-option', index, optIndex)"
         @set-correct="(option) => $emit('set-correct', index, option)"
         @toggle-correct="(option) => $emit('toggle-correct', index, option)"
+        @change-type="(type) => $emit('change-type', index, type)"
       />
 
       <div v-if="questions.length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
@@ -47,5 +48,5 @@ defineProps({
   questions: { type: Array, default: () => [] }
 })
 
-defineEmits(['add', 'remove', 'add-option', 'remove-option', 'set-correct', 'toggle-correct'])
+defineEmits(['add', 'remove', 'add-option', 'remove-option', 'set-correct', 'toggle-correct', 'change-type'])
 </script>

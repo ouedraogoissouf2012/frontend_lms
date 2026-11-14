@@ -1,10 +1,13 @@
 import { MAX_OPTIONS } from '@/constants/evaluationQuestions'
 
+const TYPES_REPONSE_UNIQUE = new Set(['qcm', 'vrai_faux'])
+
 /**
  * Les options et les bonnes réponses des questions de l'éditeur d'évaluation (extrait de
  * useCreateQuestions, D466). La bonne réponse est tenue par POSITION (`correctes`) : renommer une
  * option garde sa coche, la supprimer la retire et décale les suivantes. Choisir une bonne réponse
- * lève la marque « orpheline » d'une question chargée ainsi.
+ * lève la marque « orpheline » d'une question chargée ainsi, et celle d'une question dont un changement
+ * de type a retiré les coches (D528).
  * @param {import('vue').Ref<Array<object>>} questions
  */
 export function useQuestionOptions(questions) {
@@ -23,6 +26,7 @@ export function useQuestionOptions(questions) {
     const question = questions.value[questionIndex]
     question.correctes = [optionIndex]
     question.bonneReponseOrpheline = false
+    question.bonneReponseAChoisir = false
   }
 
   function toggleCorrectAnswer(questionIndex, optionIndex) {
@@ -30,9 +34,21 @@ export function useQuestionOptions(questions) {
     const correctes = question.correctes || []
     question.correctes = correctes.includes(optionIndex) ? correctes.filter((i) => i !== optionIndex) : [...correctes, optionIndex]
     question.bonneReponseOrpheline = false
+    question.bonneReponseAChoisir = false
   }
 
-  return { addOption, removeOption, setCorrectAnswer, toggleCorrectAnswer }
+  // D528 : vers un type à réponse UNIQUE, plusieurs coches ne se réduisent jamais à une en silence : elles
+  // sont retirées, et la question attend sa bonne réponse (l'enregistrement est refusé jusque-là).
+  function changeType(questionIndex, type) {
+    const question = questions.value[questionIndex]
+    if (TYPES_REPONSE_UNIQUE.has(type) && (question.correctes || []).length > 1) {
+      question.correctes = []
+      question.bonneReponseAChoisir = true
+    }
+    question.type = type
+  }
+
+  return { addOption, removeOption, setCorrectAnswer, toggleCorrectAnswer, changeType }
 }
 
 /**

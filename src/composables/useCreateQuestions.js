@@ -131,7 +131,7 @@ export function useCreateQuestions() {
   }
 
   // D466, étape 0 : options et bonnes réponses dans useQuestionOptions (même comportement).
-  const { addOption, removeOption, setCorrectAnswer, toggleCorrectAnswer } = useQuestionOptions(questions)
+  const { addOption, removeOption, setCorrectAnswer, toggleCorrectAnswer, changeType } = useQuestionOptions(questions)
 
   function prepareQuestionsForSubmit() {
     return questions.value.map(q => ({ question: q.question, type: q.type, points: q.points, ...choixPourEnvoi(q) }))
@@ -252,7 +252,7 @@ export function useCreateQuestions() {
     evaluationKlassci, evaluationAffichee, configuration, questions, loading, isEditMode,
     isValid, erreurChargement, peutEnregistrer,
     addQuestion, removeQuestion, addOption, removeOption,
-    setCorrectAnswer, toggleCorrectAnswer,
+    setCorrectAnswer, toggleCorrectAnswer, changeType,
     saveQuestions, goBack,
   }
 }

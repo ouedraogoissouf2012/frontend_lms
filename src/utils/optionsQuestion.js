@@ -80,13 +80,17 @@ export function optionsHorsBornes(question) {
 /**
  * Ce qui empêche d'enregistrer une question, ou null : la CLÉ de son texte dans ERROR_MESSAGES. UNE
  * source (D528) pour le bouton (isValid), l'avertissement à l'enregistrement et l'alerte de la question,
- * dans cet ordre de priorité.
+ * dans cet ordre de priorité. Les marques d'une question à choix ne valent que pour un type à choix :
+ * sous un autre type, ses options ne partent pas.
  * @param {object} question - une question de l'éditeur
  * @returns {string|null}
  */
 export function motifAvantEnvoi(question) {
-  if (!optionsRessaisies(question)) return 'optionsIllisibles'
-  if (question?.bonneReponseOrpheline) return 'bonneReponseOrpheline'
-  if (optionsHorsBornes(question)) return 'optionsHorsBornes'
+  if (TYPES_A_CHOIX.has(question?.type)) {
+    if (!optionsRessaisies(question)) return 'optionsIllisibles'
+    if (question.bonneReponseOrpheline) return 'bonneReponseOrpheline'
+    if (question.bonneReponseAChoisir) return 'bonneReponseAChoisir'
+    if (optionsHorsBornes(question)) return 'optionsHorsBornes'
+  }
   return null
 }

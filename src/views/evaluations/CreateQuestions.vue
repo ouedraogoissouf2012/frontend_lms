@@ -62,6 +62,7 @@
           @remove-option="removeOption"
           @set-correct="setCorrectAnswer"
           @toggle-correct="toggleCorrectAnswer"
+          @change-type="changeType"
         />
 
         <!-- Actions -->
@@ -97,7 +98,7 @@ const {
   evaluationAffichee, configuration, questions, loading, isEditMode,
   erreurChargement, peutEnregistrer,
   addQuestion, removeQuestion, addOption, removeOption,
-  setCorrectAnswer, toggleCorrectAnswer,
+  setCorrectAnswer, toggleCorrectAnswer, changeType,
   saveQuestions, goBack,
 } = useCreateQuestions()
 </script>

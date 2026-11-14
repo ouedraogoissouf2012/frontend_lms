@@ -32,8 +32,10 @@
       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         Type de question
       </label>
+      <!-- D528 : le type change par une ACTION (useQuestionOptions.changeType), qui retire les coches en trop. -->
       <select
-        v-model="question.type"
+        :value="question.type"
+        @change="$emit('change-type', $event.target.value)"
         class="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
       >
         <option value="qcm">QCM (Choix unique)</option>
@@ -203,7 +205,7 @@ defineProps({
   index: { type: Number, required: true }
 })
 
-defineEmits(['remove', 'add-option', 'remove-option', 'set-correct', 'toggle-correct'])
+defineEmits(['remove', 'add-option', 'remove-option', 'set-correct', 'toggle-correct', 'change-type'])
 
 // D466 : la coche suit l'option par sa POSITION ; set-correct et toggle-correct émettent l'indice.
 const estCochee = (question, optIndex) => (question.correctes || []).includes(optIndex)

@@ -100,5 +100,7 @@ export const ERROR_MESSAGES = Object.freeze({
   // D466 (D467) : une bonne réponse absente des options, chargée telle, ou refusée par le back (422
   // `correct_answer_not_among_options`). Texte du front.
   bonneReponseOrpheline: "La bonne réponse d'une question ne correspond à aucune de ses options. Choisissez-la de nouveau.",
+  // D528 : une question à plusieurs coches passée à un type à réponse unique ; ses coches sont retirées.
+  bonneReponseAChoisir: "Cette question n'accepte qu'une bonne réponse : ses coches ont été retirées. Choisissez-la.",
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })
