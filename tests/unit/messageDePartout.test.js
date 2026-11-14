@@ -21,13 +21,8 @@ const fichiers = (dossier) => readdirSync(dossier).flatMap((n) => {
   return statSync(p).isDirectory() ? fichiers(p) : /\.(js|vue)$/.test(n) ? [p] : []
 })
 const REECRIT = /userMessage\s*\?\?\s*normalizeError\(/
-const GELES = [
-  'composables/useChapterManager.js',
-  'composables/useLessonChapters.js',
-  'composables/useParticipantsModal.js',
-  'composables/useSeanceCreate.js',
-  'composables/useSeanceDetails.js',
-]
+// Dette fermée le 14/11 : les 5 fichiers gelés appellent messageDe (leurs tests mockent désormais le vrai module).
+const GELES = []
 
 describe('messageDe partout — le motif réécrit ne revient pas', () => {
   it('seuls les fichiers gelés réécrivent encore messageDe (et tous le font encore : la liste rétrécit)', () => {
