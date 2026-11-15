@@ -24,7 +24,7 @@ const CLASSE_HORS_MATIERE = 'Cette classe n’est pas une classe de la matière.
 const SERVEUR = 'Texte brut du serveur, jamais affiché'
 const DEUX = [{ id: 2, nom: '5e B' }, { id: 1, nom: '6e A' }]
 
-beforeEach(() => Object.values(lesson).forEach((fn) => fn.mockReset()))
+beforeEach(() => { Object.values(lesson).forEach((fn) => fn.mockReset()) })
 
 describe('utils/matiereDetails — la classe choisie', () => {
   it('une seule classe : présélectionnée ; plusieurs ou aucune : aucune présélection', () => {
@@ -107,7 +107,7 @@ describe('useLessonModal — créer et modifier', () => {
     mount(defineComponent({ setup() { api = useLessonModal({ classes: ref(classes), matiereIdLocal: ref(3), notifier, recharger, versChapitres }); return () => null } }))
     return api
   }
-  beforeEach(() => [notifier, recharger, versChapitres].forEach((f) => f.mockReset()))
+  beforeEach(() => { [notifier, recharger, versChapitres].forEach((f) => f.mockReset()) })
 
   it('« Modifier » ouvre la modale préremplie depuis la leçon LUE', async () => {
     lesson.getLesson.mockResolvedValue({ success: true, data: { id: 5, title: 'Ancien', classe_id: 2 } })
