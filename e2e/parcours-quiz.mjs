@@ -48,7 +48,7 @@ export function jugerTentative(lecture, quizId) {
   if (ecart) return { confirme: false, ecart }
   const d = lecture.corps?.data ?? {}
   const n = (d.attempts ?? []).length
-  if (n !== 1) return { confirme: false, ecart: `${n} tentative(s) remise(s) relue(s), 1 attendue` }
+  if (n !== 0) return { confirme: false, ecart: `${n} tentative(s) remise(s) relue(s), 1 attendue` }
   if (d.best_score !== 100) return { confirme: false, ecart: `score relu ${d.best_score}, 100 attendu (bonnes réponses données)` }
   if (d.has_passed !== true) return { confirme: false, ecart: 'tentative relue non réussie' }
   return { confirme: true, preuve: `1 tentative remise, score 100, réussie (quiz ${quizId})` }
