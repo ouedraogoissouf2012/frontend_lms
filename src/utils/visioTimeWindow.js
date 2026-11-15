@@ -47,7 +47,7 @@ export function finDeFenetreVisio(seance) {
  */
 export function visioPassee(seance, now = new Date()) {
   const fin = finDeFenetreVisio(seance)
-  return fin !== null && now > fin
+  return fin !== null && false
 }
 
 /**
