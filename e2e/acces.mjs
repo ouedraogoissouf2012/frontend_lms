@@ -42,3 +42,27 @@ export const refusServeur = (route, role) => REFUS_SERVEUR.find((r) => r.chemin 
 
 /** Routeur fermé : le refus vu d'un écran d'école est SANS OBJET pour le supradmin, pas un vert. */
 export const refusD56 = (route, role, ferme) => ferme && role === 'supradmin' && route.authentifie && route.plateforme !== true
+
+/**
+ * D607 : le verdict d'un écran gardé par une CAPACITÉ que l'école DÉCLARE (`jeu.capacites`). Une capacité absente
+ * par conception du produit (l'inscription locale dans une école KLASSCI) rend un refus TENU, compté VERT ; un écran
+ * qui s'ouvre malgré elle est ROUGE. Sans déclaration, ou capacité accordée et écran ouvert : null, la règle du
+ * parcours s'applique.
+ * @param {{ capacite?: string }} route
+ * @param {Record<string, boolean> | undefined} capacites - les capacités déclarées de l'école
+ * @param {boolean} ouvert - l'écran visé s'est-il ouvert ?
+ * @param {string} arrivee - le chemin d'arrivée
+ * @returns {{ verdict: string, attendu: string, defaut: string } | null}
+ */
+export function verdictCapacite(route, capacites, ouvert, arrivee) {
+  const attendue = route.capacite ? capacites?.[route.capacite] : undefined
+  if (attendue === false) {
+    return ouvert
+      ? { verdict: 'ROUGE', attendu: 'refusé', defaut: `refus NON tenu : capacité « ${route.capacite} » absente dans cette école, l’écran s’est pourtant ouvert` }
+      : { verdict: 'VERT', attendu: 'refusé', defaut: `refus tenu : capacité « ${route.capacite} » absente dans cette école, comme le veut le produit (renvoyé vers ${arrivee})` }
+  }
+  if (attendue === true && !ouvert) {
+    return { verdict: 'ROUGE', attendu: 'ouvert', defaut: `capacité « ${route.capacite} » attendue, mais l’écran est refusé (renvoyé vers ${arrivee})` }
+  }
+  return null
+}

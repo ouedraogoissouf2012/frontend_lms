@@ -193,5 +193,8 @@ export function jeuDuParcours() {
     comptes: Object.fromEntries(Object.entries(COMPTES).map(([k, c]) => [k, c.email])),
     classes: CLASSES.map((c) => c.id),
     matieres: MATIERES.map((m) => m.id),
+    // D607 : les capacités de l'école, telles que le produit les décide. Une école KLASSCI n'inscrit pas
+    // localement : KlassciRosterAuthority::allowsLocalEnrolment() rend false (KlassciRosterAuthority.php:18-20).
+    capacites: { peutInscrireLocalement: false },
   }
 }
