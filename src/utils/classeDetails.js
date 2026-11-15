@@ -6,6 +6,7 @@
  * simples composants de rendu testables. Aucun changement de comportement.
  */
 import { hasRole, isStudent, isTeacher, ROLES } from '@/constants/roles'
+import { dateHeureSeance } from '@/utils/seanceStatut'
 
 /**
  * Destination d'un clic sur une évaluation de la fiche classe (E4c). Décision PURE : `{ ouvrir }` (la
@@ -39,19 +40,23 @@ export function formatDate(dateString) {
   })
 }
 
+// D619 : l'heure d'une séance passe par l'analyseur UNIQUE (seanceStatut.dateHeureSeance) : KLASSCI rend
+// « HH:mm[:ss] », l'école créée depuis le LMS un datetime ISO. Le jour ne sert qu'au calcul : seule l'heure est
+// montrée. Une heure illisible rend 'N/A' ou null, jamais « Invalid Date » ni NaN.
+const JOUR_DE_CALCUL = '2000-01-01'
+
+/** La durée en minutes entre les heures de début et de fin ; 0 si l'une manque, null si l'une est illisible. */
 export function calculateDuration(seance) {
   if (!seance.programmation?.heure_debut || !seance.programmation?.heure_fin) return 0
-  const debut = new Date(seance.programmation.heure_debut)
-  const fin = new Date(seance.programmation.heure_fin)
-  return Math.round((fin - debut) / (1000 * 60))
+  const debut = dateHeureSeance(JOUR_DE_CALCUL, seance.programmation.heure_debut)
+  const fin = dateHeureSeance(JOUR_DE_CALCUL, seance.programmation.heure_fin)
+  return debut && fin ? Math.round((fin - debut) / (1000 * 60)) : null
 }
 
-export function formatTime(isoTimestamp) {
-  if (!isoTimestamp) return 'N/A'
-  return new Date(isoTimestamp).toLocaleTimeString('fr-FR', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+export function formatTime(heure) {
+  if (!heure) return 'N/A'
+  const date = dateHeureSeance(JOUR_DE_CALCUL, heure)
+  return date ? date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : 'N/A'
 }
 
 const JOURS_ISO = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
