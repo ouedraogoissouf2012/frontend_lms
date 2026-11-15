@@ -99,9 +99,10 @@ if (evaluation) {
 await monter('lecon', async () => {
   const j = await jetonDe('enseignant', '7 connexion enseignant')
   exiger(await essayer('8 matières de l’enseignant', 'GET', '/lms/teacher/my-matieres', null, j))
-  const lecon = (statut, etape) => essayer(etape, 'POST', '/lessons', { title: `Lecon K E2E ${statut}`, type: 'cours', classe_id: EVALUATION.classe, status: statut, description: 'Lecon fictive de l E2E.' }, j)
-  const publiee = avecId(exiger(await lecon('published', '9 leçon publiée')), '9 leçon publiée')
-  const brouillon = avecId(exiger(await lecon('draft', '10 leçon brouillon')), '10 leçon brouillon')
+  // Le titre est en français : une valeur d'énumération dans un titre (« published ») serait lue comme un texte brut.
+  const lecon = (statut, titre, etape) => essayer(etape, 'POST', '/lessons', { title: titre, type: 'cours', classe_id: EVALUATION.classe, status: statut, description: 'Lecon fictive de l E2E.' }, j)
+  const publiee = avecId(exiger(await lecon('published', 'Lecon K E2E, la lecture', '9 leçon publiée')), '9 leçon publiée')
+  const brouillon = avecId(exiger(await lecon('draft', 'Lecon K E2E, en preparation', '10 leçon brouillon')), '10 leçon brouillon')
   jeu.lecons = { publiee, brouillon }
 })
 
