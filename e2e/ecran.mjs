@@ -5,6 +5,8 @@
 export const BRUT = [
   /\b[a-z]{2,}(?:_[a-z0-9]{2,})+\b/,
   /\b(?:undefined|NaN)\b/,
+  // D619 : une date illisible (« Invalid Date », un new Date() sur une heure KLASSCI « HH:mm ») est un texte brut.
+  /\bInvalid Date\b/,
   /\[object Object\]/,
   /Request failed with status code/,
   // v3 : un nom de classe d'icône écrit en texte (« fa-book » sur /dashboard, constat du run v2).
@@ -47,3 +49,20 @@ export function ecartsDeValeur(VERIFS, cle, texte) {
   ecarts.push(...(v.refus ?? []))
   return ecarts
 }
+
+// D616 : les textes d'ERREUR du catalogue du front MESURÉ, une seule source. Le faux vert découvert par K4 :
+// « La ressource demandée est introuvable. » (notFound), dans un bandeau sans role="alert", passait pour un écran sain.
+// Ne sont pas des erreurs : les états vides légitimes (REASONS `etatVide`) et les informations ci-dessous.
+export const INFORMATIONS = Object.freeze(['listeActualisee'])
+
+/** Les textes d'erreur du catalogue (ERROR_MESSAGES), sans les états vides légitimes ni les informations. */
+export function textesDErreur(messages, raisons) {
+  const exclues = new Set([...INFORMATIONS, ...Object.values(raisons).filter((e) => e.etatVide).map((e) => e.categorie)])
+  return [...new Set(Object.entries(messages).filter(([cle, t]) => !exclues.has(cle) && typeof t === 'string').map(([, t]) => t))]
+}
+
+/** Le premier texte d'erreur du catalogue présent dans le texte de l'écran, ou null. */
+export const erreurAffichee = (texte, textes) => textes.find((t) => texte.includes(t)) ?? null
+
+/** Les appels API en 4xx d'un écran, notés dans sa case (`404 /api/...`). */
+export const appels4xx = (api) => api.filter((a) => a.statut >= 400 && a.statut < 500).map((a) => `${a.statut} ${a.chemin}`)
