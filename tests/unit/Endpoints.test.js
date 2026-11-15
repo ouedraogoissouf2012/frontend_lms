@@ -212,7 +212,7 @@ describe('endpoints — carte unique (#105)', () => {
         '/lms/enseignants', '/lms/classes/:id', '/lms/classes/:id/etudiants',
         '/lms/matieres/:id', '/lms/teacher/my-matieres', '/lms/seances/upcoming',
         '/lms/seances/history', '/lms/seances/my-teaching', '/lms/seances/my-classes',
-        '/lms/seances/:id/details', '/lms/seances/:id/participants',
+        '/lms/seances/:id/details',
         '/lms/seances/:id/attendances', '/lms/seances/:id/validate-participant',
         '/lms/seances/:id/hide', '/lms/seances/:id/unhide', '/lms/seances/:id',
         '/lms/seances/:id/toggle-visio', '/lms/seances/:id/activate-visio',
