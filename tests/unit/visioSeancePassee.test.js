@@ -115,3 +115,11 @@ describe('useEventDetail — le calendrier ne propose pas de démarrer une séan
     expect(api.motifVisioFermee.value).toBeNull()
   })
 })
+
+describe('le refus du serveur : reason « seance_past » (409, contrat du Réparateur)', () => {
+  it('son texte vient du CATALOGUE, distinct de la note informative (un texte du catalogue à l’écran est une erreur)', async () => {
+    const { messageForReason } = await import('@/services/errorHandler')
+    expect(messageForReason('seance_past')).toBe('Cette séance est passée : sa visio ne peut plus être démarrée ni rejointe.')
+    expect(messageForReason('seance_past')).not.toBe(VISIO_SEANCE_PASSEE)
+  })
+})
