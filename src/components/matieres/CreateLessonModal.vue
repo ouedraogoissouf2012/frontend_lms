@@ -1,15 +1,16 @@
 <template>
   <Modal
     :model-value="visible"
-    title="Créer une nouvelle leçon"
+    :title="editing ? 'Modifier la leçon' : 'Créer une nouvelle leçon'"
     size="lg"
     @close="$emit('close')"
   >
     <form id="create-lesson-modal-form" @submit.prevent="$emit('submit')" class="lesson-form">
       <!-- Titre -->
       <div class="form-group">
-        <label class="form-label required">Titre de la leçon</label>
+        <label for="lecon-titre" class="form-label required">Titre de la leçon</label>
         <input
+          id="lecon-titre"
           v-model="lesson.title"
           type="text"
           class="form-input"
@@ -18,10 +19,23 @@
         />
       </div>
 
+      <!-- Classe (back #1103) : choisie parmi les classes de la matière ; jamais supposée quand il y en a plusieurs -->
+      <div class="form-group">
+        <label for="lecon-classe" class="form-label required">Classe</label>
+        <p v-if="!classes.length" class="form-help">Cette matière n’a aucune classe : la leçon ne peut pas être créée.</p>
+        <select v-else id="lecon-classe" v-model.number="lesson.classe_id" class="form-select" required>
+          <!-- Aucune classe choisie : `classe_id` reste null, aucune option ne correspond, la liste est vide. -->
+          <option value="" disabled>Choisissez la classe</option>
+          <option v-for="classe in classes" :key="classe.id" :value="classe.id">{{ classe.nom }}</option>
+        </select>
+        <p v-if="erreurClasse" class="form-help" role="alert">{{ erreurClasse }}</p>
+      </div>
+
       <!-- Description -->
       <div class="form-group">
-        <label class="form-label">Description</label>
+        <label for="lecon-description" class="form-label">Description</label>
         <textarea
+          id="lecon-description"
           v-model="lesson.description"
           class="form-textarea"
           rows="3"
@@ -92,10 +106,10 @@
         type="submit"
         form="create-lesson-modal-form"
         class="btn-primary"
-        :disabled="creating || !lesson.title"
+        :disabled="creating || !lesson.title || !lesson.classe_id"
         :loading="creating"
       >
-        {{ creating ? 'Création...' : 'Créer la leçon' }}
+        {{ libelleBouton }}
       </BaseButton>
     </template>
   </Modal>
@@ -103,19 +117,32 @@
 
 <script setup>
 /**
- * Modale de création de leçon de MatiereDetails (#H9 ≤300). Présentation pure :
- * formulaire lié à l'objet `lesson` (mutation des propriétés, parité avec
- * l'ancien newLesson). Émet `close` et `submit`. CSS déplacé VERBATIM.
+ * Modale de leçon de MatiereDetails (#H9 ≤300) : CRÉER et MODIFIER (#564) par le même formulaire.
+ * Présentation pure : formulaire lié à l'objet `lesson` (mutation des propriétés, parité avec
+ * l'ancien newLesson), dont la classe choisie parmi celles de la matière (back #1103).
+ * Émet `close` et `submit`. CSS déplacé VERBATIM.
  */
 import Modal from '@/components/ui/Modal.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
+import { computed } from 'vue'
 
-defineProps({
+const props = defineProps({
   visible: { type: Boolean, default: false },
   lesson: { type: Object, required: true },
-  creating: { type: Boolean, default: false }
+  creating: { type: Boolean, default: false },
+  // Les classes de la matière (`classes_concernees`, ids LOCAUX) : la leçon part dans celle choisie.
+  classes: { type: Array, default: () => [] },
+  // Modification d'une leçon existante (#564) : même formulaire, autre titre et autre bouton.
+  editing: { type: Boolean, default: false },
+  // Le refus de la classe par le serveur, dit par le catalogue (D0), ou null.
+  erreurClasse: { type: String, default: null }
 })
 defineEmits(['close', 'submit'])
+
+const libelleBouton = computed(() => {
+  if (props.creating) return props.editing ? 'Enregistrement...' : 'Création...'
+  return props.editing ? 'Enregistrer' : 'Créer la leçon'
+})
 </script>
 
 <style scoped>

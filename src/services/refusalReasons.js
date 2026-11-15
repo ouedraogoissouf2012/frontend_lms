@@ -36,6 +36,8 @@ export const REASONS = Object.freeze({
   // VisioStatusRefusal (serveur) : attendre (`visio_not_started`) ou renoncer (`visio_ended`).
   visio_not_started: motif('visioNotStarted'),
   visio_ended: motif('visioEnded'),
+  // Back #1103 : la classe d'une leçon hors des classes de sa matière (422).
+  classe_hors_matiere: motif('lessonClasseHorsMatiere'),
   teacher_not_owner: motif('visioTeacherNotOwner'),
   actor_not_authorized: motif('visioRoleRefused'),
   invalid_role: motif('visioRoleRefused'),

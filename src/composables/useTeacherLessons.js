@@ -5,7 +5,6 @@ import lessonService from '@/services/lesson'
 import { fetchTeacherMatieres } from '@/services/teacherReferentials'
 import { readCache, writeCache } from '@/services/cache'
 import { TEACHER_MATIERES_CACHE } from '@/constants/cacheKeys'
-import { useLessonForm } from '@/composables/useLessonForm'
 import { extractList } from '@/utils/apiList'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
 import { refusMotive } from '@/services/errorHandler'
@@ -15,8 +14,9 @@ import { myLessonsParams, TEACHER_LESSONS_CACHE as LESSONS_CACHE } from '@/compo
 
 /**
  * Couche données de TeacherLessons (#H4 ≤300) : charge leçons + matières (cache +
- * rafraîchissement arrière-plan), gère filtres/stats et la navigation. Le formulaire
- * de la modale est délégué à useLessonForm (partage la ref `lessons`).
+ * rafraîchissement arrière-plan), gère filtres/stats et la navigation. Aucun formulaire : une leçon se
+ * crée et se modifie depuis la page Matières (back #1103, #564 ; l'ancienne modale, inatteignable et
+ * toujours refusée, est retirée).
  */
 export function useTeacherLessons() {
   const router = useRouter()
@@ -35,15 +35,6 @@ export function useTeacherLessons() {
     type: ''
   })
 
-  // Formulaire/modale délégué (partage la liste pour création/édition)
-  const {
-    showCreateModal,
-    editingLesson,
-    saving,
-    lessonForm,
-    saveLesson,
-    closeModal
-  } = useLessonForm(lessons)
 
   // Computed
   const filteredLessons = computed(() => {
@@ -181,11 +172,7 @@ export function useTeacherLessons() {
     loading,
     error,
     canRetry,
-    showCreateModal,
-    editingLesson,
-    saving,
     filters,
-    lessonForm,
     filteredLessons,
     stats,
     loadLessons,
@@ -194,8 +181,6 @@ export function useTeacherLessons() {
     applyFilters,
     resetFilters,
     formatDate,
-    viewChapters,
-    saveLesson,
-    closeModal
+    viewChapters
   }
 }
