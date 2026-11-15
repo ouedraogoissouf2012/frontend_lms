@@ -74,7 +74,9 @@ function concret(route, role, attendu) {
     }
     if (/lesson|lecon|chapter|chapitre/.test(contexte) && nom === 'id') {
       if (lecon) return lecon
-      issue = { nonTeste: 'aucune leçon dans le jeu de cette école' }
+      // K4 : une création de leçon REFUSÉE par le produit est un ROUGE nommé, comme pour les autres objets.
+      issue = jeu.manques?.lecon ? { rouge: `création de leçon refusée dans ce type d’école : ${jeu.manques.lecon}` }
+        : { nonTeste: 'aucune leçon dans le jeu de cette école' }
       return ''
     }
     if (/classe|class/.test(contexte)) return jeu.classes[0]

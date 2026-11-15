@@ -1,19 +1,20 @@
-// K3 (D519, D526) : monte, par les CHEMINS DU PRODUIT (l'API du LMS), l'état qu'exige la seule écriture
-// KLASSCI qui a un écran, la synchronisation des notes :
-//   1. l'enseignant crée la version en ligne de l'évaluation programmée du faux (une question QCM),
-//      puis la publie ;
-//   2. l'élève la démarre, puis remet sa copie.
-// Modèle : e2e/ecole-lms.ps1. Un refus du produit n'est jamais comblé à la main : il est écrit dans
-// `manques` du jeu, et le parcours en fait un ROUGE. Le jeu de l'école KLASSCI est écrit d'abord, pour
-// que le parcours joue toujours.
+// Monte, par les CHEMINS DU PRODUIT (l'API du LMS), l'état de l'école KLASSCI que le parcours visite.
+//   K3 (D519, D526) : l'état qu'exige la synchronisation des notes : l'enseignant crée la version en ligne de
+//     l'évaluation programmée du faux (une question QCM) et la publie ; l'élève la démarre et remet sa copie.
+//   K4 (D609) : le CONTENU DU LMS d'une école KLASSCI : l'enseignant crée une leçon publiée et une leçon brouillon
+//     (après avoir ouvert ses matières, ce qui pose par le produit le miroir de ses classes) ; l'élève crée un
+//     sujet de forum. La SÉANCE, elle, vient de KLASSCI : le faux la sert (`emploi-temps`, forme mesurée).
+// Modèle : e2e/ecole-lms.ps1. Un refus du produit n'est jamais comblé à la main : il est écrit dans `manques` du
+// jeu, et le parcours en fait un ROUGE. Chaque montage est indépendant : un manque n'arrête pas les autres. Le jeu
+// de l'école KLASSCI est écrit d'abord, pour que le parcours joue toujours.
 //
-// Les corps viennent du code du back (origin/lms) : StoreEvaluationRequest:66-94 (questions EN LIGNE,
-// `klassci_evaluation_id`, `klassci_classe_id`), EvaluationStateService::publish, StartEvaluationRequest,
-// SubmitEvaluationRequest (`answers` indexé par l'id de la question).
+// Les corps viennent du code du back (origin/lms) : StoreEvaluationRequest:66-94, EvaluationStateService::publish,
+// StartEvaluationRequest, SubmitEvaluationRequest ; StoreLessonRequest:85-143 (`title`, `type`, `classe_id` local
+// ou KLASSCI) ; StoreForumTopicRequest:17-33 (`title`, `content` de 10 caractères au moins).
 //
 // Usage : node e2e/ecole-klassci-evaluation.mjs <api> <jeu.json en sortie> <journal du faux> <journal du montage>
 import { appendFileSync, writeFileSync } from 'node:fs'
-import { COMPTES, EVALUATION, jeuDuParcours } from './klassci-ecole/jeu.mjs'
+import { COMPTES, EVALUATION, SEANCE, jeuDuParcours } from './klassci-ecole/jeu.mjs'
 
 const [api, fichierJeu, journalFaux, journal] = process.argv.slice(2)
 const MOT_DE_PASSE = process.env.E2E_MOT_DE_PASSE
@@ -23,7 +24,8 @@ if (!api || !fichierJeu || !journalFaux || !journal || !MOT_DE_PASSE) {
 }
 
 const BONNE_REPONSE = '4'
-const jeu = { ...jeuDuParcours(), journal_klassci: journalFaux, manques: {} }
+// La séance vient de KLASSCI (le faux la sert) : aucun montage, son id est celui du jeu.
+const jeu = { ...jeuDuParcours(), journal_klassci: journalFaux, manques: {}, seance: SEANCE.id }
 const ecrire = () => writeFileSync(fichierJeu, JSON.stringify(jeu, null, 2))
 ecrire()
 
@@ -46,40 +48,68 @@ async function essayer(etape, methode, chemin, corps, jeton) {
   return { ok: false, manque: `${methode} ${chemin} a rendu HTTP ${statut} (${etape})` }
 }
 
-const connecter = (etape, email) => essayer(etape, 'POST', '/auth/login', { username: email, password: MOT_DE_PASSE })
+/** Un refus du produit : il arrête le montage en cours, et seulement lui. */
+class Manque extends Error {}
+const exiger = (r) => { if (!r.ok) throw new Manque(r.manque); return r.data }
+const avecId = (data, etape) => { if (data?.id == null) throw new Manque(`réponse sans id (${etape})`); return data.id }
 
-/** Arrête le montage : le refus est un manque, l'objet n'existe pas pour le parcours. */
-function manque(cle, r) {
-  jeu.manques[cle] = r.manque
-  ecrire()
-  console.log(`[ecole-klassci-evaluation] MANQUE ${cle} : ${r.manque}`)
-  process.exit(0)
+const jetons = {}
+async function jetonDe(compte, etape) {
+  jetons[compte] ??= exiger(await essayer(etape, 'POST', '/auth/login', { username: COMPTES[compte].email, password: MOT_DE_PASSE })).token
+  return jetons[compte]
 }
 
-// 1. L'enseignant crée la version en ligne, avec sa question, puis la publie.
-const ens = await connecter('1 connexion enseignant', COMPTES.enseignant.email)
-if (!ens.ok) manque('evaluation', ens)
-const cree = await essayer('2 création', 'POST', '/evaluations', {
-  titre: `${EVALUATION.titre} en ligne`, type: 'qcm', duree_minutes: 60, is_online: true,
-  klassci_evaluation_id: EVALUATION.id, klassci_classe_id: EVALUATION.classe, klassci_matiere_id: EVALUATION.matiere,
-  questions: [{ question: 'Combien font 2 + 2 ?', type: 'qcm', points: 1, options: ['3', BONNE_REPONSE], correct_answers: [BONNE_REPONSE] }],
-}, ens.data.token)
-if (!cree.ok) manque('evaluation', cree)
-const publiee = await essayer('3 publication', 'POST', `/evaluations/${cree.data.id}/publish`, null, ens.data.token)
-if (!publiee.ok) manque('evaluation', publiee)
-jeu.evaluation = cree.data.id
-ecrire()
+async function monter(cle, etapes) {
+  try {
+    await etapes()
+  } catch (e) {
+    if (!(e instanceof Manque)) throw e
+    jeu.manques[cle] = e.message
+    console.log(`[ecole-klassci] MANQUE ${cle} : ${e.message}`)
+  }
+  ecrire()
+}
 
-// 2. L'élève la démarre, puis remet sa copie.
-const eleve = await connecter('4 connexion élève', COMPTES.etudiant.email)
-if (!eleve.ok) manque('copie', eleve)
-const demarree = await essayer('5 démarrage', 'POST', `/evaluations/${cree.data.id}/start`, null, eleve.data.token)
-if (!demarree.ok) manque('copie', demarree)
-const question = cree.data.questions?.[0]?.id
-const remise = await essayer('6 remise', 'POST', `/evaluations/${cree.data.id}/submit`, { answers: { [question]: BONNE_REPONSE } }, eleve.data.token)
-if (!remise.ok) manque('copie', remise)
+// K3. L'enseignant crée la version en ligne et la publie ; l'élève la démarre et remet sa copie.
+let evaluation = null
+await monter('evaluation', async () => {
+  const j = await jetonDe('enseignant', '1 connexion enseignant')
+  const cree = exiger(await essayer('2 création', 'POST', '/evaluations', {
+    titre: `${EVALUATION.titre} en ligne`, type: 'qcm', duree_minutes: 60, is_online: true,
+    klassci_evaluation_id: EVALUATION.id, klassci_classe_id: EVALUATION.classe, klassci_matiere_id: EVALUATION.matiere,
+    questions: [{ question: 'Combien font 2 + 2 ?', type: 'qcm', points: 1, options: ['3', BONNE_REPONSE], correct_answers: [BONNE_REPONSE] }],
+  }, j))
+  exiger(await essayer('3 publication', 'POST', `/evaluations/${cree.id}/publish`, null, j))
+  evaluation = cree
+  jeu.evaluation = cree.id
+})
+if (evaluation) {
+  await monter('copie', async () => {
+    const j = await jetonDe('etudiant', '4 connexion élève')
+    exiger(await essayer('5 démarrage', 'POST', `/evaluations/${evaluation.id}/start`, null, j))
+    const question = evaluation.questions?.[0]?.id
+    exiger(await essayer('6 remise', 'POST', `/evaluations/${evaluation.id}/submit`, { answers: { [question]: BONNE_REPONSE } }, j))
+    // Ce que la synchronisation doit envoyer à KLASSCI : une note, pour l'évaluation programmée.
+    jeu.ecritures = { notes: { evaluation_klassci: EVALUATION.id, titre: EVALUATION.titre, nb_notes: 1 } }
+  })
+}
 
-// Ce que la synchronisation doit envoyer à KLASSCI : une note, pour l'évaluation programmée.
-jeu.ecritures = { notes: { evaluation_klassci: EVALUATION.id, titre: EVALUATION.titre, nb_notes: 1 } }
-ecrire()
-console.log(`[ecole-klassci-evaluation] évaluation ${cree.data.id} publiée, 1 copie remise`)
+// K4. Les leçons : l'enseignant ouvre ses matières (le produit pose le miroir de ses classes,
+// MyMatieresQueryService:71-78), puis crée une leçon publiée et une leçon brouillon dans la classe KLASSCI 9101.
+await monter('lecon', async () => {
+  const j = await jetonDe('enseignant', '7 connexion enseignant')
+  exiger(await essayer('8 matières de l’enseignant', 'GET', '/lms/teacher/my-matieres', null, j))
+  // Le titre est en français : une valeur d'énumération dans un titre (« published ») serait lue comme un texte brut.
+  const lecon = (statut, titre, etape) => essayer(etape, 'POST', '/lessons', { title: titre, type: 'cours', classe_id: EVALUATION.classe, status: statut, description: 'Lecon fictive de l E2E.' }, j)
+  const publiee = avecId(exiger(await lecon('published', 'Lecon K E2E, la lecture', '9 leçon publiée')), '9 leçon publiée')
+  const brouillon = avecId(exiger(await lecon('draft', 'Lecon K E2E, en preparation', '10 leçon brouillon')), '10 leçon brouillon')
+  jeu.lecons = { publiee, brouillon }
+})
+
+// K4. Le sujet de forum : l'élève le crée (tout compte de l'école le peut, StoreForumTopicRequest:17-33).
+await monter('sujet', async () => {
+  const j = await jetonDe('etudiant', '11 connexion élève')
+  jeu.sujet = avecId(exiger(await essayer('12 sujet', 'POST', '/forum/topics', { title: 'Sujet K E2E', content: 'Un sujet fictif de l E2E, pour la mesure.' }, j)), '12 sujet')
+})
+
+console.log(`[ecole-klassci] montage fini ; manques : ${JSON.stringify(jeu.manques)}`)
