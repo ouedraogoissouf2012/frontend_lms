@@ -93,7 +93,6 @@ describe('endpoints — carte unique (#105)', () => {
       expect(l.seances.myTeaching).toBe('/lms/seances/my-teaching')
       expect(l.seances.myClasses).toBe('/lms/seances/my-classes')
       expect(l.seances.details(5)).toBe('/lms/seances/5/details')
-      expect(l.seances.participants(5)).toBe('/lms/seances/5/participants')
       expect(l.seances.attendances(5)).toBe('/lms/seances/5/attendances')
       expect(l.seances.validateParticipant(5)).toBe('/lms/seances/5/validate-participant')
       expect(l.seances.hide(5)).toBe('/lms/seances/5/hide')

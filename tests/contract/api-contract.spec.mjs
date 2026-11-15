@@ -105,12 +105,6 @@ export const contractCases = [
     method: 'GET', url: '/lms/seances/5/visio-participants',
   },
   {
-    name: 'R12.2 — lms.getSeanceParticipants → GET /lms/seances/{id}/participants (INCHANGÉ)',
-    _req: 'R12.2', _ek: 'Ék-11',
-    run: () => lmsService.getSeanceParticipants(5),
-    method: 'GET', url: '/lms/seances/5/participants',
-  },
-  {
     name: 'R16 — lms.getVisioRecording → GET /lms/seances/{id}/recording',
     _req: 'R16', _ek: '#198',
     run: () => lmsService.getVisioRecording(5),

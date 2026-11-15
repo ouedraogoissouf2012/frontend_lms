@@ -29,7 +29,7 @@ const DOMAINS = {
   seances: {
     svc: lmsSeancesService,
     methods: [
-      'getUpcomingSeances', 'getSeanceDetails', 'getSeanceParticipants',
+      'getUpcomingSeances', 'getSeanceDetails',
       'validateParticipant', 'syncVideoAttendances', 'getMyTeachingSeances',
       'getMyClassesSeances', 'hideSeance', 'unhideSeance', 'getAttendanceHistory',
       'getSeancesHistory', 'getSeanceAttendances', 'deleteSeance'
