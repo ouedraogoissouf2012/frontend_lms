@@ -69,7 +69,7 @@ export function moteurFonctionnel({ ecole, fonction }) {
     } catch (e) {
       return ranger('NON TESTÉ', { defaut: `relecture impossible (outil) : ${message(e)}`, api })
     }
-    return relu?.confirme !== false
+    return relu?.confirme === true
       ? ranger('VERT', { preuve: relu.preuve ?? null, api })
       : ranger('ROUGE', { defaut: `la relecture contredit l'action : ${relu?.ecart ?? 'aucun écart nommé'}`, api })
   }
