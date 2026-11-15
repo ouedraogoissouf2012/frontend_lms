@@ -36,5 +36,18 @@ export async function refusServeur(page, reponse, quoi) {
   return r.status() >= 400 ? { rouge: `${quoi} refusé par le serveur (HTTP ${r.status()}) : ${await ditLEcran(page)}` } : null
 }
 
+/**
+ * Le formulaire d'un NOUVEAU chapitre, sur la page des chapitres. On attend que la liste soit RENDUE (le
+ * champ du titre ou « + Ajouter un chapitre ») avant de décider : sans chapitre, le produit ouvre seul le
+ * formulaire du premier ; décider avant le rendu en ouvrait un SECOND (E2E 43769695409 : deux « Créer »).
+ * @returns {Promise<import('playwright').Locator>} le champ du titre du nouveau chapitre
+ */
+export async function formulaireDeChapitre(page) {
+  const titre = page.getByPlaceholder('saisissez le titre')
+  await titre.or(bouton(page, '+ Ajouter un chapitre')).first().waitFor({ timeout: ATTENTE })
+  if (!(await titre.count())) await bouton(page, '+ Ajouter un chapitre').click()
+  return titre.last()
+}
+
 /** Une lecture d'API qui n'a pas rendu 200, nommée ; null sinon. */
 export const lu = ({ statut }, chemin) => (statut === 200 ? null : `GET ${chemin} rend HTTP ${statut}`)

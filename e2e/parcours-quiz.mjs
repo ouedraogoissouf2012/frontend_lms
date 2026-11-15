@@ -6,7 +6,7 @@
 // (`.chapter-block`), l'éditeur du quiz (`.knowledge-check-editor`) et le bouton radio de la bonne réponse
 // (`input[name="correct-N"]`, sans libellé).
 import { lireApi } from './fonctionnels.mjs'
-import { ATTENTE, bouton, appel, refusServeur, lu } from './gestes.mjs'
+import { ATTENTE, bouton, appel, refusServeur, lu, formulaireDeChapitre } from './gestes.mjs'
 import { ETAPES_LECON } from './parcours-lecon.mjs'
 
 export const AUCUN_CHEMIN_SUPPRESSION_QUIZ = 'aucun chemin d’interface ne supprime un quiz'
@@ -108,9 +108,7 @@ export const ETAPES_QUIZ = Object.freeze([
     async action({ pages, donnees, etat }) {
       const page = pages.enseignant
       await page.waitForLoadState('networkidle', { timeout: ATTENTE }).catch(() => {})
-      const titre = page.getByPlaceholder('saisissez le titre')
-      if (!(await titre.count())) await bouton(page, '+ Ajouter un chapitre').click()
-      await titre.first().fill(donnees.chapitre)
+      await (await formulaireDeChapitre(page)).fill(donnees.chapitre)
       await page.locator('select', { has: page.locator('option', { hasText: 'Quiz / Testez vos connaissances' }) }).first().selectOption('quiz')
       const reponse = appel(page, 'POST', `/lessons/${etat.lecon}/chapters`)
       await page.getByRole('button', { name: 'Créer', exact: true }).click()

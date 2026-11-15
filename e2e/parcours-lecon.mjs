@@ -5,7 +5,7 @@
 // n'ont pas de libellés associés (#563). Deux sélecteurs sont structurels, et déclarés : la carte d'une leçon
 // (`.lesson-card`, sans rôle) et l'éditeur de contenu (`[contenteditable]`, sans rôle ni nom).
 import { lireApi } from './fonctionnels.mjs'
-import { ATTENTE, bouton, nomDeBouton, ditLEcran, appel, refusServeur, lu } from './gestes.mjs'
+import { ATTENTE, bouton, nomDeBouton, ditLEcran, appel, refusServeur, lu, formulaireDeChapitre } from './gestes.mjs'
 
 export const AUCUN_CHEMIN_MODIFICATION = 'aucun chemin d’interface ne modifie le titre ni la description'
 export const CONFIRMATION_SUPPRESSION = 'Êtes-vous sûr de vouloir supprimer cette leçon ?'
@@ -130,10 +130,7 @@ export const ETAPES_LECON = Object.freeze([
     async action({ pages, donnees, etat }) {
       const page = pages.enseignant
       await page.waitForLoadState('networkidle', { timeout: ATTENTE }).catch(() => {})
-      const titre = page.getByPlaceholder('saisissez le titre')
-      // Sans chapitre, le formulaire du premier s'ouvre seul ; sinon « + Ajouter un chapitre ».
-      if (!(await titre.count())) await page.getByRole('button', { name: '+ Ajouter un chapitre' }).click()
-      await titre.first().fill(donnees.chapitre)
+      await (await formulaireDeChapitre(page)).fill(donnees.chapitre)
       await page.locator('[contenteditable="true"]').first().click()
       await page.keyboard.type(donnees.contenu)
       const reponse = appel(page, 'POST', `/lessons/${etat.lecon}/chapters`)
