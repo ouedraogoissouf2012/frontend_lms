@@ -6,8 +6,47 @@
  * composant — comportement et formats d'affichage strictement identiques.
  */
 
+import { dateHeureSeance } from './seanceStatut'
+
 const WINDOW_BEFORE_MS = 15 * 60 * 1000 // -15 min avant le début
 const WINDOW_AFTER_MS = 30 * 60 * 1000 // +30 min après la fin
+
+// Ce que l'écran dit à la place de « Démarrer la visio » quand la fenêtre est passée.
+export const VISIO_SEANCE_PASSEE = 'Séance passée : la visio ne peut plus être démarrée.'
+
+const dateLisible = (valeur) => {
+  const date = valeur ? new Date(valeur) : null
+  return date && !Number.isNaN(date.getTime()) ? date : null
+}
+
+/**
+ * Fin de la fenêtre où la visio peut encore démarrer. Celle du SERVEUR quand la charge la porte
+ * (`end_window`, SeanceVisioEnricher::buildVisioWindow) ; sinon la même règle depuis l'horaire : la fin
+ * de la séance + 30 min (heure ISO de l'école LMS, ou jour + « HH:mm » de KLASSCI, dans `programmation`
+ * ou à la racine). Null si l'horaire est illisible : rien n'est inventé.
+ * @param {Object} seance
+ * @returns {Date|null}
+ */
+export function finDeFenetreVisio(seance) {
+  const serveur = seance?.visio_window?.end_window ?? seance?.visio?.window?.end_window
+  if (serveur) return dateLisible(serveur)
+  const p = seance?.programmation ?? {}
+  const fin = dateHeureSeance(p.date ?? p.date_seance ?? seance?.date_seance, p.heure_fin ?? seance?.heure_fin) ??
+    dateLisible(seance?.date_fin)
+  return fin ? new Date(fin.getTime() + WINDOW_AFTER_MS) : null
+}
+
+/**
+ * Vrai si la visio ne peut plus démarrer : la fenêtre est passée. Un horaire illisible n'est jamais
+ * « passé » : le bouton reste, et le serveur tranche.
+ * @param {Object} seance
+ * @param {Date} [now]
+ * @returns {boolean}
+ */
+export function visioPassee(seance, now = new Date()) {
+  const fin = finDeFenetreVisio(seance)
+  return fin !== null && now > fin
+}
 
 /**
  * Formate un timestamp ISO en heure locale FR (HH:MM), ou 'N/A' si absent.

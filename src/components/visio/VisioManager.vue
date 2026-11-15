@@ -37,9 +37,13 @@
         Séance programmée: {{ formatTime(seance.programmation.heure_debut) }} - {{ formatTime(seance.programmation.heure_fin) }}
       </div>
 
-      <!-- Bouton Démarrer (toujours actif pour l'enseignant) -->
+      <!-- Séance passée : le bouton n'est plus proposé, l'écran dit pourquoi (même fenêtre que le serveur). -->
+      <p v-if="seance.visio_enabled && !seance.visio_active && visioPassee" class="text-sm text-gray-600">
+        {{ VISIO_SEANCE_PASSEE }}
+      </p>
+      <!-- Bouton Démarrer : actif pour l'enseignant jusqu'à la fin de la fenêtre (fin + 30 min) -->
       <button
-        v-if="seance.visio_enabled && !seance.visio_active"
+        v-else-if="seance.visio_enabled && !seance.visio_active"
         @click="demarrerVisio"
         :disabled="loading"
         class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
@@ -140,7 +144,7 @@ import { auth } from '@/services/api'
 import { cleanupExpiredVisioParticipations } from '@/utils/visioParticipationCleanup'
 import ParticipantsModal from './ParticipantsModal.vue'
 import { VISIO_CONFIG } from '@/constants/visio'
-import { formatVisioTime, isInTimeWindow, timeWindowMessage } from '@/utils/visioTimeWindow'
+import { formatVisioTime, isInTimeWindow, timeWindowMessage, visioPassee, VISIO_SEANCE_PASSEE } from '@/utils/visioTimeWindow'
 import { useVisioActions } from '@/composables/useVisioActions'
 import { hasRole, isStudent as roleIsStudent, isTeacher as roleIsTeacher, ROLES } from '@/constants/roles'
 
@@ -200,7 +204,11 @@ export default {
     },
     timeWindowMessage() {
       return timeWindowMessage(this.seance, this.currentTime)
-    }
+    },
+    visioPassee() {
+      return visioPassee(this.seance, this.currentTime)
+    },
+    VISIO_SEANCE_PASSEE: () => VISIO_SEANCE_PASSEE
   },
   mounted() {
     // Rafraîchir l'heure actuelle toutes les 30 secondes
