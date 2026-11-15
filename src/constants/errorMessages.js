@@ -74,6 +74,7 @@ export const ERROR_MESSAGES = Object.freeze({
   visioNotEnabled: "La visioconférence n'est pas activée pour cette séance.",
   visioNotStarted: "La visioconférence n'a pas encore commencé. Attendez que l'enseignant la démarre.",
   visioEnded: 'La visioconférence est terminée.',
+  visioSeancePassee: 'Cette séance est passée : sa visio ne peut plus être démarrée ni rejointe.',
   visioTeacherNotOwner: "Vous n'êtes pas l'enseignant de cette séance : vous ne pouvez pas en rejoindre la visioconférence.",
   visioRoleRefused: 'Votre rôle ne permet pas de rejoindre cette visioconférence.',
   // tenant_not_resolved : le COMPTE n'a pas d'établissement ; se reconnecter n'y change rien.

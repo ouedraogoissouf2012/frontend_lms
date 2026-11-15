@@ -36,6 +36,8 @@ export const REASONS = Object.freeze({
   // VisioStatusRefusal (serveur) : attendre (`visio_not_started`) ou renoncer (`visio_ended`).
   visio_not_started: motif('visioNotStarted'),
   visio_ended: motif('visioEnded'),
+  // La fenêtre de démarrage est passée (fin + 30 min, SeanceVisioEnricher::buildVisioWindow) : 409.
+  seance_past: motif('visioSeancePassee'),
   teacher_not_owner: motif('visioTeacherNotOwner'),
   actor_not_authorized: motif('visioRoleRefused'),
   invalid_role: motif('visioRoleRefused'),
