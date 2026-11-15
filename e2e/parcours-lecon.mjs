@@ -183,9 +183,13 @@ export const ETAPES_LECON = Object.freeze([
       const { carte, rouge } = await carteDansLaMatiere(ctx)
       if (rouge) return { rouge }
       const page = ctx.pages.enseignant
+      const avant = page.url()
       await bouton(carte, 'Modifier').click()
-      await page.waitForLoadState('networkidle', { timeout: ATTENTE }).catch(() => {})
-      const champ = await page.locator('input, textarea').evaluateAll((els, t) => els.some((e) => e.value === t), ctx.donnees.titre)
+      // Navigation côté client : `networkidle` est DÉJÀ atteint pour ce document, il n'attendrait rien
+      // (E2E 43762204617 lisait encore /matieres/:id). On attend que l'URL change, puis un champ du titre.
+      await page.waitForURL((u) => u.href !== avant, { timeout: ATTENTE }).catch(() => {})
+      const champ = await page.waitForFunction((t) => [...document.querySelectorAll('input, textarea')].some((e) => e.value === t),
+        ctx.donnees.titre, { timeout: ATTENTE }).then(() => true, () => false)
       return jugerModification(champ, new URL(page.url()))
     },
     // Jouée seulement quand un champ du titre existera (#564) : la leçon relue doit porter le titre modifié.
