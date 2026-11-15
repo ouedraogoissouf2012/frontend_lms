@@ -66,3 +66,14 @@ export function verdictCapacite(route, capacites, ouvert, arrivee) {
   }
   return null
 }
+
+// D625 (D57) : l'élève INACTIF n'a aucun accès, décision du user. Ses écrans qui disent ce refus sont des refus
+// ATTENDUS : VERT « refus tenu » quand l'écran le dit, ROUGE sinon. Par COMPTE, l'élève inactif partageant son rôle.
+const ECRANS_SANS_ACCES_INACTIF = ['/student/dashboard', '/student/lessons/:id', '/lessons/:id', '/matieres/:id', '/classes/:id', '/classes/local/:id', '/seances/:id']
+export const REFUS_ATTENDUS = Object.freeze(ECRANS_SANS_ACCES_INACTIF.map((chemin) => Object.freeze({ compte: 'etudiant_inactif', chemin, regle: 'D57 : élève inactif sans accès' })))
+export const refusAttendu = (compte, route) => REFUS_ATTENDUS.find((r) => r.compte === compte && r.chemin === route.chemin) ?? null
+
+/** D625 : un écran sans sujet dans cette école (une classe LOCALE dans une école KLASSCI) : son motif, ou null. */
+export function nonApplicable(route, jeu) {
+  return jeu?.ecole === 'klassci' && /\/local\//.test(route.chemin) ? 'aucune classe locale dans une école KLASSCI' : null
+}

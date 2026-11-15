@@ -9,7 +9,7 @@ import { chromium } from 'playwright'
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { routeurFerme, ouverte, sansObjetSansVisite, refusD56, refusServeur, verdictCapacite } from './acces.mjs'
+import { routeurFerme, ouverte, sansObjetSansVisite, refusD56, refusServeur, verdictCapacite, refusAttendu, nonApplicable } from './acces.mjs'
 import { BRUT, ECRAN_ERREUR, ecartsDeValeur, textesDErreur, erreurAffichee, appels4xx } from './ecran.mjs'
 import { verifsEcoleLms } from './verifs-ecole-lms.mjs'
 import { verifsEcoleKlassci } from './verifs-ecole-klassci.mjs'
@@ -54,6 +54,9 @@ const OBJETS = [
  */
 function concret(route, role, attendu) {
   if (!route.chemin.includes(':')) return { chemin: route.chemin }
+  // D625 : un écran sans sujet dans cette école (une classe locale dans une école KLASSCI) n'est pas visité.
+  const sansSujet = nonApplicable(route, jeu)
+  if (sansSujet) return { nonTeste: sansSujet }
   const lecon = role === 'etudiant' ? jeu.lecons?.publiee : jeu.lecons?.brouillon
   const contexte = `${route.chemin} ${route.nom ?? ''}`.toLowerCase()
   let issue = null
@@ -152,6 +155,14 @@ for (const { compte, email, role } of COMPTES) {
     // D607 : un écran gardé par une capacité que l'école DÉCLARE : refus tenu (VERT) ou non tenu (ROUGE).
     const parCapacite = attendu && route.capacite ? verdictCapacite(route, jeu.capacites, final === chemin, final) : null
     if (parCapacite) { resultats.push({ ...cas, ...parCapacite, capture }); continue }
+    // D625 (D57) : un refus ATTENDU (l'élève inactif) : VERT si l'écran le dit, avec le motif affiché ; ROUGE sinon.
+    const refus = attendu ? refusAttendu(compte, route) : null
+    if (refus) {
+      const dit = alertes[0] || erreurAffichee(texte, TEXTES_ERREUR)
+      resultats.push({ ...cas, attendu: 'refusé', verdict: dit ? 'VERT' : 'ROUGE', capture, note: appels4xx(evenements.api).join(', ') || null,
+        defaut: dit ? `refus tenu (${refus.regle}) : « ${dit.slice(0, 160)} »` : `refus attendu (${refus.regle}), mais l’écran ne le dit pas` })
+      continue
+    }
     const defauts = []
     if (attendu) {
       if (final !== chemin) {
