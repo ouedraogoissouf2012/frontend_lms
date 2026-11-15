@@ -95,7 +95,7 @@ export function createEmptyLesson(classes = []) {
     niveau_difficulte: 'debutant',
     objectifs_pedagogiques: '',
     duree_estimee_minutes: null,
-    classe_id: classes?.length >= 1 ? classes[0].id : null
+    classe_id: classes?.length === 1 ? classes[0].id : null
   }
 }
 
