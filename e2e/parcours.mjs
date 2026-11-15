@@ -14,6 +14,7 @@ import { BRUT, ECRAN_ERREUR, ecartsDeValeur, textesDErreur, erreurAffichee, appe
 import { verifsEcoleLms } from './verifs-ecole-lms.mjs'
 import { verifsEcoleKlassci } from './verifs-ecole-klassci.mjs'
 import { synchroniserLesNotes } from './actions.mjs'
+import { connecter } from './connexion.mjs'
 
 const [fichierRoutes, fichierJeu, sortie, racineFront] = process.argv.slice(2)
 // D616 : les textes d'erreur viennent du catalogue du front MESURÉ. Sans lui, le parcours ne prétend rien juger.
@@ -104,12 +105,7 @@ for (const { compte, email, role } of COMPTES) {
 
   // Connexion par l'ÉCRAN.
   evenements = nouveaux()
-  await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' })
-  await page.fill('#username', email)
-  await page.fill('#password', MOT_DE_PASSE)
-  await page.click('button[type="submit"]')
-  const connecte = await page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 30000 }).then(() => true, () => false)
-  const alerteConnexion = connecte ? '' : (await page.locator('[role="alert"]').allInnerTexts()).join(' ').trim()
+  const { connecte, alerte: alerteConnexion } = await connecter(page, BASE, email, MOT_DE_PASSE)
   resultats.push({ compte, role, chemin: '/login (connexion)', verdict: connecte ? 'VERT' : 'ROUGE',
     defaut: connecte ? null : `connexion impossible : « ${alerteConnexion || 'aucun message'} »`, api: evenements.api })
   if (!connecte) { await contexte.close(); continue }
