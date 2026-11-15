@@ -93,7 +93,6 @@ describe('endpoints — carte unique (#105)', () => {
       expect(l.seances.myTeaching).toBe('/lms/seances/my-teaching')
       expect(l.seances.myClasses).toBe('/lms/seances/my-classes')
       expect(l.seances.details(5)).toBe('/lms/seances/5/details')
-      expect(l.seances.participants(5)).toBe('/lms/seances/5/participants')
       expect(l.seances.attendances(5)).toBe('/lms/seances/5/attendances')
       expect(l.seances.validateParticipant(5)).toBe('/lms/seances/5/validate-participant')
       expect(l.seances.hide(5)).toBe('/lms/seances/5/hide')
@@ -213,7 +212,7 @@ describe('endpoints — carte unique (#105)', () => {
         '/lms/enseignants', '/lms/classes/:id', '/lms/classes/:id/etudiants',
         '/lms/matieres/:id', '/lms/teacher/my-matieres', '/lms/seances/upcoming',
         '/lms/seances/history', '/lms/seances/my-teaching', '/lms/seances/my-classes',
-        '/lms/seances/:id/details', '/lms/seances/:id/participants',
+        '/lms/seances/:id/details',
         '/lms/seances/:id/attendances', '/lms/seances/:id/validate-participant',
         '/lms/seances/:id/hide', '/lms/seances/:id/unhide', '/lms/seances/:id',
         '/lms/seances/:id/toggle-visio', '/lms/seances/:id/activate-visio',

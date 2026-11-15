@@ -42,7 +42,6 @@
   "GET /lms/seances/upcoming",
   "GET /lms/seances/{}/attendances",
   "GET /lms/seances/{}/details",
-  "GET /lms/seances/{}/participants",
   "GET /lms/seances/{}/recording",
   "GET /lms/seances/{}/visio-participants",
   "GET /lms/teacher/classes",

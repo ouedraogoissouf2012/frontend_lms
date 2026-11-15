@@ -144,7 +144,6 @@ export const lmsVisioService = {
 
   /**
    * Récupérer la liste des participants CONNECTÉS à une visio.
-   * NE PAS confondre avec lmsSeancesService.getSeanceParticipants (participants AUTORISÉS).
    * @param {number} seanceId
    * @returns {Promise<Object>}
    */

@@ -47,21 +47,6 @@ export const lmsSeancesService = {
   },
 
   /**
-   * Récupérer participants AUTORISÉS d'une séance.
-   * NE PAS confondre avec lmsVisioService.getVisioParticipants (participants CONNECTÉS).
-   * @param {number} seanceId
-   * @returns {Promise<Object>} { teacher, students, total }
-   */
-  async getSeanceParticipants(seanceId) {
-    try {
-      return await api.get(endpoints.lms.seances.participants(seanceId))
-    } catch (error) {
-      console.error('Erreur récupération participants séance:', error)
-      throw error
-    }
-  },
-
-  /**
    * Valider l'accès d'un participant à une séance
    * @param {number} seanceId
    * @param {number} userId
