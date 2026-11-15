@@ -193,6 +193,12 @@ jobs:
           # D616 : le 4e argument est la racine du front MESURÉ : ses textes d'erreur jugent les écrans.
           en_e2e node "$PWD/outils/parcours.mjs" "$PWD/sortie/routes.json" "$PWD/sortie/jeu.json" "$PWD/sortie" "$PWD/front"
 
+      # Les parcours FONCTIONNELS (PR 1 : la leçon) : chaque action par l'interface est RELUE (API ou écran suivant).
+      - name: Parcours fonctionnels de l'école LMS (chromium, sous e2e)
+        run: |
+          . "$RUNNER_TEMP/en_e2e.sh"
+          en_e2e node "$PWD/outils/parcours-fonctionnels.mjs" "$PWD/sortie/jeu.json" "$PWD/sortie"
+
       - name: Parcours de l'école KLASSCI (K1, chromium, sous e2e)
         run: |
           mkdir -p sortie/klassci && chmod 777 sortie/klassci
@@ -202,6 +208,11 @@ jobs:
           # (création, publication, démarrage, remise) ; un refus y devient un manque, donc un ROUGE.
           en_e2e node "$PWD/mesure/e2e/ecole-klassci-evaluation.mjs" http://127.0.0.1:8000/api "$PWD/sortie/jeu-klassci.json" "$PWD/sortie/faux-klassci-ecole.jsonl" "$PWD/sortie/ecole-klassci-evaluation.log"
           en_e2e node "$PWD/outils/parcours.mjs" "$PWD/sortie/routes.json" "$PWD/sortie/jeu-klassci.json" "$PWD/sortie/klassci" "$PWD/front"
+
+      - name: Parcours fonctionnels de l'école KLASSCI (chromium, sous e2e)
+        run: |
+          . "$RUNNER_TEMP/en_e2e.sh"
+          en_e2e node "$PWD/outils/parcours-fonctionnels.mjs" "$PWD/sortie/jeu-klassci.json" "$PWD/sortie/klassci"
 
       - name: Résumé, sorties réseau et appels à KLASSCI
         if: always()
@@ -223,6 +234,8 @@ jobs:
             echo '```'
             cat sortie/resume.md 2>/dev/null || echo "(pas de résumé du parcours)"
             cat sortie/klassci/resume.md 2>/dev/null || echo "(pas de résumé du parcours de l'école KLASSCI)"
+            cat sortie/fonctionnels.md 2>/dev/null || echo "(pas de parcours fonctionnels de l'école LMS)"
+            cat sortie/klassci/fonctionnels.md 2>/dev/null || echo "(pas de parcours fonctionnels de l'école KLASSCI)"
           } | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Artefacts (données fictives seulement)
@@ -234,6 +247,8 @@ jobs:
             sortie/resultats.json
             sortie/versions.json
             sortie/resume.md
+            sortie/fonctionnels.json
+            sortie/fonctionnels.md
             sortie/captures/
             sortie/ecole-lms.log
             sortie/faux-klassci.jsonl
@@ -242,6 +257,8 @@ jobs:
             sortie/faux-klassci-ecole.jsonl
             sortie/klassci/resultats.json
             sortie/klassci/resume.md
+            sortie/klassci/fonctionnels.json
+            sortie/klassci/fonctionnels.md
             sortie/klassci/captures/
             sortie/routes.json
           retention-days: 7
