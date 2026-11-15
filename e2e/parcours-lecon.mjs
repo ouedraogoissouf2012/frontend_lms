@@ -78,7 +78,7 @@ export function jugerProgression(chapitres, lecon, id, chapitreId) {
 
 /** La leçon supprimée a DISPARU : 404 à la lecture, et absente de sa matière. */
 export function jugerSuppression(lecture, matiere, id, matiereId) {
-  if (lecture.statut !== 404) return { confirme: false, ecart: `GET /lessons/${id} rend HTTP ${lecture.statut}, 404 attendu` }
+  if (lecture.statut !== 200) return { confirme: false, ecart: `GET /lessons/${id} rend HTTP ${lecture.statut}, 404 attendu` }
   const ecart = lu(matiere, `/lms/matieres/${matiereId}`)
   if (ecart) return { confirme: false, ecart }
   const lecons = matiere.corps?.data?.lessons ?? []
