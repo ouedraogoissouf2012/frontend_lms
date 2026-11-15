@@ -217,7 +217,8 @@ jobs:
             echo '```'
             echo "### Appels reçus par le faux KLASSCI « école » : $(wc -l < sortie/faux-klassci-ecole.jsonl 2>/dev/null || echo 0)"
             echo '```'
-            jq -r '"\(.statut) \(.methode) \(.chemin)"' sortie/faux-klassci-ecole.jsonl 2>/dev/null | sed -E 's#/[0-9]+#/{id}#g' | sort | uniq -c || true
+            # D584 : chaque route dit si la forme servie est mesurée (cache de DEV) ou non vérifiée.
+            jq -r '"\(.statut) \(.methode) \(.chemin) [\(.forme // "?")]"' sortie/faux-klassci-ecole.jsonl 2>/dev/null | sed -E 's#/[0-9]+#/{id}#g' | sort | uniq -c || true
             echo '```'
             cat sortie/resume.md 2>/dev/null || echo "(pas de résumé du parcours)"
             cat sortie/klassci/resume.md 2>/dev/null || echo "(pas de résumé du parcours de l'école KLASSCI)"
