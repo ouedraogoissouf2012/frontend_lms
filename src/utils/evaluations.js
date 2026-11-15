@@ -17,18 +17,25 @@
  * (version en ligne = elle-même). `cle` porte la famille (`klassci-<id>`, `lms-<id>`) : les deux
  * espaces d'ids peuvent se recouvrir, la clé d'une liste ne le doit pas.
  *
- * K3 (D526) : `can_sync_grades` (le bouton « Synchroniser les notes ») est NORMALISÉ ici, depuis le droit
- * que la source envoie : `lms_integration.can_submit_notes` (charge capturée, TEACHER_DASHBOARD). La
- * source n'envoie aucun `can_sync_grades` : lu tel quel, le bouton ne s'affichait jamais. Une évaluation
- * locale n'a rien à synchroniser.
+ * K3 (D526, D588) : `can_sync_grades` (le bouton « Synchroniser les notes ») est NORMALISÉ ici. La source n'envoie
+ * aucun `can_sync_grades`. Le tableau de bord porte le droit (`lms_integration.can_submit_notes`), mais la LISTE
+ * réelle (`GET evaluations`) ne le porte pas (forme mesurée, D582) : quand la source le porte, il fait foi ; sinon
+ * on ne bloque pas, et le bouton dépend de la version en ligne et des copies remises (le serveur tranche). Le sens
+ * de `has_online_version`, `notes_published` et `can_execute_online` n'est pas établi : ils ne sont pas lus. Une
+ * évaluation locale n'a rien à synchroniser.
  */
+function droitDeSynchroniser(evaluation) {
+  const droit = evaluation.lms_integration?.can_submit_notes
+  return typeof droit === 'boolean' ? droit : true
+}
+
 export function mergeWithOnlineVersions(klassci = [], lms = []) {
   const programmees = klassci.map((evaluation) => ({
     ...evaluation,
     cle: `klassci-${evaluation.id}`,
     online_version: lms.find((e) => e.klassci_evaluation_id === evaluation.id),
     has_online: lms.some((e) => e.klassci_evaluation_id === evaluation.id),
-    can_sync_grades: evaluation.lms_integration?.can_submit_notes === true
+    can_sync_grades: droitDeSynchroniser(evaluation)
   }))
   const locales = lms
     .filter((e) => e.klassci_evaluation_id == null)
