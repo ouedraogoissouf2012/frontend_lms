@@ -10,7 +10,12 @@
 
 export const VERDICTS = Object.freeze(['VERT', 'ROUGE', 'NON TESTÉ'])
 
-const message = (e) => String(e?.message ?? e).split('\n')[0].slice(0, 200)
+// La 1re ligne d'une erreur, et la ligne « waiting for … » du journal de Playwright : ce que l'outil attendait.
+const message = (e) => {
+  const lignes = String(e?.message ?? e).split('\n')
+  const attente = lignes.find((l) => /waiting for /.test(l))?.trim().replace(/^- /, '')
+  return `${lignes[0]}${attente ? ` — ${attente}` : ''}`.slice(0, 300)
+}
 
 /**
  * Le moteur d'une fonction, pour une école.

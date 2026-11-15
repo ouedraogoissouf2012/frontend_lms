@@ -5,7 +5,7 @@
  */
 import { describe, it, expect } from 'vitest'
 import {
-  ETAPES_LECON, DONNEES_LECON, AUCUN_CHEMIN_MODIFICATION,
+  ETAPES_LECON, DONNEES_LECON, AUCUN_CHEMIN_MODIFICATION, nomDeBouton,
   jugerLecon, jugerClasse, jugerChapitre, jugerModification, jugerProgression, jugerSuppression,
 } from '../../e2e/parcours-lecon.mjs'
 
@@ -40,6 +40,18 @@ describe('parcours-lecon — les étapes et ce qu’elles requièrent', () => {
 
   it('les données fictives ne portent aucun mot d’énumération (lu comme un texte brut)', () => {
     expect(Object.values(DONNEES_LECON).join(' ')).not.toMatch(/\b(published|draft|archived|completed)\b/i)
+  })
+})
+
+describe('parcours-lecon — un bouton par son texte visible (E2E 43759530997)', () => {
+  it('l’icône de police entre dans le nom accessible : « \\uf040 Modifier » est le bouton « Modifier »', () => {
+    expect(nomDeBouton('Modifier').test(' Modifier')).toBe(true)
+    expect(nomDeBouton('Supprimer').test('Supprimer')).toBe(true)
+  })
+
+  it('« Publier » ne prend ni « Dépublier » ni un texte plus long', () => {
+    expect(nomDeBouton('Publier').test(' Dépublier')).toBe(false)
+    expect(nomDeBouton('Publier').test('Publier la leçon')).toBe(false)
   })
 })
 

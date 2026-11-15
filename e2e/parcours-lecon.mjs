@@ -97,6 +97,14 @@ async function ditLEcran(page) {
   return textes.length ? `« ${textes.join(' | ').slice(0, 200)} »` : 'aucun message affiché'
 }
 
+/**
+ * Un bouton par son texte visible. Une icône de police (`<i class="fa …">`) ajoute son caractère au nom
+ * accessible (« \uf040 Modifier ») : le texte doit FINIR le nom, précédé au plus de ce caractère et d'un espace.
+ * « Publier » ne prend donc pas « Dépublier ».
+ */
+export const nomDeBouton = (texte) => new RegExp(`^(\\S\\s+)?${texte}$`)
+const bouton = (lieu, texte) => lieu.getByRole('button', { name: nomDeBouton(texte) })
+
 /** L'attente d'un appel, posée AVANT le geste. Marquée gérée : un geste qui échoue ne laisse pas de rejet orphelin. */
 function appel(page, methode, chemin) {
   const attente = page.waitForResponse((r) => r.request().method() === methode && new URL(r.url()).pathname === `/api${chemin}`, { timeout: ATTENTE })
@@ -175,7 +183,7 @@ export const ETAPES_LECON = Object.freeze([
       const { carte, rouge } = await carteDansLaMatiere(ctx)
       if (rouge) return { rouge }
       const page = ctx.pages.enseignant
-      await carte.getByRole('button', { name: 'Modifier', exact: true }).click()
+      await bouton(carte, 'Modifier').click()
       await page.waitForLoadState('networkidle', { timeout: ATTENTE }).catch(() => {})
       const champ = await page.locator('input, textarea').evaluateAll((els, t) => els.some((e) => e.value === t), ctx.donnees.titre)
       return jugerModification(champ, new URL(page.url()))
@@ -189,7 +197,7 @@ export const ETAPES_LECON = Object.freeze([
       const { carte, rouge } = await carteDansLaMatiere(ctx)
       if (rouge) return { rouge }
       const reponse = appel(ctx.pages.enseignant, 'POST', `/lessons/${ctx.etat.lecon}/publish`)
-      await carte.getByRole('button', { name: 'Publier', exact: true }).click()
+      await bouton(carte, 'Publier').click()
       return (await refusServeur(ctx.pages.enseignant, reponse, 'la publication')) ?? {}
     },
     relecture: async ({ pages, donnees, etat }) => jugerLecon(await lireApi(pages.enseignant, `/lessons/${etat.lecon}`), etat.lecon, { titre: donnees.titre, statut: 'published' }),
@@ -238,10 +246,10 @@ export const ETAPES_LECON = Object.freeze([
       const { carte, rouge } = await carteDansLaMatiere(ctx)
       if (rouge) return { rouge }
       const page = ctx.pages.enseignant
-      await carte.getByRole('button', { name: 'Supprimer', exact: true }).click()
+      await bouton(carte, 'Supprimer').click()
       const reponse = appel(page, 'DELETE', `/lessons/${ctx.etat.lecon}`)
       // La confirmation est téléportée hors de #app : seuls ses ancêtres portent son message.
-      await page.locator('div', { hasText: CONFIRMATION_SUPPRESSION }).getByRole('button', { name: 'Supprimer', exact: true }).first().click()
+      await page.locator('div', { hasText: CONFIRMATION_SUPPRESSION }).getByRole('button', { name: nomDeBouton('Supprimer') }).first().click()
       return (await refusServeur(page, reponse, 'la suppression')) ?? {}
     },
     relecture: async ({ pages, jeu, etat }) => jugerSuppression(

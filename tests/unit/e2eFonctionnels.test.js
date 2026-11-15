@@ -47,6 +47,12 @@ describe('fonctionnels.mjs — le verdict vient de la relecture', () => {
     expect(c.defaut).toBe('échec de l\'outil pendant l\'action (sélecteur ou attente) : Timeout 20000ms exceeded.')
   })
 
+  it('l’échec de l’outil garde ce que Playwright attendait (la ligne « waiting for »)', async () => {
+    const erreur = new Error("locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByRole('button', { name: 'Publier' })")
+    const c = await nouveau().etape({ cle: 'creer', compte: 'enseignant', libelle: 'créer', action: async () => { throw erreur }, relecture: confirme })
+    expect(c.defaut).toBe("échec de l'outil pendant l'action (sélecteur ou attente) : locator.click: Timeout 30000ms exceeded. — waiting for getByRole('button', { name: 'Publier' })")
+  })
+
   it('une relecture impossible (outil) : NON TESTÉ nommé', async () => {
     const c = await nouveau().etape({ cle: 'creer', compte: 'enseignant', libelle: 'créer', action: fait, relecture: async () => { throw new Error('fetch failed') } })
     expect(c).toMatchObject({ verdict: 'NON TESTÉ', defaut: 'relecture impossible (outil) : fetch failed' })
