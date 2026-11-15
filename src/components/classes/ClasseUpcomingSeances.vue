@@ -17,7 +17,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               {{ formatDate(seance.programmation?.date) }} | {{ formatTime(seance.programmation?.heure_debut) }} - {{ formatTime(seance.programmation?.heure_fin) }}
-              <span class="text-gray-400">({{ finEstimee(seance) ? 'durée estimée' : `${calculateDuration(seance)} min` }})</span>
+              <!-- D619 : une durée illisible (null) ne s'affiche pas ; jamais « NaN min ». -->
+              <span v-if="finEstimee(seance) || calculateDuration(seance) != null" class="text-gray-400">({{ finEstimee(seance) ? 'durée estimée' : `${calculateDuration(seance)} min` }})</span>
             </p>
 
             <div class="flex items-center gap-4 mt-2 text-sm text-gray-600">
