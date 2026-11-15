@@ -2,7 +2,8 @@
   <DashboardLayout>
     <div class="join-container">
       <h1 class="page-title">Rejoindre une classe</h1>
-      <p class="page-subtitle">Saisissez le code que votre formateur vous a donné.</p>
+      <!-- D625 : une consigne, jamais identique à l'erreur de saisie vide (ERROR_MESSAGES.codeVide). -->
+      <p class="page-subtitle">Entrez ici le code d'inscription remis par votre formateur.</p>
 
       <form class="join-card" @submit.prevent="rejoindre">
         <label for="code-inscription">Code d'inscription</label>
