@@ -8,13 +8,18 @@
 import { chromium } from 'playwright'
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { routeurFerme, ouverte, sansObjetSansVisite, refusD56, refusServeur, verdictCapacite } from './acces.mjs'
-import { BRUT, ECRAN_ERREUR, ecartsDeValeur } from './ecran.mjs'
+import { BRUT, ECRAN_ERREUR, ecartsDeValeur, textesDErreur, erreurAffichee, appels4xx } from './ecran.mjs'
 import { verifsEcoleLms } from './verifs-ecole-lms.mjs'
 import { verifsEcoleKlassci } from './verifs-ecole-klassci.mjs'
 import { synchroniserLesNotes } from './actions.mjs'
 
-const [fichierRoutes, fichierJeu, sortie] = process.argv.slice(2)
+const [fichierRoutes, fichierJeu, sortie, racineFront] = process.argv.slice(2)
+// D616 : les textes d'erreur viennent du catalogue du front MESURÉ. Sans lui, le parcours ne prétend rien juger.
+if (!racineFront) { console.error('la racine du front mesuré est requise (4e argument)'); process.exit(2) }
+const catalogue = async (rel) => import(pathToFileURL(join(racineFront, rel)).href)
+const TEXTES_ERREUR = textesDErreur((await catalogue('src/constants/errorMessages.js')).ERROR_MESSAGES, (await catalogue('src/services/refusalReasons.js')).REASONS)
 const BASE = 'http://127.0.0.1:4173'
 const MOT_DE_PASSE = process.env.E2E_MOT_DE_PASSE
 const routes = JSON.parse(readFileSync(fichierRoutes, 'utf8'))
@@ -160,6 +165,9 @@ for (const { compte, email, role } of COMPTES) {
         const erreur = ECRAN_ERREUR.map((re) => texte.match(re)?.[0]).find(Boolean)
         if (erreur) defauts.push(`écran d’erreur : « ${erreur.slice(0, 160)} »`)
       }
+      // D616 : un texte d'erreur du CATALOGUE affiché, même hors d'une région alert, rend l'écran ROUGE.
+      const erreurCatalogue = erreurAffichee(texte, TEXTES_ERREUR)
+      if (erreurCatalogue && !alertes.some((a) => a.includes(erreurCatalogue))) defauts.push(`erreur du catalogue affichée : « ${erreurCatalogue} »`)
       if (bruts.length) defauts.push(`texte brut : ${bruts.join(', ')}`)
     } else if (final === chemin) {
       defauts.push('accès NON refusé')
@@ -178,7 +186,7 @@ for (const { compte, email, role } of COMPTES) {
     const ecarts = ecartsDeValeur(VERIFS, `${compte} ${route.chemin}`, texte)
     if (ecarts) defauts.push(...ecarts)
     resultats.push({ ...cas, verdict: defauts.length ? 'ROUGE' : 'VERT', defaut: defauts.join(' ; ') || null,
-      verification: ecarts ? 'valeurs' : 'rendu', api: evenements.api, console: evenements.console, capture })
+      verification: ecarts ? 'valeurs' : 'rendu', note: appels4xx(evenements.api).join(', ') || null, api: evenements.api, console: evenements.console, capture })
   }
   // K3 : l'écriture KLASSCI par l'écran, jugée par le journal du faux (e2e/actions.mjs).
   if (ECOLE_KLASSCI && compte === 'enseignant') resultats.push(await synchroniserLesNotes(page, jeu, BASE))
@@ -192,7 +200,7 @@ const lignes = [
   `## E2E — ${ECOLE_KLASSCI ? 'école KLASSCI (faux KLASSCI « école »)' : 'école créée depuis le LMS'}`, '',
   `Cases : ${resultats.length} — VERT ${compte('VERT')}, ROUGE ${compte('ROUGE')}, NON TESTÉ ${compte('NON TESTÉ')}, SANS OBJET ${compte('SANS OBJET')}`, '',
   '| compte | écran | attendu | verdict | défaut |', '|---|---|---|---|---|',
-  ...resultats.map((r) => `| ${r.compte} | \`${r.chemin}\` | ${r.attendu ?? ''} | ${r.verdict} | ${(r.defaut ?? '').replace(/\|/g, '/')} |`),
+  ...resultats.map((r) => `| ${r.compte} | \`${r.chemin}\` | ${r.attendu ?? ''} | ${r.verdict} | ${`${r.defaut ?? ''}${r.note ? ` (API 4xx : ${r.note})` : ''}`.replace(/\|/g, '/')} |`),
 ]
 writeFileSync(join(sortie, 'resume.md'), lignes.join('\n') + '\n')
 console.log(lignes.slice(0, 3).join('\n'))

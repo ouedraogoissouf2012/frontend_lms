@@ -190,7 +190,8 @@ jobs:
           # Le parcours ET ses modules (acces.mjs) : une copie partielle casse ses imports.
           cp mesure/e2e/*.mjs outils/
           . "$RUNNER_TEMP/en_e2e.sh"
-          en_e2e node "$PWD/outils/parcours.mjs" "$PWD/sortie/routes.json" "$PWD/sortie/jeu.json" "$PWD/sortie"
+          # D616 : le 4e argument est la racine du front MESURÉ : ses textes d'erreur jugent les écrans.
+          en_e2e node "$PWD/outils/parcours.mjs" "$PWD/sortie/routes.json" "$PWD/sortie/jeu.json" "$PWD/sortie" "$PWD/front"
 
       - name: Parcours de l'école KLASSCI (K1, chromium, sous e2e)
         run: |
@@ -200,7 +201,7 @@ jobs:
           # K3 : le même script y ajoute l'état de la synchronisation des notes, monté par l'API du produit
           # (création, publication, démarrage, remise) ; un refus y devient un manque, donc un ROUGE.
           en_e2e node "$PWD/mesure/e2e/ecole-klassci-evaluation.mjs" http://127.0.0.1:8000/api "$PWD/sortie/jeu-klassci.json" "$PWD/sortie/faux-klassci-ecole.jsonl" "$PWD/sortie/ecole-klassci-evaluation.log"
-          en_e2e node "$PWD/outils/parcours.mjs" "$PWD/sortie/routes.json" "$PWD/sortie/jeu-klassci.json" "$PWD/sortie/klassci"
+          en_e2e node "$PWD/outils/parcours.mjs" "$PWD/sortie/routes.json" "$PWD/sortie/jeu-klassci.json" "$PWD/sortie/klassci" "$PWD/front"
 
       - name: Résumé, sorties réseau et appels à KLASSCI
         if: always()
