@@ -67,7 +67,6 @@ export const endpoints = {
       myTeaching: `${LMS}/seances/my-teaching`,
       myClasses: `${LMS}/seances/my-classes`,
       details: (id) => `${LMS}/seances/${id}/details`,
-      participants: (id) => `${LMS}/seances/${id}/participants`,
       attendances: (id) => `${LMS}/seances/${id}/attendances`,
       validateParticipant: (id) => `${LMS}/seances/${id}/validate-participant`,
       hide: (id) => `${LMS}/seances/${id}/hide`,
