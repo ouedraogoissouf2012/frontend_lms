@@ -8,7 +8,7 @@
 import { chromium } from 'playwright'
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { routeurFerme, ouverte, sansObjetSansVisite, refusD56, refusServeur } from './acces.mjs'
+import { routeurFerme, ouverte, sansObjetSansVisite, refusD56, refusServeur, verdictCapacite } from './acces.mjs'
 import { BRUT, ECRAN_ERREUR, ecartsDeValeur } from './ecran.mjs'
 import { verifsEcoleLms } from './verifs-ecole-lms.mjs'
 import { verifsEcoleKlassci } from './verifs-ecole-klassci.mjs'
@@ -144,6 +144,9 @@ for (const { compte, email, role } of COMPTES) {
 
     const metier = attendu && refusServeur(route, role)
     if (metier) { const vu = evenements.api.some((a) => a.statut === metier.statut); resultats.push({ ...cas, attendu: 'refusé', verdict: vu ? 'VERT' : 'ROUGE', defaut: vu ? `refus métier du serveur : ${metier.regle}` : `refus ${metier.statut} attendu, non vu : ${metier.regle}`, api: evenements.api, capture }); continue }
+    // D607 : un écran gardé par une capacité que l'école DÉCLARE : refus tenu (VERT) ou non tenu (ROUGE).
+    const parCapacite = attendu && route.capacite ? verdictCapacite(route, jeu.capacites, final === chemin, final) : null
+    if (parCapacite) { resultats.push({ ...cas, ...parCapacite, capture }); continue }
     const defauts = []
     if (attendu) {
       if (final !== chemin) {
