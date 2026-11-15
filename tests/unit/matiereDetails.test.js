@@ -68,7 +68,8 @@ describe('utils/matiereDetails — createEmptyLesson', () => {
       prerequis: '',
       niveau_difficulte: 'debutant',
       objectifs_pedagogiques: '',
-      duree_estimee_minutes: null
+      duree_estimee_minutes: null,
+      classe_id: null // back #1103 : jamais de classe supposée
     })
   })
   it('renvoie une nouvelle instance à chaque appel (pas de référence partagée)', () => {
@@ -83,9 +84,8 @@ describe('utils/matiereDetails — createEmptyLesson', () => {
 describe('utils/matiereDetails — buildLessonPayload', () => {
   const draft = { title: 'Algèbre', description: 'Intro', niveau_difficulte: 'debutant' }
 
-  it('enrichit le brouillon avec le contexte classes_concernees/enseignant', () => {
-    const payload = buildLessonPayload(draft, {
-      classes: [{ id: 7 }, { id: 9 }], // classes_concernees de la matière
+  it('enrichit le brouillon avec la classe CHOISIE et l’enseignant (back #1103)', () => {
+    const payload = buildLessonPayload({ ...draft, classe_id: 9 }, {
       user: { id: 42 },
       matiereIdLocal: 3
     })
@@ -93,15 +93,15 @@ describe('utils/matiereDetails — buildLessonPayload', () => {
       title: 'Algèbre',
       description: 'Intro',
       matiere_id: 3,
-      classe_id: 7,            // première classe concernée
+      classe_id: 9,            // la classe choisie dans le formulaire
       enseignant_id: 42,
       type: 'cours',
       status: 'draft'
     })
   })
-  it('classe_id null si aucune classe concernée', () => {
-    expect(buildLessonPayload(draft, { classes: [], user: { id: 1 }, matiereIdLocal: 3 }).classe_id).toBeNull()
-    expect(buildLessonPayload(draft, { classes: null, user: null, matiereIdLocal: 3 }).classe_id).toBeNull()
+  it('classe_id null sans choix : jamais la première des classes de la matière', () => {
+    expect(buildLessonPayload(draft, { classes: [{ id: 7 }, { id: 9 }], user: { id: 1 }, matiereIdLocal: 3 }).classe_id).toBeNull()
+    expect(buildLessonPayload(draft, { user: null, matiereIdLocal: 3 }).classe_id).toBeNull()
   })
 
   // On envoie `null`, jamais l'identifiant de l'autre espace « pour depanner » :
