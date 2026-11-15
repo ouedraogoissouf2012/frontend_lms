@@ -8,9 +8,13 @@
 // Usage : node e2e/faux-klassci-ecole.mjs <port> <journal.jsonl> <jeu-du-parcours.json>
 // Le mot de passe des comptes est le secret du run (E2E_MOT_DE_PASSE), jamais écrit dans un fichier.
 import { createServer } from 'node:http'
-import { appendFileSync, writeFileSync } from 'node:fs'
+import { appendFileSync, readFileSync, writeFileSync } from 'node:fs'
 import { randomUUID } from 'node:crypto'
 import { COMPTES, REPONSES, utilisateur, jeuDuParcours } from './klassci-ecole/jeu.mjs'
+
+// D584 : les routes dont la forme servie est MESURÉE (cache KLASSCI de la base de DEV) ; les autres sont
+// « non vérifiées ». Chaque appel du journal le dit, et le résumé de l'E2E l'affiche.
+const MESUREES = new Set(Object.keys(JSON.parse(readFileSync(new URL('../tests/fixtures/klassci/formes-mesurees.json', import.meta.url), 'utf8')).routes))
 
 const [port = '8181', journal = 'faux-klassci-ecole.jsonl', fichierJeu = 'jeu-klassci.json'] = process.argv.slice(2)
 const MOT_DE_PASSE = process.env.E2E_MOT_DE_PASSE
@@ -67,6 +71,7 @@ createServer(async (req, res) => {
 
   appendFileSync(journal, JSON.stringify({
     t: new Date().toISOString(), methode: req.method, chemin, statut, compte: compte?.role ?? null,
+    forme: !(cle in REPONSES) ? 'absente du jeu' : MESUREES.has(cle) ? 'mesurée' : 'non vérifiée',
     cles: corps && typeof corps === 'object' ? Object.keys(corps) : [],
     // K3 : les notes envoyées : leur NOMBRE et les CLÉS de leurs éléments, jamais une valeur.
     ...(Array.isArray(corps?.notes) ? { nb_notes: corps.notes.length, cles_notes: [...new Set(corps.notes.flatMap((n) => Object.keys(n ?? {})))] } : {}),

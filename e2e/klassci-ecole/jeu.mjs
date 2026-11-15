@@ -9,8 +9,16 @@
 
 export const ETABLISSEMENT = 'Ecole fictive E2E KLASSCI'
 export const SLUG = 'e2e-klassci'
-const FILIERE = { id: 701, name: 'Filiere E2E' }
+// D584 : la forme MESURÉE de la filière et du niveau dépend de la route (tests/fixtures/klassci/formes-mesurees.json) :
+// `nom` dans la fiche de classe et le tableau de bord, `name` et `libelle` dans la liste des classes.
+const FILIERE = { id: 701, nom: 'Filiere E2E', code: 'FE2E' }
 const NIVEAU = { id: 801, nom: 'Niveau E2E', code: 'NE2E' }
+const FILIERE_LISTE = { id: FILIERE.id, code: FILIERE.code, name: FILIERE.nom, libelle: null } // `libelle` est toujours null dans le réel
+const NIVEAU_LISTE = { id: NIVEAU.id, code: NIVEAU.code, name: NIVEAU.nom, libelle: NIVEAU.nom }
+// Routes NON VÉRIFIÉES (structure, filieres) : la forme reconstituée d'avant, depuis le code lecteur du back.
+const FILIERE_RECONSTITUEE = { id: FILIERE.id, name: FILIERE.nom }
+// Les heures d'une matière : un OBJET dans le réel (`classes/{id}`, `matieres`), jamais un nombre.
+const HEURES = { cm: 10, td: 10, tp: 10, total: 30 }
 
 export const CLASSES = [
   { id: 9101, name: 'Classe K1 E2E', libelle: null, filiere: FILIERE, niveau: NIVEAU },
@@ -44,12 +52,13 @@ export const COMPTES = {
   etudiant: { id: 9304, role: 'etudiant', nom: 'Eleve K E2E', email: 'eleve.k@ecole-klassci.test', classe: 9101 },
 }
 
-// K3 : UNE évaluation programmée, aux CLÉS de la charge capturée (teacherDashboard.js, bloc `evaluations`),
-// aux valeurs fictives. Sa fenêtre est OUVERTE à l'heure de la requête : l'élève peut démarrer
-// (EvaluationWindowGate:68-127 lit `programmation.window.is_open`). AUCUNE clé hors capture : le front
-// lit `can_sync_grades` (EvaluationCardActions.vue:49), absent de la capture, donc absent d'ici.
+// K3 : UNE évaluation programmée, aux valeurs fictives. Sa fenêtre est OUVERTE à l'heure de la requête : l'élève
+// peut démarrer (EvaluationWindowGate:68-127 lit `programmation.window.is_open`).
+// D584 : KLASSCI la décrit sous DEUX formes mesurées. Le tableau de bord porte `correction` et
+// `lms_integration{can_create_online, can_submit_notes}` ; la LISTE (`GET evaluations`) porte `publication` et
+// `lms_integration{can_execute_online, has_online_version, notes_count}`, SANS `can_submit_notes`.
 export const EVALUATION = { id: 9601, titre: 'Devoir K E2E', classe: 9101, matiere: 9201 }
-function evaluationProgrammee() {
+function evaluationCommune() {
   const debut = new Date(Date.now() - 3600e3)
   const fin = new Date(Date.now() + 3 * 3600e3)
   const m = MATIERES.find((x) => x.id === EVALUATION.matiere)
@@ -61,14 +70,24 @@ function evaluationProgrammee() {
       date_evaluation: debut.toISOString(), duree_minutes: 240, coefficient: '1.0', bareme: '20.00',
       window: { start_at: debut.toISOString(), end_at: fin.toISOString(), has_started: true, has_ended: false, is_open: true, time_left_minutes: 180 },
     },
-    correction: { notes_saisies: 0, notes_attendues: ELEVES.filter((e) => e.classe === EVALUATION.classe).length, progression: 0, is_complete: false },
-    lms_integration: { can_create_online: true, can_submit_notes: true },
   }
 }
-/** Les évaluations programmées que voit un compte : l'enseignant de la classe, l'élève de la classe. */
-function evaluationsDe(c) {
+const FORMES_EVALUATION = {
+  tableau: () => ({
+    ...evaluationCommune(),
+    correction: { notes_saisies: 0, notes_attendues: ELEVES.filter((e) => e.classe === EVALUATION.classe).length, progression: 0, is_complete: false },
+    lms_integration: { can_create_online: true, can_submit_notes: true },
+  }),
+  liste: () => ({
+    ...evaluationCommune(),
+    publication: { is_published: 1, notes_published: 0 },
+    lms_integration: { can_execute_online: true, has_online_version: false, notes_count: 0 },
+  }),
+}
+/** Les évaluations programmées que voit un compte (l'enseignant de la classe, l'élève de la classe), sous la forme de la route. */
+function evaluationsDe(c, forme) {
   const voit = (c.role === 'enseignant' && c.classes.includes(EVALUATION.classe)) || (c.role === 'etudiant' && c.classe === EVALUATION.classe)
-  return voit ? [evaluationProgrammee()] : []
+  return voit ? [FORMES_EVALUATION[forme]()] : []
 }
 
 const ok = (data, extra = {}) => ({ success: true, data, ...extra })
@@ -84,6 +103,15 @@ export function utilisateur(c) {
   }
 }
 
+/** D584 : `GET auth/me` met l'utilisateur DIRECTEMENT dans `data` (forme mesurée), et non dans `data.user`. */
+function profil(c) {
+  return {
+    id: c.id, nom: c.nom, email: c.email, role: c.role, roles: [c.role], avatar: null,
+    derniere_connexion: new Date().toISOString(), preferences: { langue: 'fr', timezone: 'Africa/Abidjan' },
+    ...(c.role === 'enseignant' ? { contexte_enseignant: { nb_matieres: c.matieres.length, nb_classes: c.classes.length, matieres_principales: [], classes_enseignees: [] } } : {}),
+  }
+}
+
 /** Les réponses, par route. `c` : le compte du jeton (null sans jeton valide). */
 export const REPONSES = {
   // KlassciTenantDiscovery:76, :173 : un 2xx avec `data.found`.
@@ -92,8 +120,9 @@ export const REPONSES = {
   // (la vérification du mot de passe est faite par le serveur, qui seul connaît le secret du run)
   'POST /auth/login': null,
   'POST /auth/logout': () => ({ success: true }),
-  // AuthController:127, EnsureKlassciSync:84-112 : `data.user`.
-  'GET /auth/me': (c) => ok({ user: utilisateur(c) }),
+  // Forme MESURÉE (D584) : l'utilisateur est `data`. Le back lit `data.user` (AuthController:127-129,
+  // EnsureKlassciSync:88-112) : l'E2E mesure ce qu'il en fait, il ne le masque pas.
+  'GET /auth/me': (c) => ok(profil(c)),
   // StudentClassSynchronizer:62-66, StudentClassesSeancesFetcher:70-99 : `data.classe`, `data.cours[].matiere_id`.
   'GET /me/dashboard': (c) => (c.role !== 'etudiant' ? null : ok({
     classe: { id: c.classe, name: classe(c.classe).name, libelle: classe(c.classe).name },
@@ -105,18 +134,20 @@ export const REPONSES = {
     matieres: c.matieres.map((id) => ({ ...matiere(id), description: null, coefficient: 1, couleur: '#336699', heures_total: 30, combinaisons: [], nb_seances_programmees: 0 })),
     classes: c.classes.map(classe),
     prochaines_seances: [],
-    evaluations: evaluationsDe(c),
-    statistiques: { heures: { total_seances: 0, seances_effectuees: 0 }, evaluations: { total_programmees: evaluationsDe(c).length, a_corriger: 0 } },
+    evaluations: evaluationsDe(c, 'tableau'),
+    statistiques: { heures: { total_seances: 0, seances_effectuees: 0 }, evaluations: { total_programmees: evaluationsDe(c, 'tableau').length, a_corriger: 0 } },
   })),
-  // MatiereSyncService:60-121 : `data[]` (id, code, libelle/nom/name, coefficient, filiere, niveau).
-  'GET /matieres': () => ok(MATIERES.map((m) => ({ ...m, libelle: m.nom, name: m.nom, description: null, coefficient: 1, credit: null, filiere: { id: FILIERE.id }, niveau: { id: NIVEAU.id }, semestre: null }))),
-  // KlassciInstitutionStructureReader:28 : `data.filieres`, `data.niveaux_etudes`.
-  'GET /structure': () => ok({ filieres: [FILIERE], niveaux_etudes: [NIVEAU] }),
+  // Forme MESURÉE (D584) : ni `libelle`, ni `name`, ni `filiere`, ni `niveau` (MatiereSyncService:60-121 les lit
+  // pourtant ; l'E2E mesure ce qu'il en fait).
+  'GET /matieres': () => ok(MATIERES.map((m) => ({ ...m, description: null, coefficient: 1, couleur: '#336699', heures: HEURES }))),
+  // NON VÉRIFIÉE. KlassciInstitutionStructureReader:28 : `data.filieres`, `data.niveaux_etudes`.
+  'GET /structure': () => ok({ filieres: [FILIERE_RECONSTITUEE], niveaux_etudes: [NIVEAU] }),
   // KlassciInstitutionClassesReader:30 : `data[]`. `places_occupees` (l'effectif actif) : lu sur la classe
   // KLASSCI par KlassciPayload:136-151, égal à la taille du roster (ClasseDetailsQueryService:229) ; le
   // front le lit en premier (classMeasures.js:36). `places_totales` n'est pas servi : rien ne l'atteste.
-  'GET /classes': () => ok(CLASSES.map((c) => ({ ...c, places_occupees: ELEVES.filter((e) => e.classe === c.id).length }))),
-  'GET /filieres': () => ok([FILIERE]),
+  'GET /classes': () => ok(CLASSES.map((c) => ({ ...c, filiere: FILIERE_LISTE, niveau: NIVEAU_LISTE, places_occupees: ELEVES.filter((e) => e.classe === c.id).length }))),
+  // NON VÉRIFIÉES : filieres, niveaux-etudes, enseignants (aucune réponse en cache).
+  'GET /filieres': () => ok([FILIERE_RECONSTITUEE]),
   'GET /niveaux-etudes': () => ok([NIVEAU]),
   // KlassciInstitutionTeachersReader:39 : `data[]`.
   'GET /enseignants': () => ok([{ id: COMPTES.enseignant.enseignant_id, nom: COMPTES.enseignant.nom, prenom: null, nom_complet: COMPTES.enseignant.nom, email: COMPTES.enseignant.email }]),
@@ -130,26 +161,22 @@ export const REPONSES = {
     return ok({
       classe: cl,
       etudiants: ELEVES.filter((e) => e.classe === cl.id).map(({ classe: _cl, ...e }) => e),
-      matieres: COMPTES.enseignant.matieres.map((mid) => ({ ...matiere(mid), coefficient: 1, couleur: '#336699', heures: 30, source: 'klassci' })),
+      matieres: COMPTES.enseignant.matieres.map((mid) => ({ ...matiere(mid), coefficient: 1, couleur: '#336699', heures: HEURES, source: 'klassci' })),
       emploi_temps_semaine: [],
     })
   },
   // K2 : `matieres/{id}` (MatiereInfoFetcher:19-55) : `data.matiere`, `data.combinaisons`, `data.enseignants`.
+  // D584 : `enseignants` est VIDE dans les 13 réponses mesurées ; la forme d'un élément n'est pas connue.
   'GET /matieres/{id}': (_c, _corps, [id]) => {
     const m = matiere(Number(id))
     if (!m) return undefined
-    const ens = COMPTES.enseignant
-    return ok({
-      matiere: { ...m, coefficient: 1, description: null },
-      combinaisons: [],
-      enseignants: ens.matieres.includes(m.id) ? [{ id: ens.enseignant_id, nom_complet: ens.nom, email: ens.email }] : [],
-    })
+    return ok({ matiere: { ...m, coefficient: 1, description: null }, combinaisons: [], enseignants: [] })
   },
   // K2 : l'emploi du temps (vide).
   'GET /emploi-temps': () => ok([]),
   // K3 : les évaluations programmées (KlassciEvaluationWindowSource:36-80 côté élève ; relayé tel quel
   // par /proxy/evaluations côté enseignant).
-  'GET /evaluations': (c) => ok(evaluationsDe(c)),
+  'GET /evaluations': (c) => ok(evaluationsDe(c, 'liste')),
   // K3 : la SEULE écriture KLASSCI qui a un écran : les notes (EvaluationKlassciSyncController, avec le
   // jeton de l'ENSEIGNANT, HasKlassciEndpointShortcuts:188-193). Le back n'inspecte pas la réponse : un
   // 2xx suffit ; on ne sert donc que `success`. Le journal en garde les CLÉS, jamais les valeurs.
