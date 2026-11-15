@@ -90,6 +90,24 @@ function evaluationsDe(c, forme) {
   return voit ? [FORMES_EVALUATION[forme]()] : []
 }
 
+// K4 (D609) : UNE séance KLASSCI, servie par `emploi-temps` (EmploiTempsSeanceLocator:68-132 : l'enseignant la
+// retrouve par l'`id` de l'entrée, filtrée sur `matiere.id`). Seules des clés MESURÉES (formes-mesurees.json), aux
+// valeurs fictives ; datée du jour, dans la fenêtre glissante du back. Un id hors des espaces des autres objets.
+export const SEANCE = { id: 9701, titre: 'Seance K E2E', classe: 9101, matiere: 9201 }
+function seanceDuJour() {
+  const jour = new Date().toISOString().slice(0, 10)
+  const m = MATIERES.find((x) => x.id === SEANCE.matiere)
+  const ens = COMPTES.enseignant
+  return {
+    id: SEANCE.id, titre: SEANCE.titre, type_cours: 'cours', statut: 'planifie',
+    matiere: { id: m.id, nom: m.nom },
+    classe: { id: SEANCE.classe, nom: CLASSES.find((c) => c.id === SEANCE.classe).name },
+    enseignant: { id: ens.enseignant_id, nom: ens.nom },
+    programmation: { date_seance: jour, date_cours: jour, heure_debut: '10:00', heure_fin: '12:00' },
+    salle: { id: null, nom: 'Salle E2E' },
+  }
+}
+
 const ok = (data, extra = {}) => ({ success: true, data, ...extra })
 const classe = (id) => CLASSES.find((c) => c.id === id)
 const matiere = (id) => MATIERES.find((m) => m.id === id)
@@ -172,8 +190,9 @@ export const REPONSES = {
     if (!m) return undefined
     return ok({ matiere: { ...m, coefficient: 1, description: null }, combinaisons: [], enseignants: [] })
   },
-  // K2 : l'emploi du temps (vide).
-  'GET /emploi-temps': () => ok([]),
+  // K4 : l'emploi du temps porte la séance (forme mesurée). `matieres/{id}` ne sert PAS `seances_programmees` :
+  // vide dans toutes les réponses mesurées, sa forme d'élément n'est pas capturée (le back le lit vide, comme en réel).
+  'GET /emploi-temps': () => ok([seanceDuJour()]),
   // K3 : les évaluations programmées (KlassciEvaluationWindowSource:36-80 côté élève ; relayé tel quel
   // par /proxy/evaluations côté enseignant).
   'GET /evaluations': (c) => ok(evaluationsDe(c, 'liste')),
