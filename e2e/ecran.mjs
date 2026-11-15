@@ -5,6 +5,8 @@
 export const BRUT = [
   /\b[a-z]{2,}(?:_[a-z0-9]{2,})+\b/,
   /\b(?:undefined|NaN)\b/,
+  // D619 : une date illisible (« Invalid Date », un new Date() sur une heure KLASSCI « HH:mm ») est un texte brut.
+  /\bInvalid Date\b/,
   /\[object Object\]/,
   /Request failed with status code/,
   // v3 : un nom de classe d'icône écrit en texte (« fa-book » sur /dashboard, constat du run v2).
