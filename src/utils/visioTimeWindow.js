@@ -31,8 +31,10 @@ export function finDeFenetreVisio(seance) {
   const serveur = seance?.visio_window?.end_window ?? seance?.visio?.window?.end_window
   if (serveur) return dateLisible(serveur)
   const p = seance?.programmation ?? {}
-  const fin = dateHeureSeance(p.date ?? p.date_seance ?? seance?.date_seance, p.heure_fin ?? seance?.heure_fin) ??
-    dateLisible(seance?.date_fin)
+  const heureFin = p.heure_fin ?? seance?.heure_fin
+  // Une heure ISO (école LMS) porte son jour : elle se lit seule. « HH:mm » (KLASSCI) a besoin du jour.
+  const fin = (String(heureFin ?? '').includes('T') ? dateLisible(heureFin)
+    : dateHeureSeance(p.date ?? p.date_seance ?? seance?.date_seance, heureFin)) ?? dateLisible(seance?.date_fin)
   return fin ? new Date(fin.getTime() + WINDOW_AFTER_MS) : null
 }
 
