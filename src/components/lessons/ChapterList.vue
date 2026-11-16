@@ -30,6 +30,7 @@
         @cancel="$emit('cancel', $event)"
         @open-quiz-editor="(...args) => $emit('open-quiz-editor', ...args)"
         @retry-quiz="$emit('retry-quiz', $event)"
+        @delete-quiz="$emit('delete-quiz', $event)"
       />
 
       <!-- View Mode (#28 : extrait en sous-composant) -->
@@ -78,7 +79,7 @@ defineProps({
   quizEchec: { type: Function, default: () => null }
 })
 
-defineEmits(['edit', 'delete', 'save', 'cancel', 'open-quiz-editor', 'open-quiz-player', 'add', 'retry-quiz'])
+defineEmits(['edit', 'delete', 'save', 'cancel', 'open-quiz-editor', 'open-quiz-player', 'add', 'retry-quiz', 'delete-quiz'])
 </script>
 
 <style scoped>
