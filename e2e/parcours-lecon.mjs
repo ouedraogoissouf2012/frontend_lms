@@ -5,10 +5,10 @@
 // n'ont pas de libellés associés (#563). Deux sélecteurs sont structurels, et déclarés : la carte d'une leçon
 // (`.lesson-card`, sans rôle) et l'éditeur de contenu (`[contenteditable]`, sans rôle ni nom).
 import { lireApi } from './fonctionnels.mjs'
+import { ATTENTE, bouton, nomDeBouton, ditLEcran, appel, refusServeur, lu, formulaireDeChapitre } from './gestes.mjs'
 
 export const AUCUN_CHEMIN_MODIFICATION = 'aucun chemin d’interface ne modifie le titre ni la description'
 export const CONFIRMATION_SUPPRESSION = 'Êtes-vous sûr de vouloir supprimer cette leçon ?'
-const ATTENTE = 20000
 
 // Les données fictives du parcours. Aucun mot d'énumération (« published ») : il serait lu comme un texte brut.
 export const DONNEES_LECON = Object.freeze({
@@ -20,8 +20,6 @@ export const DONNEES_LECON = Object.freeze({
 })
 
 // ─── Les jugements des relectures (purs, testés) ─────────────────────────────────────────────
-
-const lu = ({ statut }, chemin) => (statut === 200 ? null : `GET ${chemin} rend HTTP ${statut}`)
 
 /** La leçon relue porte le titre saisi et le statut attendu. */
 export function jugerLecon(lecture, id, { titre, statut }) {
@@ -86,39 +84,10 @@ export function jugerSuppression(lecture, matiere, id, matiereId) {
   return { confirme: true, preuve: `leçon ${id} : 404, et absente de la matière ${matiereId}` }
 }
 
-// ─── Les gestes, par l'interface ─────────────────────────────────────────────────────────────
-
-/** Ce que l'écran dit (régions alert/status, notifications de la matière), pour nommer un refus. */
-async function ditLEcran(page) {
-  const textes = [
-    ...(await page.locator('[role="alert"], [role="status"]').allInnerTexts().catch(() => [])),
-    ...(await page.getByText(/^Erreur lors de/).allInnerTexts().catch(() => [])),
-  ].map((t) => t.trim()).filter(Boolean)
-  return textes.length ? `« ${textes.join(' | ').slice(0, 200)} »` : 'aucun message affiché'
-}
-
-/**
- * Un bouton par son texte visible. Une icône de police (`<i class="fa …">`) ajoute son caractère au nom
- * accessible (« \uf040 Modifier ») : le texte doit FINIR le nom, précédé au plus de ce caractère et d'un espace.
- * « Publier » ne prend donc pas « Dépublier ».
- */
-export const nomDeBouton = (texte) => new RegExp(`^(\\S\\s+)?${texte}$`)
-const bouton = (lieu, texte) => lieu.getByRole('button', { name: nomDeBouton(texte) })
-
-/** L'attente d'un appel, posée AVANT le geste. Marquée gérée : un geste qui échoue ne laisse pas de rejet orphelin. */
-function appel(page, methode, chemin) {
-  const attente = page.waitForResponse((r) => r.request().method() === methode && new URL(r.url()).pathname === `/api${chemin}`, { timeout: ATTENTE })
-  attente.catch(() => {})
-  return attente
-}
-
-async function refusServeur(page, reponse, quoi) {
-  const r = await reponse
-  return r.status() >= 400 ? { rouge: `${quoi} refusé par le serveur (HTTP ${r.status()}) : ${await ditLEcran(page)}` } : null
-}
+// ─── Les gestes, par l'interface (e2e/gestes.mjs) ─────────────────────────────────────────────
 
 /** L'écran de la matière, et la carte de la leçon du parcours. Une carte absente est un défaut du produit. */
-async function carteDansLaMatiere({ pages, base, jeu, donnees }) {
+export async function carteDansLaMatiere({ pages, base, jeu, donnees }) {
   const page = pages.enseignant
   await page.goto(`${base}/matieres/${jeu.matieres[0]}`, { waitUntil: 'domcontentloaded' })
   await page.waitForLoadState('networkidle', { timeout: ATTENTE }).catch(() => {})
@@ -161,10 +130,7 @@ export const ETAPES_LECON = Object.freeze([
     async action({ pages, donnees, etat }) {
       const page = pages.enseignant
       await page.waitForLoadState('networkidle', { timeout: ATTENTE }).catch(() => {})
-      const titre = page.getByPlaceholder('saisissez le titre')
-      // Sans chapitre, le formulaire du premier s'ouvre seul ; sinon « + Ajouter un chapitre ».
-      if (!(await titre.count())) await page.getByRole('button', { name: '+ Ajouter un chapitre' }).click()
-      await titre.first().fill(donnees.chapitre)
+      await (await formulaireDeChapitre(page)).fill(donnees.chapitre)
       await page.locator('[contenteditable="true"]').first().click()
       await page.keyboard.type(donnees.contenu)
       const reponse = appel(page, 'POST', `/lessons/${etat.lecon}/chapters`)
@@ -222,7 +188,8 @@ export const ETAPES_LECON = Object.freeze([
     async relecture({ pages, donnees }) {
       const page = pages.etudiant
       const chapitre = await page.getByText(donnees.chapitre).first().waitFor({ timeout: ATTENTE }).then(() => true, () => false)
-      const bouton = await page.getByRole('button', { name: 'Marquer comme terminé' }).count()
+      // Attendre le RENDU du bouton, jamais le compter à l'instant (E2E 43798868511 : un faux ROUGE ; #565).
+      const bouton = await page.getByRole('button', { name: 'Marquer comme terminé' }).first().waitFor({ timeout: ATTENTE }).then(() => true, () => false)
       if (!chapitre) return { confirme: false, ecart: `le chapitre « ${donnees.chapitre} » n’est pas affiché dans la leçon ouverte` }
       return bouton ? { confirme: true, preuve: 'la leçon ouverte affiche le chapitre et « Marquer comme terminé »' }
         : { confirme: false, ecart: 'le bouton « Marquer comme terminé » est absent' }

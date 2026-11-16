@@ -10,11 +10,13 @@
 
 export const VERDICTS = Object.freeze(['VERT', 'ROUGE', 'NON TESTÉ'])
 
-// La 1re ligne d'une erreur, et la ligne « waiting for … » du journal de Playwright : ce que l'outil attendait.
+// La 1re ligne d'une erreur, les éléments qu'un sélecteur ambigu a trouvés (« 1) … », mode strict), et la
+// ligne « waiting for … » du journal de Playwright : ce que l'outil attendait.
 const message = (e) => {
   const lignes = String(e?.message ?? e).split('\n')
+  const trouves = lignes.filter((l) => /^\s*\d+\) /.test(l)).map((l) => l.trim())
   const attente = lignes.find((l) => /waiting for /.test(l))?.trim().replace(/^- /, '')
-  return `${lignes[0]}${attente ? ` — ${attente}` : ''}`.slice(0, 300)
+  return [lignes[0], ...trouves, attente].filter(Boolean).join(' — ').slice(0, 500)
 }
 
 /**
