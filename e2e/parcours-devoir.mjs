@@ -92,13 +92,15 @@ export function jugerSynchronisation(lignes, klassciId, ev) {
 export function jugerVerrou(vu) {
   if (vu.messageCarte) return { confirme: true, preuve: `la carte ne propose plus la modification et dit : « ${vu.messageCarte} »` }
   if (vu.statut >= 200 && vu.statut < 300) return { confirme: false, ecart: `une évaluation qui a une copie a été modifiée (HTTP ${vu.statut})` }
-  if (vu.dit && vu.dit !== 'aucun message affiché') return { confirme: true, preuve: `refus ${vu.statut} dit à l’écran : ${vu.dit}` }
+  // Le refus est DIT (la règle validée). Son motif peut être le 403 générique tant que le serveur ne donne pas de
+  // `reason` (lms_backend#1113) : la preuve le cite tel quel, sans le juger vrai.
+  if (vu.dit && vu.dit !== 'aucun message affiché') return { confirme: true, preuve: `refus ${vu.statut} dit à l’écran : ${vu.dit} (motif du serveur : Refs ouedraogoissouf2012/lms_backend#1113)` }
   return { confirme: false, ecart: `refus ${vu.statut ?? '?'} NON dit à l’écran (bouton actif sur une évaluation verrouillée, Refs #569)` }
 }
 
 /** La programmation ouverte est visible sans « Afficher » (isExpiredWithoutOnline, utils/evaluations.js). */
 export function jugerVisibilite(masquee) {
-  return masquee ? { rouge: `${PROGRAMMATION_MASQUEE} (isExpiredWithoutOnline : la date de début passée suffit, même fenêtre ouverte)` } : {}
+  return masquee ? { rouge: `${PROGRAMMATION_MASQUEE} (isExpiredWithoutOnline : la date de début passée suffit, même fenêtre ouverte) (Refs #578)` } : {}
 }
 
 /** L'évaluation supprimée a DISPARU : 404, et absente de la liste de l'enseignant. */

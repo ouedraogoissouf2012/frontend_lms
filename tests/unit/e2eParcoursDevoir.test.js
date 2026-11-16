@@ -115,6 +115,7 @@ describe('parcours-devoir — le verrou (#569), la suppression, les ROUGE nommé
 
   it('une programmation ouverte masquée par défaut : ROUGE nommé ; visible : rien à redire', () => {
     expect(jugerVisibilite(true).rouge).toContain(PROGRAMMATION_MASQUEE)
+    expect(jugerVisibilite(true).rouge).toContain('Refs #578')
     expect(jugerVisibilite(false)).toEqual({})
   })
 
