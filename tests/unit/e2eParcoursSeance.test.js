@@ -15,7 +15,9 @@ const lecture = (statut, data) => ({ statut, corps: data === undefined ? null : 
 const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url')
 const jwt = (charge) => `${b64({ alg: 'HS256' })}.${b64(charge)}.signature`
 const ENTREE = { join: { visio_token: jwt({ room: 'salle-1' }), visio_room_id: 'salle-1' }, versJitsi: ['https://visio.example.test/external_api.js'] }
-const PRESENCES = lecture(200, { attendances: [{ email: 'eleve@x' }] })
+// La forme réelle : `attendances` à la RACINE du corps, pas sous `data` (E2E 43795413708).
+const presences = (lignes) => ({ statut: 200, corps: { success: true, statistics: {}, attendances: lignes } })
+const PRESENCES = presences([{ email: 'eleve@x' }])
 
 describe('parcours-seance — les étapes', () => {
   it('séance → activer → démarrer → l’élève rejoint → terminer ; modifier et supprimer la séance', () => {
@@ -67,7 +69,9 @@ describe('parcours-seance — l’entrée de l’élève (jeton, salle, domaine,
 
   it('ROUGE : le front n’a rien demandé au domaine Jitsi, ou la présence manque', () => {
     expect(jugerEntree({ ...ENTREE, versJitsi: [] }, 'salle-1', PRESENCES, 'eleve@x').confirme).toBe(false)
-    expect(jugerEntree(ENTREE, 'salle-1', lecture(200, { attendances: [] }), 'eleve@x').confirme).toBe(false)
+    expect(jugerEntree(ENTREE, 'salle-1', presences([]), 'eleve@x').confirme).toBe(false)
+    // Une liste sous `data` n'est pas la forme du serveur : elle n'est pas lue.
+    expect(jugerEntree(ENTREE, 'salle-1', lecture(200, { attendances: [{ email: 'eleve@x' }] }), 'eleve@x').confirme).toBe(false)
   })
 
   it('un jeton illisible n’est pas un jeton', () => {
