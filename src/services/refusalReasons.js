@@ -84,7 +84,7 @@ export const REASONS = Object.freeze({
   subject_not_in_class_program: motif('seanceMatiereHorsProgramme'),
   // lms_backend#922 (ADR-906-01) : un même statut, plusieurs sens, chacun son motif. Les deux bornes du 429 de
   // POST /school-requests : la minute par adresse (transitoire) et le plafond du jour (définitif).
-  ip_quota_exceeded: motif('demandeEcolePlafondDuJour'), // m1
+  ip_quota_exceeded: motif('demandeEcoleQuotaAdresse', { transitoire: true }),
   school_requests_global_cap: motif('demandeEcolePlafondDuJour'),
   training_session_transition_not_allowed: motif('periodeTransitionInterdite'),
   evaluation_attempt_not_started: motif('evaluationTentativeNonDemarree'),
