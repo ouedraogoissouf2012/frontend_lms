@@ -37,6 +37,7 @@
         :quiz-echec="quizEchec"
         @open-quiz-editor="(...args) => $emit('open-quiz-editor', ...args)"
         @retry-quiz="$emit('retry-quiz', $event)"
+        @delete-quiz="$emit('delete-quiz', $event)"
       />
     </div>
 
@@ -79,7 +80,7 @@ defineProps({
   saving: { type: Boolean, default: false }
 })
 
-defineEmits(['save', 'cancel', 'open-quiz-editor', 'retry-quiz'])
+defineEmits(['save', 'cancel', 'open-quiz-editor', 'retry-quiz', 'delete-quiz'])
 </script>
 
 <style scoped>

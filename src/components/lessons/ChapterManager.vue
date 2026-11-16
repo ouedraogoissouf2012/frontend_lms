@@ -34,6 +34,7 @@
       @open-quiz-player="openQuizPlayer"
       @add="addChapter"
       @retry-quiz="loadKnowledgeChecks"
+      @delete-quiz="deleteKnowledgeCheck"
     />
 
     <!-- Upload Progress Modal -->
@@ -119,7 +120,7 @@ const {
   showQuizEditor, showQuizPlayer, selectedChapterId, selectedQuiz, editingQuiz,
   loadChapters, addChapter, editChapter, cancelEdit, saveChapter, deleteChapter,
   openQuizEditor, closeQuizEditor, onQuizSaved, openQuizPlayer, closeQuizPlayer,
-  onQuizCompleted, getChapterQuiz, isQuizUnknown, quizEchec, loadKnowledgeChecks
+  onQuizCompleted, getChapterQuiz, isQuizUnknown, quizEchec, loadKnowledgeChecks, deleteKnowledgeCheck
 } = useChapterManager(toRef(props, 'lessonId'))
 </script>
 
