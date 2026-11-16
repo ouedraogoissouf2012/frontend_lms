@@ -45,8 +45,9 @@
 
       <!-- Prérequis -->
       <div class="form-group">
-        <label class="form-label">Prérequis</label>
+        <label for="lecon-prerequis" class="form-label">Prérequis</label>
         <textarea
+          id="lecon-prerequis"
           v-model="lesson.prerequis"
           class="form-textarea"
           rows="2"
@@ -57,8 +58,8 @@
 
       <!-- Niveau -->
       <div class="form-group">
-        <label class="form-label required">Niveau de difficulté</label>
-        <select v-model="lesson.niveau_difficulte" class="form-select">
+        <label for="lecon-niveau" class="form-label required">Niveau de difficulté</label>
+        <select id="lecon-niveau" v-model="lesson.niveau_difficulte" class="form-select">
           <option value="debutant">Débutant</option>
           <option value="intermediaire">Intermédiaire</option>
           <option value="avance">Avancé</option>
@@ -67,8 +68,9 @@
 
       <!-- Objectifs pédagogiques -->
       <div class="form-group">
-        <label class="form-label">Objectifs pédagogiques</label>
+        <label for="lecon-objectifs" class="form-label">Objectifs pédagogiques</label>
         <textarea
+          id="lecon-objectifs"
           v-model="lesson.objectifs_pedagogiques"
           class="form-textarea"
           rows="3"
@@ -79,8 +81,9 @@
 
       <!-- Durée estimée -->
       <div class="form-group">
-        <label class="form-label">Durée estimée (minutes)</label>
+        <label for="lecon-duree" class="form-label">Durée estimée (minutes)</label>
         <input
+          id="lecon-duree"
           v-model.number="lesson.duree_estimee_minutes"
           type="number"
           class="form-input"
