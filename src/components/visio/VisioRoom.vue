@@ -46,6 +46,7 @@ import { useRoomRecording } from '@/composables/useRoomRecording'
 import VisioJoinChoice from '@/components/visio/VisioJoinChoice.vue'
 import { jitsiConfigForMode } from '@/constants/visioNetwork'
 import { notifyVisioError } from '@/services/visioFeedback'
+import { useDepartEnseignant } from '@/composables/useDepartEnseignant'
 
 /**
  * Salle de visioconférence embarquée (#673).
@@ -171,6 +172,9 @@ watch(
  * lui seul revere l'autorisation et obtient un jeton frais. C'est aussi ce qui
  * garantit qu'une visio terminee entre-temps ne se rouvre pas.
  */
+// #582 : l'enseignant qui quitte la salle peut terminer la visio pour tous.
+useDepartEnseignant()
+
 onMounted(async () => {
   // Ce composant est monte a la RACINE, donc aussi sur l'ecran de connexion.
   // Interroger le serveur sans jeton produirait un 401 a chaque chargement de
