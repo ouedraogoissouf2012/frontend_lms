@@ -177,5 +177,5 @@ export const QUESTIONS_VERROUILLEES = 'Questions verrouillées : des copies exis
  * @returns {boolean}
  */
 export function versionVerrouillee(onlineVersion) {
-  return Boolean(onlineVersion?.is_locked) || onlineVersion?.submissions_count > 0
+  return Boolean(onlineVersion?.is_locked)
 }
