@@ -86,6 +86,22 @@ export function jugerSuppression(lecture, matiere, id, matiereId) {
 
 // ─── Les gestes, par l'interface (e2e/gestes.mjs) ─────────────────────────────────────────────
 
+/**
+ * Le choix de la classe (#572, back #1103) quand le formulaire en propose plusieurs sans présélection : celle de
+ * l'élève, lue sur la leçon PUBLIÉE du jeu qu'il voit (même espace d'ids, LOCAUX, que la liste du formulaire).
+ * Sans champ Classe (avant #572) ou avec une classe déjà choisie, rien à faire. Rend un NON TESTÉ nommé, ou null.
+ */
+async function choisirLaClasse(page, jeu) {
+  const champ = page.locator('#lecon-classe')
+  if (!(await champ.count()) || (await champ.inputValue()) !== '') return null
+  const reference = jeu.lecons?.publiee
+  if (!reference) return { nonTeste: 'plusieurs classes et aucune leçon de référence pour choisir celle de l’élève' }
+  const classe = (await lireApi(page, `/lessons/${reference}`)).corps?.data?.classe_id
+  if (classe == null) return { nonTeste: `la classe de la leçon de référence ${reference} n’est pas relue` }
+  await champ.selectOption(String(classe))
+  return null
+}
+
 /** L'écran de la matière, et la carte de la leçon du parcours. Une carte absente est un défaut du produit. */
 export async function carteDansLaMatiere({ pages, base, jeu, donnees }) {
   const page = pages.enseignant
@@ -109,6 +125,9 @@ export const ETAPES_LECON = Object.freeze([
       await page.getByRole('button', { name: /^(Nouvelle leçon|Créer ma première leçon)$/ }).first().click()
       await page.getByPlaceholder('Ex: Introduction aux boucles').fill(donnees.titre)
       await page.getByPlaceholder('Décrivez brièvement le contenu de cette leçon...').fill(donnees.description)
+      // #572 : la matière a PLUSIEURS classes, aucune n'est présélectionnée (voulu) : on choisit celle de l'élève.
+      const choix = await choisirLaClasse(page, jeu)
+      if (choix) return choix
       await page.getByRole('button', { name: 'Créer la leçon' }).click()
       const arrive = await page.waitForURL(/\/teacher\/lessons\/\d+\/chapters/, { timeout: ATTENTE }).then(() => true, () => false)
       if (!arrive) return { rouge: `la création n’aboutit pas (resté sur ${new URL(page.url()).pathname}) : ${await ditLEcran(page)}` }
