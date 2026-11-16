@@ -1,6 +1,7 @@
 import { computed } from 'vue'
 import { formatDateWeekday } from '@/utils/formatters'
 import { copieRendue } from '@/utils/studentEvaluationStatus'
+import { visioPassee, VISIO_SEANCE_PASSEE } from '@/utils/visioTimeWindow'
 
 /**
  * Composable de la modale de détail d'événement (H8 — décomposition
@@ -96,8 +97,11 @@ export function useEventDetail(props, emit) {
     if (!isSeance.value || props.userRole !== 'teacher') return false
     const visioEnabled = eventData.value.visio?.enabled || eventData.value.visio_enabled
     const visioStatus = eventData.value.visio?.status || eventData.value.visio_status
-    return visioEnabled && visioStatus !== 'active'
+    return visioEnabled && visioStatus !== 'active' && !visioPassee(eventData.value)
   })
+
+  // Pourquoi « Démarrer la visio » n'est pas proposé : la fenêtre de la séance est passée (sinon null).
+  const motifVisioFermee = computed(() => (isSeance.value && visioPassee(eventData.value) ? VISIO_SEANCE_PASSEE : null))
 
   const canEndVisio = computed(() => {
     if (!isSeance.value || props.userRole !== 'teacher') return false
@@ -150,6 +154,7 @@ export function useEventDetail(props, emit) {
     canStartEvaluation,
     canActivateVisio,
     canStartVisio,
+    motifVisioFermee,
     canEndVisio,
     formattedDate,
     formattedTimeRange,

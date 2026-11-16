@@ -45,6 +45,7 @@
         :can-start-evaluation="canStartEvaluation"
         :can-activate-visio="canActivateVisio"
         :can-start-visio="canStartVisio"
+        :motif-visio-fermee="motifVisioFermee"
         :can-end-visio="canEndVisio"
         @action="emitAction($event)"
       />
@@ -87,6 +88,7 @@ const {
   canStartEvaluation,
   canActivateVisio,
   canStartVisio,
+  motifVisioFermee,
   canEndVisio,
   formattedDate,
   formattedTimeRange,

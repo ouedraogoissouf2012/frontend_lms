@@ -56,8 +56,9 @@
 
     <!-- Actions : variante "à venir" -->
     <div v-else class="card-actions">
+      <p v-if="seance.visio_enabled && !seance.visio_active && visioPassee(seance)" class="card-subtitle">{{ VISIO_SEANCE_PASSEE }}</p>
       <button
-        v-if="seance.visio_enabled && !seance.visio_active"
+        v-else-if="seance.visio_enabled && !seance.visio_active"
         @click="$emit('start', seance)"
         class="btn-action btn-start"
         :disabled="actionLoading === seance.id"
@@ -104,6 +105,7 @@ import {
   PlayIcon,
   StopIcon
 } from '@heroicons/vue/24/outline'
+import { visioPassee, VISIO_SEANCE_PASSEE } from '@/utils/visioTimeWindow'
 
 defineProps({
   seance: { type: Object, required: true },
