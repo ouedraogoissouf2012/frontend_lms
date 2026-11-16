@@ -123,3 +123,21 @@ describe('le refus du serveur : reason « seance_past » (409, contrat du Répar
     expect(messageForReason('seance_past')).not.toBe(VISIO_SEANCE_PASSEE)
   })
 })
+
+describe('SeanceCardActions — « Démarrer maintenant » d’une séance passée (/teacher/seances)', () => {
+  const carte = async (seance) => {
+    const { default: SeanceCardActions } = await import('@/components/seances/SeanceCardActions.vue')
+    return mount(SeanceCardActions, { props: { seance, isEnseignant: true } })
+  }
+  const programmee = (programmation) => ({ id: 9, visio: { enabled: true, status: 'programmee', room_id: 'salle' }, programmation })
+
+  it('passée : pas de « Démarrer maintenant », le motif est dit', async () => {
+    const texte = (await carte(programmee(PASSEE.programmation))).text()
+    expect(texte).not.toContain('Démarrer maintenant')
+    expect(texte).toContain(VISIO_SEANCE_PASSEE)
+  })
+
+  it('à venir : le bouton reste', async () => {
+    expect((await carte(programmee(A_VENIR.programmation))).text()).toContain('Démarrer maintenant')
+  })
+})
