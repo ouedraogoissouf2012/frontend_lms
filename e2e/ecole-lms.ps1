@@ -136,7 +136,7 @@ try {
         Appeler "6 inscription eleve$($e[0])" 'POST' '/inscriptions' @{
             code = $e[1]; nom = "Eleve $($e[0]) E2E"; email = "eleve$($e[0])@e2e.test"
             password = $MotDePasse; password_confirmation = $MotDePasse
-        } -EnTetes @{ 'X-Institution' = $Slug } -Attendus @(201, 202) | Out-Null
+        } -EnTetes @{ 'X-Institution' = $Slug } -Attendus @(201) | Out-Null
         Connecter "6 connexion eleve$($e[0])" "eleve$($e[0])@e2e.test" | Out-Null
         Start-Sleep -Seconds 13
     }
