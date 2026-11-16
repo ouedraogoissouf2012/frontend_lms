@@ -53,6 +53,11 @@ jobs:
           p="E2e-$(openssl rand -hex 12)"
           echo "::add-mask::$p"
           echo "E2E_MOT_DE_PASSE=$p" >> "$GITHUB_ENV"
+          # PR 4 (D1) : un secret Jitsi FICTIF, aléatoire et masqué. Sans lui, `join` n'émet aucun jeton et la
+          # visio ne se juge pas. Aucun serveur Jitsi n'existe en CI : la vidéo reste une limite déclarée.
+          j="$(openssl rand -hex 32)"
+          echo "::add-mask::$j"
+          echo "E2E_JITSI_SECRET=$j" >> "$GITHUB_ENV"
 
       # L'OUTIL de mesure (ce dépôt, à la tête de la PR) et le FRONT mesuré sont deux checkouts :
       # une branche d'intégration qui n'inclut pas cette PR doit pouvoir être mesurée.
@@ -118,6 +123,8 @@ jobs:
           LOG_CHANNEL=single
           BCRYPT_ROUNDS=4
           KLASSCI_API_URL=http://127.0.0.1:8180
+          JITSI_APP_SECRET=$E2E_JITSI_SECRET
+          JITSI_DOMAIN=visio.example.test
           KLASSCI_API_TOKEN=
           SUPRADMIN_EMAIL=$E2E_SUPRADMIN_EMAIL
           SUPRADMIN_PASSWORD=$E2E_MOT_DE_PASSE
