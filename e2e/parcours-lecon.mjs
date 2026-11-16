@@ -188,7 +188,8 @@ export const ETAPES_LECON = Object.freeze([
     async relecture({ pages, donnees }) {
       const page = pages.etudiant
       const chapitre = await page.getByText(donnees.chapitre).first().waitFor({ timeout: ATTENTE }).then(() => true, () => false)
-      const bouton = await page.getByRole('button', { name: 'Marquer comme terminé' }).count()
+      // Attendre le RENDU du bouton, jamais le compter à l'instant (E2E 43798868511 : un faux ROUGE ; #565).
+      const bouton = await page.getByRole('button', { name: 'Marquer comme terminé' }).first().waitFor({ timeout: ATTENTE }).then(() => true, () => false)
       if (!chapitre) return { confirme: false, ecart: `le chapitre « ${donnees.chapitre} » n’est pas affiché dans la leçon ouverte` }
       return bouton ? { confirme: true, preuve: 'la leçon ouverte affiche le chapitre et « Marquer comme terminé »' }
         : { confirme: false, ecart: 'le bouton « Marquer comme terminé » est absent' }
