@@ -5,6 +5,7 @@
  * seuils de taux de présence (80 / 60 %), mappers de statut, et calcul des
  * bornes de période. Fonctions pures → testables et réutilisables.
  */
+import { formatDate } from './formatters'
 
 /** Convertit une Date en chaîne `YYYY-MM-DD` (local). */
 function toDateInput(date) {
@@ -93,4 +94,17 @@ export function getPeriodDates(period, customDates = {}) {
   }
 
   return dates
+}
+
+/**
+ * #581 : la confirmation de suppression d'une séance, qui la NOMME par ce que l'écran affiche : son titre, sinon sa
+ * matière, et sa date. Jamais un id (`klassci_seance_id` est absent d'une séance créée dans le LMS : « null »).
+ * @param {Object} seance - une ligne de l'historique des séances
+ * @returns {string}
+ */
+export function messageSuppressionSeance(seance) {
+  const nom = seance?.titre || seance?.matiere?.nom
+  const date = seance?.date ? formatDate(seance.date, { fallback: '' }) : ''
+  if (!nom) return 'Êtes-vous sûr de vouloir supprimer cette séance ?'
+  return `Êtes-vous sûr de vouloir supprimer la séance « ${nom} »${date ? ` du ${date}` : ''} ?`
 }
