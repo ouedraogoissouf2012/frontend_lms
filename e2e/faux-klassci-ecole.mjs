@@ -10,7 +10,7 @@
 import { createServer } from 'node:http'
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs'
 import { randomUUID } from 'node:crypto'
-import { COMPTES, REPONSES, utilisateur, jeuDuParcours } from './klassci-ecole/jeu.mjs'
+import { COMPTES, REPONSES, utilisateur, jeuDuParcours, entreeDuJournal } from './klassci-ecole/jeu.mjs'
 
 // D584 : les routes dont la forme servie est MESURÉE (cache KLASSCI de la base de DEV) ; les autres sont
 // « non vérifiées ». Chaque appel du journal le dit, et le résumé de l'E2E l'affiche.
@@ -73,8 +73,8 @@ createServer(async (req, res) => {
     t: new Date().toISOString(), methode: req.method, chemin, statut, compte: compte?.role ?? null,
     forme: !(cle in REPONSES) ? 'absente du jeu' : MESUREES.has(cle) ? 'mesurée' : 'non vérifiée',
     cles: corps && typeof corps === 'object' ? Object.keys(corps) : [],
-    // K3 : les notes envoyées : leur NOMBRE et les CLÉS de leurs éléments, jamais une valeur.
-    ...(Array.isArray(corps?.notes) ? { nb_notes: corps.notes.length, cles_notes: [...new Set(corps.notes.flatMap((n) => Object.keys(n ?? {})))] } : {}),
+    // K3 et PR 3 : les notes envoyées (nombre, clés, valeurs fictives), e2e/klassci-ecole/jeu.mjs.
+    ...entreeDuJournal(corps),
   }) + '\n')
   repondre(res, statut, reponse)
 }).listen(Number(port), '127.0.0.1', () => console.log(`faux KLASSCI école sur 127.0.0.1:${port}`))

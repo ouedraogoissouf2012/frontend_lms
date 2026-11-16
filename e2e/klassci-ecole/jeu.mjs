@@ -58,14 +58,22 @@ export const COMPTES = {
 // `lms_integration{can_create_online, can_submit_notes}` ; la LISTE (`GET evaluations`) porte `publication` et
 // `lms_integration{can_execute_online, has_online_version, notes_count}`, SANS `can_submit_notes`.
 export const EVALUATION = { id: 9601, titre: 'Devoir K E2E', classe: 9101, matiere: 9201 }
-function evaluationCommune() {
+// PR 3 (le devoir) : deux programmations de plus, de la MÊME forme mesurée. 9601 est prise par le montage K3 (sa
+// version en ligne existe : une seconde rendrait 409). 9602 : le devoir corrigé puis synchronisé ; 9603 :
+// l'évaluation B, modifiée puis supprimée.
+export const DEVOIRS = Object.freeze({
+  principal: Object.freeze({ id: 9602, titre: 'Devoir dissertation K E2E', classe: 9101, matiere: 9201 }),
+  b: Object.freeze({ id: 9603, titre: 'Devoir B K E2E', classe: 9101, matiere: 9201 }),
+})
+const PROGRAMMEES = [EVALUATION, DEVOIRS.principal, DEVOIRS.b]
+function evaluationCommune(ev) {
   const debut = new Date(Date.now() - 3600e3)
   const fin = new Date(Date.now() + 3 * 3600e3)
-  const m = MATIERES.find((x) => x.id === EVALUATION.matiere)
+  const m = MATIERES.find((x) => x.id === ev.matiere)
   return {
-    id: EVALUATION.id, titre: EVALUATION.titre, description: EVALUATION.titre, type: 'devoir', status: 'draft',
+    id: ev.id, titre: ev.titre, description: ev.titre, type: 'devoir', status: 'draft',
     matiere: { id: m.id, nom: m.nom, code: m.code },
-    classe: { id: EVALUATION.classe, nom: CLASSES.find((c) => c.id === EVALUATION.classe).name },
+    classe: { id: ev.classe, nom: CLASSES.find((c) => c.id === ev.classe).name },
     programmation: {
       date_evaluation: debut.toISOString(), duree_minutes: 240, coefficient: '1.0', bareme: '20.00',
       window: { start_at: debut.toISOString(), end_at: fin.toISOString(), has_started: true, has_ended: false, is_open: true, time_left_minutes: 180 },
@@ -73,21 +81,21 @@ function evaluationCommune() {
   }
 }
 const FORMES_EVALUATION = {
-  tableau: () => ({
-    ...evaluationCommune(),
-    correction: { notes_saisies: 0, notes_attendues: ELEVES.filter((e) => e.classe === EVALUATION.classe).length, progression: 0, is_complete: false },
+  tableau: (ev) => ({
+    ...evaluationCommune(ev),
+    correction: { notes_saisies: 0, notes_attendues: ELEVES.filter((e) => e.classe === ev.classe).length, progression: 0, is_complete: false },
     lms_integration: { can_create_online: true, can_submit_notes: true },
   }),
-  liste: () => ({
-    ...evaluationCommune(),
+  liste: (ev) => ({
+    ...evaluationCommune(ev),
     publication: { is_published: 1, notes_published: 0 },
     lms_integration: { can_execute_online: true, has_online_version: false, notes_count: 0 },
   }),
 }
 /** Les évaluations programmées que voit un compte (l'enseignant de la classe, l'élève de la classe), sous la forme de la route. */
 function evaluationsDe(c, forme) {
-  const voit = (c.role === 'enseignant' && c.classes.includes(EVALUATION.classe)) || (c.role === 'etudiant' && c.classe === EVALUATION.classe)
-  return voit ? [FORMES_EVALUATION[forme]()] : []
+  const voit = (ev) => (c.role === 'enseignant' && c.classes.includes(ev.classe)) || (c.role === 'etudiant' && c.classe === ev.classe)
+  return PROGRAMMEES.filter(voit).map((ev) => FORMES_EVALUATION[forme](ev))
 }
 
 // K4 (D609) : UNE séance KLASSCI, servie par `emploi-temps` (EmploiTempsSeanceLocator:68-132 : l'enseignant la
@@ -201,8 +209,21 @@ export const REPONSES = {
   // 2xx suffit ; on ne sert donc que `success`. Le journal en garde les CLÉS, jamais les valeurs.
   'POST /evaluations/{id}/notes': (c, _corps, [id]) => {
     if (c.role !== 'enseignant') return null
-    return Number(id) === EVALUATION.id ? { success: true } : undefined
+    return PROGRAMMEES.some((ev) => ev.id === Number(id)) ? { success: true } : undefined
   },
+}
+
+/**
+ * Ce que le journal du faux retient des notes envoyées à KLASSCI : leur nombre, les clés de leurs éléments, et
+ * leurs VALEURS (données fictives : la note synchronisée doit valoir celle corrigée, PR 3).
+ */
+export function entreeDuJournal(corps) {
+  if (!Array.isArray(corps?.notes)) return {}
+  return {
+    nb_notes: corps.notes.length,
+    cles_notes: [...new Set(corps.notes.flatMap((n) => Object.keys(n ?? {})))],
+    valeurs_notes: corps.notes.map((n) => n?.note ?? null),
+  }
 }
 
 /** Le jeu lu par e2e/parcours.mjs pour cette école. */
@@ -215,5 +236,7 @@ export function jeuDuParcours() {
     // D607 : les capacités de l'école, telles que le produit les décide. Une école KLASSCI n'inscrit pas
     // localement : KlassciRosterAuthority::allowsLocalEnrolment() rend false (KlassciRosterAuthority.php:18-20).
     capacites: { peutInscrireLocalement: false },
+    // PR 3 : les programmations que le parcours du devoir met en ligne par l'interface.
+    devoirs: { principal: DEVOIRS.principal, b: DEVOIRS.b },
   }
 }
