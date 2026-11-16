@@ -87,7 +87,7 @@ describe('CreateLessonModal — le champ Classe', () => {
 
   it('les libellés sont associés à leurs champs (#563)', () => {
     const w = monter({ classes: DEUX })
-    for (const id of ['lecon-titre', 'lecon-description', 'lecon-classe']) {
+    for (const id of ['lecon-titre', 'lecon-description', 'lecon-classe', 'lecon-prerequis', 'lecon-niveau', 'lecon-objectifs', 'lecon-duree']) {
       expect(w.find(`label[for="${id}"]`).exists()).toBe(true)
       expect(w.find(`#${id}`).exists()).toBe(true)
     }
