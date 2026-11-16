@@ -223,7 +223,7 @@ const lessonService = {
     // lms_backend#1147 : l'ÉTAT du serveur prime sur le pourcentage. Du temps écrit commence la leçon
     // (`in_progress`) même à 0 %, et une leçon `completed` est terminée. Sinon, le pourcentage décide.
     if (status === 'completed') return BADGES_PROGRESSION.termine
-    if (status === 'in_progress' && percentage === 0) return BADGES_PROGRESSION.debute
+    // m1 : la regle in_progress a 0 % est retiree
     if (percentage === 0) return BADGES_PROGRESSION.nonCommence
     if (percentage < 30) return BADGES_PROGRESSION.debute
     if (percentage < 70) return BADGES_PROGRESSION.enCours
