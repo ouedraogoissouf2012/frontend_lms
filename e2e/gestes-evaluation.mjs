@@ -2,13 +2,14 @@
 // se publie ; l'élève la passe ; l'enseignant la corrige. Les deux écoles : dans l'école KLASSCI, le devoir est la
 // version EN LIGNE d'une évaluation programmée (« Créer version en ligne » sur sa carte).
 //
-// Sélecteurs : textes visibles, libellés et placeholders. Structurels, déclarés (#563) : la carte d'une évaluation
-// (`.evaluation-card`, sans rôle), une fenêtre modale (`.modal-container`, sans `role="dialog"`), le type d'une
-// question (`select` sans libellé) et les points d'une copie (`input[name^="points-"]`).
+// Sélecteurs : rôles, libellés et textes visibles ; une fenêtre modale est un `dialog` (#563). Restent structurels,
+// déclarés : la carte d'une évaluation (`.evaluation-card`, sans rôle), le type d'une question (`select` sans
+// libellé) et les points d'une copie (`input[name^="points-"]`). Restent des placeholders : les champs de l'éditeur de
+// questions et la réponse de l'élève, sans libellé associé (hors de #563).
 import { ATTENTE, bouton, nomDeBouton, appel, refusServeur } from './gestes.mjs'
 
 export const carteEvaluation = (page, titre) => page.locator('.evaluation-card').filter({ hasText: titre })
-const modale = (page, texte) => page.locator('.modal-container').filter({ hasText: texte })
+const modale = (page, texte) => page.getByRole('dialog').filter({ hasText: texte })
 
 /** Une confirmation (ConfirmDialog, ou la modale de remise) : la modale qui porte le message, puis son bouton. */
 export async function confirmer(page, message, texteBouton = 'Confirmer') {

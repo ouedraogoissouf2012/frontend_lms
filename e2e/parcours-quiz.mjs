@@ -82,7 +82,7 @@ async function pageDesChapitres({ pages, base, etat }) {
 const blocDuChapitre = (page, titre) => page.locator('.chapter-block').filter({ hasText: titre })
 // En édition, le titre du chapitre est la VALEUR d'un champ, pas un texte : le bloc ne se trouve plus par son
 // titre (E2E 43772665766). Il se trouve par son formulaire ouvert (un seul chapitre en édition à la fois).
-const blocEnEdition = (page) => page.locator('.chapter-block').filter({ has: page.getByPlaceholder('saisissez le titre') })
+const blocEnEdition = (page) => page.locator('.chapter-block').filter({ has: page.getByLabel('Titre du chapitre') })
 
 /** Remplit l'éditeur du quiz (création) : le titre, puis chaque question, ses options et sa bonne réponse. */
 async function remplirLeQuiz(editeur, donnees) {
@@ -215,7 +215,7 @@ export const ETAPES_QUIZ = Object.freeze([
       // Le bouton existe (#573) : la suppression, sa confirmation, puis la relecture de la disparition.
       const reponse = appel(page, 'DELETE', `/knowledge-checks/${ctx.etat.quiz}`)
       await boutonSupprimer(lieu).first().click()
-      await page.locator('.modal-container').filter({ hasText: 'Supprimer le quiz' }).getByRole('button', { name: 'Supprimer', exact: true }).click()
+      await page.getByRole('dialog').filter({ hasText: 'Supprimer le quiz' }).getByRole('button', { name: 'Supprimer', exact: true }).click()
       return (await refusServeur(page, reponse, 'la suppression du quiz')) ?? {}
     },
     // Le quiz doit avoir disparu du chapitre.

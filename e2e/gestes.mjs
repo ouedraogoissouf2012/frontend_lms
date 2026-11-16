@@ -47,7 +47,7 @@ export async function refusServeur(page, reponse, quoi) {
  * @returns {Promise<import('playwright').Locator>} le champ du titre du nouveau chapitre
  */
 export async function formulaireDeChapitre(page) {
-  const titre = page.getByPlaceholder('saisissez le titre')
+  const titre = page.getByLabel('Titre du chapitre') // le nom accessible du champ (#563)
   await titre.or(bouton(page, '+ Ajouter un chapitre')).first().waitFor({ timeout: ATTENTE })
   if (!(await titre.count())) await bouton(page, '+ Ajouter un chapitre').click()
   return titre.last()
