@@ -222,7 +222,6 @@ export function useCreateQuestions() {
       max_attempts: configuration.max_attempts,
       shuffle_questions: configuration.shuffle_questions,
       show_results: configuration.show_results,
-      ...(configuration.titre !== null ? { titre: configuration.titre.trim() } : {}),
       questions: prepareQuestionsForSubmit()
     }
 
