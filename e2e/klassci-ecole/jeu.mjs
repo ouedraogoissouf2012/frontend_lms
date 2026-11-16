@@ -102,6 +102,21 @@ function evaluationsDe(c, forme) {
 // retrouve par l'`id` de l'entrée, filtrée sur `matiere.id`). Seules des clés MESURÉES (formes-mesurees.json), aux
 // valeurs fictives ; datée du jour, dans la fenêtre glissante du back. Un id hors des espaces des autres objets.
 export const SEANCE = { id: 9701, titre: 'Seance K E2E', classe: 9101, matiere: 9201 }
+/**
+ * PR 4 (D2) : les heures de la séance, RELATIVES au run (UTC) : début il y a 10 min, fin dans 1 h 50, au format
+ * « HH:mm » mesuré. La fenêtre de la visio (début − 15 min → fin + 30 min) est donc ouverte à toute heure du run.
+ * Bornées au jour même (00:00 à 23:59), pour que `date_seance` reste aujourd'hui. Seules les VALEURS changent.
+ */
+export function heuresDuRun(maintenant = new Date()) {
+  const hhmm = (d) => d.toISOString().slice(11, 16)
+  const jour = maintenant.toISOString().slice(0, 10)
+  const debut = new Date(maintenant.getTime() - 10 * 60e3)
+  const fin = new Date(maintenant.getTime() + 110 * 60e3)
+  return {
+    heure_debut: debut.toISOString().slice(0, 10) === jour ? hhmm(debut) : '00:00',
+    heure_fin: fin.toISOString().slice(0, 10) === jour ? hhmm(fin) : '23:59',
+  }
+}
 function seanceDuJour() {
   const jour = new Date().toISOString().slice(0, 10)
   const m = MATIERES.find((x) => x.id === SEANCE.matiere)
@@ -111,7 +126,7 @@ function seanceDuJour() {
     matiere: { id: m.id, nom: m.nom },
     classe: { id: SEANCE.classe, nom: CLASSES.find((c) => c.id === SEANCE.classe).name },
     enseignant: { id: ens.enseignant_id, nom: ens.nom },
-    programmation: { date_seance: jour, date_cours: jour, heure_debut: '10:00', heure_fin: '12:00' },
+    programmation: { date_seance: jour, date_cours: jour, ...heuresDuRun() },
     salle: { id: null, nom: 'Salle E2E' },
   }
 }

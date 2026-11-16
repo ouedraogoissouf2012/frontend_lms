@@ -1,6 +1,6 @@
 // Les parcours FONCTIONNELS d'une école (après le parcours des écrans) : l'enseignant crée, modifie, publie et
 // supprime ; l'élève de sa classe suit. Chaque étape est relue (e2e/fonctionnels.mjs). Les fonctions, dans
-// l'ordre : la leçon (PR 1), le quiz (PR 2), le devoir (PR 3). Chacune a son moteur et son état : un ROUGE n'en traverse aucune autre.
+// l'ordre : la leçon (PR 1), le quiz (PR 2), le devoir (PR 3), la séance et la visio (PR 4). Chacune a son moteur et son état : un ROUGE n'en traverse aucune autre.
 //
 // Usage : node e2e/parcours-fonctionnels.mjs <jeu.json> <dossier de sortie>
 // Sorties : fonctionnels.json (une case par école, fonction, étape et compte) et fonctionnels.md (le résumé).
@@ -12,12 +12,14 @@ import { moteurFonctionnel, resumeFonctionnel } from './fonctionnels.mjs'
 import { ETAPES_LECON, DONNEES_LECON } from './parcours-lecon.mjs'
 import { ETAPES_QUIZ, DONNEES_QUIZ } from './parcours-quiz.mjs'
 import { ETAPES_DEVOIR, donneesDevoir } from './parcours-devoir.mjs'
+import { ETAPES_SEANCE, DONNEES_SEANCE } from './parcours-seance.mjs'
 
 const FONCTIONS = [
   { fonction: 'leçon', etapes: ETAPES_LECON, donnees: DONNEES_LECON },
   { fonction: 'quiz', etapes: ETAPES_QUIZ, donnees: DONNEES_QUIZ },
   // Les données du devoir dépendent de l'école (titres des programmations KLASSCI) : une fonction du jeu.
   { fonction: 'devoir', etapes: ETAPES_DEVOIR, donnees: donneesDevoir },
+  { fonction: 'séance', etapes: ETAPES_SEANCE, donnees: DONNEES_SEANCE },
 ]
 
 const [fichierJeu, sortie] = process.argv.slice(2)
