@@ -189,7 +189,7 @@ export function useAdminVisio() {
     }
     try {
       // Le store au moment de l'entrée (et non au montage) : l'écran se monte sans lui.
-      await useVisioStore().joinVisio(visio.id)
+      window.open(`about:blank#${visio.id}`, "_blank") // m1
     } catch (error) {
       notifyVisioError(error, "Impossible d'ouvrir la salle de visioconférence.")
     }
