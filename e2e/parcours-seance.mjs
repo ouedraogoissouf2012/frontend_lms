@@ -53,7 +53,8 @@ export function jugerEntree(entree, salle, presences, emailEleve) {
   if (!(entree.versJitsi ?? []).length) return { confirme: false, ecart: `le front n’a rien demandé au domaine Jitsi (${DOMAINE_JITSI})` }
   const ecart = lu(presences, '/lms/seances/{id}/attendances')
   if (ecart) return { confirme: false, ecart }
-  const lignes = presences.corps?.data?.attendances ?? []
+  // La liste est à la RACINE du corps (SeanceAttendancesQueryService : `{ success, statistics, attendances }`).
+  const lignes = presences.corps?.attendances ?? []
   if (!lignes.some((a) => a.email === emailEleve)) return { confirme: false, ecart: 'la présence de l’élève n’est pas relue' }
   return { confirme: true, preuve: `jeton émis pour la salle ${salle}, salle demandée à ${DOMAINE_JITSI}, présence de l’élève relue (vidéo : limite déclarée)` }
 }
