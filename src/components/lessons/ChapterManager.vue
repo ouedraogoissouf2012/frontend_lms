@@ -34,6 +34,7 @@
       @open-quiz-player="openQuizPlayer"
       @add="addChapter"
       @retry-quiz="loadKnowledgeChecks"
+      @delete-quiz="deleteKnowledgeCheck"
     />
 
     <!-- Upload Progress Modal -->
