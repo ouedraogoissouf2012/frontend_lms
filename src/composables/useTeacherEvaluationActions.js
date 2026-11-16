@@ -84,6 +84,8 @@ export function useTeacherEvaluationActions({ evaluationsLMS, loadEvaluationsLMS
       if (result.success) {
         console.log('[SUCCESS] Évaluation créée:', result.data)
         toast.success('Version en ligne créée! Vous pouvez maintenant ajouter des questions.')
+        // L'id KLASSCI, lu AVANT la fermeture de la modale (elle vide la sélection).
+        const klassciId = selectedEvaluation.value.id
 
         // Reload evaluations
         await loadEvaluationsLMS()
@@ -91,8 +93,11 @@ export function useTeacherEvaluationActions({ evaluationsLMS, loadEvaluationsLMS
         // Close modal
         closeCreateModal()
 
-        // TODO: Rediriger vers page d'édition des questions
-        // router.push({ name: 'EditQuestions', params: { id: result.data.id } })
+        // #570 : l'éditeur de la version créée, par la même route que « Modifier les questions ». Sans id
+        // relu dans la réponse, aucune navigation n'est inventée : la carte offre « Modifier les questions ».
+        if (result.data?.id != null) {
+          router.push({ name: 'EditQuestions', params: { id: result.data.id }, query: { klassci_id: klassciId } })
+        }
       }
     } catch (err) {
       console.error('[ERREUR] Création évaluation:', err)
