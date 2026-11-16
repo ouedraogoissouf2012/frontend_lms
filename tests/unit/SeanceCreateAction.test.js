@@ -1,7 +1,7 @@
 /**
  * SeanceCreateAction — le bouton « Nouvelle séance » et son dialogue, uniques, montés sur les trois
  * écrans de séances (enseignant, coordinateur, gestion). Caché sans catalogue local (D3). Le
- * dialogue DIT que la visio n'est pas encore possible pour une séance créée ici (D6, lot backend).
+ * dialogue DIT où se pilote la visio : sur la carte de la séance, une fois créée (#580 ; D6 levé par le back).
  */
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -38,12 +38,12 @@ describe('SeanceCreateAction', () => {
     expect(w.find('button.btn-create').exists()).toBe(true)
   })
 
-  it('le dialogue dit que la visio n’est pas encore possible ; une création réussie émet « created »', async () => {
+  it('le dialogue dit où se pilote la visio (#580) ; une création réussie émet « created »', async () => {
     m.createSeance.mockResolvedValue({ id: 42 })
     const w = monter({ matieres: LOCAL })
     await flushPromises()
     await w.find('button.btn-create').trigger('click')
-    expect(w.text()).toMatch(/visioconférence n.est pas encore disponible/i)
+    expect(w.text()).toContain('La visioconférence s’active ensuite depuis la carte de la séance.')
     await w.find('select[name="matiere"]').setValue('5')
     await w.find('select[name="classe"]').setValue('11')
     await w.find('input[name="titre"]').setValue('Révision')
