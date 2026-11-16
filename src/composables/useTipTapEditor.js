@@ -15,6 +15,15 @@ import { countWords, countCharacters } from '@/utils/textStats'
  * @param {{ modelValue: string, placeholder: string }} props - props réactives de la vue.
  * @param {(event: string, ...args: any[]) => void} emit - emit de la vue (update:modelValue).
  */
+/**
+ * #563 : les attributs de la zone éditable. Un contenteditable sans rôle ni nom était muet pour un lecteur d'écran :
+ * c'est une zone de saisie multiligne, nommée par le libellé du champ.
+ * @param {string} nom - le nom accessible (le libellé du champ)
+ */
+export function attributsEditeur(nom) {
+  return { class: 'prose prose-sm max-w-none focus:outline-none', role: 'textbox', 'aria-multiline': 'true', 'aria-label': nom }
+}
+
 export function useTipTapEditor(props, emit) {
   const isFullscreen = ref(false)
 
@@ -22,9 +31,7 @@ export function useTipTapEditor(props, emit) {
     content: props.modelValue,
     extensions: buildEditorExtensions(props.placeholder),
     editorProps: {
-      attributes: {
-        class: 'prose prose-sm max-w-none focus:outline-none'
-      }
+      attributes: attributsEditeur(props.label)
     },
     onUpdate: ({ editor }) => {
       const html = editor.getHTML()

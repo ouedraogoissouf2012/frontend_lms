@@ -4,6 +4,7 @@
     <div v-if="chapter.content_type === 'text'">
       <TipTapEditor
         v-model="chapter.content"
+        label="Contenu du chapitre"
         placeholder="Rédigez votre contenu ici... (Markdown supporté)"
       />
     </div>
