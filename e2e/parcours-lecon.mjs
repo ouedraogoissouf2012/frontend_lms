@@ -58,7 +58,7 @@ export function jugerChapitre(lecture, id, titre) {
 /** « Modifier » doit mener à un champ qui porte le titre de la leçon (#564). */
 export function jugerModification(champDuTitre, url) {
   if (!champDuTitre) return { rouge: `${AUCUN_CHEMIN_MODIFICATION} : « Modifier » ouvre ${url.pathname}${url.search}, sans champ qui porte le titre (Refs #564)` }
-  return { nonTeste: 'un champ porte désormais le titre : l’étape est à compléter avec sa correction (#564)' }
+  return null // un champ porte le titre : la modification se joue, puis se relit
 }
 
 /** L'élève a terminé le chapitre ET la leçon (deux tables : chapter_progress et lesson_progress). */
@@ -149,16 +149,22 @@ export const ETAPES_LECON = Object.freeze([
       const { carte, rouge } = await carteDansLaMatiere(ctx)
       if (rouge) return { rouge }
       const page = ctx.pages.enseignant
-      const avant = page.url()
       await bouton(carte, 'Modifier').click()
-      // Navigation côté client : `networkidle` est DÉJÀ atteint pour ce document, il n'attendrait rien
-      // (E2E 43762204617 lisait encore /matieres/:id). On attend que l'URL change, puis un champ du titre.
-      await page.waitForURL((u) => u.href !== avant, { timeout: ATTENTE }).catch(() => {})
+      // Navigation côté client ou modale : `networkidle` est déjà atteint, il n'attendrait rien (#565). On attend,
+      // jusqu'à 20 s, un champ qui porte le titre (la modale de #572, ou tout autre chemin d'édition).
       const champ = await page.waitForFunction((t) => [...document.querySelectorAll('input, textarea')].some((e) => e.value === t),
         ctx.donnees.titre, { timeout: ATTENTE }).then(() => true, () => false)
-      return jugerModification(champ, new URL(page.url()))
+      const absent = jugerModification(champ, new URL(page.url()))
+      if (absent) return absent
+      // Le champ du titre : on le change, puis « Enregistrer » (PUT). Les étapes suivantes lisent le titre COURANT.
+      const modale = page.locator('.modal-container').filter({ hasText: 'Modifier la leçon' })
+      await modale.getByLabel('Titre de la leçon').fill(ctx.donnees.titreModifie)
+      const reponse = appel(page, 'PUT', `/lessons/${ctx.etat.lecon}`)
+      await bouton(modale, 'Enregistrer').click()
+      const refus = await refusServeur(page, reponse, 'la modification de la leçon')
+      if (!refus) ctx.etat.titre = ctx.donnees.titreModifie
+      return refus ?? {}
     },
-    // Jouée seulement quand un champ du titre existera (#564) : la leçon relue doit porter le titre modifié.
     relecture: async ({ pages, donnees, etat }) => jugerLecon(await lireApi(pages.enseignant, `/lessons/${etat.lecon}`), etat.lecon, { titre: donnees.titreModifie, statut: 'draft' }),
   },
   {
@@ -170,7 +176,8 @@ export const ETAPES_LECON = Object.freeze([
       await bouton(carte, 'Publier').click()
       return (await refusServeur(ctx.pages.enseignant, reponse, 'la publication')) ?? {}
     },
-    relecture: async ({ pages, donnees, etat }) => jugerLecon(await lireApi(pages.enseignant, `/lessons/${etat.lecon}`), etat.lecon, { titre: donnees.titre, statut: 'published' }),
+    // Le titre COURANT : modifié par l'étape « modifier » quand elle a réussi.
+    relecture: async ({ pages, donnees, etat }) => jugerLecon(await lireApi(pages.enseignant, `/lessons/${etat.lecon}`), etat.lecon, { titre: etat.titre ?? donnees.titre, statut: 'published' }),
   },
   {
     cle: 'ouvrir', compte: 'etudiant', libelle: 'ouvrir la leçon publiée (Mes cours)', requiert: ['publier', 'chapitre', 'classe'],

@@ -54,10 +54,9 @@ export function jugerTentative(lecture, quizId) {
   return { confirme: true, preuve: `1 tentative remise, score 100, réussie (quiz ${quizId})` }
 }
 
-/** La suppression du quiz : aucun bouton ne la propose (#566), ou il faut l'écrire. */
+/** La suppression du quiz : aucun bouton ne la propose (#566) ; sinon null, et la suppression se joue. */
 export function jugerSuppressionQuiz(boutonVu) {
-  return boutonVu ? { nonTeste: 'un bouton supprime désormais le quiz : l’étape est à compléter avec sa correction (#566)' }
-    : { rouge: `${AUCUN_CHEMIN_SUPPRESSION_QUIZ} : ni le chapitre en lecture ni le chapitre en édition n’en offre (Refs #566)` }
+  return boutonVu ? null : { rouge: `${AUCUN_CHEMIN_SUPPRESSION_QUIZ} : ni le chapitre en lecture ni le chapitre en édition n’en offre (Refs #566)` }
 }
 
 /** Le quiz supprimé a DISPARU du chapitre : la liste de l'enseignant est vide. */
@@ -199,20 +198,27 @@ export const ETAPES_QUIZ = Object.freeze([
     async action(ctx) {
       const page = await pageDesChapitres(ctx)
       const bloc = blocDuChapitre(page, ctx.donnees.chapitre)
-      const chercher = async (lieu) => (await lieu.getByRole('button', { name: /supprimer (le|ce) quiz/i }).count()) > 0
+      const boutonSupprimer = (lieu) => lieu.getByRole('button', { name: /supprimer (le|ce) quiz/i })
+      const chercher = async (lieu) => ((await boutonSupprimer(lieu).count()) > 0 ? lieu : null)
       // Compter après le RENDU, jamais juste après un clic (#565 : une mesure prématurée lisait l'écran d'avant).
       // Le quiz est chargé, en lecture (« Retenter » quand `user_best_score` n'est pas null, absent compris).
       await bloc.getByRole('button', { name: /(Commencer|Retenter) le quiz/ }).waitFor({ timeout: ATTENTE })
-      let vu = await chercher(bloc)
-      if (!vu) {
+      let lieu = await chercher(bloc)
+      if (!lieu) {
         await bouton(bloc, 'Modifier').click()
         const edition = blocEnEdition(page)
         await bouton(edition, 'Modifier le quiz').waitFor({ timeout: ATTENTE }) // le chapitre est en édition
-        vu = await chercher(edition)
+        lieu = await chercher(edition)
       }
-      return jugerSuppressionQuiz(vu)
+      const absent = jugerSuppressionQuiz(Boolean(lieu))
+      if (absent) return absent
+      // Le bouton existe (#573) : la suppression, sa confirmation, puis la relecture de la disparition.
+      const reponse = appel(page, 'DELETE', `/knowledge-checks/${ctx.etat.quiz}`)
+      await boutonSupprimer(lieu).first().click()
+      await page.locator('.modal-container').filter({ hasText: 'Supprimer le quiz' }).getByRole('button', { name: 'Supprimer', exact: true }).click()
+      return (await refusServeur(page, reponse, 'la suppression du quiz')) ?? {}
     },
-    // Jouée seulement quand un bouton existera (#566) : le quiz doit avoir disparu du chapitre.
+    // Le quiz doit avoir disparu du chapitre.
     relecture: async ({ pages, etat }) => jugerQuizDisparu(await lireApi(pages.enseignant, listeDesQuiz(etat.chapitre)), etat.chapitre),
   },
   { ...lecon('supprimer'), cle: 'nettoyer', libelle: 'supprimer la leçon du quiz', requiert: ['lecon'] },

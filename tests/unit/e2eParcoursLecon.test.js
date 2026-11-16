@@ -91,8 +91,8 @@ describe('parcours-lecon — modifier la leçon (#564)', () => {
     expect(AUCUN_CHEMIN_MODIFICATION).toBe('aucun chemin d’interface ne modifie le titre ni la description')
   })
 
-  it('un champ du titre apparaît (la correction) : NON TESTÉ, jamais un VERT sans geste', () => {
-    expect(jugerModification(true, new URL('http://x/teacher/lessons'))).toHaveProperty('nonTeste')
+  it('un champ du titre apparaît (la correction, #572) : la modification se joue, puis la relecture juge', () => {
+    expect(jugerModification(true, new URL('http://x/teacher/lessons'))).toBeNull()
   })
 })
 

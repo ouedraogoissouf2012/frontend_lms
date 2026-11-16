@@ -84,8 +84,8 @@ describe('parcours-quiz — supprimer le quiz (#566)', () => {
     expect(AUCUN_CHEMIN_SUPPRESSION_QUIZ).toBe('aucun chemin d’interface ne supprime un quiz')
   })
 
-  it('un bouton apparaît (la correction) : NON TESTÉ, jamais un VERT sans geste', () => {
-    expect(jugerSuppressionQuiz(true)).toHaveProperty('nonTeste')
+  it('un bouton apparaît (la correction, #573) : la suppression se joue, puis la relecture juge la disparition', () => {
+    expect(jugerSuppressionQuiz(true)).toBeNull()
   })
 
   it('la relecture de la suppression : le quiz a DISPARU de la liste', () => {
