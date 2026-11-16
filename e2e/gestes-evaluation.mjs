@@ -62,9 +62,25 @@ export async function creerLocale(ctx, ev) {
   return idCree(page, reponse)
 }
 
+/**
+ * La carte d'une programmation SANS version en ligne. L'écran peut la ranger parmi les « expirées », masquées par
+ * défaut, alors que sa fenêtre est ouverte (E2E 43787258943) : on passe par « Afficher », le chemin qu'il offre, et
+ * on le DIT (`masquee`), pour que l'étape qui le juge le nomme.
+ */
+async function carteDeProgrammation(ctx, titre) {
+  const trouvee = await carteEnseignant(ctx, titre)
+  if (!trouvee.rouge) return { carte: trouvee.carte, masquee: false }
+  const page = ctx.pages.enseignant
+  if (!(await bouton(page, 'Afficher').count())) return trouvee
+  await bouton(page, 'Afficher').click()
+  const carte = carteEvaluation(page, titre)
+  await carte.first().waitFor({ timeout: ATTENTE }).catch(() => {})
+  return (await carte.count()) ? { carte: carte.first(), masquee: true } : trouvee
+}
+
 /** École KLASSCI : « Créer version en ligne » sur la carte de la programmation. Rend aussi l'URL d'arrivée (#570). */
 export async function creerVersionEnLigne(ctx, ev) {
-  const { carte, rouge } = await carteEnseignant(ctx, ev.titre)
+  const { carte, rouge, masquee } = await carteDeProgrammation(ctx, ev.titre)
   if (rouge) return { rouge }
   const page = ctx.pages.enseignant
   await bouton(carte, 'Créer version en ligne').click()
@@ -77,7 +93,7 @@ export async function creerVersionEnLigne(ctx, ev) {
   const cree = await idCree(page, reponse)
   // Navigation côté client : on attend qu'elle ait lieu (ou non) avant de lire l'URL (#565).
   await page.waitForURL((u) => u.href !== avant, { timeout: 8000 }).catch(() => {})
-  return { ...cree, arrivee: new URL(page.url()) }
+  return { ...cree, arrivee: new URL(page.url()), masquee }
 }
 
 /** L'éditeur de la version en ligne, par « Modifier les questions » sur sa carte, chargé. */

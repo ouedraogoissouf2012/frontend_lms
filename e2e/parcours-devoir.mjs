@@ -12,6 +12,7 @@ import { readFileSync } from 'node:fs'
 
 export const AUCUN_CHEMIN_TITRE = 'aucun chemin d’interface ne modifie le titre d’une évaluation'
 export const PAS_D_EDITEUR = 'la version en ligne créée ne mène pas à l’éditeur de ses questions'
+export const PROGRAMMATION_MASQUEE = 'une programmation dont la fenêtre est ouverte est rangée parmi les « expirées » et masquée par défaut'
 
 /** Les données du parcours, selon l'école. Dans l'école KLASSCI, les titres sont ceux des programmations. */
 export function donneesDevoir(jeu) {
@@ -95,6 +96,11 @@ export function jugerVerrou(vu) {
   return { confirme: false, ecart: `refus ${vu.statut ?? '?'} NON dit à l’écran (bouton actif sur une évaluation verrouillée, Refs #569)` }
 }
 
+/** La programmation ouverte est visible sans « Afficher » (isExpiredWithoutOnline, utils/evaluations.js). */
+export function jugerVisibilite(masquee) {
+  return masquee ? { rouge: `${PROGRAMMATION_MASQUEE} (isExpiredWithoutOnline : la date de début passée suffit, même fenêtre ouverte)` } : {}
+}
+
 /** L'évaluation supprimée a DISPARU : 404, et absente de la liste de l'enseignant. */
 export function jugerSuppressionEvaluation(lecture, liste, id) {
   if (lecture.statut !== 404) return { confirme: false, ecart: `GET /evaluations/${id} rend HTTP ${lecture.statut}, 404 attendu` }
@@ -117,6 +123,7 @@ async function creer(ctx, cle) {
   if (!klassci(ctx)) return prendreId(ev, await creerLocale(ctx, ev))
   const cree = await creerVersionEnLigne(ctx, ev)
   ctx.etat[`arrivee_${cle}`] = cree.arrivee
+  ctx.etat[`masquee_${cle}`] = cree.masquee
   return prendreId(ev, cree)
 }
 
@@ -125,6 +132,9 @@ const ETAPE = (cle, compte, libelle, requiert, action, relecture) => ({ cle, com
 export const ETAPES_DEVOIR = Object.freeze([
   ETAPE('creer', 'enseignant', 'créer l’évaluation (version en ligne dans l’école KLASSCI)', [],
     (ctx) => creer(ctx, 'a'), (ctx) => relire(ctx, ctx.donnees.a, { titre: ctx.donnees.a.titre, publiee: false })()),
+  ETAPE('visible', 'enseignant', 'la programmation ouverte est visible sans « Afficher »', ['creer'],
+    async (ctx) => (klassci(ctx) ? jugerVisibilite(ctx.etat.masquee_a) : { nonTeste: 'école LMS : aucune programmation KLASSCI' }),
+    async () => ({ confirme: true, preuve: 'la carte de la programmation est visible par défaut' })),
   ETAPE('editeur', 'enseignant', 'la création mène à l’éditeur de questions', ['creer'],
     async (ctx) => {
       if (!klassci(ctx)) return { nonTeste: 'école LMS : la création locale renvoie à la carte, sans éditeur (voulu : « ajoutez-les ensuite depuis sa carte »)' }

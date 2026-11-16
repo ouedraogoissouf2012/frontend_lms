@@ -6,7 +6,7 @@
  */
 import { describe, it, expect } from 'vitest'
 import {
-  ETAPES_DEVOIR, donneesDevoir, AUCUN_CHEMIN_TITRE, PAS_D_EDITEUR,
+  ETAPES_DEVOIR, donneesDevoir, AUCUN_CHEMIN_TITRE, PAS_D_EDITEUR, PROGRAMMATION_MASQUEE, jugerVisibilite,
   jugerEvaluation, jugerCopieRemise, jugerCorrection, jugerNoteEleve, jugerSynchronisation, jugerVerrou, jugerSuppressionEvaluation,
 } from '../../e2e/parcours-devoir.mjs'
 
@@ -17,6 +17,7 @@ describe('parcours-devoir — les étapes et ce qu’elles requièrent', () => {
   it('l’évaluation A (créer → corriger → note → synchro → verrou), puis B (créer, modifier, titre, supprimer)', () => {
     expect(ETAPES_DEVOIR.map((e) => [e.cle, e.compte, e.requiert])).toEqual([
       ['creer', 'enseignant', []],
+      ['visible', 'enseignant', ['creer']],
       ['editeur', 'enseignant', ['creer']],
       ['question', 'enseignant', ['creer']],
       ['publier', 'enseignant', ['question']],
@@ -33,8 +34,8 @@ describe('parcours-devoir — les étapes et ce qu’elles requièrent', () => {
     ])
   })
 
-  it('aucune étape ne requiert « editeur », « titre_b » ni « verrou » : leurs ROUGE n’arrêtent rien', () => {
-    expect(ETAPES_DEVOIR.some((e) => e.requiert.some((r) => ['editeur', 'titre_b', 'verrou'].includes(r)))).toBe(false)
+  it('aucune étape ne requiert « visible », « editeur », « titre_b » ni « verrou » : leurs ROUGE n’arrêtent rien', () => {
+    expect(ETAPES_DEVOIR.some((e) => e.requiert.some((r) => ['visible', 'editeur', 'titre_b', 'verrou'].includes(r)))).toBe(false)
   })
 
   it('dans l’école KLASSCI, les titres sont ceux des programmations servies par le faux', () => {
@@ -110,6 +111,11 @@ describe('parcours-devoir — le verrou (#569), la suppression, les ROUGE nommé
     expect(jugerSuppressionEvaluation(lecture(404), lecture(200, [{ id: 6 }]), 5).confirme).toBe(true)
     expect(jugerSuppressionEvaluation(lecture(200, {}), lecture(200, []), 5).confirme).toBe(false)
     expect(jugerSuppressionEvaluation(lecture(404), lecture(200, [{ id: 5 }]), 5).confirme).toBe(false)
+  })
+
+  it('une programmation ouverte masquée par défaut : ROUGE nommé ; visible : rien à redire', () => {
+    expect(jugerVisibilite(true).rouge).toContain(PROGRAMMATION_MASQUEE)
+    expect(jugerVisibilite(false)).toEqual({})
   })
 
   it('les constats nommés', () => {
