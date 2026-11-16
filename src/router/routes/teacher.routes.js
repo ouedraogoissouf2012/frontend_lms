@@ -92,16 +92,11 @@ export const teacherRoutes = [
       title: 'Mon Profil'
     }
   },
-  // Visioconférences - Enseignant
+  // Visioconférences - Enseignant (ANCIEN, #582) : remplacé par le calendrier, comme pour l'élève
+  // (student.routes.js, « remplace séances + visio-list ») ; l'ancienne URL redirige, sans 404.
   {
     path: '/teacher/visio-list',
-    name: 'teacher-visio-list',
-    component: () => import('@/views/teacher/TeacherVisioList.vue'),
-    meta: {
-      requiresAuth: true,
-      roles: ['enseignant', 'teacher'],
-      title: 'Mes Visioconférences'
-    }
+    redirect: '/teacher/schedule'
   },
   // Paramètres - Enseignant
   {

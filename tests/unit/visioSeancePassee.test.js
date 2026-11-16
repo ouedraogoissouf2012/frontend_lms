@@ -11,7 +11,6 @@ import { defineComponent } from 'vue'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { finDeFenetreVisio, visioPassee, VISIO_SEANCE_PASSEE } from '@/utils/visioTimeWindow'
 import VisioManager from '@/components/visio/VisioManager.vue'
-import VisioSeanceCard from '@/components/visio/VisioSeanceCard.vue'
 import { useEventDetail } from '@/composables/useEventDetail'
 import { auth } from '@/services/api'
 
@@ -79,20 +78,6 @@ describe('VisioManager — l’enseignant sur une séance passée', () => {
     const texte = monter(A_VENIR).text()
     expect(texte).toContain('Démarrer la visio')
     expect(texte).not.toContain(VISIO_SEANCE_PASSEE)
-  })
-})
-
-describe('VisioSeanceCard — la carte « à venir » d’une séance passée', () => {
-  const monter = (seance) => mount(VisioSeanceCard, { props: { seance, formatDate: () => 'd', formatTime: () => 't' } })
-
-  it('passée : pas de « Démarrer la visio », le motif est dit', () => {
-    const texte = monter(PASSEE).text()
-    expect(texte).not.toContain('Démarrer la visio')
-    expect(texte).toContain(VISIO_SEANCE_PASSEE)
-  })
-
-  it('à venir : le bouton reste', () => {
-    expect(monter(A_VENIR).text()).toContain('Démarrer la visio')
   })
 })
 

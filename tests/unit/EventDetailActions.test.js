@@ -32,13 +32,13 @@ describe('EventDetailActions (H8)', () => {
     expect(w.find('.waiting-message').exists()).toBe(true)
   })
 
-  it('enseignant: 5 boutons (capacités max) dont outline', () => {
+  it('enseignant: 7 boutons (capacités max), dont « Rejoindre » (#582) et outline', () => {
     const w = mountActions({
       userRole: 'teacher',
       canActivateVisio: true, canStartVisio: true, canEndVisio: true
     })
-    // activer + démarrer + terminer + participants + exporter + outline = 6
-    expect(w.findAll('.action-btn')).toHaveLength(6)
+    // rejoindre (#582) + activer + démarrer + terminer + participants + exporter + outline = 7
+    expect(w.findAll('.action-btn')).toHaveLength(7)
   })
 
   it('admin: bascule libellé visio selon enabled + supprimer', async () => {

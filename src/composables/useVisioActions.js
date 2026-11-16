@@ -146,9 +146,9 @@ export function useVisioActions(props, emit) {
 
       if (response.success) {
         console.log('✅ Séance fermée avec succès')
-        notifyVisioSuccess(
-          `Séance terminée : ${response.data.participants_disconnected} participant(s) déconnecté(s).`
-        )
+        // #582 : la clé que rend end-visio (participants_count) ; sans nombre, la phrase n'en a pas.
+        const n = response.data?.participants_count
+        notifyVisioSuccess(Number.isFinite(n) ? `Séance terminée : ${n} participant(s) déconnecté(s).` : 'Séance terminée.')
 
         // Rafraîchir les données
         emit('visio-updated', { ...props.seance, visio_active: false })
@@ -195,9 +195,6 @@ export function useVisioActions(props, emit) {
       await visioStore.joinVisio(props.seance.id)
 
       console.log('✅ Étudiant a rejoint avec window.open + tracking')
-
-      // Émettre événement pour rafraîchir le compteur de participants
-      emit('participant-joined')
 
     } catch (error) {
       console.error('[VisioManager] Erreur rejoindre visio:', error)
