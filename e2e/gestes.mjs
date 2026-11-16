@@ -23,9 +23,13 @@ export async function ditLEcran(page) {
   return textes.length ? `« ${textes.join(' | ').slice(0, 200)} »` : 'aucun message affiché'
 }
 
-/** L'attente d'un appel, posée AVANT le geste. Marquée gérée : un geste qui échoue ne laisse pas de rejet orphelin. */
+/**
+ * L'attente d'un appel, posée AVANT le geste. Marquée gérée : un geste qui échoue ne laisse pas de rejet orphelin.
+ * `chemin` : le chemin sous /api, ou un motif du chemin complet quand il porte un id inconnu d'avance.
+ */
 export function appel(page, methode, chemin) {
-  const attente = page.waitForResponse((r) => r.request().method() === methode && new URL(r.url()).pathname === `/api${chemin}`, { timeout: ATTENTE })
+  const vise = (p) => (chemin instanceof RegExp ? chemin.test(p) : p === `/api${chemin}`)
+  const attente = page.waitForResponse((r) => r.request().method() === methode && vise(new URL(r.url()).pathname), { timeout: ATTENTE })
   attente.catch(() => {})
   return attente
 }
