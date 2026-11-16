@@ -51,6 +51,11 @@ const props = defineProps({
   placeholder: {
     type: String,
     default: 'Rédigez votre contenu ici... (Markdown supporté)'
+  },
+  // #563 : le nom accessible de la zone éditable (le libellé du champ).
+  label: {
+    type: String,
+    default: 'Contenu'
   }
 })
 
