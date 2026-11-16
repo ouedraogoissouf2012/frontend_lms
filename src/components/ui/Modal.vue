@@ -12,7 +12,7 @@
         <div
           class="modal-container"
           :class="[`modal-${normalizedSize}`, containerClass]"
-          role="dialog" aria-modal="true"
+          role="dialog" aria-modal="true" :aria-labelledby="title ? idTitre : undefined"
           v-bind="$attrs"
         >
           <div
