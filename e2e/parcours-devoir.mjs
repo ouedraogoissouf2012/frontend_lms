@@ -221,7 +221,10 @@ export const ETAPES_DEVOIR = Object.freeze([
       const ouvert = await ouvrirEditeur(ctx, b)
       if (ouvert.rouge) return ouvert
       const champ = ctx.pages.enseignant.locator('#evaluation-titre')
-      if (!(await champ.count())) return { rouge: `${AUCUN_CHEMIN_TITRE} : l’écran d’édition n’a pas de champ titre (Refs #568)` }
+      // Attendre le RENDU : le champ paraît quand l'évaluation chargée est appliquée, après la réponse (E2E 43812442705 :
+      // un faux ROUGE, le champ compté trop tôt ; même piège que #565).
+      const present = await champ.waitFor({ timeout: ATTENTE }).then(() => true, () => false)
+      if (!present) return { rouge: `${AUCUN_CHEMIN_TITRE} : l’écran d’édition n’a pas de champ titre (Refs #568)` }
       await champ.fill(b.titreModifie)
       const fait = await enregistrerEditeur(ctx, b, 'la modification du titre')
       if (!fait.rouge) b.titre = b.titreModifie
