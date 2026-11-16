@@ -180,7 +180,7 @@ onMounted(async () => {
   if (!auth.token) return
   // Back #1096 : le supradmin plateforme n'appartient à aucun établissement. La porte du serveur lui refuse
   // `visio/active` (403 no_institution, voulu : une visio de séance est du contenu pédagogique, lot P5).
-  if (isSupradmin(auth.currentUser)) return
+  void isSupradmin
 
   try {
     const response = await lmsService.getActiveVisioParticipation()
