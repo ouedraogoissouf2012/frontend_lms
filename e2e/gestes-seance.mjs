@@ -1,8 +1,8 @@
 // Les gestes du parcours de la SÉANCE et de la VISIO (PR 4), par l'interface. L'enseignant crée sa séance (école LMS)
 // ou trouve celle de KLASSCI (9701), active la visio, la démarre, la termine ; l'élève la rejoint.
 //
-// Sélecteurs : textes visibles et libellés. Structurels, déclarés : la carte d'une séance (`.seance-card`, sans
-// rôle) et une fenêtre modale (`.modal-container`, sans `role="dialog"`, #563). La carte d'une séance ne montre pas
+// Sélecteurs : rôles, libellés et textes visibles ; une fenêtre modale est un `dialog` nommé par son titre (#563).
+// Reste structurelle, déclarée : la carte d'une séance (`.seance-card`, sans rôle). La carte d'une séance ne montre pas
 // son titre : celle de l'école LMS se trouve par son HEURE de début ; dans l'école KLASSCI, la séance 9701 est la
 // seule carte de l'enseignant (déclaré).
 import { lireApi } from './fonctionnels.mjs'
@@ -30,7 +30,7 @@ export async function creerSeance(ctx, s) {
   await page.goto(`${ctx.base}/teacher/seances`, { waitUntil: 'domcontentloaded' })
   await attendreRendu(page)
   await bouton(page, 'Nouvelle séance').click()
-  const m = page.locator('.modal-container').filter({ hasText: 'Nouvelle séance' })
+  const m = page.getByRole('dialog', { name: 'Nouvelle séance' })
   await m.getByLabel('Matière', { exact: true }).selectOption(String(ctx.jeu.matieres[0]))
   await m.getByLabel('Classe', { exact: true }).selectOption(String(ctx.jeu.classes[0]))
   await m.getByLabel('Titre', { exact: true }).fill(s.titre)

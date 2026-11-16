@@ -135,7 +135,7 @@ export const ETAPES_SEANCE = Object.freeze([
       await ligne.first().waitFor({ timeout: ATTENTE }).catch(() => {})
       if (!(await ligne.count())) return { rouge: `la séance « ${ctx.donnees.titre} » n’apparaît pas dans l’historique des séances` }
       await bouton(ligne.first(), 'Supprimer').click()
-      const modale = page.locator('.modal-container').filter({ hasText: 'supprimer la séance' })
+      const modale = page.getByRole('dialog').filter({ hasText: 'supprimer la séance' })
       ctx.etat.messageSuppression = (await modale.first().innerText().catch(() => '')).replace(/\s+/g, ' ').trim()
       const reponse = appel(page, 'DELETE', `/lms/seances/${ctx.etat.id}`)
       await confirmer(page, 'supprimer la séance', 'Supprimer')

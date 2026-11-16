@@ -1,9 +1,9 @@
 // Parcours fonctionnel de la LEÇON (PR 1) : l'enseignant la crée, y ajoute un chapitre, la modifie et la publie ;
 // l'élève de la classe l'ouvre et termine le chapitre ; l'enseignant la supprime. Chaque étape est relue.
 //
-// Les sélecteurs passent par les textes VISIBLES et les placeholders : les formulaires de leçon et de chapitre
-// n'ont pas de libellés associés (#563). Deux sélecteurs sont structurels, et déclarés : la carte d'une leçon
-// (`.lesson-card`, sans rôle) et l'éditeur de contenu (`[contenteditable]`, sans rôle ni nom).
+// Les sélecteurs passent par les rôles et les libellés (#563, #572) : la modale de leçon est un `dialog` nommé par son
+// titre, ses champs se trouvent par leurs libellés, le titre d'un chapitre par son nom accessible. Restent
+// structurels, déclarés : la carte d'une leçon (`.lesson-card`, sans rôle) et l'éditeur de contenu (`[contenteditable]`).
 import { lireApi } from './fonctionnels.mjs'
 import { ATTENTE, bouton, nomDeBouton, ditLEcran, appel, refusServeur, lu, formulaireDeChapitre } from './gestes.mjs'
 
@@ -123,8 +123,10 @@ export const ETAPES_LECON = Object.freeze([
       await page.goto(`${base}/matieres/${jeu.matieres[0]}`, { waitUntil: 'domcontentloaded' })
       await page.waitForLoadState('networkidle', { timeout: ATTENTE }).catch(() => {})
       await page.getByRole('button', { name: /^(Nouvelle leçon|Créer ma première leçon)$/ }).first().click()
-      await page.getByPlaceholder('Ex: Introduction aux boucles').fill(donnees.titre)
-      await page.getByPlaceholder('Décrivez brièvement le contenu de cette leçon...').fill(donnees.description)
+      // La modale de création, nommée par son titre, et ses champs par leurs libellés (#563, #572).
+      const creation = page.getByRole('dialog', { name: 'Créer une nouvelle leçon' })
+      await creation.getByLabel('Titre de la leçon').fill(donnees.titre)
+      await creation.getByLabel('Description').fill(donnees.description)
       // #572 : la matière a PLUSIEURS classes, aucune n'est présélectionnée (voulu) : on choisit celle de l'élève.
       const choix = await choisirLaClasse(page, jeu)
       if (choix) return choix
@@ -176,7 +178,7 @@ export const ETAPES_LECON = Object.freeze([
       const absent = jugerModification(champ, new URL(page.url()))
       if (absent) return absent
       // Le champ du titre : on le change, puis « Enregistrer » (PUT). Les étapes suivantes lisent le titre COURANT.
-      const modale = page.locator('.modal-container').filter({ hasText: 'Modifier la leçon' })
+      const modale = page.getByRole('dialog', { name: 'Modifier la leçon' })
       await modale.getByLabel('Titre de la leçon').fill(ctx.donnees.titreModifie)
       const reponse = appel(page, 'PUT', `/lessons/${ctx.etat.lecon}`)
       await bouton(modale, 'Enregistrer').click()
