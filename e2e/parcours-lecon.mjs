@@ -5,10 +5,10 @@
 // n'ont pas de libellés associés (#563). Deux sélecteurs sont structurels, et déclarés : la carte d'une leçon
 // (`.lesson-card`, sans rôle) et l'éditeur de contenu (`[contenteditable]`, sans rôle ni nom).
 import { lireApi } from './fonctionnels.mjs'
+import { ATTENTE, bouton, nomDeBouton, ditLEcran, appel, refusServeur, lu, formulaireDeChapitre } from './gestes.mjs'
 
 export const AUCUN_CHEMIN_MODIFICATION = 'aucun chemin d’interface ne modifie le titre ni la description'
 export const CONFIRMATION_SUPPRESSION = 'Êtes-vous sûr de vouloir supprimer cette leçon ?'
-const ATTENTE = 20000
 
 // Les données fictives du parcours. Aucun mot d'énumération (« published ») : il serait lu comme un texte brut.
 export const DONNEES_LECON = Object.freeze({
@@ -20,8 +20,6 @@ export const DONNEES_LECON = Object.freeze({
 })
 
 // ─── Les jugements des relectures (purs, testés) ─────────────────────────────────────────────
-
-const lu = ({ statut }, chemin) => (statut === 200 ? null : `GET ${chemin} rend HTTP ${statut}`)
 
 /** La leçon relue porte le titre saisi et le statut attendu. */
 export function jugerLecon(lecture, id, { titre, statut }) {
@@ -60,7 +58,7 @@ export function jugerChapitre(lecture, id, titre) {
 /** « Modifier » doit mener à un champ qui porte le titre de la leçon (#564). */
 export function jugerModification(champDuTitre, url) {
   if (!champDuTitre) return { rouge: `${AUCUN_CHEMIN_MODIFICATION} : « Modifier » ouvre ${url.pathname}${url.search}, sans champ qui porte le titre (Refs #564)` }
-  return { nonTeste: 'un champ porte désormais le titre : l’étape est à compléter avec sa correction (#564)' }
+  return null // un champ porte le titre : la modification se joue, puis se relit
 }
 
 /** L'élève a terminé le chapitre ET la leçon (deux tables : chapter_progress et lesson_progress). */
@@ -86,39 +84,26 @@ export function jugerSuppression(lecture, matiere, id, matiereId) {
   return { confirme: true, preuve: `leçon ${id} : 404, et absente de la matière ${matiereId}` }
 }
 
-// ─── Les gestes, par l'interface ─────────────────────────────────────────────────────────────
-
-/** Ce que l'écran dit (régions alert/status, notifications de la matière), pour nommer un refus. */
-async function ditLEcran(page) {
-  const textes = [
-    ...(await page.locator('[role="alert"], [role="status"]').allInnerTexts().catch(() => [])),
-    ...(await page.getByText(/^Erreur lors de/).allInnerTexts().catch(() => [])),
-  ].map((t) => t.trim()).filter(Boolean)
-  return textes.length ? `« ${textes.join(' | ').slice(0, 200)} »` : 'aucun message affiché'
-}
+// ─── Les gestes, par l'interface (e2e/gestes.mjs) ─────────────────────────────────────────────
 
 /**
- * Un bouton par son texte visible. Une icône de police (`<i class="fa …">`) ajoute son caractère au nom
- * accessible (« \uf040 Modifier ») : le texte doit FINIR le nom, précédé au plus de ce caractère et d'un espace.
- * « Publier » ne prend donc pas « Dépublier ».
+ * Le choix de la classe (#572, back #1103) quand le formulaire en propose plusieurs sans présélection : celle de
+ * l'élève, lue sur la leçon PUBLIÉE du jeu qu'il voit (même espace d'ids, LOCAUX, que la liste du formulaire).
+ * Sans champ Classe (avant #572) ou avec une classe déjà choisie, rien à faire. Rend un NON TESTÉ nommé, ou null.
  */
-export const nomDeBouton = (texte) => new RegExp(`^(\\S\\s+)?${texte}$`)
-const bouton = (lieu, texte) => lieu.getByRole('button', { name: nomDeBouton(texte) })
-
-/** L'attente d'un appel, posée AVANT le geste. Marquée gérée : un geste qui échoue ne laisse pas de rejet orphelin. */
-function appel(page, methode, chemin) {
-  const attente = page.waitForResponse((r) => r.request().method() === methode && new URL(r.url()).pathname === `/api${chemin}`, { timeout: ATTENTE })
-  attente.catch(() => {})
-  return attente
-}
-
-async function refusServeur(page, reponse, quoi) {
-  const r = await reponse
-  return r.status() >= 400 ? { rouge: `${quoi} refusé par le serveur (HTTP ${r.status()}) : ${await ditLEcran(page)}` } : null
+async function choisirLaClasse(page, jeu) {
+  const champ = page.locator('#lecon-classe')
+  if (!(await champ.count()) || (await champ.inputValue()) !== '') return null
+  const reference = jeu.lecons?.publiee
+  if (!reference) return { nonTeste: 'plusieurs classes et aucune leçon de référence pour choisir celle de l’élève' }
+  const classe = (await lireApi(page, `/lessons/${reference}`)).corps?.data?.classe_id
+  if (classe == null) return { nonTeste: `la classe de la leçon de référence ${reference} n’est pas relue` }
+  await champ.selectOption(String(classe))
+  return null
 }
 
 /** L'écran de la matière, et la carte de la leçon du parcours. Une carte absente est un défaut du produit. */
-async function carteDansLaMatiere({ pages, base, jeu, donnees }) {
+export async function carteDansLaMatiere({ pages, base, jeu, donnees }) {
   const page = pages.enseignant
   await page.goto(`${base}/matieres/${jeu.matieres[0]}`, { waitUntil: 'domcontentloaded' })
   await page.waitForLoadState('networkidle', { timeout: ATTENTE }).catch(() => {})
@@ -140,6 +125,9 @@ export const ETAPES_LECON = Object.freeze([
       await page.getByRole('button', { name: /^(Nouvelle leçon|Créer ma première leçon)$/ }).first().click()
       await page.getByPlaceholder('Ex: Introduction aux boucles').fill(donnees.titre)
       await page.getByPlaceholder('Décrivez brièvement le contenu de cette leçon...').fill(donnees.description)
+      // #572 : la matière a PLUSIEURS classes, aucune n'est présélectionnée (voulu) : on choisit celle de l'élève.
+      const choix = await choisirLaClasse(page, jeu)
+      if (choix) return choix
       await page.getByRole('button', { name: 'Créer la leçon' }).click()
       const arrive = await page.waitForURL(/\/teacher\/lessons\/\d+\/chapters/, { timeout: ATTENTE }).then(() => true, () => false)
       if (!arrive) return { rouge: `la création n’aboutit pas (resté sur ${new URL(page.url()).pathname}) : ${await ditLEcran(page)}` }
@@ -161,10 +149,7 @@ export const ETAPES_LECON = Object.freeze([
     async action({ pages, donnees, etat }) {
       const page = pages.enseignant
       await page.waitForLoadState('networkidle', { timeout: ATTENTE }).catch(() => {})
-      const titre = page.getByPlaceholder('saisissez le titre')
-      // Sans chapitre, le formulaire du premier s'ouvre seul ; sinon « + Ajouter un chapitre ».
-      if (!(await titre.count())) await page.getByRole('button', { name: '+ Ajouter un chapitre' }).click()
-      await titre.first().fill(donnees.chapitre)
+      await (await formulaireDeChapitre(page)).fill(donnees.chapitre)
       await page.locator('[contenteditable="true"]').first().click()
       await page.keyboard.type(donnees.contenu)
       const reponse = appel(page, 'POST', `/lessons/${etat.lecon}/chapters`)
@@ -183,16 +168,22 @@ export const ETAPES_LECON = Object.freeze([
       const { carte, rouge } = await carteDansLaMatiere(ctx)
       if (rouge) return { rouge }
       const page = ctx.pages.enseignant
-      const avant = page.url()
       await bouton(carte, 'Modifier').click()
-      // Navigation côté client : `networkidle` est DÉJÀ atteint pour ce document, il n'attendrait rien
-      // (E2E 43762204617 lisait encore /matieres/:id). On attend que l'URL change, puis un champ du titre.
-      await page.waitForURL((u) => u.href !== avant, { timeout: ATTENTE }).catch(() => {})
+      // Navigation côté client ou modale : `networkidle` est déjà atteint, il n'attendrait rien (#565). On attend,
+      // jusqu'à 20 s, un champ qui porte le titre (la modale de #572, ou tout autre chemin d'édition).
       const champ = await page.waitForFunction((t) => [...document.querySelectorAll('input, textarea')].some((e) => e.value === t),
         ctx.donnees.titre, { timeout: ATTENTE }).then(() => true, () => false)
-      return jugerModification(champ, new URL(page.url()))
+      const absent = jugerModification(champ, new URL(page.url()))
+      if (absent) return absent
+      // Le champ du titre : on le change, puis « Enregistrer » (PUT). Les étapes suivantes lisent le titre COURANT.
+      const modale = page.locator('.modal-container').filter({ hasText: 'Modifier la leçon' })
+      await modale.getByLabel('Titre de la leçon').fill(ctx.donnees.titreModifie)
+      const reponse = appel(page, 'PUT', `/lessons/${ctx.etat.lecon}`)
+      await bouton(modale, 'Enregistrer').click()
+      const refus = await refusServeur(page, reponse, 'la modification de la leçon')
+      if (!refus) ctx.etat.titre = ctx.donnees.titreModifie
+      return refus ?? {}
     },
-    // Jouée seulement quand un champ du titre existera (#564) : la leçon relue doit porter le titre modifié.
     relecture: async ({ pages, donnees, etat }) => jugerLecon(await lireApi(pages.enseignant, `/lessons/${etat.lecon}`), etat.lecon, { titre: donnees.titreModifie, statut: 'draft' }),
   },
   {
@@ -204,7 +195,8 @@ export const ETAPES_LECON = Object.freeze([
       await bouton(carte, 'Publier').click()
       return (await refusServeur(ctx.pages.enseignant, reponse, 'la publication')) ?? {}
     },
-    relecture: async ({ pages, donnees, etat }) => jugerLecon(await lireApi(pages.enseignant, `/lessons/${etat.lecon}`), etat.lecon, { titre: donnees.titre, statut: 'published' }),
+    // Le titre COURANT : modifié par l'étape « modifier » quand elle a réussi.
+    relecture: async ({ pages, donnees, etat }) => jugerLecon(await lireApi(pages.enseignant, `/lessons/${etat.lecon}`), etat.lecon, { titre: etat.titre ?? donnees.titre, statut: 'published' }),
   },
   {
     cle: 'ouvrir', compte: 'etudiant', libelle: 'ouvrir la leçon publiée (Mes cours)', requiert: ['publier', 'chapitre', 'classe'],
@@ -222,7 +214,8 @@ export const ETAPES_LECON = Object.freeze([
     async relecture({ pages, donnees }) {
       const page = pages.etudiant
       const chapitre = await page.getByText(donnees.chapitre).first().waitFor({ timeout: ATTENTE }).then(() => true, () => false)
-      const bouton = await page.getByRole('button', { name: 'Marquer comme terminé' }).count()
+      // Attendre le RENDU du bouton, jamais le compter à l'instant (E2E 43798868511 : un faux ROUGE ; #565).
+      const bouton = await page.getByRole('button', { name: 'Marquer comme terminé' }).first().waitFor({ timeout: ATTENTE }).then(() => true, () => false)
       if (!chapitre) return { confirme: false, ecart: `le chapitre « ${donnees.chapitre} » n’est pas affiché dans la leçon ouverte` }
       return bouton ? { confirme: true, preuve: 'la leçon ouverte affiche le chapitre et « Marquer comme terminé »' }
         : { confirme: false, ecart: 'le bouton « Marquer comme terminé » est absent' }

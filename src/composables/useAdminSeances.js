@@ -2,7 +2,9 @@ import { ref, computed, onMounted } from 'vue'
 import { klassciService } from '@/services/klassci'
 import { extractList } from '@/utils/apiList'
 import { useCachedResource } from '@/composables/useCachedResource'
-import { refusMotive } from '@/services/errorHandler'
+import { refusMotive, messageForReason } from '@/services/errorHandler'
+import lmsService from '@/services/lms'
+import { confirmVisioAction, notifyVisioSuccess, notifyVisioError } from '@/services/visioFeedback'
 import { displayMessage } from '@/services/displayMessage'
 import { userError } from '@/utils/userError'
 
@@ -105,9 +107,18 @@ export function useAdminSeances() {
     console.log('Voir détails séance:', seance)
   }
 
-  function enableVisio(seance) {
-    // TODO: Activer la visioconférence pour cette séance
-    console.log('Activer visio pour séance:', seance)
+  // #582 : l'admin programme la visio comme le coordinateur (VisioManager) : même confirmation, toggle-visio.
+  // La garde back l'admet pour l'admin d'école après lms_backend#1102 ; avant, son refus est dit par le catalogue.
+  async function enableVisio(seance) {
+    if (!await confirmVisioAction('Voulez-vous programmer une visioconférence Jitsi pour cette séance ?')) return
+    try {
+      const response = await lmsService.toggleVisio(seance.id, true, 'jitsi')
+      if (!response?.success) throw userError(messageForReason(response?.reason) ?? 'La visio n’a pas pu être programmée')
+      notifyVisioSuccess('Visioconférence programmée.')
+      refreshData()
+    } catch (error) {
+      notifyVisioError(error, 'La visio n’a pas pu être programmée')
+    }
   }
 
   onMounted(() => {

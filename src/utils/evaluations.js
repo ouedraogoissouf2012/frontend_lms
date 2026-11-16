@@ -51,16 +51,17 @@ export function mergeWithOnlineVersions(klassci = [], lms = []) {
 export function isExpiredWithoutOnline(evaluation) {
   if (evaluation.has_online) return false
 
-  // Statut de la fenêtre (programmation KLASSCI)
+  // #578 : la fenêtre (programmation KLASSCI), quand la charge la porte, décide SEULE : expirée seulement
+  // terminée. Juger sur la date de début masquait une évaluation pendant sa fenêtre ouverte.
   const window = evaluation.programmation?.window
-  if (window && !window.is_open && window.has_started) return true
+  if (window) return window.has_ended === true || (!window.is_open && window.has_started === true)
 
-  // Date d'évaluation (programmation prioritaire)
+  // Sans fenêtre : la FIN (début + durée) ; sans durée, le début (rien n'est inventé).
   const dateEval = evaluation.programmation?.date_evaluation || evaluation.date_evaluation
-  if (dateEval) {
-    return new Date(dateEval) < new Date()
-  }
-  return false
+  if (!dateEval) return false
+  const duree = Number(evaluation.programmation?.duree_minutes ?? evaluation.duree_minutes)
+  const fin = new Date(new Date(dateEval).getTime() + (duree > 0 ? duree * 60e3 : 0))
+  return fin < new Date()
 }
 
 /**
@@ -164,4 +165,18 @@ export function getStatusBadgeClass(evaluation) {
 export function copiesASynchroniser(onlineVersion) {
   const n = onlineVersion?.submissions_to_sync_count
   return Number.isInteger(n) && n >= 0 ? n : null
+}
+
+// #569 : ce que la carte dit à la place de « Modifier les questions » sur une évaluation verrouillée.
+export const QUESTIONS_VERROUILLEES = 'Questions verrouillées : des copies existent déjà, ou l’évaluation a été verrouillée.'
+
+/**
+ * La version en ligne est-elle verrouillée ? La règle du serveur (EvaluationStateService::isLocked, exposé en
+ * `is_locked`) : le drapeau, ou des copies. Le compte de copies suffit quand la réponse ne porte pas `is_locked`.
+ * C'est la même règle qui masque « Supprimer ».
+ * @param {Object|null|undefined} onlineVersion
+ * @returns {boolean}
+ */
+export function versionVerrouillee(onlineVersion) {
+  return Boolean(onlineVersion?.is_locked) || onlineVersion?.submissions_count > 0
 }

@@ -58,20 +58,6 @@
       </div>
     </div>
 
-    <!-- Modal Création/Édition Leçon -->
-    <LessonFormModal
-      :show="showCreateModal"
-      :editing-lesson="editingLesson"
-      :saving="saving"
-      :matieres="matieres"
-      v-model:matiere-id="lessonForm.matiere_id"
-      v-model:title="lessonForm.title"
-      v-model:type="lessonForm.type"
-      v-model:description="lessonForm.description"
-      v-model:status="lessonForm.status"
-      @close="closeModal"
-      @save="saveLesson"
-    />
   </DashboardLayout>
 </template>
 
@@ -79,7 +65,7 @@
 /**
  * Mes Leçons (enseignant) — orchestrateur (#H4 ≤300). Données/logique dans
  * useTeacherLessons ; UI composée de LessonsFilters, LessonsStatsGrid,
- * TeacherLessonCard, LessonsEmptyState et LessonFormModal. Header, état d'erreur et
+ * TeacherLessonCard et LessonsEmptyState. Header, état d'erreur et
  * grille restent ici.
  */
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
@@ -88,7 +74,6 @@ import LessonsFilters from '@/components/lessons/LessonsFilters.vue'
 import LessonsStatsGrid from '@/components/lessons/LessonsStatsGrid.vue'
 import TeacherLessonCard from '@/components/lessons/TeacherLessonCard.vue'
 import LessonsEmptyState from '@/components/lessons/LessonsEmptyState.vue'
-import LessonFormModal from '@/components/lessons/LessonFormModal.vue'
 import { useTeacherLessons } from '@/composables/useTeacherLessons'
 
 const {
@@ -96,19 +81,13 @@ const {
   loading,
   error,
   canRetry,
-  showCreateModal,
-  editingLesson,
-  saving,
   filters,
-  lessonForm,
   filteredLessons,
   stats,
   loadLessons,
   applyFilters,
   resetFilters,
-  viewChapters,
-  saveLesson,
-  closeModal
+  viewChapters
 } = useTeacherLessons()
 </script>
 

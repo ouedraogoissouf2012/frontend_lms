@@ -7,10 +7,12 @@
         :class="overlayClass"
         @click.self="handleOverlayClick"
       >
-        <!-- $attrs sur le conteneur visible (inheritAttrs:false) : class/id/aria-*/data-* traversent -->
+        <!-- $attrs sur le conteneur visible (inheritAttrs:false), après le rôle : class/id/aria-*/data-* traversent.
+             #563 : un dialogue modal, nommé par son titre. -->
         <div
           class="modal-container"
           :class="[`modal-${normalizedSize}`, containerClass]"
+          role="dialog" aria-modal="true" :aria-labelledby="title ? idTitre : undefined"
           v-bind="$attrs"
         >
           <div
@@ -20,7 +22,7 @@
           >
             <!-- Slot header custom ; sinon title optionnelle. Le ✕ reste TOUJOURS rendu (hors slot). -->
             <slot name="header">
-              <h3 v-if="title" class="modal-title">{{ title }}</h3>
+              <h3 v-if="title" :id="idTitre" class="modal-title">{{ title }}</h3>
             </slot>
             <button v-if="showClose" class="modal-close-btn" aria-label="Fermer" @click="close">✕</button>
           </div>
@@ -37,7 +39,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, watch } from 'vue'
+import { computed, onBeforeUnmount, watch, useId } from 'vue'
 
 defineOptions({
   name: 'Modal',
@@ -46,16 +48,11 @@ defineOptions({
 })
 
 const emit = defineEmits(['update:modelValue', 'close'])
+const idTitre = `modal-titre-${useId()}` // #563 : l'id du titre, qui nomme le dialogue
 
 const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    default: false
-  },
-  title: {
-    type: String,
-    default: ''
-  },
+  modelValue: { type: Boolean, default: false },
+  title: { type: String, default: '' },
   size: {
     type: String,
     default: 'md',

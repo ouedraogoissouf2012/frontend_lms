@@ -27,7 +27,10 @@ export function useCreateQuestions() {
     duree_minutes: 60,
     max_attempts: 1,
     shuffle_questions: false,
-    show_results: false
+    show_results: false,
+    // #568 : le titre, modifiable pour une évaluation LOCALE en édition ; null sinon (création, ou version en
+    // ligne d'une évaluation KLASSCI, dont le titre reste celui de KLASSCI).
+    titre: null
   })
   const questions = ref([])
   const loading = ref(false)
@@ -35,8 +38,10 @@ export function useCreateQuestions() {
   // L'en-tête montre la programmation KLASSCI, sinon l'évaluation LMS (évaluation locale, D72-b).
   const evaluationAffichee = computed(() => evaluationKlassci.value ?? evaluationLMS.value)
 
+  // Un titre modifiable compte au moins 3 caractères (UpdateEvaluationRequest).
+  const titreValide = computed(() => configuration.titre === null || configuration.titre.trim().length >= 3)
   const isValid = computed(() => {
-    return configuration.duree_minutes > 0 && questions.value.length > 0 && !questions.value.some(motifAvantEnvoi)
+    return titreValide.value && configuration.duree_minutes > 0 && questions.value.length > 0 && !questions.value.some(motifAvantEnvoi)
   })
   // D72-b : en édition, sans évaluation LMS chargée, rien ne s'enregistre (jamais une création).
   const erreurChargement = ref(null)
@@ -94,6 +99,8 @@ export function useCreateQuestions() {
       configuration.max_attempts = evaluationLMS.value.max_attempts || 1
       configuration.shuffle_questions = evaluationLMS.value.shuffle_questions || false
       configuration.show_results = evaluationLMS.value.show_results || false
+      const { titre, klassci_evaluation_id: lienKlassci } = evaluationLMS.value
+      configuration.titre = !lienKlassci && typeof titre === 'string' ? titre : null
 
       // Charger les questions existantes
       if (evaluationLMS.value.questions && evaluationLMS.value.questions.length > 0) {
@@ -140,6 +147,10 @@ export function useCreateQuestions() {
   async function saveQuestions() {
     // Édition sans évaluation chargée : l'échec est déjà affiché ; ne JAMAIS retomber sur la création.
     if (isEditMode.value && !evaluationLMS.value) return
+    if (!titreValide.value) {
+      toast.warning('Le titre de l’évaluation compte au moins 3 caractères')
+      return
+    }
     if (!isValid.value) {
       // D528 : le motif de la première question refusée (motifAvantEnvoi), sinon l'absence de question.
       const motif = questions.value.map(motifAvantEnvoi).find(Boolean)
@@ -211,6 +222,7 @@ export function useCreateQuestions() {
       max_attempts: configuration.max_attempts,
       shuffle_questions: configuration.shuffle_questions,
       show_results: configuration.show_results,
+      ...(configuration.titre !== null ? { titre: configuration.titre.trim() } : {}),
       questions: prepareQuestionsForSubmit()
     }
 

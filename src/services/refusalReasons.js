@@ -36,6 +36,12 @@ export const REASONS = Object.freeze({
   // VisioStatusRefusal (serveur) : attendre (`visio_not_started`) ou renoncer (`visio_ended`).
   visio_not_started: motif('visioNotStarted'),
   visio_ended: motif('visioEnded'),
+  // La fenêtre de démarrage est passée (fin + 30 min, SeanceVisioEnricher::buildVisioWindow) : 409.
+  seance_past: motif('visioSeancePassee'),
+  // Back #1103 : la classe d'une leçon hors des classes de sa matière (422).
+  classe_hors_matiere: motif('lessonClasseHorsMatiere'),
+  // lms_backend#1113 : une évaluation verrouillée (des copies remises) ne se modifie ni ne se supprime (409).
+  evaluation_locked: motif('evaluationLocked'),
   teacher_not_owner: motif('visioTeacherNotOwner'),
   actor_not_authorized: motif('visioRoleRefused'),
   invalid_role: motif('visioRoleRefused'),

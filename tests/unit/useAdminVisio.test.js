@@ -118,9 +118,7 @@ describe('useAdminVisio (#G1)', () => {
     expect(v.formatTime(null)).toBe('N/A')
   })
 
-  it('normalise les variantes de room et ouvre Jitsi avec la room résolue', async () => {
-    const open = vi.fn()
-    vi.stubGlobal('open', open)
+  it('normalise les variantes de room (l’entrée en salle : #310, visioAdminJeton.test.js)', async () => {
     getSeances.mockResolvedValue({
       success: true,
       data: [{
@@ -139,28 +137,6 @@ describe('useAdminVisio (#G1)', () => {
     const visio = v.visioconferences.value[0]
 
     expect(visio.room_id).toBe('nested-room')
-    v.joinVisio(visio)
-    expect(open).toHaveBeenCalledWith(expect.stringContaining('/nested-room'), '_blank')
-    vi.unstubAllGlobals()
-  })
-
-  /**
-   * #327 — Sans serveur visio configure, `buildJitsiUrl` leve. Vue avalerait
-   * l'exception d'un gestionnaire d'evenement : l'administrateur cliquerait
-   * « Rejoindre » et n'obtiendrait NI onglet, NI message. Ce test verrouille
-   * les deux moities du contrat : on notifie, et on n'ouvre rien.
-   */
-  it("sans serveur visio configuré, notifie au lieu d'ouvrir un onglet muet", async () => {
-    vi.stubEnv('VITE_JITSI_DOMAIN', '')
-    const open = vi.fn()
-    vi.stubGlobal('open', open)
-
-    const v = await setup()
-    const visio = v.visioconferences.value[0]
-
-    expect(() => v.joinVisio(visio)).not.toThrow()
-    expect(open).not.toHaveBeenCalled()
-    vi.unstubAllGlobals()
   })
 
   // Test inversé : il exigeait que le texte du serveur (« Boom ») s'affiche tel quel.

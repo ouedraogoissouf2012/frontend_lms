@@ -21,6 +21,11 @@
           <i class="material-icons">edit</i>
           Modifier le quiz
         </button>
+        <!-- #566 : la suppression, confirmée par le gestionnaire (deleteKnowledgeCheck). -->
+        <button @click="$emit('delete-quiz', quiz)" class="btn-edit-inline-quiz btn-delete-inline-quiz">
+          <i class="material-icons">delete</i>
+          Supprimer le quiz
+        </button>
       </div>
       <div v-else class="quiz-create-prompt">
         <p class="quiz-prompt-text">Aucun quiz cree pour ce chapitre.</p>
@@ -57,7 +62,7 @@ defineProps({
   quizEchec: { type: Object, default: null }
 })
 
-defineEmits(['open-quiz-editor', 'retry-quiz'])
+defineEmits(['open-quiz-editor', 'retry-quiz', 'delete-quiz'])
 </script>
 
 <style scoped>
@@ -105,6 +110,10 @@ defineEmits(['open-quiz-editor', 'retry-quiz'])
 .quiz-summary .quiz-meta {
   font-size: 0.8125rem;
   color: var(--text-secondary);
+}
+
+.btn-edit-inline-quiz.btn-delete-inline-quiz {
+  background: var(--red-600);
 }
 
 .btn-edit-inline-quiz {

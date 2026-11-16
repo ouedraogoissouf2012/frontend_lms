@@ -106,11 +106,6 @@ async function handleEventAction({ type, data }) {
       router.push(`/seances/${data.id}`)
       break
 
-    case 'viewAttendance':
-      // Voir la liste de presence
-      router.push(`/attendance/seances/${data.id}`)
-      break
-
     case 'endVisio':
       // Terminer la visio
       try {
@@ -134,12 +129,6 @@ async function handleEventAction({ type, data }) {
     case 'exportAttendance':
       // Exporter la presence - rediriger vers la page avec option export
       router.push(`/attendance/seances/${data.id}?export=true`)
-      break
-
-    case 'enableVisio':
-    case 'toggleVisio':
-      // Activer/desactiver la visio - rediriger vers les details
-      router.push(`/seances/${data.id}`)
       break
 
     default:

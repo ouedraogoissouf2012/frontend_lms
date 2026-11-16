@@ -1,7 +1,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { klassciService } from '@/services/klassci'
 import { readCache, writeCache } from '@/services/cache'
-import { buildJitsiUrl, getVisioRoomId } from '@/constants/visio'
+import { getVisioRoomId } from '@/constants/visio'
+import { useVisioStore } from '@/stores/visio'
 import { notifyVisioError } from '@/services/visioFeedback'
 import { extractList } from '@/utils/apiList'
 import { statutSeance, libelleStatutSeance, finEstimee } from '@/utils/seanceStatut'
@@ -178,25 +179,22 @@ export function useAdminVisio() {
     })
   }
 
-  function joinVisio(visio) {
-    const roomId = getVisioRoomId(visio)
-    if (!roomId) {
-      notifyVisioError(null, 'Identifiant de salle visio introuvable.')
+  // #310 : l'admin entre comme l'enseignant et l'élève depuis #673, par la salle EMBARQUÉE : `visioStore.joinVisio`
+  // obtient le jeton du serveur (le serveur visio exige une authentification ; `window.open` sans jeton était refusé).
+  // Un refus du serveur (`actor_not_authorized`, avant lms_backend#1102) est DIT par le catalogue, jamais levé.
+  async function joinVisio(visio) {
+    if (visio?.id == null) {
+      notifyVisioError(null, 'Séance de la visio introuvable.')
       return
     }
-
-    // `buildJitsiUrl` lève désormais quand aucun serveur visio n'est configuré
-    // (#327). Sans ce `try`, Vue avalerait l'exception d'un gestionnaire
-    // d'événement : l'administrateur cliquerait « Rejoindre » et n'obtiendrait
-    // ni onglet, ni message — un bouton muet, plus difficile à diagnostiquer
-    // que le défaut qu'on vient de corriger. La branche voisine sait déjà
-    // notifier ; on emprunte le même chemin.
     try {
-      window.open(buildJitsiUrl(roomId), '_blank')
+      // Le store au moment de l'entrée (et non au montage) : l'écran se monte sans lui.
+      await useVisioStore().joinVisio(visio.id)
     } catch (error) {
       notifyVisioError(error, "Impossible d'ouvrir la salle de visioconférence.")
     }
   }
+
 
   function viewVisioDetails(visio) {
     // TODO: Ouvrir modal avec détails

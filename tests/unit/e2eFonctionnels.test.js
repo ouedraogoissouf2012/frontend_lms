@@ -53,6 +53,12 @@ describe('fonctionnels.mjs — le verdict vient de la relecture', () => {
     expect(c.defaut).toBe("échec de l'outil pendant l'action (sélecteur ou attente) : locator.click: Timeout 30000ms exceeded. — waiting for getByRole('button', { name: 'Publier' })")
   })
 
+  it('un sélecteur ambigu (mode strict) : les éléments trouvés sont nommés (E2E 43769695409)', async () => {
+    const erreur = new Error("locator.click: Error: strict mode violation: getByRole('button') resolved to 2 elements:\n    1) <button>Créer</button> aka first()\n    2) <button>Créer</button> aka nth(1)\n\nCall log:\n  - waiting for getByRole('button')")
+    const c = await nouveau().etape({ cle: 'creer', compte: 'enseignant', libelle: 'créer', action: async () => { throw erreur }, relecture: confirme })
+    expect(c.defaut).toBe("échec de l'outil pendant l'action (sélecteur ou attente) : locator.click: Error: strict mode violation: getByRole('button') resolved to 2 elements: — 1) <button>Créer</button> aka first() — 2) <button>Créer</button> aka nth(1) — waiting for getByRole('button')")
+  })
+
   it('une relecture impossible (outil) : NON TESTÉ nommé', async () => {
     const c = await nouveau().etape({ cle: 'creer', compte: 'enseignant', libelle: 'créer', action: fait, relecture: async () => { throw new Error('fetch failed') } })
     expect(c).toMatchObject({ verdict: 'NON TESTÉ', defaut: 'relecture impossible (outil) : fetch failed' })

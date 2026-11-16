@@ -7,13 +7,14 @@
         type="text"
         class="title-input"
         placeholder="saisissez le titre"
+        aria-label="Titre du chapitre"
       />
     </div>
 
     <!-- Content Type Selector -->
     <div class="form-field">
-      <label class="field-label">Type de contenu</label>
-      <select v-model="chapter.content_type" class="content-type-select">
+      <label :for="idType" class="field-label">Type de contenu</label>
+      <select :id="idType" v-model="chapter.content_type" class="content-type-select">
         <option value="text">Texte / Markdown</option>
         <option value="video">Vidéo (YouTube, Vimeo)</option>
         <option value="powerpoint">PowerPoint (upload .pptx)</option>
@@ -37,6 +38,7 @@
         :quiz-echec="quizEchec"
         @open-quiz-editor="(...args) => $emit('open-quiz-editor', ...args)"
         @retry-quiz="$emit('retry-quiz', $event)"
+        @delete-quiz="$emit('delete-quiz', $event)"
       />
     </div>
 
@@ -65,10 +67,11 @@
  * Les actions (sauvegarde, annulation, ouverture éditeur quiz) sont émises ; la
  * logique (API, upload, modale quiz) reste au parent.
  */
+import { computed } from 'vue'
 import ChapterContentField from '@/components/lessons/ChapterContentField.vue'
 import ChapterQuizField from '@/components/lessons/ChapterQuizField.vue'
 
-defineProps({
+const props = defineProps({
   chapter: { type: Object, required: true },
   // Quiz du chapitre (résolu par le parent depuis knowledgeChecks), ou null.
   quiz: { type: Object, default: null },
@@ -79,7 +82,10 @@ defineProps({
   saving: { type: Boolean, default: false }
 })
 
-defineEmits(['save', 'cancel', 'open-quiz-editor', 'retry-quiz'])
+defineEmits(['save', 'cancel', 'open-quiz-editor', 'retry-quiz', 'delete-quiz'])
+
+// #563 : l'id du choix du type, propre à chaque chapitre (plusieurs formulaires peuvent être ouverts).
+const idType = computed(() => `chapitre-type-${props.chapter.id ?? `nouveau-${props.chapter.tempId ?? 0}`}`)
 </script>
 
 <style scoped>

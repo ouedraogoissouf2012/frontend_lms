@@ -45,6 +45,14 @@
 
       <!-- Actions enseignant -->
       <template v-if="userRole === 'teacher'">
+        <!-- #582 : visio en cours, l'enseignant la rejoint d'ici (géré par TeacherSchedule, joinVisio). -->
+        <button
+          v-if="canEndVisio"
+          @click="$emit('action', 'joinVisio')"
+          class="action-btn primary"
+        >
+          Rejoindre la visio
+        </button>
         <button
           v-if="canActivateVisio"
           @click="$emit('action', 'activateVisio')"
@@ -59,6 +67,7 @@
         >
           Démarrer la visio
         </button>
+        <p v-if="motifVisioFermee" class="motif-visio-fermee">{{ motifVisioFermee }}</p>
         <button
           v-if="canEndVisio"
           @click="$emit('action', 'endVisio')"
@@ -123,6 +132,8 @@ defineProps({
   canStartEvaluation: { type: Boolean, default: false },
   canActivateVisio: { type: Boolean, default: false },
   canStartVisio: { type: Boolean, default: false },
+  // Pourquoi « Démarrer la visio » n'est pas proposé (séance passée), ou null.
+  motifVisioFermee: { type: String, default: null },
   canEndVisio: { type: Boolean, default: false }
 })
 

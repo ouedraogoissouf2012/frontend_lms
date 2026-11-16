@@ -3,7 +3,8 @@ import lmsService from '@/services/lms'
 import lessonService from '@/services/lesson'
 import { auth } from '@/services/api'
 import { useConfirm } from '@/composables/useConfirm'
-import { createEmptyLesson, buildLessonPayload, resolveEvaluationRoute } from '@/utils/matiereDetails'
+import { resolveEvaluationRoute } from '@/utils/matiereDetails'
+import { useLessonModal } from '@/composables/useLessonModal'
 import { hasRole, ROLES } from '@/constants/roles'
 import { messageForReason } from '@/services/errorHandler'
 import { displayMessage } from '@/services/displayMessage'
@@ -41,9 +42,6 @@ export function useMatiereDetails() {
   const evaluations = ref([])
   const classes = ref([])
   const statistiques = ref(null)
-  const showCreateLessonModal = ref(false)
-  const creatingLesson = ref(false)
-  const newLesson = ref(createEmptyLesson())
   const notifications = ref([])
 
   const matiereId = computed(() => parseInt(inst.proxy.$route.params.id))
@@ -122,62 +120,13 @@ export function useMatiereDetails() {
     inst.proxy.$router.push({ name: 'LessonView', params: { id: lessonId } })
   }
 
-  function createLesson() {
-    // Ouvrir le modal au lieu de rediriger
-    showCreateLessonModal.value = true
-    // Réinitialiser le formulaire
-    newLesson.value = createEmptyLesson()
-  }
-
-  function closeCreateLessonModal() {
-    showCreateLessonModal.value = false
-    newLesson.value = createEmptyLesson()
-  }
-
-  async function submitCreateLesson() {
-    // Validation
-    if (!newLesson.value.title || newLesson.value.title.trim() === '') {
-      showNotification('Le titre de la leçon est obligatoire', 'warning')
-      return
-    }
-
-    creatingLesson.value = true
-
-    try {
-      const user = auth.getUser()
-
-      // Préparer les données avec contexte automatique (mapping pur extrait)
-      const lessonData = buildLessonPayload(newLesson.value, {
-        classes: classes.value,
-        user,
-        matiereIdLocal: matiereIdLocal.value
-      })
-
-      console.log('[MatiereDetails] Création leçon contextuelle:', lessonData)
-
-      const response = await lessonService.createLesson(lessonData)
-
-      if (response.success) {
-        closeCreateLessonModal()
-
-        // Rediriger vers interface gestion chapitres
-        inst.proxy.$router.push({
-          name: 'LessonChapters',
-          params: { id: response.data.id }
-        })
-      }
-    } catch (err) {
-      console.error('[MatiereDetails] Erreur création leçon:', err)
-      showNotification('Erreur lors de la création : ' + displayMessage(err, 'réessayez.'), 'error')
-    } finally {
-      creatingLesson.value = false
-    }
-  }
-
-  function editLesson(lessonId) {
-    // Rediriger vers la gestion des chapitres au lieu de l'ancien éditeur
-    inst.proxy.$router.push({ name: 'LessonChapters', params: { id: lessonId }, query: { edit: 'true' } })
-  }
+  // La modale de leçon : créer et MODIFIER par le même formulaire, avec la classe choisie (#564, back #1103).
+  const modale = useLessonModal({
+    classes, matiereIdLocal,
+    notifier: (message, type) => showNotification(message, type),
+    recharger: () => loadMatiereDetails(),
+    versChapitres: (id) => inst.proxy.$router.push({ name: 'LessonChapters', params: { id } })
+  })
 
   async function confirmDeleteLesson(lessonId) {
     if (!(await useConfirm().confirm({ message: 'Êtes-vous sûr de vouloir supprimer cette leçon ?', variant: 'danger', confirmLabel: 'Supprimer' }))) {
@@ -281,10 +230,12 @@ export function useMatiereDetails() {
 
   return {
     loading, error, canRetry, activeTab, viewMode, matiere, lessons, seances, evaluations,
-    classes, statistiques, showCreateLessonModal, creatingLesson, newLesson,
-    notifications, matiereId, tabs, canManageVisio, isTeacher,
-    loadMatiereDetails, viewLesson, createLesson, closeCreateLessonModal,
-    submitCreateLesson, editLesson, confirmDeleteLesson, publishLesson,
+    classes, statistiques, notifications, matiereId, tabs, canManageVisio, isTeacher,
+    showCreateLessonModal: modale.visible, creatingLesson: modale.enregistrement, newLesson: modale.lecon,
+    editingLesson: modale.enEdition, erreurClasse: modale.erreurClasse,
+    createLesson: modale.ouvrirCreation, closeCreateLessonModal: modale.fermer,
+    submitCreateLesson: modale.enregistrer, editLesson: modale.ouvrirEdition,
+    loadMatiereDetails, viewLesson, confirmDeleteLesson, publishLesson,
     unpublishLesson, showNotification, viewSeance, hideSeance, viewEvaluation, viewClasse,
   }
 }

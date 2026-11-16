@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router'
 import lmsService from '@/services/lms'
 import attendanceExportService from '@/services/attendanceExport'
 // #28 : logique métier pure extraite (testée dans tests/unit/attendance.test.js)
-import { getPeriodDates as computePeriodDates } from '@/utils/attendance'
+import { getPeriodDates as computePeriodDates, messageSuppressionSeance } from '@/utils/attendance'
 import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
 import { invalidResponseError, messageDe } from '@/services/errorHandler'
@@ -220,7 +220,7 @@ export function useSeanceAttendanceHistory() {
   }
 
   async function deleteSeance(seance) {
-    const msg = `Êtes-vous sûr de vouloir supprimer la séance ${seance.klassci_seance_id} ?`
+    const msg = messageSuppressionSeance(seance) // #581 : nommée, jamais « null »
     if (!(await useConfirm().confirm({ message: msg, variant: 'danger', confirmLabel: 'Supprimer' }))) return
 
     try {
