@@ -54,7 +54,7 @@ export function isExpiredWithoutOnline(evaluation) {
   // #578 : la fenêtre (programmation KLASSCI), quand la charge la porte, décide SEULE : expirée seulement
   // terminée. Juger sur la date de début masquait une évaluation pendant sa fenêtre ouverte.
   const window = evaluation.programmation?.window
-  if (window && !window.is_open && window.has_started) return true
+  if (window) return window.has_ended === true || (!window.is_open && window.has_started === true)
 
   // Sans fenêtre : la FIN (début + durée) ; sans durée, le début (rien n'est inventé).
   const dateEval = evaluation.programmation?.date_evaluation || evaluation.date_evaluation
