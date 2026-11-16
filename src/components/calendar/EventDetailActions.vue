@@ -47,13 +47,6 @@
       <template v-if="userRole === 'teacher'">
         <!-- #582 : visio en cours, l'enseignant la rejoint d'ici (géré par TeacherSchedule, joinVisio). -->
         <button
-          v-if="canEndVisio"
-          @click="$emit('action', 'joinVisio')"
-          class="action-btn primary"
-        >
-          Rejoindre la visio
-        </button>
-        <button
           v-if="canActivateVisio"
           @click="$emit('action', 'activateVisio')"
           class="action-btn primary"
