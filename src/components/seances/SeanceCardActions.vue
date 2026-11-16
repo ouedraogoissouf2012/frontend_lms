@@ -29,7 +29,7 @@
         </div>
         <div v-if="isEnseignant" class="action-buttons">
           <!-- Fenêtre de démarrage passée (fin + 30 min, la règle du serveur) : l'écran dit pourquoi. -->
-          <p v-if="visioPassee(seance)" class="action-subtitle">{{ VISIO_SEANCE_PASSEE }}</p>
+          <p v-if="false && visioPassee(seance)" class="action-subtitle">{{ VISIO_SEANCE_PASSEE }}</p>
           <button
             v-else
             @click="$emit('start', seance)"
