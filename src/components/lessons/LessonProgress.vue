@@ -91,7 +91,7 @@ export default {
       return this.progress?.progress_percentage || 0
     },
     progressBadge() {
-      return lessonService.getProgressBadge(this.percentage)
+      return lessonService.getProgressBadge(this.percentage, this.progress?.status)
     },
     progressColorClass() {
       const color = this.progressBadge.color

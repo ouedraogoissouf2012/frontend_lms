@@ -210,14 +210,17 @@ const lessonService = {
    * @param {Number} percentage - 0-100
    * @returns {Object} - { class, text, color }
    */
-  getProgressBadge(percentage) {
-    if (percentage === 0) {
+  getProgressBadge(percentage, status) {
+    // lms_backend#1147 : l'ÉTAT du serveur prime. Du temps écrit commence la leçon (`in_progress`) même à 0 %, et une
+    // leçon `completed` est terminée. Sans état (ancienne réponse), le pourcentage décide, comme avant.
+    const selonEtat = status === 'completed' ? 100 : (status === 'in_progress' && percentage === 0 ? 1 : percentage)
+    if (selonEtat === 0) {
       return { class: 'bg-gray-200 text-gray-600', text: 'Non commencé', color: 'gray' }
-    } else if (percentage < 30) {
+    } else if (selonEtat < 30) {
       return { class: 'bg-red-100 text-red-700', text: 'Débuté', color: 'red' }
-    } else if (percentage < 70) {
+    } else if (selonEtat < 70) {
       return { class: 'bg-yellow-100 text-yellow-700', text: 'En cours', color: 'yellow' }
-    } else if (percentage < 100) {
+    } else if (selonEtat < 100) {
       return { class: 'bg-blue-100 text-blue-700', text: 'Presque terminé', color: 'blue' }
     } else {
       return { class: 'bg-green-100 text-green-700', text: 'Terminé', color: 'green' }
