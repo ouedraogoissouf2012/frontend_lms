@@ -9,6 +9,8 @@
       <PlusIcon class="w-5 h-5" />
       Créer version en ligne
     </button>
+    <!-- #569 : verrouillée (copies, ou drapeau) : le serveur refuserait ; la carte dit pourquoi. -->
+    <p v-else-if="versionVerrouillee(evaluation.online_version)" class="eval-verrou">{{ QUESTIONS_VERROUILLEES }}</p>
     <button
       v-else
       @click="$emit('edit', evaluation)"
@@ -56,7 +58,7 @@
       {{ syncing === evaluation.id ? 'Synchronisation...' : 'Synchroniser les notes' }}
     </button>
     <button
-      v-if="evaluation.has_online && !evaluation.online_version?.is_locked && !(evaluation.online_version?.submissions_count > 0)"
+      v-if="evaluation.has_online && !versionVerrouillee(evaluation.online_version)"
       @click="$emit('delete', evaluation)"
       class="btn-action btn-delete"
       title="Supprimer la version en ligne"
@@ -83,7 +85,7 @@ import {
   TrashIcon
 } from '@heroicons/vue/24/outline'
 // D540 : les copies REMISES (compteur du serveur) ; inconnu, le bouton reste et le serveur tranche.
-import { copiesASynchroniser } from '@/utils/evaluations'
+import { copiesASynchroniser, versionVerrouillee, QUESTIONS_VERROUILLEES } from '@/utils/evaluations'
 
 defineProps({
   evaluation: { type: Object, required: true },
@@ -134,6 +136,12 @@ defineEmits(['create', 'edit', 'view-results', 'publish', 'preview', 'sync', 'de
 .btn-edit {
   background: var(--amber-500);
   color: white;
+}
+
+.eval-verrou {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
 }
 
 .btn-edit:hover:not(:disabled) {

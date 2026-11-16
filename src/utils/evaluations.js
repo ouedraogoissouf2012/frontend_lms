@@ -165,3 +165,17 @@ export function copiesASynchroniser(onlineVersion) {
   const n = onlineVersion?.submissions_to_sync_count
   return Number.isInteger(n) && n >= 0 ? n : null
 }
+
+// #569 : ce que la carte dit à la place de « Modifier les questions » sur une évaluation verrouillée.
+export const QUESTIONS_VERROUILLEES = 'Questions verrouillées : des copies existent déjà, ou l’évaluation a été verrouillée.'
+
+/**
+ * La version en ligne est-elle verrouillée ? La règle du serveur (EvaluationStateService::isLocked, exposé en
+ * `is_locked`) : le drapeau, ou des copies. Le compte de copies suffit quand la réponse ne porte pas `is_locked`.
+ * C'est la même règle qui masque « Supprimer ».
+ * @param {Object|null|undefined} onlineVersion
+ * @returns {boolean}
+ */
+export function versionVerrouillee(onlineVersion) {
+  return Boolean(onlineVersion?.is_locked) || onlineVersion?.submissions_count > 0
+}
