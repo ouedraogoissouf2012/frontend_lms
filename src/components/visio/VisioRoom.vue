@@ -39,6 +39,7 @@
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import lmsService from '@/services/lms'
 import { useAuthStore } from '@/stores/auth'
+import { isSupradmin } from '@/constants/roles'
 import { useVisioStore } from '@/stores/visio'
 import { useJitsiRoom } from '@/composables/useJitsiRoom'
 import { useVisioRecordingMirror } from '@/composables/useVisioRecordingMirror'
@@ -175,7 +176,11 @@ onMounted(async () => {
   // Ce composant est monte a la RACINE, donc aussi sur l'ecran de connexion.
   // Interroger le serveur sans jeton produirait un 401 a chaque chargement de
   // page, pour tout visiteur non connecte.
-  if (!useAuthStore().token) return
+  const auth = useAuthStore()
+  if (!auth.token) return
+  // Back #1096 : le supradmin plateforme n'appartient à aucun établissement. La porte du serveur lui refuse
+  // `visio/active` (403 no_institution, voulu : une visio de séance est du contenu pédagogique, lot P5).
+  if (isSupradmin(auth.currentUser)) return
 
   try {
     const response = await lmsService.getActiveVisioParticipation()
