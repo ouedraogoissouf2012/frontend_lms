@@ -7,7 +7,7 @@
     <Modal v-model="ouvert" title="Nouvelle séance" size="md" @close="fermer">
       <form class="seance-create-form" novalidate @submit.prevent="soumettre">
         <!-- #580 : le back active la visio d'une séance locale (LocalVisioActivation) ; on dit où elle se pilote. -->
-        <p class="form-hint">La visioconférence n'est pas encore disponible pour une séance créée ici.</p>
+        <p class="form-hint">La visioconférence s’active ensuite depuis la carte de la séance.</p>
 
         <label class="form-label" for="seance-matiere">Matière</label>
         <select id="seance-matiere" v-model="form.matiereId" name="matiere" class="form-input">
