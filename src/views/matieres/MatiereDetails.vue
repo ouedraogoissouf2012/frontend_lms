@@ -100,6 +100,9 @@
     <CreateLessonModal
       :visible="showCreateLessonModal"
       :lesson="newLesson"
+      :classes="classes"
+      :editing="!!editingLesson"
+      :erreur-classe="erreurClasse"
       :creating="creatingLesson"
       @close="closeCreateLessonModal"
       @submit="submitCreateLesson"
@@ -129,7 +132,7 @@ import { useMatiereDetails } from '@/composables/useMatiereDetails'
 
 const {
   loading, error, canRetry, activeTab, viewMode, matiere, lessons, seances, evaluations,
-  classes, statistiques, showCreateLessonModal, creatingLesson, newLesson, notifications,
+  classes, statistiques, showCreateLessonModal, creatingLesson, newLesson, editingLesson, erreurClasse, notifications,
   tabs, isTeacher,
   loadMatiereDetails, viewLesson, createLesson, closeCreateLessonModal, submitCreateLesson,
   editLesson, confirmDeleteLesson, publishLesson, unpublishLesson,

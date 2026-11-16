@@ -38,6 +38,8 @@ export const REASONS = Object.freeze({
   visio_ended: motif('visioEnded'),
   // La fenêtre de démarrage est passée (fin + 30 min, SeanceVisioEnricher::buildVisioWindow) : 409.
   seance_past: motif('visioSeancePassee'),
+  // Back #1103 : la classe d'une leçon hors des classes de sa matière (422).
+  classe_hors_matiere: motif('lessonClasseHorsMatiere'),
   teacher_not_owner: motif('visioTeacherNotOwner'),
   actor_not_authorized: motif('visioRoleRefused'),
   invalid_role: motif('visioRoleRefused'),

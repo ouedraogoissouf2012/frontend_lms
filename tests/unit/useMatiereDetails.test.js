@@ -17,6 +17,7 @@ vi.mock('@/services/lms', () => ({
 vi.mock('@/services/lesson', () => ({
   default: {
     createLesson: vi.fn(),
+    getLesson: vi.fn().mockResolvedValue({ success: true, data: { id: 10, title: 'Leçon 1', classe_id: 2 } }),
     deleteLesson: vi.fn(),
     publishLesson: vi.fn(),
     unpublishLesson: vi.fn()
@@ -74,6 +75,15 @@ describe('useMatiereDetails (#H9)', () => {
     expect(api.showCreateLessonModal.value).toBe(true)
     api.closeCreateLessonModal()
     expect(api.showCreateLessonModal.value).toBe(false)
+  })
+
+  it('editLesson (#564) ouvre la modale préremplie, et ne part plus vers les chapitres', async () => {
+    getMatiereDetails.mockResolvedValue(SAMPLE)
+    const { api, push } = await setup('1')
+    await api.editLesson(10)
+    expect(api.showCreateLessonModal.value).toBe(true)
+    expect(api.newLesson.value).toMatchObject({ title: 'Leçon 1', classe_id: 2 })
+    expect(push).not.toHaveBeenCalled()
   })
 
   it('viewLesson et viewClasse pilotent le router', async () => {

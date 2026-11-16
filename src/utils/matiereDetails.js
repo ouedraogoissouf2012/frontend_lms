@@ -74,30 +74,65 @@ export function getEvaluationStatusLabel(window) {
   return 'Fermée'
 }
 
+// Les champs du formulaire de leçon (création et modification), et rien d'autre.
+const CHAMPS_DU_FORMULAIRE = ['title', 'description', 'prerequis', 'niveau_difficulte', 'objectifs_pedagogiques', 'duree_estimee_minutes', 'classe_id']
+
 /**
  * Fabrique l'état initial d'une nouvelle leçon (formulaire du modal de création).
  * Centralise le littéral autrefois dupliqué 3× dans MatiereDetails.vue (data,
  * ouverture et fermeture du modal) → une seule source de vérité.
+ *
+ * La classe (back #1103) : présélectionnée seulement quand la matière n'en a qu'UNE. Plusieurs : aucune,
+ * l'enseignant choisit (présélectionner la première faisait partir la leçon chez les mauvais élèves).
+ * @param {Array<{id:number}>} [classes] - classes_concernees de la matière (ids LOCAUX)
  * @returns {Object} brouillon de leçon vierge
  */
-export function createEmptyLesson() {
+export function createEmptyLesson(classes = []) {
   return {
     title: '',
     description: '',
     prerequis: '',
     niveau_difficulte: 'debutant',
     objectifs_pedagogiques: '',
-    duree_estimee_minutes: null
+    duree_estimee_minutes: null,
+    classe_id: classes?.length === 1 ? classes[0].id : null
   }
+}
+
+/**
+ * Une leçon LUE devient le formulaire prérempli de sa modification (#564), classe actuelle comprise.
+ * @param {Object} lecon - la leçon rendue par GET /lessons/{id}
+ * @returns {Object} le formulaire
+ */
+export function leconVersFormulaire(lecon) {
+  return {
+    ...createEmptyLesson(),
+    title: lecon?.title ?? '',
+    description: lecon?.description ?? '',
+    prerequis: lecon?.prerequis ?? '',
+    niveau_difficulte: lecon?.niveau_difficulte ?? 'debutant',
+    objectifs_pedagogiques: lecon?.objectifs_pedagogiques ?? '',
+    duree_estimee_minutes: lecon?.duree_estimee_minutes ?? null,
+    classe_id: lecon?.classe_id ?? null
+  }
+}
+
+/**
+ * Le corps de PUT /lessons/{id} : les seuls champs du formulaire. Ni statut, ni type, ni enseignant : la
+ * modification ne change pas ce que le formulaire ne montre pas. Mapping PUR.
+ * @param {Object} formulaire
+ * @returns {Object}
+ */
+export function buildLessonUpdatePayload(formulaire) {
+  return Object.fromEntries(CHAMPS_DU_FORMULAIRE.map((champ) => [champ, formulaire?.[champ] ?? null]))
 }
 
 /**
  * Construit le payload de création de leçon (contexte matière/classe/enseignant
  * ajouté au brouillon). Mapping PUR.
- * @param {Object} newLesson - brouillon du formulaire
- * @param {{ classes:Array, user:Object, matiereIdLocal:?number }} ctx
- *   `classes` = classes_concernees de la matière (1ère classe utilisée comme
- *   classe_id, requis par le backend). `matiere` n'a PAS de propriété `classes`.
+ * @param {Object} newLesson - brouillon du formulaire, avec la classe CHOISIE (`classe_id`, back #1103 :
+ *   jamais la première des classes de la matière à la place d'un choix)
+ * @param {{ user:Object, matiereIdLocal:?number }} ctx
  *
  *   `matiereIdLocal` = le champ `matiere_id_local` de la réponse, et surtout
  *   PAS le paramètre de route, qui est un identifiant KLASSCI. Le backend
@@ -113,11 +148,11 @@ export function createEmptyLesson() {
  *   corruption silencieuse, que personne ne cherche puisque rien n'a échoué.
  * @returns {Object} payload prêt pour lessonService.createLesson
  */
-export function buildLessonPayload(newLesson, { classes, user, matiereIdLocal }) {
+export function buildLessonPayload(newLesson, { user, matiereIdLocal }) {
   return {
     ...newLesson,
     matiere_id: matiereIdLocal ?? null,
-    classe_id: classes?.[0]?.id || null, // 1ère classe concernée (classes_concernees)
+    classe_id: newLesson.classe_id ?? null,
     enseignant_id: user?.id,
     type: 'cours',
     status: 'draft'

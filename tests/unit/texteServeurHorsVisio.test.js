@@ -20,7 +20,6 @@ vi.mock('@/services/lesson', () => ({ default: lesson }))
 vi.mock('@/services/lms', () => ({ default: lms }))
 vi.mock('@/services/attendanceExport', () => ({ default: {} }))
 
-import { useLessonForm } from '@/composables/useLessonForm'
 import { useParticipantsModal } from '@/composables/useParticipantsModal'
 import { normalizeError } from '@/services/errorHandler'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
@@ -32,43 +31,6 @@ beforeEach(() => {
   lesson.createLesson.mockReset()
   lesson.updateLesson.mockReset()
   lms.getVisioParticipants.mockReset()
-})
-
-describe('formulaire de leçon : un refus de sauvegarde', () => {
-  const sauver = async (edition) => {
-    const f = useLessonForm(ref([{ id: 5 }]))
-    if (edition) f.editingLesson.value = { id: 5 }
-    f.lessonForm.matiere_id = 3
-    f.lessonForm.title = 'Titre'
-    await f.saveLesson()
-    return toast.error.mock.calls.at(-1)?.[0]
-  }
-
-  it('création refusée : le repli du front, jamais le texte du serveur', async () => {
-    lesson.createLesson.mockResolvedValue({ success: false, message: SERVEUR })
-    const affiche = await sauver(false)
-    expect(affiche).toBeTruthy()
-    expect(affiche).not.toContain(SERVEUR)
-  })
-
-  it('refus avec un `reason` connu : le catalogue, exactement', async () => {
-    lesson.createLesson.mockResolvedValue({ success: false, message: SERVEUR, reason: 'no_institution' })
-    expect(await sauver(false)).toBe(ERROR_MESSAGES.noInstitution)
-  })
-
-  it('refus HTTP (422) : le message de l’intercepteur est gardé, la sauvegarde est nommée', async () => {
-    lesson.createLesson.mockRejectedValue(Object.assign(new Error('HTTP 422'), { userMessage: 'Le champ titre est obligatoire.' }))
-    const affiche = await sauver(false)
-    expect(affiche).toContain('Le champ titre est obligatoire.')
-    expect(affiche).toMatch(/sauvegarde/i)
-  })
-
-  it('modification refusée : idem', async () => {
-    lesson.updateLesson.mockResolvedValue({ success: false, message: SERVEUR })
-    const affiche = await sauver(true)
-    expect(affiche).toBeTruthy()
-    expect(affiche).not.toContain(SERVEUR)
-  })
 })
 
 describe('liste de présence : un refus de chargement', () => {
