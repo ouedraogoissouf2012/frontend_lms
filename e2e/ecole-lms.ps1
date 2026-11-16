@@ -129,11 +129,15 @@ try {
     $code2 = (Appeler '5 code 5e B' 'POST' "/classes/$($c2.id)/code-inscription" -Jeton $admin -Attendus 201).data.code_inscription
 
     # 6. Les élèves s'inscrivent eux-mêmes par code (5 par minute au plus).
+    # lms_backend#1112 (#914) rend une réponse NEUTRE, HTTP 202, quel que soit le cas (anti-énumération) ; le back
+    # d'avant rend 201. Les deux sont acceptés, sans dépendre de l'ordre de fusion. La réponse ne prouve donc plus le
+    # compte : la CONNEXION de l'élève, juste après, le prouve.
     foreach ($e in @(@(1, $code1), @(2, $code1), @(3, $code1), @(4, $code1), @(5, $code2), @(6, $code2))) {
         Appeler "6 inscription eleve$($e[0])" 'POST' '/inscriptions' @{
             code = $e[1]; nom = "Eleve $($e[0]) E2E"; email = "eleve$($e[0])@e2e.test"
             password = $MotDePasse; password_confirmation = $MotDePasse
-        } -EnTetes @{ 'X-Institution' = $Slug } -Attendus 201 | Out-Null
+        } -EnTetes @{ 'X-Institution' = $Slug } -Attendus @(201, 202) | Out-Null
+        Connecter "6 connexion eleve$($e[0])" "eleve$($e[0])@e2e.test" | Out-Null
         Start-Sleep -Seconds 13
     }
 
