@@ -1,6 +1,20 @@
 <template>
   <div>
     <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Configuration</h2>
+    <!-- #568 : le titre, quand il est modifiable (évaluation locale en édition). -->
+    <div v-if="typeof configuration.titre === 'string'" class="mb-4">
+      <label for="evaluation-titre" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        Titre *
+      </label>
+      <input
+        id="evaluation-titre"
+        v-model="configuration.titre"
+        type="text"
+        maxlength="255"
+        class="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
+        required
+      />
+    </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
