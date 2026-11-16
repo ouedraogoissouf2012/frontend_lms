@@ -41,3 +41,10 @@ describe('#569 — « Modifier les questions » sur une évaluation verrouillée
     expect(QUESTIONS_VERROUILLEES).toBe('Questions verrouillées : des copies existent déjà, ou l’évaluation a été verrouillée.')
   })
 })
+
+describe('back #1113 — le refus « evaluation_locked » (409) est dit par le catalogue', () => {
+  it('le motif vrai (les copies remises), jamais le 403 générique « droits »', async () => {
+    const { messageForReason } = await import('@/services/errorHandler')
+    expect(messageForReason('evaluation_locked')).toBe('Cette évaluation est verrouillée : des copies ont déjà été remises. Elle ne peut plus être modifiée ni supprimée.')
+  })
+})
