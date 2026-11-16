@@ -3,8 +3,8 @@
 // leçon ; l'élève démarre le quiz et le soumet ; l'enseignant supprime le quiz, puis la leçon. Chaque étape relue.
 //
 // Sélecteurs : textes visibles et placeholders (#563). Structurels, déclarés : le bloc d'un chapitre
-// (`.chapter-block`), l'éditeur du quiz (`.knowledge-check-editor`) et le bouton radio de la bonne réponse
-// (`input[name="correct-N"]`, sans libellé).
+// (`.chapter-block`), l'éditeur du quiz (`.knowledge-check-editor`), le lecteur du quiz de l'élève
+// (`.knowledge-check-player`) et le bouton radio de la bonne réponse (`input[name="correct-N"]`, sans libellé).
 import { lireApi } from './fonctionnels.mjs'
 import { ATTENTE, bouton, appel, refusServeur, lu, formulaireDeChapitre } from './gestes.mjs'
 import { ETAPES_LECON } from './parcours-lecon.mjs'
@@ -81,6 +81,9 @@ async function pageDesChapitres({ pages, base, etat }) {
 }
 
 const blocDuChapitre = (page, titre) => page.locator('.chapter-block').filter({ hasText: titre })
+// En édition, le titre du chapitre est la VALEUR d'un champ, pas un texte : le bloc ne se trouve plus par son
+// titre (E2E 43772665766). Il se trouve par son formulaire ouvert (un seul chapitre en édition à la fois).
+const blocEnEdition = (page) => page.locator('.chapter-block').filter({ has: page.getByPlaceholder('saisissez le titre') })
 
 /** Remplit l'éditeur du quiz (création) : le titre, puis chaque question, ses options et sa bonne réponse. */
 async function remplirLeQuiz(editeur, donnees) {
@@ -142,9 +145,8 @@ export const ETAPES_QUIZ = Object.freeze([
     cle: 'modifier', compte: 'enseignant', libelle: 'modifier le titre du quiz', requiert: ['creer'],
     async action(ctx) {
       const page = await pageDesChapitres(ctx)
-      const bloc = blocDuChapitre(page, ctx.donnees.chapitre)
-      await bouton(bloc, 'Modifier').click()
-      await bouton(bloc, 'Modifier le quiz').click()
+      await bouton(blocDuChapitre(page, ctx.donnees.chapitre), 'Modifier').click()
+      await bouton(blocEnEdition(page), 'Modifier le quiz').click()
       const editeur = page.locator('.knowledge-check-editor')
       await editeur.getByPlaceholder('Ex: Testez vos connaissances - Chapitre 1').fill(ctx.donnees.quizModifie)
       const reponse = appel(page, 'PUT', `/knowledge-checks/${ctx.etat.quiz}`)
@@ -181,10 +183,12 @@ export const ETAPES_QUIZ = Object.freeze([
     cle: 'soumettre', compte: 'etudiant', libelle: 'soumettre les bonnes réponses', requiert: ['demarrer'],
     async action({ pages, donnees, etat }) {
       const page = pages.etudiant
+      // Le lecteur du quiz : la page de la leçon a aussi son « Suivant » (chapitre suivant, E2E 43772665766).
+      const lecteur = page.locator('.knowledge-check-player')
       const reponse = appel(page, 'POST', `/knowledge-checks/${etat.quiz}/submit`)
       for (const [i, q] of donnees.questions.entries()) {
-        await page.getByLabel(q.options[q.bonne], { exact: true }).check()
-        await bouton(page, i < donnees.questions.length - 1 ? 'Suivant' : 'Terminer').click()
+        await lecteur.getByLabel(q.options[q.bonne], { exact: true }).check()
+        await bouton(lecteur, i < donnees.questions.length - 1 ? 'Suivant' : 'Terminer').click()
       }
       return (await refusServeur(page, reponse, 'la remise du quiz')) ?? {}
     },
@@ -195,15 +199,16 @@ export const ETAPES_QUIZ = Object.freeze([
     async action(ctx) {
       const page = await pageDesChapitres(ctx)
       const bloc = blocDuChapitre(page, ctx.donnees.chapitre)
-      const chercher = async () => (await bloc.getByRole('button', { name: /supprimer (le|ce) quiz/i }).count()) > 0
+      const chercher = async (lieu) => (await lieu.getByRole('button', { name: /supprimer (le|ce) quiz/i }).count()) > 0
       // Compter après le RENDU, jamais juste après un clic (#565 : une mesure prématurée lisait l'écran d'avant).
       // Le quiz est chargé, en lecture (« Retenter » quand `user_best_score` n'est pas null, absent compris).
       await bloc.getByRole('button', { name: /(Commencer|Retenter) le quiz/ }).waitFor({ timeout: ATTENTE })
-      let vu = await chercher()
+      let vu = await chercher(bloc)
       if (!vu) {
         await bouton(bloc, 'Modifier').click()
-        await bouton(bloc, 'Modifier le quiz').waitFor({ timeout: ATTENTE }) // le chapitre est en édition
-        vu = await chercher()
+        const edition = blocEnEdition(page)
+        await bouton(edition, 'Modifier le quiz').waitFor({ timeout: ATTENTE }) // le chapitre est en édition
+        vu = await chercher(edition)
       }
       return jugerSuppressionQuiz(vu)
     },
