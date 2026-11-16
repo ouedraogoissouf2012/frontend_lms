@@ -28,7 +28,10 @@
           </div>
         </div>
         <div v-if="isEnseignant" class="action-buttons">
+          <!-- Fenêtre de démarrage passée (fin + 30 min, la règle du serveur) : l'écran dit pourquoi. -->
+          <p v-if="visioPassee(seance)" class="action-subtitle">{{ VISIO_SEANCE_PASSEE }}</p>
           <button
+            v-else
             @click="$emit('start', seance)"
             :disabled="actionLoading === seance.id"
             class="btn-action btn-primary"
@@ -113,6 +116,8 @@ defineProps({
 })
 
 defineEmits(['activate', 'start', 'deactivate', 'join', 'end'])
+
+import { visioPassee, VISIO_SEANCE_PASSEE } from '@/utils/visioTimeWindow'
 
 // #23 : l'heure délègue au formatter centralisé (repli 'N/A' identique).
 import { formatTime as fmtTime } from '@/utils/formatters'
