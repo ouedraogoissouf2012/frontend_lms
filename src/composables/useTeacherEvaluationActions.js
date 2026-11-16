@@ -96,7 +96,7 @@ export function useTeacherEvaluationActions({ evaluationsLMS, loadEvaluationsLMS
         // #570 : l'éditeur de la version créée, par la même route que « Modifier les questions ». Sans id
         // relu dans la réponse, aucune navigation n'est inventée : la carte offre « Modifier les questions ».
         if (result.data?.id != null) {
-          void klassciId
+          router.push({ name: 'EditQuestions', params: { id: result.data.id }, query: { klassci_id: klassciId } })
         }
       }
     } catch (err) {
