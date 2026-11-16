@@ -36,6 +36,8 @@ export const REASONS = Object.freeze({
   // VisioStatusRefusal (serveur) : attendre (`visio_not_started`) ou renoncer (`visio_ended`).
   visio_not_started: motif('visioNotStarted'),
   visio_ended: motif('visioEnded'),
+  // lms_backend#1113 : une évaluation verrouillée (des copies remises) ne se modifie ni ne se supprime (409).
+  evaluation_locked: motif('evaluationLocked'),
   teacher_not_owner: motif('visioTeacherNotOwner'),
   actor_not_authorized: motif('visioRoleRefused'),
   invalid_role: motif('visioRoleRefused'),
