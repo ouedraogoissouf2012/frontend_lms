@@ -243,7 +243,16 @@ describe('useSeanceAttendanceHistory — un export en échec ne montre jamais un
     expect(toast.error).toHaveBeenLastCalledWith('Erreur lors de l\'export Excel')
   })
 
-  it('#581 : la confirmation de suppression nomme la séance (le composable passe la phrase nommée)', async () => {
+})
+
+describe('useSeanceAttendanceHistory — #581 : la suppression d’une séance', () => {
+  beforeEach(() => {
+    getSeancesHistory.mockReset().mockResolvedValue(SEANCES)
+    deleteSeanceSvc.mockReset().mockResolvedValue({})
+    confirmMock.mockResolvedValue(true)
+  })
+
+  it('la confirmation nomme la séance (le composable passe la phrase nommée)', async () => {
     const u = await setup()
     await u.deleteSeance({ id: 7, klassci_seance_id: null, titre: 'Seance de revision', date: '2026-11-16' })
     const message = confirmMock.mock.calls.at(-1)[0].message

@@ -220,7 +220,7 @@ export function useSeanceAttendanceHistory() {
   }
 
   async function deleteSeance(seance) {
-    const msg = `Êtes-vous sûr de vouloir supprimer la séance ${seance.klassci_seance_id} ?` // m1
+    const msg = messageSuppressionSeance(seance) // #581 : nommée, jamais « null »
     if (!(await useConfirm().confirm({ message: msg, variant: 'danger', confirmLabel: 'Supprimer' }))) return
 
     try {
