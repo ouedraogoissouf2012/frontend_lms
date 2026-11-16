@@ -7,6 +7,7 @@
  * (La modale de leçon : #572. `LessonFormModal` : retirée par #572.)
  */
 import { mount } from '@vue/test-utils'
+import { defineComponent, h } from 'vue'
 import { describe, it, expect } from 'vitest'
 import Modal from '@/components/ui/Modal.vue'
 import ChapterEditForm from '@/components/lessons/ChapterEditForm.vue'
@@ -22,9 +23,13 @@ describe('#563 — Modal.vue se déclare comme dialogue', () => {
     expect(w.find(`#${id}`).text()).toBe('Nouvelle séance')
   })
 
-  it('deux modales : deux ids de titre distincts', () => {
-    const a = mount(Modal, { props: { modelValue: true, title: 'A' } }).find('[role="dialog"]').attributes('aria-labelledby')
-    const b = mount(Modal, { props: { modelValue: true, title: 'B' } }).find('[role="dialog"]').attributes('aria-labelledby')
+  it('deux modales dans la même application : deux ids de titre distincts', () => {
+    // `useId` est unique PAR APPLICATION : le front en a une, on monte donc les deux modales ensemble.
+    const w = mount(defineComponent({
+      render: () => h('div', [h(Modal, { modelValue: true, title: 'A' }), h(Modal, { modelValue: true, title: 'B' })]),
+    }))
+    const [a, b] = w.findAll('[role="dialog"]').map((d) => d.attributes('aria-labelledby'))
+    expect(a).toBeTruthy()
     expect(a).not.toBe(b)
   })
 

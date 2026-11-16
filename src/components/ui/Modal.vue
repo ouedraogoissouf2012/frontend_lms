@@ -7,14 +7,12 @@
         :class="overlayClass"
         @click.self="handleOverlayClick"
       >
-        <!-- $attrs sur le conteneur visible (inheritAttrs:false) : class/id/aria-*/data-* traversent -->
-        <!-- #563 : un dialogue, modal, nommé par son titre ; $attrs passe après (un appelant peut le préciser). -->
+        <!-- $attrs sur le conteneur visible (inheritAttrs:false), après le rôle : class/id/aria-*/data-* traversent.
+             #563 : un dialogue modal, nommé par son titre. -->
         <div
           class="modal-container"
           :class="[`modal-${normalizedSize}`, containerClass]"
-          role="dialog"
-          aria-modal="true"
-          :aria-labelledby="title ? idTitre : undefined"
+          role="dialog" aria-modal="true" :aria-labelledby="title ? idTitre : undefined"
           v-bind="$attrs"
         >
           <div
@@ -50,18 +48,11 @@ defineOptions({
 })
 
 const emit = defineEmits(['update:modelValue', 'close'])
-// #563 : l'id du titre, qui nomme le dialogue (unique par instance).
-const idTitre = `modal-titre-${useId()}`
+const idTitre = `modal-titre-${useId()}` // #563 : l'id du titre, qui nomme le dialogue
 
 const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    default: false
-  },
-  title: {
-    type: String,
-    default: ''
-  },
+  modelValue: { type: Boolean, default: false },
+  title: { type: String, default: '' },
   size: {
     type: String,
     default: 'md',
