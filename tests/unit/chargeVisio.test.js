@@ -201,9 +201,12 @@ describe('#1232 — la capture locale (essai 3 : entrés, ICE établi, aucune pi
     noterConsole(journal, 'error', `getUserMedia failed: NotFoundError https://visio.test/salle?jwt=${JETON}#x`, [JETON])
     noterConsole(journal, 'log', 'getUserMedia ok', [JETON])
     noterConsole(journal, 'error', 'XMPP ping timeout', [JETON])
-    noterConsole(journal, 'warning', `${'x'.repeat(LONGUEUR_MAX - 10)} device ${JETON}`, [JETON])
+    // La troncature tomberait AU MILIEU du jeton (12 de ses caractères) : masqué d'abord, il disparaît en entier.
+    const avant = `${'x'.repeat(LONGUEUR_MAX - 20)} device `
+    noterConsole(journal, 'warning', `${avant}${JETON}`, [JETON])
     expect(journal).toHaveLength(2)
     expect(journal[0]).toBe('error : getUserMedia failed: NotFoundError https://visio.test/salle?jwt=***#x')
+    expect(journal[1]).toBe(`warning : ${avant}***`)
     expect(journal.join('')).not.toMatch(/eyJ|fictif|signature/)
     expect(masquer('a?jwt=abc.def&b=1', [])).toBe('a?jwt=***&b=1')
     for (let i = 0; i < MESSAGES_MAX + 5; i++) noterConsole(journal, 'error', 'camera busy', [])
