@@ -10,7 +10,8 @@ import { setActivePinia, createPinia } from 'pinia'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const getUser = vi.fn()
-vi.mock('@/services/api', () => ({ auth: { getUser: () => getUser(), logout: vi.fn() } }))
+// La garde (guards.js:25) lit aussi `isAuthenticated` : le compte est connecté.
+vi.mock('@/services/api', () => ({ auth: { getUser: () => getUser(), isAuthenticated: () => true, logout: vi.fn() } }))
 vi.mock('vue-router', () => ({ useRoute: () => ({ path: '/' }), useRouter: () => ({ push: vi.fn() }) }))
 
 import { useAuthStore } from '@/stores/auth'

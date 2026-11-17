@@ -56,7 +56,7 @@ describe('useMobileSidebar (#H12)', () => {
     expect(paths).toEqual([
       '/forum',
       '/attendance/seances',
-      '/admin/training-sessions',
+      // « Sessions » est gardée par `peutGererCatalogueLocal` (#605) : sans Pinia ici, la capacité est refusée.
       '/admin/settings',
     ])
   })
@@ -81,7 +81,6 @@ describe('useMobileSidebar (#H12)', () => {
       '/admin/classes',
       '/admin/matieres',
       '/admin/enseignants',
-      '/admin/training-sessions',
     ])
   })
 
@@ -92,7 +91,6 @@ describe('useMobileSidebar (#H12)', () => {
       '/admin/classes',
       '/admin/matieres',
       '/admin/enseignants',
-      '/admin/training-sessions',
     ])
   })
 
