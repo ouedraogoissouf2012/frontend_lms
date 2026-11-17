@@ -1,7 +1,7 @@
 <template>
   <div class="lesson-actions">
     <!-- L'enseignant seul : actions d'écriture (#601) -->
-    <template v-if="isTeacher">
+    <template v-if="canWrite">
       <button
         v-if="lesson.status === 'draft'"
         @click.stop="$emit('publish', lesson.id)"
