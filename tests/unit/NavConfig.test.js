@@ -47,7 +47,7 @@ const EXPECTED = {
     ['Espace Admin', '/admin/hub'],
     ['Résultats', '/admin/evaluations/results'],
     ['Séances & Visio', '/coordinateur/seances'],
-    ['Sessions', '/admin/training-sessions'],
+    // « Sessions » est gardée par une capacité (#605) : sans capacité accordée, elle n'y est pas.
     ['Forum', '/forum'],
     ['Historique', '/attendance/seances'],
     ['Paramètres', '/admin/settings'],
@@ -62,7 +62,7 @@ const EXPECTED = {
     ['Visioconférences', '/admin/visioconferences'],
     ['Résultats Évaluations', '/admin/evaluations/results'],
     ['Statistiques', '/admin/stats'],
-    ['Sessions', '/admin/training-sessions'],
+    // « Sessions » : gardée par `peutGererCatalogueLocal` (#605), absente sans capacité.
     ['Forum', '/forum'],
     ['Historique', '/attendance/seances'],
     ['Paramètres', '/admin/settings'],
