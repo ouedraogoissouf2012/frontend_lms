@@ -38,6 +38,15 @@ const seance = (extra = {}) => ({
 const monter = (s) => mount(SeanceEditAction, { props: { seance: s }, global: { stubs: { teleport: true } } })
 const bouton = (w) => w.findAll('button').find((b) => b.text().trim() === 'Modifier')
 const refus = (status, reason, extra = {}) => ({ response: { status, data: { success: false, message: SERVEUR, reason } }, ...extra })
+// L'option « Sans classe » vaut `null` (v-model) : elle n'a pas d'attribut `value`, le DOM rend alors son TEXTE.
+// On lit donc l'option choisie, et on la choisit par son rang.
+const SANS_CLASSE = 'Sans classe (aucun élève ne la verra)'
+const classeChoisie = (w) => w.find('select[name="classe"]').element.selectedOptions[0]?.textContent.trim()
+async function choisirSansClasse(w) {
+  const select = w.find('select[name="classe"]')
+  select.element.selectedIndex = 0
+  await select.trigger('change')
+}
 
 async function ouvrir(s = seance({ can_be_edited: true })) {
   const w = monter(s)
@@ -79,7 +88,7 @@ describe('#1121 — la fenêtre de modification', () => {
     const w = await ouvrir()
     expect(w.find('input[name="titre"]').element.value).toBe('Fractions')
     expect(w.find('input[name="debut"]').element.value).toBe(DEBUT)
-    expect(w.find('select[name="classe"]').element.value).toBe('11')
+    expect(classeChoisie(w)).toBe('6e A')
     expect(w.find('select[name="matiere"]').exists()).toBe(false)
     expect(w.text()).toContain('Mathématiques')
   })
@@ -101,7 +110,7 @@ describe('#1121 — la fenêtre de modification', () => {
   it('sans classe : classe_id et classe_nom nuls', async () => {
     m.updateSeance.mockResolvedValue({ id: 77 })
     const w = await ouvrir()
-    await w.find('select[name="classe"]').setValue('')
+    await choisirSansClasse(w)
     await w.find('form').trigger('submit')
     await flushPromises()
     expect(m.updateSeance.mock.calls[0][1]).toMatchObject({ classe_id: null, classe_nom: null })
@@ -171,7 +180,7 @@ describe('#1121 — les refus sont dits par le catalogue, jamais par le serveur 
     const w = await ouvrir()
     await w.find('form').trigger('submit')
     await flushPromises()
-    expect(w.find('select[name="classe"]').element.value).toBe('')
+    expect(classeChoisie(w)).toBe(SANS_CLASSE)
     expect(w.find('[role="alert"]').text()).toContain(messageForReason('class_out_of_scope'))
   })
 
