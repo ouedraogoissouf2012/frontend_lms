@@ -6,8 +6,8 @@
  */
 import { describe, it, expect } from 'vitest'
 import {
-  ETAPES_SEANCE, DONNEES_SEANCE, AUCUN_CHEMIN_MODIFICATION_SEANCE, chargeDuJeton,
-  jugerSeance, jugerVisio, jugerEntree, jugerModificationSeance, jugerSuppressionSeance,
+  ETAPES_SEANCE, DONNEES_SEANCE, TITRE_MODIFIE, chargeDuJeton,
+  jugerSeance, jugerVisio, jugerEntree, jugerBoutonModifier, jugerSuppressionSeance,
 } from '../../e2e/parcours-seance.mjs'
 import { heuresDuRun } from '../../e2e/klassci-ecole/jeu.mjs'
 
@@ -81,9 +81,26 @@ describe('parcours-seance — l’entrée de l’élève (jeton, salle, domaine,
 })
 
 describe('parcours-seance — modifier et supprimer', () => {
-  it('modifier : aucun bouton → ROUGE nommé, Refs lms_backend#1121', () => {
-    expect(jugerModificationSeance(false).rouge).toBe(`${AUCUN_CHEMIN_MODIFICATION_SEANCE} : la carte n’offre aucun « Modifier » (Refs ouedraogoissouf2012/lms_backend#1121)`)
-    expect(jugerModificationSeance(true)).toHaveProperty('nonTeste')
+  // lms_backend#1121 (décision du user) : l'école autonome modifie ; l'école KLASSCI, jamais (aucun bouton).
+  it('modifier, école LMS : le bouton → on joue la modification ; aucun bouton → ROUGE nommé', () => {
+    expect(jugerBoutonModifier(true, false)).toBeNull()
+    expect(jugerBoutonModifier(false, false).rouge).toBe('la carte d’une séance locale n’offre aucun « Modifier » (can_be_edited, Refs ouedraogoissouf2012/lms_backend#1121)')
+  })
+
+  it('modifier, école KLASSCI : sans objet, après avoir VÉRIFIÉ qu’aucun bouton ne paraît ; un bouton → ROUGE', () => {
+    expect(jugerBoutonModifier(false, true).nonTeste).toBe('sans objet : une séance KLASSCI se modifie dans KLASSCI ; sa carte n’offre aucun « Modifier » (vérifié)')
+    expect(jugerBoutonModifier(true, true).rouge).toBe('une séance KLASSCI offre « Modifier » : elle se modifie dans KLASSCI (Refs ouedraogoissouf2012/lms_backend#1121)')
+  })
+
+  it('modifier : le titre modifié GARDE le titre d’origine, que l’étape « supprimer » cherche ensuite', () => {
+    expect(TITRE_MODIFIE).not.toBe(DONNEES_SEANCE.titre)
+    expect(TITRE_MODIFIE).toContain(DONNEES_SEANCE.titre)
+  })
+
+  it('modifier : la relecture exige le titre modifié', () => {
+    const relue = (titre) => lecture(200, { seance: { titre, programmation: { heure_debut: '2026-11-20T08:30:00+00:00' } } })
+    expect(jugerSeance(relue(TITRE_MODIFIE), 7, TITRE_MODIFIE).confirme).toBe(true)
+    expect(jugerSeance(relue(DONNEES_SEANCE.titre), 7, TITRE_MODIFIE).confirme).toBe(false)
   })
 
   it('supprimer : 404 ET absente ; une confirmation « null » est citée (Refs #581)', () => {
