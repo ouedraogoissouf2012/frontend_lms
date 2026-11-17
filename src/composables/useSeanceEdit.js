@@ -14,7 +14,6 @@
 import { ref, reactive, computed } from 'vue'
 import { lmsSeancesService } from '@/services/lmsSeances'
 import { fetchTeacherMatieres } from '@/services/teacherReferentials'
-import { ERROR_MESSAGES } from '@/constants/errorMessages'
 import { isoAvecDecalage, saisieLocale } from '@/utils/dateLocale'
 import { erreursTitreEtDebut, lireRefusSeance, purgerCachesSeances } from '@/utils/seanceForm'
 
@@ -67,8 +66,7 @@ export function useSeanceEdit(seance) {
   function retenirRefus(err) {
     const refus = lireRefusSeance(err)
     erreurs.value = refus.erreurs
-    // `seance_past` dit la visio dans le catalogue ; ici, c'est la modification qui est refusée.
-    erreur.value = refus.reason === 'seance_past' ? ERROR_MESSAGES.seancePasseeNonModifiable : refus.erreur
+    erreur.value = refus.erreur
     if (refus.reason === 'class_out_of_scope') form.classeId = null
     canRetry.value = refus.canRetry
   }
