@@ -143,11 +143,13 @@ describe('#1121 — la fenêtre de modification', () => {
 describe('#1121 — les refus sont dits par le catalogue, jamais par le serveur (D0)', () => {
   const KLASSCI = 'Cette séance vient de KLASSCI : elle se modifie dans KLASSCI.'
   const VISIO = 'La visioconférence de cette séance est en cours : elle ne peut pas être modifiée maintenant.'
-  const PASSEE = 'Cette séance est passée : elle ne peut plus être modifiée.'
+  // Un motif, un texte (D0) : celui de `seance_past` est juste dans tous ses contextes, la visio comme la modification.
+  const PASSEE = 'Cette séance est passée : elle est verrouillée (ni modification, ni visio).'
 
-  it('les deux motifs nouveaux ont leur texte au catalogue', () => {
+  it('les deux motifs nouveaux ont leur texte au catalogue ; seance_past, un texte juste partout', () => {
     expect(messageForReason('seance_managed_by_klassci')).toBe(KLASSCI)
     expect(messageForReason('seance_visio_active')).toBe(VISIO)
+    expect(messageForReason('seance_past')).toBe(PASSEE)
   })
 
   it.each([
