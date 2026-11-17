@@ -1,0 +1,114 @@
+name: Charge de la visio (lms_backend#1232)
+
+# Test de capacité de la visio de PRODUCTION (accord du user du 17/11) : des participants simulés rejoignent une salle
+# Jitsi DÉDIÉE (`test-charge-1232…`), par paliers. Aucune séance ni donnée n'est créée dans la base du LMS (les jetons
+# sont signés sur le serveur et déposés dans le secret CHARGE_VISIO_JETONS), aucun enregistrement.
+#
+# Déclenché UNIQUEMENT par un tag posé à la main : `charge-visio-essai-…` (plan-essai.json) ou `charge-visio-test-…`
+# (plan-test.json). Jamais sur un push de branche ni sur une PR. Arrêt immédiat : la veille annule le run si un
+# service du serveur se dégrade ; à la main, `gh run cancel <id>`.
+on:
+  push:
+    tags: ['charge-visio-*']
+
+permissions:
+  contents: read
+  actions: write # la veille annule le run elle-même
+
+concurrency:
+  group: charge-visio
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      plan: ${{ steps.p.outputs.plan }}
+      runners: ${{ steps.p.outputs.runners }}
+      t0: ${{ steps.p.outputs.t0 }}
+      fin: ${{ steps.p.outputs.fin }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - id: p
+        run: node e2e/charge-visio/preparer.mjs "$GITHUB_REF_NAME" | tee -a "$GITHUB_OUTPUT"
+
+  charge:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      max-parallel: 18
+      matrix:
+        runner: ${{ fromJSON(needs.plan.outputs.runners) }}
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: /opt/ms-playwright
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Outils (Playwright, Chromium)
+        run: |
+          mkdir -p outils && (cd outils && npm init -y >/dev/null && npm install --no-audit --no-fund playwright@1.65.0)
+          (cd outils && npx playwright install --with-deps chromium)
+          cp e2e/charge-visio/*.mjs e2e/charge-visio/*.json outils/
+      - name: Participants simulés
+        env:
+          CHARGE_VISIO_JETONS: ${{ secrets.CHARGE_VISIO_JETONS }}
+          RUNNER: ${{ matrix.runner }}
+          T0_EPOCH_S: ${{ needs.plan.outputs.t0 }}
+        run: node outils/participant.mjs "outils/${{ needs.plan.outputs.plan }}" sortie
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: charge-runner-${{ matrix.runner }}
+          path: sortie/
+          if-no-files-found: ignore
+
+  veille:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Sondes du serveur partagé (arrêt immédiat si dégradé)
+        env:
+          CIBLES: https://lms.klassci.com/,https://lms.klassci.com/api/ping,https://visio.klassci.com/
+          FIN_EPOCH_S: ${{ needs.plan.outputs.fin }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node e2e/charge-visio/veille.mjs | tee veille.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: charge-veille
+          path: veille.log
+
+  rapport:
+    needs: [plan, charge]
+    if: always() && needs.plan.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: charge-runner-*
+          path: sorties
+      - run: |
+          node e2e/charge-visio/rapport.mjs "e2e/charge-visio/${{ needs.plan.outputs.plan }}" sorties rapport.md
+          cat rapport.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: charge-rapport
+          path: rapport.md
