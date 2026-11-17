@@ -14,6 +14,7 @@ import { quantile, resumerPalier, deltas } from '../../e2e/charge-visio/mesures.
 import { decision } from '../../e2e/charge-visio/veille.mjs'
 import { planDuTag, sorties, MARGE_DEPART_S } from '../../e2e/charge-visio/preparer.mjs'
 import { lignesDuRapport, cheminsMedia, etatDuReleve, lireRunners } from '../../e2e/charge-visio/rapport.mjs'
+import { masquer, noterConsole, diagnosticsCapture, MESSAGES_MAX, LONGUEUR_MAX } from '../../e2e/charge-visio/capture.mjs'
 import planTest from '../../e2e/charge-visio/plan-test.json'
 import planEssai from '../../e2e/charge-visio/plan-essai.json'
 
@@ -189,5 +190,40 @@ describe('#1232 — l’annulation (essai 2 : aucun relevé écrit, le runner a 
     writeFileSync(join(dossier, 'charge-runner-0', 'runner-0.json'), JSON.stringify({ runner: 0, participants: [] }))
     writeFileSync(join(dossier, 'charge-runner-0', 'runner-0.json.tmp'), '{"runner": 0, "partic')
     expect(lireRunners(dossier).map((r) => r.runner)).toEqual([0, 1])
+  })
+})
+
+describe('#1232 — la capture locale (essai 3 : entrés, ICE établi, aucune piste publiée, rien ne part)', () => {
+  const JETON = 'eyJhbGciOiJIUzI1NiJ9.fictif.signature'
+
+  it('le journal ne garde que ce qui parle de la capture, sans jamais un jeton, même coupé par la troncature', () => {
+    const journal = []
+    noterConsole(journal, 'error', `getUserMedia failed: NotFoundError https://visio.test/salle?jwt=${JETON}#x`, [JETON])
+    noterConsole(journal, 'log', 'getUserMedia ok', [JETON])
+    noterConsole(journal, 'error', 'XMPP ping timeout', [JETON])
+    noterConsole(journal, 'warning', `${'x'.repeat(LONGUEUR_MAX - 10)} device ${JETON}`, [JETON])
+    expect(journal).toHaveLength(2)
+    expect(journal[0]).toBe('error : getUserMedia failed: NotFoundError https://visio.test/salle?jwt=***#x')
+    expect(journal.join('')).not.toMatch(/eyJ|fictif|signature/)
+    expect(masquer('a?jwt=abc.def&b=1', [])).toBe('a?jwt=***&b=1')
+    for (let i = 0; i < MESSAGES_MAX + 5; i++) noterConsole(journal, 'error', 'camera busy', [])
+    expect(journal).toHaveLength(MESSAGES_MAX)
+  })
+
+  it('par participant : le getUserMedia direct (obtenu ou refusé), les périphériques, les pistes et coupures de l’application, le journal', () => {
+    const runners = [{ runner: 0, navigateur: 'chromium-headless-shell 140', participants: [
+      { numero: 1, role: 'eleve', capture: { userAgent: 'HeadlessChrome/140', peripheriques: ['audioinput', 'videoinput'], gum: { ok: false, nom: 'NotReadableError', message: 'Could not start video source' } },
+        journalCapture: ['error : createLocalTracks failed'], echantillons: [{ redux: { pistes: [], media: { audioCoupe: true, videoCoupe: 1 } } }] },
+      { numero: 0, role: 'enseignant', capture: { userAgent: 'HeadlessChrome/140', peripheriques: [], gum: { ok: true, pistes: [{ kind: 'audio', label: 'Fake Audio' }] } },
+        echantillons: [{ redux: null }, { redux: { pistes: [{ type: 'audio', muette: false }], media: { audioCoupe: false, videoCoupe: 0 } } }] },
+    ] }]
+    expect(diagnosticsCapture(runners)).toEqual([
+      '- runner 0 : navigateur chromium-headless-shell 140 ; agent HeadlessChrome/140',
+      '- participant 0 (enseignant) : getUserMedia direct obtenu (audio « Fake Audio ») ; périphériques aucune ; pistes de l’application audio ; coupure audio false, vidéo 0',
+      '- participant 1 (eleve) : getUserMedia direct refusé (NotReadableError : Could not start video source) ; périphériques audioinput, videoinput ; pistes de l’application aucune ; coupure audio true, vidéo 1',
+      '  - error : createLocalTracks failed',
+    ])
+    expect(diagnosticsCapture([])).toEqual(['- aucun relevé'])
+    expect(lignesDuRapport(PLAN, runners)).toContain('## Capture locale (getUserMedia direct, état de l’application)')
   })
 })
