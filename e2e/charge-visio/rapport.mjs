@@ -33,7 +33,23 @@ export function lignesDuRapport(plan, runners) {
   })
   l.push('', `Temps d’entrée (ms) : ${entrees.length ? `médiane ${entrees.sort((a, b) => a - b)[Math.floor(entrees.length / 2)]}, max ${Math.max(...entrees)}` : '—'}`)
   l.push('', echecs.length ? `Échecs d’entrée :\n${echecs.map((e) => `- ${e}`).join('\n')}` : 'Aucun échec d’entrée.')
+  l.push('', '## Connexion au pont vidéo (dernier relevé de chaque participant)', '', ...cheminsMedia(runners))
   return l
+}
+
+/**
+ * Le chemin du média, par participant : l'état ICE, la paire retenue et les octets envoyés et reçus. Sans ce relevé,
+ * « débit reçu 0 » ne dit pas si rien ne part, ou si rien ne revient (essai 1 de #1232).
+ */
+export function cheminsMedia(runners) {
+  const lignes = []
+  for (const p of runners.flatMap((r) => r.participants).sort((a, b) => a.numero - b.numero)) {
+    const dernier = [...p.echantillons].reverse().find((e) => e.ice) ?? null
+    const ice = dernier?.ice
+    lignes.push(`- participant ${p.numero} (${p.role}) : ICE ${ice?.etat ?? '—'}, connexion ${ice?.connexion ?? '—'}, `
+      + `paire ${ice?.candidatLocal ?? '—'} → ${ice?.candidatDistant ?? '—'}, octets envoyés ${dernier?.octetsEnvoyes ?? '—'}`)
+  }
+  return lignes.length ? lignes : ['- aucun relevé']
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

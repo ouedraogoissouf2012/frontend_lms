@@ -54,14 +54,18 @@ async function relever() {
   const entre = Boolean(conf?.isJoined?.())
   const pc = conf?._room?.jvbJingleSession?.peerconnection?.peerconnection
   const base = { entre, participants: conf?._room?.getParticipantCount?.() ?? null }
-  if (!pc) return { ...base, paquetsRecus: null, paquetsPerdus: null, octetsRecus: null, gelsCumules: null, imagesDecodeesCumulees: null }
+  if (!pc) return { ...base, ice: null, paquetsRecus: null, paquetsPerdus: null, octetsRecus: null, gelsCumules: null, imagesDecodeesCumulees: null }
   let paquetsRecus = 0
   let paquetsPerdus = 0
   let octetsRecus = 0
+  let octetsEnvoyes = 0
   let gels = 0
   let images = 0
+  let paireRetenue = null
   const rapports = await pc.getStats()
   rapports.forEach((r) => {
+    if (r.type === 'outbound-rtp') octetsEnvoyes += r.bytesSent ?? 0
+    if (r.type === 'candidate-pair' && r.nominated && r.state === 'succeeded') paireRetenue = r
     if (r.type !== 'inbound-rtp') return
     paquetsRecus += r.packetsReceived ?? 0
     paquetsPerdus += r.packetsLost ?? 0
@@ -71,7 +75,17 @@ async function relever() {
       images += r.framesDecoded ?? 0
     }
   })
-  return { ...base, paquetsRecus, paquetsPerdus, octetsRecus, gelsCumules: gels, imagesDecodeesCumulees: images }
+  // #1232, essai 1 : le média n'arrivait pas. L'état ICE et la paire retenue disent si la connexion au pont
+  // vidéo s'établit, et par quel chemin (host, srflx, relay ; udp ou tcp).
+  const local = paireRetenue ? rapports.get(paireRetenue.localCandidateId) : null
+  const distant = paireRetenue ? rapports.get(paireRetenue.remoteCandidateId) : null
+  const ice = {
+    etat: pc.iceConnectionState ?? null,
+    connexion: pc.connectionState ?? null,
+    candidatLocal: local ? `${local.candidateType}/${local.protocol}` : null,
+    candidatDistant: distant ? `${distant.candidateType}/${distant.protocol}:${distant.port}` : null,
+  }
+  return { ...base, ice, octetsEnvoyes, paquetsRecus, paquetsPerdus, octetsRecus, gelsCumules: gels, imagesDecodeesCumulees: images }
 }
 
 const dormir = (ms) => new Promise((r) => setTimeout(r, Math.max(0, ms)))
@@ -101,6 +115,8 @@ async function vivre(navigateur, p, contexteRun) {
         tS: Math.round((instant - t0Ms) / 1000),
         entre: brut.entre === true,
         participantsVus: brut.participants ?? null,
+        ice: brut.ice ?? null,
+        octetsEnvoyes: brut.octetsEnvoyes ?? null,
         ...deltas(precedent?.brut, brut.paquetsRecus == null ? null : brut, dt),
         gelsCumules: brut.gelsCumules ?? null,
         imagesDecodeesCumulees: brut.imagesDecodeesCumulees ?? null,

@@ -10,7 +10,7 @@ import {
 import { quantile, resumerPalier, deltas } from '../../e2e/charge-visio/mesures.mjs'
 import { decision } from '../../e2e/charge-visio/veille.mjs'
 import { planDuTag, sorties, MARGE_DEPART_S } from '../../e2e/charge-visio/preparer.mjs'
-import { lignesDuRapport } from '../../e2e/charge-visio/rapport.mjs'
+import { lignesDuRapport, cheminsMedia } from '../../e2e/charge-visio/rapport.mjs'
 import planTest from '../../e2e/charge-visio/plan-test.json'
 import planEssai from '../../e2e/charge-visio/plan-essai.json'
 
@@ -136,5 +136,21 @@ describe('#1232 — le rapport', () => {
     expect(lignes.filter((l) => /^\| \d/.test(l))).toHaveLength(3)
     expect(lignes.join('\n')).toContain('générateur saturé')
     expect(lignes.join('\n')).toContain('Aucun échec d’entrée.')
+  })
+})
+
+describe('#1232 — le chemin du média (essai 1 : débit reçu 0, sans savoir pourquoi)', () => {
+  it('par participant : l’état ICE, la paire retenue et les octets envoyés du DERNIER relevé qui les porte', () => {
+    const runners = [{ runner: 0, participants: [
+      { numero: 1, role: 'eleve', echantillons: [{ ice: null }] },
+      { numero: 0, role: 'enseignant', echantillons: [
+        { ice: { etat: 'checking', connexion: 'connecting', candidatLocal: null, candidatDistant: null }, octetsEnvoyes: 0 },
+        { ice: { etat: 'connected', connexion: 'connected', candidatLocal: 'srflx/udp', candidatDistant: 'host/udp:10000' }, octetsEnvoyes: 52000 },
+      ] },
+    ] }]
+    expect(cheminsMedia(runners)).toEqual([
+      '- participant 0 (enseignant) : ICE connected, connexion connected, paire srflx/udp → host/udp:10000, octets envoyés 52000',
+      '- participant 1 (eleve) : ICE —, connexion —, paire — → —, octets envoyés —',
+    ])
   })
 })
