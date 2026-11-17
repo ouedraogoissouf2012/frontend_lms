@@ -76,6 +76,7 @@ export const ERROR_MESSAGES = Object.freeze({
   visioEnded: 'La visioconférence est terminée.',
   visioSeancePassee: 'Cette séance est passée : sa visio ne peut plus être démarrée ni rejointe.',
   lessonClasseHorsMatiere: 'Cette classe n’est pas une classe de la matière.',
+  lessonContentTeacherOnly: "Le contenu d'une leçon est réservé à son enseignant : vous pouvez la consulter.",
   evaluationLocked: 'Cette évaluation est verrouillée : des copies ont déjà été remises. Elle ne peut plus être modifiée ni supprimée.',
   visioTeacherNotOwner: "Vous n'êtes pas l'enseignant de cette séance : vous ne pouvez pas en rejoindre la visioconférence.",
   visioRoleRefused: 'Votre rôle ne permet pas de rejoindre cette visioconférence.',

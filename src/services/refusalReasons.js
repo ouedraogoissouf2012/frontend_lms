@@ -40,6 +40,9 @@ export const REASONS = Object.freeze({
   seance_past: motif('visioSeancePassee'),
   // Back #1103 : la classe d'une leçon hors des classes de sa matière (422).
   classe_hors_matiere: motif('lessonClasseHorsMatiere'),
+  // lms_backend#1167 : le contenu d'une leçon (créer, modifier, publier, supprimer, chapitres, quiz) est réservé à
+  // l'enseignant ; le coordinateur et l'admin d'école consultent (403 ; décisions du user, #601).
+  lesson_content_teacher_only: motif('lessonContentTeacherOnly'),
   // lms_backend#1113 : une évaluation verrouillée (des copies remises) ne se modifie ni ne se supprime (409).
   evaluation_locked: motif('evaluationLocked'),
   teacher_not_owner: motif('visioTeacherNotOwner'),

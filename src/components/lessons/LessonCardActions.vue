@@ -1,7 +1,7 @@
 <template>
   <div class="lesson-actions">
-    <!-- Enseignant: actions CRUD -->
-    <template v-if="isTeacher">
+    <!-- L'enseignant seul : actions d'écriture (#601) -->
+    <template v-if="canWrite">
       <button
         v-if="lesson.status === 'draft'"
         @click.stop="$emit('publish', lesson.id)"
@@ -42,13 +42,14 @@
 
 <script setup>
 /**
- * Actions du pied d'une LessonCard (#H4 ≤300). Selon `isTeacher` : CRUD
- * (publier/dépublier/modifier/supprimer) ou simple consultation. Relaie les actions
- * via emit, API identique à l'original (view/edit/delete/publish/unpublish).
+ * Actions du pied d'une LessonCard (#H4 ≤300). Selon `canWrite` (l'enseignant seul, #601) : écriture
+ * (publier/dépublier/modifier/supprimer) ; sinon consultation. `isTeacher` ne règle que le libellé.
+ * Relaie les actions via emit, API identique à l'original (view/edit/delete/publish/unpublish).
  */
 defineProps({
   lesson: { type: Object, required: true },
-  isTeacher: { type: Boolean, default: false }
+  isTeacher: { type: Boolean, default: false },
+  canWrite: { type: Boolean, default: false }
 })
 
 defineEmits(['view', 'edit', 'delete', 'publish', 'unpublish'])
