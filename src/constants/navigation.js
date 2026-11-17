@@ -84,7 +84,7 @@ export const NAV_SECTIONS = Object.freeze([
   { icon: 'fa-video-camera', label: 'Visioconférences', to: '/admin/visioconferences', roles: [ADMIN] },
   { icon: 'fa-trophy', label: 'Résultats Évaluations', to: '/admin/evaluations/results', roles: [ADMIN] },
   { icon: 'fa-line-chart', label: 'Statistiques', to: '/admin/stats', roles: [ADMIN] },
-  { icon: 'fa-flag', label: 'Sessions', to: '/admin/training-sessions', roles: [ADMIN, COORDINATEUR] },
+  { icon: 'fa-flag', label: 'Sessions', to: '/admin/training-sessions', roles: [ADMIN, COORDINATEUR], capacite: 'peutGererCatalogueLocal' },
   // #391 : seulement si l'établissement tient sa propre liste (capacité serveur).
   { icon: 'fa-key', label: "Codes d'inscription", to: '/admin/enrolment-codes', roles: [ADMIN, COORDINATEUR], capacite: 'peutInscrireLocalement' },
 

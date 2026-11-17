@@ -49,6 +49,9 @@ export function useMobileSidebar(props, emit) {
   // sa propre liste d'entrées (dette notée dans la PR) ; la capacité, elle, a une source.
   const peutInscrire = () => capaciteAccordee('peutInscrireLocalement')
   const CODES_INSCRIPTION = { path: '/admin/enrolment-codes', icon: 'fa-key', label: "Codes d'inscription", badge: null }
+  // #605 : l'écran Sessions, seulement si l'établissement gère son propre catalogue (capacité serveur).
+  const peutGererCatalogue = () => capaciteAccordee('peutGererCatalogueLocal')
+  const SESSIONS = { path: '/admin/training-sessions', icon: 'fa-flag', label: 'Sessions', badge: null }
 
   // Items de navigation selon le rôle
   const secondaryNavItems = computed(() => {
@@ -79,7 +82,7 @@ export function useMobileSidebar(props, emit) {
         ...commonItems,
         { path: '/forum', icon: 'fa-comments', label: 'Forum', badge: null },
         { path: '/attendance/seances', icon: 'fa-history', label: 'Historique', badge: null },
-        { path: '/admin/training-sessions', icon: 'fa-flag', label: 'Sessions', badge: null },
+        ...(peutGererCatalogue() ? [SESSIONS] : []),
         ...(peutInscrire() ? [CODES_INSCRIPTION] : []),
         { path: '/admin/settings', icon: 'fa-cog', label: 'Paramètres', badge: null }
       ]
@@ -107,7 +110,7 @@ export function useMobileSidebar(props, emit) {
         { path: '/admin/classes', icon: 'fa-building', label: 'Classes', badge: null },
         { path: '/admin/matieres', icon: 'fa-book', label: 'Matières', badge: null },
         { path: '/admin/enseignants', icon: 'fa-user', label: 'Enseignants', badge: null },
-        { path: '/admin/training-sessions', icon: 'fa-flag', label: 'Sessions', badge: null },
+        ...(peutGererCatalogue() ? [SESSIONS] : []),
         ...(peutInscrire() ? [CODES_INSCRIPTION] : []),
       ]
     }

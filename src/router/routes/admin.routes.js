@@ -178,6 +178,9 @@ export const adminRoutes = [
     meta: {
       requiresAuth: true,
       roles: ['superAdmin', 'admin', 'coordinateur'],
+      // #605 (lms_backend#1184) : le rôle dit QUI ; la capacité dit SI l'établissement gère son propre
+      // catalogue. Le serveur répond 403 `catalogue_managed_by_klassci` sinon ; la garde évite l'écran mort.
+      capacite: 'peutGererCatalogueLocal',
       title: 'Sessions de formation'
     }
   },

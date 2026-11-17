@@ -113,6 +113,9 @@ export const REASONS = Object.freeze({
   evaluation_not_linked_to_klassci: motif('syncEvaluationNonLiee'),
   // 409 de GET /lms/classes/local/{id} : une classe créée dans le LMS n'a pas de fiche KLASSCI.
   classe_local_only: motif('classeSansFicheKlassci'),
+  // #605 (lms_backend#1184, PorteDuCatalogueLocal) : 403 sur le catalogue d'une école dont KLASSCI tient le
+  // catalogue (programmes, sessions et leurs transitions, classes, matières, programme d'une classe, codes).
+  catalogue_managed_by_klassci: motif('catalogueGereParKlassci'),
 })
 
 /** Le `reason` dit-il un état vide (rien à montrer) plutôt qu'une erreur ? Seul le catalogue en décide. */

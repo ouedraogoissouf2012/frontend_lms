@@ -139,5 +139,7 @@ export const ERROR_MESSAGES = Object.freeze({
   evaluationCopieDejaRemise: "Votre copie vient d'être remise depuis une autre fenêtre ou un autre appareil. Rechargez l'évaluation.",
   syncEvaluationNonLiee: "Cette évaluation n'est liée à aucune évaluation KLASSCI : ses notes restent dans le LMS.",
   classeSansFicheKlassci: "Cette classe a été créée dans le LMS : elle n'a pas de fiche KLASSCI à afficher.",
+  // #605 (lms_backend#1184) : le catalogue de cette école est tenu par KLASSCI.
+  catalogueGereParKlassci: 'Ce catalogue est géré par KLASSCI : il se modifie dans KLASSCI, pas ici.',
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })
