@@ -1,5 +1,5 @@
 <template>
-  <div v-if="seance.can_be_edited === true" class="seance-edit">
+  <div v-if="parRole" class="seance-edit">
     <button type="button" class="btn-edit" @click="ouvrirFenetre">
       <i class="fa fa-pencil" aria-hidden="true"></i> Modifier
     </button>
@@ -51,6 +51,8 @@
 import { ref, toRef } from 'vue'
 import Modal from '@/components/ui/Modal.vue'
 import { useSeanceEdit } from '@/composables/useSeanceEdit'
+import { auth } from '@/services/api'
+import { hasRole, ROLES } from '@/constants/roles'
 
 const props = defineProps({
   seance: { type: Object, required: true }
@@ -58,6 +60,8 @@ const props = defineProps({
 const emit = defineEmits(['updated'])
 
 const ouvert = ref(false)
+// M1 (mutation volontaire) : le bouton suit le rôle au lieu de `can_be_edited`.
+const parRole = hasRole(auth.getUser(), [ROLES.ENSEIGNANT, ROLES.COORDINATEUR, ROLES.ADMIN])
 const { form, erreurs, erreur, canRetry, envoi, matiereNom, classesDisponibles, ouvrir, modifier } =
   useSeanceEdit(toRef(props, 'seance'))
 
