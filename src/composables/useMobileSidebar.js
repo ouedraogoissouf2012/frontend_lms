@@ -110,7 +110,7 @@ export function useMobileSidebar(props, emit) {
         { path: '/admin/classes', icon: 'fa-building', label: 'Classes', badge: null },
         { path: '/admin/matieres', icon: 'fa-book', label: 'Matières', badge: null },
         { path: '/admin/enseignants', icon: 'fa-user', label: 'Enseignants', badge: null },
-        SESSIONS,
+        ...(peutGererCatalogue() ? [SESSIONS] : []),
         ...(peutInscrire() ? [CODES_INSCRIPTION] : []),
       ]
     }
