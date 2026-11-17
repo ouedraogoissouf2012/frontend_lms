@@ -4,15 +4,16 @@
  * n'y entrent pas : l'essai à blanc mesure la chaîne réelle.
  */
 import { describe, it, expect } from 'vitest'
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
 import {
   validerPlan, runnersNecessaires, finS, palierDe, entreeS, participantsDuRunner, fenetreStable, adresseEntree, ENTREE_S,
 } from '../../e2e/charge-visio/plan.mjs'
 import { quantile, resumerPalier, deltas } from '../../e2e/charge-visio/mesures.mjs'
 import { decision } from '../../e2e/charge-visio/veille.mjs'
 import { planDuTag, sorties, MARGE_DEPART_S } from '../../e2e/charge-visio/preparer.mjs'
-import { lignesDuRapport, cheminsMedia } from '../../e2e/charge-visio/rapport.mjs'
+import { lignesDuRapport, cheminsMedia, etatDuReleve, lireRunners } from '../../e2e/charge-visio/rapport.mjs'
 import planTest from '../../e2e/charge-visio/plan-test.json'
 import planEssai from '../../e2e/charge-visio/plan-essai.json'
 
@@ -148,12 +149,13 @@ describe('#1232 — le chemin du média (essai 1 : débit reçu 0, sans savoir p
       { numero: 0, role: 'enseignant', echantillons: [
         { ice: { etat: 'checking', connexion: 'connecting', candidatLocal: null, candidatDistant: null }, octetsEnvoyes: 0 },
         { ice: { etat: 'connected', connexion: 'connected', candidatLocal: 'srflx/udp', candidatDistant: 'host/udp:10000' }, octetsEnvoyes: 52000,
-          pistesLocales: [{ type: 'audio', muette: false }, { type: 'video', muette: true }], pistesDistantes: 0, connexions: [{ p2p: false, ice: 'connected' }] },
+          pistesLocales: [{ type: 'audio', muette: false }, { type: 'video', muette: true }], pistesDistantes: 0,
+          octetsRecusAudio: 41000, octetsRecusVideo: 0, connexions: [{ p2p: false, ice: 'connected' }] },
       ] },
     ] }]
     expect(cheminsMedia(runners)).toEqual([
-      '- participant 0 (enseignant) : ICE connected, connexion connected, paire srflx/udp → host/udp:10000, octets envoyés 52000 ; pistes publiées audio, video (muette) ; pistes reçues 0 ; connexions jvb connected',
-      '- participant 1 (eleve) : ICE —, connexion —, paire — → —, octets envoyés — ; pistes publiées — ; pistes reçues — ; connexions —',
+      '- participant 0 (enseignant) : ICE connected, connexion connected, paire srflx/udp → host/udp:10000, octets envoyés 52000 ; pistes publiées audio, video (muette) ; pistes reçues 0 ; octets reçus audio 41000, vidéo 0 ; connexions jvb connected',
+      '- participant 1 (eleve) : ICE —, connexion —, paire — → —, octets envoyés — ; pistes publiées — ; pistes reçues — ; octets reçus audio —, vidéo — ; connexions —',
     ])
   })
 })
@@ -162,5 +164,30 @@ describe('#1232 — l’annulation (essai 2 : aucun relevé écrit, le runner a 
   it('le script des participants EST le processus de l’étape (exec) : le signal d’annulation lui parvient, il écrit ses relevés', () => {
     const workflow = readFileSync(resolve(process.cwd(), '.github/workflows/charge-visio.yml'), 'utf-8')
     expect(workflow).toMatch(/run: exec node outils\/participant\.mjs /)
+  })
+
+  // Plan à 2 runners : 10 participants au plus, 5 par runner.
+  const avec = (runner, extra, tS = [10, 15]) => ({ runner, participants: [{ numero: runner, echantillons: tS.map((t) => ({ tS: t })) }], ...extra })
+
+  it('le relevé se dit complet, partiel (annulé à T+x s, ou interrompu sans signal) ou absent : il ne fait pas échouer le rapport', () => {
+    expect(etatDuReleve(PLAN, [])).toBe('aucun relevé')
+    expect(etatDuReleve({ ...PLAN, paliers: [5, 10] }, [avec(0, { termine: true }), avec(1, { termine: true })])).toBe('complet')
+    expect(etatDuReleve({ ...PLAN, paliers: [5, 10] }, [avec(0, { termine: false, arret: { signal: 'SIGINT', tS: 169 } }), avec(1, { termine: false, arret: { signal: 'SIGINT', tS: 170 } })]))
+      .toBe('relevé partiel (annulé à T+169 s)')
+    expect(etatDuReleve({ ...PLAN, paliers: [5, 10] }, [avec(0, { termine: false, arret: null }, [5, 140])]))
+      .toBe('relevé partiel (interrompu sans signal ; dernier relevé : T+140 s) ; 1 runner(s) sur 2 sans relevé')
+    expect(etatDuReleve({ ...PLAN, paliers: [5, 10] }, [avec(0, { termine: true })])).toBe('relevé partiel (interrompu sans signal ; dernier relevé : T+15 s) ; 1 runner(s) sur 2 sans relevé')
+    expect(lignesDuRapport(PLAN, [])).toContain('Relevé : aucun relevé.')
+  })
+
+  it('les sorties des runners : un dossier absent n’en donne aucune, un fichier temporaire (écriture interrompue) est ignoré', () => {
+    const dossier = mkdtempSync(join(tmpdir(), 'charge-1232-'))
+    expect(lireRunners(join(dossier, 'absent'))).toEqual([])
+    mkdirSync(join(dossier, 'charge-runner-1'))
+    mkdirSync(join(dossier, 'charge-runner-0'))
+    writeFileSync(join(dossier, 'charge-runner-1', 'runner-1.json'), JSON.stringify({ runner: 1, participants: [] }))
+    writeFileSync(join(dossier, 'charge-runner-0', 'runner-0.json'), JSON.stringify({ runner: 0, participants: [] }))
+    writeFileSync(join(dossier, 'charge-runner-0', 'runner-0.json.tmp'), '{"runner": 0, "partic')
+    expect(lireRunners(dossier).map((r) => r.runner)).toEqual([0, 1])
   })
 })
