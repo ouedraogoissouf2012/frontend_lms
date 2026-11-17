@@ -63,7 +63,7 @@ jobs:
           RUNNER: ${{ matrix.runner }}
           T0_EPOCH_S: ${{ needs.plan.outputs.t0 }}
         # exec : node EST le processus de l'étape, le signal d'annulation lui parvient (essai 2 : bash le gardait).
-        run: exec node outils/participant.mjs "outils/${{ needs.plan.outputs.plan }}" sortie
+        run: node outils/participant.mjs "outils/${{ needs.plan.outputs.plan }}" sortie
       - uses: actions/upload-artifact@v4
         if: always()
         with:
