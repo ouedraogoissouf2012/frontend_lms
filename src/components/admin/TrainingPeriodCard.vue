@@ -4,7 +4,7 @@
     <h2>{{ periode.libelle }}</h2>
     <p>{{ libelleStatut(periode.status) }} · {{ libellePhase(periode.phase) }}</p>
     <!-- #606 : où en est la session, et ce qu'on peut en faire (le graphe des transitions). -->
-    <p v-if="false" class="period-cycle">{{ cycle }}</p>
+    <p v-if="cycle" class="period-cycle">{{ cycle }}</p>
     <p>Programme n° {{ periode.program_id }}</p>
     <p v-if="periode.starts_on || periode.ends_on">{{ periode.starts_on || '—' }} → {{ periode.ends_on || '—' }}</p>
 
