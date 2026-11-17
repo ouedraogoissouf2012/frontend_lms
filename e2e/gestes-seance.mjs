@@ -60,6 +60,17 @@ export async function carteSeance(ctx) {
   return (await carte.count()) ? { carte: carte.first() } : { rouge: `aucune carte de séance à ${ctx.etat.heure} sur /teacher/seances` }
 }
 
+/** « Modifier » sur la carte (lms_backend#1121) : un nouveau titre, « Enregistrer », et l'appel PUT attendu. */
+export async function modifierSeance(ctx, boutonModifier, titre) {
+  const page = ctx.pages.enseignant
+  await boutonModifier.click()
+  const fenetre = page.getByRole('dialog', { name: 'Modifier la séance' })
+  await fenetre.getByLabel('Titre', { exact: true }).fill(titre)
+  const reponse = appel(page, 'PUT', `/lms/seances/${ctx.etat.id}`)
+  await fenetre.getByRole('button', { name: 'Enregistrer', exact: true }).click()
+  return (await refusServeur(page, reponse, 'la modification de la séance')) ?? {}
+}
+
 /** Un geste sur la carte : son bouton, l'appel attendu, une confirmation éventuelle. */
 export async function surLaCarte(ctx, texte, methode, chemin, quoi, confirmation = null) {
   const { carte, rouge } = await carteSeance(ctx)
