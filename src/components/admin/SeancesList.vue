@@ -62,6 +62,8 @@
           <VideoCameraIcon class="w-4 h-4" />
           Activer Visio
         </button>
+        <!-- lms_backend#1121 : « Modifier », seulement si le serveur le permet (`can_be_edited`). -->
+        <SeanceEditAction :seance="seance" @updated="$emit('updated', $event)" />
       </div>
     </div>
   </div>
@@ -83,12 +85,14 @@ import {
   EyeIcon
 } from '@heroicons/vue/24/outline'
 import { statutSeance, libelleStatutSeance, finEstimee } from '@/utils/seanceStatut'
+import SeanceEditAction from '@/components/seances/SeanceEditAction.vue'
 
 defineProps({
   seances: { type: Array, default: () => [] },
 })
 
-defineEmits(['view-details', 'enable-visio'])
+// `updated` : une séance modifiée (lms_backend#1121), la séance relue.
+defineEmits(['view-details', 'enable-visio', 'updated'])
 
 // Lecture honnête : la règle partagée (visio d'abord ; jamais « Terminée » sur une fin estimée).
 function getSeanceStatus(seance) {

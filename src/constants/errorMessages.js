@@ -98,6 +98,11 @@ export const ERROR_MESSAGES = Object.freeze({
   seanceClasseHorsEtablissement: "Cette classe n'est plus disponible dans votre établissement. Choisissez-en une autre.",
   seanceMatiereHorsEtablissement: "Cette matière n'est plus disponible dans votre établissement. Choisissez-en une autre.",
   seanceMatiereHorsProgramme: "Cette matière n'est pas au programme de la classe choisie.",
+  // lms_backend#1121 : refus de PUT /lms/seances/{id}, la modification d'une séance locale.
+  seanceGereeParKlassci: 'Cette séance vient de KLASSCI : elle se modifie dans KLASSCI.',
+  seanceVisioEnCours: 'La visioconférence de cette séance est en cours : elle ne peut pas être modifiée maintenant.',
+  // `seance_past` dit la visio (visioSeancePassee) ; à la modification, le texte de l'écran.
+  seancePasseeNonModifiable: 'Cette séance est passée : elle ne peut plus être modifiée.',
   // B7 (D442) : des options d'avant lms_backend #1059 sans texte fidèle (objet, liste) ; texte du front.
   optionsIllisibles: "Les options de cette question n'ont pas pu être relues. Saisissez-les de nouveau avant d'enregistrer.",
   // B5 (D461) : les bornes des options d'une question (lms_backend #1069) ; textes du front.

@@ -56,6 +56,8 @@
           <span v-if="seance.visio_enabled">Visio activée</span>
           <span v-else>Activer visio</span>
         </button>
+        <!-- lms_backend#1121 : « Modifier », seulement si le serveur le permet (`can_be_edited`). -->
+        <SeanceEditAction :seance="seance" @updated="$emit('updated', $event)" />
       </div>
     </div>
 
@@ -76,16 +78,17 @@ import { finEstimee } from '@/utils/seanceStatut'
  * Carte d'une séance côté coordinateur (#H6 ≤300) : infos (date/horaire/classe/
  * salle), bouton d'activation visio et panneau visio (CoordinatorVisioPanel)
  * quand la visio est activée. Présentation pure extraite VERBATIM ; émet
- * `toggle`, `show-participants`, `join`. `formatDate`/`formatTime` redéfinis
+ * `toggle`, `show-participants`, `join`, et `updated` (lms_backend#1121). `formatDate`/`formatTime` redéfinis
  * localement (copie verbatim) pour l'indépendance du composant.
  */
 import CoordinatorVisioPanel from '@/components/seances/CoordinatorVisioPanel.vue'
+import SeanceEditAction from '@/components/seances/SeanceEditAction.vue'
 
 defineProps({
   seance: { type: Object, required: true }
 })
 
-defineEmits(['toggle', 'show-participants', 'join'])
+defineEmits(['toggle', 'show-participants', 'join', 'updated'])
 
 // #283 : délègue au formatter canonique (repli local conservé).
 const formatTime = (isoTimestamp) => fmtTime(isoTimestamp, { fallback: 'N/A' })
@@ -170,6 +173,10 @@ const formatDate = (date) => {
 /* Toggle Visio Button */
 .seance-action {
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
 }
 
 .toggle-visio-btn {
