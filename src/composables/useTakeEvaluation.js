@@ -247,7 +247,7 @@ export function useTakeEvaluation() {
       // le reste garde le message de l'écran.
       const reason = error_?.response?.data?.reason
       if (reason === 'evaluation_attempt_locked') verrouiller()
-      else toast.error(messageForReason(reason) ?? 'Erreur lors de la soumission de l\'évaluation')
+      else toast.error('Erreur lors de la soumission de l\'évaluation')
     } finally {
       submitting.value = false
     }
