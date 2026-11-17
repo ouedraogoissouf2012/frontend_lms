@@ -10,7 +10,7 @@
 // - Les jetons sont MASQUÉS dans les journaux dès le départ (une erreur de navigation affiche l'URL).
 // - Sur une annulation (SIGTERM), on écrit ce qu'on a mesuré, puis on ferme : la salle se vide.
 import os from 'node:os'
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { chromium } from 'playwright'
 import { validerPlan, participantsDuRunner, finS, adresseEntree } from './plan.mjs'
@@ -64,10 +64,12 @@ async function relever() {
     etat: t.peerconnection?.connectionState ?? null,
   }))
   const base = { entre, participants: salle?.getParticipantCount?.() ?? null, pistesLocales, pistesDistantes, connexions }
-  if (!pc) return { ...base, ice: null, paquetsRecus: null, paquetsPerdus: null, octetsRecus: null, gelsCumules: null, imagesDecodeesCumulees: null }
+  if (!pc) return { ...base, ice: null, paquetsRecus: null, paquetsPerdus: null, octetsRecus: null, octetsRecusAudio: null, octetsRecusVideo: null, gelsCumules: null, imagesDecodeesCumulees: null }
   let paquetsRecus = 0
   let paquetsPerdus = 0
   let octetsRecus = 0
+  // #1232, essai 2 : le son et l'image se jugent séparément (condition du test à 60).
+  const octetsRecusParType = { audio: 0, video: 0 }
   let octetsEnvoyes = 0
   let gels = 0
   let images = 0
@@ -80,6 +82,7 @@ async function relever() {
     paquetsRecus += r.packetsReceived ?? 0
     paquetsPerdus += r.packetsLost ?? 0
     octetsRecus += r.bytesReceived ?? 0
+    if (r.kind in octetsRecusParType) octetsRecusParType[r.kind] += r.bytesReceived ?? 0
     if (r.kind === 'video') {
       gels += r.freezeCount ?? 0
       images += r.framesDecoded ?? 0
@@ -95,7 +98,10 @@ async function relever() {
     candidatLocal: local ? `${local.candidateType}/${local.protocol}` : null,
     candidatDistant: distant ? `${distant.candidateType}/${distant.protocol}:${distant.port}` : null,
   }
-  return { ...base, ice, octetsEnvoyes, paquetsRecus, paquetsPerdus, octetsRecus, gelsCumules: gels, imagesDecodeesCumulees: images }
+  return {
+    ...base, ice, octetsEnvoyes, paquetsRecus, paquetsPerdus, octetsRecus,
+    octetsRecusAudio: octetsRecusParType.audio, octetsRecusVideo: octetsRecusParType.video, gelsCumules: gels, imagesDecodeesCumulees: images,
+  }
 }
 
 const dormir = (ms) => new Promise((r) => setTimeout(r, Math.max(0, ms)))
@@ -127,6 +133,8 @@ async function vivre(navigateur, p, contexteRun) {
         participantsVus: brut.participants ?? null,
         ice: brut.ice ?? null,
         octetsEnvoyes: brut.octetsEnvoyes ?? null,
+        octetsRecusAudio: brut.octetsRecusAudio ?? null,
+        octetsRecusVideo: brut.octetsRecusVideo ?? null,
         pistesLocales: brut.pistesLocales ?? null,
         pistesDistantes: brut.pistesDistantes ?? null,
         connexions: brut.connexions ?? null,
@@ -136,6 +144,7 @@ async function vivre(navigateur, p, contexteRun) {
         cpuRunnerPct: cpu(),
       })
       if (brut.paquetsRecus != null) precedent = { instant, brut }
+      contexteRun.ecrire()
       await dormir(PAS_S * 1000 - (Date.now() - instant))
     }
   } catch (e) {
@@ -157,14 +166,22 @@ async function principal() {
   if (participants.some((p) => typeof jetons.jetons[p.numero] !== 'string')) throw new Error('pas assez de jetons pour ce runner')
 
   mkdirSync(sortie, { recursive: true })
-  const resultat = { runner, salle: plan.salle, t0: new Date(t0Ms).toISOString(), participants: [] }
-  const ecrire = () => writeFileSync(join(sortie, `runner-${runner}.json`), JSON.stringify(resultat))
+  // `termine` : le run est allé au bout ; `arret` : le signal reçu et quand. Sans l'un ni l'autre, le script a été tué.
+  const resultat = { runner, salle: plan.salle, t0: new Date(t0Ms).toISOString(), termine: false, arret: null, participants: [] }
+  const fichier = join(sortie, `runner-${runner}.json`)
+  // Atomique (écrire à côté, puis renommer) : un arrêt en pleine écriture laisse le relevé précédent, entier.
+  const ecrire = () => { writeFileSync(`${fichier}.tmp`, JSON.stringify(resultat)); renameSync(`${fichier}.tmp`, fichier) }
   const navigateur = await chromium.launch({
     args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', '--autoplay-policy=no-user-gesture-required'],
   })
-  const contexteRun = { plan, jetons, t0Ms, finMs: t0Ms + finS(plan) * 1000, cpu: lecteurCpu(), resultat, contextes: new Set(), arret: false }
-  const arreter = async () => {
+  // Écrit à chaque relevé : un arrêt sans signal (SIGKILL) laisse le dernier état mesuré.
+  const contexteRun = { plan, jetons, t0Ms, finMs: t0Ms + finS(plan) * 1000, cpu: lecteurCpu(), resultat, contextes: new Set(), arret: false, ecrire }
+  // SIGINT d'abord (annulation), SIGTERM ~7,5 s après, puis SIGKILL : le relevé s'écrit au PREMIER signal, avant
+  // toute fermeture ; un second signal ne refait rien.
+  const arreter = async (signal) => {
+    if (contexteRun.arret) return
     contexteRun.arret = true
+    resultat.arret = { signal, tS: Math.round((Date.now() - t0Ms) / 1000) }
     ecrire()
     await Promise.all([...contexteRun.contextes].map((c) => c.close().catch(() => {})))
     await navigateur.close().catch(() => {})
@@ -173,6 +190,8 @@ async function principal() {
   process.on('SIGTERM', arreter)
   process.on('SIGINT', arreter)
   await Promise.all(participants.map((p) => vivre(navigateur, p, contexteRun)))
+  if (contexteRun.arret) return
+  resultat.termine = true
   ecrire()
   await navigateur.close()
 }
