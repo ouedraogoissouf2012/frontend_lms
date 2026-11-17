@@ -5,6 +5,7 @@ import { auth } from '@/services/api'
 import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
+import { messageForReason } from '@/services/errorHandler'
 import { toId } from '@/utils/toId'
 import { decalageHorloge, secondesAvantEcheance } from '@/utils/echeanceCopie'
 
@@ -242,9 +243,11 @@ export function useTakeEvaluation() {
       }
     } catch (error_) {
       console.error('Erreur soumission évaluation:', error_)
-      // D-28d : un refus hors délai verrouille la copie ; tout autre échec garde le message actuel.
-      if (error_?.response?.data?.reason === 'evaluation_attempt_locked') verrouiller()
-      else toast.error('Erreur lors de la soumission de l\'évaluation')
+      // D-28d : un refus hors délai verrouille la copie. #599 : un autre motif connu dit son texte (D0) ;
+      // le reste garde le message de l'écran.
+      const reason = error_?.response?.data?.reason
+      if (reason === 'evaluation_attempt_locked') verrouiller()
+      else toast.error(messageForReason(reason) ?? 'Erreur lors de la soumission de l\'évaluation')
     } finally {
       submitting.value = false
     }

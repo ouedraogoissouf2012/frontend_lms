@@ -99,6 +99,16 @@ export const REASONS = Object.freeze({
   quiz_attempt_conflict: motif('quizTentativeConcurrente'),
   quiz_attempt_already_submitted: motif('quizTentativeDejaRendue'),
   quiz_time_expired: motif('quizTempsEcoule'),
+  // #599 : la remise d'un quiz de leçon (lms_backend#1075, KnowledgeCheckOpenAttempts), 409 et 422.
+  attempt_not_open: motif('quizTentativeFermee'),
+  quiz_changed_since_start: motif('quizModifieDepuisLeDebut'),
+  answer_not_an_option_index: motif('quizReponseHorsOptions'),
+  // 409 au démarrage ET à la remise d'une évaluation : la copie est déjà remise par une autre requête.
+  evaluation_attempt_conflict: motif('evaluationCopieDejaRemise'),
+  // 422 de POST /evaluations/{id}/sync-klassci : l'évaluation n'a pas de lien KLASSCI (école autonome).
+  evaluation_not_linked_to_klassci: motif('syncEvaluationNonLiee'),
+  // 409 de GET /lms/classes/local/{id} : une classe créée dans le LMS n'a pas de fiche KLASSCI.
+  classe_local_only: motif('classeSansFicheKlassci'),
 })
 
 /** Le `reason` dit-il un état vide (rien à montrer) plutôt qu'une erreur ? Seul le catalogue en décide. */
