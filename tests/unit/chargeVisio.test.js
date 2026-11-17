@@ -4,6 +4,8 @@
  * n'y entrent pas : l'essai à blanc mesure la chaîne réelle.
  */
 import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import {
   validerPlan, runnersNecessaires, finS, palierDe, entreeS, participantsDuRunner, fenetreStable, adresseEntree, ENTREE_S,
 } from '../../e2e/charge-visio/plan.mjs'
@@ -153,5 +155,12 @@ describe('#1232 — le chemin du média (essai 1 : débit reçu 0, sans savoir p
       '- participant 0 (enseignant) : ICE connected, connexion connected, paire srflx/udp → host/udp:10000, octets envoyés 52000 ; pistes publiées audio, video (muette) ; pistes reçues 0 ; connexions jvb connected',
       '- participant 1 (eleve) : ICE —, connexion —, paire — → —, octets envoyés — ; pistes publiées — ; pistes reçues — ; connexions —',
     ])
+  })
+})
+
+describe('#1232 — l’annulation (essai 2 : aucun relevé écrit, le runner a tué le script sans signal)', () => {
+  it('le script des participants EST le processus de l’étape (exec) : le signal d’annulation lui parvient, il écrit ses relevés', () => {
+    const workflow = readFileSync(resolve(process.cwd(), '.github/workflows/charge-visio.yml'), 'utf-8')
+    expect(workflow).toMatch(/run: exec node outils\/participant\.mjs /)
   })
 })
