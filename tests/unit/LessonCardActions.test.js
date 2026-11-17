@@ -1,4 +1,4 @@
-/** Test de rendu LessonCardActions (#H4 ≤300) : actions CRUD enseignant vs consultation. */
+/** Test de rendu LessonCardActions (#H4 ≤300) : actions CRUD (canWrite, l'enseignant seul, #601) vs consultation. */
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
 import LessonCardActions from '@/components/lessons/LessonCardActions.vue'
@@ -14,7 +14,7 @@ describe('LessonCardActions (#H4)', () => {
 
   it('enseignant + brouillon : publier/modifier/supprimer + détails', async () => {
     const w = mount(LessonCardActions, {
-      props: { lesson: { id: 9, status: 'draft' }, isTeacher: true }
+      props: { lesson: { id: 9, status: 'draft' }, isTeacher: true, canWrite: true }
     })
     expect(w.find('.btn-publish').exists()).toBe(true)
     expect(w.find('.btn-unpublish').exists()).toBe(false)
@@ -29,7 +29,7 @@ describe('LessonCardActions (#H4)', () => {
 
   it('enseignant + publié : bouton dépublier', () => {
     const w = mount(LessonCardActions, {
-      props: { lesson: { id: 9, status: 'published' }, isTeacher: true }
+      props: { lesson: { id: 9, status: 'published' }, isTeacher: true, canWrite: true }
     })
     expect(w.find('.btn-unpublish').exists()).toBe(true)
     expect(w.find('.btn-publish').exists()).toBe(false)

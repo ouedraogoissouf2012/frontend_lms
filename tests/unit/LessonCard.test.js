@@ -55,8 +55,9 @@ describe('LessonCard (G5) — rendu', () => {
     expect(w.text()).not.toContain('45 min')
   })
 
-  it('expose les actions enseignant uniquement si isTeacher', () => {
+  it('expose les actions d’écriture uniquement si canWrite (l’enseignant seul, #601)', () => {
     expect(mountCard().find('.btn-edit').exists()).toBe(false)
-    expect(mountCard({ isTeacher: true }).find('.btn-edit').exists()).toBe(true)
+    expect(mountCard({ isTeacher: true }).find('.btn-edit').exists()).toBe(false)
+    expect(mountCard({ isTeacher: true, canWrite: true }).find('.btn-edit').exists()).toBe(true)
   })
 })
