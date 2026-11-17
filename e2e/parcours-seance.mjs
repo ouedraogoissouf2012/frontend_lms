@@ -1,6 +1,7 @@
 // Parcours fonctionnel de la SÉANCE et de la VISIO (PR 4) : la séance (créée dans l'école LMS, celle de KLASSCI
-// sinon), sa visio activée, démarrée, rejointe par l'élève, terminée ; la séance modifiée (aucun chemin : ROUGE
-// nommé, lms_backend#1121) et supprimée (école LMS). Chaque étape relue.
+// sinon), sa visio activée, démarrée, rejointe par l'élève, terminée ; la séance modifiée (école LMS ; dans l'école
+// KLASSCI, sans objet, après avoir vérifié qu'aucun « Modifier » ne paraît : lms_backend#1121) et supprimée (école
+// LMS). Chaque étape relue.
 //
 // LIMITE DÉCLARÉE : aucun serveur Jitsi en CI. On juge le JETON émis à l'élève (un JWT dont la salle vaut celle de la
 // séance, signé par un secret fictif de la CI), le DOMAINE de la salle (le front la demande à `visio.example.test`)
@@ -8,11 +9,12 @@
 import { lireApi } from './fonctionnels.mjs'
 import { ATTENTE, bouton, appel, refusServeur, lu } from './gestes.mjs'
 import { confirmer } from './gestes-evaluation.mjs'
-import { creerSeance, detailSeance, heureAffichee, carteSeance, surLaCarte, rejoindre } from './gestes-seance.mjs'
+import { creerSeance, detailSeance, heureAffichee, carteSeance, surLaCarte, rejoindre, modifierSeance } from './gestes-seance.mjs'
 
-export const AUCUN_CHEMIN_MODIFICATION_SEANCE = 'aucun chemin d’interface ne modifie une séance'
 export const DOMAINE_JITSI = 'visio.example.test'
 export const DONNEES_SEANCE = Object.freeze({ titre: 'Seance parcours, la visio' })
+// Le titre modifié GARDE le titre d'origine : l'étape « supprimer » trouve sa ligne par ce texte.
+export const TITRE_MODIFIE = `${DONNEES_SEANCE.titre} (modifiée)`
 
 // ─── Les jugements des relectures (purs, testés) ─────────────────────────────────────────────
 
@@ -59,10 +61,16 @@ export function jugerEntree(entree, salle, presences, emailEleve) {
   return { confirme: true, preuve: `jeton émis pour la salle ${salle}, salle demandée à ${DOMAINE_JITSI}, présence de l’élève relue (vidéo : limite déclarée)` }
 }
 
-/** La modification d'une séance : aucun bouton (lms_backend#1121), ou il faut l'écrire. */
-export function jugerModificationSeance(boutonVu) {
-  return boutonVu ? { nonTeste: 'un bouton modifie désormais la séance : l’étape est à compléter avec sa correction (lms_backend#1121)' }
-    : { rouge: `${AUCUN_CHEMIN_MODIFICATION_SEANCE} : la carte n’offre aucun « Modifier » (Refs ouedraogoissouf2012/lms_backend#1121)` }
+/**
+ * « Modifier » sur la carte (lms_backend#1121, décision du user) : l'école autonome modifie sa séance ; l'école
+ * KLASSCI jamais (la séance se modifie dans KLASSCI). Rend null quand la modification est à jouer.
+ */
+export function jugerBoutonModifier(boutonVu, ecoleKlassci) {
+  if (ecoleKlassci) {
+    return boutonVu ? { rouge: 'une séance KLASSCI offre « Modifier » : elle se modifie dans KLASSCI (Refs ouedraogoissouf2012/lms_backend#1121)' }
+      : { nonTeste: 'sans objet : une séance KLASSCI se modifie dans KLASSCI ; sa carte n’offre aucun « Modifier » (vérifié)' }
+  }
+  return boutonVu ? null : { rouge: 'la carte d’une séance locale n’offre aucun « Modifier » (can_be_edited, Refs ouedraogoissouf2012/lms_backend#1121)' }
 }
 
 /** La séance supprimée a DISPARU : 404, et absente de la liste de l'enseignant. */
@@ -122,9 +130,10 @@ export const ETAPES_SEANCE = Object.freeze([
     async (ctx) => {
       const { carte, rouge } = await carteSeance(ctx)
       if (rouge) return { rouge }
-      return jugerModificationSeance((await carte.getByRole('button', { name: /Modifier/ }).count()) > 0)
+      const modifier = carte.getByRole('button', { name: 'Modifier', exact: true })
+      return jugerBoutonModifier((await modifier.count()) > 0, klassci(ctx)) ?? modifierSeance(ctx, modifier.first(), TITRE_MODIFIE)
     },
-    async () => ({ confirme: false, ecart: 'aucune modification jouée (lms_backend#1121)' })),
+    async (ctx) => jugerSeance(await detailSeance(ctx, ctx.etat.id), ctx.etat.id, TITRE_MODIFIE)),
   ETAPE('supprimer', 'enseignant', 'supprimer la séance (école LMS)', ['seance'],
     async (ctx) => {
       if (klassci(ctx)) return { nonTeste: 'séance KLASSCI : elle vit dans KLASSCI, le LMS ne la supprime pas' }
