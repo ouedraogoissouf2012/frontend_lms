@@ -82,6 +82,20 @@ export const REASONS = Object.freeze({
   class_out_of_scope: motif('seanceClasseHorsEtablissement'),
   subject_out_of_scope: motif('seanceMatiereHorsEtablissement'),
   subject_not_in_class_program: motif('seanceMatiereHorsProgramme'),
+  // lms_backend#922 (ADR-906-01) : un même statut, plusieurs sens, chacun son motif. Les deux bornes du 429 de
+  // POST /school-requests : la minute par adresse (transitoire) et le plafond du jour (définitif).
+  ip_quota_exceeded: motif('demandeEcoleQuotaAdresse', { transitoire: true }),
+  school_requests_global_cap: motif('demandeEcolePlafondDuJour'),
+  training_session_transition_not_allowed: motif('periodeTransitionInterdite'),
+  evaluation_attempt_not_started: motif('evaluationTentativeNonDemarree'),
+  evaluation_submission_not_gradable: motif('evaluationCopieNonNotable'),
+  // POST /knowledge-checks/{id}/start et /submit. Les `webhook_*` du même lot ne s'adressent qu'au serveur
+  // d'enregistrement : aucun écran ne les reçoit, ils restent hors du catalogue.
+  quiz_unavailable: motif('quizIndisponible'),
+  quiz_max_attempts: motif('quizTentativesEpuisees'),
+  quiz_attempt_conflict: motif('quizTentativeConcurrente'),
+  quiz_attempt_already_submitted: motif('quizTentativeDejaRendue'),
+  quiz_time_expired: motif('quizTempsEcoule'),
 })
 
 /** Le `reason` dit-il un état vide (rien à montrer) plutôt qu'une erreur ? Seul le catalogue en décide. */

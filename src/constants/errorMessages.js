@@ -115,5 +115,16 @@ export const ERROR_MESSAGES = Object.freeze({
   identifiantsIncorrects: 'Identifiants incorrects.',
   connexionEchouee: 'Échec de la connexion.',
   compteEnConflit: "Votre adresse e-mail est déjà utilisée par un autre compte de votre établissement. Contactez l'administrateur de votre école.",
+  // lms_backend#922 (ADR-906-01) : les sens d'un même statut, chacun son motif (refusalReasons.js).
+  demandeEcoleQuotaAdresse: 'Trop de demandes envoyées depuis cette connexion. Réessayez dans un instant.',
+  demandeEcolePlafondDuJour: "Le nombre maximal de demandes d'inscription d'école est atteint pour aujourd'hui. Réessayez demain.",
+  periodeTransitionInterdite: "Cette action n'est pas possible dans l'état actuel de la période.",
+  evaluationTentativeNonDemarree: "Aucune tentative n'est en cours pour cette évaluation : démarrez-la avant de la rendre.",
+  evaluationCopieNonNotable: "Cette copie ne peut pas encore être notée : elle n'a pas été rendue.",
+  quizIndisponible: "Ce quiz n'est pas disponible actuellement.",
+  quizTentativesEpuisees: 'Vous avez utilisé toutes vos tentatives pour ce quiz.',
+  quizTentativeConcurrente: "Une autre tentative vient d'être enregistrée pour ce quiz. Rechargez la page.",
+  quizTentativeDejaRendue: 'Cette tentative a déjà été rendue.',
+  quizTempsEcoule: 'Le temps est écoulé : votre tentative a été rendue automatiquement.',
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })

@@ -63,7 +63,8 @@ describe('normalizeError : un motif connu avant Retry-After', () => {
 // cette fin perdrait son délai sans bruit : la garde lie l'ensemble et les textes.
 describe('catégories transitoires : leur message porte la fin que le délai remplace', () => {
   it('chaque catégorie à délai finit par « Réessayez dans un instant. »', () => {
-    expect([...CATEGORIES_A_DELAI].sort()).toEqual(['evaluationWindowUnverifiable', 'klassciUnavailable'])
+    // lms_backend#922 : la borne par adresse du 429 des demandes d'école (à la minute) s'y ajoute.
+    expect([...CATEGORIES_A_DELAI].sort()).toEqual(['demandeEcoleQuotaAdresse', 'evaluationWindowUnverifiable', 'klassciUnavailable'])
     for (const c of CATEGORIES_A_DELAI) expect(ERROR_MESSAGES[c]).toMatch(/ Réessayez dans un instant\.$/)
   })
 
