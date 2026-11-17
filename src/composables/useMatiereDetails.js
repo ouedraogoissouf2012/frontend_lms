@@ -64,11 +64,15 @@ export function useMatiereDetails() {
     return hasRole(user, [ROLES.ENSEIGNANT, ROLES.COORDINATEUR])
   })
 
-  // #601 : seul l'enseignant crée une leçon (décision du user, back #1167). `isTeacher` garde modifier,
-  // supprimer et publier, que le user n'a pas tranchés pour le coordinateur.
-  const canCreateLesson = computed(() => roleIsTeacher(auth.getUser()))
+  // #601 : le contenu d'une leçon est l'affaire de l'enseignant (décisions du user, back #1167). Créer,
+  // modifier, publier, dépublier, supprimer : l'enseignant seul. Le coordinateur et l'admin d'école consultent ;
+  // `isTeacher` ne commande plus que des lectures (statistiques, statut). Chaque geste est inerte sans le droit.
+  const canWriteLesson = computed(() => roleIsTeacher(auth.getUser()))
   function createLesson() {
-    if (canCreateLesson.value) modale.ouvrirCreation()
+    if (canWriteLesson.value) modale.ouvrirCreation()
+  }
+  async function editLesson(lessonId) {
+    if (canWriteLesson.value) await modale.ouvrirEdition(lessonId)
   }
 
   async function loadMatiereDetails() {
@@ -136,6 +140,7 @@ export function useMatiereDetails() {
   })
 
   async function confirmDeleteLesson(lessonId) {
+    if (!canWriteLesson.value) return
     if (!(await useConfirm().confirm({ message: 'Êtes-vous sûr de vouloir supprimer cette leçon ?', variant: 'danger', confirmLabel: 'Supprimer' }))) {
       return
     }
@@ -153,6 +158,7 @@ export function useMatiereDetails() {
   }
 
   async function publishLesson(lessonId) {
+    if (!canWriteLesson.value) return
     try {
       const response = await lessonService.publishLesson(lessonId)
       if (response.success) {
@@ -166,6 +172,7 @@ export function useMatiereDetails() {
   }
 
   async function unpublishLesson(lessonId) {
+    if (!canWriteLesson.value) return
     try {
       const response = await lessonService.unpublishLesson(lessonId)
       if (response.success) {
@@ -237,11 +244,11 @@ export function useMatiereDetails() {
 
   return {
     loading, error, canRetry, activeTab, viewMode, matiere, lessons, seances, evaluations,
-    classes, statistiques, notifications, matiereId, tabs, canManageVisio, isTeacher, canCreateLesson,
+    classes, statistiques, notifications, matiereId, tabs, canManageVisio, isTeacher, canWriteLesson,
     showCreateLessonModal: modale.visible, creatingLesson: modale.enregistrement, newLesson: modale.lecon,
     editingLesson: modale.enEdition, erreurClasse: modale.erreurClasse,
     createLesson, closeCreateLessonModal: modale.fermer,
-    submitCreateLesson: modale.enregistrer, editLesson: modale.ouvrirEdition,
+    submitCreateLesson: modale.enregistrer, editLesson,
     loadMatiereDetails, viewLesson, confirmDeleteLesson, publishLesson,
     unpublishLesson, showNotification, viewSeance, hideSeance, viewEvaluation, viewClasse,
   }

@@ -59,7 +59,7 @@
           <MatiereLessonsTab
             :lessons="lessons"
             :is-teacher="isTeacher"
-            :can-create="canCreateLesson"
+            :can-write="canWriteLesson"
             :loading="loading"
             v-model:view-mode="viewMode"
             @create="createLesson"
@@ -134,7 +134,7 @@ import { useMatiereDetails } from '@/composables/useMatiereDetails'
 const {
   loading, error, canRetry, activeTab, viewMode, matiere, lessons, seances, evaluations,
   classes, statistiques, showCreateLessonModal, creatingLesson, newLesson, editingLesson, erreurClasse, notifications,
-  tabs, isTeacher, canCreateLesson,
+  tabs, isTeacher, canWriteLesson,
   loadMatiereDetails, viewLesson, createLesson, closeCreateLessonModal, submitCreateLesson,
   editLesson, confirmDeleteLesson, publishLesson, unpublishLesson,
   viewSeance, hideSeance, viewEvaluation, viewClasse,
