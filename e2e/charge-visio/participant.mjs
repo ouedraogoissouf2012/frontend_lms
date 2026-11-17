@@ -53,7 +53,17 @@ async function relever() {
   const conf = window.APP?.conference
   const entre = Boolean(conf?.isJoined?.())
   const pc = conf?._room?.jvbJingleSession?.peerconnection?.peerconnection
-  const base = { entre, participants: conf?._room?.getParticipantCount?.() ?? null }
+  const salle = conf?._room
+  // #1232, essai 1 : ICE, DTLS et SCTP établis côté pont vidéo (journaux du JVB), mais aucun média. On relève ce qui
+  // est PUBLIÉ (pistes locales, muettes ou non), ce qui est REÇU (pistes distantes), et TOUTES les connexions.
+  const pistesLocales = (salle?.getLocalTracks?.() ?? []).map((t) => ({ type: t.getType?.() ?? null, muette: t.isMuted?.() ?? null }))
+  const pistesDistantes = (salle?.getParticipants?.() ?? []).reduce((n, p) => n + (p.getTracks?.()?.length ?? 0), 0)
+  const connexions = [...(salle?.rtc?.peerConnections?.values?.() ?? [])].map((t) => ({
+    p2p: t.isP2P ?? null,
+    ice: t.peerconnection?.iceConnectionState ?? null,
+    etat: t.peerconnection?.connectionState ?? null,
+  }))
+  const base = { entre, participants: salle?.getParticipantCount?.() ?? null, pistesLocales, pistesDistantes, connexions }
   if (!pc) return { ...base, ice: null, paquetsRecus: null, paquetsPerdus: null, octetsRecus: null, gelsCumules: null, imagesDecodeesCumulees: null }
   let paquetsRecus = 0
   let paquetsPerdus = 0
@@ -117,6 +127,9 @@ async function vivre(navigateur, p, contexteRun) {
         participantsVus: brut.participants ?? null,
         ice: brut.ice ?? null,
         octetsEnvoyes: brut.octetsEnvoyes ?? null,
+        pistesLocales: brut.pistesLocales ?? null,
+        pistesDistantes: brut.pistesDistantes ?? null,
+        connexions: brut.connexions ?? null,
         ...deltas(precedent?.brut, brut.paquetsRecus == null ? null : brut, dt),
         gelsCumules: brut.gelsCumules ?? null,
         imagesDecodeesCumulees: brut.imagesDecodeesCumulees ?? null,

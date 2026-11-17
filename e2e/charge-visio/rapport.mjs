@@ -46,8 +46,11 @@ export function cheminsMedia(runners) {
   for (const p of runners.flatMap((r) => r.participants).sort((a, b) => a.numero - b.numero)) {
     const dernier = [...p.echantillons].reverse().find((e) => e.ice) ?? null
     const ice = dernier?.ice
+    const pistes = (dernier?.pistesLocales ?? []).map((t) => `${t.type}${t.muette ? ' (muette)' : ''}`).join(', ') || '—'
+    const connexions = (dernier?.connexions ?? []).map((c) => `${c.p2p ? 'p2p' : 'jvb'} ${c.ice}`).join(', ') || '—'
     lignes.push(`- participant ${p.numero} (${p.role}) : ICE ${ice?.etat ?? '—'}, connexion ${ice?.connexion ?? '—'}, `
-      + `paire ${ice?.candidatLocal ?? '—'} → ${ice?.candidatDistant ?? '—'}, octets envoyés ${dernier?.octetsEnvoyes ?? '—'}`)
+      + `paire ${ice?.candidatLocal ?? '—'} → ${ice?.candidatDistant ?? '—'}, octets envoyés ${dernier?.octetsEnvoyes ?? '—'} ; `
+      + `pistes publiées ${pistes} ; pistes reçues ${dernier?.pistesDistantes ?? '—'} ; connexions ${connexions}`)
   }
   return lignes.length ? lignes : ['- aucun relevé']
 }

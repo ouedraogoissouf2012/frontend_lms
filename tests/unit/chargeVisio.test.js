@@ -145,12 +145,13 @@ describe('#1232 — le chemin du média (essai 1 : débit reçu 0, sans savoir p
       { numero: 1, role: 'eleve', echantillons: [{ ice: null }] },
       { numero: 0, role: 'enseignant', echantillons: [
         { ice: { etat: 'checking', connexion: 'connecting', candidatLocal: null, candidatDistant: null }, octetsEnvoyes: 0 },
-        { ice: { etat: 'connected', connexion: 'connected', candidatLocal: 'srflx/udp', candidatDistant: 'host/udp:10000' }, octetsEnvoyes: 52000 },
+        { ice: { etat: 'connected', connexion: 'connected', candidatLocal: 'srflx/udp', candidatDistant: 'host/udp:10000' }, octetsEnvoyes: 52000,
+          pistesLocales: [{ type: 'audio', muette: false }, { type: 'video', muette: true }], pistesDistantes: 0, connexions: [{ p2p: false, ice: 'connected' }] },
       ] },
     ] }]
     expect(cheminsMedia(runners)).toEqual([
-      '- participant 0 (enseignant) : ICE connected, connexion connected, paire srflx/udp → host/udp:10000, octets envoyés 52000',
-      '- participant 1 (eleve) : ICE —, connexion —, paire — → —, octets envoyés —',
+      '- participant 0 (enseignant) : ICE connected, connexion connected, paire srflx/udp → host/udp:10000, octets envoyés 52000 ; pistes publiées audio, video (muette) ; pistes reçues 0 ; connexions jvb connected',
+      '- participant 1 (eleve) : ICE —, connexion —, paire — → —, octets envoyés — ; pistes publiées — ; pistes reçues — ; connexions —',
     ])
   })
 })
