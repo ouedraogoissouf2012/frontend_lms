@@ -4,7 +4,8 @@
       <div class="header-section">
         <div class="header-content">
           <h1 class="page-title">Sessions de formation</h1>
-          <p class="page-subtitle">Programme, puis période datée. Une période naît brouillon.</p>
+          <!-- #606 : à quoi sert l'écran, en une phrase prouvée par le back (les dates, le brouillon, les transitions). -->
+          <p class="page-subtitle">Créez une formation (son programme), puis ses sessions : chacune porte ses dates (inscriptions, début, fin, attestation) et avance de brouillon à publiée, puis close et archivée.</p>
         </div>
         <button type="button" class="refresh-btn" :disabled="loading" @click="load()">
           Actualiser
@@ -17,7 +18,7 @@
       <p class="status-region" :class="{ banner: notice }" role="status" aria-live="polite">{{ notice }}</p>
 
       <form class="card" @submit.prevent="onProgramme">
-        <h2>Nouveau programme</h2>
+        <h2>1. La formation (son programme)</h2>
         <label for="titre">Titre</label>
         <input id="titre" v-model="titre" required maxlength="191" class="field">
         <label for="description">Description</label>
@@ -27,8 +28,9 @@
       </form>
 
       <form class="card" @submit.prevent="onPeriode">
-        <h2>Nouvelle période</h2>
-        <label for="program_id">N° de programme</label>
+        <h2>2. Une session de cette formation</h2>
+        <!-- Un numéro en attendant la liste des programmes (lms_backend#1206) : prérempli après la création. -->
+        <label for="program_id">Programme (numéro donné à sa création)</label>
         <input id="program_id" v-model="periode.program_id" type="number" min="1" required class="field">
         <label for="libelle">Libellé</label>
         <input id="libelle" v-model="periode.libelle" required maxlength="191" class="field">
