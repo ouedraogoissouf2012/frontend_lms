@@ -22,7 +22,7 @@ export function noterConsole(journal, type, texte, jetons) {
   if (journal.length >= MESSAGES_MAX) return journal
   if (type !== 'error' && type !== 'warning' && type !== 'pageerror') return journal
   if (!MOTIF_CAPTURE.test(String(texte))) return journal
-  journal.push(`${type} : ${masquer(texte, jetons).slice(0, LONGUEUR_MAX)}`)
+  journal.push(`${type} : ${masquer(String(texte).slice(0, LONGUEUR_MAX), jetons)}`)
   return journal
 }
 
