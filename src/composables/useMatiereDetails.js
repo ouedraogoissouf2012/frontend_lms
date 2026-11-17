@@ -66,7 +66,7 @@ export function useMatiereDetails() {
 
   // #601 : seul l'enseignant crée une leçon (décision du user, back #1167). `isTeacher` garde modifier,
   // supprimer et publier, que le user n'a pas tranchés pour le coordinateur.
-  const canCreateLesson = computed(() => roleIsTeacher(auth.getUser()))
+  const canCreateLesson = computed(() => hasRole(auth.getUser(), [ROLES.ENSEIGNANT, ROLES.COORDINATEUR]))
   function createLesson() {
     if (canCreateLesson.value) modale.ouvrirCreation()
   }
