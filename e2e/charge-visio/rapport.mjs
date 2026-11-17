@@ -9,6 +9,7 @@ import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { runnersNecessaires, validerPlan } from './plan.mjs'
 import { resumerPalier } from './mesures.mjs'
+import { diagnosticsCapture } from './capture.mjs'
 
 export const CPU_RUNNER_SATURE = 85
 
@@ -36,6 +37,7 @@ export function lignesDuRapport(plan, runners) {
   l.push('', `Temps d’entrée (ms) : ${entrees.length ? `médiane ${entrees.sort((a, b) => a - b)[Math.floor(entrees.length / 2)]}, max ${Math.max(...entrees)}` : '—'}`)
   l.push('', echecs.length ? `Échecs d’entrée :\n${echecs.map((e) => `- ${e}`).join('\n')}` : 'Aucun échec d’entrée.')
   l.push('', '## Connexion au pont vidéo (dernier relevé de chaque participant)', '', ...cheminsMedia(runners))
+  l.push('', '## Capture locale (getUserMedia direct, état de l’application)', '', ...diagnosticsCapture(runners))
   return l
 }
 

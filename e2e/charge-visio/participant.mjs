@@ -15,6 +15,7 @@ import { join } from 'node:path'
 import { chromium } from 'playwright'
 import { validerPlan, participantsDuRunner, finS, adresseEntree } from './plan.mjs'
 import { deltas } from './mesures.mjs'
+import { noterConsole } from './capture.mjs'
 
 const PAS_S = 5
 const ATTENTE_ENTREE_MS = 60_000
@@ -63,7 +64,17 @@ async function relever() {
     ice: t.peerconnection?.iceConnectionState ?? null,
     etat: t.peerconnection?.connectionState ?? null,
   }))
-  const base = { entre, participants: salle?.getParticipantCount?.() ?? null, pistesLocales, pistesDistantes, connexions }
+  // #1232, essai 3 : aucune piste publiée. L'état de l'application dit si elle a créé des pistes, et ses coupures.
+  const etat = window.APP?.store?.getState?.()
+  const pistesEtat = etat?.['features/base/tracks']
+  const mediaEtat = etat?.['features/base/media']
+  const redux = etat
+    ? {
+        pistes: Array.isArray(pistesEtat) ? pistesEtat.filter((t) => t.local).map((t) => ({ type: t.mediaType ?? null, muette: t.muted ?? null })) : null,
+        media: { audioCoupe: mediaEtat?.audio?.muted ?? null, videoCoupe: mediaEtat?.video?.muted ?? null },
+      }
+    : null
+  const base = { entre, participants: salle?.getParticipantCount?.() ?? null, pistesLocales, pistesDistantes, connexions, redux }
   if (!pc) return { ...base, ice: null, paquetsRecus: null, paquetsPerdus: null, octetsRecus: null, octetsRecusAudio: null, octetsRecusVideo: null, gelsCumules: null, imagesDecodeesCumulees: null }
   let paquetsRecus = 0
   let paquetsPerdus = 0
@@ -104,11 +115,29 @@ async function relever() {
   }
 }
 
+// Exécuté DANS la page, une fois après l'entrée : un getUserMedia DIRECT, hors de Jitsi. Obtenu alors que Jitsi n'a
+// aucune piste : la faute est à Jitsi ; refusé : au navigateur. Les pistes obtenues sont aussitôt arrêtées.
+async function sonderCapture() {
+  const md = navigator.mediaDevices
+  const peripheriques = md?.enumerateDevices ? await md.enumerateDevices().then((ds) => ds.map((d) => d.kind), () => null) : null
+  let gum
+  try {
+    const flux = await md.getUserMedia({ audio: true, video: true })
+    gum = { ok: true, pistes: flux.getTracks().map((t) => ({ kind: t.kind, label: t.label })) }
+    flux.getTracks().forEach((t) => t.stop())
+  } catch (e) {
+    gum = { ok: false, nom: e?.name ?? null, message: String(e?.message ?? e).slice(0, 200) }
+  }
+  return { userAgent: navigator.userAgent, peripheriques, gum }
+}
+
 const dormir = (ms) => new Promise((r) => setTimeout(r, Math.max(0, ms)))
 
 async function vivre(navigateur, p, contexteRun) {
   const { plan, jetons, t0Ms, finMs, cpu, resultat } = contexteRun
-  const trace = { numero: p.numero, role: p.role, palier: p.palier, entreeS: p.entreeS, entreeMs: null, echecEntree: null, echantillons: [] }
+  const trace = {
+    numero: p.numero, role: p.role, palier: p.palier, entreeS: p.entreeS, entreeMs: null, echecEntree: null, capture: null, journalCapture: [], echantillons: [],
+  }
   resultat.participants.push(trace)
   await dormir(t0Ms + p.entreeS * 1000 - Date.now())
   if (contexteRun.arret) return
@@ -116,11 +145,14 @@ async function vivre(navigateur, p, contexteRun) {
   contexteRun.contextes.add(contexte)
   try {
     const page = await contexte.newPage()
+    page.on('console', (m) => noterConsole(trace.journalCapture, m.type(), m.text(), jetons.jetons))
+    page.on('pageerror', (e) => noterConsole(trace.journalCapture, 'pageerror', String(e?.message ?? e), jetons.jetons))
     const debut = Date.now()
     await page.goto(adresseEntree(jetons.domaine, plan.salle, jetons.jetons[p.numero], p.role), { waitUntil: 'domcontentloaded', timeout: ATTENTE_ENTREE_MS })
     await page.waitForFunction(() => Boolean(window.APP?.conference?.isJoined?.()), null, { timeout: ATTENTE_ENTREE_MS })
       .then(() => { trace.entreeMs = Date.now() - debut })
       .catch(() => { trace.echecEntree = 'entrée en salle non confirmée en 60 s' })
+    trace.capture = await page.evaluate(sonderCapture).catch((e) => ({ erreurOutil: String(e?.message ?? e).split('\n')[0] }))
     let precedent = null
     while (!contexteRun.arret && Date.now() < finMs) {
       const instant = Date.now()
@@ -138,6 +170,7 @@ async function vivre(navigateur, p, contexteRun) {
         pistesLocales: brut.pistesLocales ?? null,
         pistesDistantes: brut.pistesDistantes ?? null,
         connexions: brut.connexions ?? null,
+        redux: brut.redux ?? null,
         ...deltas(precedent?.brut, brut.paquetsRecus == null ? null : brut, dt),
         gelsCumules: brut.gelsCumules ?? null,
         imagesDecodeesCumulees: brut.imagesDecodeesCumulees ?? null,
@@ -174,6 +207,8 @@ async function principal() {
   const navigateur = await chromium.launch({
     args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', '--autoplay-policy=no-user-gesture-required'],
   })
+  // Le binaire lancé : sans canal, Playwright prend en headless « chromium-headless-shell », pas le Chrome complet.
+  resultat.navigateur = `${navigateur.browserType().name()} ${navigateur.version()} (headless, canal par défaut : chromium-headless-shell)`
   // Écrit à chaque relevé : un arrêt sans signal (SIGKILL) laisse le dernier état mesuré.
   const contexteRun = { plan, jetons, t0Ms, finMs: t0Ms + finS(plan) * 1000, cpu: lecteurCpu(), resultat, contextes: new Set(), arret: false, ecrire }
   // SIGINT d'abord (annulation), SIGTERM ~7,5 s après, puis SIGKILL : le relevé s'écrit au PREMIER signal, avant
