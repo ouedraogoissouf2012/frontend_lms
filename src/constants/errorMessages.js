@@ -127,5 +127,12 @@ export const ERROR_MESSAGES = Object.freeze({
   quizTentativeConcurrente: "Une autre tentative vient d'être enregistrée pour ce quiz. Rechargez la page.",
   quizTentativeDejaRendue: 'Cette tentative a déjà été rendue.',
   quizTempsEcoule: 'Le temps est écoulé : votre tentative a été rendue automatiquement.',
+  // #599 : six motifs reçus par un écran, chacun sa catégorie (refusalReasons.js).
+  quizTentativeFermee: "Cette tentative n'est plus ouverte : recommencez le quiz.",
+  quizModifieDepuisLeDebut: "Ce quiz a été modifié depuis que vous l'avez commencé : recommencez-le.",
+  quizReponseHorsOptions: 'Une réponse ne correspond à aucune des options proposées : recommencez le quiz.',
+  evaluationCopieDejaRemise: "Votre copie vient d'être remise depuis une autre fenêtre ou un autre appareil. Rechargez l'évaluation.",
+  syncEvaluationNonLiee: "Cette évaluation n'est liée à aucune évaluation KLASSCI : ses notes restent dans le LMS.",
+  classeSansFicheKlassci: "Cette classe a été créée dans le LMS : elle n'a pas de fiche KLASSCI à afficher.",
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })
