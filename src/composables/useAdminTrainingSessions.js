@@ -21,6 +21,25 @@ const STATUTS = {
   purgee: 'Purgée',
 }
 
+/**
+ * #606 : ce qu'on peut faire d'une session, selon son statut. SEUL le graphe des transitions est affirmé, chaque
+ * phrase prouvée par le back (TrainingSessionTransitionService, ADR-845-01 ; relevé validé par la superviseure).
+ * Rien sur la visibilité, les dates d'inscription, les listes ou l'attestation : le back ne le garantit pas
+ * (lms_backend#1208). `purgee` n'a aucun texte : aucune route n'y mène.
+ */
+const DESCRIPTIONS_STATUT = Object.freeze({
+  brouillon: 'En préparation. Elle peut être publiée (une date de début est exigée) ou annulée.',
+  publiee: 'Elle peut être clôturée ou annulée.',
+  cloturee: 'Close. Elle ne peut plus qu’être archivée.',
+  annulee: 'Annulée : cela ne se défait pas, et aucune inscription n’est retirée. Elle ne peut plus qu’être archivée.',
+  archivee: 'Archivée : plus aucune action n’est possible.',
+})
+
+/** @returns {string|null} le texte du statut, ou null s'il n'en a pas (rien n'est inventé). */
+export function descriptionStatut(status) {
+  return typeof status === 'string' && Object.hasOwn(DESCRIPTIONS_STATUT, status) ? DESCRIPTIONS_STATUT[status] : null
+}
+
 export function libellePhase(phase) {
   return PHASES[phase] || phase || '—'
 }
