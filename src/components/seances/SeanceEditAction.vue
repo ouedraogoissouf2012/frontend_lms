@@ -43,7 +43,8 @@
 /**
  * « Modifier » une séance locale (lms_backend#1121) : le bouton et sa fenêtre, montés sur les trois cartes de
  * séances (enseignant, coordinateur, gestion). Le bouton suit UNIQUEMENT `can_be_edited === true`, calculé par le
- * serveur pour le compte qui lit (faux partout dans une école KLASSCI) : ni le rôle, ni le catalogue, ni la date.
+ * serveur pour le compte qui lit (faux pour toute séance que l'école ne gère pas elle-même) : ni le rôle, ni le
+ * catalogue, ni la date. La présentation ne connaît pas le mode de l'école (garde OCP).
  * Logique dans `useSeanceEdit`. Émet `updated` (la séance relue) : l'écran recharge sa liste, dont le cache a été
  * purgé.
  */
