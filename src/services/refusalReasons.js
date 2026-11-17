@@ -36,8 +36,9 @@ export const REASONS = Object.freeze({
   // VisioStatusRefusal (serveur) : attendre (`visio_not_started`) ou renoncer (`visio_ended`).
   visio_not_started: motif('visioNotStarted'),
   visio_ended: motif('visioEnded'),
-  // La fenêtre de démarrage est passée (fin + 30 min, SeanceVisioEnricher::buildVisioWindow) : 409.
-  seance_past: motif('visioSeancePassee'),
+  // La séance est passée (fin + 30 min, SeanceVisioEnricher::buildVisioWindow) : 409, verrouillée. Reçu au démarrage
+  // et à l'entrée d'une visio, et à la modification de la séance (lms_backend#1121).
+  seance_past: motif('seancePassee'),
   // Back #1103 : la classe d'une leçon hors des classes de sa matière (422).
   classe_hors_matiere: motif('lessonClasseHorsMatiere'),
   // lms_backend#1167 : le contenu d'une leçon (créer, modifier, publier, supprimer, chapitres, quiz) est réservé à
@@ -85,6 +86,9 @@ export const REASONS = Object.freeze({
   class_out_of_scope: motif('seanceClasseHorsEtablissement'),
   subject_out_of_scope: motif('seanceMatiereHorsEtablissement'),
   subject_not_in_class_program: motif('seanceMatiereHorsProgramme'),
+  // lms_backend#1121 : refus de PUT /lms/seances/{id} (403 et 409), définitifs.
+  seance_managed_by_klassci: motif('seanceGereeParKlassci'),
+  seance_visio_active: motif('seanceVisioEnCours'),
   // lms_backend#922 (ADR-906-01) : un même statut, plusieurs sens, chacun son motif. Les deux bornes du 429 de
   // POST /school-requests : la minute par adresse (transitoire) et le plafond du jour (définitif).
   ip_quota_exceeded: motif('demandeEcoleQuotaAdresse', { transitoire: true }),

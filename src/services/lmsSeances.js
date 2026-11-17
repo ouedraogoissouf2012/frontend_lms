@@ -192,6 +192,19 @@ export const lmsSeancesService = {
   },
 
   /**
+   * Modifie une séance LOCALE — PUT /lms/seances/{id}, 200 (lms_backend#1121). La matière ne change pas.
+   * @param {number} seanceId
+   * @param {{ titre: string, date_seance: string, classe_id: ?number, classe_nom: ?string }} charge
+   * @returns {Promise<Object>} la séance relue
+   */
+  async updateSeance(seanceId, charge) {
+    const response = await api.put(endpoints.lms.seances.update(seanceId), charge)
+    // Faux succès : une réponse sans « success: true » n'a rien modifié de connu.
+    if (response?.success !== true) throw invalidResponseError('PUT séance sans success', response)
+    return response.data
+  },
+
+  /**
    * Supprime une séance
    * @param {Number} seanceId - ID de la séance
    * @returns {Promise<Object>}

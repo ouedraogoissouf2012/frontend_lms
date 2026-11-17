@@ -71,6 +71,8 @@ export const endpoints = {
       validateParticipant: (id) => `${LMS}/seances/${id}/validate-participant`,
       hide: (id) => `${LMS}/seances/${id}/hide`,
       unhide: (id) => `${LMS}/seances/${id}/unhide`,
+      // lms_backend#1121 : modification d'une séance locale (PUT, 200, la séance relue).
+      update: (id) => `${LMS}/seances/${id}`,
       delete: (id) => `${LMS}/seances/${id}`,
     },
 
