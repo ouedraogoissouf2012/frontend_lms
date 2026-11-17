@@ -16,7 +16,7 @@ describe('MatiereLessonsTab (#H9)', () => {
 
   it('rend les cartes en grille et emet create', async () => {
     const w = mount(MatiereLessonsTab, {
-      props: { lessons: [{ id: 1 }, { id: 2 }], isTeacher: true, loading: false, viewMode: 'grid' },
+      props: { lessons: [{ id: 1 }, { id: 2 }], isTeacher: true, canCreate: true, loading: false, viewMode: 'grid' },
       global: { stubs }
     })
     expect(w.findAll('.lc')).toHaveLength(2)
