@@ -5,7 +5,7 @@ import { auth } from '@/services/api'
 import { useConfirm } from '@/composables/useConfirm'
 import { resolveEvaluationRoute } from '@/utils/matiereDetails'
 import { useLessonModal } from '@/composables/useLessonModal'
-import { hasRole, ROLES } from '@/constants/roles'
+import { hasRole, isTeacher as roleIsTeacher, ROLES } from '@/constants/roles'
 import { messageForReason } from '@/services/errorHandler'
 import { displayMessage } from '@/services/displayMessage'
 import { estPannePassagere } from '@/utils/pannePassagere'
@@ -63,6 +63,13 @@ export function useMatiereDetails() {
     const user = auth.getUser()
     return hasRole(user, [ROLES.ENSEIGNANT, ROLES.COORDINATEUR])
   })
+
+  // #601 : seul l'enseignant crée une leçon (décision du user, back #1167). `isTeacher` garde modifier,
+  // supprimer et publier, que le user n'a pas tranchés pour le coordinateur.
+  const canCreateLesson = computed(() => roleIsTeacher(auth.getUser()))
+  function createLesson() {
+    if (canCreateLesson.value) modale.ouvrirCreation()
+  }
 
   async function loadMatiereDetails() {
     loading.value = true
@@ -230,10 +237,10 @@ export function useMatiereDetails() {
 
   return {
     loading, error, canRetry, activeTab, viewMode, matiere, lessons, seances, evaluations,
-    classes, statistiques, notifications, matiereId, tabs, canManageVisio, isTeacher,
+    classes, statistiques, notifications, matiereId, tabs, canManageVisio, isTeacher, canCreateLesson,
     showCreateLessonModal: modale.visible, creatingLesson: modale.enregistrement, newLesson: modale.lecon,
     editingLesson: modale.enEdition, erreurClasse: modale.erreurClasse,
-    createLesson: modale.ouvrirCreation, closeCreateLessonModal: modale.fermer,
+    createLesson, closeCreateLessonModal: modale.fermer,
     submitCreateLesson: modale.enregistrer, editLesson: modale.ouvrirEdition,
     loadMatiereDetails, viewLesson, confirmDeleteLesson, publishLesson,
     unpublishLesson, showNotification, viewSeance, hideSeance, viewEvaluation, viewClasse,
