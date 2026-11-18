@@ -3,7 +3,8 @@
 // Des participants simulés (Chromium sans écran, média factice) rejoignent UNE salle Jitsi dédiée, par paliers. Le
 // participant 0 est l'enseignant (modérateur, caméra et micro actifs) ; les autres sont des élèves (caméra et micro
 // coupés), comme en classe. Le participant n entre au palier dont l'effectif le dépasse, et reste jusqu'à la fin :
-// chaque palier ajoute des participants à ceux déjà présents.
+// chaque palier ajoute des participants à ceux déjà présents. L'enseignant, seul émetteur, est SEUL sur le runner 0
+// (test 1 : partagé avec 4 élèves, son runner était à 100 % de CPU ; un émetteur saturé fait geler tous les élèves).
 //
 // Garde-fou : la salle DOIT être une salle de test (préfixe `test-charge-1232`). L'outil refuse toute autre salle,
 // pour qu'aucune séance réelle ne puisse recevoir la charge par erreur.
@@ -13,8 +14,12 @@ export const PREFIXE_SALLE = 'test-charge-1232'
 /** Le temps d'entrée d'un palier : les nouveaux participants y arrivent étalés, le reste du palier est mesuré. */
 export const ENTREE_S = 60
 
+/** Le numéro de l'enseignant : le premier à entrer, le seul à émettre. */
+export const NUMERO_ENSEIGNANT = 0
+
 /**
- * @typedef {{ salle: string, paliers: number[], dureePalierS: number, navigateursParRunner: number }} Plan
+ * `scene` (facultatif) : les élèves mettent l'enseignant en grand, par l'interface (scene.mjs).
+ * @typedef {{ salle: string, paliers: number[], dureePalierS: number, navigateursParRunner: number, scene?: boolean }} Plan
  */
 
 /**
@@ -38,14 +43,15 @@ export function validerPlan(plan) {
   if (!Number.isInteger(p.navigateursParRunner) || p.navigateursParRunner < 1 || p.navigateursParRunner > 8) {
     throw new Error(`navigateurs par runner hors bornes : ${p.navigateursParRunner} (1 à 8)`)
   }
+  if (p.scene !== undefined && typeof p.scene !== 'boolean') throw new Error(`scene : booléen attendu, reçu ${JSON.stringify(p.scene)}`)
   return p
 }
 
 /** Le nombre total de participants (le dernier palier). */
 export const effectifMax = (plan) => plan.paliers[plan.paliers.length - 1]
 
-/** Le nombre de runners de la matrice. */
-export const runnersNecessaires = (plan) => Math.ceil(effectifMax(plan) / plan.navigateursParRunner)
+/** Le nombre de runners de la matrice : celui de l'enseignant, puis ceux des élèves. */
+export const runnersNecessaires = (plan) => 1 + Math.ceil((effectifMax(plan) - 1) / plan.navigateursParRunner)
 
 /** La durée totale du test, en secondes depuis T0. */
 export const finS = (plan) => plan.paliers.length * plan.dureePalierS
@@ -67,15 +73,16 @@ export function entreeS(plan, numero) {
 }
 
 /**
- * Les participants qu'un runner fait vivre : numéros consécutifs, son rôle, son palier et son entrée.
+ * Les participants qu'un runner fait vivre : l'enseignant seul sur le runner 0 ; ailleurs, des élèves aux numéros
+ * consécutifs. Chacun avec son rôle, son palier et son entrée.
  * @returns {{ numero: number, role: 'enseignant'|'eleve', palier: number, entreeS: number }[]}
  */
 export function participantsDuRunner(plan, indexRunner) {
-  const debut = indexRunner * plan.navigateursParRunner
-  const fin = Math.min(debut + plan.navigateursParRunner, effectifMax(plan))
+  const debut = indexRunner === 0 ? NUMERO_ENSEIGNANT : 1 + (indexRunner - 1) * plan.navigateursParRunner
+  const fin = indexRunner === 0 ? NUMERO_ENSEIGNANT + 1 : Math.min(debut + plan.navigateursParRunner, effectifMax(plan))
   const liste = []
   for (let numero = debut; numero < fin; numero += 1) {
-    liste.push({ numero, role: numero === 0 ? 'enseignant' : 'eleve', palier: palierDe(plan, numero), entreeS: entreeS(plan, numero) })
+    liste.push({ numero, role: numero === NUMERO_ENSEIGNANT ? 'enseignant' : 'eleve', palier: palierDe(plan, numero), entreeS: entreeS(plan, numero) })
   }
   return liste
 }

@@ -9,6 +9,7 @@
 // Essai 4 : « … implies starting without media. » (disableInitialGUM) passait le filtre sans y être retenu.
 export const MOTIF_CAPTURE = /getUserMedia|NotAllowedError|NotFoundError|NotReadableError|OverconstrainedError|permission|createLocalTracks|local track|device|unsupported|camera|microphone|without media|InitialGUM|prejoin/i
 import { ligneGeste } from './geste.mjs'
+import { ligneScene } from './scene.mjs'
 
 export const MESSAGES_MAX = 20
 export const LONGUEUR_MAX = 200
@@ -56,6 +57,7 @@ export function diagnosticsCapture(runners) {
         + `page d’accueil ${p.prejoin ?? '—'}`)
     }
     if (p.geste !== undefined) lignes.push(`  - ${ligneGeste(p.geste)}`)
+    if (p.scene !== undefined) lignes.push(`  - ${ligneScene(p.scene)}`)
     for (const m of p.journalCapture ?? []) lignes.push(`  - ${m}`)
   }
   return lignes.length ? lignes : ['- aucun relevé']

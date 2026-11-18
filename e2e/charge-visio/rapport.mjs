@@ -3,7 +3,9 @@
 // Usage : node rapport.mjs <plan.json> <dossier des runner-*.json> <rapport.md>
 // Il ne décide rien à la place du lecteur : il donne, par palier, les chiffres client (entrées, perte, débit, gels,
 // CPU du runner). Les chiffres serveur (docker stats) sont relevés par la superviseure et joints au rapport final.
-// Un runner saturé (CPU p95 ≥ 85 %) est SIGNALÉ : ses mesures disent la limite du générateur, pas du serveur.
+// Un runner saturé (CPU p95 ≥ 85 %) est SIGNALÉ : ses mesures disent la limite du générateur, pas du serveur. Le CPU se
+// lit runner par runner (test 1 : le p95 de tous les runners mêlés affichait 50 %, celui de l'émetteur était à 100 %),
+// et un palier que l'arrêt a devancé se dit « non atteint », jamais « 100 % d'échec d'entrée ».
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -15,7 +17,9 @@ export const CPU_RUNNER_SATURE = 85
 
 /** Les lignes du rapport, pures. */
 export function lignesDuRapport(plan, runners) {
-  const echantillons = runners.flatMap((r) => r.participants.flatMap((p) => p.echantillons))
+  // Le runner d'un échantillon est celui qui l'a écrit : la sortie le dit, quel que soit le plan qui l'a réparti.
+  const echantillons = runners.flatMap((r) => r.participants.flatMap((p) => p.echantillons.map((e) => ({ ...e, runner: r.runner }))))
+  const finReleveS = finDuReleve(runners)
   const echecs = runners.flatMap((r) => r.participants.filter((p) => p.echecEntree).map((p) => `participant ${p.numero} : ${p.echecEntree}`))
   const entrees = runners.flatMap((r) => r.participants.map((p) => p.entreeMs)).filter(Number.isFinite)
   const l = [
@@ -25,20 +29,45 @@ export function lignesDuRapport(plan, runners) {
     '',
     `T0 : ${runners[0]?.t0 ?? '—'} ; paliers ${plan.paliers.join(', ')} ; ${plan.dureePalierS} s par palier ; ${plan.navigateursParRunner} navigateurs par runner.`,
     '',
-    '| Palier | Attendus | Entrés | Échec d’entrée | Perte reçue (médiane / p95) | Débit reçu (médiane / p5) | Gels apparus | CPU runner p95 |',
-    '|---|---|---|---|---|---|---|---|',
+    '| Palier | Attendus | Entrés | Échec d’entrée | Perte reçue (médiane / p95) | Débit reçu (médiane / p5) | Hauteur vidéo reçue (médiane) | Gels apparus (par min) | CPU runner p95 (le plus chargé) |',
+    '|---|---|---|---|---|---|---|---|---|',
   ]
   const val = (x, u = '') => (x == null ? '—' : `${x}${u}`)
+  const detailCpu = []
   plan.paliers.forEach((_, i) => {
-    const r = resumerPalier(echantillons, plan, i)
-    const sature = r.cpuRunnerPct.p95 != null && r.cpuRunnerPct.p95 >= CPU_RUNNER_SATURE ? ' ⚠ générateur saturé' : ''
-    l.push(`| ${i + 1} | ${r.attendus} | ${r.entres} | ${r.tauxEchecEntreePct} % | ${val(r.perteRecuePct.mediane, ' %')} / ${val(r.perteRecuePct.p95, ' %')} | ${val(r.debitRecuKbps.mediane, ' kb/s')} / ${val(r.debitRecuKbps.p5, ' kb/s')} | ${r.gelsApparus} | ${val(r.cpuRunnerPct.p95, ' %')}${sature} |`)
+    const r = resumerPalier(echantillons, plan, i, finReleveS)
+    if (r.atteint === 'non') {
+      l.push(`| ${i + 1} | ${r.attendus} | non atteint (arrêt à T+${finReleveS} s) | — | — | — | — | — | — |`)
+      return
+    }
+    const entres = `${r.entres}${r.atteint === 'partiel' ? ' (fenêtre partielle)' : ''}`
+    l.push(`| ${i + 1} | ${r.attendus} | ${entres} | ${r.tauxEchecEntreePct} % | ${val(r.perteRecuePct.mediane, ' %')} / ${val(r.perteRecuePct.p95, ' %')} `
+      + `| ${val(r.debitRecuKbps.mediane, ' kb/s')} / ${val(r.debitRecuKbps.p5, ' kb/s')} | ${val(r.hauteurVideoRecue.mediane, ' p')} `
+      + `| ${r.gelsApparus} (${val(r.gelsParMinute)}/min) | ${celluleCpu(r.cpuRunners)} |`)
+    if (r.cpuRunners.length) detailCpu.push(`- palier ${i + 1} : ${r.cpuRunners.map((c) => `runner ${c.runner}${c.emetteur ? ' (émetteur)' : ''} ${c.p95} %${c.p95 >= CPU_RUNNER_SATURE ? ' ⚠' : ''}`).join(', ')}`)
   })
   l.push('', `Temps d’entrée (ms) : ${entrees.length ? `médiane ${entrees.sort((a, b) => a - b)[Math.floor(entrees.length / 2)]}, max ${Math.max(...entrees)}` : '—'}`)
   l.push('', echecs.length ? `Échecs d’entrée :\n${echecs.map((e) => `- ${e}`).join('\n')}` : 'Aucun échec d’entrée.')
+  l.push('', '## CPU p95 de chaque runner (fenêtre stable)', '', ...(detailCpu.length ? detailCpu : ['- aucun relevé']))
   l.push('', '## Connexion au pont vidéo (dernier relevé de chaque participant)', '', ...cheminsMedia(runners))
   l.push('', '## Capture locale (getUserMedia direct, état de l’application)', '', ...diagnosticsCapture(runners))
   return l
+}
+
+/** La cellule CPU d'un palier : le runner le plus chargé, nommé ; « générateur saturé » s'il l'est. */
+function celluleCpu(cpuRunners) {
+  if (!cpuRunners.length) return '—'
+  const max = cpuRunners.reduce((a, b) => (b.p95 > a.p95 ? b : a))
+  return `${max.p95} % (runner ${max.runner}${max.emetteur ? ', émetteur' : ''})${max.p95 >= CPU_RUNNER_SATURE ? ' ⚠ générateur saturé' : ''}`
+}
+
+/** L'instant (s depuis T0) où le relevé s'arrête : le premier arrêt, ou le dernier relevé d'un run tué ; null s'il est complet. */
+export function finDuReleve(runners) {
+  if (runners.length && runners.every((r) => r.termine === true)) return null
+  const arrets = runners.map((r) => r.arret?.tS).filter(Number.isFinite)
+  if (arrets.length) return Math.min(...arrets)
+  const instants = runners.flatMap((r) => r.participants.flatMap((p) => p.echantillons.map((e) => e.tS))).filter(Number.isFinite)
+  return instants.length ? Math.max(...instants) : 0
 }
 
 /**

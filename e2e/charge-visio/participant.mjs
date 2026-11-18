@@ -17,6 +17,7 @@ import { validerPlan, participantsDuRunner, finS, adresseEntree } from './plan.m
 import { deltas } from './mesures.mjs'
 import { noterConsole } from './capture.mjs'
 import { DELAI_GESTE_MS, PREJOIN, allumerMicroEtCamera } from './geste.mjs'
+import { VIEWPORT, VIEWPORT_SCENE, passerEnScene } from './scene.mjs'
 
 const PAS_S = 5
 const ATTENTE_ENTREE_MS = 60_000
@@ -76,7 +77,7 @@ async function relever() {
       }
     : null
   const base = { entre, participants: salle?.getParticipantCount?.() ?? null, pistesLocales, pistesDistantes, connexions, redux }
-  if (!pc) return { ...base, ice: null, paquetsRecus: null, paquetsPerdus: null, octetsRecus: null, octetsRecusAudio: null, octetsRecusVideo: null, gelsCumules: null, imagesDecodeesCumulees: null }
+  if (!pc) return { ...base, ice: null, paquetsRecus: null, paquetsPerdus: null, octetsRecus: null, octetsRecusAudio: null, octetsRecusVideo: null, gelsCumules: null, imagesDecodeesCumulees: null, hauteurVideoRecue: null }
   let paquetsRecus = 0
   let paquetsPerdus = 0
   let octetsRecus = 0
@@ -85,6 +86,8 @@ async function relever() {
   let octetsEnvoyes = 0
   let gels = 0
   let images = 0
+  // Test 1 : 68 kb/s reçus. La hauteur de la vidéo reçue dit quelle couche le pont envoie (180 p : vignette).
+  let hauteur = null
   let paireRetenue = null
   const rapports = await pc.getStats()
   rapports.forEach((r) => {
@@ -98,6 +101,7 @@ async function relever() {
     if (r.kind === 'video') {
       gels += r.freezeCount ?? 0
       images += r.framesDecoded ?? 0
+      if (Number.isFinite(r.frameHeight)) hauteur = Math.max(hauteur ?? 0, r.frameHeight)
     }
   })
   // #1232, essai 1 : le média n'arrivait pas. L'état ICE et la paire retenue disent si la connexion au pont
@@ -113,6 +117,7 @@ async function relever() {
   return {
     ...base, ice, octetsEnvoyes, paquetsRecus, paquetsPerdus, octetsRecus,
     octetsRecusAudio: octetsRecusParType.audio, octetsRecusVideo: octetsRecusParType.video, gelsCumules: gels, imagesDecodeesCumulees: images,
+    hauteurVideoRecue: hauteur,
   }
 }
 
@@ -152,7 +157,7 @@ async function vivre(navigateur, p, contexteRun) {
   resultat.participants.push(trace)
   await dormir(t0Ms + p.entreeS * 1000 - Date.now())
   if (contexteRun.arret) return
-  const contexte = await navigateur.newContext({ permissions: ['camera', 'microphone'], viewport: { width: 640, height: 360 } })
+  const contexte = await navigateur.newContext({ permissions: ['camera', 'microphone'], viewport: plan.scene ? VIEWPORT_SCENE : VIEWPORT })
   contexteRun.contextes.add(contexte)
   try {
     const page = await contexte.newPage()
@@ -175,6 +180,9 @@ async function vivre(navigateur, p, contexteRun) {
     // Le geste, 5 s après l'entrée et APRÈS le diagnostic : l'enseignant allume micro et caméra par les boutons.
     if (p.role === 'enseignant' && trace.entreeMs != null && !contexteRun.arret) trace.geste = await dormir(debut + trace.entreeMs + DELAI_GESTE_MS - Date.now())
       .then(() => allumerMicroEtCamera(page)).catch((e) => ({ erreurOutil: String(e?.message ?? e).split('\n')[0] }))
+    // La scène (si le plan la demande) : l'élève refuse la mosaïque par l'interface, l'enseignant passe en grand.
+    if (plan.scene && p.role === 'eleve' && trace.entreeMs != null && !contexteRun.arret) trace.scene = await passerEnScene(page)
+      .catch((e) => ({ erreurOutil: String(e?.message ?? e).split('\n')[0] }))
     let precedent = null
     while (!contexteRun.arret && Date.now() < finMs) {
       const instant = Date.now()
@@ -196,6 +204,7 @@ async function vivre(navigateur, p, contexteRun) {
         ...deltas(precedent?.brut, brut.paquetsRecus == null ? null : brut, dt),
         gelsCumules: brut.gelsCumules ?? null,
         imagesDecodeesCumulees: brut.imagesDecodeesCumulees ?? null,
+        hauteurVideoRecue: brut.hauteurVideoRecue ?? null,
         cpuRunnerPct: cpu(),
       })
       if (brut.paquetsRecus != null) precedent = { instant, brut }
