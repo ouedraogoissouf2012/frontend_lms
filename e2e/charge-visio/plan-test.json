@@ -2,6 +2,6 @@
   "salle": "test-charge-1232",
   "paliers": [5, 10, 20, 30, 40, 50, 60],
   "dureePalierS": 180,
-  "navigateursParRunner": 5,
+  "navigateursParRunner": 4,
   "scene": true
 }
