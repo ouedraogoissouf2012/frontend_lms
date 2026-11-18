@@ -92,8 +92,9 @@ export function fenetreStable(plan, palier) {
 export function adresseEntree(domaine, salle, jeton, role) {
   const coupe = role === 'eleve'
   // Aucune surcharge de la page d'accueil (prejoin) : passée par l'URL hors iframe, Jitsi la lit comme « démarrer
-  // sans média » et pose disableInitialGUM (essai 4, bundle servi v=9365). Le serveur la désactive déjà ; si elle
-  // s'affiche, participant.mjs la passe comme un humain (geste.mjs).
+  // sans média » et pose disableInitialGUM (essai 4, bundle servi v=9365). Le serveur l'AFFICHE (config.js public :
+  // prejoinConfig.enabled = true) : participant.mjs la passe comme un humain, par « Rejoindre » (geste.mjs ; essai 5 :
+  // vue et passée par les 3 participants).
   const config = [
     'config.disableDeepLinking=true',
     // Tout passe par le pont vidéo du serveur : c'est LUI qu'on mesure (en pair à pair, deux participants
