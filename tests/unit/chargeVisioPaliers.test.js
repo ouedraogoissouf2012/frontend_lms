@@ -31,11 +31,11 @@ describe('#1232, test 1 — l’enseignant, seul émetteur, a son runner', () =>
 })
 
 describe('#1232, test 1 — le générateur ne doit pas saturer', () => {
-  // Décision de la superviseure (18/11) : 4 navigateurs par runner AVANT le prochain run, sans attendre de voir saturer
-  // un runner d'élèves (fenêtre 1280x720 et scène). Un run gâché par le générateur coûte jetons, créneau et accord.
-  it('60 participants : 4 par runner, 16 runners (1 enseignant + 15), sous le plafond ; 18 jobs avec le plan et la veille', () => {
-    expect(planTest.navigateursParRunner).toBe(4)
-    expect(runnersNecessaires(planTest)).toBe(16)
+  // Test 2 (run 44393345694) : 4 navigateurs recevant le média = p95 de 33 à 50 % d'un runner. Après #1260 (coturn), le
+  // plan de test monte à 100 : 6 par runner (p95 attendu vers 70 %), au plafond de concurrence du compte (20 jobs).
+  it('100 participants : 6 par runner, 18 runners (1 enseignant + 17), au plafond ; 20 jobs avec le plan et la veille', () => {
+    expect(planTest.navigateursParRunner).toBe(6)
+    expect(runnersNecessaires(planTest)).toBe(18)
     expect(runnersNecessaires(planTest)).toBeLessThanOrEqual(RUNNERS_MAX)
     expect(runnersNecessaires(planTest) + 2).toBeLessThanOrEqual(20)
   })
@@ -59,7 +59,7 @@ describe('#1232, test 1 — un palier que l’arrêt a devancé n’est pas un �
   it('le rapport écrit « non atteint (arrêt à T+x s) », jamais 100 % d’échec ; une fenêtre coupée se dit partielle', () => {
     const runners = [{ runner: 0, termine: false, arret: { signal: 'SIGINT', tS: 300 }, participants: [{ numero: 0, entreeMs: 3000, echecEntree: null, echantillons: [e(0, 70), e(0, 250)] }] }]
     const lignes = lignesPaliers(lignesDuRapport(PLAN, runners))
-    expect(lignes[1]).toMatch(/^\| 2 \| 10 \| 1 \(fenêtre partielle\) \|/)
+    expect(lignes[1]).toMatch(/^\| 2 \| 10 \| 1 \(1 avec média, fenêtre partielle\) \|/)
     expect(lignes[2]).toBe('| 3 | 20 | non atteint (arrêt à T+300 s) | — | — | — | — | — | — |')
     expect(lignes.join('\n')).not.toMatch(/100 %/)
   })
@@ -117,7 +117,7 @@ describe('#1232, test 1 — ce que reçoivent les élèves', () => {
     const runners = [{ runner: 1, termine: true, participants: [{ numero: 1, entreeMs: 3000, echecEntree: null, echantillons: [e(1, 60), e(1, 175, { gelsCumules: 14 })] }] }]
     const lignes = lignesDuRapport(PLAN, runners)
     expect(lignes).toContain('| Palier | Attendus | Entrés | Échec d’entrée | Perte reçue (médiane / p95) | Débit reçu (médiane / p5) | Hauteur vidéo reçue (médiane) | Gels apparus (par min) | CPU runner p95 (le plus chargé) |')
-    expect(lignesPaliers(lignes)[0]).toBe('| 1 | 5 | 1 | 80 % | 0 % / 0 % | 68 kb/s / 68 kb/s | 180 p | 14 (7/min) | 30 % (runner 1) |')
+    expect(lignesPaliers(lignes)[0]).toBe('| 1 | 5 | 1 (1 avec média) | 80 % | 0 % / 0 % | 68 kb/s / 68 kb/s | 180 p | 14 (7/min) | 30 % (runner 1) |')
   })
 })
 

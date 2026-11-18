@@ -34,11 +34,11 @@ describe('#1232 — le plan', () => {
     expect(() => validerPlan({ ...PLAN, navigateursParRunner: 9 })).toThrow(/hors bornes/)
   })
 
-  it('les deux plans livrés sont valides : l’essai (3, une salle à part) et le test (5 → 60)', () => {
+  it('les deux plans livrés sont valides : l’essai (3, une salle à part) et le test (20 → 100)', () => {
     expect(validerPlan(planEssai).salle).toBe('test-charge-1232-essai')
-    expect(validerPlan(planTest).paliers).toEqual([5, 10, 20, 30, 40, 50, 60])
-    expect(runnersNecessaires(planTest)).toBe(16)
-    expect(finS(planTest)).toBe(7 * 180)
+    expect(validerPlan(planTest).paliers).toEqual([20, 40, 60, 80, 100])
+    expect(runnersNecessaires(planTest)).toBe(18)
+    expect(finS(planTest)).toBe(5 * 180)
   })
 
   it('chaque participant entre au palier qui le compte, étalé sur la minute d’entrée, et reste ensuite', () => {
@@ -136,7 +136,7 @@ describe('#1232 — la préparation du run', () => {
   })
 
   it('les sorties : la matrice des runners, T0 après la marge de départ, la fin', () => {
-    expect(sorties(planTest, 1000)).toEqual({ runners: JSON.stringify([...Array(16).keys()]), t0: String(1000 + MARGE_DEPART_S), fin: String(1000 + MARGE_DEPART_S + 1260) })
+    expect(sorties(planTest, 1000)).toEqual({ runners: JSON.stringify([...Array(18).keys()]), t0: String(1000 + MARGE_DEPART_S), fin: String(1000 + MARGE_DEPART_S + 900) })
   })
 })
 
