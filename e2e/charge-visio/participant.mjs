@@ -16,6 +16,7 @@ import { chromium } from 'playwright'
 import { validerPlan, participantsDuRunner, finS, adresseEntree } from './plan.mjs'
 import { deltas } from './mesures.mjs'
 import { noterConsole } from './capture.mjs'
+import { DELAI_GESTE_MS, PREJOIN, allumerMicroEtCamera } from './geste.mjs'
 
 const PAS_S = 5
 const ATTENTE_ENTREE_MS = 60_000
@@ -128,7 +129,17 @@ async function sonderCapture() {
   } catch (e) {
     gum = { ok: false, nom: e?.name ?? null, message: String(e?.message ?? e).slice(0, 200) }
   }
-  return { userAgent: navigator.userAgent, peripheriques, gum }
+  // Essai 4 : la version servie et ce que l'application a décidé de la capture initiale (lecture seule).
+  const navigateurJitsi = window.JitsiMeetJS?.util?.browser
+  const config = window.APP?.store?.getState?.()?.['features/base/config']
+  const bundle = document.querySelector('script[src*="app.bundle"]')?.getAttribute('src')?.match(/[?&]v=([^&]+)/)?.[1] ?? null
+  const jitsi = {
+    bundle, lib: window.JitsiMeetJS?.version ?? null,
+    navigateur: navigateurJitsi?.getName?.() ?? null, versionNavigateur: navigateurJitsi?.getVersion?.() ?? null,
+    supporte: navigateurJitsi?.isSupported?.() ?? null,
+    disableInitialGUM: config?.disableInitialGUM ?? null, prejoin: config?.prejoinConfig?.enabled ?? null,
+  }
+  return { userAgent: navigator.userAgent, peripheriques, gum, jitsi }
 }
 
 const dormir = (ms) => new Promise((r) => setTimeout(r, Math.max(0, ms)))
@@ -149,10 +160,21 @@ async function vivre(navigateur, p, contexteRun) {
     page.on('pageerror', (e) => noterConsole(trace.journalCapture, 'pageerror', String(e?.message ?? e), jetons.jetons))
     const debut = Date.now()
     await page.goto(adresseEntree(jetons.domaine, plan.salle, jetons.jetons[p.numero], p.role), { waitUntil: 'domcontentloaded', timeout: ATTENTE_ENTREE_MS })
-    await page.waitForFunction(() => Boolean(window.APP?.conference?.isJoined?.()), null, { timeout: ATTENTE_ENTREE_MS })
+    // La page d'accueil, si le serveur l'affiche, se passe comme un humain : « Rejoindre ».
+    const vue = await page.waitForFunction((ecran) => (window.APP?.conference?.isJoined?.() ? 'entre' : document.querySelector(ecran) ? 'prejoin' : ''), PREJOIN.ecran, { timeout: ATTENTE_ENTREE_MS })
+      .then((h) => h.jsonValue(), () => null)
+    trace.prejoin = vue === 'prejoin' ? 'vue' : vue === 'entre' ? 'absente' : null
+    if (vue === 'prejoin') {
+      await page.locator(PREJOIN.rejoindre).click({ timeout: 10_000 })
+        .then(() => { trace.prejoin = 'vue, « Rejoindre » cliqué' }, (e) => { trace.prejoin = `vue, « Rejoindre » en échec : ${String(e?.message ?? e).split('\n')[0]}` })
+    }
+    await (vue === null ? Promise.reject(new Error()) : page.waitForFunction(() => Boolean(window.APP?.conference?.isJoined?.()), null, { timeout: ATTENTE_ENTREE_MS }))
       .then(() => { trace.entreeMs = Date.now() - debut })
       .catch(() => { trace.echecEntree = 'entrée en salle non confirmée en 60 s' })
     trace.capture = await page.evaluate(sonderCapture).catch((e) => ({ erreurOutil: String(e?.message ?? e).split('\n')[0] }))
+    // Le geste, 5 s après l'entrée et APRÈS le diagnostic : l'enseignant allume micro et caméra par les boutons.
+    if (p.role === 'enseignant' && trace.entreeMs != null && !contexteRun.arret) trace.geste = await dormir(debut + trace.entreeMs + DELAI_GESTE_MS - Date.now())
+      .then(() => allumerMicroEtCamera(page)).catch((e) => ({ erreurOutil: String(e?.message ?? e).split('\n')[0] }))
     let precedent = null
     while (!contexteRun.arret && Date.now() < finMs) {
       const instant = Date.now()

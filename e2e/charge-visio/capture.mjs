@@ -6,7 +6,10 @@
 // (pistes, coupures). Il garde aussi, du journal de la page, ce qui parle de la capture, sans jamais y laisser un
 // jeton : l'artefact du run est lisible par tout compte qui voit le dépôt.
 
-export const MOTIF_CAPTURE = /getUserMedia|NotAllowedError|NotFoundError|NotReadableError|OverconstrainedError|permission|createLocalTracks|local track|device|unsupported|camera|microphone/i
+// Essai 4 : « … implies starting without media. » (disableInitialGUM) passait le filtre sans y être retenu.
+export const MOTIF_CAPTURE = /getUserMedia|NotAllowedError|NotFoundError|NotReadableError|OverconstrainedError|permission|createLocalTracks|local track|device|unsupported|camera|microphone|without media|InitialGUM|prejoin/i
+import { ligneGeste } from './geste.mjs'
+
 export const MESSAGES_MAX = 20
 export const LONGUEUR_MAX = 200
 
@@ -46,6 +49,13 @@ export function diagnosticsCapture(runners) {
       + `périphériques ${liste(c?.peripheriques, (k) => k)} ; `
       + `pistes de l’application ${liste(redux?.pistes, (t) => `${t.type}${t.muette ? ' (muette)' : ''}`)} ; `
       + `coupure audio ${media?.audioCoupe ?? '—'}, vidéo ${media?.videoCoupe ?? '—'}`)
+    const j = c?.jitsi
+    if (j) {
+      lignes.push(`  - jitsi : bundle v=${j.bundle ?? '—'}, lib-jitsi-meet ${j.lib ?? '—'} ; navigateur ${j.navigateur ?? '—'} ${j.versionNavigateur ?? '—'} `
+        + `(supporté ${j.supporte ?? '—'}) ; disableInitialGUM ${j.disableInitialGUM ?? '—'} ; prejoin configuré ${j.prejoin ?? '—'} ; `
+        + `page d’accueil ${p.prejoin ?? '—'}`)
+    }
+    if (p.geste !== undefined) lignes.push(`  - ${ligneGeste(p.geste)}`)
     for (const m of p.journalCapture ?? []) lignes.push(`  - ${m}`)
   }
   return lignes.length ? lignes : ['- aucun relevé']
