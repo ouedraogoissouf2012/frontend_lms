@@ -62,13 +62,20 @@ describe('#1232 — le plan', () => {
     expect(fenetreStable(PLAN, 1)).toEqual({ debut: 180 + ENTREE_S, fin: 360 })
   })
 
-  it('l’adresse : le jeton, la salle, sans pair à pair ni page d’attente ; l’élève entre coupé, l’enseignant non', () => {
+  it('l’adresse : le jeton, la salle, sans pair à pair ; l’élève entre coupé, l’enseignant non', () => {
     const eleve = adresseEntree('visio.example.test', 'test-charge-1232', 'a.b.c', 'eleve')
     expect(eleve.startsWith('https://visio.example.test/test-charge-1232?jwt=a.b.c#')).toBe(true)
     expect(eleve).toContain('config.p2p.enabled=false')
-    expect(eleve).toContain('config.prejoinConfig.enabled=false')
     expect(eleve).toContain('config.startWithVideoMuted=true')
     expect(adresseEntree('visio.example.test', 'test-charge-1232', 'a.b.c', 'enseignant')).toContain('config.startWithVideoMuted=false')
+  })
+
+  it('l’adresse ne surcharge PAS la page d’accueil (essai 4 : par l’URL, Jitsi la lit comme « démarrer sans média »)', () => {
+    for (const role of ['eleve', 'enseignant']) {
+      const adresse = adresseEntree('visio.example.test', 'test-charge-1232', 'a.b.c', role)
+      expect(adresse).not.toMatch(/prejoin/i)
+      expect(adresse).not.toMatch(/disableInitialGUM/)
+    }
   })
 })
 
@@ -213,6 +220,12 @@ describe('#1232 — la capture locale (essai 3 : entrés, ICE établi, aucune pi
     expect(journal).toHaveLength(MESSAGES_MAX)
   })
 
+  it('le journal garde l’avertissement de Jitsi qui coupe la capture initiale (essai 4 : il était filtré)', () => {
+    const journal = []
+    noterConsole(journal, 'warning', '[app:base-config] Using prejoinConfig.enabled config URL overwrite implies starting without media.', [])
+    expect(journal).toEqual(['warning : [app:base-config] Using prejoinConfig.enabled config URL overwrite implies starting without media.'])
+  })
+
   it('par participant : le getUserMedia direct (obtenu ou refusé), les périphériques, les pistes et coupures de l’application, le journal', () => {
     const runners = [{ runner: 0, navigateur: 'chromium-headless-shell 140', participants: [
       { numero: 1, role: 'eleve', capture: { userAgent: 'HeadlessChrome/140', peripheriques: ['audioinput', 'videoinput'], gum: { ok: false, nom: 'NotReadableError', message: 'Could not start video source' } },
@@ -227,6 +240,16 @@ describe('#1232 — la capture locale (essai 3 : entrés, ICE établi, aucune pi
       '  - error : createLocalTracks failed',
     ])
     expect(diagnosticsCapture([])).toEqual(['- aucun relevé'])
+    // Essai 4 : la version de Jitsi servie, son verdict sur la capture initiale, la page d'accueil, puis le geste.
+    const enseignant = runners[0].participants[1]
+    enseignant.capture.jitsi = { bundle: '9365', lib: 'edf33a3b', navigateur: 'chrome', versionNavigateur: '158.0.8127.18', supporte: true, disableInitialGUM: true, prejoin: false }
+    enseignant.prejoin = 'absente'
+    enseignant.geste = { pistesAvant: [], boutons: { micro: { trouve: true, avant: 'true', clic: true, erreur: null, apres: 'false' }, camera: { trouve: false } }, pistesApres: [{ type: 'audio', muette: false }] }
+    expect(diagnosticsCapture(runners).slice(1, 4)).toEqual([
+      '- participant 0 (enseignant) : getUserMedia direct obtenu (audio « Fake Audio ») ; périphériques aucune ; pistes de l’application audio ; coupure audio false, vidéo 0',
+      '  - jitsi : bundle v=9365, lib-jitsi-meet edf33a3b ; navigateur chrome 158.0.8127.18 (supporté true) ; disableInitialGUM true ; prejoin configuré false ; page d’accueil absente',
+      '  - geste : pistes avant aucune ; micro cliqué (aria-pressed true → false) ; camera introuvable ; pistes après audio',
+    ])
     expect(lignesDuRapport(PLAN, runners)).toContain('## Capture locale (getUserMedia direct, état de l’application)')
   })
 })
