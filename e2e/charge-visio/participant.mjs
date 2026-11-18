@@ -164,6 +164,8 @@ async function vivre(navigateur, p, contexteRun) {
     page.on('console', (m) => noterConsole(trace.journalCapture, m.type(), m.text(), jetons.jetons))
     page.on('pageerror', (e) => noterConsole(trace.journalCapture, 'pageerror', String(e?.message ?? e), jetons.jetons))
     const debut = Date.now()
+    // Le départ réel (s depuis T0) : au-delà du départ prévu, le générateur est en retard, pas le serveur.
+    trace.debutS = Math.round((debut - t0Ms) / 1000)
     await page.goto(adresseEntree(jetons.domaine, plan.salle, jetons.jetons[p.numero], p.role), { waitUntil: 'domcontentloaded', timeout: ATTENTE_ENTREE_MS })
     // La page d'accueil, si le serveur l'affiche, se passe comme un humain : « Rejoindre ».
     const vue = await page.waitForFunction((ecran) => (window.APP?.conference?.isJoined?.() ? 'entre' : document.querySelector(ecran) ? 'prejoin' : ''), PREJOIN.ecran, { timeout: ATTENTE_ENTREE_MS })
@@ -231,7 +233,10 @@ async function principal() {
 
   mkdirSync(sortie, { recursive: true })
   // `termine` : le run est allé au bout ; `arret` : le signal reçu et quand. Sans l'un ni l'autre, le script a été tué.
-  const resultat = { runner, salle: plan.salle, t0: new Date(t0Ms).toISOString(), termine: false, arret: null, participants: [] }
+  // `demarrageS` : le départ de ce runner par rapport à T0 (au plafond de concurrence du compte, un job peut partir tard).
+  const resultat = {
+    runner, salle: plan.salle, t0: new Date(t0Ms).toISOString(), demarrageS: Math.round((Date.now() - t0Ms) / 1000), termine: false, arret: null, participants: [],
+  }
   const fichier = join(sortie, `runner-${runner}.json`)
   // Atomique (écrire à côté, puis renommer) : un arrêt en pleine écriture laisse le relevé précédent, entier.
   const ecrire = () => { writeFileSync(`${fichier}.tmp`, JSON.stringify(resultat)); renameSync(`${fichier}.tmp`, fichier) }
