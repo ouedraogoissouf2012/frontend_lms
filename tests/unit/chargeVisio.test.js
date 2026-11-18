@@ -37,7 +37,7 @@ describe('#1232 — le plan', () => {
   it('les deux plans livrés sont valides : l’essai (3, une salle à part) et le test (5 → 60)', () => {
     expect(validerPlan(planEssai).salle).toBe('test-charge-1232-essai')
     expect(validerPlan(planTest).paliers).toEqual([5, 10, 20, 30, 40, 50, 60])
-    expect(runnersNecessaires(planTest)).toBe(12)
+    expect(runnersNecessaires(planTest)).toBe(13)
     expect(finS(planTest)).toBe(7 * 180)
   })
 
@@ -53,7 +53,7 @@ describe('#1232 — le plan', () => {
   })
 
   it('les runners se partagent les participants sans trou ni doublon ; le participant 0 est l’enseignant', () => {
-    const tous = [0, 1, 2, 3].flatMap((r) => participantsDuRunner(PLAN, r))
+    const tous = [0, 1, 2, 3, 4].flatMap((r) => participantsDuRunner(PLAN, r))
     expect(tous.map((p) => p.numero)).toEqual([...Array(20).keys()])
     expect(tous.filter((p) => p.role === 'enseignant').map((p) => p.numero)).toEqual([0])
   })
@@ -136,7 +136,7 @@ describe('#1232 — la préparation du run', () => {
   })
 
   it('les sorties : la matrice des runners, T0 après la marge de départ, la fin', () => {
-    expect(sorties(planTest, 1000)).toEqual({ runners: JSON.stringify([...Array(12).keys()]), t0: String(1000 + MARGE_DEPART_S), fin: String(1000 + MARGE_DEPART_S + 1260) })
+    expect(sorties(planTest, 1000)).toEqual({ runners: JSON.stringify([...Array(13).keys()]), t0: String(1000 + MARGE_DEPART_S), fin: String(1000 + MARGE_DEPART_S + 1260) })
   })
 })
 
@@ -174,17 +174,17 @@ describe('#1232 — l’annulation (essai 2 : aucun relevé écrit, le runner a 
     expect(workflow).toMatch(/run: exec node outils\/participant\.mjs /)
   })
 
-  // Plan à 2 runners : 10 participants au plus, 5 par runner.
+  // Plan à 3 runners : l'enseignant seul, puis 9 élèves, 5 par runner.
   const avec = (runner, extra, tS = [10, 15]) => ({ runner, participants: [{ numero: runner, echantillons: tS.map((t) => ({ tS: t })) }], ...extra })
 
   it('le relevé se dit complet, partiel (annulé à T+x s, ou interrompu sans signal) ou absent : il ne fait pas échouer le rapport', () => {
     expect(etatDuReleve(PLAN, [])).toBe('aucun relevé')
-    expect(etatDuReleve({ ...PLAN, paliers: [5, 10] }, [avec(0, { termine: true }), avec(1, { termine: true })])).toBe('complet')
-    expect(etatDuReleve({ ...PLAN, paliers: [5, 10] }, [avec(0, { termine: false, arret: { signal: 'SIGINT', tS: 169 } }), avec(1, { termine: false, arret: { signal: 'SIGINT', tS: 170 } })]))
+    expect(etatDuReleve({ ...PLAN, paliers: [5, 10] }, [0, 1, 2].map((r) => avec(r, { termine: true })))).toBe('complet')
+    expect(etatDuReleve({ ...PLAN, paliers: [5, 10] }, [169, 170, 171].map((tS, r) => avec(r, { termine: false, arret: { signal: 'SIGINT', tS } }))))
       .toBe('relevé partiel (annulé à T+169 s)')
     expect(etatDuReleve({ ...PLAN, paliers: [5, 10] }, [avec(0, { termine: false, arret: null }, [5, 140])]))
-      .toBe('relevé partiel (interrompu sans signal ; dernier relevé : T+140 s) ; 1 runner(s) sur 2 sans relevé')
-    expect(etatDuReleve({ ...PLAN, paliers: [5, 10] }, [avec(0, { termine: true })])).toBe('relevé partiel (interrompu sans signal ; dernier relevé : T+15 s) ; 1 runner(s) sur 2 sans relevé')
+      .toBe('relevé partiel (interrompu sans signal ; dernier relevé : T+140 s) ; 2 runner(s) sur 3 sans relevé')
+    expect(etatDuReleve({ ...PLAN, paliers: [5, 10] }, [avec(0, { termine: true })])).toBe('relevé partiel (interrompu sans signal ; dernier relevé : T+15 s) ; 2 runner(s) sur 3 sans relevé')
     expect(lignesDuRapport(PLAN, [])).toContain('Relevé : aucun relevé.')
   })
 
