@@ -24,7 +24,7 @@ export const ATTENTE_EFFET_MS = 3000
 
 /** Seul un appareil COUPÉ (aria-pressed="true") se clique : cliquer un appareil actif le couperait. */
 export function doitCliquer(ariaPressed) {
-  return ariaPressed === 'true'
+  return ariaPressed != null
 }
 
 // Exécuté DANS la page : les pistes locales que l'application a créées (lecture seule du store).
