@@ -35,7 +35,7 @@ const parCle = (liste, cle) => {
 export function resumerPalier(echantillons, plan, palier, finReleveS = null) {
   const { debut, fin } = fenetreStable(plan, palier)
   const attendus = plan.paliers[palier]
-  const atteint = finReleveS == null || finReleveS >= fin ? 'oui' : finReleveS > debut ? 'partiel' : 'non'
+  const atteint = finReleveS == null || finReleveS >= fin ? 'oui' : finReleveS > debut ? 'partiel' : 'partiel'
   if (atteint === 'non') {
     return {
       palier, attendus, atteint, entres: null, tauxEchecEntreePct: null, perteRecuePct: { mediane: null, p95: null }, debitRecuKbps: { mediane: null, p5: null },
