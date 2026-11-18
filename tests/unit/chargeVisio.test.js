@@ -37,7 +37,7 @@ describe('#1232 — le plan', () => {
   it('les deux plans livrés sont valides : l’essai (3, une salle à part) et le test (5 → 60)', () => {
     expect(validerPlan(planEssai).salle).toBe('test-charge-1232-essai')
     expect(validerPlan(planTest).paliers).toEqual([5, 10, 20, 30, 40, 50, 60])
-    expect(runnersNecessaires(planTest)).toBe(13)
+    expect(runnersNecessaires(planTest)).toBe(16)
     expect(finS(planTest)).toBe(7 * 180)
   })
 
@@ -136,7 +136,7 @@ describe('#1232 — la préparation du run', () => {
   })
 
   it('les sorties : la matrice des runners, T0 après la marge de départ, la fin', () => {
-    expect(sorties(planTest, 1000)).toEqual({ runners: JSON.stringify([...Array(13).keys()]), t0: String(1000 + MARGE_DEPART_S), fin: String(1000 + MARGE_DEPART_S + 1260) })
+    expect(sorties(planTest, 1000)).toEqual({ runners: JSON.stringify([...Array(16).keys()]), t0: String(1000 + MARGE_DEPART_S), fin: String(1000 + MARGE_DEPART_S + 1260) })
   })
 })
 

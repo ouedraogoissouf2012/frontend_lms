@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { NUMERO_ENSEIGNANT, participantsDuRunner, runnersNecessaires, validerPlan } from '../../e2e/charge-visio/plan.mjs'
 import { resumerPalier } from '../../e2e/charge-visio/mesures.mjs'
 import { finDuReleve, lignesDuRapport } from '../../e2e/charge-visio/rapport.mjs'
+import { RUNNERS_MAX } from '../../e2e/charge-visio/preparer.mjs'
 import planTest from '../../e2e/charge-visio/plan-test.json'
 import planEssai from '../../e2e/charge-visio/plan-essai.json'
 
@@ -25,8 +26,18 @@ describe('#1232, test 1 — l’enseignant, seul émetteur, a son runner', () =>
     const tous = [...Array(runnersNecessaires(PLAN)).keys()].flatMap((r) => participantsDuRunner(PLAN, r))
     expect(tous.map((p) => p.numero)).toEqual([...Array(20).keys()])
     expect(tous.filter((p) => p.role === 'enseignant').map((p) => p.numero)).toEqual([0])
-    expect(runnersNecessaires(planTest)).toBe(13)
     expect(runnersNecessaires(planEssai)).toBe(2)
+  })
+})
+
+describe('#1232, test 1 — le générateur ne doit pas saturer', () => {
+  // Décision de la superviseure (18/11) : 4 navigateurs par runner AVANT le prochain run, sans attendre de voir saturer
+  // un runner d'élèves (fenêtre 1280x720 et scène). Un run gâché par le générateur coûte jetons, créneau et accord.
+  it('60 participants : 4 par runner, 16 runners (1 enseignant + 15), sous le plafond ; 18 jobs avec le plan et la veille', () => {
+    expect(planTest.navigateursParRunner).toBe(4)
+    expect(runnersNecessaires(planTest)).toBe(16)
+    expect(runnersNecessaires(planTest)).toBeLessThanOrEqual(RUNNERS_MAX)
+    expect(runnersNecessaires(planTest) + 2).toBeLessThanOrEqual(20)
   })
 })
 
