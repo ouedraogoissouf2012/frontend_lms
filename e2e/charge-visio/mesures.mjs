@@ -107,7 +107,7 @@ export function resumerPalier(echantillons, plan, palier, finReleveS = null, { s
   const nbExclus = [...exclus].filter((n) => n < attendus).length
   const dansFenetre = echantillons.filter((e) => e.tS >= debut && e.tS < fin && e.numero < attendus && !exclus.has(e.numero))
   const entres = new Set(dansFenetre.filter((e) => e.entre === true).map((e) => e.numero))
-  const avecMedia = [...entres].filter((n) => !sansMedia.has(n)).length
+  const avecMedia = entres.size
   const mesures = attendus - nbExclus
 
   // Les gels APPARUS dans la fenêtre : la différence des compteurs cumulés, par participant.
