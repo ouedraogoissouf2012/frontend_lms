@@ -35,6 +35,6 @@ describe('acces.mjs — le refus de capacité attendu (D607)', () => {
   })
 
   it('l’école KLASSCI déclare la capacité absente, comme le produit', () => {
-    expect(jeuDuParcours().capacites).toEqual({ peutInscrireLocalement: false })
+    expect(jeuDuParcours().capacites).toEqual({ peutInscrireLocalement: false, peutGererCatalogueLocal: false })
   })
 })

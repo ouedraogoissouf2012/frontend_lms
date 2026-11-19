@@ -68,6 +68,8 @@ export const useAuthStore = defineStore('auth', () => {
   const institutionSlug = computed(() => meta.value?.institution ?? institution.value ?? null)
   const institutionDisplayName = computed(() => meta.value?.institution_name ?? null)
   const peutInscrireLocalement = computed(() => meta.value?.peut_inscrire_localement === true)
+  // #605 (lms_backend#1184) : l'établissement gère son propre catalogue (programmes, sessions). Fermé par défaut.
+  const peutGererCatalogueLocal = computed(() => meta.value?.peut_gerer_catalogue_local === true)
 
   // --- Actions ---
 
@@ -161,7 +163,7 @@ export const useAuthStore = defineStore('auth', () => {
     // getters
     isAuthenticated, currentUser, userRole, normalizedRole,
     isAdmin, isSupradmin, isTeacher, isStudent,
-    institutionSlug, institutionDisplayName, peutInscrireLocalement,
+    institutionSlug, institutionDisplayName, peutInscrireLocalement, peutGererCatalogueLocal,
     // actions
     login, setSession, setInstitution, logout, me, fetchActiveInstitutions,
   }

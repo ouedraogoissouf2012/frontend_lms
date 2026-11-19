@@ -250,7 +250,8 @@ export function jeuDuParcours() {
     matieres: MATIERES.map((m) => m.id),
     // D607 : les capacités de l'école, telles que le produit les décide. Une école KLASSCI n'inscrit pas
     // localement : KlassciRosterAuthority::allowsLocalEnrolment() rend false (KlassciRosterAuthority.php:18-20).
-    capacites: { peutInscrireLocalement: false },
+    // #605 (lms_backend#1184) : ni ne gère son catalogue (CatalogueAuthority::allowsLocalCatalogue()).
+    capacites: { peutInscrireLocalement: false, peutGererCatalogueLocal: false },
     // PR 3 : les programmations que le parcours du devoir met en ligne par l'interface.
     devoirs: { principal: DEVOIRS.principal, b: DEVOIRS.b },
   }
