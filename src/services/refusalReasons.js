@@ -16,9 +16,10 @@
  * Retry-After) ; un nouvel essai a un sens. Sinon le motif est un refus définitif. C'est le SEUL
  * endroit qui le dit : un motif transitoire ajouté ici prend son délai ET garde « Réessayer ».
  */
-function motif(categorie, { transitoire = false, etatVide = false } = {}) {
+function motif(categorie, { transitoire = false, etatVide = false, information = false } = {}) {
   // `etatVide` : le motif dit une ABSENCE légitime (rien à montrer), rendue en information, pas en erreur.
-  return Object.freeze(etatVide ? { categorie, transitoire, etatVide } : { categorie, transitoire })
+  // `information` : le motif n'est pas un refus ; il accompagne une réponse réussie et se rend tel quel (#613).
+  return Object.freeze({ categorie, transitoire, ...(etatVide && { etatVide }), ...(information && { information }) })
 }
 
 export const REASONS = Object.freeze({
@@ -116,11 +117,21 @@ export const REASONS = Object.freeze({
   // #605 (lms_backend#1184, PorteDuCatalogueLocal) : 403 sur le catalogue d'une école dont KLASSCI tient le
   // catalogue (programmes, sessions et leurs transitions, classes, matières, programme d'une classe, codes).
   catalogue_managed_by_klassci: motif('catalogueGereParKlassci'),
+  // #613 (lms_backend#808) : le 200 de POST /auth/forgot-password, le même pour un compte connu ou inconnu. Aucun n'est
+  // un refus : KLASSCI tient le mot de passe ; le canal de courriel n'est pas posé ; un lien part si le compte existe.
+  mot_de_passe_klassci: motif('motDePasseKlassci', { information: true }),
+  reinitialisation_indisponible: motif('reinitialisationIndisponible', { information: true }),
+  lien_envoye: motif('lienDeReinitialisationEnvoye', { information: true }),
 })
 
 /** Le `reason` dit-il un état vide (rien à montrer) plutôt qu'une erreur ? Seul le catalogue en décide. */
 export function estEtatVide(reason) {
   return entreeDuMotif(reason)?.etatVide === true
+}
+
+/** Le `reason` accompagne-t-il une réponse réussie (une information, pas un refus) ? Seul le catalogue en décide. */
+export function estInformation(reason) {
+  return entreeDuMotif(reason)?.information === true
 }
 
 /** L'entrée du catalogue pour un `reason`, ou `null` (inconnu, absent, clé du prototype). */

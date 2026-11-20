@@ -7,7 +7,13 @@
       <p v-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
         {{ error }}
       </p>
-      <p v-if="notice" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+      <!-- #613 : une information (KLASSCI, réinitialisation indisponible) ne prend pas le vert du succès. -->
+      <p
+        v-if="notice"
+        role="status"
+        class="border px-4 py-3 rounded mb-4"
+        :class="noticeTone === 'succes' ? 'bg-green-100 border-green-400 text-green-700' : 'bg-blue-100 border-blue-400 text-blue-800'"
+      >
         {{ notice }}
       </p>
 
@@ -57,7 +63,7 @@ import { usePasswordReset } from '@/composables/usePasswordReset'
 
 const slug = ref('')
 const email = ref('')
-const { loading, error, notice, institutions, loadInstitutions, requestLink } = usePasswordReset()
+const { loading, error, notice, noticeTone, institutions, loadInstitutions, requestLink } = usePasswordReset()
 
 onMounted(() => {
   loadInstitutions().catch(() => {

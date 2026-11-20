@@ -66,7 +66,7 @@ describe('#613 — le catalogue des motifs porte les trois réponses du serveur'
 })
 
 describe('#613 — usePasswordReset affiche le texte du motif, avec son ton', () => {
-  it.each(MOTIFS)('%s → le texte du catalogue, ton %s', async (reason, categorie, ton) => {
+  it.each(MOTIFS)('%s → le texte du catalogue (%s), ton %s', async (reason, categorie, ton) => {
     repondre(reason)
     const api = usePasswordReset()
     await expect(api.requestLink('ecole-test', 'eleve@ecole.test')).resolves.toBe(true)
