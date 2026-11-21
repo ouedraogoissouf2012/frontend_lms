@@ -1,6 +1,7 @@
 // Les parcours FONCTIONNELS d'une école (après le parcours des écrans) : l'enseignant crée, modifie, publie et
 // supprime ; l'élève de sa classe suit. Chaque étape est relue (e2e/fonctionnels.mjs). Les fonctions, dans
-// l'ordre : la leçon (PR 1), le quiz (PR 2), le devoir (PR 3), la séance et la visio (PR 4). Chacune a son moteur et son état : un ROUGE n'en traverse aucune autre.
+// l'ordre : la leçon (PR 1), le quiz (PR 2), le devoir (PR 3), la séance et la visio (PR 4), le mot de passe oublié
+// (#613, joué par un anonyme). Chacune a son moteur et son état : un ROUGE n'en traverse aucune autre.
 //
 // Usage : node e2e/parcours-fonctionnels.mjs <jeu.json> <dossier de sortie>
 // Sorties : fonctionnels.json (une case par école, fonction, étape et compte) et fonctionnels.md (le résumé).
@@ -13,6 +14,7 @@ import { ETAPES_LECON, DONNEES_LECON } from './parcours-lecon.mjs'
 import { ETAPES_QUIZ, DONNEES_QUIZ } from './parcours-quiz.mjs'
 import { ETAPES_DEVOIR, donneesDevoir } from './parcours-devoir.mjs'
 import { ETAPES_SEANCE, DONNEES_SEANCE } from './parcours-seance.mjs'
+import { ETAPES_MOT_DE_PASSE, DONNEES_MOT_DE_PASSE } from './parcours-mot-de-passe.mjs'
 
 const FONCTIONS = [
   { fonction: 'leçon', etapes: ETAPES_LECON, donnees: DONNEES_LECON },
@@ -20,6 +22,7 @@ const FONCTIONS = [
   // Les données du devoir dépendent de l'école (titres des programmations KLASSCI) : une fonction du jeu.
   { fonction: 'devoir', etapes: ETAPES_DEVOIR, donnees: donneesDevoir },
   { fonction: 'séance', etapes: ETAPES_SEANCE, donnees: DONNEES_SEANCE },
+  { fonction: 'mot de passe oublié', etapes: ETAPES_MOT_DE_PASSE, donnees: DONNEES_MOT_DE_PASSE },
 ]
 
 const [fichierJeu, sortie] = process.argv.slice(2)
@@ -35,6 +38,9 @@ for (const compte of ['enseignant', 'etudiant']) {
   connexions[compte] = jeu.comptes[compte] ? await connecter(page, BASE, jeu.comptes[compte], process.env.E2E_MOT_DE_PASSE) : { connecte: false, alerte: 'compte absent du jeu' }
   pages[compte] = page
 }
+// #613 : « Mot de passe oublié » est réservé aux anonymes (guest) : une page sans connexion, rien à ouvrir.
+pages.anonyme = await (await navigateur.newContext()).newPage()
+connexions.anonyme = { connecte: true, alerte: '' }
 
 const cases = []
 for (const { fonction, etapes, donnees } of FONCTIONS) {

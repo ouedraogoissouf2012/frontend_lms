@@ -52,12 +52,13 @@ export function ecartsDeValeur(VERIFS, cle, texte) {
 
 // D616 : les textes d'ERREUR du catalogue du front MESURÉ, une seule source. Le faux vert découvert par K4 :
 // « La ressource demandée est introuvable. » (notFound), dans un bandeau sans role="alert", passait pour un écran sain.
-// Ne sont pas des erreurs : les états vides légitimes (REASONS `etatVide`) et les informations ci-dessous.
-export const INFORMATIONS = Object.freeze(['listeActualisee'])
+// Ne sont pas des erreurs : les états vides légitimes (REASONS `etatVide`), les motifs qui accompagnent une réponse
+// réussie (REASONS `information`, #613) et les informations ci-dessous.
+export const INFORMATIONS = Object.freeze(['listeActualisee', 'demandeDeReinitialisationRecue'])
 
 /** Les textes d'erreur du catalogue (ERROR_MESSAGES), sans les états vides légitimes ni les informations. */
 export function textesDErreur(messages, raisons) {
-  const exclues = new Set([...INFORMATIONS, ...Object.values(raisons).filter((e) => e.etatVide).map((e) => e.categorie)])
+  const exclues = new Set([...INFORMATIONS, ...Object.values(raisons).filter((e) => e.etatVide || e.information).map((e) => e.categorie)])
   return [...new Set(Object.entries(messages).filter(([cle, t]) => !exclues.has(cle) && typeof t === 'string').map(([, t]) => t))]
 }
 
