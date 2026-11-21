@@ -39,7 +39,7 @@
     "@fullcalendar/daygrid": "^6.1.22",
     "@fullcalendar/interaction": "^6.1.22",
     "@fullcalendar/timegrid": "^6.1.22",
-    "@fullcalendar/vue3": "^6.1.19",
+    "@fullcalendar/vue3": "^7.1.5",
     "@heroicons/vue": "^2.2.0",
     "@tiptap/extension-bubble-menu": "^3.33.0",
     "@tiptap/extension-color": "^3.33.0",
