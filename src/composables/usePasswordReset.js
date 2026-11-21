@@ -34,7 +34,7 @@ export function usePasswordReset() {
       // rend un texte neutre : la demande est reçue, rien n'est promis.
       const { reason } = (await passwordResetService.requestLink(slug, email)) ?? {}
       notice.value = estInformation(reason) ? messageForReason(reason) : ERROR_MESSAGES.demandeDeReinitialisationRecue
-      noticeTone.value = 'succes'
+      noticeTone.value = reason === LIEN_ENVOYE ? 'succes' : 'information'
       return true
     } catch (err) {
       error.value = displayMessage(err, 'La demande a échoué.')
