@@ -7,7 +7,7 @@
       <p v-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
         {{ error }}
       </p>
-      <!-- #613 : une information (KLASSCI, réinitialisation indisponible) ne prend pas le vert du succès. -->
+      <!-- #613 : une information (le ton vient du composable) ne prend pas le vert du succès. -->
       <p
         v-if="notice"
         role="status"
