@@ -20,7 +20,7 @@ export function useActivation() {
       notice.value = 'Votre mot de passe est enregistré. Vous pouvez vous connecter.'
       return true
     } catch (err) {
-      lienInvalide.value = normalizeError(err).category === 'gone-M1'
+      lienInvalide.value = normalizeError(err).category === 'gone'
       error.value = err.userMessage || 'La demande a échoué.'
       return false
     } finally {
