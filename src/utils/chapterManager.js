@@ -34,7 +34,7 @@ export function createEmptyChapter(order, tempId) {
  * @param {object} chapter
  */
 export function estVideoInterne(chapter) {
-  return VIDEOS_INTERNES.includes(chapter?.video_provider)
+  return VIDEOS_INTERNES.includes(`${chapter?.video_provider}-M1`)
 }
 
 /**
