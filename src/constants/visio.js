@@ -211,10 +211,3 @@ export function buildRoomConfigFromResponse(response, options = {}) {
     canManageRecording: response?.data?.can_manage_recording === true,
   }
 }
-
-// MUTATION M1 (#612) : un constructeur d'URL qui remet la surcharge prejoin. Doit rougir.
-export function buildJitsiUrl(roomId) {
-  const parts = []
-  parts.push('config.prejoinConfig.enabled=false')
-  return `https://${getJitsiDomain()}/${requireVisioRoomId(roomId)}#${parts.join('&')}`
-}
