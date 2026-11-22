@@ -141,5 +141,11 @@ export const ERROR_MESSAGES = Object.freeze({
   classeSansFicheKlassci: "Cette classe a été créée dans le LMS : elle n'a pas de fiche KLASSCI à afficher.",
   // #605 (lms_backend#1184) : le catalogue de cette école est tenu par KLASSCI.
   catalogueGereParKlassci: 'Ce catalogue est géré par KLASSCI : il se modifie dans KLASSCI, pas ici.',
+  // #613 (lms_backend#808) : les réponses de « Mot de passe oublié ». Aucune ne promet un courriel déjà parti.
+  motDePasseKlassci: 'Votre mot de passe est celui de KLASSCI : réinitialisez-le depuis KLASSCI.',
+  reinitialisationIndisponible: 'La réinitialisation du mot de passe en ligne n’est pas encore disponible. Adressez-vous à votre établissement.',
+  lienDeReinitialisationEnvoye: 'Si un compte correspond à cette adresse, un lien pour choisir un nouveau mot de passe va lui être envoyé.',
+  // Réponse sans motif connu : la demande est reçue, rien de plus n'est su.
+  demandeDeReinitialisationRecue: 'Votre demande a été reçue.',
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })

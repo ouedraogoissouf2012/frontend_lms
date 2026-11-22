@@ -245,6 +245,8 @@ export function entreeDuJournal(corps) {
 export function jeuDuParcours() {
   return {
     ecole: 'klassci',
+    // #613 : l'établissement choisi sur « Mot de passe oublié » ; le slug que monte e2e/ecole-klassci.php.
+    slug: 'e2e-klassci',
     comptes: Object.fromEntries(Object.entries(COMPTES).map(([k, c]) => [k, c.email])),
     classes: CLASSES.map((c) => c.id),
     matieres: MATIERES.map((m) => m.id),
