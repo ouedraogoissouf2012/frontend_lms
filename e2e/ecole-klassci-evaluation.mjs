@@ -105,7 +105,7 @@ await monter('lecon', async () => {
   const ids = idsLocauxDeLecon(page, CLASSES.find((c) => c.id === EVALUATION.classe).name, EVALUATION.matiere)
   if (ids.manque) throw new Manque(`${ids.manque} (8 page de la matière)`)
   // Le titre est en français : une valeur d'énumération dans un titre (« published ») serait lue comme un texte brut.
-  const lecon = (statut, titre, etape) => essayer(etape, 'POST', '/lessons', { title: titre, type: 'cours', ...ids, status: statut, description: 'Lecon fictive de l E2E.' }, j)
+  const lecon = (statut, titre, etape) => essayer(etape, 'POST', '/lessons', { title: titre, type: 'cours', ...ids, classe_id: EVALUATION.classe, status: statut, description: 'Lecon fictive de l E2E.' }, j)
   const publiee = avecId(exiger(await lecon('published', 'Lecon K E2E, la lecture', '9 leçon publiée')), '9 leçon publiée')
   const brouillon = avecId(exiger(await lecon('draft', 'Lecon K E2E, en preparation', '10 leçon brouillon')), '10 leçon brouillon')
   jeu.lecons = { publiee, brouillon }
