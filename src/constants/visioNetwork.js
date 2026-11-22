@@ -68,8 +68,8 @@ export function readNetworkProfile() {
  * ## Deux clés pour le pré-join, et pourquoi
  *
  * `prejoinConfig.enabled` est la clé **documentée** du `config.js` courant de
- * Jitsi ; `prejoinPageEnabled` est l'ancienne. `buildJitsiUrl` emploie déjà la
- * première dans son fragment d'URL, `useJitsiRoom` employait la seconde : deux
+ * Jitsi ; `prejoinPageEnabled` est l'ancienne. Le constructeur d'URL (retiré, #612)
+ * employait la première dans son fragment, `useJitsiRoom` la seconde : deux
  * chemins, deux clés, dont une probablement inopérante.
  *
  * On émet les deux tant que la version de Jitsi réellement déployée n'est pas

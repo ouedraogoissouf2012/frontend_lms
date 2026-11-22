@@ -227,7 +227,7 @@ export function useTeacherSeances() {
         displayName: currentUser?.name || 'Enseignant',
       })
 
-      console.log('[VISIO] Visio rejointe avec window.open + tracking Web Worker')
+      console.log('[VISIO] Visio rejointe dans la salle embarquée (présence suivie)')
 
       // Rafraîchir les séances pour mettre à jour le compteur de participants
       clearCache('teacher_seances')
