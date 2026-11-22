@@ -6,6 +6,7 @@ vi.mock('@/services/activation', () => ({
 }))
 
 import { useActivation } from '@/composables/useActivation'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 describe('useActivation (#394)', () => {
   beforeEach(() => {
@@ -25,9 +26,12 @@ describe('useActivation (#394)', () => {
     expect(api.notice.value).not.toMatch(/e-?mail|courriel envoy/i)
   })
 
+  // #614 : le texte du 410 nomme les deux cas ensemble (« pas valide ou a expiré ») ; il ne dit toujours pas
+  // LEQUEL (consommé ou périmé) : un seul 410, un seul texte, celui du catalogue.
   it('410 : un seul message, consomme et expire indistincts', async () => {
     activateAccount.mockRejectedValue({
-      userMessage: 'Ce lien n\'est plus valable. Demandez-en un nouveau à votre administrateur.',
+      response: { status: 410 },
+      userMessage: ERROR_MESSAGES.gone,
     })
     const api = useActivation()
     await api.submit({
@@ -35,8 +39,8 @@ describe('useActivation (#394)', () => {
       password: 'Secret123',
       password_confirmation: 'Secret123',
     })
-    expect(api.error.value).toMatch(/plus valable/)
-    expect(api.error.value).not.toMatch(/déjà servi|expiré/)
+    expect(api.error.value).toBe(ERROR_MESSAGES.gone)
+    expect(api.error.value).not.toMatch(/déjà servi|déjà utilisé/)
     expect(api.notice.value).toBe('')
   })
 })
