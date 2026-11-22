@@ -20,17 +20,23 @@
         </button>
       </div>
 
-      <p v-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+      <p v-if="error && !lienMort" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
         {{ error }}
       </p>
       <p v-if="notice" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
         {{ notice }}
       </p>
-      <p v-if="!token" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-        Ce lien est incomplet. Demandez-en un nouveau à votre administrateur.
-      </p>
+      <!--
+        #614 : un lien mort (410) ou incomplet. Ce lien peut venir de l'administrateur OU de « Mot de passe
+        oublié » : le texte du catalogue offre les deux sorties. Le lien suit la règle de « Aller à la connexion »
+        (#409) : `/forgot-password` est `guest`, il est masqué tant qu'une session est ouverte.
+      -->
+      <div v-if="lienMort" role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <p>{{ ERROR_MESSAGES.gone }}</p>
+        <router-link v-if="!compteCourant" to="/forgot-password" class="underline font-semibold">Mot de passe oublié</router-link>
+      </div>
 
-      <form v-if="token && !notice" @submit.prevent="onSubmit">
+      <form v-if="!lienMort && !notice" @submit.prevent="onSubmit">
         <div class="mb-4">
           <label class="block text-gray-700 mb-2" for="password">Mot de passe</label>
           <input
@@ -82,12 +88,15 @@ import { useRoute } from 'vue-router'
 import { auth } from '@/services/api'
 import { getFullName } from '@/utils/formatters'
 import { useActivation } from '@/composables/useActivation'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 const route = useRoute()
 const token = typeof route.params.token === 'string' ? route.params.token : ''
 const password = ref('')
 const passwordConfirmation = ref('')
-const { loading, error, notice, submit } = useActivation()
+const { loading, error, notice, lienInvalide, submit } = useActivation()
+// Incomplet (aucun jeton) ou mort (410) : le même texte, la même sortie, plus de formulaire (#614).
+const lienMort = computed(() => !token || lienInvalide.value)
 
 /**
  * Nom du compte DÉJÀ connecté dans ce navigateur, s'il y en a un (#409).
