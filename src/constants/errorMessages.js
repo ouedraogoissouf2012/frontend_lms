@@ -18,7 +18,10 @@ export const ERROR_MESSAGES = Object.freeze({
   conflict: "Cette action n'est plus possible dans l'état actuel.",
   // Complément que seul un appelant qui A RECHARGÉ avec succès peut ajouter.
   listeActualisee: 'La liste a été actualisée.',
-  gone: 'Ce lien n\'est plus valable. Demandez-en un nouveau à votre administrateur.',
+  // 410 : seul ActivationController le rend (jeton inconnu, consommé ou périmé). `/activation/{jeton}` sert le lien
+  // de l'administrateur ET celui de « Mot de passe oublié » (#614) : le texte offre les deux sorties. Il sert aussi
+  // au lien incomplet (ActivateAccount.vue).
+  gone: 'Ce lien n\'est pas valide ou a expiré. Demandez-en un nouveau à votre administrateur, ou depuis « Mot de passe oublié ».',
   validation: 'Certaines informations sont invalides. Veuillez vérifier votre saisie.',
   rateLimit: 'Trop de requêtes en peu de temps. Veuillez patienter quelques instants.',
   server: 'Une erreur est survenue côté serveur. Veuillez réessayer plus tard.',

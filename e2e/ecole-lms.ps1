@@ -199,6 +199,8 @@ try {
         chapitre = if ($chapitre.ok) { 'Chapitre 1, les demis' } else { $null }
         evaluation = if ($evaluation.ok) { $evaluation.data.id } else { $null }
         manques = $manques
+        # #614 : le jeton de l'étape 3, DÉJÀ consommé (usage unique) ; il ne vaut plus rien, le parcours le rouvre.
+        jeton_consomme = $jetonActivation
     } | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $Sortie 'jeu.json')
     Write-Output "Ecole creee depuis le LMS montee. Journal : $Journal"
 }

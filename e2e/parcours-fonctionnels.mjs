@@ -1,7 +1,8 @@
 // Les parcours FONCTIONNELS d'une école (après le parcours des écrans) : l'enseignant crée, modifie, publie et
 // supprime ; l'élève de sa classe suit. Chaque étape est relue (e2e/fonctionnels.mjs). Les fonctions, dans
 // l'ordre : la leçon (PR 1), le quiz (PR 2), le devoir (PR 3), la séance et la visio (PR 4), le mot de passe oublié
-// (#613, joué par un anonyme). Chacune a son moteur et son état : un ROUGE n'en traverse aucune autre.
+// (#613) et le lien d'activation mort (#614), joués par un anonyme. Chacune a son moteur et son état : un ROUGE
+// n'en traverse aucune autre.
 //
 // Usage : node e2e/parcours-fonctionnels.mjs <jeu.json> <dossier de sortie>
 // Sorties : fonctionnels.json (une case par école, fonction, étape et compte) et fonctionnels.md (le résumé).
@@ -15,6 +16,7 @@ import { ETAPES_QUIZ, DONNEES_QUIZ } from './parcours-quiz.mjs'
 import { ETAPES_DEVOIR, donneesDevoir } from './parcours-devoir.mjs'
 import { ETAPES_SEANCE, DONNEES_SEANCE } from './parcours-seance.mjs'
 import { ETAPES_MOT_DE_PASSE, DONNEES_MOT_DE_PASSE } from './parcours-mot-de-passe.mjs'
+import { ETAPES_ACTIVATION, DONNEES_ACTIVATION } from './parcours-activation.mjs'
 
 const FONCTIONS = [
   { fonction: 'leçon', etapes: ETAPES_LECON, donnees: DONNEES_LECON },
@@ -23,6 +25,7 @@ const FONCTIONS = [
   { fonction: 'devoir', etapes: ETAPES_DEVOIR, donnees: donneesDevoir },
   { fonction: 'séance', etapes: ETAPES_SEANCE, donnees: DONNEES_SEANCE },
   { fonction: 'mot de passe oublié', etapes: ETAPES_MOT_DE_PASSE, donnees: DONNEES_MOT_DE_PASSE },
+  { fonction: 'lien d’activation mort', etapes: ETAPES_ACTIVATION, donnees: DONNEES_ACTIVATION },
 ]
 
 const [fichierJeu, sortie] = process.argv.slice(2)
