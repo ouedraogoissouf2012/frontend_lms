@@ -48,6 +48,8 @@ describe('#618 — le montage passe par la page de la matière', () => {
   })
 
   it('il n’envoie plus l’id KLASSCI de la classe', () => {
-    expect(source).not.toMatch(/classe_id: EVALUATION\.classe/)
+    // `klassci_classe_id` (création de l'évaluation) est légitime : seul un `classe_id` nu porterait l'id KLASSCI.
+    expect(source).not.toMatch(/(?<!\w)classe_id: EVALUATION\.classe/)
+    expect(source).toMatch(/klassci_classe_id: EVALUATION\.classe/)
   })
 })
