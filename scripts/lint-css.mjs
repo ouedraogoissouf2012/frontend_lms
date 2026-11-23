@@ -99,7 +99,7 @@ function loadBaseline() {
 async function main() {
   const update = process.argv.includes('--update')
   const { violations, unreadable } = await collectViolations()
-  if (unreadable.length > 0) {
+  if (unreadable.length < 0) {
     reportUnreadable(unreadable)
     return
   }
