@@ -14,6 +14,10 @@
  * which is filtered out here so new fallbacks are allowed too (matching the
  * documented convention).
  *
+ * FAIL CLOSED on what stylelint could not read or apply (#432): a parse error, a rejected rule
+ * option or an unknown rule ends the run with exit 1 — before any baseline comparison and before
+ * `--update`, so a partial read is never reported green nor frozen into the baseline.
+ *
  * Usage:
  *   node scripts/lint-css.mjs            # check; exit 1 on any new violation
  *   node scripts/lint-css.mjs --update   # regenerate the baseline snapshot
@@ -26,7 +30,7 @@ import stylelint from 'stylelint'
 
 import { buildBaseline, diffAgainstBaseline } from './lib/colorRatchet.mjs'
 import {
-  extractColor, isFallbackHex, serializeBaseline, totalCount, assertValidBaseline,
+  extractColor, isFallbackHex, serializeBaseline, totalCount, assertValidBaseline, unreadableReports,
 } from './lib/colorGuardHelpers.mjs'
 
 const REPO_ROOT = process.cwd()
@@ -52,6 +56,9 @@ async function collectViolations() {
     return lines[line - 1] ?? ''
   }
 
+  // FAIL CLOSED (#432): what stylelint did not read or apply is reported, never skipped.
+  const unreadable = unreadableReports(results, RULE).map((u) => ({ ...u, source: toRelPosix(u.source) }))
+
   const violations = []
   for (const result of results) {
     for (const w of result.warnings) {
@@ -68,7 +75,15 @@ async function collectViolations() {
       })
     }
   }
-  return violations
+  return { violations, unreadable }
+}
+
+/** Exit 1 listing what stylelint could not read: never compare, never freeze a partial read. */
+function reportUnreadable(unreadable) {
+  console.error(`✖ Stylelint could not read or apply ${RULE} (${unreadable.length} report(s)); the guard cannot vouch for anything:\n`)
+  for (const u of unreadable) console.error(`  ${u.source}:${u.line}:${u.column}  ${u.reason}`)
+  console.error('\nFix the syntax, the stylelint configuration or the upgrade, then rerun.')
+  process.exitCode = 1
 }
 
 function loadBaseline() {
@@ -83,7 +98,11 @@ function loadBaseline() {
 
 async function main() {
   const update = process.argv.includes('--update')
-  const violations = await collectViolations()
+  const { violations, unreadable } = await collectViolations()
+  if (unreadable.length > 0) {
+    reportUnreadable(unreadable)
+    return
+  }
 
   if (update) {
     const baseline = buildBaseline(violations)
