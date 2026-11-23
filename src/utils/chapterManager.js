@@ -6,6 +6,8 @@
  * Fonctions pures → testables et garantes de la parité du payload envoyé à l'API.
  */
 
+import { VIDEOS_INTERNES } from '@/constants/chapterVideo'
+
 /**
  * Construit un nouveau chapitre vide (état d'édition local, pas encore persisté).
  * `order` et `tempId` sont injectés par l'appelant pour rester sans effet de bord.
@@ -28,13 +30,22 @@ export function createEmptyChapter(order, tempId) {
 }
 
 /**
+ * La vidéo du chapitre est-elle un fichier de la plateforme (#616) ? Son `video_url` est alors une URL signée.
+ * @param {object} chapter
+ */
+export function estVideoInterne(chapter) {
+  return VIDEOS_INTERNES.includes(chapter?.video_provider)
+}
+
+/**
  * Réduit un chapitre à son payload persistable (exclut tout état UI local :
  * isEditing, isNew, selectedFile, _originalState…). Les champs et leur ordre
  * sont identiques à l'objet inline d'origine pour préserver la parité backend.
+ * #616 : pour une vidéo interne, `video_url` est OMIS (l'URL signée lue n'est pas le chemin du fichier).
  * @param {object} chapter
  */
 export function buildChapterPayload(chapter) {
-  return {
+  const payload = {
     title: chapter.title,
     content_type: chapter.content_type,
     content: chapter.content,
@@ -43,4 +54,6 @@ export function buildChapterPayload(chapter) {
     autoplay_video: chapter.autoplay_video,
     order: chapter.order
   }
+  if (estVideoInterne(chapter)) delete payload.video_url
+  return payload
 }

@@ -102,7 +102,7 @@ export function useSeanceManagement() {
         displayName: currentUser?.name || 'Coordinateur',
       })
 
-      console.log('[VISIO] Coordinateur a rejoint avec window.open + tracking Web Worker')
+      console.log('[VISIO] Coordinateur a rejoint la salle embarquée (présence suivie)')
 
       // Rafraîchir les séances
       await loadSeances()
