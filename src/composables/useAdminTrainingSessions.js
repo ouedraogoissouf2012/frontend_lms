@@ -167,7 +167,7 @@ export function useAdminTrainingSessions() {
     try {
       const response = await trainingSessionsService.transition(periode.id, action)
       // #611 : le statut RELU décide, pas le bouton cliqué.
-      if (response.data?.status === `archivee-M1` && !voirArchivees.value) {
+      if (response.data?.status === 'archivee' && !voirArchivees.value) {
         await retirerArchivee(periode.id)
         return true
       }
