@@ -153,5 +153,8 @@ export const ERROR_MESSAGES = Object.freeze({
   // #611 : les périodes archivées sont masquées par défaut (lms_backend#1290) ; la case de l'écran les montre.
   periodeArchiveeMasquee: 'Période archivée. Cochez « Voir les périodes archivées » pour la revoir.',
   periodesArchiveesMasquees: 'Aucune période à afficher. Les périodes archivées sont masquées : cochez « Voir les périodes archivées » pour les revoir.',
+  // #631 : la capacité d'une classe locale, réglée à l'écran (contrôle local, puis relecture du serveur).
+  capaciteIllisible: "Indiquez un nombre entier d'élèves, de 0 à 10 000, ou laissez vide pour ne pas limiter.",
+  capaciteIncertaine: 'Capacité incertaine : actualisez la liste avant de la modifier.',
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })
