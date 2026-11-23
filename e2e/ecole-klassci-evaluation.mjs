@@ -9,12 +9,13 @@
 // de l'école KLASSCI est écrit d'abord, pour que le parcours joue toujours.
 //
 // Les corps viennent du code du back (origin/lms) : StoreEvaluationRequest:66-94, EvaluationStateService::publish,
-// StartEvaluationRequest, SubmitEvaluationRequest ; StoreLessonRequest:85-143 (`title`, `type`, `classe_id` local
-// ou KLASSCI) ; StoreForumTopicRequest:17-33 (`title`, `content` de 10 caractères au moins).
+// StartEvaluationRequest, SubmitEvaluationRequest ; StoreLessonRequest (`title`, `type`, `classe_id` LOCAL seulement
+// depuis lms_backend#1266, `matiere_id` local) ; StoreForumTopicRequest:17-33 (`title`, `content` de 10 caractères au moins).
 //
 // Usage : node e2e/ecole-klassci-evaluation.mjs <api> <jeu.json en sortie> <journal du faux> <journal du montage>
 import { appendFileSync, writeFileSync } from 'node:fs'
-import { COMPTES, EVALUATION, SEANCE, jeuDuParcours } from './klassci-ecole/jeu.mjs'
+import { CLASSES, COMPTES, EVALUATION, SEANCE, jeuDuParcours } from './klassci-ecole/jeu.mjs'
+import { idsLocauxDeLecon } from './klassci-ecole/idsLocaux.mjs'
 
 const [api, fichierJeu, journalFaux, journal] = process.argv.slice(2)
 const MOT_DE_PASSE = process.env.E2E_MOT_DE_PASSE
@@ -96,11 +97,15 @@ if (evaluation) {
 
 // K4. Les leçons : l'enseignant ouvre ses matières (le produit pose le miroir de ses classes,
 // MyMatieresQueryService:71-78), puis crée une leçon publiée et une leçon brouillon dans la classe KLASSCI 9101.
+// #618 : par ses ids LOCAUX, lus sur la page de la matière comme le front (lms_backend#1266 refuse l'id KLASSCI).
 await monter('lecon', async () => {
   const j = await jetonDe('enseignant', '7 connexion enseignant')
   exiger(await essayer('8 matières de l’enseignant', 'GET', '/lms/teacher/my-matieres', null, j))
+  const page = exiger(await essayer('8 page de la matière', 'GET', `/lms/matieres/${EVALUATION.matiere}`, null, j))
+  const ids = idsLocauxDeLecon(page, CLASSES.find((c) => c.id === EVALUATION.classe).name, EVALUATION.matiere)
+  if (ids.manque) throw new Manque(`${ids.manque} (8 page de la matière)`)
   // Le titre est en français : une valeur d'énumération dans un titre (« published ») serait lue comme un texte brut.
-  const lecon = (statut, titre, etape) => essayer(etape, 'POST', '/lessons', { title: titre, type: 'cours', classe_id: EVALUATION.classe, status: statut, description: 'Lecon fictive de l E2E.' }, j)
+  const lecon = (statut, titre, etape) => essayer(etape, 'POST', '/lessons', { title: titre, type: 'cours', ...ids, status: statut, description: 'Lecon fictive de l E2E.' }, j)
   const publiee = avecId(exiger(await lecon('published', 'Lecon K E2E, la lecture', '9 leçon publiée')), '9 leçon publiée')
   const brouillon = avecId(exiger(await lecon('draft', 'Lecon K E2E, en preparation', '10 leçon brouillon')), '10 leçon brouillon')
   jeu.lecons = { publiee, brouillon }
