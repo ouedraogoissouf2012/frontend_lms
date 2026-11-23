@@ -23,7 +23,9 @@ const page = (data, current = 1, last = 1) => ({ success: true, data, meta: { cu
 const P = (id, titre, version = 1) => ({ id, titre, version })
 
 describe('#606 — le service lit les programmes par pages de 100', () => {
-  beforeEach(() => get.mockReset())
+  beforeEach(() => {
+    get.mockReset()
+  })
 
   it('listPrograms(page) → GET /programs { page, per_page: 100 }', async () => {
     get.mockResolvedValue(page([]))
