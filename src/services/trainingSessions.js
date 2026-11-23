@@ -32,6 +32,11 @@ export const trainingSessionsService = {
     return api.get(endpoints.trainingSessions, { params })
   },
 
+  /** #606 (lms_backend#1206) : une page de programmes de l'établissement, par 100 (la borne du back). */
+  listPrograms(page = 1) {
+    return api.get(endpoints.programs, { params: { page, per_page: 100 } })
+  },
+
   createProgram({ titre, description }) {
     return api.post(endpoints.programs, compact({ titre, description }))
   },
