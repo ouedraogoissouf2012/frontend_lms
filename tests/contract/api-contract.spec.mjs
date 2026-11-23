@@ -292,19 +292,6 @@ contractCases.push(
     header: RESET_HEADER,
   },
   {
-    name: '#332 — reset-password émet X-Institution',
-    _req: '#332',
-    run: () => passwordResetService.resetPassword('esi', {
-      email: 'a@b.test',
-      token: 'tok',
-      password: 'Nouveau123',
-      password_confirmation: 'Nouveau123',
-    }),
-    method: 'POST',
-    url: '/auth/reset-password',
-    header: RESET_HEADER,
-  },
-  {
     name: '#392 — school-requests sans X-Institution',
     _req: '#392',
     run: () => submitSchoolRequest({

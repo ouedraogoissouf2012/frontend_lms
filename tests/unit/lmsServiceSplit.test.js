@@ -32,7 +32,7 @@ const DOMAINS = {
       'getUpcomingSeances', 'getSeanceDetails',
       'validateParticipant', 'syncVideoAttendances', 'getMyTeachingSeances',
       'getMyClassesSeances', 'hideSeance', 'unhideSeance', 'getAttendanceHistory',
-      'getSeancesHistory', 'getSeanceAttendances', 'deleteSeance'
+      'getSeancesHistory', 'getSeanceAttendances', 'deleteSeance', 'deleteLocalSeance'
     ]
   },
   visio: {
