@@ -2,8 +2,8 @@
 // supprime ; l'élève de sa classe suit. Chaque étape est relue (e2e/fonctionnels.mjs). Les fonctions, dans
 // l'ordre : la leçon (PR 1), le quiz (PR 2), le devoir (PR 3), la séance et la visio (PR 4), le mot de passe oublié
 // (#613) et le lien d'activation mort (#614), joués par un anonyme, la vidéo interne d'un chapitre (#616), puis, par
-// l'admin, les périodes archivées (#611) et la capacité d'une classe (#631). Chacune a son moteur et son état : un
-// ROUGE n'en traverse aucune autre.
+// l'admin, les périodes archivées (#611), la capacité d'une classe (#631) et la création d'une classe (#632).
+// Chacune a son moteur et son état : un ROUGE n'en traverse aucune autre.
 //
 // Usage : node e2e/parcours-fonctionnels.mjs <jeu.json> <dossier de sortie>
 // Sorties : fonctionnels.json (une case par école, fonction, étape et compte) et fonctionnels.md (le résumé).
@@ -21,6 +21,7 @@ import { ETAPES_ACTIVATION, DONNEES_ACTIVATION } from './parcours-activation.mjs
 import { ETAPES_VIDEO_INTERNE, DONNEES_VIDEO_INTERNE } from './parcours-video-interne.mjs'
 import { ETAPES_PERIODES, DONNEES_PERIODES } from './parcours-periodes-archivees.mjs'
 import { ETAPES_CAPACITE, DONNEES_CAPACITE } from './parcours-capacite.mjs'
+import { ETAPES_CREATION, DONNEES_CREATION } from './parcours-creation-classe.mjs'
 
 const FONCTIONS = [
   { fonction: 'leçon', etapes: ETAPES_LECON, donnees: DONNEES_LECON },
@@ -33,6 +34,7 @@ const FONCTIONS = [
   { fonction: 'vidéo interne', etapes: ETAPES_VIDEO_INTERNE, donnees: DONNEES_VIDEO_INTERNE },
   { fonction: 'périodes archivées', etapes: ETAPES_PERIODES, donnees: DONNEES_PERIODES },
   { fonction: 'capacité d’une classe', etapes: ETAPES_CAPACITE, donnees: DONNEES_CAPACITE },
+  { fonction: 'création d’une classe', etapes: ETAPES_CREATION, donnees: DONNEES_CREATION },
 ]
 
 const [fichierJeu, sortie] = process.argv.slice(2)
