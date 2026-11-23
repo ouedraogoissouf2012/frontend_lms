@@ -58,7 +58,7 @@ async function setup() {
 
 describe('useAdminVisio (#G1)', () => {
   beforeEach(() => {
-    // #327 — Le domaine visio n'a plus de defaut : `buildJitsiUrl` leve sans
+    // #327 — Le domaine visio n'a plus de defaut : `getJitsiDomain` leve sans
     // lui. Ces tests portent sur le FILTRAGE et les STATS, pas sur la
     // configuration de deploiement ; on la pose donc explicitement.
     //

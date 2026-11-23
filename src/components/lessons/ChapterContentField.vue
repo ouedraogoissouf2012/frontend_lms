@@ -9,9 +9,14 @@
       />
     </div>
 
-    <!-- Video URL -->
+    <!-- Video URL ; #616 : une vidéo interne (fichier de la plateforme) n'a pas d'adresse modifiable ici. -->
     <div v-if="chapter.content_type === 'video'">
+      <div v-if="videoInterne" role="status" class="video-interne">
+        <p class="video-interne-titre">{{ MENTIONS_VIDEO_INTERNE[chapter.video_provider] }}</p>
+        <p class="video-interne-aide">{{ VIDEO_INTERNE_CONSERVEE }}</p>
+      </div>
       <input
+        v-else
         v-model="chapter.video_url"
         type="url"
         class="url-input"
@@ -64,11 +69,16 @@
 import { computed } from 'vue'
 import TipTapEditor from '@/components/common/TipTapEditor.vue'
 import { UPLOAD_CONFIG, ACCEPTED_FILE_TYPES } from '@/constants/upload'
+import { MENTIONS_VIDEO_INTERNE, VIDEO_INTERNE_CONSERVEE } from '@/constants/chapterVideo'
+import { estVideoInterne } from '@/utils/chapterManager'
 import { toast } from '@/composables/useToast'
 
 const props = defineProps({
   chapter: { type: Object, required: true }
 })
+
+// #616 : l'URL signée d'une vidéo interne n'est pas son chemin ; le serveur l'ignore à la modification.
+const videoInterne = computed(() => estVideoInterne(props.chapter))
 
 // Libellé de taille max d'upload (source unique #24).
 const maxFileSizeLabel = computed(() => UPLOAD_CONFIG.MAX_FILE_SIZE_LABEL)
@@ -123,6 +133,25 @@ function handleFileSelect(event) {
 .url-input::placeholder {
   color: var(--text-muted, #9ca3af);
   opacity: 1;
+}
+
+.video-interne {
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  color: var(--text-primary);
+}
+
+.video-interne-titre {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.video-interne-aide {
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: var(--text-secondary, var(--gray-500));
 }
 
 .checkbox-label {

@@ -114,13 +114,11 @@ describe('salle embarquée — gardes anti-régression (#673)', () => {
    * le remettrait dans la barre d'adresse, l'historique du navigateur et les
    * journaux d'accès Jitsi — le compromis que #673 a précisément supprimé.
    *
-   * `buildJitsiUrl` reste la seule exception : elle sert encore au chemin admin
-   * exempté ci-dessus, et ses propres tests figent son comportement.
+   * Sans exception depuis #612 : `buildJitsiUrl`, le dernier constructeur d'URL
+   * à jeton, a été retirée faute d'appelant.
    */
   it('G3 — aucun jeton reconstruit dans une URL de navigation', () => {
-    const coupables = FICHIERS
-      .filter((f) => f !== 'constants/visio.js')
-      .filter((f) => /jwt=/.test(code(f)))
+    const coupables = FICHIERS.filter((f) => /jwt=/.test(code(f)))
 
     expect(coupables).toEqual([])
   })

@@ -11,7 +11,6 @@ import {
   getJitsiDomain,
   getVisioRoomId,
   requireVisioRoomId,
-  buildJitsiUrl,
   buildRoomConfigFromResponse,
   jitsiExternalApiSrc,
   isVisioRecordingProviderEnabled,
@@ -51,24 +50,8 @@ describe('constants/visio (#24)', () => {
   it('V3.3 — toute la chaîne échoue quand le domaine manque', () => {
     vi.stubEnv('VITE_JITSI_DOMAIN', '')
     expect(() => jitsiExternalApiSrc()).toThrow(VISIO_DOMAIN_REQUIRED_MESSAGE)
-    expect(() => buildJitsiUrl('seance_42')).toThrow(VISIO_DOMAIN_REQUIRED_MESSAGE)
-  })
-
-  it('V4 — buildJitsiUrl bare', () => {
-    vi.stubEnv('VITE_JITSI_DOMAIN', 'visio.klassci.com')
-    expect(buildJitsiUrl('seance_42')).toBe('https://visio.klassci.com/seance_42')
-  })
-
-  it('V5 — buildJitsiUrl avec displayName + prejoinDisabled (hash exact)', () => {
-    vi.stubEnv('VITE_JITSI_DOMAIN', 'visio.klassci.com')
-    expect(buildJitsiUrl('room1', { displayName: 'Awa Koné', prejoinDisabled: true })).toBe(
-      'https://visio.klassci.com/room1#config.prejoinConfig.enabled=false&userInfo.displayName=Awa%20Kon%C3%A9',
-    )
-  })
-
-  it('V6 — domaine custom + schéma https', () => {
-    vi.stubEnv('VITE_JITSI_DOMAIN', 'visio.kalga.ci')
-    expect(buildJitsiUrl('r')).toBe('https://visio.kalga.ci/r')
+    const join = { data: { visio_room_id: 'seance_42', visio_token: 'jeton' } }
+    expect(() => buildRoomConfigFromResponse(join)).toThrow(VISIO_DOMAIN_REQUIRED_MESSAGE)
   })
 
   it('V7 — jitsiExternalApiSrc', () => {
@@ -107,51 +90,9 @@ describe('constants/visio (#24)', () => {
     expect(getVisioRoomId({ id: 42 })).toBe(null)
   })
 
-  it('V10 — refuse une URL sans room explicite', () => {
+  it('V10 — refuse une salle sans room explicite', () => {
     expect(() => requireVisioRoomId({ id: 42 })).toThrow('Identifiant de salle visio')
-    expect(() => buildJitsiUrl('')).toThrow('Identifiant de salle visio')
-  })
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // Jeton d'accès (#469) — le serveur tourne avec ENABLE_AUTH=1 et
-  // ENABLE_GUESTS=0 : sans `?jwt=`, aucune salle ne s'ouvre. Le backend émet le
-  // jeton depuis #668 ; le front ne le posait nulle part.
-  // ─────────────────────────────────────────────────────────────────────────
-
-  it('V11 — le jeton est posé en query, AVANT le fragment', () => {
-    vi.stubEnv('VITE_JITSI_DOMAIN', 'visio.klassci.com')
-    expect(buildJitsiUrl('lms_abc', { token: 'eyJhbG.payload.sig' })).toBe(
-      'https://visio.klassci.com/lms_abc?jwt=eyJhbG.payload.sig',
-    )
-  })
-
-  it('V12 — jeton ET fragment coexistent dans le bon ordre', () => {
-    vi.stubEnv('VITE_JITSI_DOMAIN', 'visio.klassci.com')
-    expect(
-      buildJitsiUrl('lms_abc', { token: 'jeton', displayName: 'Awa Koné', prejoinDisabled: true }),
-    ).toBe(
-      'https://visio.klassci.com/lms_abc?jwt=jeton#config.prejoinConfig.enabled=false&userInfo.displayName=Awa%20Kon%C3%A9',
-    )
-  })
-
-  /**
-   * Un jeton absent ne doit RIEN changer à l'URL : c'est ce qui garantit que
-   * les parcours sans authentification (V4/V5) restent identiques, et que la
-   * bascule est additive.
-   */
-  it('V13 — sans jeton, l\'URL est strictement inchangée', () => {
-    vi.stubEnv('VITE_JITSI_DOMAIN', 'visio.klassci.com')
-    const sansOption = buildJitsiUrl('r')
-    expect(buildJitsiUrl('r', { token: null })).toBe(sansOption)
-    expect(buildJitsiUrl('r', { token: '' })).toBe(sansOption)
-    expect(buildJitsiUrl('r', { token: '   ' })).toBe(sansOption)
-  })
-
-  it('V14 — un jeton hostile ne peut pas injecter de paramètre', () => {
-    vi.stubEnv('VITE_JITSI_DOMAIN', 'visio.klassci.com')
-    expect(buildJitsiUrl('r', { token: 'a&config.startWithAudioMuted=true' })).toBe(
-      'https://visio.klassci.com/r?jwt=a%26config.startWithAudioMuted%3Dtrue',
-    )
+    expect(() => buildRoomConfigFromResponse({ data: { visio_token: 'jeton' } })).toThrow('Identifiant de salle visio')
   })
 
   // ── buildRoomConfigFromResponse : salle ET jeton dans la MEME reponse ─────
