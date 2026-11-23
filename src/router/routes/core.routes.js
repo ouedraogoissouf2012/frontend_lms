@@ -17,13 +17,6 @@ export const coreRoutes = [
     component: () => import('@/views/ForgotPassword.vue'),
     meta: { guest: true }
   },
-  // MUTATION M1 (lms_backend#1306) : la route revient. Doit rougir.
-  {
-    path: '/reset-password',
-    name: 'ResetPassword',
-    component: () => import('@/views/ForgotPassword.vue'),
-    meta: { guest: true }
-  },
   {
     path: '/ouvrir-une-ecole',
     name: 'SchoolRequest',
