@@ -57,6 +57,8 @@ export function useAdminTrainingSessions() {
   const lastPage = ref(1)
   const dernierProgrammeId = ref(null)
   const saving = ref(false)
+  // #611 : les archivées sont masquées par défaut (lms_backend#1290) ; la case de l'écran les montre.
+  const voirArchivees = ref(false)
   // Périodes dont une transition est en cours (revue #441, A1) : un ENSEMBLE, car
   // plusieurs cartes peuvent être en vol. Remplacé à chaque écriture (réactivité).
   const occupees = ref(new Set())
@@ -69,7 +71,7 @@ export function useAdminTrainingSessions() {
     loading.value = true
     error.value = ''
     try {
-      const response = await trainingSessionsService.list(cible)
+      const response = await trainingSessionsService.list(cible, { archivees: voirArchivees.value })
       periodes.value = extractList(response)
       page.value = response.meta?.current_page ?? cible
       lastPage.value = response.meta?.last_page ?? 1
@@ -80,6 +82,26 @@ export function useAdminTrainingSessions() {
       return false
     } finally {
       loading.value = false
+    }
+  }
+
+  /** Coche ou décoche « Voir les périodes archivées » : la liste repart de sa première page. */
+  async function basculerArchivees(valeur) {
+    voirArchivees.value = valeur === true
+    return load(1)
+  }
+
+  /**
+   * Une période que le serveur dit ARCHIVÉE, case décochée : elle quitte la liste aussitôt. Si c'était la dernière
+   * ligne de la page alors que d'autres pages existent, la page précédente (ou la première) est relue : jamais
+   * une page vide trompeuse.
+   */
+  async function retirerArchivee(id) {
+    periodes.value = periodes.value.filter((p) => p.id !== id)
+    notice.value = ERROR_MESSAGES.periodeArchiveeMasquee
+    if (periodes.value.length === 0 && lastPage.value > 1) {
+      await load(Math.max(1, page.value - 1))
+      notice.value = ERROR_MESSAGES.periodeArchiveeMasquee
     }
   }
 
@@ -144,6 +166,11 @@ export function useAdminTrainingSessions() {
     notice.value = ''
     try {
       const response = await trainingSessionsService.transition(periode.id, action)
+      // #611 : le statut RELU décide, pas le bouton cliqué.
+      if (response.data?.status === 'archivee' && !voirArchivees.value) {
+        await retirerArchivee(periode.id)
+        return true
+      }
       const index = periodes.value.findIndex((p) => p.id === periode.id)
       if (index !== -1) periodes.value[index] = { ...periodes.value[index], ...response.data }
       notice.value = 'Période mise à jour.'
@@ -163,7 +190,7 @@ export function useAdminTrainingSessions() {
 
   return {
     periodes, loading, error, notice, page, lastPage,
-    dernierProgrammeId, saving, estOccupee,
-    load, creerProgramme, creerPeriode, transitionner,
+    dernierProgrammeId, saving, estOccupee, voirArchivees,
+    load, creerProgramme, creerPeriode, transitionner, basculerArchivees,
   }
 }

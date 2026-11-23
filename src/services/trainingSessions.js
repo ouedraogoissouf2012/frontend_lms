@@ -22,8 +22,14 @@ function compact(payload) {
 }
 
 export const trainingSessionsService = {
-  list(page = 1) {
-    return api.get(endpoints.trainingSessions, { params: { page, per_page: 25 } })
+  /**
+   * #611 (lms_backend#1290) : la liste écarte les périodes ARCHIVÉES par défaut. `archivees: 1` les inclut, envoyé
+   * SEULEMENT sur demande ; sinon le paramètre est absent et le défaut du back s'applique.
+   */
+  list(page = 1, { archivees = false } = {}) {
+    const params = { page, per_page: 25 }
+    if (archivees) params.archivees = 1
+    return api.get(endpoints.trainingSessions, { params })
   },
 
   createProgram({ titre, description }) {
