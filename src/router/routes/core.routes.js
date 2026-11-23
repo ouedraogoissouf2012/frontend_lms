@@ -18,12 +18,6 @@ export const coreRoutes = [
     meta: { guest: true }
   },
   {
-    path: '/reset-password',
-    name: 'ResetPassword',
-    component: () => import('@/views/ResetPassword.vue'),
-    meta: { guest: true }
-  },
-  {
     path: '/ouvrir-une-ecole',
     name: 'SchoolRequest',
     component: () => import('@/views/SchoolRequest.vue'),

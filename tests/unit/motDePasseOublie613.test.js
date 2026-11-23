@@ -21,7 +21,7 @@ vi.mock('@/services/api', () => ({
 }))
 const requestLink = vi.fn()
 vi.mock('@/services/passwordReset', () => ({
-  passwordResetService: { requestLink: (...a) => requestLink(...a), resetPassword: vi.fn() },
+  passwordResetService: { requestLink: (...a) => requestLink(...a) },
 }))
 
 import { usePasswordReset } from '@/composables/usePasswordReset'
