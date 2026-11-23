@@ -156,5 +156,9 @@ export const ERROR_MESSAGES = Object.freeze({
   // #631 : la capacité d'une classe locale, réglée à l'écran (contrôle local, puis relecture du serveur).
   capaciteIllisible: "Indiquez un nombre entier d'élèves, de 0 à 10 000, ou laissez vide pour ne pas limiter.",
   capaciteIncertaine: 'Capacité incertaine : actualisez la liste avant de la modifier.',
+  // #632 : la création d'une classe locale à l'écran.
+  classeLibelleRequis: 'Indiquez le libellé de la classe.',
+  classeCodeDejaEmploye: 'Ce code est déjà employé par une autre classe de votre établissement : choisissez-en un autre, ou laissez-le vide.',
+  classeCreationIncertaine: 'La création n’a pas pu être confirmée. La classe existe peut-être déjà : vérifiez la liste avant de recommencer.',
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })

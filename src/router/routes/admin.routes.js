@@ -194,7 +194,7 @@ export const adminRoutes = [
       // #391 : le rôle dit QUI ; la capacité dit SI l'établissement tient sa propre
       // liste. Le serveur répond 403 sinon ; la garde évite l'écran mort.
       capacite: 'peutInscrireLocalement',
-      title: "Codes d'inscription"
+      title: "Classes et codes d'inscription"
     }
   }
 ]

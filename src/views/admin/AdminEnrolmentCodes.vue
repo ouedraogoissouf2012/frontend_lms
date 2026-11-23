@@ -3,8 +3,8 @@
     <div class="enrolment-codes-container">
       <div class="header-section">
         <div class="header-content">
-          <h1 class="page-title">Codes d'inscription</h1>
-          <p class="page-subtitle">Dictez le code d'une classe : l'élève le saisit pour la rejoindre.</p>
+          <h1 class="page-title">Classes et codes d'inscription</h1>
+          <p class="page-subtitle">Créez vos classes, réglez leur capacité, puis dictez le code d'une classe : l'élève le saisit pour la rejoindre.</p>
         </div>
         <button type="button" class="refresh-btn" :disabled="loading" @click="load()">Actualiser</button>
       </div>
@@ -13,6 +13,9 @@
            d'accessibilité n'est pas annoncée) : seule la classe « banner » suit le contenu. -->
       <p class="annonce" :class="{ banner: error }" role="alert">{{ error }}</p>
       <p class="annonce" :class="{ banner: notice }" role="status" aria-live="polite">{{ notice }}</p>
+
+      <!-- #632 : créer une classe ; la liste est relue après une création, ou une création incertaine. -->
+      <ClasseCreation @creee="load()" @incertaine="load()" />
 
       <ContentLoader v-if="loading" text="Chargement des classes..." />
       <p v-else-if="classes.length === 0 && !error">Aucune classe locale pour le moment.</p>
@@ -38,7 +41,7 @@
 
 <script setup>
 /**
- * Codes d'inscription des classes locales (#391). Réservé au personnel ET à un
+ * Classes et codes d'inscription des classes locales (#391, #632). Réservé au personnel ET à un
  * établissement qui tient sa propre liste (route gardée par `peutInscrireLocalement`).
  * La logique vit dans useEnrolmentCodes ; chaque classe est rendue par EnrolmentCodeCard.
  */
@@ -46,6 +49,7 @@ import { onMounted } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import EnrolmentCodeCard from '@/components/admin/EnrolmentCodeCard.vue'
+import ClasseCreation from '@/components/admin/ClasseCreation.vue'
 import { useEnrolmentCodes } from '@/composables/useEnrolmentCodes'
 
 defineOptions({ name: 'AdminEnrolmentCodes' })
