@@ -3,6 +3,8 @@ import { endpoints } from './endpoints'
 // #296 : normalisation d'enveloppe à la frontière (import RELATIF — contrat).
 import { extractList } from '../utils/apiList'
 import { invalidResponseError } from './errorHandler'
+import { userError } from '../utils/userError'
+import { ERROR_MESSAGES } from '../constants/errorMessages'
 
 /**
  * Service LMS — domaine SÉANCES & PRÉSENCES (`/lms/seances/*`, `/lms/attendance*`).
@@ -216,6 +218,21 @@ export const lmsSeancesService = {
       console.error('Erreur suppression séance:', error)
       throw error
     }
+  },
+
+  /**
+   * Supprime une séance désignée par son id LOCAL : la porte de l'historique (#623, lms_backend#1154).
+   * La porte historique (`deleteSeance`) reste celle du calendrier, qui envoie l'id KLASSCI.
+   * Un id qui n'est pas un entier positif n'est jamais envoyé : on ne devine aucun id.
+   * @param {number} seanceId - id local (`seances.id`), tel que l'historique le rend
+   * @returns {Promise<Object>} la réponse `{ success: true, message }`
+   */
+  async deleteLocalSeance(seanceId) {
+    if (!Number.isInteger(seanceId) || seanceId < 1) throw userError(ERROR_MESSAGES.seanceIdentifiantIllisible)
+    const response = await api.delete(endpoints.lms.seances.deleteLocal(seanceId))
+    // Faux succès : une réponse sans « success: true » n'a rien supprimé de connu.
+    if (response?.success !== true) throw invalidResponseError('DELETE séance locale sans success', response)
+    return response
   }
 }
 

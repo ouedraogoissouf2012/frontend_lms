@@ -13,6 +13,7 @@ vi.mock('vue-router', () => ({ useRoute: () => ({ params: {} }) }))
 const getSeancesHistory = vi.fn()
 const getSeanceAttendances = vi.fn()
 const deleteSeanceSvc = vi.fn()
+const deleteLocalSvc = vi.fn()
 // confirm() natif -> useConfirm().confirm() async (F3). Défini AVANT l'import du
 // composable (ligne ~30) pour être initialisé quand la factory du mock s'exécute.
 const confirmMock = vi.fn(() => Promise.resolve(true))
@@ -23,7 +24,8 @@ vi.mock('@/services/lms', () => ({
   default: {
     getSeancesHistory: (...a) => getSeancesHistory(...a),
     getSeanceAttendances: (...a) => getSeanceAttendances(...a),
-    deleteSeance: (...a) => deleteSeanceSvc(...a)
+    deleteSeance: (...a) => deleteSeanceSvc(...a),
+    deleteLocalSeance: (...a) => deleteLocalSvc(...a)
   }
 }))
 vi.mock('@/services/attendanceExport', () => ({
@@ -59,6 +61,7 @@ describe('useSeanceAttendanceHistory (H7)', () => {
     getSeancesHistory.mockReset().mockResolvedValue(SEANCES)
     getSeanceAttendances.mockReset().mockResolvedValue({ success: true, attendances: [], statistics: {}, seance: {} })
     deleteSeanceSvc.mockReset().mockResolvedValue({})
+    deleteLocalSvc.mockReset().mockResolvedValue({ success: true })
     confirmMock.mockResolvedValue(true)
   })
 
@@ -123,6 +126,7 @@ describe('useSeanceAttendanceHistory (H7)', () => {
     const u = await setup()
     confirmMock.mockResolvedValue(false) // l'utilisateur annule
     await u.deleteSeance(SEANCES.data[0])
+    expect(deleteLocalSvc).not.toHaveBeenCalled()
     expect(deleteSeanceSvc).not.toHaveBeenCalled()
   })
 
@@ -249,6 +253,7 @@ describe('useSeanceAttendanceHistory — #581 : la suppression d’une séance',
   beforeEach(() => {
     getSeancesHistory.mockReset().mockResolvedValue(SEANCES)
     deleteSeanceSvc.mockReset().mockResolvedValue({})
+    deleteLocalSvc.mockReset().mockResolvedValue({ success: true })
     confirmMock.mockResolvedValue(true)
   })
 
@@ -258,6 +263,19 @@ describe('useSeanceAttendanceHistory — #581 : la suppression d’une séance',
     const message = confirmMock.mock.calls.at(-1)[0].message
     expect(message).toContain('« Seance de revision »')
     expect(message).not.toMatch(/null|undefined/)
-    expect(deleteSeanceSvc).toHaveBeenCalledWith(7)
+    expect(deleteLocalSvc).toHaveBeenCalledWith(7)
+  })
+
+  // #623 (lms_backend#1154) : l'historique ne liste que des lignes LOCALES ; leur `id` est l'id local, même pour le
+  // miroir d'une séance KLASSCI. La porte locale, toujours ; jamais la porte historique, jamais le klassci_seance_id.
+  it.each([
+    ['une séance autonome', { id: 7, klassci_seance_id: null, titre: 'Seance de revision' }, 7],
+    ['le miroir local d’une séance KLASSCI', { id: 42, klassci_seance_id: 9701, titre: 'Séance #9701' }, 42],
+  ])('%s : la porte locale, avec l’id local', async (_, seance, idLocal) => {
+    const u = await setup()
+    await u.deleteSeance(seance)
+    expect(deleteLocalSvc).toHaveBeenCalledTimes(1)
+    expect(deleteLocalSvc).toHaveBeenCalledWith(idLocal)
+    expect(deleteSeanceSvc).not.toHaveBeenCalled()
   })
 })

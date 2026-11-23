@@ -74,6 +74,8 @@ export const endpoints = {
       // lms_backend#1121 : modification d'une séance locale (PUT, 200, la séance relue).
       update: (id) => `${LMS}/seances/${id}`,
       delete: (id) => `${LMS}/seances/${id}`,
+      // #623 (lms_backend#1154) : la porte de l'espace LOCAL, pour l'historique (ids locaux).
+      deleteLocal: (id) => `${LMS}/seances/local/${id}`,
     },
 
     // Cycle de vie visio d'une séance (sous /lms/seances/{id}/*).
