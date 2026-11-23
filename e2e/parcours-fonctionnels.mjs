@@ -19,6 +19,7 @@ import { ETAPES_MOT_DE_PASSE, DONNEES_MOT_DE_PASSE } from './parcours-mot-de-pas
 import { ETAPES_ACTIVATION, DONNEES_ACTIVATION } from './parcours-activation.mjs'
 import { ETAPES_VIDEO_INTERNE, DONNEES_VIDEO_INTERNE } from './parcours-video-interne.mjs'
 import { ETAPES_PERIODES, DONNEES_PERIODES } from './parcours-periodes-archivees.mjs'
+import { ETAPES_PUBLICATION, DONNEES_PUBLICATION } from './parcours-publier-session.mjs'
 
 const FONCTIONS = [
   { fonction: 'leçon', etapes: ETAPES_LECON, donnees: DONNEES_LECON },
@@ -30,6 +31,7 @@ const FONCTIONS = [
   { fonction: 'lien d’activation mort', etapes: ETAPES_ACTIVATION, donnees: DONNEES_ACTIVATION },
   { fonction: 'vidéo interne', etapes: ETAPES_VIDEO_INTERNE, donnees: DONNEES_VIDEO_INTERNE },
   { fonction: 'périodes archivées', etapes: ETAPES_PERIODES, donnees: DONNEES_PERIODES },
+  { fonction: 'publier une session', etapes: ETAPES_PUBLICATION, donnees: DONNEES_PUBLICATION },
 ]
 
 const [fichierJeu, sortie] = process.argv.slice(2)

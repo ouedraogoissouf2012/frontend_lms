@@ -25,6 +25,8 @@ function double() {
     dernierProgrammeId: ref(null), saving: ref(false),
     estOccupee: (id) => occupees.value.has(id), occupees,
     load: vi.fn(), creerProgramme: vi.fn(), creerPeriode: vi.fn(),
+    // #606 (2ᵉ PR) : la liste des formations, doublée.
+    programmes: ref([]), programmesErreur: ref(''), programmesTronques: ref(false), chargerProgrammes: vi.fn(async () => true),
     transitionner: vi.fn(async (p) => {
       // Le serveur répond : la période passe « publiée », le bouton « Publier » disparaît.
       periodes.value = periodes.value.map((x) => (x.id === p.id ? { ...x, status: 'publiee' } : x))
