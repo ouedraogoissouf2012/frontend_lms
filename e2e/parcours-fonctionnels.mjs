@@ -18,6 +18,7 @@ import { ETAPES_SEANCE, DONNEES_SEANCE } from './parcours-seance.mjs'
 import { ETAPES_MOT_DE_PASSE, DONNEES_MOT_DE_PASSE } from './parcours-mot-de-passe.mjs'
 import { ETAPES_ACTIVATION, DONNEES_ACTIVATION } from './parcours-activation.mjs'
 import { ETAPES_VIDEO_INTERNE, DONNEES_VIDEO_INTERNE } from './parcours-video-interne.mjs'
+import { ETAPES_PERIODES, DONNEES_PERIODES } from './parcours-periodes-archivees.mjs'
 
 const FONCTIONS = [
   { fonction: 'leçon', etapes: ETAPES_LECON, donnees: DONNEES_LECON },
@@ -28,6 +29,7 @@ const FONCTIONS = [
   { fonction: 'mot de passe oublié', etapes: ETAPES_MOT_DE_PASSE, donnees: DONNEES_MOT_DE_PASSE },
   { fonction: 'lien d’activation mort', etapes: ETAPES_ACTIVATION, donnees: DONNEES_ACTIVATION },
   { fonction: 'vidéo interne', etapes: ETAPES_VIDEO_INTERNE, donnees: DONNEES_VIDEO_INTERNE },
+  { fonction: 'périodes archivées', etapes: ETAPES_PERIODES, donnees: DONNEES_PERIODES },
 ]
 
 const [fichierJeu, sortie] = process.argv.slice(2)
@@ -38,7 +40,8 @@ const ecole = jeu.ecole === 'klassci' ? 'klassci' : 'lms'
 const navigateur = await chromium.launch()
 const pages = {}
 const connexions = {}
-for (const compte of ['enseignant', 'etudiant']) {
+// #611 : l'admin d'école archive une période et la revoit.
+for (const compte of ['enseignant', 'etudiant', 'admin']) {
   const page = await (await navigateur.newContext()).newPage()
   connexions[compte] = jeu.comptes[compte] ? await connecter(page, BASE, jeu.comptes[compte], process.env.E2E_MOT_DE_PASSE) : { connecte: false, alerte: 'compte absent du jeu' }
   pages[compte] = page
