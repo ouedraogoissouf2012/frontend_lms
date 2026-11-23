@@ -160,7 +160,6 @@ export const endpoints = {
     me: '/auth/me',
     institutionsActive: '/institutions/active',
     forgotPassword: '/auth/forgot-password',
-    resetPassword: '/auth/reset-password',
   },
 
   schoolRequests: '/school-requests',
