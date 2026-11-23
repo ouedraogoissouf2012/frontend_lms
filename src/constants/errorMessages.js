@@ -61,6 +61,8 @@ export const ERROR_MESSAGES = Object.freeze({
   // l'établissement (StudentEnrolmentService), pas un code périmé. Régénérer le code
   // ne la lèverait pas et casserait celui de tous les autres élèves.
   enrolmentNotActive: "Votre inscription dans cette classe n'est pas active. Adressez-vous à votre établissement.",
+  // lms_backend#1115 (#620) : 409 `class_full`, le code est valide mais la classe est pleine.
+  classeComplete: 'Cette classe est complète. Adressez-vous à votre établissement.',
   noInstitution: "Votre compte n'est rattaché à aucun établissement. Contactez votre administrateur.",
   accountQuotaExceeded: "Trop d'essais en peu de temps. Réessayez dans une minute.",
   accountDailyCapReached: "Vous avez atteint la limite d'essais pour aujourd'hui. Réessayez demain.",
