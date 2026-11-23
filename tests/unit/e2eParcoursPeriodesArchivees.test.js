@@ -7,6 +7,9 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { CASE, DONNEES_PERIODES, ETAPES_PERIODES, jugerArchivage, jugerRevue, ligneDe } from '../../e2e/parcours-periodes-archivees.mjs'
+import { textesDErreur } from '../../e2e/ecran.mjs'
+import { ERROR_MESSAGES } from '../../src/constants/errorMessages.js'
+import { REASONS } from '../../src/services/refusalReasons.js'
 
 const P = DONNEES_PERIODES.periode
 const archivage = (champs = {}) => ({
@@ -72,5 +75,18 @@ describe('parcours-periodes-archivees — la période revue', () => {
     expect(jugerRevue({ coche: false, carte: 'Archivée' }).confirme).toBe(false)
     expect(jugerRevue({ coche: true, carte: null }).ecart).toMatch(/n’apparaît pas/)
     expect(jugerRevue({ coche: true, carte: `${P}\nAnnulée` }).ecart).toMatch(/ne dit pas/)
+  })
+})
+
+describe('parcours-periodes-archivees — les textes de la case ne sont pas des erreurs', () => {
+  // Mesuré en E2E sur le correctif (0de2d9b4) : l'écran vide, case décochée, était jugé ROUGE (« erreur du catalogue
+  // affichée ») pour l'admin et le coordinateur. Ces deux textes INFORMENT : le parcours des écrans doit les écarter.
+  it.each(['periodeArchiveeMasquee', 'periodesArchiveesMasquees'])('%s n’est pas compté comme une erreur affichée', (cle) => {
+    expect(ERROR_MESSAGES[cle]).toEqual(expect.any(String))
+    expect(textesDErreur(ERROR_MESSAGES, REASONS)).not.toContain(ERROR_MESSAGES[cle])
+  })
+
+  it('témoin : une vraie erreur du catalogue reste comptée', () => {
+    expect(textesDErreur(ERROR_MESSAGES, REASONS)).toContain(ERROR_MESSAGES.notFound)
   })
 })
