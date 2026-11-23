@@ -23,6 +23,31 @@ export function isFallbackHex(sourceLine, column) {
   return false
 }
 
+/**
+ * What stylelint could NOT read or apply (#432). The guard must FAIL CLOSED on these: a file that
+ * does not parse, a rule option that is rejected (the rule then does not run) or an unknown rule
+ * (renamed or removed by an upgrade) all yield zero `color-no-hex` warnings, which used to read as
+ * « no new hardcoded colors ». Everything that is not a warning of the guard's own rule counts.
+ *
+ * @param {Array<object>} results stylelint `LintResult`s
+ * @param {string} rule the guard's rule name
+ * @returns {Array<{source: string, line: number, column: number, reason: string}>}
+ */
+export function unreadableReports(results, rule) {
+  const reports = []
+  for (const result of results ?? []) {
+    if (result.ignored) continue
+    const source = result.source ?? '(unknown source)'
+    const report = (line, column, reason) => reports.push({ source, line: line ?? 0, column: column ?? 0, reason })
+    for (const w of result.warnings ?? []) {
+      if (w.rule !== rule) report(w.line, w.column, w.text ?? String(w.rule))
+    }
+    for (const e of result.parseErrors ?? []) report(e.line, e.column, e.text ?? 'parse error')
+    for (const o of result.invalidOptionWarnings ?? []) report(0, 0, o.text)
+  }
+  return reports
+}
+
 /** Deterministic, sorted JSON so the committed baseline diffs cleanly. */
 export function serializeBaseline(baseline) {
   // Null-prototype: a file key like "__proto__" must become an own property,
