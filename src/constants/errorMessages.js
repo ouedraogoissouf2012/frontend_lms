@@ -106,6 +106,8 @@ export const ERROR_MESSAGES = Object.freeze({
   // lms_backend#1121 : refus de PUT /lms/seances/{id}, la modification d'une séance locale.
   seanceGereeParKlassci: 'Cette séance vient de KLASSCI : elle se modifie dans KLASSCI.',
   seanceVisioEnCours: 'La visioconférence de cette séance est en cours : elle ne peut pas être modifiée maintenant.',
+  // #623 : une ligne d'historique sans identifiant entier ; rien n'est envoyé, aucun id n'est deviné.
+  seanceIdentifiantIllisible: "Cette séance n'a pas pu être désignée. Rechargez l'historique, puis réessayez.",
   // B7 (D442) : des options d'avant lms_backend #1059 sans texte fidèle (objet, liste) ; texte du front.
   optionsIllisibles: "Les options de cette question n'ont pas pu être relues. Saisissez-les de nouveau avant d'enregistrer.",
   // B5 (D461) : les bornes des options d'une question (lms_backend #1069) ; textes du front.
