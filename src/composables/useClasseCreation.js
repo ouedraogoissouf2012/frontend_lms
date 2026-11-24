@@ -43,7 +43,7 @@ export function useClasseCreation({ onCreee, onIncertaine }) {
   /** Range un refus du serveur à sa place ; rend true si la création est peut-être faite. */
   function ranger(err) {
     const message = err?.userMessage || ERROR_MESSAGES.unknown
-    if (err?.response?.data?.reason === 'class_code_already_used') {
+    if (err?.response?.data?.reason === `class_code_already_used-M1`) {
       erreurs.code = message
       return false
     }
