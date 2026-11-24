@@ -44,24 +44,6 @@ export function usePasswordReset() {
     }
   }
 
-  async function resetPassword(slug, payload) {
-    loading.value = true
-    error.value = ''
-    notice.value = ''
-    noticeTone.value = ''
-    try {
-      await passwordResetService.resetPassword(slug, payload)
-      notice.value = 'Mot de passe mis à jour.'
-      noticeTone.value = 'succes'
-      return true
-    } catch (err) {
-      error.value = displayMessage(err, 'La réinitialisation a échoué.')
-      return false
-    } finally {
-      loading.value = false
-    }
-  }
-
   return {
     loading,
     error,
@@ -70,6 +52,5 @@ export function usePasswordReset() {
     institutions,
     loadInstitutions,
     requestLink,
-    resetPassword,
   }
 }

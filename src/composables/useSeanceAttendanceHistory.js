@@ -224,7 +224,7 @@ export function useSeanceAttendanceHistory() {
     if (!(await useConfirm().confirm({ message: msg, variant: 'danger', confirmLabel: 'Supprimer' }))) return
 
     try {
-      await lmsService.deleteSeance(seance.id)
+      await lmsService.deleteLocalSeance(seance.id) // #623 : l'historique liste des ids LOCAUX
       toast.success('Séance supprimée avec succès')
       loadSeances() // Recharger la liste
     } catch (err) {
