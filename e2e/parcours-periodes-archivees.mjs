@@ -4,6 +4,7 @@
 // En école KLASSCI, l'écran est réservé à `peutGererCatalogueLocal` : NON TESTÉ, déclaré, jamais un vert inventé.
 import { ATTENTE, appel, bouton, refusServeur } from './gestes.mjs'
 import { confirmer } from './gestes-evaluation.mjs'
+import { creerProgrammeEtSession } from './gestes-sessions.mjs'
 import { lireApi } from './fonctionnels.mjs'
 
 export const DONNEES_PERIODES = Object.freeze({ programme: 'Formation E2E 611', periode: 'Periode archivee E2E 611' })
@@ -67,17 +68,8 @@ export const ETAPES_PERIODES = Object.freeze([
       if (ctx.jeu.ecole === 'klassci') return nonTesteKlassci
       const page = ctx.pages.admin
       await ecran(page, ctx.base)
-      await page.fill('#titre', ctx.donnees.programme)
-      const programme = appel(page, 'POST', '/programs')
-      await bouton(page, 'Créer le programme').click()
-      const refusProgramme = await refusServeur(page, programme, 'la création du programme')
-      if (refusProgramme) return refusProgramme
-      // Le numéro du programme se pré-remplit depuis la réponse (dernierProgrammeId) : attendu avant la période.
-      await page.waitForFunction(() => document.querySelector('#program_id')?.value !== '', null, { timeout: ATTENTE }).catch(() => {})
-      await page.fill('#libelle', ctx.donnees.periode)
-      const periode = appel(page, 'POST', '/training-sessions')
-      await bouton(page, 'Créer la période').click()
-      return (await refusServeur(page, periode, 'la création de la période')) ?? {}
+      // #606 : la formation se choisit dans la liste, par son titre (e2e/gestes-sessions.mjs).
+      return creerProgrammeEtSession(page, { programme: ctx.donnees.programme, session: ctx.donnees.periode })
     },
     relecture: async (ctx) => {
       const page = ctx.pages.admin

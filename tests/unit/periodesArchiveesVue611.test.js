@@ -34,6 +34,8 @@ beforeEach(() => {
     dernierProgrammeId: ref(null), saving: ref(false), estOccupee: () => false, voirArchivees: ref(false),
     load: vi.fn(), creerProgramme: vi.fn(), creerPeriode: vi.fn(), transitionner: vi.fn(),
     basculerArchivees: vi.fn(async (v) => { etat.voirArchivees.value = v }),
+    // #606 (2ᵉ PR) : la liste des formations, doublée.
+    programmes: ref([]), programmesErreur: ref(''), programmesTronques: ref(false), chargerProgrammes: vi.fn(async () => true),
   }
 })
 
