@@ -184,18 +184,18 @@ export function useAdminDashboardData({
 
       const events = seances.map(seance => {
         // Déterminer la couleur selon l'état visio
-        let backgroundColor = '#6b7280' // gris par défaut
+        let color = '#6b7280' // gris par défaut
         let title = seance.matiere?.libelle || seance.matiere?.nom || 'Séance'
 
         if (seance.visio_enabled) {
           if (seance.visio_active) {
-            backgroundColor = '#10b981' // vert - visio active
+            color = '#10b981' // vert - visio active
             title = `[VISIO EN COURS] ${title}`
           } else if (seance.visio_status === 'programmee') {
-            backgroundColor = '#3b82f6' // bleu - visio programmée
+            color = '#3b82f6' // bleu - visio programmée
             title = `[VISIO] ${title}`
           } else {
-            backgroundColor = '#8b5cf6' // violet - visio activée mais pas encore programmée
+            color = '#8b5cf6' // violet - visio activée mais pas encore programmée
             title = `[VISIO ACTIVÉE] ${title}`
           }
         }
@@ -213,8 +213,8 @@ export function useAdminDashboardData({
           title: `${title} - ${seance.classe?.libelle || seance.classe?.nom || 'N/A'}`,
           start: start.toISOString(),
           ...(end ? { end: end.toISOString() } : {}),
-          backgroundColor,
-          borderColor: backgroundColor,
+          // #628 : FullCalendar 7 ne lit que `color` (backgroundColor / borderColor seraient ignorés en silence).
+          color,
           extendedProps: {
             type: 'seance',
             seanceId: seance.id,

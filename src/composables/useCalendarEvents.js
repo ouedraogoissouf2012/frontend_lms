@@ -70,8 +70,8 @@ export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dat
           .filter(Boolean).join(' - '),
         start: seance.programmation?.heure_debut || seance.date_seance,
         end: seance.programmation?.heure_fin,
-        backgroundColor: determineSeanceColor(seance),
-        borderColor: determineSeanceColor(seance),
+        // #628 : FullCalendar 7 ne lit que `color` (backgroundColor / borderColor seraient ignorés en silence).
+        color: determineSeanceColor(seance),
         extendedProps: {
           eventType: 'seance',
           data: seance,
@@ -129,8 +129,7 @@ export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dat
           title: evaluation.titre,
           start: startDate,
           end: endDate,
-          backgroundColor: determineEvaluationColor(evaluation),
-          borderColor: determineEvaluationColor(evaluation),
+          color: determineEvaluationColor(evaluation),
           extendedProps: {
             eventType: 'evaluation',
             data: evaluation,

@@ -106,19 +106,10 @@ $border-radius-lg: 8px;
   }
 }
 
-:deep(.event-seance) {
-  --fc-event-color: var(--color-info-strong); /* LMS blue (séances) */
-  --fc-event-contrast-color: var(--white);
-}
-
-:deep(.event-evaluation) {
-  --fc-event-color: var(--sky-500); /* Cyan (évaluations) */
-  --fc-event-contrast-color: var(--white);
-}
-
+// Couleur d'un événement : celle de SES DONNÉES (clé `color`, useCalendarEvents), que v7 écrit en ligne ; le texte
+// reste blanc (--fc-classic-event-contrast). Seule l'urgence l'emporte, comme en v6 : `!important` recouvre l'en-ligne.
 :deep(.event-urgent) {
-  --fc-event-color: var(--red-500);
-  --fc-event-contrast-color: var(--white);
+  --fc-event-color: var(--red-500) !important;
   animation: pulse 2s infinite;
 }
 

@@ -156,21 +156,19 @@ const {
   padding: 1rem;
 }
 
-/* #628 — FullCalendar 7 : ses classes sont hachées. Ses couleurs viennent de nos jetons (_calendar-fc-tokens.scss) ;
-   nos classes d'événement (option `eventClass`) colorent chaque type par la variable de v7. */
+/* #628 — FullCalendar 7 : ses classes sont hachées. Ses couleurs viennent de nos jetons (_calendar-fc-tokens.scss).
+   Le thème classic écrit la couleur d'événement EN LIGNE : nos classes d'événement (option `eventClass`) la
+   recouvrent par `!important`, comme en v6 où la classe du widget l'emportait sur la couleur des données. */
 :deep(.event-seance) {
-  --fc-event-color: var(--blue-500);
-  --fc-event-contrast-color: var(--white);
+  --fc-event-color: var(--blue-500) !important;
 }
 
 :deep(.event-evaluation) {
-  --fc-event-color: var(--amber-500);
-  --fc-event-contrast-color: var(--white);
+  --fc-event-color: var(--amber-500) !important;
 }
 
 :deep(.event-visio) {
-  --fc-event-color: var(--emerald-500);
-  --fc-event-contrast-color: var(--white);
+  --fc-event-color: var(--emerald-500) !important;
 }
 
 /* En-tête des jours, titre de la barre, cellule du jour : NOS classes, posées par les options `…Class` de v7. */
