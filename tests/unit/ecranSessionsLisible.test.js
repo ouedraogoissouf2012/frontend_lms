@@ -62,6 +62,8 @@ describe('#606 — l’écran dit à quoi il sert, et nomme ses deux étapes', (
       periodes: ref([]), loading: ref(false), error: ref(''), notice: ref(''), page: ref(1), lastPage: ref(1),
       dernierProgrammeId: ref(null), saving: ref(false), estOccupee: () => false,
       load: vi.fn(), creerProgramme: vi.fn(), creerPeriode: vi.fn(), transitionner: vi.fn(),
+      // #606 (2ᵉ PR) : la liste des formations, doublée.
+      programmes: ref([]), programmesErreur: ref(''), programmesTronques: ref(false), chargerProgrammes: vi.fn(async () => true),
     }
     return mount(AdminTrainingSessions, {
       global: { stubs: { DashboardLayout: { template: '<div><slot /></div>' }, ContentLoader: true } },
@@ -79,7 +81,12 @@ describe('#606 — l’écran dit à quoi il sert, et nomme ses deux étapes', (
     expect(titres).toEqual(['1. La formation (son programme)', '2. Une session de cette formation'])
   })
 
-  it('en attendant la liste des programmes (lms_backend#1206), le champ dit d’où vient son numéro', () => {
-    expect(monter().find('label[for="program_id"]').text()).toBe('Programme (numéro donné à sa création)')
+  // #606 (2ᵉ PR), RENVERSÉ et déclaré : lms_backend#1206 est livrée, la formation se CHOISIT dans une liste ; le champ
+  // numérique « Programme (numéro donné à sa création) » disparaît.
+  it('la formation se choisit dans une liste, plus par son numéro', () => {
+    const w = monter()
+    expect(w.find('label[for="program_id"]').text()).toBe('Formation (programme)')
+    expect(w.find('select#program_id').exists()).toBe(true)
+    expect(w.text()).not.toContain('numéro donné à sa création')
   })
 })
