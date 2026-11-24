@@ -74,3 +74,11 @@ describe('#628 — le texte de l’en-tête des jours et les boutons du widget',
     expect(optionsAgenda().buttonClass).toBeUndefined()
   })
 })
+
+describe('#628 — une séance d’un jour avec heure reste une BARRE (décision de la superviseure)', () => {
+  // v7 (comme v6) dessine en POINT un événement d'un seul jour avec heure, en vue mois (`hasListItemDisplay`, mode
+  // 'auto'). En v6, nos classes peignaient ce point en barre ; v7 hache ses classes : l'option le fige.
+  it.each([['agenda', optionsAgenda], ['widget', optionsWidget]])('%s : eventDisplay « block »', (_, options) => {
+    expect(options().eventDisplay).toBe('block')
+  })
+})
