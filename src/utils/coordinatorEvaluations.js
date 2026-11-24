@@ -60,7 +60,7 @@ const sansKlassciId = ({ klassci_id: _ignore, ...reste }) => reste
 // au contrat. Une ligne sans `id` ne désigne personne : pas d'option.
 export function teacherOption(enseignant) {
   const source = typeof enseignant === 'object' && enseignant !== null ? enseignant : {}
-  const joinId = source.id ?? null
+  const joinId = source.klassci_id ?? source.id ?? null
   const name = displayName(enseignant)
   if (!toId(joinId) || !name) return null
   return {
