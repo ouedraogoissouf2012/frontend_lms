@@ -51,8 +51,14 @@
         <button type="submit" class="refresh-btn" :disabled="saving">Créer la période</button>
       </form>
 
+      <!-- #611 : les archivées sont masquées par défaut (lms_backend#1290) ; cette case les montre. -->
+      <p class="archivees-filtre">
+        <input id="voir-archivees" type="checkbox" :checked="voirArchivees" @change="basculerArchivees($event.target.checked)">
+        <label for="voir-archivees">Voir les périodes archivées</label>
+      </p>
+
       <ContentLoader v-if="loading" text="Chargement des sessions..." />
-      <p v-else-if="periodes.length === 0">Aucune période pour le moment.</p>
+      <p v-else-if="periodes.length === 0">{{ voirArchivees ? 'Aucune période pour le moment.' : ERROR_MESSAGES.periodesArchiveesMasquees }}</p>
 
       <TrainingPeriodCard
         v-for="p in periodes"
@@ -78,6 +84,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import TrainingPeriodCard from '@/components/admin/TrainingPeriodCard.vue'
 import { useAdminTrainingSessions } from '@/composables/useAdminTrainingSessions'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 const titre = ref('')
 const description = ref('')
@@ -95,20 +102,21 @@ const periode = reactive({
 
 const {
   periodes, loading, error, notice, page, lastPage,
-  dernierProgrammeId, saving, estOccupee,
-  load, creerProgramme, creerPeriode, transitionner,
+  dernierProgrammeId, saving, estOccupee, voirArchivees,
+  load, creerProgramme, creerPeriode, transitionner, basculerArchivees,
 } = useAdminTrainingSessions()
 
 /**
  * Après une transition, le bouton cliqué a disparu (il n'est plus permis) : le focus
  * partirait sur <body>. On le remet sur la même carte, à son premier bouton actif,
- * ou sur la carte elle-même s'il n'en reste aucun (revue #441, A3).
+ * ou sur la carte elle-même s'il n'en reste aucun (revue #441, A3). Une carte archivée qui a quitté la liste
+ * (#611) rend le focus à la case « Voir les périodes archivées ».
  */
 async function onTransition(periode, action) {
   await transitionner(periode, action)
   await nextTick()
   const carte = document.querySelector(`[data-periode-id="${periode.id}"]`)
-  const cible = carte?.querySelector('button.transition-btn:not([disabled])') ?? carte
+  const cible = carte ? (carte.querySelector('button.transition-btn:not([disabled])') ?? carte) : document.getElementById('voir-archivees')
   cible?.focus()
 }
 
@@ -177,6 +185,13 @@ async function onPeriode() {
   margin: 0;
   padding: 0;
   border: 0;
+}
+
+.archivees-filtre {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin: 0 0 var(--spacing-md);
 }
 
 .field {

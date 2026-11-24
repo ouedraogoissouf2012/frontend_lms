@@ -154,5 +154,8 @@ export const ERROR_MESSAGES = Object.freeze({
   lienDeReinitialisationEnvoye: 'Si un compte correspond à cette adresse, un lien pour choisir un nouveau mot de passe va lui être envoyé.',
   // Réponse sans motif connu : la demande est reçue, rien de plus n'est su.
   demandeDeReinitialisationRecue: 'Votre demande a été reçue.',
+  // #611 : les périodes archivées sont masquées par défaut (lms_backend#1290) ; la case de l'écran les montre.
+  periodeArchiveeMasquee: 'Période archivée. Cochez « Voir les périodes archivées » pour la revoir.',
+  periodesArchiveesMasquees: 'Aucune période à afficher. Les périodes archivées sont masquées : cochez « Voir les périodes archivées » pour les revoir.',
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })
