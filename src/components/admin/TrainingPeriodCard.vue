@@ -5,7 +5,8 @@
     <p>{{ libelleStatut(periode.status) }} · {{ libellePhase(periode.phase) }}</p>
     <!-- #606 : où en est la session, et ce qu'on peut en faire (le graphe des transitions). -->
     <p v-if="cycle" class="period-cycle">{{ cycle }}</p>
-    <p>Programme n° {{ periode.program_id }}</p>
+    <!-- #606 : la formation par son titre (TrainingSessionView.program), jamais par un numéro. -->
+    <p class="period-programme">Formation : {{ periode.program?.titre || '—' }}</p>
     <p v-if="periode.starts_on || periode.ends_on">{{ periode.starts_on || '—' }} → {{ periode.ends_on || '—' }}</p>
 
     <div v-if="actions.length" class="period-actions">

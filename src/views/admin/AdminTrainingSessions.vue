@@ -24,14 +24,18 @@
         <label for="description">Description</label>
         <textarea id="description" v-model="description" maxlength="5000" rows="3" class="field" />
         <button type="submit" class="refresh-btn" :disabled="saving">Créer le programme</button>
-        <p v-if="dernierProgrammeId">Programme n° {{ dernierProgrammeId }} — servez-vous-en ci-dessous.</p>
       </form>
 
       <form class="card" @submit.prevent="onPeriode">
         <h2>2. Une session de cette formation</h2>
-        <!-- Un numéro en attendant la liste des programmes (lms_backend#1206) : prérempli après la création. -->
-        <label for="program_id">Programme (numéro donné à sa création)</label>
-        <input id="program_id" v-model="periode.program_id" type="number" min="1" required class="field">
+        <!-- #606 : la formation se CHOISIT (GET /programs, lms_backend#1206). Sans liste lisible, pas de création. -->
+        <label for="program_id">Formation (programme)</label>
+        <select id="program_id" v-model="periode.program_id" required class="field" :disabled="!!programmesErreur">
+          <option value="">Choisissez une formation</option>
+          <option v-for="p in programmes" :key="p.id" :value="String(p.id)">{{ libelleProgramme(p) }}</option>
+        </select>
+        <p v-if="programmesErreur" class="programmes-erreur" role="alert">{{ programmesErreur }}</p>
+        <p v-if="programmesTronques" class="programmes-borne">Seules les {{ PROGRAMMES_PAGES_MAX * 100 }} premières formations sont proposées.</p>
         <label for="libelle">Libellé</label>
         <input id="libelle" v-model="periode.libelle" required maxlength="191" class="field">
         <label for="enrollment_opens_at">Ouverture des inscriptions</label>
@@ -48,7 +52,7 @@
         <input id="tarif" v-model="periode.tarif" type="number" min="0" step="1" class="field">
         <label for="devise">Devise (3 lettres)</label>
         <input id="devise" v-model="periode.devise" maxlength="3" class="field">
-        <button type="submit" class="refresh-btn" :disabled="saving">Créer la période</button>
+        <button type="submit" class="refresh-btn" :disabled="saving || !!programmesErreur">Créer la période</button>
       </form>
 
       <!-- #611 : les archivées sont masquées par défaut (lms_backend#1290) ; cette case les montre. -->
@@ -83,7 +87,7 @@ import { nextTick, onMounted, reactive, ref, watch } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import TrainingPeriodCard from '@/components/admin/TrainingPeriodCard.vue'
-import { useAdminTrainingSessions } from '@/composables/useAdminTrainingSessions'
+import { PROGRAMMES_PAGES_MAX, libelleProgramme, useAdminTrainingSessions } from '@/composables/useAdminTrainingSessions'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 const titre = ref('')
@@ -102,8 +106,8 @@ const periode = reactive({
 
 const {
   periodes, loading, error, notice, page, lastPage,
-  dernierProgrammeId, saving, estOccupee, voirArchivees,
-  load, creerProgramme, creerPeriode, transitionner, basculerArchivees,
+  dernierProgrammeId, saving, estOccupee, voirArchivees, programmes, programmesErreur, programmesTronques,
+  load, creerProgramme, creerPeriode, transitionner, basculerArchivees, chargerProgrammes,
 } = useAdminTrainingSessions()
 
 /**
@@ -120,12 +124,14 @@ async function onTransition(periode, action) {
   cible?.focus()
 }
 
+// #606 : le programme qu'on vient de créer est choisi.
 watch(dernierProgrammeId, (id) => {
-  if (id && !periode.program_id) periode.program_id = String(id)
+  if (id) periode.program_id = String(id)
 })
 
 onMounted(() => {
   load()
+  chargerProgrammes()
 })
 
 async function onProgramme() {
