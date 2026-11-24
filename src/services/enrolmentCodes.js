@@ -40,7 +40,7 @@ export const enrolmentCodesService = {
    * (le back l'exige) : `null` ou 0 retire la limite. Un succès non déclaré n'est pas cru.
    */
   async reglerCapacite(classeId, effectif) {
-    const response = await api.put(endpoints.enrolment.capacite(classeId), { capacite: effectif })
+    const response = await api.put(endpoints.enrolment.capacite(classeId), { effectif })
     if (response?.success !== true) throw invalidResponseError('PUT capacité sans success', response)
     return response
   },
