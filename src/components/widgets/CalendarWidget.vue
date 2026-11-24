@@ -156,83 +156,31 @@ const {
   padding: 1rem;
 }
 
-/* Override FullCalendar styles */
-:deep(.fc) {
-  font-family: inherit;
-}
-
-:deep(.fc-toolbar-title) {
-  font-size: 1.25rem !important;
-  font-weight: 700 !important;
-  color: var(--text-primary) !important;
-}
-
-:deep(.fc-button) {
-  background: var(--bg-secondary) !important;
-  border: 1px solid var(--border-primary) !important;
-  color: var(--text-primary) !important;
-  padding: 0.5rem 1rem !important;
-  font-weight: 600 !important;
-  text-transform: capitalize !important;
-}
-
-:deep(.fc-button:hover) {
-  background: var(--bg-tertiary) !important;
-}
-
-:deep(.fc-button-primary:not(:disabled).fc-button-active) {
-  background: var(--color-primary) !important;
-  border-color: var(--color-primary) !important;
-  color: white !important;
-}
-
-:deep(.fc-col-header-cell) {
-  background: var(--bg-secondary) !important;
-  color: var(--text-secondary) !important;
-  font-weight: 600 !important;
-  text-transform: uppercase !important;
-  font-size: 0.75rem !important;
-  padding: 0.75rem 0.5rem !important;
-}
-
-:deep(.fc-daygrid-day-number) {
-  color: var(--text-primary) !important;
-  font-weight: 600 !important;
-  padding: 0.5rem !important;
-}
-
-:deep(.fc-day-today) {
-  background: rgba(59, 130, 246, 0.1) !important;
-}
-
-:deep(.fc-daygrid-day-top) {
-  justify-content: center !important;
-}
-
-/* Event Styles */
+/* #628 — FullCalendar 7 : ses classes sont hachées. Ses couleurs viennent de nos jetons (_calendar-fc-tokens.scss) ;
+   nos classes d'événement (option `eventClass`) colorent chaque type par la variable de v7. */
 :deep(.event-seance) {
-  background: var(--blue-500) !important;
-  border-color: var(--color-info-strong) !important;
+  --fc-event-color: var(--blue-500);
+  --fc-event-contrast-color: var(--white);
 }
 
 :deep(.event-evaluation) {
-  background: var(--amber-500) !important;
-  border-color: var(--amber-600) !important;
+  --fc-event-color: var(--amber-500);
+  --fc-event-contrast-color: var(--white);
 }
 
 :deep(.event-visio) {
-  background: var(--emerald-500) !important;
-  border-color: var(--emerald-600) !important;
+  --fc-event-color: var(--emerald-500);
+  --fc-event-contrast-color: var(--white);
 }
 
-:deep(.fc-event) {
-  cursor: pointer !important;
-  transition: transform 0.2s, box-shadow 0.2s !important;
+:deep(.event-item) {
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-:deep(.fc-event:hover) {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+:deep(.event-item:hover) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* Responsive */
@@ -244,15 +192,10 @@ const {
   .header-actions {
     display: none;
   }
-
-  :deep(.fc-toolbar) {
-    flex-direction: column !important;
-    gap: 0.5rem !important;
-  }
-
-  :deep(.fc-toolbar-chunk) {
-    display: flex !important;
-    justify-content: center !important;
-  }
 }
+</style>
+
+<!-- #628 : les couleurs de FullCalendar 7 par nos jetons (global, non-scoped). -->
+<style lang="scss">
+@use '../../assets/styles/calendar-fc-tokens';
 </style>

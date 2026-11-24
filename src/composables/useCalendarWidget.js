@@ -1,9 +1,15 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import dayGridPlugin from '@fullcalendar/daygrid'
-import timeGridPlugin from '@fullcalendar/timegrid'
-import interactionPlugin from '@fullcalendar/interaction'
-import frLocale from '@fullcalendar/core/locales/fr'
+// #628 : FullCalendar 7, un seul paquet ; les plugins et la locale viennent de ses sous-chemins.
+import dayGridPlugin from '@fullcalendar/vue3/daygrid'
+import timeGridPlugin from '@fullcalendar/vue3/timegrid'
+import interactionPlugin from '@fullcalendar/vue3/interaction'
+import classicThemePlugin from '@fullcalendar/vue3/themes/classic'
+import frLocale from '@fullcalendar/vue3/locales/fr'
+// v7 n'injecte plus son CSS : le squelette et le thème classic, chargés avec ce composable (à la demande).
+// La PALETTE du thème n'est pas importée : ses couleurs viennent de nos jetons (_calendar-fc-tokens.scss).
+import '@fullcalendar/vue3/skeleton.css'
+import '@fullcalendar/vue3/themes/classic/theme.css'
 
 /**
  * Composable du widget calendrier (H8 — décomposition CalendarWidget.vue pour
@@ -24,7 +30,7 @@ export function useCalendarWidget(props, emit) {
   const selectedEvent = ref(null)
 
   const calendarOptions = computed(() => ({
-    plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
+    plugins: [classicThemePlugin, dayGridPlugin, timeGridPlugin, interactionPlugin],
     initialView: currentView.value,
     locale: frLocale,
     headerToolbar: {
@@ -48,7 +54,8 @@ export function useCalendarWidget(props, emit) {
       minute: '2-digit',
       hour12: false
     },
-    slotLabelFormat: {
+    // #628 : `slotLabelFormat` (v6) s'appelle `slotHeaderFormat` en v7 ; l'ancien nom serait ignoré en silence.
+    slotHeaderFormat: {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false
@@ -59,7 +66,8 @@ export function useCalendarWidget(props, emit) {
     selectMirror: true,
     dayMaxEvents: true,
     weekends: true,
-    eventClassNames: (arg) => {
+    // #628 : `eventClassNames` (v6) s'appelle `eventClass` en v7 ; nos classes d'événement restent les mêmes.
+    eventClass: (arg) => {
       const classes = ['event-item']
       if (arg.event.extendedProps.type) {
         classes.push(`event-${arg.event.extendedProps.type}`)

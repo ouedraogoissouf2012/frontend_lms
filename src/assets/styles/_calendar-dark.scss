@@ -1,0 +1,27 @@
+// =============================================================================
+// Mode sombre de la CARTE du calendrier unifié (H8), hors FullCalendar.
+//
+// #628 : le bloc `.fc` sombre a disparu. Les classes de FullCalendar 7 sont hachées ; ses couleurs, en clair comme en
+// sombre, viennent de nos jetons (_calendar-fc-tokens.scss). Restent ici la carte et le chargeur, qui sont à nous.
+//
+// Bloc global (non-scoped), importé une seule fois par `@use` depuis CalendarView.vue.
+// =============================================================================
+
+html[data-theme="dark"] {
+  // Calendrier en mode sombre
+  .calendar-card {
+    background: var(--card-bg) !important;
+  }
+
+  .loading-container {
+    color: rgba(var(--white-rgb), 0.7);
+
+    .material-icons {
+      color: var(--blue-500-fixed);
+    }
+
+    p {
+      color: rgba(var(--white-rgb), 0.7);
+    }
+  }
+}
