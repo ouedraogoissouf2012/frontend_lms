@@ -154,7 +154,9 @@ describe('useAdminDashboard (#H3)', () => {
     const ev = s.calendarEvents.value[0]
     expect(ev.id).toBe('seance-7')
     expect(ev.title).toBe('[VISIO EN COURS] Maths - L1')
-    expect(ev.backgroundColor).toBe('#10b981')
+    // #628 : FullCalendar 7 ne lit plus backgroundColor / borderColor ; la couleur part par `color`.
+    expect(ev.color).toBe('#10b981')
+    expect([ev.backgroundColor, ev.borderColor]).toEqual([undefined, undefined])
     expect(ev.extendedProps.url).toBe('/coordinateur/seances')
   })
 
