@@ -41,7 +41,9 @@ async function setup() {
 describe('useTeacherDashboard (#H11)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    authMock.getUser.mockReturnValue({ id: 3, klassci_id: 200001, name: 'Prof X', email: 'prof@example.test' })
+    // #626 PR 2 (déclaré) : la fiche se reconnaît par `id_dans_l_annuaire` (lms_backend#1536). Ce test la trouvait par
+    // `klassci_id`, un numéro de COMPTE KLASSCI qui coïncidait avec l'id de la fiche.
+    authMock.getUser.mockReturnValue({ id: 3, klassci_id: 200001, id_dans_l_annuaire: 200001, name: 'Prof X', email: 'prof@example.test' })
     cacheMock.readCache.mockReturnValue(null)
     klassciMock.getTeacherDashboard.mockResolvedValue({ matieres: [{ id: 1 }], classes: [] })
     apiDashboardMock.getTeacherDashboard.mockResolvedValue(null)
