@@ -129,7 +129,7 @@ export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dat
           title: evaluation.titre,
           start: startDate,
           end: endDate,
-          color: determineEvaluationColor(evaluation),
+          backgroundColor: determineEvaluationColor(evaluation),
           extendedProps: {
             eventType: 'evaluation',
             data: evaluation,
