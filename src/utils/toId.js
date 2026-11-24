@@ -1,8 +1,7 @@
 /**
- * Clés candidates d'identité KLASSCI, par ordre de précédence. UNE seule source
- * (#296) : `toId` (retient la 1re clé présente) ET `byId` (`evaluationDisplay.js`,
- * indexe par toutes) la partagent — impossible de diverger comme avant, où `byId`
- * avait oublié `class_id`.
+ * Clés candidates d'identité, par ordre de précédence, que `toId` lit sur un objet (la 1re présente). Depuis #626,
+ * `byId` (`evaluationDisplay.js`) n'indexe plus par ces clés mais par l'`id` seul : le même nombre peut vivre dans
+ * deux espaces d'id.
  */
 export const ENTITY_ID_KEYS = Object.freeze([
   'id',

@@ -16,7 +16,7 @@
       <UniversalCalendar
         ref="calendarRef"
         user-role="teacher"
-        :user-id="actorId"
+        :connecte="connecte"
         @event-action="handleEventAction"
       />
     </div>
@@ -30,14 +30,14 @@ import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import UniversalCalendar from '@/components/calendar/UniversalCalendar.vue'
 import { lmsService } from '@/services/lms'
 import { useTrackedVisioJoin } from '@/composables/useTrackedVisioJoin'
-import { useScheduleActorId } from '@/composables/useScheduleActorId'
+import { useScheduleConnexion } from '@/composables/useScheduleConnexion'
 import { notifyVisioError } from '@/services/visioFeedback'
 import { messageForReason } from '@/services/errorHandler'
 
 const router = useRouter()
 const calendarRef = ref(null)
 const { joinTrackedVisio } = useTrackedVisioJoin('Enseignant')
-const { currentUser, actorId } = useScheduleActorId()
+const { currentUser, connecte } = useScheduleConnexion()
 
 async function handleEventAction({ type, data }) {
   console.log('[TeacherSchedule] Action:', type, data)
