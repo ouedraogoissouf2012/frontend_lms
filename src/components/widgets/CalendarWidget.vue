@@ -173,6 +173,25 @@ const {
   --fc-event-contrast-color: var(--white);
 }
 
+/* En-tête des jours, titre de la barre, cellule du jour : NOS classes, posées par les options `…Class` de v7. */
+:deep(.lms-entete-widget) {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+:deep(.lms-titre-widget) {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+:deep(.lms-jour-aujourdhui) {
+  background: rgba(var(--blue-500-rgb), 0.1);
+}
+
 :deep(.event-item) {
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;

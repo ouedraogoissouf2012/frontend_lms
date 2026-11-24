@@ -122,6 +122,24 @@ $border-radius-lg: 8px;
   animation: pulse 2s infinite;
 }
 
+// En-tête des jours, cellule du jour, trait « maintenant » : NOS classes, posées par les options `…Class` de v7
+// (fullcalendarClasses.js), aux couleurs de v6. Le sombre est dans _calendar-dark.scss.
+:deep(.lms-entete-agenda) {
+  background: linear-gradient(180deg, var(--blue-600) 0%, var(--blue-700) 100%);
+  color: var(--white);
+  font-weight: 600;
+}
+
+:deep(.lms-jour-aujourdhui) {
+  background: linear-gradient(135deg, rgba(var(--color-info-strong-rgb), 0.15) 0%, rgba(var(--color-info-strong-rgb), 0.08) 100%);
+  box-shadow: inset 0 0 0 2px var(--color-info-strong);
+}
+
+:deep(.lms-ligne-maintenant) {
+  border-color: var(--color-info-strong);
+  border-width: 2px;
+}
+
 @keyframes pulse {
   0%, 100% {
     opacity: 1;

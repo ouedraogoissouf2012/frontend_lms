@@ -9,6 +9,7 @@ import frLocale from '@fullcalendar/vue3/locales/fr'
 // La PALETTE du thème n'est pas importée : ses couleurs viennent de nos jetons (_calendar-fc-tokens.scss).
 import '@fullcalendar/vue3/skeleton.css'
 import '@fullcalendar/vue3/themes/classic/theme.css'
+import { LIGNE_MAINTENANT, classeDeCellule } from '@/utils/fullcalendarClasses'
 
 /**
  * Couche « vue » du calendrier unifié (H8 — décomposition UniversalCalendar.vue
@@ -102,8 +103,13 @@ export function useCalendarView({ calendarRef, filteredEvents, onEventClick }) {
       if (arg.event.extendedProps.isUrgent) {
         classes.push('event-urgent')
       }
-      return classes
-    }
+      // v7 n'accepte qu'une CHAÎNE : un tableau serait refusé (aucune classe, donc aucune couleur d'événement).
+      return classes.join(' ')
+    },
+    // #628 : crochets stables de v7, à la place des sélecteurs `.fc-*` de v6 (fullcalendarClasses.js).
+    dayHeaderClass: 'lms-entete-agenda',
+    dayCellClass: classeDeCellule,
+    nowIndicatorLineClass: LIGNE_MAINTENANT
   }))
 
   function changeView(view) {
