@@ -8,7 +8,9 @@ import { describe, it, expect } from 'vitest'
 import EnrolmentCodeCard from '@/components/admin/EnrolmentCodeCard.vue'
 
 const classe = (etat, valeur = null) => ({ id: 3, libelle: 'Session Data 2026', code: 'SD26', training_session_id: null, code_inscription: { etat, valeur } })
-const boutons = (w) => w.findAll('button').map((b) => b.text())
+// #631 : la carte porte aussi « Modifier la capacité » ; ces tests visent les gestes du CODE.
+const boutonsCode = (w) => w.findAll('.code-actions button')
+const boutons = (w) => boutonsCode(w).map((b) => b.text())
 
 describe('EnrolmentCodeCard (#391)', () => {
   it('code actif : affiché en clair, Régénérer et Retirer', () => {
@@ -44,15 +46,15 @@ describe('EnrolmentCodeCard (#391)', () => {
 
   it('émet emettre et retirer', async () => {
     const w = mount(EnrolmentCodeCard, { props: { classe: classe('actif', 'Q7RT4K') } })
-    await w.findAll('button')[0].trigger('click')
-    await w.findAll('button')[1].trigger('click')
+    await boutonsCode(w)[0].trigger('click')
+    await boutonsCode(w)[1].trigger('click')
     expect(w.emitted('emettre')).toHaveLength(1)
     expect(w.emitted('retirer')).toHaveLength(1)
   })
 
   it('D17 : busy rend les boutons aria-disabled (focalisables), et un clic n’émet rien', async () => {
     const w = mount(EnrolmentCodeCard, { props: { classe: classe('actif', 'Q7RT4K'), busy: true } })
-    const btns = w.findAll('button')
+    const btns = boutonsCode(w)
     expect(btns.every((b) => b.attributes('aria-disabled') === 'true')).toBe(true)
     expect(btns.every((b) => b.attributes('disabled') === undefined)).toBe(true)
     for (const b of btns) await b.trigger('click')
