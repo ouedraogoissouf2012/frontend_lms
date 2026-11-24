@@ -47,7 +47,7 @@ function firstNumber(values, fallback = 0) {
  * ou une clé absente (session antérieure à #1536) ne correspond à rien.
  */
 function matchesCurrentTeacher(enseignant, currentUser) {
-  const moi = toId(currentUser?.id_dans_l_annuaire ?? currentUser?.klassci_id)
+  const moi = toId(currentUser?.id_dans_l_annuaire)
   return Boolean(moi) && toId(enseignant?.id) === moi
 }
 
