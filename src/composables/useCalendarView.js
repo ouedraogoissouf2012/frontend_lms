@@ -108,7 +108,7 @@ export function useCalendarView({ calendarRef, filteredEvents, onEventClick }) {
     },
     // #628 : crochets stables de v7, à la place des sélecteurs `.fc-*` de v6 (fullcalendarClasses.js).
     // #628 : une séance d'un jour avec heure reste une BARRE, comme en v6 (v7 la dessinerait en point en vue mois).
-    eventDisplay: 'auto',
+    eventDisplay: 'block',
     dayHeaderClass: 'lms-entete-agenda',
     dayHeaderInnerClass: 'lms-entete-agenda-texte',
     dayCellClass: classeDeCellule,
