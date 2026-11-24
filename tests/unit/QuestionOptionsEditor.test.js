@@ -2,13 +2,18 @@
  * Test de montage de QuestionOptionsEditor (#G6 / H5) : rendu des lignes
  * d'options, ajout/suppression et sélection de la bonne réponse (choix unique
  * et multiple) mutant la question par référence.
+ *
+ * #432 : la question est RÉACTIVE, comme dans l'écran (le parent la tient dans un état réactif). @vue/test-utils
+ * 2.6.0 ne rend plus réactifs en profondeur les objets passés en props (« Plain object and array props are no longer
+ * made deeply reactive ») : un objet simple, muté en place, ne redessinait plus le composant (Dependabot #637).
  */
+import { reactive } from 'vue'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
 import QuestionOptionsEditor from '@/components/lessons/QuestionOptionsEditor.vue'
 
 function mountOptions(question = {}) {
-  const q = { type: 'single', options: ['A', 'B'], correct_answer: null, ...question }
+  const q = reactive({ type: 'single', options: ['A', 'B'], correct_answer: null, ...question })
   const w = mount(QuestionOptionsEditor, { props: { question: q, index: 0 } })
   return { w, q }
 }
