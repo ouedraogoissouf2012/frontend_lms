@@ -48,6 +48,17 @@ export function libelleStatut(status) {
   return STATUTS[status] || status || '—'
 }
 
+/**
+ * #606 : la borne DÉCLARÉE de lecture des programmes, en pages de 100 (2 000 formations). Au-delà, la lecture s'arrête
+ * et l'écran le dit, au lieu de prétendre tout lister.
+ */
+export const PROGRAMMES_PAGES_MAX = 20
+
+/** Libellé d'un programme dans la liste : son titre, et sa version quand il en a plusieurs. */
+export function libelleProgramme(p) {
+  return Number.isInteger(p?.version) && p.version > 1 ? `${p.titre} (version ${p.version})` : String(p?.titre ?? '—')
+}
+
 export function useAdminTrainingSessions() {
   const periodes = ref([])
   const loading = ref(false)
@@ -59,6 +70,10 @@ export function useAdminTrainingSessions() {
   const saving = ref(false)
   // #611 : les archivées sont masquées par défaut (lms_backend#1290) ; la case de l'écran les montre.
   const voirArchivees = ref(false)
+  // #606 : la liste des formations (GET /programs), pour CHOISIR celle d'une session.
+  const programmes = ref([])
+  const programmesErreur = ref('')
+  const programmesTronques = ref(false)
   // Périodes dont une transition est en cours (revue #441, A1) : un ENSEMBLE, car
   // plusieurs cartes peuvent être en vol. Remplacé à chaque écriture (réactivité).
   const occupees = ref(new Set())
@@ -105,6 +120,33 @@ export function useAdminTrainingSessions() {
     }
   }
 
+  /**
+   * Lit TOUS les programmes, page par page, dans la borne déclarée. Un échec ne laisse AUCUN programme : une liste
+   * partielle ferait croire qu'une formation n'existe pas. L'écran désactive alors la création de session.
+   * @returns {Promise<boolean>} true si la liste est lue
+   */
+  async function chargerProgrammes() {
+    programmesErreur.value = ''
+    const lus = []
+    try {
+      let cible = 1
+      let derniere = 1
+      do {
+        const response = await trainingSessionsService.listPrograms(cible)
+        lus.push(...extractList(response))
+        derniere = response.meta?.last_page ?? cible
+        cible += 1
+      } while (cible <= derniere && cible <= PROGRAMMES_PAGES_MAX)
+      programmes.value = lus
+      programmesTronques.value = derniere > PROGRAMMES_PAGES_MAX
+      return true
+    } catch (err) {
+      programmes.value = []
+      programmesErreur.value = err?.userMessage || ERROR_MESSAGES.unknown
+      return false
+    }
+  }
+
   async function creerProgramme(titre, description) {
     saving.value = true
     error.value = ''
@@ -113,6 +155,8 @@ export function useAdminTrainingSessions() {
       const response = await trainingSessionsService.createProgram({ titre, description })
       dernierProgrammeId.value = response.data?.id ?? null
       notice.value = 'Programme créé.'
+      // #606 : la liste est relue, pour que le programme créé puisse être choisi.
+      await chargerProgrammes()
       return true
     } catch (err) {
       error.value = err.userMessage || 'La création du programme a échoué.'
@@ -190,7 +234,7 @@ export function useAdminTrainingSessions() {
 
   return {
     periodes, loading, error, notice, page, lastPage,
-    dernierProgrammeId, saving, estOccupee, voirArchivees,
-    load, creerProgramme, creerPeriode, transitionner, basculerArchivees,
+    dernierProgrammeId, saving, estOccupee, voirArchivees, programmes, programmesErreur, programmesTronques,
+    load, creerProgramme, creerPeriode, transitionner, basculerArchivees, chargerProgrammes,
   }
 }

@@ -21,7 +21,6 @@ vi.mock('@/stores/auth', () => ({
 }))
 vi.mock('@/composables/useToast', () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() } }))
 vi.mock('@/constants/visio', () => ({
-  buildJitsiUrl: (r) => `jitsi://${r}`,
   getVisioRoomId: (source) => source?.visio_room_id || source?.room_id || source?.visio?.room_id || null,
   requireVisioRoomId: (source) => source?.visio_room_id || source?.room_id || source?.visio?.room_id || 'room-test'
 }))

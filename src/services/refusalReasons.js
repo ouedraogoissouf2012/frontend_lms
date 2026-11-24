@@ -24,6 +24,8 @@ function motif(categorie, { transitoire = false, etatVide = false, information =
 
 export const REASONS = Object.freeze({
   enrolment_not_active: motif('enrolmentNotActive'),
+  // lms_backend#1115 (#620) : 409 des deux portes d'inscription par code, la classe a atteint sa capacité. Définitif.
+  class_full: motif('classeComplete'),
   no_institution: motif('noInstitution'),
   account_quota_exceeded: motif('accountQuotaExceeded'),
   account_daily_cap_reached: motif('accountDailyCapReached'),

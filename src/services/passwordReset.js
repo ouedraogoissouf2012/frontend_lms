@@ -9,8 +9,4 @@ export const passwordResetService = {
   requestLink(slug, email) {
     return api.post(endpoints.auth.forgotPassword, { email }, institutionHeaders(slug))
   },
-
-  resetPassword(slug, payload) {
-    return api.post(endpoints.auth.resetPassword, payload, institutionHeaders(slug))
-  },
 }

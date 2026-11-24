@@ -84,7 +84,7 @@ export function useVisioActions(props, emit) {
   }
 
   /**
-   * Enseignant: Démarrer la visio (window.open avec tracking)
+   * Enseignant: Démarrer la visio (salle embarquée, présence suivie)
    */
   async function demarrerVisio() {
     loading.value = true
@@ -107,7 +107,7 @@ export function useVisioActions(props, emit) {
       //    qui porte aussi le jeton d'accès exigé par le serveur.
       await visioStore.joinVisio(props.seance.id)
 
-      console.log('✅ Visio démarrée avec window.open + tracking')
+      console.log('✅ Visio démarrée dans la salle embarquée (présence suivie)')
 
       // 4. Rafraîchir les données
       emit('visio-updated', result.data)
@@ -175,7 +175,7 @@ export function useVisioActions(props, emit) {
   }
 
   /**
-   * Étudiant: Rejoindre la visio (window.open avec tracking)
+   * Étudiant: Rejoindre la visio (salle embarquée, présence suivie)
    */
   async function rejoindreVisio() {
     if (!props.seance.visio_active) {
@@ -194,7 +194,7 @@ export function useVisioActions(props, emit) {
       // Le store construit l'URL depuis SA réponse, qui porte le jeton d'accès.
       await visioStore.joinVisio(props.seance.id)
 
-      console.log('✅ Étudiant a rejoint avec window.open + tracking')
+      console.log('✅ Étudiant a rejoint la salle embarquée (présence suivie)')
 
     } catch (error) {
       console.error('[VisioManager] Erreur rejoindre visio:', error)

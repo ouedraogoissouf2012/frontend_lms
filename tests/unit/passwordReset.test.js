@@ -20,15 +20,4 @@ describe('passwordResetService (#332)', () => {
       { headers: { 'X-Institution': 'esi' } },
     )
   })
-
-  it('emits X-Institution on reset-password', async () => {
-    await passwordResetService.resetPassword('esi', {
-      email: 'a@b.test',
-      token: 'tok',
-      password: 'Nouveau123',
-      password_confirmation: 'Nouveau123',
-    })
-    const [, , opts] = post.mock.calls[0]
-    expect(opts.headers['X-Institution']).toBe('esi')
-  })
 })
