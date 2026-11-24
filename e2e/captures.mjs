@@ -12,6 +12,12 @@ export const CALENDRIERS = Object.freeze(['/teacher/schedule', '/student/schedul
 /** La zone qui défile dans l'application (DashboardLayout). */
 export const ZONE_DEFILANTE = '.content-area'
 
+/**
+ * Le widget du tableau de bord admin est chargé À LA DEMANDE (DashboardCalendarPanel) : sans ce clic, la capture ne
+ * montre que « Calendrier non chargé. ». Un écran sans ce bouton n'est pas touché.
+ */
+export const BOUTON_CALENDRIER = 'Afficher le calendrier'
+
 /** Plafond de hauteur de fenêtre : une page démesurée ne doit pas produire une image géante. */
 export const HAUTEUR_MAX = 6000
 
@@ -46,6 +52,12 @@ export async function capturesCalendrier(page, chemins) {
   }, sombre)
   const origine = page.viewportSize()
   try {
+    const bouton = page.getByRole('button', { name: BOUTON_CALENDRIER })
+    if (await bouton.count()) {
+      await bouton.first().click()
+      await bouton.first().waitFor({ state: 'detached', timeout: 10000 }).catch(() => {})
+      await page.waitForTimeout(800)
+    }
     const mesure = await page.evaluate((sel) => {
       const zone = document.querySelector(sel)
       return { fenetre: window.innerHeight, haut: zone?.getBoundingClientRect().top ?? null, defilable: zone?.scrollHeight ?? null }

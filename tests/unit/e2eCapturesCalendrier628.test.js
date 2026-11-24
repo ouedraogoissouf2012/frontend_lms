@@ -5,7 +5,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { CALENDRIERS, HAUTEUR_MAX, hauteurUtile, nomsPleinePage } from '../../e2e/captures.mjs'
+import { BOUTON_CALENDRIER, CALENDRIERS, HAUTEUR_MAX, hauteurUtile, nomsPleinePage } from '../../e2e/captures.mjs'
 
 const routes = ['admin', 'student', 'teacher'].map((f) => readFileSync(resolve(process.cwd(), `src/router/routes/${f}.routes.js`), 'utf8')).join('\n')
 
@@ -33,6 +33,11 @@ describe('#628 — captures sombres des calendriers', () => {
     expect(hauteurUtile({ fenetre: 720, haut: 64, defilable: 300 })).toBe(720)
     expect(hauteurUtile({ fenetre: 720, haut: 64, defilable: 90000 })).toBe(HAUTEUR_MAX)
     expect(hauteurUtile({ fenetre: 720, haut: null, defilable: null })).toBe(720)
+  })
+
+  it('le widget admin, chargé à la demande, est affiché par SON bouton avant la capture', () => {
+    const panneau = readFileSync(resolve(process.cwd(), 'src/components/dashboard/DashboardCalendarPanel.vue'), 'utf8')
+    expect(panneau).toContain(`'${BOUTON_CALENDRIER}'`)
   })
 
   it('le parcours des écrans appelle la paire pleine page juste après sa propre capture', () => {
