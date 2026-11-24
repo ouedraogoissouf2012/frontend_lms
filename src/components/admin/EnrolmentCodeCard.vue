@@ -19,6 +19,9 @@
         Retirer
       </button>
     </div>
+
+    <!-- #631 : après les gestes du code, qu'elle ne bloque pas (busy ne concerne que le code). -->
+    <ClasseCapacite :classe="classe" @regle="$emit('capacite', $event)" />
   </article>
 </template>
 
@@ -28,15 +31,18 @@
  * reçoit la classe (forme de `GET /classes`), émet `emettre` / `retirer`. « Retirer »
  * n'est proposé que pour un code actif : sans code émis, le serveur répondrait 409 ; un code
  * déjà retiré serait re-retiré sans erreur, ce qui n'aurait pas de sens pour le personnel.
+ * La capacité (#631) se règle ici aussi : elle borne les adhésions par code. La carte relaie en
+ * `capacite` la valeur relue du serveur.
  */
 import { computed } from 'vue'
+import ClasseCapacite from '@/components/admin/ClasseCapacite.vue'
 
 const props = defineProps({
   classe: { type: Object, required: true },
   busy: { type: Boolean, default: false },
 })
 
-defineEmits(['emettre', 'retirer'])
+defineEmits(['emettre', 'retirer', 'capacite'])
 
 const ETATS = Object.freeze({
   actif: 'Code actif',

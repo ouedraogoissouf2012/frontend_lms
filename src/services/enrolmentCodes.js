@@ -1,5 +1,6 @@
 import api from './api'
 import { endpoints } from './endpoints'
+import { invalidResponseError } from './errorHandler'
 
 /**
  * Code d'inscription d'une classe locale (#391, ADR-803-03).
@@ -32,6 +33,16 @@ export const enrolmentCodesService = {
 
   retirer(classeId) {
     return api.delete(endpoints.enrolment.code(classeId))
+  },
+
+  /**
+   * #631 : règle la capacité d'une classe locale. `effectif` est TOUJOURS envoyé, nul compris
+   * (le back l'exige) : `null` ou 0 retire la limite. Un succès non déclaré n'est pas cru.
+   */
+  async reglerCapacite(classeId, effectif) {
+    const response = await api.put(endpoints.enrolment.capacite(classeId), { effectif })
+    if (response?.success !== true) throw invalidResponseError('PUT capacité sans success', response)
+    return response
   },
 
   /** Rend le corps et `dejaInscrit` (clé du FRONT, jamais émise ni renvoyée au serveur). */
