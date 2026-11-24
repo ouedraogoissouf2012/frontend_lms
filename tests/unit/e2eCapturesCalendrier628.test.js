@@ -5,7 +5,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { CALENDRIERS, nomsPleinePage } from '../../e2e/captures.mjs'
+import { CALENDRIERS, HAUTEUR_MAX, hauteurUtile, nomsPleinePage } from '../../e2e/captures.mjs'
 
 const routes = ['admin', 'student', 'teacher'].map((f) => readFileSync(resolve(process.cwd(), `src/router/routes/${f}.routes.js`), 'utf8')).join('\n')
 
@@ -23,6 +23,16 @@ describe('#628 — captures sombres des calendriers', () => {
       clair: 'captures/enseignant_teacher_schedule_pleine_clair.png',
       sombre: 'captures/enseignant_teacher_schedule_pleine_sombre.png',
     })
+  })
+
+  it('la fenêtre est agrandie à TOUT le contenu de la zone défilante (le document, lui, ne défile pas)', () => {
+    expect(hauteurUtile({ fenetre: 720, haut: 64, defilable: 1900 })).toBe(1964)
+  })
+
+  it('jamais moins que la fenêtre, jamais plus que le plafond, et sans zone mesurée la fenêtre d’origine', () => {
+    expect(hauteurUtile({ fenetre: 720, haut: 64, defilable: 300 })).toBe(720)
+    expect(hauteurUtile({ fenetre: 720, haut: 64, defilable: 90000 })).toBe(HAUTEUR_MAX)
+    expect(hauteurUtile({ fenetre: 720, haut: null, defilable: null })).toBe(720)
   })
 
   it('le parcours des écrans appelle la paire pleine page juste après sa propre capture', () => {
