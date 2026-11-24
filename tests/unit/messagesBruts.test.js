@@ -156,7 +156,7 @@ describe('Historique des présences : plus de « Request failed with status code
   })
 
   it('une suppression en panne dit le message du catalogue', async () => {
-    servir({ '/lms/seances/history': SEANCES, '/seances/3': PANNE })
+    servir({ '/lms/seances/history': SEANCES, '/lms/seances/local/3': PANNE })
     const h = await monter(useSeanceAttendanceHistory)
     await h.deleteSeance({ id: 3, klassci_seance_id: 'S3' })
     expect(toastError).toHaveBeenCalledTimes(1)

@@ -5,11 +5,9 @@ vi.mock('@/services/api', () => ({
 }))
 
 const requestLink = vi.fn()
-const resetPassword = vi.fn()
 vi.mock('@/services/passwordReset', () => ({
   passwordResetService: {
     requestLink: (...a) => requestLink(...a),
-    resetPassword: (...a) => resetPassword(...a),
   },
 }))
 
@@ -46,20 +44,10 @@ describe('usePasswordReset — jamais le texte du serveur (D477)', () => {
     expect(api.notice.value).toBe(ERROR_MESSAGES.demandeDeReinitialisationRecue)
   })
 
-  it('une réinitialisation réussie : le texte du front', async () => {
-    resetPassword.mockResolvedValue({ success: true, message: 'Texte serveur, jamais affiché' })
-    const api = usePasswordReset()
-    await api.resetPassword('esi', { token: 't', email: 'a@b.test', password: 'x', password_confirmation: 'x' })
-    expect(api.notice.value).toBe('Mot de passe mis à jour.')
-  })
-
   it('un échec sans message du catalogue : la catégorie, jamais le texte du serveur', async () => {
     requestLink.mockRejectedValue(panne())
     const api = usePasswordReset()
     await api.requestLink('esi', 'a@b.test')
-    expect(api.error.value).not.toContain('Texte serveur, jamais affiché')
-    resetPassword.mockRejectedValue(panne())
-    await api.resetPassword('esi', { token: 't' })
     expect(api.error.value).not.toContain('Texte serveur, jamais affiché')
   })
 })

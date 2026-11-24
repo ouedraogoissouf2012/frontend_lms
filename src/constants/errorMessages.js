@@ -61,6 +61,8 @@ export const ERROR_MESSAGES = Object.freeze({
   // l'établissement (StudentEnrolmentService), pas un code périmé. Régénérer le code
   // ne la lèverait pas et casserait celui de tous les autres élèves.
   enrolmentNotActive: "Votre inscription dans cette classe n'est pas active. Adressez-vous à votre établissement.",
+  // lms_backend#1115 (#620) : 409 `class_full`, le code est valide mais la classe est pleine.
+  classeComplete: 'Cette classe est complète. Adressez-vous à votre établissement.',
   noInstitution: "Votre compte n'est rattaché à aucun établissement. Contactez votre administrateur.",
   accountQuotaExceeded: "Trop d'essais en peu de temps. Réessayez dans une minute.",
   accountDailyCapReached: "Vous avez atteint la limite d'essais pour aujourd'hui. Réessayez demain.",
@@ -106,6 +108,8 @@ export const ERROR_MESSAGES = Object.freeze({
   // lms_backend#1121 : refus de PUT /lms/seances/{id}, la modification d'une séance locale.
   seanceGereeParKlassci: 'Cette séance vient de KLASSCI : elle se modifie dans KLASSCI.',
   seanceVisioEnCours: 'La visioconférence de cette séance est en cours : elle ne peut pas être modifiée maintenant.',
+  // #623 : une ligne d'historique sans identifiant entier ; rien n'est envoyé, aucun id n'est deviné.
+  seanceIdentifiantIllisible: "Cette séance n'a pas pu être désignée. Rechargez l'historique, puis réessayez.",
   // B7 (D442) : des options d'avant lms_backend #1059 sans texte fidèle (objet, liste) ; texte du front.
   optionsIllisibles: "Les options de cette question n'ont pas pu être relues. Saisissez-les de nouveau avant d'enregistrer.",
   // B5 (D461) : les bornes des options d'une question (lms_backend #1069) ; textes du front.
