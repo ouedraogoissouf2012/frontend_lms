@@ -20,7 +20,7 @@ import { REASONS, entreeDuMotif } from '@/services/refusalReasons'
 const PIEGE = 'Aucune classe trouvée pour cet étudiant'
 const refus = (data) => ({ response: { status: 404, data: { success: false, message: PIEGE, ...data } } })
 const agenda = () => useCalendarEvents({
-  getUserRole: () => 'student', getUserId: () => 1, eventTypeFilter: ref('seances'), dateRangePreset: ref('month'),
+  getUserRole: () => 'student', estConnecte: () => true, eventTypeFilter: ref('seances'), dateRangePreset: ref('month'),
 })
 
 beforeEach(() => { vi.clearAllMocks() })
@@ -90,7 +90,7 @@ describe('calendrier — l’état vide se lit comme une information, pas une al
     }))
     const { default: UniversalCalendar } = await import('@/components/calendar/UniversalCalendar.vue')
     const w = mount(UniversalCalendar, {
-      props: { userRole: 'student', userId: 1 },
+      props: { userRole: 'student', connecte: true },
       global: { stubs: { CalendarNavigation: true, CalendarFilters: true, CalendarView: true, CalendarCompactAgenda: true, CalendarLegend: true, EventDetailModal: true } },
     })
     expect(w.find('[role="status"]').text()).toBe(ERROR_MESSAGES.eleveSansClasseActive)

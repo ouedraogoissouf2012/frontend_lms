@@ -26,7 +26,7 @@ import { useCalendarEvents } from '@/composables/useCalendarEvents'
 function calendrier(type = 'evaluations') {
   return useCalendarEvents({
     getUserRole: () => 'admin',
-    getUserId: () => 1,
+    estConnecte: () => true,
     eventTypeFilter: ref(type),
     dateRangePreset: ref('month'),
   })
