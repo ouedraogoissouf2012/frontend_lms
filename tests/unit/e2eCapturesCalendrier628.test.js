@@ -5,7 +5,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { CALENDRIERS, nomSombre } from '../../e2e/captures.mjs'
+import { CALENDRIERS, nomsPleinePage } from '../../e2e/captures.mjs'
 
 const routes = ['admin', 'student', 'teacher'].map((f) => readFileSync(resolve(process.cwd(), `src/router/routes/${f}.routes.js`), 'utf8')).join('\n')
 
@@ -18,14 +18,17 @@ describe('#628 — captures sombres des calendriers', () => {
     for (const chemin of CALENDRIERS) expect(routes).toContain(`path: '${chemin}'`)
   })
 
-  it('le nom sombre est le nom clair suffixé, pour des paires stables entre v6 et v7', () => {
-    expect(nomSombre('captures/enseignant_teacher_schedule.png')).toBe('captures/enseignant_teacher_schedule_sombre.png')
+  it('la paire pleine page porte des noms stables entre v6 et v7, à côté de la capture du parcours', () => {
+    expect(nomsPleinePage('captures/enseignant_teacher_schedule.png')).toEqual({
+      clair: 'captures/enseignant_teacher_schedule_pleine_clair.png',
+      sombre: 'captures/enseignant_teacher_schedule_pleine_sombre.png',
+    })
   })
 
-  it('le parcours des écrans appelle la capture sombre juste après la claire', () => {
+  it('le parcours des écrans appelle la paire pleine page juste après sa propre capture', () => {
     const parcours = readFileSync(resolve(process.cwd(), 'e2e/parcours.mjs'), 'utf8')
     const claire = parcours.indexOf('await page.screenshot({ path: join(sortie, capture) })')
-    const sombre = parcours.indexOf('if (CALENDRIERS.includes(route.chemin)) await captureSombre(page, join(sortie, nomSombre(capture)))')
+    const sombre = parcours.indexOf('await capturesCalendrier(page, { clair: join(sortie, noms.clair), sombre: join(sortie, noms.sombre) })')
     expect(claire).toBeGreaterThan(0)
     expect(sombre).toBeGreaterThan(claire)
   })
