@@ -36,7 +36,10 @@ jobs:
         run: npm ci
 
       - name: Audit production dependencies
-        run: npm audit --omit=dev --audit-level=high
+        # PREUVE #432 (a retirer) : audit force ROUGE pour eprouver l'alerte.
+        run: |
+          echo "PREUVE #432 : audit force rouge"
+          exit 1
 
   alerte:
     name: Alerte (audit planifié rouge)
