@@ -20,3 +20,13 @@ export function classeDeCellule({ isToday, isOther } = {}) {
   if (isOther) return 'lms-jour-hors-mois'
   return ''
 }
+
+/**
+ * La classe du NUMÉRO d'une cellule de jour (option `dayCellTopInnerClass`) : toujours `lms-numero`, plus le jour
+ * courant ou le jour hors du mois. v7 la joint aux classes du thème, qui restent.
+ * @param {{ isToday?: boolean, isOther?: boolean }} cellule - les `DayCellInfo` de v7
+ * @returns {string}
+ */
+export function classeDuNumero({ isToday, isOther } = {}) {
+  return ['lms-numero', isToday && 'lms-numero-aujourdhui', isOther && 'lms-numero-hors-mois'].filter(Boolean).join(' ')
+}

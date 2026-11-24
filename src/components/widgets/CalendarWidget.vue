@@ -174,10 +174,43 @@ const {
 /* En-tête des jours, titre de la barre, cellule du jour : NOS classes, posées par les options `…Class` de v7. */
 :deep(.lms-entete-widget) {
   background: var(--bg-secondary);
+}
+
+/* Texte d'en-tête, numéro du jour CENTRÉ, boutons neutres : les valeurs de v6 (le thème met 14 px, cale le numéro
+   à droite et peint les boutons en bleu). */
+:deep(.lms-entete-widget-texte) {
   color: var(--text-secondary);
   font-weight: 600;
   text-transform: uppercase;
   font-size: 0.75rem;
+  padding: 0.75rem 0.5rem;
+}
+
+:deep(.lms-haut-centre) {
+  justify-content: center;
+}
+
+:deep(.lms-numero) {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.25rem;
+}
+
+:deep(.lms-numero-hors-mois) {
+  opacity: 0.3;
+}
+
+:deep(.lms-bouton-widget) {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+}
+
+:deep(.lms-bouton-widget:hover) {
+  background: var(--bg-tertiary);
 }
 
 :deep(.lms-titre-widget) {

@@ -10,7 +10,7 @@ import frLocale from '@fullcalendar/vue3/locales/fr'
 // La PALETTE du thème n'est pas importée : ses couleurs viennent de nos jetons (_calendar-fc-tokens.scss).
 import '@fullcalendar/vue3/skeleton.css'
 import '@fullcalendar/vue3/themes/classic/theme.css'
-import { LIGNE_MAINTENANT, classeDeCellule } from '@/utils/fullcalendarClasses'
+import { LIGNE_MAINTENANT, classeDeCellule, classeDuNumero } from '@/utils/fullcalendarClasses'
 
 /**
  * Composable du widget calendrier (H8 — décomposition CalendarWidget.vue pour
@@ -78,9 +78,13 @@ export function useCalendarWidget(props, emit) {
     },
     // #628 : crochets stables de v7, à la place des sélecteurs `.fc-*` de v6 (fullcalendarClasses.js).
     dayHeaderClass: 'lms-entete-widget',
+    dayHeaderInnerClass: 'lms-entete-widget-texte',
     dayCellClass: classeDeCellule,
+    dayCellTopClass: 'lms-haut-centre',
+    dayCellTopInnerClass: classeDuNumero,
     nowIndicatorLineClass: LIGNE_MAINTENANT,
-    toolbarTitleClass: 'lms-titre-widget'
+    toolbarTitleClass: 'lms-titre-widget',
+    buttonClass: 'lms-bouton-widget'
   }))
 
   function changeView(view) {

@@ -117,8 +117,30 @@ $border-radius-lg: 8px;
 // (fullcalendarClasses.js), aux couleurs de v6. Le sombre est dans _calendar-dark.scss.
 :deep(.lms-entete-agenda) {
   background: linear-gradient(180deg, var(--blue-600) 0%, var(--blue-700) 100%);
+}
+
+// Le texte d'en-tête et le numéro du jour : le thème les fixe à 14 px sans marge ; on reprend les valeurs de v6.
+:deep(.lms-entete-agenda-texte) {
   color: var(--white);
   font-weight: 600;
+  font-size: 1rem;
+  padding: 0.75rem 0.5rem;
+}
+
+:deep(.lms-numero) {
+  color: var(--text-primary);
+  font-size: 1rem;
+  padding: 0.25rem;
+}
+
+:deep(.lms-numero-aujourdhui) {
+  color: var(--color-info-strong);
+  font-weight: 700;
+}
+
+// Jour hors du mois : l'opacité par défaut de v6 (le thème v7 ne fait que griser légèrement le texte).
+:deep(.lms-numero-hors-mois) {
+  opacity: 0.3;
 }
 
 :deep(.lms-jour-aujourdhui) {
