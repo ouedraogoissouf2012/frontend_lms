@@ -22,6 +22,8 @@ export function verifsEcoleKlassci(_jeu) {
     'admin /admin/classes': {
       chiffres: [chiffre('Total Classes', 2), chiffre('Total Étudiants', 6)],
       contient: ['Classe K1 E2E', 'Classe K2 E2E'],
+      // #631 : la capacité d'une classe KLASSCI vient de KLASSCI ; aucun geste pour la régler ici.
+      absent: ['Modifier la capacité'],
     },
     'admin /admin/users': {
       chiffres: [chiffre('Étudiants', 6, 'avant'), chiffre('Classes', 2, 'avant')],

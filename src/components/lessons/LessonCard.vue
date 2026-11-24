@@ -49,6 +49,7 @@
       <LessonCardActions
         :lesson="lesson"
         :is-teacher="isTeacher"
+        :can-write="canWrite"
         @view="$emit('view', $event)"
         @edit="$emit('edit', $event)"
         @delete="$emit('delete', $event)"
@@ -74,6 +75,8 @@ import LessonCardActions from './LessonCardActions.vue'
 defineProps({
   lesson: { type: Object, required: true },
   isTeacher: { type: Boolean, default: false },
+  // #601 : publier, modifier, supprimer ; l'enseignant seul.
+  canWrite: { type: Boolean, default: false },
   showProgress: { type: Boolean, default: true },
   showStats: { type: Boolean, default: false },
   showStatus: { type: Boolean, default: false }

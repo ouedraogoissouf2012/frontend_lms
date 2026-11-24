@@ -6,6 +6,15 @@ import { fetchAllPages } from '../utils/fetchAllPages'
 // `GET /lessons` est paginé (15 par défaut, `per_page` borné à 100 par FilterLessonsRequest).
 const LESSONS_PAGE_SIZE = 100
 
+/** Les badges de progression d'une leçon (`getProgressBadge`). */
+const BADGES_PROGRESSION = Object.freeze({
+  nonCommence: Object.freeze({ class: 'bg-gray-200 text-gray-600', text: 'Non commencé', color: 'gray' }),
+  debute: Object.freeze({ class: 'bg-red-100 text-red-700', text: 'Débuté', color: 'red' }),
+  enCours: Object.freeze({ class: 'bg-yellow-100 text-yellow-700', text: 'En cours', color: 'yellow' }),
+  presqueTermine: Object.freeze({ class: 'bg-blue-100 text-blue-700', text: 'Presque terminé', color: 'blue' }),
+  termine: Object.freeze({ class: 'bg-green-100 text-green-700', text: 'Terminé', color: 'green' }),
+})
+
 /**
  * Service pour la gestion des leçons (Lessons)
  */
@@ -210,18 +219,16 @@ const lessonService = {
    * @param {Number} percentage - 0-100
    * @returns {Object} - { class, text, color }
    */
-  getProgressBadge(percentage) {
-    if (percentage === 0) {
-      return { class: 'bg-gray-200 text-gray-600', text: 'Non commencé', color: 'gray' }
-    } else if (percentage < 30) {
-      return { class: 'bg-red-100 text-red-700', text: 'Débuté', color: 'red' }
-    } else if (percentage < 70) {
-      return { class: 'bg-yellow-100 text-yellow-700', text: 'En cours', color: 'yellow' }
-    } else if (percentage < 100) {
-      return { class: 'bg-blue-100 text-blue-700', text: 'Presque terminé', color: 'blue' }
-    } else {
-      return { class: 'bg-green-100 text-green-700', text: 'Terminé', color: 'green' }
-    }
+  getProgressBadge(percentage, status) {
+    // lms_backend#1147 : l'ÉTAT du serveur prime sur le pourcentage. Du temps écrit commence la leçon
+    // (`in_progress`) même à 0 %, et une leçon `completed` est terminée. Sinon, le pourcentage décide.
+    if (status === 'completed') return BADGES_PROGRESSION.termine
+    if (status === 'in_progress' && percentage === 0) return BADGES_PROGRESSION.debute
+    if (percentage === 0) return BADGES_PROGRESSION.nonCommence
+    if (percentage < 30) return BADGES_PROGRESSION.debute
+    if (percentage < 70) return BADGES_PROGRESSION.enCours
+    if (percentage < 100) return BADGES_PROGRESSION.presqueTermine
+    return BADGES_PROGRESSION.termine
   },
 
   /**

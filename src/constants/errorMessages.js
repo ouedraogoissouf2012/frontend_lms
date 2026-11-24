@@ -18,7 +18,10 @@ export const ERROR_MESSAGES = Object.freeze({
   conflict: "Cette action n'est plus possible dans l'état actuel.",
   // Complément que seul un appelant qui A RECHARGÉ avec succès peut ajouter.
   listeActualisee: 'La liste a été actualisée.',
-  gone: 'Ce lien n\'est plus valable. Demandez-en un nouveau à votre administrateur.',
+  // 410 : seul ActivationController le rend (jeton inconnu, consommé ou périmé). `/activation/{jeton}` sert le lien
+  // de l'administrateur ET celui de « Mot de passe oublié » (#614) : le texte offre les deux sorties. Il sert aussi
+  // au lien incomplet (ActivateAccount.vue).
+  gone: 'Ce lien n\'est pas valide ou a expiré. Demandez-en un nouveau à votre administrateur, ou depuis « Mot de passe oublié ».',
   validation: 'Certaines informations sont invalides. Veuillez vérifier votre saisie.',
   rateLimit: 'Trop de requêtes en peu de temps. Veuillez patienter quelques instants.',
   server: 'Une erreur est survenue côté serveur. Veuillez réessayer plus tard.',
@@ -58,6 +61,8 @@ export const ERROR_MESSAGES = Object.freeze({
   // l'établissement (StudentEnrolmentService), pas un code périmé. Régénérer le code
   // ne la lèverait pas et casserait celui de tous les autres élèves.
   enrolmentNotActive: "Votre inscription dans cette classe n'est pas active. Adressez-vous à votre établissement.",
+  // lms_backend#1115 (#620) : 409 `class_full`, le code est valide mais la classe est pleine.
+  classeComplete: 'Cette classe est complète. Adressez-vous à votre établissement.',
   noInstitution: "Votre compte n'est rattaché à aucun établissement. Contactez votre administrateur.",
   accountQuotaExceeded: "Trop d'essais en peu de temps. Réessayez dans une minute.",
   accountDailyCapReached: "Vous avez atteint la limite d'essais pour aujourd'hui. Réessayez demain.",
@@ -74,8 +79,11 @@ export const ERROR_MESSAGES = Object.freeze({
   visioNotEnabled: "La visioconférence n'est pas activée pour cette séance.",
   visioNotStarted: "La visioconférence n'a pas encore commencé. Attendez que l'enseignant la démarre.",
   visioEnded: 'La visioconférence est terminée.',
-  visioSeancePassee: 'Cette séance est passée : sa visio ne peut plus être démarrée ni rejointe.',
+  // `seance_past` : la séance passée est VERROUILLÉE (#1107, lms_backend#1121). Un texte juste dans tous les
+  // contextes du motif : démarrer ou rejoindre la visio, modifier la séance.
+  seancePassee: 'Cette séance est passée : elle est verrouillée (ni modification, ni visio).',
   lessonClasseHorsMatiere: 'Cette classe n’est pas une classe de la matière.',
+  lessonContentTeacherOnly: "Le contenu d'une leçon est réservé à son enseignant : vous pouvez la consulter.",
   evaluationLocked: 'Cette évaluation est verrouillée : des copies ont déjà été remises. Elle ne peut plus être modifiée ni supprimée.',
   visioTeacherNotOwner: "Vous n'êtes pas l'enseignant de cette séance : vous ne pouvez pas en rejoindre la visioconférence.",
   visioRoleRefused: 'Votre rôle ne permet pas de rejoindre cette visioconférence.',
@@ -97,6 +105,11 @@ export const ERROR_MESSAGES = Object.freeze({
   seanceClasseHorsEtablissement: "Cette classe n'est plus disponible dans votre établissement. Choisissez-en une autre.",
   seanceMatiereHorsEtablissement: "Cette matière n'est plus disponible dans votre établissement. Choisissez-en une autre.",
   seanceMatiereHorsProgramme: "Cette matière n'est pas au programme de la classe choisie.",
+  // lms_backend#1121 : refus de PUT /lms/seances/{id}, la modification d'une séance locale.
+  seanceGereeParKlassci: 'Cette séance vient de KLASSCI : elle se modifie dans KLASSCI.',
+  seanceVisioEnCours: 'La visioconférence de cette séance est en cours : elle ne peut pas être modifiée maintenant.',
+  // #623 : une ligne d'historique sans identifiant entier ; rien n'est envoyé, aucun id n'est deviné.
+  seanceIdentifiantIllisible: "Cette séance n'a pas pu être désignée. Rechargez l'historique, puis réessayez.",
   // B7 (D442) : des options d'avant lms_backend #1059 sans texte fidèle (objet, liste) ; texte du front.
   optionsIllisibles: "Les options de cette question n'ont pas pu être relues. Saisissez-les de nouveau avant d'enregistrer.",
   // B5 (D461) : les bornes des options d'une question (lms_backend #1069) ; textes du front.
@@ -115,5 +128,37 @@ export const ERROR_MESSAGES = Object.freeze({
   identifiantsIncorrects: 'Identifiants incorrects.',
   connexionEchouee: 'Échec de la connexion.',
   compteEnConflit: "Votre adresse e-mail est déjà utilisée par un autre compte de votre établissement. Contactez l'administrateur de votre école.",
+  // lms_backend#922 (ADR-906-01) : les sens d'un même statut, chacun son motif (refusalReasons.js).
+  demandeEcoleQuotaAdresse: 'Trop de demandes envoyées depuis cette connexion. Réessayez dans un instant.',
+  demandeEcolePlafondDuJour: "Le nombre maximal de demandes d'inscription d'école est atteint pour aujourd'hui. Réessayez demain.",
+  periodeTransitionInterdite: "Cette action n'est pas possible dans l'état actuel de la période.",
+  evaluationTentativeNonDemarree: "Aucune tentative n'est en cours pour cette évaluation : démarrez-la avant de la rendre.",
+  evaluationCopieNonNotable: "Cette copie ne peut pas encore être notée : elle n'a pas été rendue.",
+  quizIndisponible: "Ce quiz n'est pas disponible actuellement.",
+  quizTentativesEpuisees: 'Vous avez utilisé toutes vos tentatives pour ce quiz.',
+  quizTentativeConcurrente: "Une autre tentative vient d'être enregistrée pour ce quiz. Rechargez la page.",
+  quizTentativeDejaRendue: 'Cette tentative a déjà été rendue.',
+  quizTempsEcoule: 'Le temps est écoulé : votre tentative a été rendue automatiquement.',
+  // #599 : six motifs reçus par un écran, chacun sa catégorie (refusalReasons.js).
+  quizTentativeFermee: "Cette tentative n'est plus ouverte : recommencez le quiz.",
+  quizModifieDepuisLeDebut: "Ce quiz a été modifié depuis que vous l'avez commencé : recommencez-le.",
+  quizReponseHorsOptions: 'Une réponse ne correspond à aucune des options proposées : recommencez le quiz.',
+  evaluationCopieDejaRemise: "Votre copie vient d'être remise depuis une autre fenêtre ou un autre appareil. Rechargez l'évaluation.",
+  syncEvaluationNonLiee: "Cette évaluation n'est liée à aucune évaluation KLASSCI : ses notes restent dans le LMS.",
+  classeSansFicheKlassci: "Cette classe a été créée dans le LMS : elle n'a pas de fiche KLASSCI à afficher.",
+  // #605 (lms_backend#1184) : le catalogue de cette école est tenu par KLASSCI.
+  catalogueGereParKlassci: 'Ce catalogue est géré par KLASSCI : il se modifie dans KLASSCI, pas ici.',
+  // #613 (lms_backend#808) : les réponses de « Mot de passe oublié ». Aucune ne promet un courriel déjà parti.
+  motDePasseKlassci: 'Votre mot de passe est celui de KLASSCI : réinitialisez-le depuis KLASSCI.',
+  reinitialisationIndisponible: 'La réinitialisation du mot de passe en ligne n’est pas encore disponible. Adressez-vous à votre établissement.',
+  lienDeReinitialisationEnvoye: 'Si un compte correspond à cette adresse, un lien pour choisir un nouveau mot de passe va lui être envoyé.',
+  // Réponse sans motif connu : la demande est reçue, rien de plus n'est su.
+  demandeDeReinitialisationRecue: 'Votre demande a été reçue.',
+  // #611 : les périodes archivées sont masquées par défaut (lms_backend#1290) ; la case de l'écran les montre.
+  periodeArchiveeMasquee: 'Période archivée. Cochez « Voir les périodes archivées » pour la revoir.',
+  periodesArchiveesMasquees: 'Aucune période à afficher. Les périodes archivées sont masquées : cochez « Voir les périodes archivées » pour les revoir.',
+  // #631 : la capacité d'une classe locale, réglée à l'écran (contrôle local, puis relecture du serveur).
+  capaciteIllisible: "Indiquez un nombre entier d'élèves, de 0 à 10 000, ou laissez vide pour ne pas limiter.",
+  capaciteIncertaine: 'Capacité incertaine : actualisez la liste avant de la modifier.',
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })

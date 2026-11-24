@@ -4,6 +4,9 @@
 
     <SeanceCardInfo :seance="seance" />
 
+    <!-- lms_backend#1121 : « Modifier », seulement si le serveur le permet (`can_be_edited`). -->
+    <SeanceEditAction :seance="seance" class="seance-card-edit" @updated="$emit('updated', $event)" />
+
     <SeanceCardActions
       :seance="seance"
       :is-enseignant="isEnseignant"
@@ -27,6 +30,7 @@
 import SeanceCardHeader from '@/components/seances/SeanceCardHeader.vue'
 import SeanceCardInfo from '@/components/seances/SeanceCardInfo.vue'
 import SeanceCardActions from '@/components/seances/SeanceCardActions.vue'
+import SeanceEditAction from '@/components/seances/SeanceEditAction.vue'
 
 defineProps({
   seance: { type: Object, required: true },
@@ -35,7 +39,7 @@ defineProps({
   actionLoading: { type: [Number, String, null], default: null }
 })
 
-defineEmits(['activate', 'start', 'deactivate', 'join', 'end'])
+defineEmits(['activate', 'start', 'deactivate', 'join', 'end', 'updated'])
 </script>
 
 <style scoped>
@@ -49,5 +53,9 @@ defineEmits(['activate', 'start', 'deactivate', 'join', 'end'])
 
 .seance-card:hover {
   box-shadow: var(--card-shadow-hover);
+}
+
+.seance-card-edit {
+  margin-top: 0.75rem;
 }
 </style>

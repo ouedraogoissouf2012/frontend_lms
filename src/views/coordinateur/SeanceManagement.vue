@@ -51,6 +51,7 @@
             @toggle="toggleSeanceVisio"
             @show-participants="showParticipants"
             @join="handleJoinVisio"
+            @updated="loadSeances(); calendarRef?.refreshEvents?.()"
           />
         </div>
 

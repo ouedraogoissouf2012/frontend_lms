@@ -4,7 +4,8 @@
       <div class="header-section">
         <div class="header-content">
           <h1 class="page-title">Sessions de formation</h1>
-          <p class="page-subtitle">Programme, puis période datée. Une période naît brouillon.</p>
+          <!-- #606 : à quoi sert l'écran, en une phrase prouvée par le back (les dates, le brouillon, les transitions). -->
+          <p class="page-subtitle">Créez une formation (son programme), puis ses sessions : chacune porte ses dates (inscriptions, début, fin, attestation) et avance de brouillon à publiée, puis close et archivée.</p>
         </div>
         <button type="button" class="refresh-btn" :disabled="loading" @click="load()">
           Actualiser
@@ -17,19 +18,24 @@
       <p class="status-region" :class="{ banner: notice }" role="status" aria-live="polite">{{ notice }}</p>
 
       <form class="card" @submit.prevent="onProgramme">
-        <h2>Nouveau programme</h2>
+        <h2>1. La formation (son programme)</h2>
         <label for="titre">Titre</label>
         <input id="titre" v-model="titre" required maxlength="191" class="field">
         <label for="description">Description</label>
         <textarea id="description" v-model="description" maxlength="5000" rows="3" class="field" />
         <button type="submit" class="refresh-btn" :disabled="saving">Créer le programme</button>
-        <p v-if="dernierProgrammeId">Programme n° {{ dernierProgrammeId }} — servez-vous-en ci-dessous.</p>
       </form>
 
       <form class="card" @submit.prevent="onPeriode">
-        <h2>Nouvelle période</h2>
-        <label for="program_id">N° de programme</label>
-        <input id="program_id" v-model="periode.program_id" type="number" min="1" required class="field">
+        <h2>2. Une session de cette formation</h2>
+        <!-- #606 : la formation se CHOISIT (GET /programs, lms_backend#1206). Sans liste lisible, pas de création. -->
+        <label for="program_id">Formation (programme)</label>
+        <select id="program_id" v-model="periode.program_id" required class="field" :disabled="!!programmesErreur">
+          <option value="">Choisissez une formation</option>
+          <option v-for="p in programmes" :key="p.id" :value="String(p.id)">{{ libelleProgramme(p) }}</option>
+        </select>
+        <p v-if="programmesErreur" class="programmes-erreur" role="alert">{{ programmesErreur }}</p>
+        <p v-if="programmesTronques" class="programmes-borne">Seules les {{ PROGRAMMES_PAGES_MAX * 100 }} premières formations sont proposées.</p>
         <label for="libelle">Libellé</label>
         <input id="libelle" v-model="periode.libelle" required maxlength="191" class="field">
         <label for="enrollment_opens_at">Ouverture des inscriptions</label>
@@ -46,11 +52,17 @@
         <input id="tarif" v-model="periode.tarif" type="number" min="0" step="1" class="field">
         <label for="devise">Devise (3 lettres)</label>
         <input id="devise" v-model="periode.devise" maxlength="3" class="field">
-        <button type="submit" class="refresh-btn" :disabled="saving">Créer la période</button>
+        <button type="submit" class="refresh-btn" :disabled="saving || !!programmesErreur">Créer la période</button>
       </form>
 
+      <!-- #611 : les archivées sont masquées par défaut (lms_backend#1290) ; cette case les montre. -->
+      <p class="archivees-filtre">
+        <input id="voir-archivees" type="checkbox" :checked="voirArchivees" @change="basculerArchivees($event.target.checked)">
+        <label for="voir-archivees">Voir les périodes archivées</label>
+      </p>
+
       <ContentLoader v-if="loading" text="Chargement des sessions..." />
-      <p v-else-if="periodes.length === 0">Aucune période pour le moment.</p>
+      <p v-else-if="periodes.length === 0">{{ voirArchivees ? 'Aucune période pour le moment.' : ERROR_MESSAGES.periodesArchiveesMasquees }}</p>
 
       <TrainingPeriodCard
         v-for="p in periodes"
@@ -75,7 +87,8 @@ import { nextTick, onMounted, reactive, ref, watch } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import TrainingPeriodCard from '@/components/admin/TrainingPeriodCard.vue'
-import { useAdminTrainingSessions } from '@/composables/useAdminTrainingSessions'
+import { PROGRAMMES_PAGES_MAX, libelleProgramme, useAdminTrainingSessions } from '@/composables/useAdminTrainingSessions'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 const titre = ref('')
 const description = ref('')
@@ -93,29 +106,32 @@ const periode = reactive({
 
 const {
   periodes, loading, error, notice, page, lastPage,
-  dernierProgrammeId, saving, estOccupee,
-  load, creerProgramme, creerPeriode, transitionner,
+  dernierProgrammeId, saving, estOccupee, voirArchivees, programmes, programmesErreur, programmesTronques,
+  load, creerProgramme, creerPeriode, transitionner, basculerArchivees, chargerProgrammes,
 } = useAdminTrainingSessions()
 
 /**
  * Après une transition, le bouton cliqué a disparu (il n'est plus permis) : le focus
  * partirait sur <body>. On le remet sur la même carte, à son premier bouton actif,
- * ou sur la carte elle-même s'il n'en reste aucun (revue #441, A3).
+ * ou sur la carte elle-même s'il n'en reste aucun (revue #441, A3). Une carte archivée qui a quitté la liste
+ * (#611) rend le focus à la case « Voir les périodes archivées ».
  */
 async function onTransition(periode, action) {
   await transitionner(periode, action)
   await nextTick()
   const carte = document.querySelector(`[data-periode-id="${periode.id}"]`)
-  const cible = carte?.querySelector('button.transition-btn:not([disabled])') ?? carte
+  const cible = carte ? (carte.querySelector('button.transition-btn:not([disabled])') ?? carte) : document.getElementById('voir-archivees')
   cible?.focus()
 }
 
+// #606 : le programme qu'on vient de créer est choisi.
 watch(dernierProgrammeId, (id) => {
-  if (id && !periode.program_id) periode.program_id = String(id)
+  if (id) periode.program_id = String(id)
 })
 
 onMounted(() => {
   load()
+  chargerProgrammes()
 })
 
 async function onProgramme() {
@@ -175,6 +191,13 @@ async function onPeriode() {
   margin: 0;
   padding: 0;
   border: 0;
+}
+
+.archivees-filtre {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin: 0 0 var(--spacing-md);
 }
 
 .field {

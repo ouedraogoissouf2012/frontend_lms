@@ -16,13 +16,16 @@
  * Retry-After) ; un nouvel essai a un sens. Sinon le motif est un refus définitif. C'est le SEUL
  * endroit qui le dit : un motif transitoire ajouté ici prend son délai ET garde « Réessayer ».
  */
-function motif(categorie, { transitoire = false, etatVide = false } = {}) {
+function motif(categorie, { transitoire = false, etatVide = false, information = false } = {}) {
   // `etatVide` : le motif dit une ABSENCE légitime (rien à montrer), rendue en information, pas en erreur.
-  return Object.freeze(etatVide ? { categorie, transitoire, etatVide } : { categorie, transitoire })
+  // `information` : le motif n'est pas un refus ; il accompagne une réponse réussie et se rend tel quel (#613).
+  return Object.freeze({ categorie, transitoire, ...(etatVide && { etatVide }), ...(information && { information }) })
 }
 
 export const REASONS = Object.freeze({
   enrolment_not_active: motif('enrolmentNotActive'),
+  // lms_backend#1115 (#620) : 409 des deux portes d'inscription par code, la classe a atteint sa capacité. Définitif.
+  class_full: motif('classeComplete'),
   no_institution: motif('noInstitution'),
   account_quota_exceeded: motif('accountQuotaExceeded'),
   account_daily_cap_reached: motif('accountDailyCapReached'),
@@ -36,10 +39,14 @@ export const REASONS = Object.freeze({
   // VisioStatusRefusal (serveur) : attendre (`visio_not_started`) ou renoncer (`visio_ended`).
   visio_not_started: motif('visioNotStarted'),
   visio_ended: motif('visioEnded'),
-  // La fenêtre de démarrage est passée (fin + 30 min, SeanceVisioEnricher::buildVisioWindow) : 409.
-  seance_past: motif('visioSeancePassee'),
+  // La séance est passée (fin + 30 min, SeanceVisioEnricher::buildVisioWindow) : 409, verrouillée. Reçu au démarrage
+  // et à l'entrée d'une visio, et à la modification de la séance (lms_backend#1121).
+  seance_past: motif('seancePassee'),
   // Back #1103 : la classe d'une leçon hors des classes de sa matière (422).
   classe_hors_matiere: motif('lessonClasseHorsMatiere'),
+  // lms_backend#1167 : le contenu d'une leçon (créer, modifier, publier, supprimer, chapitres, quiz) est réservé à
+  // l'enseignant ; le coordinateur et l'admin d'école consultent (403 ; décisions du user, #601).
+  lesson_content_teacher_only: motif('lessonContentTeacherOnly'),
   // lms_backend#1113 : une évaluation verrouillée (des copies remises) ne se modifie ni ne se supprime (409).
   evaluation_locked: motif('evaluationLocked'),
   teacher_not_owner: motif('visioTeacherNotOwner'),
@@ -82,11 +89,51 @@ export const REASONS = Object.freeze({
   class_out_of_scope: motif('seanceClasseHorsEtablissement'),
   subject_out_of_scope: motif('seanceMatiereHorsEtablissement'),
   subject_not_in_class_program: motif('seanceMatiereHorsProgramme'),
+  // lms_backend#1121 : refus de PUT /lms/seances/{id} (403 et 409), définitifs.
+  seance_managed_by_klassci: motif('seanceGereeParKlassci'),
+  seance_visio_active: motif('seanceVisioEnCours'),
+  // lms_backend#922 (ADR-906-01) : un même statut, plusieurs sens, chacun son motif. Les deux bornes du 429 de
+  // POST /school-requests : la minute par adresse (transitoire) et le plafond du jour (définitif).
+  ip_quota_exceeded: motif('demandeEcoleQuotaAdresse', { transitoire: true }),
+  school_requests_global_cap: motif('demandeEcolePlafondDuJour'),
+  training_session_transition_not_allowed: motif('periodeTransitionInterdite'),
+  evaluation_attempt_not_started: motif('evaluationTentativeNonDemarree'),
+  evaluation_submission_not_gradable: motif('evaluationCopieNonNotable'),
+  // POST /knowledge-checks/{id}/start et /submit. Les `webhook_*` du même lot ne s'adressent qu'au serveur
+  // d'enregistrement : aucun écran ne les reçoit, ils restent hors du catalogue.
+  quiz_unavailable: motif('quizIndisponible'),
+  quiz_max_attempts: motif('quizTentativesEpuisees'),
+  quiz_attempt_conflict: motif('quizTentativeConcurrente'),
+  quiz_attempt_already_submitted: motif('quizTentativeDejaRendue'),
+  quiz_time_expired: motif('quizTempsEcoule'),
+  // #599 : la remise d'un quiz de leçon (lms_backend#1075, KnowledgeCheckOpenAttempts), 409 et 422.
+  attempt_not_open: motif('quizTentativeFermee'),
+  quiz_changed_since_start: motif('quizModifieDepuisLeDebut'),
+  answer_not_an_option_index: motif('quizReponseHorsOptions'),
+  // 409 au démarrage ET à la remise d'une évaluation : la copie est déjà remise par une autre requête.
+  evaluation_attempt_conflict: motif('evaluationCopieDejaRemise'),
+  // 422 de POST /evaluations/{id}/sync-klassci : l'évaluation n'a pas de lien KLASSCI (école autonome).
+  evaluation_not_linked_to_klassci: motif('syncEvaluationNonLiee'),
+  // 409 de GET /lms/classes/local/{id} : une classe créée dans le LMS n'a pas de fiche KLASSCI.
+  classe_local_only: motif('classeSansFicheKlassci'),
+  // #605 (lms_backend#1184, PorteDuCatalogueLocal) : 403 sur le catalogue d'une école dont KLASSCI tient le
+  // catalogue (programmes, sessions et leurs transitions, classes, matières, programme d'une classe, codes).
+  catalogue_managed_by_klassci: motif('catalogueGereParKlassci'),
+  // #613 (lms_backend#808) : le 200 de POST /auth/forgot-password, le même pour un compte connu ou inconnu. Aucun n'est
+  // un refus : KLASSCI tient le mot de passe ; le canal de courriel n'est pas posé ; un lien part si le compte existe.
+  mot_de_passe_klassci: motif('motDePasseKlassci', { information: true }),
+  reinitialisation_indisponible: motif('reinitialisationIndisponible', { information: true }),
+  lien_envoye: motif('lienDeReinitialisationEnvoye', { information: true }),
 })
 
 /** Le `reason` dit-il un état vide (rien à montrer) plutôt qu'une erreur ? Seul le catalogue en décide. */
 export function estEtatVide(reason) {
   return entreeDuMotif(reason)?.etatVide === true
+}
+
+/** Le `reason` accompagne-t-il une réponse réussie (une information, pas un refus) ? Seul le catalogue en décide. */
+export function estInformation(reason) {
+  return entreeDuMotif(reason)?.information === true
 }
 
 /** L'entrée du catalogue pour un `reason`, ou `null` (inconnu, absent, clé du prototype). */

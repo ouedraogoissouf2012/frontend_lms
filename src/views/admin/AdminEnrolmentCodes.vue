@@ -24,6 +24,7 @@
         :busy="estOccupee(c.id)"
         @emettre="emettre(c)"
         @retirer="retirer(c)"
+        @capacite="majCapacite(c.id, $event)"
       />
 
       <p v-if="lastPage > 1">
@@ -49,7 +50,7 @@ import { useEnrolmentCodes } from '@/composables/useEnrolmentCodes'
 
 defineOptions({ name: 'AdminEnrolmentCodes' })
 
-const { classes, loading, error, notice, page, lastPage, estOccupee, load, emettre, retirer } = useEnrolmentCodes()
+const { classes, loading, error, notice, page, lastPage, estOccupee, load, emettre, retirer, majCapacite } = useEnrolmentCodes()
 
 onMounted(() => load())
 </script>

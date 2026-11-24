@@ -5,15 +5,14 @@ vi.mock('@/services/api', () => ({
 }))
 
 const requestLink = vi.fn()
-const resetPassword = vi.fn()
 vi.mock('@/services/passwordReset', () => ({
   passwordResetService: {
     requestLink: (...a) => requestLink(...a),
-    resetPassword: (...a) => resetPassword(...a),
   },
 }))
 
 import { usePasswordReset } from '@/composables/usePasswordReset'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 describe('usePasswordReset (#332)', () => {
   it('shows a usable message on 400', async () => {
@@ -37,27 +36,18 @@ describe('usePasswordReset (#332)', () => {
 describe('usePasswordReset — jamais le texte du serveur (D477)', () => {
   const panne = () => ({ response: { status: 500, data: { success: false, message: 'Texte serveur, jamais affiché' } } })
 
+  // #613 : sans motif, le texte neutre du front ; plus « Si un compte existe, un courriel a été envoyé. » (aucun ne partait).
   it('une demande réussie : le texte du front', async () => {
     requestLink.mockResolvedValue({ success: true, message: 'Texte serveur, jamais affiché' })
     const api = usePasswordReset()
     await api.requestLink('esi', 'a@b.test')
-    expect(api.notice.value).toBe('Si un compte existe, un courriel a été envoyé.')
-  })
-
-  it('une réinitialisation réussie : le texte du front', async () => {
-    resetPassword.mockResolvedValue({ success: true, message: 'Texte serveur, jamais affiché' })
-    const api = usePasswordReset()
-    await api.resetPassword('esi', { token: 't', email: 'a@b.test', password: 'x', password_confirmation: 'x' })
-    expect(api.notice.value).toBe('Mot de passe mis à jour.')
+    expect(api.notice.value).toBe(ERROR_MESSAGES.demandeDeReinitialisationRecue)
   })
 
   it('un échec sans message du catalogue : la catégorie, jamais le texte du serveur', async () => {
     requestLink.mockRejectedValue(panne())
     const api = usePasswordReset()
     await api.requestLink('esi', 'a@b.test')
-    expect(api.error.value).not.toContain('Texte serveur, jamais affiché')
-    resetPassword.mockRejectedValue(panne())
-    await api.resetPassword('esi', { token: 't' })
     expect(api.error.value).not.toContain('Texte serveur, jamais affiché')
   })
 })

@@ -71,7 +71,11 @@ export const endpoints = {
       validateParticipant: (id) => `${LMS}/seances/${id}/validate-participant`,
       hide: (id) => `${LMS}/seances/${id}/hide`,
       unhide: (id) => `${LMS}/seances/${id}/unhide`,
+      // lms_backend#1121 : modification d'une séance locale (PUT, 200, la séance relue).
+      update: (id) => `${LMS}/seances/${id}`,
       delete: (id) => `${LMS}/seances/${id}`,
+      // #623 (lms_backend#1154) : la porte de l'espace LOCAL, pour l'historique (ids locaux).
+      deleteLocal: (id) => `${LMS}/seances/local/${id}`,
     },
 
     // Cycle de vie visio d'une séance (sous /lms/seances/{id}/*).
@@ -158,7 +162,6 @@ export const endpoints = {
     me: '/auth/me',
     institutionsActive: '/institutions/active',
     forgotPassword: '/auth/forgot-password',
-    resetPassword: '/auth/reset-password',
   },
 
   schoolRequests: '/school-requests',
@@ -170,6 +173,8 @@ export const endpoints = {
   enrolment: {
     classes: '/classes',
     code: (classeId) => `/classes/${classeId}/code-inscription`,
+    // #631 (lms_backend#1358) : geste NOMMÉ, la capacité que l'inscription par code respecte.
+    capacite: (classeId) => `/classes/${classeId}/capacite`,
     rejoindre: '/me/inscriptions',
   },
   // Quatre opérations NOMMÉES d'une période (#391, ADR-845-01), chemins fixes pour

@@ -20,9 +20,9 @@
         </button>
       </div>
 
-      <!-- Bouton création (enseignant uniquement) -->
+      <!-- Bouton création (enseignant uniquement, #601) -->
       <button
-        v-if="isTeacher"
+        v-if="canWrite"
         @click="$emit('create')"
         class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2"
       >
@@ -40,6 +40,7 @@
         :key="lesson.id"
         :lesson="lesson"
         :is-teacher="isTeacher"
+        :can-write="canWrite"
         :show-progress="!isTeacher"
         :show-stats="isTeacher"
         :show-status="isTeacher"
@@ -58,6 +59,7 @@
         :key="lesson.id"
         :lesson="lesson"
         :is-teacher="isTeacher"
+        :can-write="canWrite"
         :show-progress="!isTeacher"
         :show-stats="isTeacher"
         :show-status="isTeacher"
@@ -75,9 +77,9 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
       </svg>
       <p class="font-medium text-gray-900 mb-2">Aucune leçon disponible</p>
-      <p class="text-sm">{{ isTeacher ? 'Créez votre première leçon pour cette matière' : 'Aucune leçon n\'a encore été publiée' }}</p>
+      <p class="text-sm">{{ canWrite ? 'Créez votre première leçon pour cette matière' : 'Aucune leçon n\'a encore été publiée' }}</p>
       <button
-        v-if="isTeacher"
+        v-if="canWrite"
         @click="$emit('create')"
         class="mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
       >
@@ -91,13 +93,15 @@
 /**
  * Onglet Leçons de MatiereDetails (#H9 ≤300). Présentation pure : bascule
  * d'affichage grille/liste, cartes LessonCard et état vide. Relaie les actions
- * (create/view/edit/delete/publish/unpublish) ; viewMode en v-model.
+ * (create/view/edit/delete/publish/unpublish) ; viewMode en v-model. L'écriture (créer, et les actions
+ * des cartes) suit `canWrite`, l'enseignant seul (#601) ; `isTeacher` ne commande que des lectures.
  */
 import LessonCard from '@/components/lessons/LessonCard.vue'
 
 defineProps({
   lessons: { type: Array, default: () => [] },
   isTeacher: { type: Boolean, default: false },
+  canWrite: { type: Boolean, default: false },
   loading: { type: Boolean, default: false }
 })
 const viewMode = defineModel('viewMode', { type: String, default: 'grid' })

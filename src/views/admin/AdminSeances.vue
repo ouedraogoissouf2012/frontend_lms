@@ -50,6 +50,7 @@
         :seances="seances"
         @view-details="viewSeanceDetails"
         @enable-visio="enableVisio"
+        @updated="refreshData"
       />
 
       <!-- Pagination -->

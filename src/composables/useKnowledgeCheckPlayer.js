@@ -1,6 +1,7 @@
 import { ref, computed, onUnmounted } from 'vue'
 import knowledgeCheckService from '@/services/knowledgeCheck'
 import { toast } from '@/composables/useToast'
+import { messageDe } from '@/services/errorHandler'
 
 /**
  * Couche données de KnowledgeCheckPlayer (#G6 ; éclaté sous 300 lignes en H5).
@@ -60,7 +61,8 @@ export function useKnowledgeCheckPlayer(props, emit) {
       }
     } catch (error) {
       console.error('Erreur demarrage quiz:', error)
-      toast.error('Erreur lors du demarrage du quiz')
+      // lms_backend#922 : le motif du refus (quiz indisponible, tentatives épuisées…), jamais un texte fixe.
+      toast.error(messageDe(error))
     } finally {
       loading.value = false
     }
@@ -136,7 +138,7 @@ export function useKnowledgeCheckPlayer(props, emit) {
       }
     } catch (error) {
       console.error('Erreur soumission quiz:', error)
-      toast.error('Erreur lors de la soumission du quiz')
+      toast.error(messageDe(error))
     } finally {
       submitting.value = false
     }

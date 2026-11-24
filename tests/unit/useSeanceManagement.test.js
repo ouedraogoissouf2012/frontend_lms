@@ -39,7 +39,6 @@ vi.mock('@/composables/useToast', () => ({ toast: { success: (...a) => toastSucc
 vi.mock('@/services/visioFeedback', () => ({ confirmVisioAction: (...a) => confirmVisioAction(...a) }))
 vi.mock('@/constants/visio', () => ({
   VISIO_ROOM_REQUIRED_MESSAGE: 'Identifiant de salle visio introuvable dans la réponse API.',
-  buildJitsiUrl: (r) => `jitsi://${r}`,
   getVisioRoomId: (source) => source?.visio_room_id || source?.room_id || source?.visio?.room_id || null,
   requireVisioRoomId: (source) => {
     const roomId = source?.visio_room_id || source?.room_id || source?.visio?.room_id

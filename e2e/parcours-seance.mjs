@@ -1,18 +1,21 @@
 // Parcours fonctionnel de la SÉANCE et de la VISIO (PR 4) : la séance (créée dans l'école LMS, celle de KLASSCI
-// sinon), sa visio activée, démarrée, rejointe par l'élève, terminée ; la séance modifiée (aucun chemin : ROUGE
-// nommé, lms_backend#1121) et supprimée (école LMS). Chaque étape relue.
+// sinon), sa visio activée, démarrée, rejointe par l'élève, terminée ; la séance modifiée (école LMS ; dans l'école
+// KLASSCI, sans objet, après avoir vérifié qu'aucun « Modifier » ne paraît : lms_backend#1121) et supprimée depuis
+// l'historique, par la PORTE LOCALE (#623, lms_backend#1154) : la séance créée (école LMS), ou le MIROIR local de la
+// séance KLASSCI, dont la séance KLASSCI elle-même reste au calendrier. Chaque étape relue.
 //
 // LIMITE DÉCLARÉE : aucun serveur Jitsi en CI. On juge le JETON émis à l'élève (un JWT dont la salle vaut celle de la
 // séance, signé par un secret fictif de la CI), le DOMAINE de la salle (le front la demande à `visio.example.test`)
 // et sa présence relue ; jamais la vidéo.
 import { lireApi } from './fonctionnels.mjs'
-import { ATTENTE, bouton, appel, refusServeur, lu } from './gestes.mjs'
+import { ATTENTE, bouton, lu } from './gestes.mjs'
 import { confirmer } from './gestes-evaluation.mjs'
-import { creerSeance, detailSeance, heureAffichee, carteSeance, surLaCarte, rejoindre } from './gestes-seance.mjs'
+import { creerSeance, detailSeance, heureAffichee, carteSeance, surLaCarte, rejoindre, modifierSeance } from './gestes-seance.mjs'
 
-export const AUCUN_CHEMIN_MODIFICATION_SEANCE = 'aucun chemin d’interface ne modifie une séance'
 export const DOMAINE_JITSI = 'visio.example.test'
 export const DONNEES_SEANCE = Object.freeze({ titre: 'Seance parcours, la visio' })
+// Le titre modifié GARDE le titre d'origine : l'étape « supprimer » trouve sa ligne par ce texte.
+export const TITRE_MODIFIE = `${DONNEES_SEANCE.titre} (modifiée)`
 
 // ─── Les jugements des relectures (purs, testés) ─────────────────────────────────────────────
 
@@ -59,10 +62,16 @@ export function jugerEntree(entree, salle, presences, emailEleve) {
   return { confirme: true, preuve: `jeton émis pour la salle ${salle}, salle demandée à ${DOMAINE_JITSI}, présence de l’élève relue (vidéo : limite déclarée)` }
 }
 
-/** La modification d'une séance : aucun bouton (lms_backend#1121), ou il faut l'écrire. */
-export function jugerModificationSeance(boutonVu) {
-  return boutonVu ? { nonTeste: 'un bouton modifie désormais la séance : l’étape est à compléter avec sa correction (lms_backend#1121)' }
-    : { rouge: `${AUCUN_CHEMIN_MODIFICATION_SEANCE} : la carte n’offre aucun « Modifier » (Refs ouedraogoissouf2012/lms_backend#1121)` }
+/**
+ * « Modifier » sur la carte (lms_backend#1121, décision du user) : l'école autonome modifie sa séance ; l'école
+ * KLASSCI jamais (la séance se modifie dans KLASSCI). Rend null quand la modification est à jouer.
+ */
+export function jugerBoutonModifier(boutonVu, ecoleKlassci) {
+  if (ecoleKlassci) {
+    return boutonVu ? { rouge: 'une séance KLASSCI offre « Modifier » : elle se modifie dans KLASSCI (Refs ouedraogoissouf2012/lms_backend#1121)' }
+      : { nonTeste: 'sans objet : une séance KLASSCI se modifie dans KLASSCI ; sa carte n’offre aucun « Modifier » (vérifié)' }
+  }
+  return boutonVu ? null : { rouge: 'la carte d’une séance locale n’offre aucun « Modifier » (can_be_edited, Refs ouedraogoissouf2012/lms_backend#1121)' }
 }
 
 /** La séance supprimée a DISPARU : 404, et absente de la liste de l'enseignant. */
@@ -74,6 +83,38 @@ export function jugerSuppressionSeance(lecture, liste, id, message) {
   if (lignes.some((s) => s.id === id)) return { confirme: false, ecart: `la séance ${id} est encore listée` }
   const note = /null|undefined/.test(message ?? '') ? ` ; la confirmation disait « ${message} » (Refs #581)` : ''
   return { confirme: true, preuve: `séance ${id} : 404, et absente de la liste${note}` }
+}
+
+/**
+ * La ligne d'historique à supprimer : la séance créée (école LMS), ou le MIROIR local de la séance KLASSCI, relu sur
+ * l'historique par son `klassci_seance_id` (#623). L'historique ne liste que des lignes locales : son `id` est l'id LOCAL.
+ */
+export function ligneHistorique(lecture, ecole, id, titre) {
+  if (ecole !== 'klassci') return { id, titre }
+  const ecart = lu(lecture, '/lms/seances/history')
+  if (ecart) return { rouge: ecart }
+  const lignes = Array.isArray(lecture.corps?.data) ? lecture.corps.data : []
+  const miroirs = lignes.filter((s) => s.klassci_seance_id != null && String(s.klassci_seance_id) === String(id))
+  if (miroirs.length !== 1) return { rouge: `${miroirs.length} miroir(s) local(aux) de la séance KLASSCI ${id} dans l’historique, 1 attendu` }
+  return { id: miroirs[0].id, titre: miroirs[0].titre }
+}
+
+/** La porte de la suppression (#623) : `DELETE /lms/seances/local/{id local}`, jamais la porte historique. */
+export function jugerPorte(chemin, idLocal) {
+  const attendu = `/api/lms/seances/local/${idLocal}`
+  return chemin === attendu ? null : { rouge: `la suppression passe par ${chemin ?? 'aucune requête'}, ${attendu} attendu (porte locale, #623)` }
+}
+
+/** Le miroir supprimé (école KLASSCI) : absent de l'historique ; la séance KLASSCI, elle, reste au calendrier. */
+export function jugerSuppressionMiroir(historique, calendrier, idLocal, idKlassci) {
+  const ecart = lu(historique, '/lms/seances/history') ?? lu(calendrier, '/lms/seances/my-teaching')
+  if (ecart) return { confirme: false, ecart }
+  const lignes = (l) => (Array.isArray(l.corps?.data) ? l.corps.data : l.corps?.data?.seances ?? [])
+  if (lignes(historique).some((s) => s.id === idLocal)) return { confirme: false, ecart: `le miroir local ${idLocal} est encore dans l’historique` }
+  if (!lignes(calendrier).some((s) => String(s.id) === String(idKlassci))) {
+    return { confirme: false, ecart: `la séance KLASSCI ${idKlassci} a quitté le calendrier : seul son miroir local devait partir` }
+  }
+  return { confirme: true, preuve: `miroir local ${idLocal} supprimé par la porte locale, absent de l’historique ; séance KLASSCI ${idKlassci} toujours au calendrier` }
 }
 
 // ─── Les étapes ──────────────────────────────────────────────────────────────────────────────
@@ -122,25 +163,38 @@ export const ETAPES_SEANCE = Object.freeze([
     async (ctx) => {
       const { carte, rouge } = await carteSeance(ctx)
       if (rouge) return { rouge }
-      return jugerModificationSeance((await carte.getByRole('button', { name: /Modifier/ }).count()) > 0)
+      const modifier = carte.getByRole('button', { name: 'Modifier', exact: true })
+      return jugerBoutonModifier((await modifier.count()) > 0, klassci(ctx)) ?? modifierSeance(ctx, modifier.first(), TITRE_MODIFIE)
     },
-    async () => ({ confirme: false, ecart: 'aucune modification jouée (lms_backend#1121)' })),
-  ETAPE('supprimer', 'enseignant', 'supprimer la séance (école LMS)', ['seance'],
+    async (ctx) => jugerSeance(await detailSeance(ctx, ctx.etat.id), ctx.etat.id, TITRE_MODIFIE)),
+  ETAPE('supprimer', 'enseignant', 'supprimer depuis l’historique, par la porte locale (le miroir, école KLASSCI)', ['seance'],
     async (ctx) => {
-      if (klassci(ctx)) return { nonTeste: 'séance KLASSCI : elle vit dans KLASSCI, le LMS ne la supprime pas' }
       const page = ctx.pages.enseignant
+      const histo = klassci(ctx) ? await lireApi(page, '/lms/seances/history') : null
+      const cible = ligneHistorique(histo, ctx.jeu.ecole, ctx.etat.id, ctx.donnees.titre)
+      if (cible.rouge) return { rouge: cible.rouge }
+      ctx.etat.local = cible.id
       await page.goto(`${ctx.base}/attendance/seances`, { waitUntil: 'domcontentloaded' })
       await page.waitForLoadState('networkidle', { timeout: ATTENTE }).catch(() => {})
-      const ligne = page.locator('tr').filter({ hasText: ctx.donnees.titre })
+      const ligne = page.locator('tr').filter({ hasText: cible.titre })
       await ligne.first().waitFor({ timeout: ATTENTE }).catch(() => {})
-      if (!(await ligne.count())) return { rouge: `la séance « ${ctx.donnees.titre} » n’apparaît pas dans l’historique des séances` }
+      if (!(await ligne.count())) return { rouge: `la séance « ${cible.titre} » n’apparaît pas dans l’historique des séances` }
       await bouton(ligne.first(), 'Supprimer').click()
       const modale = page.locator('.modal-container').filter({ hasText: 'supprimer la séance' })
       ctx.etat.messageSuppression = (await modale.first().innerText().catch(() => '')).replace(/\s+/g, ' ').trim()
-      const reponse = appel(page, 'DELETE', `/lms/seances/${ctx.etat.id}`)
+      // Toute suppression de séance : la porte EMPRUNTÉE se juge, pas seulement l'absence de la bonne.
+      const requete = page.waitForRequest((r) => r.method() === 'DELETE' && new URL(r.url()).pathname.startsWith('/api/lms/seances/'), { timeout: ATTENTE })
+      requete.catch(() => {})
       await confirmer(page, 'supprimer la séance', 'Supprimer')
-      return (await refusServeur(page, reponse, 'la suppression')) ?? {}
+      const envoyee = await requete.catch(() => null)
+      const porte = jugerPorte(envoyee && new URL(envoyee.url()).pathname, cible.id)
+      if (porte) return porte
+      const reponse = await envoyee.response()
+      return reponse.status() >= 400 ? { rouge: `la suppression refusée par le serveur (HTTP ${reponse.status()})` } : {}
     },
-    async (ctx) => jugerSuppressionSeance(await detailSeance(ctx, ctx.etat.id),
-      await lireApi(ctx.pages.enseignant, '/lms/seances/my-teaching'), ctx.etat.id, ctx.etat.messageSuppression)),
+    async (ctx) => (klassci(ctx)
+      ? jugerSuppressionMiroir(await lireApi(ctx.pages.enseignant, '/lms/seances/history'),
+        await lireApi(ctx.pages.enseignant, '/lms/seances/my-teaching'), ctx.etat.local, ctx.etat.id)
+      : jugerSuppressionSeance(await detailSeance(ctx, ctx.etat.id),
+        await lireApi(ctx.pages.enseignant, '/lms/seances/my-teaching'), ctx.etat.id, ctx.etat.messageSuppression))),
 ])

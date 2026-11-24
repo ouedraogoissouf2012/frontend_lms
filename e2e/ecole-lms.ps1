@@ -7,7 +7,8 @@
 #   - le supradmin est celui de SupradminSeeder, aux valeurs fictives de la CI ;
 #   - les identifiants créés (classes, matières, leçons) sont écrits en JSON pour le parcours.
 #
-# Seule étape hors HTTP : la validation de la demande, par le SERVICE du produit dans tinker.
+# Deux étapes hors HTTP, toutes deux par un SERVICE du produit dans tinker : la validation de la demande, et la
+# vidéo interne d'un chapitre (#616 : aucun type vidéo n'est téléversable par HTTP).
 # Règle gardée : à la PREMIÈRE réponse inattendue, le script s'arrête et écrit la réponse brute.
 # Rien n'est inséré à la main pour combler un trou. Toutes les données sont fictives (@e2e.test).
 #
@@ -77,7 +78,7 @@ try {
         slug_souhaite = $Slug; usage_prevu = 'E2E en CI, donnees fictives.'
     } -Attendus 201 | Out-Null
 
-    # 2. La validation, par le SERVICE du produit (seule étape hors HTTP).
+    # 2. La validation, par le SERVICE du produit (hors HTTP, comme la vidéo interne de l'étape 9).
     Push-Location $Backend
     try {
         $code = 'use App\Models\SchoolRegistrationRequest; use App\Models\User; use App\Services\SchoolRegistration\SchoolRequestDecisionService; ' +
@@ -171,6 +172,32 @@ try {
     if (-not $seance.ok) { $manques['seance'] = $seance.manque }
     $chapitre = Essayer '9 chapitre' 'POST' "/lessons/$($l1.id)/chapters" @{ titre = 'Chapitre 1, les demis'; description = 'Chapitre fictif cree par le job E2E.'; ordre = 0 } -Jeton $e1
     if (-not $chapitre.ok) { $manques['chapitre'] = $chapitre.manque }
+    # #616 : un chapitre à vidéo INTERNE. Aucun type vidéo n'est téléversable par HTTP (UploadFileRequest) : la vidéo
+    # est rangée par le SERVICE du produit qui traite un fichier vidéo de chapitre (ChapterConversionDispatcher), dans
+    # tinker, avec un fichier fictif. Un refus est un manque : le parcours le rend ROUGE.
+    $chapitreVideo = $null
+    $cv = Essayer '9 chapitre video' 'POST' "/lessons/$($l1.id)/chapters" @{ titre = 'Chapitre 2, video interne'; description = 'Chapitre fictif cree par le job E2E.'; ordre = 1 } -Jeton $e1
+    if (-not $cv.ok) { $manques['chapitre_video'] = $cv.manque }
+    else {
+        Push-Location $Backend
+        try {
+            $code = 'use App\Models\Chapter; use App\Services\Chapter\ChapterConversionDispatcher; use Illuminate\Http\UploadedFile; ' +
+                "`$c = Chapter::withoutGlobalScopes()->findOrFail($([int]$cv.data.id)); " +
+                'app(ChapterConversionDispatcher::class)->dispatch($c, UploadedFile::fake()->create("cours-fictif.mp4", 16, "video/mp4")); ' +
+                'echo json_encode(["provider" => $c->fresh()->video_provider]);'
+            $sortieTinker = & php artisan tinker --execute=$code 2>&1
+            $ligneJson = $sortieTinker | Where-Object { "$_".TrimStart().StartsWith('{') } | Select-Object -Last 1
+            Add-Content $Journal "9 chapitre video (service)`ttinker, code $LASTEXITCODE"
+            if ($LASTEXITCODE -eq 0 -and $ligneJson -and ($ligneJson | ConvertFrom-Json).provider -eq 'upload') {
+                $chapitreVideo = @{ lecon = $l1.id; id = $cv.data.id; titre = 'Chapitre 2, video interne' }
+            }
+            else {
+                Add-Content $Journal "SORTIE BRUTE :`n$($sortieTinker -join "`n")"
+                $manques['chapitre_video'] = "video interne non rangee par le service (9 chapitre video, journal $Journal)"
+            }
+        }
+        finally { Pop-Location }
+    }
     $sujet = Essayer '9 sujet de forum' 'POST' '/forum/topics' @{ title = 'Question sur les fractions'; content = 'Sujet fictif cree par le job E2E.'; classe_id = $c1.id; matiere_id = $m['E2E-MATH'] } -Jeton $e1
     if (-not $sujet.ok) { $manques['sujet'] = $sujet.manque }
     # La charge du produit (création locale, D72-b) : classe et matière de l'école (E1), et une date (E2a :
@@ -197,8 +224,11 @@ try {
         seance = if ($seance.ok) { $seance.data.id } else { $null }
         sujet = if ($sujet.ok) { $sujet.data.id } else { $null }
         chapitre = if ($chapitre.ok) { 'Chapitre 1, les demis' } else { $null }
+        chapitre_video = $chapitreVideo
         evaluation = if ($evaluation.ok) { $evaluation.data.id } else { $null }
         manques = $manques
+        # #614 : le jeton de l'étape 3, DÉJÀ consommé (usage unique) ; il ne vaut plus rien, le parcours le rouvre.
+        jeton_consomme = $jetonActivation
     } | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $Sortie 'jeu.json')
     Write-Output "Ecole creee depuis le LMS montee. Journal : $Journal"
 }

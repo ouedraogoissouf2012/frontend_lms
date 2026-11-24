@@ -3,7 +3,10 @@
   <article class="card period-card" tabindex="-1">
     <h2>{{ periode.libelle }}</h2>
     <p>{{ libelleStatut(periode.status) }} · {{ libellePhase(periode.phase) }}</p>
-    <p>Programme n° {{ periode.program_id }}</p>
+    <!-- #606 : où en est la session, et ce qu'on peut en faire (le graphe des transitions). -->
+    <p v-if="cycle" class="period-cycle">{{ cycle }}</p>
+    <!-- #606 : la formation par son titre (TrainingSessionView.program), jamais par un numéro. -->
+    <p class="period-programme">Formation : {{ periode.program?.titre || '—' }}</p>
     <p v-if="periode.starts_on || periode.ends_on">{{ periode.starts_on || '—' }} → {{ periode.ends_on || '—' }}</p>
 
     <div v-if="actions.length" class="period-actions">
@@ -30,7 +33,7 @@
  * raison, si bien que le 422 du serveur n'est pas atteignable depuis l'écran.
  */
 import { computed } from 'vue'
-import { libellePhase, libelleStatut } from '@/composables/useAdminTrainingSessions'
+import { descriptionStatut, libellePhase, libelleStatut } from '@/composables/useAdminTrainingSessions'
 import {
   IRREVERSIBLES,
   LIBELLES_TRANSITION,
@@ -47,6 +50,7 @@ const props = defineProps({
 defineEmits(['transition'])
 
 const actions = computed(() => transitionsPermises(props.periode))
+const cycle = computed(() => descriptionStatut(props.periode.status))
 </script>
 
 <style scoped>
@@ -90,7 +94,8 @@ const actions = computed(() => transitionsPermises(props.periode))
   opacity: 0.6;
 }
 
-.period-blocage {
+.period-blocage,
+.period-cycle {
   color: var(--text-secondary);
 }
 </style>

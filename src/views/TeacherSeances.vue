@@ -58,6 +58,7 @@
             @deactivate="handleDeactivateVisio"
             @join="handleJoinVisio"
             @end="handleEndVisio"
+            @updated="loadSeances"
           />
         </div>
 

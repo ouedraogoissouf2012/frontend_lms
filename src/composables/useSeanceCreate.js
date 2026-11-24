@@ -19,23 +19,8 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { lmsSeancesService } from '@/services/lmsSeances'
 import { fetchTeacherMatieres } from '@/services/teacherReferentials'
-import { clearCache, clearCacheByPrefix } from '@/services/cache'
-import { messageDe } from '@/services/errorHandler'
-import { ERROR_MESSAGES } from '@/constants/errorMessages'
-import { estPannePassagere } from '@/utils/pannePassagere'
 import { isoAvecDecalage } from '@/utils/dateLocale'
-
-// Nos messages par champ ; un 422 du serveur est rattaché au champ, jamais affiché tel quel (D0).
-const MESSAGES = Object.freeze({
-  titre: 'Le titre compte de 3 à 255 caractères.',
-  date_seance: 'Indiquez la date et l’heure de début.',
-  matiere: 'Choisissez la matière de la séance.',
-  classe: 'Cette classe ne peut pas être retenue. Choisissez-en une autre.',
-})
-const CHAMP_DU_SERVEUR = Object.freeze({
-  titre: 'titre', date_seance: 'date_seance', matiere_id: 'matiere', matiere_nom: 'matiere',
-  classe_id: 'classe', classe_nom: 'classe',
-})
+import { MESSAGES_SEANCE, erreursTitreEtDebut, lireRefusSeance, purgerCachesSeances } from '@/utils/seanceForm'
 
 export function useSeanceCreate({ matieres: fournies = null } = {}) {
   const catalogue = ref([])
@@ -71,11 +56,8 @@ export function useSeanceCreate({ matieres: fournies = null } = {}) {
   }
 
   function valider() {
-    const e = {}
-    const titre = form.titre.trim()
-    if (titre.length < 3 || titre.length > 255) e.titre = MESSAGES.titre
-    if (isoAvecDecalage(form.debut) === null) e.date_seance = MESSAGES.date_seance
-    if (!matiereChoisie.value) e.matiere = MESSAGES.matiere
+    const e = erreursTitreEtDebut(form)
+    if (!matiereChoisie.value) e.matiere = MESSAGES_SEANCE.matiere
     erreurs.value = e
     return Object.keys(e).length === 0
   }
@@ -95,26 +77,14 @@ export function useSeanceCreate({ matieres: fournies = null } = {}) {
     canRetry.value = false
   }
 
-  // La nouvelle séance doit paraître sur les trois écrans : leurs caches de séances sont purgés.
-  function purgerCaches() {
-    clearCache('teacher_seances')
-    clearCacheByPrefix('seances_management_d')
-    clearCacheByPrefix('admin_seances_d')
-  }
-
   function retenirRefus(err) {
-    const champs = {}
-    for (const cle of Object.keys(err?.fieldErrors ?? {})) {
-      const champ = CHAMP_DU_SERVEUR[cle]
-      if (champ) champs[champ] = MESSAGES[champ]
-    }
-    erreurs.value = champs
-    erreur.value = err?.fieldErrors ? ERROR_MESSAGES.validation : messageDe(err)
-    const reason = err?.response?.data?.reason
-    if (reason === 'class_out_of_scope') form.classeId = null
+    const refus = lireRefusSeance(err)
+    erreurs.value = refus.erreurs
+    erreur.value = refus.erreur
+    if (refus.reason === 'class_out_of_scope') form.classeId = null
     // La matière n'est plus de l'établissement : elle est retirée, et sa classe avec elle (watch).
-    if (reason === 'subject_out_of_scope') form.matiereId = null
-    canRetry.value = estPannePassagere(err)
+    if (refus.reason === 'subject_out_of_scope') form.matiereId = null
+    canRetry.value = refus.canRetry
   }
 
   /** @returns {Promise<Object|null>} la séance créée, ou null (refus, invalide, envoi en cours). */
@@ -126,7 +96,8 @@ export function useSeanceCreate({ matieres: fournies = null } = {}) {
     envoi.value = true
     try {
       const seance = await lmsSeancesService.createSeance(charge())
-      purgerCaches()
+      // La nouvelle séance doit paraître sur les trois écrans : leurs caches de séances sont purgés.
+      purgerCachesSeances()
       reinitialiser()
       return seance
     } catch (err) {

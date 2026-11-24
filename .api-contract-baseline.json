@@ -59,7 +59,6 @@
   "POST /admin/institutions/{}/test-connection",
   "POST /admin/notifications/create",
   "POST /auth/forgot-password",
-  "POST /auth/reset-password",
   "POST /chapters/{}/complete",
   "POST /chapters/{}/restore",
   "POST /chapters/{}/time",
