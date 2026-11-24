@@ -6,7 +6,7 @@
     <!-- #606 : où en est la session, et ce qu'on peut en faire (le graphe des transitions). -->
     <p v-if="cycle" class="period-cycle">{{ cycle }}</p>
     <!-- #606 : la formation par son titre (TrainingSessionView.program), jamais par un numéro. -->
-    <p class="period-programme">Formation : {{ periode.program?.titre || '—' }}</p>
+    <p class="period-programme">Formation : {{ periode.program_id }}</p>
     <p v-if="periode.starts_on || periode.ends_on">{{ periode.starts_on || '—' }} → {{ periode.ends_on || '—' }}</p>
 
     <div v-if="actions.length" class="period-actions">
