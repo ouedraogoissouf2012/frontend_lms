@@ -48,7 +48,7 @@ export function useMobileSidebar(props, emit) {
   // #391 : même lecture que le menu (capaciteAccordee), jamais un mode. Ce tiroir a encore
   // sa propre liste d'entrées (dette notée dans la PR) ; la capacité, elle, a une source.
   const peutInscrire = () => capaciteAccordee('peutInscrireLocalement')
-  const CODES_INSCRIPTION = { path: '/admin/enrolment-codes', icon: 'fa-key', label: "Codes d'inscription", badge: null }
+  const CODES_INSCRIPTION = { path: '/admin/enrolment-codes', icon: 'fa-key', label: "Classes et codes d'inscription", badge: null }
   // #605 : l'écran Sessions, seulement si l'établissement gère son propre catalogue (capacité serveur).
   const peutGererCatalogue = () => capaciteAccordee('peutGererCatalogueLocal')
   const SESSIONS = { path: '/admin/training-sessions', icon: 'fa-flag', label: 'Sessions', badge: null }
