@@ -29,10 +29,19 @@
  * ce que le backend émet, pas ce qu'un écran voudrait recevoir.
  */
 
+/*
+ * Le bloc d'identité commun aux trois réponses (`IdentiteDuCompte::de`, lms 50a7660 : #1409, #1536) : `id` (local),
+ * `klassci_id` (numéro de COMPTE KLASSCI), `klassci_enseignant_id` (identité d'ENSEIGNANT KLASSCI) et
+ * `id_dans_l_annuaire` (l'id du compte DANS L'ESPACE de l'annuaire de son école ; nul pour un non-enseignant ou un
+ * enseignant KLASSCI sans identité). Valeurs fictives.
+ */
+
 /** Connexion via KLASSCI — la charge la plus riche (`successfulKlassci`). */
 export const LOGIN_USER_KLASSCI = Object.freeze({
   id: 9,
   klassci_id: 9,
+  klassci_enseignant_id: 14,
+  id_dans_l_annuaire: 14,
   name: 'BEDE ABEL TEST',
   email: 'bede@gmail.com',
   role: 'enseignant',
@@ -46,6 +55,8 @@ export const LOGIN_USER_KLASSCI = Object.freeze({
 export const LOGIN_USER_LOCAL = Object.freeze({
   id: 9,
   klassci_id: 9,
+  klassci_enseignant_id: null,
+  id_dans_l_annuaire: 9,
   name: 'BEDE ABEL TEST',
   email: 'bede@gmail.com',
   role: 'enseignant',

@@ -48,6 +48,17 @@ export function libelleStatut(status) {
   return STATUTS[status] || status || '—'
 }
 
+/**
+ * #606 : la borne DÉCLARÉE de lecture des programmes, en pages de 100 (2 000 formations). Au-delà, la lecture s'arrête
+ * et l'écran le dit, au lieu de prétendre tout lister.
+ */
+export const PROGRAMMES_PAGES_MAX = 20
+
+/** Libellé d'un programme dans la liste : son titre, et sa version quand il en a plusieurs. */
+export function libelleProgramme(p) {
+  return Number.isInteger(p?.version) && p.version > 1 ? `${p.titre} (version ${p.version})` : String(p?.titre ?? '—')
+}
+
 export function useAdminTrainingSessions() {
   const periodes = ref([])
   const loading = ref(false)
@@ -57,6 +68,12 @@ export function useAdminTrainingSessions() {
   const lastPage = ref(1)
   const dernierProgrammeId = ref(null)
   const saving = ref(false)
+  // #611 : les archivées sont masquées par défaut (lms_backend#1290) ; la case de l'écran les montre.
+  const voirArchivees = ref(false)
+  // #606 : la liste des formations (GET /programs), pour CHOISIR celle d'une session.
+  const programmes = ref([])
+  const programmesErreur = ref('')
+  const programmesTronques = ref(false)
   // Périodes dont une transition est en cours (revue #441, A1) : un ENSEMBLE, car
   // plusieurs cartes peuvent être en vol. Remplacé à chaque écriture (réactivité).
   const occupees = ref(new Set())
@@ -69,7 +86,7 @@ export function useAdminTrainingSessions() {
     loading.value = true
     error.value = ''
     try {
-      const response = await trainingSessionsService.list(cible)
+      const response = await trainingSessionsService.list(cible, { archivees: voirArchivees.value })
       periodes.value = extractList(response)
       page.value = response.meta?.current_page ?? cible
       lastPage.value = response.meta?.last_page ?? 1
@@ -83,6 +100,53 @@ export function useAdminTrainingSessions() {
     }
   }
 
+  /** Coche ou décoche « Voir les périodes archivées » : la liste repart de sa première page. */
+  async function basculerArchivees(valeur) {
+    voirArchivees.value = valeur === true
+    return load(1)
+  }
+
+  /**
+   * Une période que le serveur dit ARCHIVÉE, case décochée : elle quitte la liste aussitôt. Si c'était la dernière
+   * ligne de la page alors que d'autres pages existent, la page précédente (ou la première) est relue : jamais
+   * une page vide trompeuse.
+   */
+  async function retirerArchivee(id) {
+    periodes.value = periodes.value.filter((p) => p.id !== id)
+    notice.value = ERROR_MESSAGES.periodeArchiveeMasquee
+    if (periodes.value.length === 0 && lastPage.value > 1) {
+      await load(Math.max(1, page.value - 1))
+      notice.value = ERROR_MESSAGES.periodeArchiveeMasquee
+    }
+  }
+
+  /**
+   * Lit TOUS les programmes, page par page, dans la borne déclarée. Un échec ne laisse AUCUN programme : une liste
+   * partielle ferait croire qu'une formation n'existe pas. L'écran désactive alors la création de session.
+   * @returns {Promise<boolean>} true si la liste est lue
+   */
+  async function chargerProgrammes() {
+    programmesErreur.value = ''
+    const lus = []
+    try {
+      let cible = 1
+      let derniere = 1
+      do {
+        const response = await trainingSessionsService.listPrograms(cible)
+        lus.push(...extractList(response))
+        derniere = response.meta?.last_page ?? cible
+        cible += 1
+      } while (cible <= derniere && cible <= PROGRAMMES_PAGES_MAX)
+      programmes.value = lus
+      programmesTronques.value = derniere > PROGRAMMES_PAGES_MAX
+      return true
+    } catch (err) {
+      programmes.value = []
+      programmesErreur.value = err?.userMessage || ERROR_MESSAGES.unknown
+      return false
+    }
+  }
+
   async function creerProgramme(titre, description) {
     saving.value = true
     error.value = ''
@@ -91,6 +155,8 @@ export function useAdminTrainingSessions() {
       const response = await trainingSessionsService.createProgram({ titre, description })
       dernierProgrammeId.value = response.data?.id ?? null
       notice.value = 'Programme créé.'
+      // #606 : la liste est relue, pour que le programme créé puisse être choisi.
+      await chargerProgrammes()
       return true
     } catch (err) {
       error.value = err.userMessage || 'La création du programme a échoué.'
@@ -144,6 +210,11 @@ export function useAdminTrainingSessions() {
     notice.value = ''
     try {
       const response = await trainingSessionsService.transition(periode.id, action)
+      // #611 : le statut RELU décide, pas le bouton cliqué.
+      if (response.data?.status === 'archivee' && !voirArchivees.value) {
+        await retirerArchivee(periode.id)
+        return true
+      }
       const index = periodes.value.findIndex((p) => p.id === periode.id)
       if (index !== -1) periodes.value[index] = { ...periodes.value[index], ...response.data }
       notice.value = 'Période mise à jour.'
@@ -163,7 +234,7 @@ export function useAdminTrainingSessions() {
 
   return {
     periodes, loading, error, notice, page, lastPage,
-    dernierProgrammeId, saving, estOccupee,
-    load, creerProgramme, creerPeriode, transitionner,
+    dernierProgrammeId, saving, estOccupee, voirArchivees, programmes, programmesErreur, programmesTronques,
+    load, creerProgramme, creerPeriode, transitionner, basculerArchivees, chargerProgrammes,
   }
 }

@@ -66,6 +66,11 @@ export function useEnrolmentCodes() {
     classes.value = classes.value.map((c) => (c.id === id ? { ...c, code_inscription: codeInscription } : c))
   }
 
+  /** #631 : garde la capacité RELUE du serveur après un réglage réussi. */
+  function majCapacite(id, effectif) {
+    classes.value = classes.value.map((c) => (c.id === id ? { ...c, effectif } : c))
+  }
+
   /**
    * Après un échec, trois cas :
    * - SANS RÉPONSE (délai, réseau) : le POST a pu être reçu et tenir un verrou au-delà du
@@ -150,5 +155,5 @@ export function useEnrolmentCodes() {
     }
   }
 
-  return { classes, loading, error, notice, page, lastPage, estOccupee, load, emettre, retirer }
+  return { classes, loading, error, notice, page, lastPage, estOccupee, load, emettre, retirer, majCapacite }
 }

@@ -19,7 +19,8 @@ import { deriveInstitutionCounters } from '@/utils/classStats'
 import DashboardStatCards from '@/components/teacher/DashboardStatCards.vue'
 
 const refus = () => Promise.reject(new Error('refusé'))
-const ENSEIGNANT = { id: 3, name: 'Enseignant Un E2E', email: 'ens1@example.test' }
+// #626 PR 2 (déclaré) : la fiche se reconnaît par `id_dans_l_annuaire` (lms_backend#1536), jamais par l'id local.
+const ENSEIGNANT = { id: 3, id_dans_l_annuaire: 3, name: 'Enseignant Un E2E', email: 'ens1@example.test' }
 
 /** Le service LMS tel qu'une école créée depuis le LMS le voit aujourd'hui. */
 function lms({ matieres, seances } = {}) {

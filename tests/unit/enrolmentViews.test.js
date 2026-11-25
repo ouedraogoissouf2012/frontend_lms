@@ -44,8 +44,9 @@ describe('AdminEnrolmentCodes (#391)', () => {
     const cartes = mount(AdminEnrolmentCodes, { global: { stubs } }).findAll('.code-card')
     // D17 : aria-disabled, jamais disabled (un bouton désactivé perd le focus clavier)
     expect(cartes[0].find('button').attributes('aria-disabled')).toBe('false')
-    expect(cartes[1].findAll('button').every((b) => b.attributes('aria-disabled') === 'true')).toBe(true)
-    expect(cartes[1].findAll('button').every((b) => b.attributes('disabled') === undefined)).toBe(true)
+    // #631 : « Modifier la capacité » ne dépend pas d'un geste du code en vol ; seuls les gestes du code sont visés.
+    expect(cartes[1].findAll('.code-actions button').every((b) => b.attributes('aria-disabled') === 'true')).toBe(true)
+    expect(cartes[1].findAll('.code-actions button').every((b) => b.attributes('disabled') === undefined)).toBe(true)
   })
 
   it('R4 : les régions alert et status existent DÈS le montage, vides', () => {
