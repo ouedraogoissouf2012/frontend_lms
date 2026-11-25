@@ -43,3 +43,24 @@ describe('#650 — `--color-primary` n’est plus lu sans repli', () => {
     expect(JSON.parse(lire('.proprietes-non-definies-baseline.json'))['--color-primary']).toBe(avecRepli)
   })
 })
+
+// Mesure de l'E2E de 4c2cf974 : en SOMBRE, `--primary-color` vaut blue-400 (#60a5fa), un accent pour du texte sur fond
+// sombre ; sous un texte blanc, le contraste tombe à 2.54:1 (3:1 exigé). Un FOND de bouton au texte blanc lit donc
+// `--color-info-strong` (#2563eb, le même dans les deux thèmes : 5.17:1 sous du blanc).
+const BOUTONS = [
+  'src/components/admin/SeancesList.vue', 'src/components/admin/VisioGrid.vue', 'src/components/teacher/DashboardMatieresList.vue',
+  'src/components/teacher/MatiereCourseCard.vue', 'src/components/widgets/CalendarEventModal.vue', 'src/components/widgets/CalendarWidget.vue',
+  'src/views/admin/AdminSeances.vue', 'src/views/admin/AdminStats.vue', 'src/views/admin/AdminVisio.vue',
+  'src/views/dashboards/TeacherDashboard.vue', 'src/views/teacher/TeacherMatieres.vue',
+]
+
+describe('#650 — un fond de bouton au texte blanc tient en clair ET en sombre', () => {
+  it.each(BOUTONS)('%s : aucun fond sur `--primary-color` (accent pâle en sombre)', (f) => {
+    expect(lire(f)).not.toMatch(/background(-color)?:\s*var\(--primary-color\)/)
+  })
+
+  it('`--color-info-strong` est défini une fois, et le thème sombre ne le redéfinit pas', () => {
+    expect(lire('src/assets/styles/theme/_tokens-semantic.css')).toMatch(/--color-info-strong:\s*#2563eb;/)
+    expect(lire('src/assets/styles/theme/_theme-dark.css')).not.toMatch(/--color-info-strong\s*:/)
+  })
+})
