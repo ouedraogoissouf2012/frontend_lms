@@ -26,7 +26,11 @@ export const ETIQUETTES = Object.freeze({
 const ECRAN = '/admin/users'
 const RECHERCHE = 'Rechercher par nom, email ou matricule…'
 const nonTesteKlassci = { nonTeste: 'sans objet : en école KLASSCI, les comptes viennent de KLASSCI ; le formulaire « Nouvel utilisateur » est fermé (peutInscrireLocalement)' }
-const lignesDe = (corps) => (Array.isArray(corps?.data) ? corps.data : [])
+// GET /admin/users est PAGINÉ (UserListPresenter::paginated, lms) : les lignes sont dans `data.data`.
+const lignesDe = (corps) => (Array.isArray(corps?.data?.data) ? corps.data.data : [])
+
+/** La relecture vise le courriel (`q`) : la pagination ne peut pas cacher le compte créé. */
+export const cheminRelecture = (d) => `/admin/users?q=${encodeURIComponent(d.courriel)}&per_page=100`
 
 /** La création relue : 201, l'annonce, la ligne à l'écran (enseignant seulement), et `GET /admin/users` au bon rôle. */
 export function jugerCreation({ statut, annonce, ligneEcran, api }, d) {
@@ -89,7 +93,7 @@ function etapeCreation(cle, quel, libelle) {
       const ligne = page.locator('tr.user-row').filter({ hasText: d.courriel })
       if (d.dansLaListe) await ligne.first().waitFor({ state: 'visible', timeout: ATTENTE }).catch(() => {})
       const ligneEcran = (await ligne.count()) ? await ligne.first().innerText() : null
-      return jugerCreation({ ...ctx.etat[cle], annonce, ligneEcran, api: await lireApi(page, '/admin/users?per_page=100') }, d)
+      return jugerCreation({ ...ctx.etat[cle], annonce, ligneEcran, api: await lireApi(page, cheminRelecture(d)) }, d)
     },
   }
 }
