@@ -22,6 +22,7 @@ import { ETAPES_VIDEO_INTERNE, DONNEES_VIDEO_INTERNE } from './parcours-video-in
 import { ETAPES_PERIODES, DONNEES_PERIODES } from './parcours-periodes-archivees.mjs'
 import { ETAPES_PUBLICATION, DONNEES_PUBLICATION } from './parcours-publier-session.mjs'
 import { ETAPES_CAPACITE, DONNEES_CAPACITE } from './parcours-capacite.mjs'
+import { ETAPES_COMPTE, DONNEES_COMPTE } from './parcours-creation-compte.mjs'
 
 const FONCTIONS = [
   { fonction: 'leçon', etapes: ETAPES_LECON, donnees: DONNEES_LECON },
@@ -35,6 +36,8 @@ const FONCTIONS = [
   { fonction: 'périodes archivées', etapes: ETAPES_PERIODES, donnees: DONNEES_PERIODES },
   { fonction: 'publier une session', etapes: ETAPES_PUBLICATION, donnees: DONNEES_PUBLICATION },
   { fonction: 'capacité d’une classe', etapes: ETAPES_CAPACITE, donnees: DONNEES_CAPACITE },
+  // #648 : l'admin d'une école autonome crée un enseignant et un élève à l'écran ; chacun se connecte (anonyme).
+  { fonction: 'création d’un compte', etapes: ETAPES_COMPTE, donnees: DONNEES_COMPTE },
 ]
 
 const [fichierJeu, sortie] = process.argv.slice(2)

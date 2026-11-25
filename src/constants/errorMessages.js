@@ -160,5 +160,12 @@ export const ERROR_MESSAGES = Object.freeze({
   // #631 : la capacité d'une classe locale, réglée à l'écran (contrôle local, puis relecture du serveur).
   capaciteIllisible: "Indiquez un nombre entier d'élèves, de 0 à 10 000, ou laissez vide pour ne pas limiter.",
   capaciteIncertaine: 'Capacité incertaine : actualisez la liste avant de la modifier.',
+  // #648 : la création d'un compte par l'admin d'une école autonome (contrôle local, avant POST /users).
+  compteNomRequis: 'Indiquez le nom complet de la personne.',
+  compteCourrielRequis: 'Indiquez une adresse de courriel valide.',
+  compteRoleRequis: 'Choisissez le rôle du compte.',
+  compteMotDePasseCourt: 'Le mot de passe initial doit compter au moins 8 caractères.',
+  compteConfirmationDifferente: 'La confirmation ne reprend pas le mot de passe initial.',
+  compteCreationIncertaine: 'La création n’a pas pu être confirmée. Le compte existe peut-être déjà : vérifiez la liste avant de recommencer.',
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })

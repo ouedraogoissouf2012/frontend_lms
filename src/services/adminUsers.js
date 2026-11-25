@@ -54,4 +54,16 @@ export async function listAdministrationUsers() {
   }
 }
 
-export default { listAdministrationUsers }
+/**
+ * Crée un compte dans l'établissement de l'acteur (#648), `POST /users` (CreateUserRequest) : un mot de passe
+ * INITIAL, confirmé ; le rôle est jugé par le serveur (strictement inférieur à celui de l'acteur).
+ * @param {{ nom: string, courriel: string, role: string, motDePasse: string, confirmation: string }} saisie
+ * @returns {Promise<object>} le corps de la réponse (`{ data: user }`)
+ */
+export async function creerCompte({ nom, courriel, role, motDePasse, confirmation }) {
+  return api.post(endpoints.admin.creerCompte, {
+    name: nom, email: courriel, password: motDePasse, password_confirmation: confirmation, role,
+  })
+}
+
+export default { listAdministrationUsers, creerCompte }
