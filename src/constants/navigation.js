@@ -86,7 +86,7 @@ export const NAV_SECTIONS = Object.freeze([
   { icon: 'fa-line-chart', label: 'Statistiques', to: '/admin/stats', roles: [ADMIN] },
   { icon: 'fa-flag', label: 'Sessions', to: '/admin/training-sessions', roles: [ADMIN, COORDINATEUR], capacite: 'peutGererCatalogueLocal' },
   // #391 : seulement si l'établissement tient sa propre liste (capacité serveur).
-  { icon: 'fa-key', label: "Codes d'inscription", to: '/admin/enrolment-codes', roles: [ADMIN, COORDINATEUR], capacite: 'peutInscrireLocalement' },
+  { icon: 'fa-key', label: "Classes et codes d'inscription", to: '/admin/enrolment-codes', roles: [ADMIN, COORDINATEUR], capacite: 'peutInscrireLocalement' },
 
   // --- Queue partagée enseignant/admin ---
   { icon: 'fa-comments', label: 'Forum', to: '/forum', roles: [ENSEIGNANT, COORDINATEUR, ADMIN] },

@@ -150,7 +150,9 @@ export function useNavbar() {
       'notes': 'Notes',
       'stats': 'Statistiques',
       'profile': 'Profil',
-      'settings': 'Paramètres'
+      'settings': 'Paramètres',
+      // #632 : le même nom que le menu et le titre de l'écran.
+      'enrolment-codes': "Classes et codes d'inscription"
     }
 
     return labels[segment] || segment.charAt(0).toUpperCase() + segment.slice(1)
