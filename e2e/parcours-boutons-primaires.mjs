@@ -5,8 +5,9 @@
 //
 // Trois façons d'atteindre un bouton, déclarées :
 //   - par le jeu : le widget (« Mois », la modale d'un événement), les cours de l'enseignant, l'action d'une séance ;
-//   - par une réponse FICTIVE : l'action « Rejoindre » d'une visio n'existe que pendant une visio EN COURS, état
-//     fugace du parcours de la séance ; `GET /lms/seances/upcoming` est servi avec une séance fictive en cours ;
+//   - par une réponse FICTIVE : « Rejoindre » n'existe que pendant une visio EN COURS (état fugace du parcours de la
+//     séance), « Détails » que pour une séance À VISIO (aucune dans le jeu) ; `GET /lms/seances/upcoming`, leur source
+//     commune, est servi avec une séance fictive, à visio et en cours ;
 //   - par une PANNE simulée : les boutons « Réessayer » n'existent qu'après un échec. Un contexte NEUF où tout `GET`
 //     de l'API rend 500 (sauf l'authentification), posé AVANT la connexion : aucun cache ne masque l'échec.
 // Un bouton absent du jeu (aucune donnée pour le montrer) est NON TESTÉ, jamais ROUGE.
@@ -15,7 +16,8 @@ import { join } from 'node:path'
 import { ATTENTE } from './gestes.mjs'
 import { connecter } from './connexion.mjs'
 
-export const DONNEES_BOUTONS = Object.freeze({ dossier: 'boutons-650' })
+// Sous `captures/` : seul ce dossier de la sortie est publié dans l'artefact (e2e.yml), pour les deux écoles.
+export const DONNEES_BOUTONS = Object.freeze({ dossier: 'captures/boutons-650' })
 
 const PANNE = { panne: true }
 const VISIO_FICTIVE = { visio: true }
@@ -34,7 +36,7 @@ export const BOUTONS = Object.freeze([
   { cle: 'modale-evenement', compte: 'admin', chemin: '/admin/dashboard', selecteur: '.action-btn.primary', widget: true, evenement: true, libelle: 'l’action de la modale d’un événement du widget' },
   { cle: 'cours-matiere', compte: 'enseignant', chemin: '/teacher/matieres', selecteur: '.course-btn', libelle: 'le bouton de leçons d’une matière (Mes Matières)' },
   { cle: 'cours-tableau', compte: 'enseignant', chemin: '/teacher/dashboard', selecteur: '.course-btn', libelle: 'le bouton de leçons du tableau de bord enseignant' },
-  { cle: 'seance-action', compte: 'admin', chemin: '/admin/seances', selecteur: '.action-btn.primary', libelle: 'l’action principale d’une séance (admin)' },
+  { cle: 'seance-action', compte: 'admin', chemin: '/admin/seances', selecteur: '.action-btn.primary', ...VISIO_FICTIVE, libelle: '« Détails » d’une séance à visio (admin, séance fictive)' },
   { cle: 'visio-action', compte: 'admin', chemin: '/admin/visioconferences', selecteur: '.action-btn.primary', ...VISIO_FICTIVE, libelle: '« Rejoindre » d’une visio en cours (admin, séance fictive)' },
 ])
 
