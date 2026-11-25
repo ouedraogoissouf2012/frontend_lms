@@ -4,8 +4,8 @@
  *   seulement, donc « inconnue » pour une évaluation locale qui a pourtant un id).
  * - D-c2 : `matiere_name`, `subject_name`, `class_name` et `teacher` ne sont plus lus ; absents
  *   d'`EvaluationRecord` (openapi.yaml) et de la spec E2a.
- * - L7 / D-c3 : la forme des lignes `/proxy/*` d'une école KLASSCI est INDÉTERMINÉE (schéma ouvert,
- *   aucune fixture) ; `byId` garde donc ses clés, et ce test FIGE la règle de collision (déclaré).
+ * - L7 / D-c3, puis #626 (déclaré) : `byId` n'indexe plus que l'`id` ; le `klassci_id` d'une autre ligne n'est
+ *   plus une clé, si bien qu'aucune collision entre deux espaces n'est possible.
  */
 import { describe, it, expect } from 'vitest'
 import { byId, matiereName, classeName, teacherName } from '@/utils/evaluationDisplay'
@@ -25,7 +25,7 @@ describe('evaluationDisplay — les deux familles d’ids (D72-c)', () => {
     expect(teacherName({ teacher: { nom: 'Awa' } })).toBe('Enseignant inconnu')
   })
 
-  it('21. L7 / D-c3 : collision id local et klassci_id d’une autre ligne : la PREMIÈRE ligne gagne', () => {
+  it('21. #626 : le klassci_id d’une autre ligne n’est plus une clé ; chaque ligne garde SON id', () => {
     const a = { id: 5, nom: 'A' }
     const b = { id: 6, klassci_id: 5, nom: 'B' }
     const index = byId([a, b])

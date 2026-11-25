@@ -20,7 +20,7 @@ import CoordinatorSeanceFilters from '@/components/seances/CoordinatorSeanceFilt
 async function titres(seances) {
   lmsMock.getMyClassesSeances.mockResolvedValue({ data: seances })
   const c = useCalendarEvents({
-    getUserRole: () => 'student', getUserId: () => 1,
+    getUserRole: () => 'student', estConnecte: () => true,
     eventTypeFilter: ref('seances'), dateRangePreset: ref('month'),
   })
   await c.loadEvents()

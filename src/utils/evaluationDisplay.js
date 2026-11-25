@@ -1,5 +1,5 @@
 import { extractList } from './apiList'
-import { toId, ENTITY_ID_KEYS } from './toId'
+import { toId } from './toId'
 import { idClasse, idEnseignant, idMatiere } from './identiteEvaluation'
 
 export { toId }
@@ -33,17 +33,14 @@ export const nonEmptyArray = (value, envelopeKeys = []) => {
   return list.length > 0 ? list : null
 }
 
-// D72-c, D-c3 : la forme des lignes `/proxy/*` d'une école KLASSCI est indéterminée (schéma ouvert,
-// aucune fixture) : `byId` garde toutes ses clés ; en cas de collision, la première ligne gagne.
+// #626 : une ligne s'indexe par son `id` SEUL. L'indexer par toutes les clés d'identité faisait du `user_id` (ou du
+// `klassci_id`, un numéro de COMPTE) d'une ligne la clé d'une AUTRE ligne : le même nombre vit dans deux espaces, et
+// une évaluation nommait alors le mauvais enseignant. Entre deux lignes de même `id`, la première gagne.
 export const byId = (items) => {
   const map = new Map()
   ;(Array.isArray(items) ? items : []).forEach((item) => {
-    // Même liste de clés que `toId` (#296) : plus de divergence possible.
-    // `class_id`, jadis oublié ici, est désormais indexé lui aussi.
-    ENTITY_ID_KEYS.forEach((k) => {
-      const key = toId(item?.[k])
-      if (key && !map.has(key)) map.set(key, item)
-    })
+    const key = toId(item?.id)
+    if (key && !map.has(key)) map.set(key, item)
   })
   return map
 }

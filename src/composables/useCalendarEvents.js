@@ -25,11 +25,11 @@ import {
  *
  * @param {Object} ctx
  * @param {() => string} ctx.getUserRole
- * @param {() => (number|null)} ctx.getUserId
+ * @param {() => boolean} ctx.estConnecte - le compte est connecté (#626 : un booléen, jamais un id)
  * @param {import('vue').Ref<string>} ctx.eventTypeFilter
  * @param {import('vue').Ref<string>} ctx.dateRangePreset
  */
-export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dateRangePreset }) {
+export function useCalendarEvents({ getUserRole, estConnecte, eventTypeFilter, dateRangePreset }) {
   const events = ref([])
   const matieres = ref([])
   const classes = ref([])
@@ -99,7 +99,7 @@ export function useCalendarEvents({ getUserRole, getUserId, eventTypeFilter, dat
       let response
       switch (getUserRole()) {
         case 'student':
-          if (getUserId()) {
+          if (estConnecte()) {
             // #17 Ék-6 : évals de l'étudiant connecté (identité dérivée du token, anti-IDOR)
             response = await evaluationService.getStudentEvaluations()
           }
