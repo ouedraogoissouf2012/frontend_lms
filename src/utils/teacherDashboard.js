@@ -35,51 +35,20 @@ export function normalizeTeacherDashboardPayload(response = {}) {
   return normalizeTeacherDashboard(payload)
 }
 
-function normalizeText(value) {
-  return String(value || '').trim().toLowerCase()
-}
-
 function firstNumber(values, fallback = 0) {
   return coalesceNumber(values, fallback)
 }
 
-function getPersonNames(person = {}) {
-  return [
-    person.name,
-    person.full_name,
-    person.display_name,
-    [person.prenom, person.nom].filter(Boolean).join(' '),
-    [person.nom, person.prenom].filter(Boolean).join(' '),
-  ].map(normalizeText).filter(Boolean)
-}
-
+/**
+ * #626 (lms_backend#1536) : la fiche du compte connecté se reconnaît par UN seul id, `id_dans_l_annuaire`, que le
+ * serveur rend déjà dans l'espace de l'annuaire de l'école (id local en école autonome, identité d'enseignant KLASSCI
+ * en école KLASSCI). Plus aucun repli : ni `klassci_id` (un numéro de COMPTE), ni `id` local croisé, ni courriel, ni
+ * nom — deux homonymes, un courriel partagé ou un même nombre dans deux espaces donnaient la fiche d'un AUTRE. Un nul
+ * ou une clé absente (session antérieure à #1536) ne correspond à rien.
+ */
 function matchesCurrentTeacher(enseignant, currentUser) {
-  if (!enseignant || !currentUser) return false
-
-  const currentIds = new Set([
-    currentUser.klassci_id,
-    currentUser.teacher_id,
-    currentUser.enseignant_id,
-    currentUser.user_id,
-    currentUser.id,
-  ].map(toId).filter(Boolean))
-
-  const enseignantIds = [
-    enseignant.klassci_id,
-    enseignant.teacher_id,
-    enseignant.enseignant_id,
-    enseignant.user_id,
-    enseignant.id,
-  ].map(toId).filter(Boolean)
-
-  if (enseignantIds.some(id => currentIds.has(id))) return true
-
-  const userEmail = normalizeText(currentUser.email)
-  const enseignantEmail = normalizeText(enseignant.email)
-  if (userEmail && enseignantEmail && userEmail === enseignantEmail) return true
-
-  const userNames = new Set(getPersonNames(currentUser))
-  return getPersonNames(enseignant).some(name => userNames.has(name))
+  const moi = toId(currentUser?.id_dans_l_annuaire)
+  return Boolean(moi) && toId(enseignant?.id) === moi
 }
 
 function findCurrentTeacher(enseignants = [], currentUser) {
