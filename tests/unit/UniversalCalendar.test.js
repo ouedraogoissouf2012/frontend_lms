@@ -37,7 +37,7 @@ import UniversalCalendar from '@/components/calendar/UniversalCalendar.vue'
 
 function mountCalendar(props = {}) {
   return mount(UniversalCalendar, {
-    props: { userRole: 'teacher', userId: 1, ...props },
+    props: { userRole: 'teacher', connecte: true, ...props },
     global: {
       stubs: {
         CalendarNavigation: true,

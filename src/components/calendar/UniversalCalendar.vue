@@ -100,9 +100,10 @@ const props = defineProps({
     required: true,
     validator: (value) => ['student', 'teacher', 'coordinator', 'admin'].includes(value)
   },
-  userId: {
-    type: Number,
-    default: null
+  // #626 : le calendrier sait seulement si le compte est connecté ; aucun id n'est envoyé au serveur.
+  connecte: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -122,7 +123,7 @@ const selectedEnseignant = ref('')
 // Données + chargement délégués au composable (#28bis : script < 300)
 const { events, matieres, classes, enseignants, loading, refreshing, error, information, loadEvents, refreshData } = useCalendarEvents({
   getUserRole: () => props.userRole,
-  getUserId: () => props.userId,
+  estConnecte: () => props.connecte,
   eventTypeFilter,
   dateRangePreset
 })

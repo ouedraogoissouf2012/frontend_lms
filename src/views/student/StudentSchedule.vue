@@ -15,7 +15,7 @@
       <!-- Universal Calendar Component -->
       <UniversalCalendar
         user-role="student"
-        :user-id="actorId"
+        :connecte="connecte"
         @event-action="handleEventAction"
       />
     </div>
@@ -28,13 +28,13 @@ import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import UniversalCalendar from '@/components/calendar/UniversalCalendar.vue'
 import { lmsService } from '@/services/lms'
 import { useTrackedVisioJoin } from '@/composables/useTrackedVisioJoin'
-import { useScheduleActorId } from '@/composables/useScheduleActorId'
+import { useScheduleConnexion } from '@/composables/useScheduleConnexion'
 import { useStartEvaluation } from '@/composables/useStartEvaluation'
 import { notifyVisioError, notifyVisioWarning } from '@/services/visioFeedback'
 
 const router = useRouter()
 const { joinTrackedVisio } = useTrackedVisioJoin('Etudiant')
-const { currentUser, actorId } = useScheduleActorId()
+const { currentUser, connecte } = useScheduleConnexion()
 const { ouvrirEvaluation } = useStartEvaluation()
 
 async function handleEventAction({ type, data }) {
