@@ -38,7 +38,9 @@ export function verifsEcoleLms(jeu) {
       contient: ['Enseignant Un E2E', 'Eleve 1 E2E'],
     },
     // #631 : les deux classes sont montées avec une capacité de 30 (e2e/ecole-lms.ps1, `effectif = 30`).
-    'admin /admin/enrolment-codes': { contient: ['6e A E2E', '5e B E2E', 'Code actif', 'Capacité : 30 élèves', 'Modifier la capacité'] },
+    'admin /admin/enrolment-codes': { contient: ['6e A E2E', '5e B E2E', 'Code actif', 'Capacité : 30 élèves', 'Modifier la capacité',
+      // #632 : l'écran des classes locales, renommé, porte le formulaire de création.
+      "Classes et codes d'inscription", 'Nouvelle classe'] },
     // Le parcours réel d'un enseignant : sa séance et ses présences.
     ...(jeu.seance ? {
       'enseignant /seances/:id': { contient: ['Fractions, seance E2E'] },

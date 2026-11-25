@@ -55,12 +55,14 @@ export function enrichEvaluation(evaluation, { enseignants, classes, matieres })
 // recopiée d'une ligne source ou d'un cache antérieur).
 const sansKlassciId = ({ klassci_id: _ignore, ...reste }) => reste
 
+// #626 : une option se joint par son `id` SEUL, l'identité que parlent l'annuaire et les évaluations d'une même école
+// (lms_backend#873, #1396). `klassci_id` est un numéro de COMPTE KLASSCI, d'un autre espace ; `teacher_id` n'est pas
+// au contrat. Une ligne sans `id` ne désigne personne : pas d'option.
 export function teacherOption(enseignant) {
-  const id = toId(enseignant)
-  const name = displayName(enseignant)
-  if (!id || !name) return null
   const source = typeof enseignant === 'object' && enseignant !== null ? enseignant : {}
-  const joinId = source.klassci_id ?? source.id ?? source.teacher_id ?? id
+  const joinId = source.id ?? null
+  const name = displayName(enseignant)
+  if (!toId(joinId) || !name) return null
   return {
     ...sansKlassciId(source),
     id: joinId,

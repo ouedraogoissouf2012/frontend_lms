@@ -119,6 +119,8 @@ export const REASONS = Object.freeze({
   // #605 (lms_backend#1184, PorteDuCatalogueLocal) : 403 sur le catalogue d'une école dont KLASSCI tient le
   // catalogue (programmes, sessions et leurs transitions, classes, matières, programme d'une classe, codes).
   catalogue_managed_by_klassci: motif('catalogueGereParKlassci'),
+  // #632 (lms_backend#1521) : le code d'une classe est déjà employé dans l'établissement ; dit sous le champ du code.
+  class_code_already_used: motif('classeCodeDejaEmploye'),
   // #613 (lms_backend#808) : le 200 de POST /auth/forgot-password, le même pour un compte connu ou inconnu. Aucun n'est
   // un refus : KLASSCI tient le mot de passe ; le canal de courriel n'est pas posé ; un lien part si le compte existe.
   mot_de_passe_klassci: motif('motDePasseKlassci', { information: true }),
