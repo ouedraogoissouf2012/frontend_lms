@@ -22,6 +22,7 @@ import { ETAPES_VIDEO_INTERNE, DONNEES_VIDEO_INTERNE } from './parcours-video-in
 import { ETAPES_PERIODES, DONNEES_PERIODES } from './parcours-periodes-archivees.mjs'
 import { ETAPES_PUBLICATION, DONNEES_PUBLICATION } from './parcours-publier-session.mjs'
 import { ETAPES_CAPACITE, DONNEES_CAPACITE } from './parcours-capacite.mjs'
+import { ETAPES_BOUTONS, DONNEES_BOUTONS } from './parcours-boutons-primaires.mjs'
 
 const FONCTIONS = [
   { fonction: 'leçon', etapes: ETAPES_LECON, donnees: DONNEES_LECON },
@@ -35,6 +36,8 @@ const FONCTIONS = [
   { fonction: 'périodes archivées', etapes: ETAPES_PERIODES, donnees: DONNEES_PERIODES },
   { fonction: 'publier une session', etapes: ETAPES_PUBLICATION, donnees: DONNEES_PUBLICATION },
   { fonction: 'capacité d’une classe', etapes: ETAPES_CAPACITE, donnees: DONNEES_CAPACITE },
+  // #650 : les onze boutons primaires, mesurés (fond opaque, contraste) et capturés en clair et en sombre.
+  { fonction: 'boutons primaires visibles', etapes: ETAPES_BOUTONS, donnees: DONNEES_BOUTONS },
 ]
 
 const [fichierJeu, sortie] = process.argv.slice(2)
@@ -58,7 +61,7 @@ connexions.anonyme = { connecte: true, alerte: '' }
 const cases = []
 for (const { fonction, etapes, donnees } of FONCTIONS) {
   const moteur = moteurFonctionnel({ ecole, fonction })
-  const ctx = { pages, base: BASE, jeu, donnees: typeof donnees === 'function' ? donnees(jeu) : donnees, etat: {} }
+  const ctx = { pages, base: BASE, sortie, jeu, donnees: typeof donnees === 'function' ? donnees(jeu) : donnees, etat: {} }
   for (const e of etapes) {
     const connexion = connexions[e.compte]
     await moteur.etape({
