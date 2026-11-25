@@ -113,7 +113,7 @@ const {
 .widget-icon {
   width: 1.5rem;
   height: 1.5rem;
-  color: var(--color-primary);
+  color: var(--primary-color);
 }
 
 .widget-title {
@@ -146,9 +146,9 @@ const {
 }
 
 .view-btn.active {
-  background: var(--color-primary);
+  background: var(--primary-color);
   color: white;
-  border-color: var(--color-primary);
+  border-color: var(--primary-color);
 }
 
 /* Calendar Container */
@@ -181,8 +181,8 @@ const {
 }
 
 :deep(.fc-button-primary:not(:disabled).fc-button-active) {
-  background: var(--color-primary) !important;
-  border-color: var(--color-primary) !important;
+  background: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
   color: white !important;
 }
 

@@ -59,7 +59,7 @@ function handleClick() {
 .quick-action-btn:hover:not(:disabled) {
   transform: translateY(-4px);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  border-color: var(--color-primary);
+  border-color: var(--primary-color);
 }
 
 .quick-action-btn:active:not(:disabled) {

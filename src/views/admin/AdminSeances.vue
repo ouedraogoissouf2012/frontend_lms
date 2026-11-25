@@ -110,7 +110,7 @@ const {
 .page-icon {
   width: 2.5rem;
   height: 2.5rem;
-  color: var(--color-primary);
+  color: var(--primary-color);
 }
 
 .page-title {
@@ -138,7 +138,7 @@ const {
 
 .refresh-btn:hover {
   background: var(--bg-hover);
-  border-color: var(--color-primary);
+  border-color: var(--primary-color);
 }
 
 .animate-spin {
@@ -184,7 +184,7 @@ const {
 .retry-btn {
   margin-top: var(--spacing-md);
   padding: var(--spacing-sm) var(--spacing-lg);
-  background: var(--color-primary);
+  background: var(--primary-color);
   color: white;
   border: none;
   border-radius: var(--radius-md);

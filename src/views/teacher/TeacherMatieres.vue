@@ -113,7 +113,7 @@ const { loading, error, canRetry, matieres, loadMatieres, navigateToMatiere } = 
 
 .error-retry-btn {
   padding: 0.75rem 2rem;
-  background: var(--color-primary);
+  background: var(--primary-color);
   color: white;
   border: none;
   border-radius: 0.5rem;

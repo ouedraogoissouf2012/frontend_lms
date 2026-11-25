@@ -80,7 +80,7 @@ const { user, dashboardData, loading, error, formatDate, navigateToMatiere } = u
 .welcome-icon {
   width: 2.5rem;
   height: 2.5rem;
-  color: var(--color-primary);
+  color: var(--primary-color);
 }
 
 .page-title {
@@ -128,7 +128,7 @@ const { user, dashboardData, loading, error, formatDate, navigateToMatiere } = u
 
 .error-retry-btn {
   padding: 0.75rem 2rem;
-  background: var(--color-primary);
+  background: var(--primary-color);
   color: white;
   border: none;
   border-radius: 0.5rem;

@@ -87,7 +87,7 @@ defineEmits(['navigate'])
 }
 
 .course-card:focus {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--primary-color);
   outline-offset: 2px;
 }
 
@@ -125,7 +125,7 @@ defineEmits(['navigate'])
 
 .stat-icon {
   font-size: 1rem;
-  color: var(--color-primary);
+  color: var(--primary-color);
 }
 
 .stat-text {
@@ -155,7 +155,7 @@ defineEmits(['navigate'])
   width: 100%;
   margin-top: 0;
   padding: 0.75rem 1rem;
-  background: var(--color-primary);
+  background: var(--primary-color);
   color: white;
   border: none;
   border-radius: 0.5rem;
