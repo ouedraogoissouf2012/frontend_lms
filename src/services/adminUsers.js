@@ -62,7 +62,7 @@ export async function listAdministrationUsers() {
  */
 export async function creerCompte({ nom, courriel, role, motDePasse, confirmation }) {
   return api.post(endpoints.admin.creerCompte, {
-    name: nom, email: courriel, password: motDePasse, password_confirmation: confirmation, role,
+    name: nom, email: courriel, password: motDePasse, role,
   })
 }
 
