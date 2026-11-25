@@ -5,13 +5,15 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { DONNEES_COMPTE, ETIQUETTES, ETAPES_COMPTE, jugerCreation, jugerConnexion } from '../../e2e/parcours-creation-compte.mjs'
+import { DONNEES_COMPTE, ETIQUETTES, ETAPES_COMPTE, cheminRelecture, jugerCreation, jugerConnexion } from '../../e2e/parcours-creation-compte.mjs'
 
 const vue = readFileSync(resolve(process.cwd(), 'src/components/admin/CompteCreation.vue'), 'utf8')
 const registre = readFileSync(resolve(process.cwd(), 'e2e/parcours-fonctionnels.mjs'), 'utf8')
 const ens = DONNEES_COMPTE.enseignant
 const eleve = DONNEES_COMPTE.etudiant
-const ligneApi = (d, extra = {}) => ({ statut: 200, corps: { data: [{ id: 40, name: d.nom, email: d.courriel, role: d.role, ...extra }] } })
+// La forme MESURÉE de GET /admin/users (UserListPresenter::paginated, lms) : les lignes sont dans `data.data`.
+const page = (lignes) => ({ statut: 200, corps: { success: true, data: { data: lignes, current_page: 1, per_page: 100, total: lignes.length, last_page: 1 } } })
+const ligneApi = (d, extra = {}) => page([{ id: 40, name: d.nom, email: d.courriel, role: d.role, klassci_id: null, created_at: null, ...extra }])
 
 describe('#648 — l’outil parle la langue de l’écran', () => {
   it('chaque libellé recopié par l’outil est celui du composant', () => {
@@ -32,6 +34,10 @@ describe('#648 — l’outil parle la langue de l’écran', () => {
 })
 
 describe('#648 — juger la création', () => {
+  it('la recherche relue vise le courriel (`q`), sans dépendre de la pagination', () => {
+    expect(cheminRelecture(ens)).toBe(`/admin/users?q=${encodeURIComponent(ens.courriel)}&per_page=100`)
+  })
+
   it('enseignant : 201, sa ligne à l’écran (liste des enseignants de l’école), et GET /admin/users au bon rôle', () => {
     expect(jugerCreation({ statut: 201, annonce: `Compte « ${ens.nom} » créé`, ligneEcran: `${ens.nom} ${ens.courriel}`, api: ligneApi(ens) }, ens))
       .toMatchObject({ confirme: true })
@@ -47,7 +53,7 @@ describe('#648 — juger la création', () => {
     ['annonce absente', { annonce: '' }, /annonce/],
     ['enseignant absent de la liste', { ligneEcran: null }, /liste/],
     ['GET /admin/users en panne', { api: { statut: 500, corps: null } }, /HTTP 500/],
-    ['compte absent de GET /admin/users', { api: { statut: 200, corps: { data: [] } } }, /ne porte pas/],
+    ['compte absent de GET /admin/users', { api: page([]) }, /ne porte pas/],
     ['mauvais rôle', { api: ligneApi(ens, { role: 'etudiant' }) }, /rôle/],
   ])('enseignant, %s : écart', (_, surcharge, motif) => {
     const base = { statut: 201, annonce: `Compte « ${ens.nom} » créé`, ligneEcran: `${ens.nom} ${ens.courriel}`, api: ligneApi(ens) }
