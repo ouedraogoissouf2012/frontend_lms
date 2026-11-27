@@ -26,7 +26,7 @@ export const localCatalogueService = {
   },
 
   async rattacherMatiere(classeId, { matiereId, enseignantId }) {
-    const response = await api.post(endpoints.catalogue.programme(classeId), { matiere_id: matiereId, enseignant_id: enseignantId ?? null })
+    const response = await api.post(endpoints.catalogue.programme(classeId), { matiere_id: matiereId, ...(enseignantId ? { enseignant_id: enseignantId } : {}) })
     if (response?.success !== true) throw invalidResponseError('POST programme sans succes', response)
     return response
   },
