@@ -71,6 +71,11 @@ export function useEnrolmentCodes() {
     classes.value = classes.value.map((c) => (c.id === id ? { ...c, effectif } : c))
   }
 
+  /** #657 : garde la période RELUE du serveur après un rattachement réussi. */
+  function majPeriode(id, trainingSessionId) {
+    classes.value = classes.value.map((c) => (c.id === id ? { ...c, training_session_id: trainingSessionId } : c))
+  }
+
   /**
    * Après un échec, trois cas :
    * - SANS RÉPONSE (délai, réseau) : le POST a pu être reçu et tenir un verrou au-delà du
@@ -155,5 +160,5 @@ export function useEnrolmentCodes() {
     }
   }
 
-  return { classes, loading, error, notice, page, lastPage, estOccupee, load, emettre, retirer, majCapacite }
+  return { classes, loading, error, notice, page, lastPage, estOccupee, load, emettre, retirer, majCapacite, majPeriode }
 }
