@@ -113,6 +113,8 @@ export const endpoints = {
     // Comptes LMS du tenant : seule source des coordinateurs et admins,
     // que le proxy KLASSCI ne renvoie pas.
     users: '/admin/users',
+    // #648 : créer un compte dans l'établissement de l'acteur (AdminController::createUser). Hors du préfixe /admin.
+    creerCompte: '/users',
     statistics: '/admin/statistics',
     institutions: {
       list: '/admin/institutions',
