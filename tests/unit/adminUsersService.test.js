@@ -18,7 +18,7 @@ vi.mock('@/services/api', () => ({
   default: { get: (...a) => get(...a) },
 }))
 
-import { listAdministrationUsers } from '@/services/adminUsers'
+import { listAdministrationUsers, listComptesLocaux } from '@/services/adminUsers'
 import endpoints from '@/services/endpoints'
 
 describe('adminUsers service', () => {
@@ -93,5 +93,44 @@ describe('adminUsers service', () => {
     const { counts } = await listAdministrationUsers()
 
     expect(counts).toBeNull()
+  })
+})
+
+/**
+ * #656 : dans une école autonome, l'écran doit voir TOUS les comptes élèves, même ceux qu'aucune classe n'inscrit
+ * (un compte créé à l'écran, #648). Une école dépasse vite 100 élèves, le plafond d'une page : on lit toutes les pages.
+ */
+describe('listComptesLocaux (#656)', () => {
+  const page = (ids, courante, derniere) => ({
+    success: true,
+    data: { data: ids.map((id) => ({ id, name: `E${id}`, email: `e${id}@e.com`, role: 'etudiant' })), current_page: courante, last_page: derniere },
+  })
+
+  beforeEach(() => { vi.clearAllMocks() })
+
+  it('lit TOUTES les pages du rôle demandé, sur le chemin du registre', async () => {
+    get.mockImplementation((_url, { params }) => Promise.resolve(page(params.page === 1 ? [1, 2] : [3], params.page, 2)))
+
+    const comptes = await listComptesLocaux({ role: 'etudiant' })
+
+    expect(comptes.map((c) => c.id)).toEqual([1, 2, 3])
+    expect(get).toHaveBeenCalledTimes(2)
+    expect(get).toHaveBeenNthCalledWith(1, endpoints.admin.users, { params: expect.objectContaining({ role: 'etudiant', page: 1, per_page: 100 }) })
+    expect(get).toHaveBeenNthCalledWith(2, endpoints.admin.users, { params: expect.objectContaining({ role: 'etudiant', page: 2, per_page: 100 }) })
+  })
+
+  it('échoue si UNE page échoue : une liste à moitié lue ne passe jamais pour complète', async () => {
+    get.mockImplementation((_url, { params }) => (params.page === 1 ? Promise.resolve(page([1], 1, 2)) : Promise.reject(new Error('500'))))
+
+    await expect(listComptesLocaux({ role: 'etudiant' })).rejects.toThrow('500')
+  })
+
+  it('s’arrête à une page quand la réponse ne dit pas qu’il en existe d’autres', async () => {
+    get.mockResolvedValue({ success: true, data: { data: [{ id: 9, role: 'etudiant' }] } })
+
+    const comptes = await listComptesLocaux({ role: 'etudiant' })
+
+    expect(comptes.map((c) => c.id)).toEqual([9])
+    expect(get).toHaveBeenCalledTimes(1)
   })
 })

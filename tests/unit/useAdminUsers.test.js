@@ -22,6 +22,9 @@ const impl = {
 }
 
 let cacheStore = null
+// #656 : l'espace d'id des lignes suit la capacité de l'école (store d'auth). Ce fichier décrit une école KLASSCI ;
+// l'école autonome a le sien (adminUsersEcoleAutonome656.test.js).
+vi.mock('@/stores/auth', () => ({ useAuthStore: () => ({ peutInscrireLocalement: false }) }))
 vi.mock('@/services/cache', () => ({
   readCache: () => cacheStore,
   writeCache: (_k, v) => { cacheStore = v },
