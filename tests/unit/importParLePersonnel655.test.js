@@ -20,6 +20,8 @@ import { teacherRoutes } from '@/router/routes/teacher.routes'
 import { filterSectionsByRole } from '@/composables/useNavigation'
 import { NAV_SECTIONS } from '@/constants/navigation'
 import ImportDeposit from '@/components/import/ImportDeposit.vue'
+import { IMPORT_FIELDS } from '@/constants/importFields'
+import { BRUT } from '../../e2e/ecran.mjs'
 
 const routeAdmin = () => adminRoutes.find((r) => r.path === '/admin/import')
 const routeEnseignant = () => teacherRoutes.find((r) => r.path === '/teacher/import')
@@ -98,6 +100,17 @@ describe('#655 — l étape de dépôt explique code_classe', () => {
     expect(texte).toContain('pas le code d’inscription')
     expect(texte).toContain('sans classe')
     expect(texte).toContain('refuser la ligne')
+  })
+
+  // front#717 : l'aide affichait la clé `code_classe` en texte, et la garde d'écran de l'E2E
+  // (e2e/ecran.mjs, BRUT) rougissait /admin/import et /teacher/import. La colonne est nommée par
+  // le libellé que l'étape de cartographie lui donne (IMPORT_FIELDS, une seule source).
+  it('front#717 : aucun texte brut pour la garde d écran ; la colonne a son libellé de cartographie', () => {
+    const texte = mount(ImportDeposit, { props: { fileName: '' } }).text()
+    const libelle = IMPORT_FIELDS.find((champ) => champ.key === 'code_classe').label
+
+    expect(BRUT.map((motif) => texte.match(motif)?.[0]).filter(Boolean)).toEqual([])
+    expect(texte).toContain(`La colonne « ${libelle} » attend le code de la classe`)
   })
 
   it('le modèle CSV se télécharge toujours', () => {
