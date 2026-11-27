@@ -124,11 +124,29 @@ describe('garde : aucun appelant ne fabrique une erreur avec le texte du serveur
     }).join('\n')
   }
 
+  // #1739 (déclaré) : UNE exception NOMMÉE et COMPTÉE. Le refus de compte de l'école
+  // (`klassci_account_refused`) dit le message de KLASSCI, que le serveur a nettoyé (texte seul,
+  // 300 caractères au plus) ; l'écran le rend en texte. Un site de plus dans ce fichier rougit.
+  const EXCEPTIONS = Object.freeze({ 'utils/messageConnexion.js': 1 })
+  const sites = (texte) => texte.split('\n').filter((ligne) => MOTIFS.some((re) => re.test(ligne))).length
+  const relatif = (f) => relative(racine, f).split(sep).join('/')
+
   it('aucun site ne porte le texte du serveur à l’écran dans src/ (garde stricte)', () => {
     const fautifs = fichiers(racine)
-      .filter((f) => { const t = sansCommentaires(readFileSync(f, 'utf8')); return MOTIFS.some((re) => re.test(t)) })
-      .map((f) => relative(racine, f).split(sep).join('/'))
+      .filter((f) => {
+        const t = sansCommentaires(readFileSync(f, 'utf8'))
+        const permis = EXCEPTIONS[relatif(f)] ?? 0
+        // Hors exception, la garde reste celle du texte ENTIER (un site peut tenir sur deux lignes).
+        return permis === 0 ? MOTIFS.some((re) => re.test(t)) : sites(t) > permis
+      })
+      .map(relatif)
       .sort()
     expect(fautifs).toEqual([])
+  })
+
+  it('chaque exception nommée sert exactement (#1739) : ni morte, ni élargie', () => {
+    for (const [fichier, permis] of Object.entries(EXCEPTIONS)) {
+      expect(sites(sansCommentaires(readFileSync(join(racine, fichier), 'utf8'))), fichier).toBe(permis)
+    }
   })
 })

@@ -136,9 +136,56 @@ describe('Login.vue — le message d’un échec de connexion (D477)', () => {
   })
 
   it('jamais le texte du serveur', async () => {
-    for (const status of [401, 409, 422, 500, 503]) {
+    for (const status of [401, 403, 409, 422, 500, 503]) {
       expect(await echouer(erreur(status))).not.toContain('Texte serveur, jamais affiché')
     }
+  })
+})
+
+// #1739 : l'école KLASSCI refuse CE compte (ex. pas encore réinscrit). Le serveur rend 403
+// `klassci_account_refused` avec le message de KLASSCI, nettoyé (texte seul, 300 caractères au plus) :
+// c'est la SEULE réponse de connexion dont l'écran dit le texte, car lui seul dit quoi faire.
+describe('Login.vue — le refus de compte de l’école est dit (#1739)', () => {
+  const REINSCRIPTION = "Vous n'êtes pas encore réinscrit pour l'année universitaire en cours. Veuillez contacter le secrétariat pour procéder à votre réinscription."
+  const refus = (message) => {
+    const err = Object.assign(new Error('HTTP 403'), { response: { status: 403, data: { success: false, message, reason: 'klassci_account_refused' } } })
+    err.userMessage = normalizeError(err).userMessage
+    return err
+  }
+  const echouer = async (err) => {
+    authMock.login.mockRejectedValue(err)
+    const { w } = mountLogin()
+    await submit(w)
+    return w
+  }
+
+  it('le message de l’école, tel quel, dans la région alert', async () => {
+    const w = await echouer(refus(REINSCRIPTION))
+    expect(w.find('[role="alert"]').text()).toBe(REINSCRIPTION)
+  })
+
+  it('rendu en TEXTE : une balise reste du texte', async () => {
+    const w = await echouer(refus('<b>Compte suspendu</b>'))
+    expect(w.find('[role="alert"] b').exists()).toBe(false)
+    expect(w.find('[role="alert"]').text()).toBe('<b>Compte suspendu</b>')
+  })
+
+  it('sans message lisible, ou démesuré : le texte du front', async () => {
+    for (const message of [undefined, '', '   ', 42, 'a'.repeat(301)]) {
+      const w = await echouer(refus(message))
+      expect(w.find('[role="alert"]').text()).toBe(ERROR_MESSAGES.compteRefuseParEcole)
+    }
+  })
+
+  it('un autre 403 (sans ce motif) ne dit jamais le texte du serveur', async () => {
+    const err = Object.assign(new Error('HTTP 403'), { response: { status: 403, data: { success: false, message: 'Texte serveur', reason: 'autre_motif' } } })
+    err.userMessage = normalizeError(err).userMessage
+    const w = await echouer(err)
+    expect(w.find('[role="alert"]').text()).not.toContain('Texte serveur')
+  })
+
+  it('le texte de repli du front', () => {
+    expect(ERROR_MESSAGES.compteRefuseParEcole).toBe('Votre école refuse la connexion de ce compte. Contactez son secrétariat.')
   })
 })
 
