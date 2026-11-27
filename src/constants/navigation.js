@@ -87,6 +87,8 @@ export const NAV_SECTIONS = Object.freeze([
   { icon: 'fa-flag', label: 'Sessions', to: '/admin/training-sessions', roles: [ADMIN, COORDINATEUR], capacite: 'peutGererCatalogueLocal' },
   // #391 : seulement si l'établissement tient sa propre liste (capacité serveur).
   { icon: 'fa-key', label: "Classes et codes d'inscription", to: '/admin/enrolment-codes', roles: [ADMIN, COORDINATEUR], capacite: 'peutInscrireLocalement' },
+  // #655 : le même écran d'import que l'enseignant, sous la même capacité.
+  { icon: 'fa-upload', label: 'Import apprenants', to: '/admin/import', roles: [ADMIN, COORDINATEUR], capacite: 'peutInscrireLocalement' },
 
   // --- Queue partagée enseignant/admin ---
   { icon: 'fa-comments', label: 'Forum', to: '/forum', roles: [ENSEIGNANT, COORDINATEUR, ADMIN] },
