@@ -148,7 +148,7 @@ async function rattacher(w, { matiere, enseignant }) {
 describe('#654 — « Rattacher une matière » (POST /classes/{classe}/matieres)', () => {
   it('les choix : les matières de l’école, et « Sans enseignant » puis les enseignants (ids locaux)', async () => {
     const w = await monterProgramme({})
-    const options = (nom) => champ(w, nom).findAll('option').filter((o) => o.attributes('value') !== undefined && !o.attributes('disabled')).map((o) => [o.attributes('value'), o.text()])
+    const options = (nom) => champ(w, nom).findAll('option').filter((o) => o.attributes('value') !== undefined && o.attributes('disabled') === undefined).map((o) => [o.attributes('value'), o.text()])
     expect(options('matiere')).toEqual([['5', 'Maths fictive'], ['6', 'SVT fictive']])
     expect(options('enseignant')).toEqual([['', 'Sans enseignant'], ['31', 'Awa Fictive']])
   })
