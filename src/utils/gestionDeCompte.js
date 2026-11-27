@@ -21,7 +21,7 @@ const RANGS = Object.freeze({
   enseignant: 2, teacher: 2,
   coordinateur: 3, coordinator: 3,
   admin: 4, administrateur: 4,
-  superAdmin: 5,
+  superAdmin: 4, // SONDE #656 (b) : le rang du rôle normalisé
   supradmin: 6,
 })
 
