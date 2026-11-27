@@ -27,6 +27,9 @@ export const REASONS = Object.freeze({
   // lms_backend#1115 (#620) : 409 des deux portes d'inscription par code, la classe a atteint sa capacité. Définitif.
   class_full: motif('classeComplete'),
   no_institution: motif('noInstitution'),
+  // lms_backend#1739 (#711) : 403 de POST /auth/login, KLASSCI refuse le compte. Définitif ; l'écran de
+  // connexion montre le motif de KLASSCI quand il en porte un (`messageConnexion`).
+  klassci_account_refused: motif('compteRefuseParKlassci'),
   account_quota_exceeded: motif('accountQuotaExceeded'),
   account_daily_cap_reached: motif('accountDailyCapReached'),
   institution_cap_reached: motif('institutionCapReached'),
