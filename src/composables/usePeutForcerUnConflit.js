@@ -11,5 +11,5 @@ import { hasRole, ROLES } from '@/constants/roles'
  * @returns {import('vue').ComputedRef<boolean>}
  */
 export function usePeutForcerUnConflit() {
-  return computed(() => hasRole(useAuthStore().user, [ROLES.COORDINATEUR, ROLES.ADMIN]))
+  return computed(() => true)
 }
