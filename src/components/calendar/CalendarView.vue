@@ -5,6 +5,7 @@
     <div v-else class="calendar-wrapper">
       <FullCalendar
         ref="calendarRef"
+        class="calendrier-lms"
         :options="options"
       />
     </div>
@@ -17,8 +18,8 @@
  * Encapsule l'instance FullCalendar et son loader. Reçoit la configuration via la
  * prop `options` et l'état `loading` ; expose `getApi()` pour que l'orchestrateur
  * (via useCalendarView) pilote la navigation impérative — parité exacte avec
- * l'ancien `calendarRef.getApi()`. CSS `.fc` clair déplacé verbatim (`:deep`),
- * le bloc `.fc` sombre vit dans le partial `_calendar-fc-dark.scss`.
+ * l'ancien `calendarRef.getApi()`. Le rendu se règle par nos classes d'événement (`:deep`) ;
+ * ses couleurs (clair et sombre) viennent de nos jetons, `_calendar-fc-tokens.scss` (#628).
  */
 import { ref } from 'vue'
 import FullCalendar from '@fullcalendar/vue3'
@@ -92,112 +93,64 @@ $border-radius-lg: 8px;
   to { transform: rotate(360deg); }
 }
 
-// ========== FULLCALENDAR CUSTOM STYLES ==========
-:deep(.fc) {
-  font-family: inherit;
+// ========== FULLCALENDAR 7 (#628) ==========
+// Les classes de FullCalendar 7 sont hachées : le rendu se règle par NOS jetons (_calendar-fc-tokens.scss) et par nos
+// propres classes d'événement (option `eventClass`). Chaque événement prend sa couleur par la variable de v7.
+:deep(.event-item) {
+  transition: $transition-fast;
 
-  .fc-toolbar-title {
-    display: none;
+  &:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: $shadow-hover;
   }
+}
 
-  .fc-header-toolbar {
-    margin-bottom: 1rem;
-  }
+// Couleur d'un événement : celle de SES DONNÉES (clé `color`, useCalendarEvents), que v7 écrit en ligne ; le texte
+// reste blanc (--fc-classic-event-contrast). Seule l'urgence l'emporte, comme en v6 : `!important` recouvre l'en-ligne.
+:deep(.event-urgent) {
+  --fc-event-color: var(--red-500) !important;
+  animation: pulse 2s infinite;
+}
 
-  .fc-button-primary {
-    background: var(--color-info-strong);
-    border-color: var(--color-info-strong);
-    transition: $transition-fast;
+// En-tête des jours, cellule du jour, trait « maintenant » : NOS classes, posées par les options `…Class` de v7
+// (fullcalendarClasses.js), aux couleurs de v6. Le sombre est dans _calendar-dark.scss.
+:deep(.lms-entete-agenda) {
+  background: linear-gradient(180deg, var(--blue-600) 0%, var(--blue-700) 100%);
+}
 
-    &:hover:not(:disabled) {
-      background: var(--blue-500);
-      border-color: var(--blue-500);
-    }
+// Le texte d'en-tête et le numéro du jour : le thème les fixe à 14 px sans marge ; on reprend les valeurs de v6.
+:deep(.lms-entete-agenda-texte) {
+  color: var(--white);
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.75rem 0.5rem;
+}
 
-    &:focus {
-      box-shadow: 0 0 0 3px rgba(var(--color-info-strong-rgb), 0.2);
-    }
-  }
+:deep(.lms-numero) {
+  color: var(--text-primary);
+  font-size: 1rem;
+  padding: 0.25rem;
+}
 
-  // En-tête des jours (lun, mar, mer, etc.) - Couleur sidebar
-  .fc-col-header-cell {
-    background: linear-gradient(180deg, var(--blue-600) 0%, var(--blue-700) 100%);
-    border-color: var(--blue-700);
+:deep(.lms-numero-aujourdhui) {
+  color: var(--color-info-strong);
+  font-weight: 700;
+}
 
-    .fc-col-header-cell-cushion {
-      color: var(--white);
-      font-weight: 600;
-      padding: 0.75rem 0.5rem;
-    }
-  }
+// Jour hors du mois : l'opacité par défaut de v6 (le thème v7 ne fait que griser légèrement le texte).
+:deep(.lms-numero-hors-mois) {
+  opacity: 0.3;
+}
 
-  // Cases des jours
-  .fc-daygrid-day,
-  .fc-timegrid-slot {
-    background: var(--bg-secondary);
-    border-color: var(--border-primary);
-  }
+:deep(.lms-jour-aujourdhui) {
+  background: linear-gradient(135deg, rgba(var(--color-info-strong-rgb), 0.15) 0%, rgba(var(--color-info-strong-rgb), 0.08) 100%);
+  box-shadow: inset 0 0 0 2px var(--color-info-strong);
+}
 
-  // Numéros des jours
-  .fc-daygrid-day-number,
-  .fc-timegrid-slot-label {
-    color: var(--text-primary);
-    padding: 0.5rem;
-  }
-
-  // Jour actuel (aujourd'hui)
-  .fc-daygrid-day.fc-day-today {
-    background: linear-gradient(135deg, rgba(var(--color-info-strong-rgb), 0.15) 0%, rgba(var(--color-info-strong-rgb), 0.08) 100%);
-    border: 2px solid var(--color-info-strong);
-
-    .fc-daygrid-day-number {
-      color: var(--color-info-strong);
-      font-weight: 700;
-    }
-  }
-
-  // Ligne de l'heure actuelle (time grid)
-  .fc-timegrid-now-indicator-line {
-    border-color: var(--color-info-strong);
-    border-width: 2px;
-  }
-
-  .fc-timegrid-now-indicator-arrow {
-    border-color: var(--color-info-strong);
-  }
-
-  .fc-timegrid-slot {
-    height: 3rem;
-  }
-
-  // Couleurs des événements
-  .event-seance {
-    background: var(--color-info-strong); /* LMS blue (séances) */;
-    border-color: var(--color-info-strong); /* LMS blue */
-  }
-
-  .event-evaluation {
-    background: var(--sky-500); /* Cyan (évaluations) */;
-    border-color: var(--sky-500); /* Cyan */
-  }
-
-  .event-urgent {
-    background: var(--red-500) !important;
-    border-color: var(--red-500) !important;
-    animation: pulse 2s infinite;
-  }
-
-  // Événements en mode clair
-  .fc-event {
-    cursor: pointer;
-    transition: $transition-fast;
-
-    &:hover {
-      opacity: 0.9;
-      transform: translateY(-1px);
-      box-shadow: $shadow-hover;
-    }
-  }
+:deep(.lms-ligne-maintenant) {
+  border-color: var(--color-info-strong);
+  border-width: 2px;
 }
 
 @keyframes pulse {
@@ -214,29 +167,20 @@ $border-radius-lg: 8px;
     padding: 0.75rem;
   }
 
-  :deep(.fc) {
+  // Défilement horizontal du calendrier sur petit écran (crochet : notre classe sur le composant).
+  :deep(.calendrier-lms) {
     min-width: 640px;
+  }
 
-    .fc-col-header-cell-cushion {
-      padding: 0.5rem 0.25rem;
-      font-size: 0.75rem;
-    }
-
-    .fc-daygrid-day-number,
-    .fc-timegrid-slot-label {
-      padding: 0.35rem;
-      font-size: 0.75rem;
-    }
-
-    .fc-event {
-      font-size: 0.75rem;
-      white-space: normal;
-    }
+  :deep(.event-item) {
+    font-size: 0.75rem;
+    white-space: normal;
   }
 }
 </style>
 
-<!-- Styles mode sombre non-scoped (FullCalendar) — relocalisés dans un partial -->
+<!-- Styles globaux (non-scoped) : les couleurs de FullCalendar 7 par nos jetons (#628), et la carte en sombre. -->
 <style lang="scss">
-@use '../../assets/styles/calendar-fc-dark';
+@use '../../assets/styles/calendar-fc-tokens';
+@use '../../assets/styles/calendar-dark';
 </style>

@@ -1,0 +1,55 @@
+// =============================================================================
+// #628 — FullCalendar 7 (thème « classic ») peint par NOS jetons de thème.
+//
+// En v7, les classes du DOM du calendrier sont HACHÉES (`.fc-0U`…) : aucun sélecteur `.fc-*` n'est plus stable. Le
+// thème se règle par ses variables `--fc-classic-*`, que nous posons ici à partir de nos jetons. La palette du thème
+// (`themes/classic/palette.css`, couleurs en dur) n'est PAS importée : ces variables la remplacent toutes (27).
+//
+// Posées sur `:root`, elles suivent le thème de l'application : nos jetons basculent sur `<html data-theme>`, et ces
+// variables, calculées sur ce même élément, basculent avec eux. Aucun `[data-color-scheme]` à poser.
+// =============================================================================
+
+:root {
+  // Boutons de la barre (« Aujourd'hui », précédent, suivant).
+  --fc-classic-button: var(--color-info-strong);
+  --fc-classic-button-border: var(--color-info-strong);
+  --fc-classic-button-strong: var(--blue-500);
+  --fc-classic-button-strong-border: var(--blue-500);
+  --fc-classic-button-outline: rgba(var(--color-info-strong-rgb), 0.2);
+  --fc-classic-button-foreground: var(--white);
+
+  // Primaire et contenu du calendrier.
+  --fc-classic-primary: var(--color-info-strong);
+  --fc-classic-primary-foreground: var(--white);
+  --fc-classic-event: var(--color-info-strong);
+  --fc-classic-event-contrast: var(--white);
+  --fc-classic-background-event: var(--color-success);
+  --fc-classic-background-event-opacity: 15%;
+  --fc-classic-background-event-foreground-opacity: 50%;
+  --fc-classic-highlight: rgba(var(--color-info-strong-rgb), 0.12);
+  --fc-classic-today: rgba(var(--color-info-strong-rgb), 0.15);
+  --fc-classic-now: var(--color-info-strong);
+  --fc-classic-small-dot-width: 8px;
+  --fc-classic-large-dot-width: 10px;
+
+  // Fonds neutres.
+  --fc-classic-background: var(--bg-secondary);
+  --fc-classic-faint: var(--bg-tertiary);
+  --fc-classic-muted: var(--bg-tertiary);
+  --fc-classic-strong: var(--border-primary);
+
+  // Textes neutres.
+  --fc-classic-foreground: var(--text-primary);
+  --fc-classic-faint-foreground: var(--text-tertiary);
+  --fc-classic-muted-foreground: var(--text-secondary);
+
+  // Bordures neutres.
+  --fc-classic-border: var(--border-primary);
+  --fc-classic-strong-border: var(--border-secondary);
+}
+
+// Nos classes d'événement, posées par l'option `eventClass` : un crochet STABLE (le nôtre), qui colore l'événement par
+// la variable documentée de v7 (`--fc-event-color`), et non par le DOM interne.
+.event-item {
+  cursor: pointer;
+}

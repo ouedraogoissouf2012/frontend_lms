@@ -15,6 +15,7 @@ import { verifsEcoleLms } from './verifs-ecole-lms.mjs'
 import { verifsEcoleKlassci } from './verifs-ecole-klassci.mjs'
 import { synchroniserLesNotes } from './actions.mjs'
 import { connecter } from './connexion.mjs'
+import { CALENDRIERS, capturesCalendrier, nomsPleinePage } from './captures.mjs'
 
 const [fichierRoutes, fichierJeu, sortie, racineFront] = process.argv.slice(2)
 // D616 : les textes d'erreur viennent du catalogue du front MESURÉ. Sans lui, le parcours ne prétend rien juger.
@@ -147,6 +148,11 @@ for (const { compte, email, role } of COMPTES) {
     const api5xx = evenements.api.filter((a) => a.statut >= 500)
     const capture = `captures/${compte}${route.chemin.replace(/[^a-z0-9]+/gi, '_')}.png`
     await page.screenshot({ path: join(sortie, capture) }).catch(() => {})
+    // #628 : un écran de calendrier est aussi capturé en PLEINE PAGE, en clair et en sombre (paires avant/après FullCalendar 7).
+    if (CALENDRIERS.includes(route.chemin)) {
+      const noms = nomsPleinePage(capture)
+      await capturesCalendrier(page, { clair: join(sortie, noms.clair), sombre: join(sortie, noms.sombre) })
+    }
 
     const metier = attendu && refusServeur(route, role)
     if (metier) { const vu = evenements.api.some((a) => a.statut === metier.statut); resultats.push({ ...cas, attendu: 'refusé', verdict: vu ? 'VERT' : 'ROUGE', defaut: vu ? `refus métier du serveur : ${metier.regle}` : `refus ${metier.statut} attendu, non vu : ${metier.regle}`, api: evenements.api, capture }); continue }

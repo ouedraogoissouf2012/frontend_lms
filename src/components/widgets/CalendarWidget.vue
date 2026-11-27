@@ -156,83 +156,81 @@ const {
   padding: 1rem;
 }
 
-/* Override FullCalendar styles */
-:deep(.fc) {
-  font-family: inherit;
-}
-
-:deep(.fc-toolbar-title) {
-  font-size: 1.25rem !important;
-  font-weight: 700 !important;
-  color: var(--text-primary) !important;
-}
-
-:deep(.fc-button) {
-  background: var(--bg-secondary) !important;
-  border: 1px solid var(--border-primary) !important;
-  color: var(--text-primary) !important;
-  padding: 0.5rem 1rem !important;
-  font-weight: 600 !important;
-  text-transform: capitalize !important;
-}
-
-:deep(.fc-button:hover) {
-  background: var(--bg-tertiary) !important;
-}
-
-:deep(.fc-button-primary:not(:disabled).fc-button-active) {
-  background: var(--color-primary) !important;
-  border-color: var(--color-primary) !important;
-  color: white !important;
-}
-
-:deep(.fc-col-header-cell) {
-  background: var(--bg-secondary) !important;
-  color: var(--text-secondary) !important;
-  font-weight: 600 !important;
-  text-transform: uppercase !important;
-  font-size: 0.75rem !important;
-  padding: 0.75rem 0.5rem !important;
-}
-
-:deep(.fc-daygrid-day-number) {
-  color: var(--text-primary) !important;
-  font-weight: 600 !important;
-  padding: 0.5rem !important;
-}
-
-:deep(.fc-day-today) {
-  background: rgba(59, 130, 246, 0.1) !important;
-}
-
-:deep(.fc-daygrid-day-top) {
-  justify-content: center !important;
-}
-
-/* Event Styles */
+/* #628 — FullCalendar 7 : ses classes sont hachées. Ses couleurs viennent de nos jetons (_calendar-fc-tokens.scss).
+   Le thème classic écrit la couleur d'événement EN LIGNE : nos classes d'événement (option `eventClass`) la
+   recouvrent par `!important`, comme en v6 où la classe du widget l'emportait sur la couleur des données. */
 :deep(.event-seance) {
-  background: var(--blue-500) !important;
-  border-color: var(--color-info-strong) !important;
+  --fc-event-color: var(--blue-500) !important;
 }
 
 :deep(.event-evaluation) {
-  background: var(--amber-500) !important;
-  border-color: var(--amber-600) !important;
+  --fc-event-color: var(--amber-500) !important;
 }
 
 :deep(.event-visio) {
-  background: var(--emerald-500) !important;
-  border-color: var(--emerald-600) !important;
+  --fc-event-color: var(--emerald-500) !important;
 }
 
-:deep(.fc-event) {
-  cursor: pointer !important;
-  transition: transform 0.2s, box-shadow 0.2s !important;
+/* En-tête des jours, titre de la barre, cellule du jour : NOS classes, posées par les options `…Class` de v7. */
+:deep(.lms-entete-widget) {
+  background: var(--bg-secondary);
 }
 
-:deep(.fc-event:hover) {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+/* Texte d'en-tête, numéro du jour CENTRÉ, boutons neutres : les valeurs de v6 (le thème met 14 px, cale le numéro
+   à droite et peint les boutons en bleu). */
+:deep(.lms-entete-widget-texte) {
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  padding: 0.75rem 0.5rem;
+}
+
+:deep(.lms-haut-centre) {
+  justify-content: center;
+}
+
+:deep(.lms-numero) {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.25rem;
+}
+
+:deep(.lms-numero-hors-mois) {
+  opacity: 0.3;
+}
+
+:deep(.lms-bouton-widget) {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+}
+
+:deep(.lms-bouton-widget:hover) {
+  background: var(--bg-tertiary);
+}
+
+:deep(.lms-titre-widget) {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+:deep(.lms-jour-aujourdhui) {
+  background: rgba(var(--blue-500-rgb), 0.1);
+}
+
+:deep(.event-item) {
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+:deep(.event-item:hover) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* Responsive */
@@ -244,15 +242,10 @@ const {
   .header-actions {
     display: none;
   }
-
-  :deep(.fc-toolbar) {
-    flex-direction: column !important;
-    gap: 0.5rem !important;
-  }
-
-  :deep(.fc-toolbar-chunk) {
-    display: flex !important;
-    justify-content: center !important;
-  }
 }
+</style>
+
+<!-- #628 : les couleurs de FullCalendar 7 par nos jetons (global, non-scoped). -->
+<style lang="scss">
+@use '../../assets/styles/calendar-fc-tokens';
 </style>
