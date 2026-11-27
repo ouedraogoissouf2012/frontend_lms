@@ -35,9 +35,9 @@
         <div class="p-6">
           <!-- Onglet Matières -->
           <div v-if="activeTab === 'matieres'">
-            <!-- #654 : composer le programme, seulement dans une école qui tient son catalogue (peutGererCatalogueLocal). -->
+            <!-- #654 : composer le programme : école qui tient son catalogue ET personnel de gestion (admin, coordinateur). -->
             <ProgrammeRattachement
-              v-if="auth.peutGererCatalogueLocal"
+              v-if="peutComposerProgramme"
               :classe-id="Number(classeId)"
               :programme="matieres"
               @rattachee="loadClasseDetails"
@@ -93,6 +93,8 @@ import ClasseUpcomingSeances from '@/components/classes/ClasseUpcomingSeances.vu
 import { useClasseDetails } from '@/composables/useClasseDetails'
 import ProgrammeRattachement from '@/components/classes/ProgrammeRattachement.vue'
 import { useAuthStore } from '@/stores/auth'
+import { computed } from 'vue'
+import { hasRole, ROLES } from '@/constants/roles'
 
 const {
   loading, error, canRetry, activeTab, classe, matieres, etudiants, evaluations, rosterVisible,
@@ -101,6 +103,8 @@ const {
 } = useClasseDetails()
 
 const auth = useAuthStore()
+// La capacité est celle de l'ÉCOLE (vraie pour tous ses comptes) : le rôle reprend la garde serveur `gestion`.
+const peutComposerProgramme = computed(() => auth.peutGererCatalogueLocal && hasRole(auth.user, [ROLES.ADMIN, ROLES.COORDINATEUR]))
 </script>
 
 <style scoped>
