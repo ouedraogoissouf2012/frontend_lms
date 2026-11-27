@@ -24,13 +24,14 @@
       </span>
     </div>
 
-    <!-- #658 : modifier (brouillon ou publiée), supprimer un brouillon, désigner la période en cours. -->
+    <!-- #658 : modifier (brouillon ou publiée), supprimer un brouillon, désigner la période en cours.
+         Des GESTES, pas des transitions : `.transition-btn` reste réservé au graphe des transitions. -->
     <PeriodeModification v-if="MODIFIABLES.includes(periode.status)" :periode="periode" @modifiee="$emit('modifiee', $event)" />
     <div v-if="periode.status === 'brouillon' || peutDevenirEnCours" class="period-actions">
-      <button v-if="peutDevenirEnCours" type="button" class="transition-btn" :disabled="busy" @click="$emit('en-cours')">
+      <button v-if="peutDevenirEnCours" type="button" class="geste-btn" :disabled="busy" @click="$emit('en-cours')">
         Définir comme période en cours
       </button>
-      <button v-if="periode.status === 'brouillon'" type="button" class="transition-btn is-irreversible" :disabled="busy" @click="$emit('supprimer')">
+      <button v-if="periode.status === 'brouillon'" type="button" class="geste-btn is-irreversible" :disabled="busy" @click="$emit('supprimer')">
         Supprimer le brouillon
       </button>
     </div>
@@ -94,7 +95,8 @@ const peutDevenirEnCours = computed(() => props.periode.status === 'publiee' && 
   gap: var(--spacing-xs, 0.25rem);
 }
 
-.transition-btn {
+.transition-btn,
+.geste-btn {
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-primary);
@@ -104,11 +106,13 @@ const peutDevenirEnCours = computed(() => props.periode.status === 'publiee' && 
   cursor: pointer;
 }
 
-.transition-btn.is-irreversible {
+.transition-btn.is-irreversible,
+.geste-btn.is-irreversible {
   border-color: var(--color-danger, var(--border-primary));
 }
 
-.transition-btn:disabled {
+.transition-btn:disabled,
+.geste-btn:disabled {
   cursor: not-allowed;
   opacity: 0.6;
 }

@@ -141,6 +141,9 @@ describe('#658 — la carte', () => {
     expect(brouillon.text()).toContain('Supprimer le brouillon')
     expect(brouillon.text()).not.toContain('Définir comme période en cours')
 
+    // Les gestes ne sont pas des transitions : la table de #391 reste seule sous `.transition-btn`.
+    expect(publiee.findAll('button.transition-btn').map((b) => b.text())).toEqual(['Annuler', 'Clôturer'])
+
     const close = mount(TrainingPeriodCard, { props: { periode: periode({ status: 'cloturee' }) } })
     expect(close.find('button.modif-ouvrir').exists()).toBe(false)
     expect(close.text()).not.toContain('Supprimer le brouillon')
