@@ -152,6 +152,16 @@ export const useAuthStore = defineStore('auth', () => {
     return await api.get(endpoints.auth.me)
   }
 
+  /**
+   * #674 : le compte connecté vient de modifier SON profil (PATCH /auth/me, relu du serveur). Seuls le nom et le
+   * téléphone changent ; la session (jeton, méta) reste la même, persistée comme à la connexion.
+   */
+  function mettreAJourProfil({ name, phone }) {
+    if (!user.value) return
+    user.value = { ...user.value, name, phone }
+    sessionStorage.setItem(KEYS.user, JSON.stringify(user.value))
+  }
+
   /** Liste des institutions actives (route publique) — ne mute pas l'état. */
   async function fetchActiveInstitutions() {
     return await api.get(endpoints.auth.institutionsActive)
@@ -165,6 +175,6 @@ export const useAuthStore = defineStore('auth', () => {
     isAdmin, isSupradmin, isTeacher, isStudent,
     institutionSlug, institutionDisplayName, peutInscrireLocalement, peutGererCatalogueLocal,
     // actions
-    login, setSession, setInstitution, logout, me, fetchActiveInstitutions,
+    login, setSession, setInstitution, logout, me, fetchActiveInstitutions, mettreAJourProfil,
   }
 })

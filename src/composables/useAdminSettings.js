@@ -1,22 +1,18 @@
-import { ref, reactive, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { auth } from '@/services/api'
 import { toast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
 import { STORAGE_KEYS } from '@/constants/storageKeys'
-import { PASSWORD_CHANGE_UNAVAILABLE_MESSAGE } from '@/constants/passwordChange'
 import { getRoleDisplayName } from '@/constants/roles'
 
 /**
  * Couche données d'AdminSettings (#H3 ≤300) : utilisateur courant (auth.getUser),
- * préférences de notifications persistées en localStorage, modale + formulaire de
- * changement de mot de passe et déconnexion. La vue ne fait plus que câbler ces
- * éléments aux sous-composants présentationnels.
+ * préférences de notifications persistées en localStorage, ouverture de la modale
+ * de changement de mot de passe et déconnexion. Le changement lui-même vit dans
+ * MonMotDePasseModal / useMonMotDePasse (#674, PUT /auth/me/password).
  *
  * Dette pré-existante :
- *  - `submitPasswordChange` n'appelle aucune API et n'en promet plus aucune : il
- *    n'existe pas d'endpoint backend de changement de mot de passe
- *    (cf. `@/constants/passwordChange`). Le faux message de succès a été retiré.
  *  - `logout` utilise `confirm()` natif et `console.log` reste dans
  *    `savePreferences` — conservés tels quels.
  */
@@ -27,11 +23,6 @@ export function useAdminSettings() {
   const emailNotifications = ref(true)
   const systemAlerts = ref(true)
   const showPasswordModal = ref(false)
-  const passwordForm = reactive({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  })
 
   /**
    * Libellé du rôle NORMALISÉ (#18/#659). Une table locale intitulait
@@ -62,17 +53,6 @@ export function useAdminSettings() {
     }
   }
 
-  /**
-   * Changement de mot de passe INDISPONIBLE : aucun endpoint backend à ce jour
-   * (dette tracée, cf. `@/constants/passwordChange`). On n'appelle rien et on
-   * n'annonce surtout aucun succès. Les champs et le bouton de la modale sont
-   * désactivés ; cette fonction reste le garde-fou du chemin `@submit`.
-   * REMPLACER ICI par l'appel API réel quand il existera.
-   */
-  function submitPasswordChange() {
-    toast.info(PASSWORD_CHANGE_UNAVAILABLE_MESSAGE)
-  }
-
   async function logout() {
     const ok = await useConfirm().confirm('Êtes-vous sûr de vouloir vous déconnecter ?')
     if (!ok) return
@@ -91,11 +71,9 @@ export function useAdminSettings() {
     emailNotifications,
     systemAlerts,
     showPasswordModal,
-    passwordForm,
     getRoleLabel,
     savePreferences,
     loadPreferences,
-    submitPasswordChange,
     logout,
   }
 }

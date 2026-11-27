@@ -162,6 +162,8 @@ export const endpoints = {
     login: '/auth/login',
     logout: '/auth/logout',
     me: '/auth/me',
+    // #674 (lms_backend#1667) : le compte connecté change SON mot de passe. Son profil : PATCH sur `me`.
+    monMotDePasse: '/auth/me/password',
     institutionsActive: '/institutions/active',
     forgotPassword: '/auth/forgot-password',
   },

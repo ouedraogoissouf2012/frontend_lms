@@ -13,6 +13,9 @@
       <div class="settings-content">
         <SettingsPersonalInfo :user="user" :get-role-label="getRoleLabel" />
 
+        <!-- #674 : le nom affiché et le téléphone, modifiables (PATCH /auth/me). -->
+        <MonProfilForm />
+
         <SettingsDisplaySection />
 
         <SettingsNotifications
@@ -31,12 +34,8 @@
         <SettingsSession @logout="logout" />
       </div>
 
-      <!-- Modal Changement de mot de passe -->
-      <SettingsPasswordModal
-        v-model:show="showPasswordModal"
-        :form="passwordForm"
-        @submit="submitPasswordChange"
-      />
+      <!-- #674 : changer son mot de passe (PUT /auth/me/password), modale partagée par les trois espaces. -->
+      <MonMotDePasseModal v-model:show="showPasswordModal" />
     </div>
   </DashboardLayout>
 </template>
@@ -46,7 +45,7 @@
  * Paramètres (admin). Orchestrateur (#H3 ≤300) : la donnée et la logique vivent
  * dans useAdminSettings ; l'UI est composée de SettingsPersonalInfo,
  * SettingsDisplaySection, SettingsNotifications, SettingsSecurityCard,
- * SettingsPermissions, SettingsSession et SettingsPasswordModal. La vue ne fait
+ * SettingsPermissions, SettingsSession, MonProfilForm et MonMotDePasseModal (#674). La vue ne fait
  * que câbler ces éléments.
  */
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
@@ -56,7 +55,8 @@ import SettingsNotifications from '@/components/admin/SettingsNotifications.vue'
 import SettingsSecurityCard from '@/components/admin/SettingsSecurityCard.vue'
 import SettingsPermissions from '@/components/admin/SettingsPermissions.vue'
 import SettingsSession from '@/components/admin/SettingsSession.vue'
-import SettingsPasswordModal from '@/components/admin/SettingsPasswordModal.vue'
+import MonMotDePasseModal from '@/components/compte/MonMotDePasseModal.vue'
+import MonProfilForm from '@/components/compte/MonProfilForm.vue'
 import { useAdminSettings } from '@/composables/useAdminSettings'
 
 const {
@@ -64,10 +64,8 @@ const {
   emailNotifications,
   systemAlerts,
   showPasswordModal,
-  passwordForm,
   getRoleLabel,
   savePreferences,
-  submitPasswordChange,
   logout,
 } = useAdminSettings()
 </script>

@@ -55,7 +55,9 @@ export function ecartsDeValeur(VERIFS, cle, texte) {
 // Ne sont pas des erreurs : les états vides légitimes (REASONS `etatVide`), les motifs qui accompagnent une réponse
 // réussie (REASONS `information`, #613) et les informations ci-dessous.
 // #611 : la case « Voir les périodes archivées » informe (archivée masquée, liste vide car les archivées sont masquées).
-export const INFORMATIONS = Object.freeze(['listeActualisee', 'demandeDeReinitialisationRecue', 'periodeArchiveeMasquee', 'periodesArchiveesMasquees'])
+export const INFORMATIONS = Object.freeze(['listeActualisee', 'demandeDeReinitialisationRecue', 'periodeArchiveeMasquee', 'periodesArchiveesMasquees',
+  // #674 : les annonces d'un changement réussi (mot de passe, profil) ne sont pas des erreurs.
+  'monMotDePasseChange', 'monProfilModifie'])
 
 /** Les textes d'erreur du catalogue (ERROR_MESSAGES), sans les états vides légitimes ni les informations. */
 export function textesDErreur(messages, raisons) {

@@ -179,5 +179,17 @@ export const ERROR_MESSAGES = Object.freeze({
   compteMotDePasseCourt: 'Le mot de passe initial doit compter au moins 8 caractères.',
   compteConfirmationDifferente: 'La confirmation ne reprend pas le mot de passe initial.',
   compteCreationIncertaine: 'La création n’a pas pu être confirmée. Le compte existe peut-être déjà : vérifiez la liste avant de recommencer.',
+  // #674 : changer son mot de passe et son profil (lms_backend#1667).
+  motDePasseGereParKlassci: 'Votre mot de passe est celui de KLASSCI, le système de gestion de votre école : changez-le dans KLASSCI.',
+  profilGereParKlassci: 'Votre profil vient de KLASSCI, le système de gestion de votre école : modifiez-le dans KLASSCI.',
+  monMotDePasseActuelRequis: 'Indiquez votre mot de passe actuel.',
+  monMotDePasseCourt: 'Le nouveau mot de passe doit compter au moins 8 caractères.',
+  monMotDePasseConfirmation: 'La confirmation ne reprend pas le nouveau mot de passe.',
+  monMotDePasseIdentique: 'Le nouveau mot de passe doit différer de l’actuel.',
+  monMotDePasseIncertain: 'Le changement n’a pas pu être confirmé : votre mot de passe est peut-être déjà changé. À la prochaine connexion, essayez le nouveau.',
+  monMotDePasseChange: 'Mot de passe changé. Vos autres sessions ont été fermées ; celle-ci reste ouverte.',
+  monProfilNomRequis: 'Indiquez votre nom.',
+  monProfilIncertain: 'La modification n’a pas pu être confirmée : actualisez la page pour voir votre profil.',
+  monProfilModifie: 'Profil mis à jour.',
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })
