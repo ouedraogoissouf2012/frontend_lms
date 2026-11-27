@@ -31,6 +31,12 @@ export const REASONS = Object.freeze({
   seance_not_started: motif('seanceAppelNonOuvert'),
   attendance_managed_by_klassci: motif('appelGereParKlassci'),
   student_not_in_seance: motif('eleveHorsDeLaSeance'),
+  // lms_backend#1680 (#335) : refus de POST /lms/emargement. Le plafond d'essais est TRANSITOIRE : il prend le délai
+  // de Retry-After ; les autres sont définitifs.
+  attendance_code_unknown: motif('codeEmargementInconnu'),
+  attendance_code_expired: motif('codeEmargementPerime'),
+  already_marked_by_teacher: motif('presenceDejaMarquee'),
+  attendance_code_attempts_exceeded: motif('emargementEssaisEpuises', { transitoire: true }),
   // lms_backend#1739 (#711) : 403 de POST /auth/login, KLASSCI refuse le compte. Définitif ; l'écran de
   // connexion montre le motif de KLASSCI quand il en porte un (`messageConnexion`).
   klassci_account_refused: motif('compteRefuseParKlassci'),

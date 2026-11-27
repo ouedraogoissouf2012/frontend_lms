@@ -109,5 +109,18 @@ export const studentRoutes = [
       capacite: 'peutInscrireLocalement',
       title: 'Rejoindre une classe'
     }
+  },
+  // #335 : signer sa présence par le code d'émargement de la séance (lms_backend#1680). Le QR du code y mène, code
+  // pré-rempli (`?code=`). Même garde que « Rejoindre une classe » : sans liste locale, l'émargement se fait ailleurs.
+  {
+    path: '/student/emargement',
+    name: 'StudentEmargement',
+    component: () => import('@/views/student/StudentEmargement.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['etudiant'],
+      capacite: 'peutInscrireLocalement',
+      title: 'Signer ma présence'
+    }
   }
 ]

@@ -18,6 +18,8 @@
  * (?with_details, ?page…) restent à la charge des appelants (orthogonaux).
  */
 
+import { cheminsAssiduite } from './endpointsAssiduite.js'
+
 // Préfixes de frontière (#26) — source unique, évite la dérive proxy/lms.
 const KLASSCI = '/proxy'
 const LMS = '/lms'
@@ -106,10 +108,8 @@ export const endpoints = {
       recordingStop: (id) => `${LMS}/seances/${id}/recording/stop`,
     },
 
-    attendance: {
-      history: `${LMS}/attendance/history`,
-      fromVideoSession: `${LMS}/attendances/from-video-session`,
-    },
+    // L'assiduité (présences, codes d'émargement #335) : sortie dans son module, mêmes clés (endpointsAssiduite.js).
+    ...cheminsAssiduite(LMS),
   },
 
   // ── ADMIN (/admin/*) ────────────────────────────────────────────────────
