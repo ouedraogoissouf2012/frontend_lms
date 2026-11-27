@@ -12,7 +12,7 @@ import { invalidResponseError } from './errorHandler'
 export const monCompteService = {
   async changerMotDePasse({ actuel, nouveau, confirmation }) {
     const response = await api.put(endpoints.auth.monMotDePasse, {
-      current_password: actuel, password: nouveau, password_confirmation: confirmation,
+      current_password: actuel, password: nouveau,
     })
     if (response?.success !== true) throw invalidResponseError('PUT mot de passe sans succes', response)
     return response
