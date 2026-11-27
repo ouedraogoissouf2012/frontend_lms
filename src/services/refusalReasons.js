@@ -37,6 +37,10 @@ export const REASONS = Object.freeze({
   attendance_code_expired: motif('codeEmargementPerime'),
   already_marked_by_teacher: motif('presenceDejaMarquee'),
   attendance_code_attempts_exceeded: motif('emargementEssaisEpuises', { transitoire: true }),
+  // lms_backend#1681 (#687) : dépôt (422) et décision (409) d'un justificatif d'absence. Définitifs.
+  seance_not_justifiable: motif('seanceNonJustifiable'),
+  no_absence_in_range: motif('aucuneAbsenceSurLaPlage'),
+  justification_already_decided: motif('justificatifDejaTranche'),
   // lms_backend#1739 (#711) : 403 de POST /auth/login, KLASSCI refuse le compte. Définitif ; l'écran de
   // connexion montre le motif de KLASSCI quand il en porte un (`messageConnexion`).
   klassci_account_refused: motif('compteRefuseParKlassci'),
