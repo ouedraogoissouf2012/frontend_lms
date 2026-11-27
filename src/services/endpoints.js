@@ -192,6 +192,11 @@ export const endpoints = {
     cloturer: (id) => `/training-sessions/${id}/cloturer`,
     archiver: (id) => `/training-sessions/${id}/archiver`,
   },
+  // #658 (lms_backend#1651) : modifier ou supprimer une période, et la désigner EN COURS (geste nommé).
+  trainingSessionEdition: {
+    periode: (id) => `/training-sessions/${id}`,
+    enCours: (id) => `/training-sessions/${id}/en-cours`,
+  },
 
   lessons: {
     list: '/lessons',

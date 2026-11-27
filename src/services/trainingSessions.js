@@ -50,6 +50,26 @@ export const trainingSessionsService = {
    * corps : le serveur décide, et refuse hors graphe (409) ou sans date de début (422).
    * Une action inconnue est rejetée AVANT tout appel réseau.
    */
+  /** #658 : le libellé et les CINQ dates, d'un bloc (chaque date présente, nulle comprise). */
+  modifier(id, { libelle, enrollment_opens_at, enrollment_closes_at, starts_on, ends_on, certificate_available_at }) {
+    const date = (v) => (v === '' || v == null ? null : v)
+    return api.put(endpoints.trainingSessionEdition.periode(id), {
+      libelle,
+      enrollment_opens_at: date(enrollment_opens_at),
+      enrollment_closes_at: date(enrollment_closes_at),
+      starts_on: date(starts_on),
+      ends_on: date(ends_on),
+      certificate_available_at: date(certificate_available_at),
+    })
+  },
+  /** #658 : supprimer un BROUILLON sans classe rattachée (409 `training_session_not_deletable` sinon). */
+  supprimer(id) {
+    return api.delete(endpoints.trainingSessionEdition.periode(id))
+  },
+  /** #658 : désigner la période EN COURS de l'école (une seule, publiée). */
+  designerEnCours(id) {
+    return api.post(endpoints.trainingSessionEdition.enCours(id))
+  },
   async transition(id, action) {
     const appel = Object.hasOwn(TRANSITIONS, action) ? TRANSITIONS[action] : null
     if (!appel) throw new Error(`Transition inconnue : ${action}`)

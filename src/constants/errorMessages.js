@@ -134,6 +134,11 @@ export const ERROR_MESSAGES = Object.freeze({
   demandeEcoleQuotaAdresse: 'Trop de demandes envoyées depuis cette connexion. Réessayez dans un instant.',
   demandeEcolePlafondDuJour: "Le nombre maximal de demandes d'inscription d'école est atteint pour aujourd'hui. Réessayez demain.",
   periodeTransitionInterdite: "Cette action n'est pas possible dans l'état actuel de la période.",
+  // #658 (lms_backend#1651).
+  periodeNonModifiable: 'Une période close, annulée ou archivée ne se modifie plus.',
+  periodePublieeSansDebut: 'Une période publiée garde sa date de début.',
+  periodeNonSupprimable: 'Seul un brouillon sans classe rattachée se supprime ; une période publiée s’annule.',
+  periodeNonPubliee: 'Seule une période publiée peut devenir la période en cours.',
   evaluationTentativeNonDemarree: "Aucune tentative n'est en cours pour cette évaluation : démarrez-la avant de la rendre.",
   evaluationCopieNonNotable: "Cette copie ne peut pas encore être notée : elle n'a pas été rendue.",
   quizIndisponible: "Ce quiz n'est pas disponible actuellement.",
