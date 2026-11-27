@@ -90,6 +90,20 @@ describe('#654 — « Rattacher une matière » sur la fiche d’une classe', ()
     expect(monterClasse().findComponent({ name: 'ProgrammeRattachement' }).exists()).toBe(false)
   })
 
+  // E2E de 3508130d : la capacité est celle de l'ÉCOLE, vraie pour tous ses comptes. L'enseignant et l'élève recevaient
+  // le formulaire, et sa lecture `/admin/matieres` (garde `gestion`) rendait 403 sur leur fiche de classe.
+  it.each([['enseignant'], ['etudiant'], ['supradmin']])('%s, même avec la capacité : aucun formulaire (garde `gestion`)', (role) => {
+    capacite(true)
+    useAuthStore().user = { id: 2, name: 'Compte fictif', role }
+    expect(monterClasse().findComponent({ name: 'ProgrammeRattachement' }).exists()).toBe(false)
+  })
+
+  it('coordinateur, avec la capacité : offert', () => {
+    capacite(true)
+    useAuthStore().user = { id: 3, name: 'Coordinateur fictif', role: 'coordinateur' }
+    expect(monterClasse().findComponent({ name: 'ProgrammeRattachement' }).exists()).toBe(true)
+  })
+
   it.each([['rattachee'], ['incertaine']])('`%s` : la fiche est relue', async (evenement) => {
     capacite(true)
     await monterClasse().findComponent({ name: 'ProgrammeRattachement' }).vm.$emit(evenement)
