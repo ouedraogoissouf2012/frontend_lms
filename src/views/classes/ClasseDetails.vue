@@ -60,6 +60,8 @@
           <div v-if="activeTab === 'planning'">
             <ClassePlanningTab :emploi-temps="emploiTemps" />
           </div>
+          <!-- Onglet Résultats (#683) : chargé à sa première activation, puis gardé. -->
+          <ClasseResultatsTab v-show="activeTab === 'resultats'" :actif="activeTab === 'resultats'" :classe-id="idEspaceSource" />
         </div>
       </div>
 
@@ -81,6 +83,7 @@
  * (tables/badges/couleurs Tailwind) reste centralisé ici et atteint les enfants
  * via :deep() — source unique, parité exacte avec l’ancienne portée scoped.
  */
+import { computed } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import ClasseDetailsHeader from '@/components/classes/ClasseDetailsHeader.vue'
@@ -90,15 +93,15 @@ import ClasseEtudiantsTab from '@/components/classes/ClasseEtudiantsTab.vue'
 import ClasseEvaluationsTab from '@/components/classes/ClasseEvaluationsTab.vue'
 import ClassePlanningTab from '@/components/classes/ClassePlanningTab.vue'
 import ClasseUpcomingSeances from '@/components/classes/ClasseUpcomingSeances.vue'
+import ClasseResultatsTab from '@/components/classes/ClasseResultatsTab.vue'
 import { useClasseDetails } from '@/composables/useClasseDetails'
 import ProgrammeRattachement from '@/components/classes/ProgrammeRattachement.vue'
 import { useAuthStore } from '@/stores/auth'
-import { computed } from 'vue'
 import { hasRole, ROLES } from '@/constants/roles'
 
 const {
   loading, error, canRetry, activeTab, classe, matieres, etudiants, evaluations, rosterVisible,
-  emploiTemps, seances, tabs, compteurEvaluations, classeId,
+  emploiTemps, seances, tabs, compteurEvaluations, idEspaceSource, classeId,
   loadClasseDetails, loadSeances, viewMatiere, viewEvaluation, goBack,
 } = useClasseDetails()
 

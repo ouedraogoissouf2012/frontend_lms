@@ -183,6 +183,9 @@ export const ERROR_MESSAGES = Object.freeze({
   compteMotDePasseCourt: 'Le mot de passe initial doit compter au moins 8 caractères.',
   compteConfirmationDifferente: 'La confirmation ne reprend pas le mot de passe initial.',
   compteCreationIncertaine: 'La création n’a pas pu être confirmée. Le compte existe peut-être déjà : vérifiez la liste avant de recommencer.',
+  // #683 : le classement d'une classe (lms_backend#1676).
+  resultatsClasseNonEnseignee: 'Vous n’enseignez pas dans cette classe : son classement ne vous est pas ouvert.',
+  resultatsHorsDeLaClasse: 'Vous n’êtes pas inscrit dans cette classe : son classement ne vous est pas ouvert.',
   // #654 : le catalogue d'une école autonome (matière, programme d'une classe).
   matiereLibelleRequis: 'Indiquez le libellé de la matière.',
   matiereCoefficientIllisible: 'Indiquez un coefficient entier, de 1 à 20.',

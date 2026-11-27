@@ -48,6 +48,8 @@ export const endpoints = {
       // transmet son identifiant brut au systeme central.
       detailsLocal: (id) => `${LMS}/classes/local/${id}`,
       etudiants: (id) => `${LMS}/classes/${id}/etudiants`,
+      // lms_backend#1676 : moyennes, rangs et réussite, par l'id de l'ESPACE SOURCE (comme `etudiants`).
+      resultats: (id) => `${LMS}/classes/${id}/resultats`,
       mine: `${LMS}/teacher/classes`,
       // Les classes de l'établissement par leur id LOCAL, dans les deux volets
       // (lms_backend#1709) : le filtre de classe du rapport de présences.
