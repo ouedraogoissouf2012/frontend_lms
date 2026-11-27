@@ -42,6 +42,24 @@
         />
       </div>
 
+      <!-- Classe : le rapport de présences seulement, par l'id LOCAL (lms_backend#1709). -->
+      <div v-if="form.type === 'attendance'" class="form-group">
+        <label for="report-classe" class="form-label">Classe</label>
+        <select
+          id="report-classe"
+          v-model="form.classe_id"
+          name="classe_id"
+          class="form-select"
+          :disabled="enCours || etatClasses !== 'pret'"
+        >
+          <option value="">Toutes les classes</option>
+          <option v-for="classe in classes" :key="classe.id" :value="classe.id">
+            {{ classe.libelle }}
+          </option>
+        </select>
+        <p v-if="etatClasses === 'echec'" class="field-hint">{{ ERROR_MESSAGES.classesIndisponibles }}</p>
+      </div>
+
       <!-- Régions présentes dès l'ouverture : seul leur texte change. -->
       <div role="alert" :class="{ 'error-message': error }">{{ error ?? '' }}</div>
       <div role="status" :class="{ 'info-box': avancement }">{{ avancement }}</div>
@@ -64,19 +82,23 @@
  * ASYNCHRONE ; `useReportGeneration` la suit jusqu'au fichier. Cette fenêtre ne
  * garde que le formulaire et l'annonce de l'avancement.
  *
- * Filtres retirés : « Matière » (aucune route ne l'accepte), « Classe » (le
- * catalogue donnait l'id d'un autre espace que celui des classes locales attendu
- * par le serveur : le filtre visait une autre classe — D41) et « Type
- * d'activité » (accepté par le serveur mais sans effet sur le contenu, spec #991 :
- * le choix est retiré jusqu'à ce que le serveur l'applique). Le choix d'une
- * évaluation pour les notes est une suite.
+ * « Classe » (présences) : l'id LOCAL rendu par `useClassesDeLEtablissement`
+ * (lms_backend#1709 ; pourquoi cette source, dans son service — D41). Si les
+ * classes ne se chargent pas, le choix reste « Toutes les classes » et l'écran le dit.
+ *
+ * Filtres retirés : « Matière » (aucune route ne l'accepte) et « Type d'activité »
+ * (accepté par le serveur mais sans effet sur le contenu, spec #991 : le choix est
+ * retiré jusqu'à ce que le serveur l'applique). Le choix d'une évaluation pour les
+ * notes est une suite.
  */
 import { ref, watch, computed } from 'vue'
 import Modal from '@/components/ui/Modal.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import { toast } from '@/composables/useToast'
 import { useReportGeneration } from '@/composables/useReportGeneration'
+import { useClassesDeLEtablissement } from '@/composables/useClassesDeLEtablissement'
 import { filtresDuRapport } from '@/constants/reports'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 const props = defineProps({
   modelValue: {
@@ -89,6 +111,7 @@ const emit = defineEmits(['update:modelValue', 'generated'])
 
 const isOpen = ref(props.modelValue)
 const { etat, error, generer, annuler } = useReportGeneration()
+const { etat: etatClasses, classes, charger: chargerClasses } = useClassesDeLEtablissement()
 
 const today = computed(() => new Date().toISOString().split('T')[0])
 
@@ -109,9 +132,15 @@ function formulaireVide() {
   return {
     type: '',
     date_start: lastMonth.toISOString().split('T')[0],
-    date_end: today.value
+    date_end: today.value,
+    classe_id: ''
   }
 }
+
+// Les classes ne sont lues que pour le rapport qui les filtre.
+watch(() => form.value.type, (type) => {
+  if (type === 'attendance') chargerClasses()
+})
 
 watch(() => props.modelValue, (newVal) => {
   isOpen.value = newVal
@@ -186,6 +215,12 @@ function handleCancel() {
   outline: none;
   border-color: var(--blue-500);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.field-hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
 }
 
 .error-message {
