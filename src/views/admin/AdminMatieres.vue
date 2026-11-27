@@ -17,6 +17,10 @@
         </div>
       </div>
 
+      <!-- #654 : seulement dans une école qui tient son catalogue (capacité peutGererCatalogueLocal). Une création,
+           même incertaine, fait relire la liste sans cache. -->
+      <MatiereCreation v-if="auth.peutGererCatalogueLocal" @creee="loadMatieres(true)" @incertaine="loadMatieres(true)" />
+
       <!-- Filters -->
       <MatieresFilters
         v-if="!loading && !error"
@@ -78,6 +82,8 @@ import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import MatiereModals from '@/components/admin/MatiereModals.vue'
 import MatieresFilters from '@/components/admin/MatieresFilters.vue'
 import MatieresTable from '@/components/admin/MatieresTable.vue'
+import MatiereCreation from '@/components/admin/MatiereCreation.vue'
+import { useAuthStore } from '@/stores/auth'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import { useAdminMatieres } from '@/composables/useAdminMatieres'
 import { BookOpenIcon, ArrowPathIcon } from '@heroicons/vue/24/outline'
@@ -89,6 +95,8 @@ const {
   closeNiveauModal, viewMatiereDetails, closeMatiereModal,
   loadMatieres, refreshData, resetFilters,
 } = useAdminMatieres()
+
+const auth = useAuthStore()
 </script>
 
 <style scoped>

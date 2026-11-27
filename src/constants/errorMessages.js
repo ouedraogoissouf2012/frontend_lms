@@ -129,6 +129,8 @@ export const ERROR_MESSAGES = Object.freeze({
   // D477 : la connexion (Login.vue, utils/messageConnexion). Textes du front ; le back n'a pas de `reason`.
   identifiantsIncorrects: 'Identifiants incorrects.',
   connexionEchouee: 'Échec de la connexion.',
+  // lms_backend#1739 (#711) : KLASSCI refuse le COMPTE (non réinscrit, inactif) sans dire pourquoi.
+  compteRefuseParKlassci: 'Votre établissement refuse cette connexion. Contactez son secrétariat.',
   compteEnConflit: "Votre adresse e-mail est déjà utilisée par un autre compte de votre établissement. Contactez l'administrateur de votre école.",
   // lms_backend#922 (ADR-906-01) : les sens d'un même statut, chacun son motif (refusalReasons.js).
   demandeEcoleQuotaAdresse: 'Trop de demandes envoyées depuis cette connexion. Réessayez dans un instant.',
@@ -181,5 +183,13 @@ export const ERROR_MESSAGES = Object.freeze({
   compteMotDePasseCourt: 'Le mot de passe initial doit compter au moins 8 caractères.',
   compteConfirmationDifferente: 'La confirmation ne reprend pas le mot de passe initial.',
   compteCreationIncertaine: 'La création n’a pas pu être confirmée. Le compte existe peut-être déjà : vérifiez la liste avant de recommencer.',
+  // #654 : le catalogue d'une école autonome (matière, programme d'une classe).
+  matiereLibelleRequis: 'Indiquez le libellé de la matière.',
+  matiereCoefficientIllisible: 'Indiquez un coefficient entier, de 1 à 20.',
+  matiereCreditIllisible: 'Indiquez un crédit entier, de 1 à 60.',
+  matiereCreationIncertaine: 'La création n’a pas pu être confirmée. La matière existe peut-être déjà : vérifiez la liste avant de recommencer.',
+  programmeMatiereRequise: 'Choisissez la matière à rattacher.',
+  programmeIntrouvable: 'Classe, matière ou enseignant introuvable : actualisez la page avant de recommencer.',
+  programmeRattachementIncertain: 'Le rattachement n’a pas pu être confirmé : actualisez la fiche pour voir le programme.',
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })
