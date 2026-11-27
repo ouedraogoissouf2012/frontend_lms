@@ -85,6 +85,18 @@ function moyenneEn(eleve, matiereId) {
   background: var(--table-row-hover);
 }
 
+/* Le nom de l'élève est un en-tête de LIGNE (accessibilité) : il prend le style d'une CELLULE, pas
+   celui des en-têtes de colonne que la fiche de classe impose à tout `th` avec `!important`
+   (ClasseDetails.vue, « Tables ») ; d'où la même force ici, avec les mêmes tokens qu'un `td`. */
+.classement-cadre .classement tbody th {
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  font-size: inherit;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
 .classement-coef {
   color: var(--text-secondary);
   font-weight: 400;
