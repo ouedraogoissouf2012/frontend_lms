@@ -12,6 +12,9 @@ import { join } from 'node:path'
 import { ATTENTE } from './gestes.mjs'
 import { connecter } from './connexion.mjs'
 
+/** Le voile de chargement global (src/components/common/PageLoader.vue). */
+export const VOILE = '.page-loader-overlay'
+
 export const DONNEES_INSTITUTIONS = Object.freeze({ dossier: 'captures/institutions-652', largeurs: Object.freeze([1366, 1920]), hauteur: 900 })
 
 /**
@@ -71,6 +74,9 @@ function etape(largeur) {
         for (const [theme, sombre] of [['clair', false], ['sombre', true]]) {
           await basculer(page, sombre)
           await page.waitForTimeout(300)
+          // Le voile de chargement global (PageLoader) recouvre la page : mesurer dessous ferait croire le bouton
+          // masqué (E2E de 0e5c0d98 : « Modifier » ne recevait pas le clic, la capture montre « Chargement... »).
+          await page.locator(VOILE).waitFor({ state: 'hidden', timeout: ATTENTE }).catch(() => {})
           mesures[theme] = await mesurer(page)
           await page.screenshot({ path: join(dossier, `${largeur}_${theme}.png`) }).catch(() => {})
         }

@@ -3,7 +3,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { DONNEES_INSTITUTIONS, ETAPES_INSTITUTIONS, jugerActions } from '../../e2e/parcours-institutions.mjs'
+import { DONNEES_INSTITUTIONS, ETAPES_INSTITUTIONS, VOILE, jugerActions } from '../../e2e/parcours-institutions.mjs'
 
 const bouton = (titre, gauche, droite, recoitLeClic = true) => ({ titre, gauche, droite, recoitLeClic })
 const mesure = (boutons, fenetre = 1366, cadre = { gauche: 300, droite: 1330 }) => ({ fenetre, cadre, boutons })
@@ -23,6 +23,12 @@ describe('#652 — juger la colonne Actions', () => {
     const r = jugerActions({ clair: mesure(boutons), sombre: mesure(OK) })
     expect(r.confirme).toBe(false)
     expect(r.ecart).toMatch(motif)
+  })
+
+  it('l’outil attend la levée du voile de chargement global avant de mesurer (sinon le bouton paraît masqué)', () => {
+    expect(readFileSync(resolve(process.cwd(), 'src/components/common/PageLoader.vue'), 'utf8')).toContain('class="page-loader-overlay"')
+    expect(VOILE).toBe('.page-loader-overlay')
+    expect(readFileSync(resolve(process.cwd(), 'e2e/parcours-institutions.mjs'), 'utf8')).toContain("page.locator(VOILE).waitFor({ state: 'hidden'")
   })
 
   it('les deux largeurs de l’issue, 1366 et 1920 px, une étape chacune', () => {
