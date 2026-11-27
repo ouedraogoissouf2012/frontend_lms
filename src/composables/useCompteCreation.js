@@ -2,13 +2,14 @@ import { reactive, ref } from 'vue'
 import { creerCompte } from '@/services/adminUsers'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
 import { ROLES, getRoleDisplayName } from '@/constants/roles'
+import { rangerRefus } from '@/utils/refusDeCompte'
 
 /**
  * Créer un compte dans une école autonome (#648), `POST /users` (CreateUserRequest) : un MOT DE PASSE INITIAL choisi
  * par l'admin, aucun lien d'activation.
  *
  * Contrôle local d'abord, sans appel réseau (nom, courriel, rôle, 8 caractères au moins, confirmation identique). Puis
- * les refus du serveur, chacun à SA place :
+ * les refus du serveur, chacun à SA place (`rangerRefus`, partagé avec les actions sur un compte, #656 b) :
  *   - un 422 de validation : chaque erreur sous SON champ (`name`, `email`, `role`, `password`,
  *     `password_confirmation`) ; une erreur sur un champ absent de l'écran va au message général ;
  *   - sans réponse, en 5xx ou sur un succès illisible : le serveur a PEUT-ÊTRE créé le compte. La création est dite
@@ -51,36 +52,12 @@ export function useCompteCreation({ roles, onCree, onIncertain }) {
     return { nom, courriel, role: saisie.role, motDePasse: saisie.motDePasse, confirmation: saisie.confirmation }
   }
 
-  /** Range un refus du serveur à sa place ; rend true si la création est peut-être faite. */
-  function ranger(err) {
-    const parChamp = err?.fieldErrors
-    if (parChamp) {
-      const ailleurs = []
-      for (const [cle, textes] of Object.entries(parChamp)) {
-        const texte = [].concat(textes).filter((t) => typeof t === 'string').join(' ')
-        const champ = CHAMP_DU_SERVEUR[cle]
-        if (champ) erreurs[champ] = texte || ERROR_MESSAGES.validation
-        else ailleurs.push(texte)
-      }
-      if (ailleurs.length) erreur.value = ailleurs.join(' ') || ERROR_MESSAGES.validation
-      return false
-    }
-    const message = err?.userMessage || ERROR_MESSAGES.unknown
-    const status = err?.response?.status
-    if (status == null || status >= 500) {
-      erreur.value = `${message} ${ERROR_MESSAGES.compteCreationIncertaine}`
-      return true
-    }
-    erreur.value = message
-    return false
-  }
-
   /** L'annonce du succès : qui, avec quel rôle, et ce que l'admin doit transmettre. */
   function annoncer(valeurs) {
     const base = `Compte « ${valeurs.nom} » créé (${getRoleDisplayName(valeurs.role)}). Transmettez-lui son courriel et son mot de passe initial.`
-    // Les élèves de la liste sont lus dans les classes : un élève sans classe n'y figure pas encore (lms_backend#1619).
+    // #656 (a) : un élève qu'aucune classe n'inscrit figure dans la liste dès sa création, sans classe.
     return valeurs.role === ROLES.ETUDIANT
-      ? `${base} Il apparaîtra dans la liste une fois inscrit dans une classe (code d'inscription ou import).`
+      ? `${base} Il figure dès maintenant dans la liste, sans classe, jusqu'à son inscription (code d'inscription ou import).`
       : base
   }
 
@@ -101,7 +78,10 @@ export function useCompteCreation({ roles, onCree, onIncertain }) {
       onCree(compte)
       return true
     } catch (err) {
-      if (ranger(err)) onIncertain()
+      const incertain = rangerRefus(err, {
+        erreurs, erreur, champDuServeur: CHAMP_DU_SERVEUR, incertitude: ERROR_MESSAGES.compteCreationIncertaine,
+      })
+      if (incertain) onIncertain()
       return false
     } finally {
       occupe.value = false

@@ -41,6 +41,8 @@ export const REASONS = Object.freeze({
   seance_not_justifiable: motif('seanceNonJustifiable'),
   no_absence_in_range: motif('aucuneAbsenceSurLaPlage'),
   justification_already_decided: motif('justificatifDejaTranche'),
+  // lms_backend#1275 (#656 b) : 403 de PUT /users/{user}/password, l'école tient ses mots de passe chez KLASSCI.
+  password_managed_by_klassci: motif('motDePasseGereParKlassci'),
   // lms_backend#1739 (#711) : 403 de POST /auth/login, KLASSCI refuse le compte. Définitif ; l'écran de
   // connexion montre le motif de KLASSCI quand il en porte un (`messageConnexion`).
   klassci_account_refused: motif('compteRefuseParKlassci'),
