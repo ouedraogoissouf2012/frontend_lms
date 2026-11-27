@@ -4,11 +4,13 @@ import { readCache, writeCache, invalidateEntity } from '@/services/cache'
 import { logError } from '@/services/errorHandler'
 import { fetchClassRosters } from '@/services/klassciRoster'
 import { deriveInstitutionCounters } from '@/utils/classStats'
-import { buildUserRows } from '@/utils/adminUsersRows'
+import { buildUserRows, ESPACES } from '@/utils/adminUsersRows'
 import { buildUsersNotices, noticePeutReessayer } from '@/utils/usersNotices'
 import { lmsTeachersService } from '@/services/lmsTeachers'
-import { listAdministrationUsers } from '@/services/adminUsers'
+import { listAdministrationUsers, listComptesLocaux } from '@/services/adminUsers'
 import { toId } from '@/utils/toId'
+import { ROLES } from '@/constants/roles'
+import { useAuthStore } from '@/stores/auth'
 
 const PAGE_SIZE = 25
 
@@ -61,6 +63,12 @@ export function useAdminUsers() {
   const rosterForbidden = ref(false)
   // Dernière lecture des comptes d'administration en échec (signalée, jamais muette).
   const administrationEchec = ref(false)
+  // #656 : école autonome. Ses id d'élèves et d'enseignants sont LOCAUX, et les comptes élèves de l'école (toutes
+  // pages) apportent ceux qu'aucune classe n'inscrit. La capacité décide, en ce seul point, de l'espace d'id.
+  const auth = useAuthStore()
+  const espace = computed(() => (auth.peutInscrireLocalement === true ? ESPACES.LOCAL : ESPACES.KLASSCI))
+  const elevesLocaux = ref([])
+  const elevesLocauxEchec = ref(false)
   const selectedUser = ref(null)
 
   // Filtres / tri / pagination
@@ -80,6 +88,7 @@ export function useAdminUsers() {
     hasEnseignants: enseignants.value.length > 0,
     rosterForbidden: rosterForbidden.value,
     administrationEchec: administrationEchec.value,
+    elevesSansClasseEchec: elevesLocauxEchec.value,
   }))
 
   // Liste unifiée des TROIS populations. La forme des lignes vit dans
@@ -89,6 +98,8 @@ export function useAdminUsers() {
     etudiants: etudiants.value,
     enseignants: enseignants.value,
     administration: administration.value,
+    elevesLocaux: elevesLocaux.value,
+    espace: espace.value,
   }))
 
   const totalUsers = computed(() => allUsers.value.length)
@@ -161,18 +172,24 @@ export function useAdminUsers() {
   async function fetchAll(onProgress) {
     const generation = ++loadGeneration
 
-    const [classesOutcome, enseignantsOutcome, administrationOutcome] = await Promise.allSettled([
+    const local = espace.value === ESPACES.LOCAL
+    const [classesOutcome, enseignantsOutcome, administrationOutcome, elevesOutcome] = await Promise.allSettled([
       klassciService.getClasses(),
       // `with_details` : seule cette variante porte les matières, donc les classes.
       lmsTeachersService.getEnseignants(true),
       // Base LMS, pas KLASSCI : c'est la seule source des coordinateurs et admins.
       listAdministrationUsers(),
+      // École KLASSCI : ses élèves sont tous au roster, rien à lire ici.
+      local ? listComptesLocaux({ role: ROLES.ETUDIANT }) : Promise.resolve([]),
     ])
     const loadedClasses = resolveRoot(classesOutcome, 'classes')
     const loadedEnseignants = resolveRoot(enseignantsOutcome, 'enseignants')
     const loadedAdministration = administrationOutcome.status === 'fulfilled'
       ? (administrationOutcome.value?.items ?? [])
       : (logError(administrationOutcome.reason, '[useAdminUsers] administration'), null)
+    const loadedEleves = elevesOutcome.status === 'fulfilled'
+      ? elevesOutcome.value
+      : (logError(elevesOutcome.reason, '[useAdminUsers] élèves sans classe'), null)
 
     const classeList = loadedClasses ?? []
     const { collected, ok, forbidden } = await fetchClassRosters(classeList, onProgress)
@@ -187,6 +204,11 @@ export function useAdminUsers() {
     if (loadedEnseignants !== null) enseignants.value = loadedEnseignants
     if (loadedAdministration !== null) administration.value = loadedAdministration
     administrationEchec.value = loadedAdministration === null
+    // « Sans classe » ne se déduit que d'un roster COMPLET : sinon l'élève est peut-être inscrit dans une classe
+    // non lue, et le dire sans classe serait faux. L'avertissement « liste incomplète » couvre alors son absence.
+    const rosterComplet = loadedClasses !== null && ok === loadedClasses.length
+    if (loadedEleves !== null) elevesLocaux.value = rosterComplet ? loadedEleves : []
+    elevesLocauxEchec.value = loadedEleves === null
     rosterForbidden.value = forbidden
 
     // Roster nominatif : on n'applique le résultat frais que s'il fait AUTORITÉ —
