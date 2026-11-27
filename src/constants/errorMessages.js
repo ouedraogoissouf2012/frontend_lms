@@ -126,10 +126,12 @@ export const ERROR_MESSAGES = Object.freeze({
   optionsEnDouble: "Deux options de cette question ont le même texte. Modifiez-en une avant d'enregistrer.",
   // D528 : les bornes des réponses d'une réponse courte, celles des options (lms_backend #1071).
   reponsesCourtesHorsBornes: "Cette question accepte au plus 26 réponses, de 1 000 caractères chacune. Retirez ou raccourcissez des réponses avant d'enregistrer.",
-  // D477 : la connexion (Login.vue, utils/messageConnexion). Textes du front ; le back n'a pas de `reason`.
+  // D477 : la connexion (Login.vue, utils/messageConnexion). Textes du front ; seul le refus de l'école a un `reason` (#1739).
   identifiantsIncorrects: 'Identifiants incorrects.',
   connexionEchouee: 'Échec de la connexion.',
   compteEnConflit: "Votre adresse e-mail est déjà utilisée par un autre compte de votre établissement. Contactez l'administrateur de votre école.",
+  // #1739 : l'école refuse ce compte (403 klassci_account_refused) sans message lisible.
+  compteRefuseParEcole: 'Votre école refuse la connexion de ce compte. Contactez son secrétariat.',
   // lms_backend#922 (ADR-906-01) : les sens d'un même statut, chacun son motif (refusalReasons.js).
   demandeEcoleQuotaAdresse: 'Trop de demandes envoyées depuis cette connexion. Réessayez dans un instant.',
   demandeEcolePlafondDuJour: "Le nombre maximal de demandes d'inscription d'école est atteint pour aujourd'hui. Réessayez demain.",
