@@ -29,7 +29,7 @@ export function useMesAbsences() {
     erreur.value = ''
     try {
       const [lues, deposes] = await Promise.all([justificatifsService.mesAbsences(), justificatifsService.mesJustificatifs()])
-      absences.value = lues.map((a) => ({ ...a, justifiable: a.justificatif_etat !== 'en_attente' }))
+      absences.value = lues.map((a) => ({ ...a, justifiable: true }))
       justificatifs.value = deposes
     } catch (err) {
       erreur.value = messageDe(err)
