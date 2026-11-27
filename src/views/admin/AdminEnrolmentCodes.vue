@@ -17,6 +17,8 @@
       <!-- #632 : créer une classe ; la liste est relue après une création, ou une création incertaine. -->
       <ClasseCreation @creee="load()" @incertaine="load()" />
 
+      <!-- #657 : sans périodes lisibles, la classe garde sa période ; le choix attend une actualisation. -->
+      <p v-if="erreurPeriodes" class="annonce banner">{{ ERROR_MESSAGES.periodesIndisponibles }}</p>
       <ContentLoader v-if="loading" text="Chargement des classes..." />
       <p v-else-if="classes.length === 0 && !error">Aucune classe locale pour le moment.</p>
 
@@ -27,7 +29,9 @@
         :busy="estOccupee(c.id)"
         @emettre="emettre(c)"
         @retirer="retirer(c)"
+        :periodes="periodes"
         @capacite="majCapacite(c.id, $event)"
+        @periode="majPeriode(c.id, $event)"
       />
 
       <p v-if="lastPage > 1">
@@ -51,12 +55,18 @@ import ContentLoader from '@/components/common/ContentLoader.vue'
 import EnrolmentCodeCard from '@/components/admin/EnrolmentCodeCard.vue'
 import ClasseCreation from '@/components/admin/ClasseCreation.vue'
 import { useEnrolmentCodes } from '@/composables/useEnrolmentCodes'
+import { usePeriodesRecevables } from '@/composables/usePeriodesRecevables'
+import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 defineOptions({ name: 'AdminEnrolmentCodes' })
 
-const { classes, loading, error, notice, page, lastPage, estOccupee, load, emettre, retirer, majCapacite } = useEnrolmentCodes()
+const { classes, loading, error, notice, page, lastPage, estOccupee, load, emettre, retirer, majCapacite, majPeriode } = useEnrolmentCodes()
+const { periodes, erreur: erreurPeriodes, charger: chargerPeriodes } = usePeriodesRecevables()
 
-onMounted(() => load())
+onMounted(() => {
+  load()
+  chargerPeriodes()
+})
 </script>
 
 <style scoped lang="scss">

@@ -25,6 +25,9 @@
 
     <!-- #631 : après les gestes du code, qu'elle ne bloque pas (busy ne concerne que le code). -->
     <ClasseCapacite :classe="classe" @regle="$emit('capacite', $event)" />
+
+    <!-- #657 : la période de la classe ; les périodes recevables sont chargées une fois par l'écran. -->
+    <ClassePeriode :classe="classe" :periodes="periodes" @rattachee="$emit('periode', $event)" />
   </article>
 </template>
 
@@ -35,17 +38,19 @@
  * n'est proposé que pour un code actif : sans code émis, le serveur répondrait 409 ; un code
  * déjà retiré serait re-retiré sans erreur, ce qui n'aurait pas de sens pour le personnel.
  * La capacité (#631) se règle ici aussi : elle borne les adhésions par code. La carte relaie en
- * `capacite` la valeur relue du serveur.
+ * `capacite` la valeur relue du serveur. La période (#657) aussi, relayée en `periode`.
  */
 import { computed } from 'vue'
 import ClasseCapacite from '@/components/admin/ClasseCapacite.vue'
+import ClassePeriode from '@/components/admin/ClassePeriode.vue'
 
 const props = defineProps({
   classe: { type: Object, required: true },
   busy: { type: Boolean, default: false },
+  periodes: { type: Array, default: () => [] },
 })
 
-defineEmits(['emettre', 'retirer', 'capacite'])
+defineEmits(['emettre', 'retirer', 'capacite', 'periode'])
 
 const LIEN_FICHE = 'Ouvrir la classe'
 
