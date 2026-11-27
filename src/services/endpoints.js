@@ -18,6 +18,8 @@
  * (?with_details, ?page…) restent à la charge des appelants (orthogonaux).
  */
 
+import { endpointsEcoleLocale } from './endpointsEcoleLocale.js'
+
 // Préfixes de frontière (#26) — source unique, évite la dérive proxy/lms.
 const KLASSCI = '/proxy'
 const LMS = '/lms'
@@ -173,17 +175,8 @@ export const endpoints = {
   activation: '/activation',
   programs: '/programs',
   trainingSessions: '/training-sessions',
-  // Code d'inscription d'une classe LOCALE (#391, ADR-803-03). Chemins RÉELS de la
-  // spec : SANS préfixe /lms. `/classes` est la collection des classes locales (#905).
-  enrolment: {
-    classes: '/classes',
-    code: (classeId) => `/classes/${classeId}/code-inscription`,
-    // #631 (lms_backend#1358) : geste NOMMÉ, la capacité que l'inscription par code respecte.
-    capacite: (classeId) => `/classes/${classeId}/capacite`,
-    // #657 (lms_backend#1208) : rattacher une classe LOCALE à sa période, ou l'en détacher (null).
-    periode: (classeId) => `/classes/${classeId}/periode`,
-    rejoindre: '/me/inscriptions',
-  },
+  // L'école locale : catalogue et inscription (endpointsEcoleLocale.js, sortis pour la garde de taille).
+  ...endpointsEcoleLocale,
   // Quatre opérations NOMMÉES d'une période (#391, ADR-845-01), chemins fixes pour
   // que la garde de contrat vérifie chacun. Aucune route n'existe pour `purgee`.
   trainingSessionTransitions: {

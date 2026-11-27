@@ -4,6 +4,7 @@
  * Monte sans erreur et déclenche le chargement (getClasseDetails(id)) au montage.
  */
 import { mount, flushPromises } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const getClasseDetails = vi.fn()
@@ -27,6 +28,8 @@ vi.mock('@/services/api', () => ({
 import ClasseDetails from '@/views/classes/ClasseDetails.vue'
 
 function mountView() {
+  // #654 : la vue lit la capacité de l'école (« Rattacher une matière ») dans le store d'authentification.
+  setActivePinia(createPinia())
   return mount(ClasseDetails, {
     global: {
       stubs: {
