@@ -216,7 +216,10 @@ export function useAdminTrainingSessions() {
         return true
       }
       const index = periodes.value.findIndex((p) => p.id === periode.id)
-      if (index !== -1) periodes.value[index] = { ...periodes.value[index], ...response.data }
+      // #658 : la réponse d'une transition ne porte pas `en_cours`. Hors de l'état publiée, le serveur a
+      // libéré la marque (invariant en base) : l'écran ne garde pas un « en cours » périmé.
+      const enCours = response.data?.status === 'publiee' ? periodes.value[index]?.en_cours : false
+      if (index !== -1) periodes.value[index] = { ...periodes.value[index], ...response.data, en_cours: enCours }
       notice.value = 'Période mise à jour.'
       return true
     } catch (err) {
@@ -232,9 +235,56 @@ export function useAdminTrainingSessions() {
     }
   }
 
+  /** #658 : garde la période RELUE du serveur après une modification. */
+  function majPeriode(relue) {
+    periodes.value = periodes.value.map((p) => (p.id === relue.id ? { ...p, ...relue } : p))
+    notice.value = 'Période modifiée.'
+  }
+
+  /** #658 : supprimer un brouillon, après confirmation ; le refus nommé passe par le catalogue. */
+  async function supprimer(periode) {
+    const ok = await useConfirm().confirm({
+      message: `Supprimer le brouillon « ${periode.libelle} » ?`,
+      variant: 'danger',
+      confirmLabel: 'Supprimer le brouillon',
+      cancelLabel: 'Garder le brouillon',
+    })
+    if (!ok) return false
+    return geste(periode, async () => {
+      await trainingSessionsService.supprimer(periode.id)
+      periodes.value = periodes.value.filter((p) => p.id !== periode.id)
+      notice.value = 'Brouillon supprimé.'
+    })
+  }
+
+  /** #658 : désigner la période en cours ; la liste est RELUE (ordre et drapeaux changent ailleurs). */
+  async function designerEnCours(periode) {
+    return geste(periode, async () => {
+      await trainingSessionsService.designerEnCours(periode.id)
+      await load(page.value)
+      notice.value = `« ${periode.libelle} » est la période en cours.`
+    })
+  }
+
+  async function geste(periode, operation) {
+    occuper(periode.id)
+    error.value = ''
+    notice.value = ''
+    try {
+      await operation()
+      return true
+    } catch (err) {
+      error.value = err?.userMessage || ERROR_MESSAGES.unknown
+      return false
+    } finally {
+      liberer(periode.id)
+    }
+  }
+
   return {
     periodes, loading, error, notice, page, lastPage,
     dernierProgrammeId, saving, estOccupee, voirArchivees, programmes, programmesErreur, programmesTronques,
     load, creerProgramme, creerPeriode, transitionner, basculerArchivees, chargerProgrammes,
+    majPeriode, supprimer, designerEnCours,
   }
 }
