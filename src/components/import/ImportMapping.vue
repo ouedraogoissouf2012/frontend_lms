@@ -69,7 +69,7 @@ function onChange(key, value) {
 
 <style scoped>
 /* Seul ce qui n'appartient qu'à l'étape de cartographie. Le chrome partagé
-   (tableau, boutons, actions) vit dans TeacherImport.vue via `:deep()`. */
+   (tableau, boutons, actions) vit dans ImportApprenants.vue via `:deep()`. */
 
 .import-issues {
   align-self: stretch;
