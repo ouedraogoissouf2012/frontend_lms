@@ -47,6 +47,9 @@ export const endpoints = {
       detailsLocal: (id) => `${LMS}/classes/local/${id}`,
       etudiants: (id) => `${LMS}/classes/${id}/etudiants`,
       mine: `${LMS}/teacher/classes`,
+      // Les classes de l'établissement par leur id LOCAL, dans les deux volets
+      // (lms_backend#1709) : le filtre de classe du rapport de présences.
+      etablissement: `${LMS}/classes/etablissement`,
     },
     imports: {
       preview: `${LMS}/imports/preview`,

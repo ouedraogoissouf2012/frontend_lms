@@ -92,7 +92,7 @@ defineEmits(['navigate'])
 }
 
 .course-card:focus {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--primary-color);
   outline-offset: 2px;
 }
 
@@ -112,7 +112,7 @@ defineEmits(['navigate'])
   width: 100%;
   margin-top: 1rem;
   padding: 0.75rem 1rem;
-  background: var(--color-primary);
+  background: var(--color-info-strong);
   color: white;
   border: none;
   border-radius: 0.5rem;
