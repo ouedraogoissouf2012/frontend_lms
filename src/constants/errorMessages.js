@@ -171,5 +171,13 @@ export const ERROR_MESSAGES = Object.freeze({
   compteMotDePasseCourt: 'Le mot de passe initial doit compter au moins 8 caractères.',
   compteConfirmationDifferente: 'La confirmation ne reprend pas le mot de passe initial.',
   compteCreationIncertaine: 'La création n’a pas pu être confirmée. Le compte existe peut-être déjà : vérifiez la liste avant de recommencer.',
+  // #654 : le catalogue d'une école autonome (matière, programme d'une classe).
+  matiereLibelleRequis: 'Indiquez le libellé de la matière.',
+  matiereCoefficientIllisible: 'Indiquez un coefficient entier, de 1 à 20.',
+  matiereCreditIllisible: 'Indiquez un crédit entier, de 1 à 60.',
+  matiereCreationIncertaine: 'La création n’a pas pu être confirmée. La matière existe peut-être déjà : vérifiez la liste avant de recommencer.',
+  programmeMatiereRequise: 'Choisissez la matière à rattacher.',
+  programmeIntrouvable: 'Classe, matière ou enseignant introuvable : actualisez la page avant de recommencer.',
+  programmeRattachementIncertain: 'Le rattachement n’a pas pu être confirmé : actualisez la fiche pour voir le programme.',
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })

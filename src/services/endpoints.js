@@ -172,6 +172,12 @@ export const endpoints = {
   trainingSessions: '/training-sessions',
   // Code d'inscription d'une classe LOCALE (#391, ADR-803-03). Chemins RÉELS de la
   // spec : SANS préfixe /lms. `/classes` est la collection des classes locales (#905).
+  // #654 : le catalogue d'une école autonome (garde `gestion`, capacité serveur PorteDuCatalogueLocal).
+  catalogue: {
+    matieres: '/matieres',
+    programme: (classeId) => `/classes/${classeId}/matieres`,
+  },
+
   enrolment: {
     classes: '/classes',
     code: (classeId) => `/classes/${classeId}/code-inscription`,
