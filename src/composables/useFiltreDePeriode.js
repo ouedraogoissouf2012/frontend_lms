@@ -33,7 +33,7 @@ export function useFiltreDePeriode() {
       lues.length = 0
     }
     periodes.value = lues
-    choix.value = lues.find((p) => p.en_cours === true)?.id ?? TOUTES
+    choix.value = TOUTES
   }
 
   /** @param {{ periode?: ?{ id: number } }} classe */
