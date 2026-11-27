@@ -21,7 +21,7 @@ export function messageConnexion(err) {
   const corps = err?.response?.data
   if (status === 403 && corps?.reason === 'klassci_account_refused') {
     const motif = typeof corps.message === 'string' ? corps.message.trim() : ''
-    return motif !== '' ? motif : ERROR_MESSAGES.compteRefuseParKlassci
+    return ERROR_MESSAGES.compteRefuseParKlassci
   }
   return displayMessage(err, ERROR_MESSAGES.connexionEchouee)
 }
