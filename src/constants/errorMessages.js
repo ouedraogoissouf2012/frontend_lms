@@ -164,5 +164,12 @@ export const ERROR_MESSAGES = Object.freeze({
   classeLibelleRequis: 'Indiquez le libellé de la classe.',
   classeCodeDejaEmploye: 'Ce code est déjà employé par une autre classe de votre établissement : choisissez-en un autre, ou laissez-le vide.',
   classeCreationIncertaine: 'La création n’a pas pu être confirmée. La classe existe peut-être déjà : vérifiez la liste avant de recommencer.',
+  // #648 : la création d'un compte par l'admin d'une école autonome (contrôle local, avant POST /users).
+  compteNomRequis: 'Indiquez le nom complet de la personne.',
+  compteCourrielRequis: 'Indiquez une adresse de courriel valide.',
+  compteRoleRequis: 'Choisissez le rôle du compte.',
+  compteMotDePasseCourt: 'Le mot de passe initial doit compter au moins 8 caractères.',
+  compteConfirmationDifferente: 'La confirmation ne reprend pas le mot de passe initial.',
+  compteCreationIncertaine: 'La création n’a pas pu être confirmée. Le compte existe peut-être déjà : vérifiez la liste avant de recommencer.',
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })
