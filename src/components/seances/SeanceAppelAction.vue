@@ -1,5 +1,5 @@
 <template>
-  <div v-if="seance.can_take_attendance === true" class="seance-appel">
+  <div class="seance-appel">
     <button type="button" class="btn-appel" @click="ouvrirFenetre">
       <i class="fa fa-check-square-o" aria-hidden="true"></i> Faire l’appel
     </button>
