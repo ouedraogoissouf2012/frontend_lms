@@ -10,7 +10,9 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { AxiosError } from 'axios'
 import { flushPromises, mount } from '@vue/test-utils'
 import { defineComponent, h } from 'vue'
+import { createPinia, setActivePinia } from 'pinia'
 import api from '@/services/api'
+import { useAuthStore } from '@/stores/auth'
 import MesAnnonces from '@/views/annonces/MesAnnonces.vue'
 import { academicRoutes } from '@/router/routes/academic.routes'
 import { AUTHENTICATED_ROLES } from '@/router/routes/roleGroups'
@@ -45,6 +47,9 @@ const monter = async () => {
 }
 
 beforeEach(() => {
+  // Le client HTTP lit la session (store) à chaque requête, comme en production.
+  setActivePinia(createPinia())
+  useAuthStore().user = { id: 1, name: 'Compte fictif', role: 'enseignant' }
   adaptateurOrigine = api.defaults.adapter
   requetes = []
   reponses = () => [200, PAGE([annonce(1, 'Sortie au musée'), annonce(2, 'Réunion', true)])]

@@ -93,6 +93,13 @@ export function useClasseDetails() {
     hasRole(auth.getUser(), [ROLES.ENSEIGNANT, ROLES.COORDINATEUR, ROLES.ADMIN, ROLES.SUPRADMIN])
   )
 
+  /**
+   * #690 : annoncer à la classe est l'affaire du personnel de l'ÉCOLE, miroir de la garde de `POST /annonces`
+   * (`role:enseignant,coordinateur,admin,superAdmin`). Le supradmin de plateforme voit le roster mais n'annonce pas.
+   * Le serveur juge la classe elle-même (un enseignant, à ses seules classes).
+   */
+  const peutAnnoncer = computed(() => hasRole(auth.getUser(), [ROLES.ENSEIGNANT, ROLES.COORDINATEUR, ROLES.ADMIN]))
+
   const tabs = computed(() => [
     { id: 'matieres', label: 'Matières', count: matieres.value?.length || 0 },
     ...(rosterVisible.value
@@ -101,7 +108,8 @@ export function useClasseDetails() {
     { id: 'evaluations', label: 'Évaluations', count: evaluations.value?.length || 0 },
     { id: 'planning', label: 'Planning', count: emploiTemps.value?.length || 0 },
     // #683 : sans compteur, le bilan n'est chargé qu'à l'ouverture de l'onglet.
-    { id: 'resultats', label: 'Résultats' }
+    { id: 'resultats', label: 'Résultats' },
+    ...(peutAnnoncer.value ? [{ id: 'annonce', label: 'Annonce' }] : []),
   ])
 
   // Conservé à l'identique (référencé nulle part dans le template — dette pré-existante).

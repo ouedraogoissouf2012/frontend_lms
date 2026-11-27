@@ -11,7 +11,9 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { AxiosError } from 'axios'
 import { flushPromises, mount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
 import api from '@/services/api'
+import { useAuthStore } from '@/stores/auth'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
 import AnnonceAClasse from '@/components/classes/AnnonceAClasse.vue'
 
@@ -52,6 +54,9 @@ async function envoyer(titre = 'Sortie au musée', message = 'Rendez-vous vendre
 }
 
 beforeEach(() => {
+  // Le client HTTP lit la session (store) à chaque requête, comme en production.
+  setActivePinia(createPinia())
+  useAuthStore().user = { id: 1, name: 'Compte fictif', role: 'enseignant' }
   adaptateurOrigine = api.defaults.adapter
   requetes = []
 })

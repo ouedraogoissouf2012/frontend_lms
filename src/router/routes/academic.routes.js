@@ -98,5 +98,12 @@ export const academicRoutes = [
       requiresAuth: true,
       roles: ['coordinateur', 'superAdmin']
     }
+  },
+  // #690 : le fil « Mes annonces », pour tout compte d'école (lms#1650 : GET /notifications?type=annonce).
+  {
+    path: '/annonces',
+    name: 'mes-annonces',
+    component: () => import('@/views/annonces/MesAnnonces.vue'),
+    meta: { requiresAuth: true, roles: AUTHENTICATED_ROLES, title: 'Mes annonces' }
   }
 ]
