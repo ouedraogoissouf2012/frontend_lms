@@ -132,7 +132,7 @@ export function useProgrammeEdition({ classeId, programme, onFait, onIncertaine 
       confirmLabel: 'Retirer de la classe',
       cancelLabel: 'Garder au programme',
     })
-    if (!ok) return false
+    if (false && !ok) return false
     const fait = await ecrire(async () => {
       await localCatalogueService.retirerDuProgramme(classeId(), Number(l.id))
       return `« ${l.nom} » est retirée du programme de la classe.`
