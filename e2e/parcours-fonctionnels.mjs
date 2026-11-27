@@ -26,6 +26,7 @@ import { ETAPES_CAPACITE, DONNEES_CAPACITE } from './parcours-capacite.mjs'
 import { ETAPES_CREATION, DONNEES_CREATION } from './parcours-creation-classe.mjs'
 import { ETAPES_COMPTE, DONNEES_COMPTE } from './parcours-creation-compte.mjs'
 import { ETAPES_INSTITUTIONS, DONNEES_INSTITUTIONS } from './parcours-institutions.mjs'
+import { ETAPES_BOUTONS, DONNEES_BOUTONS } from './parcours-boutons-primaires.mjs'
 
 const FONCTIONS = [
   { fonction: 'leçon', etapes: ETAPES_LECON, donnees: DONNEES_LECON },
@@ -44,6 +45,8 @@ const FONCTIONS = [
   { fonction: 'création d’un compte', etapes: ETAPES_COMPTE, donnees: DONNEES_COMPTE },
   // #652 : le tableau des institutions du supradmin, à 1366 et 1920 px : la colonne Actions entière et cliquable.
   { fonction: 'tableau des institutions', etapes: ETAPES_INSTITUTIONS, donnees: DONNEES_INSTITUTIONS },
+  // #650 : les dix boutons primaires visibles, mesurés (fond opaque, contraste) et capturés en clair et en sombre.
+  { fonction: 'boutons primaires visibles', etapes: ETAPES_BOUTONS, donnees: DONNEES_BOUTONS },
 ]
 
 const [fichierJeu, sortie] = process.argv.slice(2)

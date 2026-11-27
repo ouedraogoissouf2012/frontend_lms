@@ -155,7 +155,7 @@ function formatTime(dateString) {
 .seance-icon {
   width: 1.5rem;
   height: 1.5rem;
-  color: var(--color-primary);
+  color: var(--primary-color);
   flex-shrink: 0;
 }
 
@@ -242,7 +242,7 @@ function formatTime(dateString) {
 }
 
 .action-btn.primary {
-  background: var(--color-primary);
+  background: var(--color-info-strong);
   color: white;
   border: none;
 }
@@ -259,7 +259,7 @@ function formatTime(dateString) {
 
 .action-btn.secondary:hover {
   background: var(--bg-hover);
-  border-color: var(--color-primary);
+  border-color: var(--primary-color);
 }
 
 /* Responsive */

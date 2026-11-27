@@ -108,7 +108,7 @@ function formatEventTime(date) {
 .detail-icon {
   width: 1.25rem;
   height: 1.25rem;
-  color: var(--color-primary);
+  color: var(--primary-color);
   flex-shrink: 0;
   margin-top: 0.125rem;
 }
@@ -131,7 +131,7 @@ function formatEventTime(date) {
 .action-btn {
   width: 100%;
   padding: 0.75rem 1.5rem;
-  background: var(--color-primary);
+  background: var(--color-info-strong);
   color: white;
   border: none;
   border-radius: 0.5rem;

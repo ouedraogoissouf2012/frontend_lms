@@ -152,7 +152,7 @@ const {
   width: 2rem;
   height: 2rem;
   border: 3px solid var(--border-primary);
-  border-top-color: var(--color-primary);
+  border-top-color: var(--primary-color);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
