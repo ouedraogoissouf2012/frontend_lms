@@ -51,7 +51,7 @@ export const teacherRoutes = [
   {
     path: '/teacher/import',
     name: 'TeacherImport',
-    component: () => import('@/views/teacher/TeacherImport.vue'),
+    component: () => import('@/views/import/ImportApprenants.vue'),
     meta: {
       requiresAuth: true,
       roles: ['enseignant', 'teacher'],

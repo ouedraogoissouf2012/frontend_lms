@@ -132,6 +132,11 @@ export const ERROR_MESSAGES = Object.freeze({
   demandeEcoleQuotaAdresse: 'Trop de demandes envoyées depuis cette connexion. Réessayez dans un instant.',
   demandeEcolePlafondDuJour: "Le nombre maximal de demandes d'inscription d'école est atteint pour aujourd'hui. Réessayez demain.",
   periodeTransitionInterdite: "Cette action n'est pas possible dans l'état actuel de la période.",
+  // #658 (lms_backend#1651).
+  periodeNonModifiable: 'Une période close, annulée ou archivée ne se modifie plus.',
+  periodePublieeSansDebut: 'Une période publiée garde sa date de début.',
+  periodeNonSupprimable: 'Seul un brouillon sans classe rattachée se supprime ; une période publiée s’annule.',
+  periodeNonPubliee: 'Seule une période publiée peut devenir la période en cours.',
   evaluationTentativeNonDemarree: "Aucune tentative n'est en cours pour cette évaluation : démarrez-la avant de la rendre.",
   evaluationCopieNonNotable: "Cette copie ne peut pas encore être notée : elle n'a pas été rendue.",
   quizIndisponible: "Ce quiz n'est pas disponible actuellement.",
@@ -160,6 +165,9 @@ export const ERROR_MESSAGES = Object.freeze({
   // #631 : la capacité d'une classe locale, réglée à l'écran (contrôle local, puis relecture du serveur).
   capaciteIllisible: "Indiquez un nombre entier d'élèves, de 0 à 10 000, ou laissez vide pour ne pas limiter.",
   capaciteIncertaine: 'Capacité incertaine : actualisez la liste avant de la modifier.',
+  // #657 : rattacher une classe à sa période.
+  periodeIncertaine: 'Période incertaine : actualisez la liste avant de la modifier.',
+  periodesIndisponibles: 'Les périodes n’ont pas pu être chargées : actualisez la page pour en choisir une.',
   // #632 : la création d'une classe locale à l'écran.
   classeLibelleRequis: 'Indiquez le libellé de la classe.',
   classeCodeDejaEmploye: 'Ce code est déjà employé par une autre classe de votre établissement : choisissez-en un autre, ou laissez-le vide.',

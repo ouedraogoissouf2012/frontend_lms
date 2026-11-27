@@ -97,6 +97,11 @@ export const REASONS = Object.freeze({
   ip_quota_exceeded: motif('demandeEcoleQuotaAdresse', { transitoire: true }),
   school_requests_global_cap: motif('demandeEcolePlafondDuJour'),
   training_session_transition_not_allowed: motif('periodeTransitionInterdite'),
+  // lms_backend#1651 (#658) : modifier, supprimer, désigner la période en cours. Définitifs.
+  training_session_not_editable: motif('periodeNonModifiable'),
+  training_session_published_needs_start: motif('periodePublieeSansDebut'),
+  training_session_not_deletable: motif('periodeNonSupprimable'),
+  training_session_not_publiee: motif('periodeNonPubliee'),
   evaluation_attempt_not_started: motif('evaluationTentativeNonDemarree'),
   evaluation_submission_not_gradable: motif('evaluationCopieNonNotable'),
   // POST /knowledge-checks/{id}/start et /submit. Les `webhook_*` du même lot ne s'adressent qu'au serveur

@@ -71,6 +71,9 @@
         :busy="estOccupee(p.id)"
         :data-periode-id="p.id"
         @transition="(action) => onTransition(p, action)"
+        @modifiee="majPeriode"
+        @supprimer="supprimer(p)"
+        @en-cours="designerEnCours(p)"
       />
 
       <p v-if="lastPage > 1">
@@ -108,6 +111,7 @@ const {
   periodes, loading, error, notice, page, lastPage,
   dernierProgrammeId, saving, estOccupee, voirArchivees, programmes, programmesErreur, programmesTronques,
   load, creerProgramme, creerPeriode, transitionner, basculerArchivees, chargerProgrammes,
+  majPeriode, supprimer, designerEnCours,
 } = useAdminTrainingSessions()
 
 /**

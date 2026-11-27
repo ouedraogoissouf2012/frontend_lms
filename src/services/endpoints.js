@@ -177,6 +177,8 @@ export const endpoints = {
     code: (classeId) => `/classes/${classeId}/code-inscription`,
     // #631 (lms_backend#1358) : geste NOMMÉ, la capacité que l'inscription par code respecte.
     capacite: (classeId) => `/classes/${classeId}/capacite`,
+    // #657 (lms_backend#1208) : rattacher une classe LOCALE à sa période, ou l'en détacher (null).
+    periode: (classeId) => `/classes/${classeId}/periode`,
     rejoindre: '/me/inscriptions',
   },
   // Quatre opérations NOMMÉES d'une période (#391, ADR-845-01), chemins fixes pour
@@ -186,6 +188,11 @@ export const endpoints = {
     annuler: (id) => `/training-sessions/${id}/annuler`,
     cloturer: (id) => `/training-sessions/${id}/cloturer`,
     archiver: (id) => `/training-sessions/${id}/archiver`,
+  },
+  // #658 (lms_backend#1651) : modifier ou supprimer une période, et la désigner EN COURS (geste nommé).
+  trainingSessionEdition: {
+    periode: (id) => `/training-sessions/${id}`,
+    enCours: (id) => `/training-sessions/${id}/en-cours`,
   },
 
   lessons: {

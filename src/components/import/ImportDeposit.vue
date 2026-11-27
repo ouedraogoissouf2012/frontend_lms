@@ -4,6 +4,13 @@
       Le courriel n'est pas obligatoire : un numéro WhatsApp suffit. Il faut
       cependant l'un des deux pour chaque apprenant.
     </p>
+    <!-- #655 : la règle du serveur (lms StudentEnrolmentService::inscrireParCodeDeClasse). -->
+    <p class="import-note">
+      La colonne <strong>code_classe</strong> attend le code de la classe, celui saisi à
+      sa création (champ « Code »). Ce n’est pas le code d’inscription donné aux élèves.
+      Laissée vide, le compte est créé sans classe ; un code qu’aucune classe de
+      l’établissement ne porte fait refuser la ligne, et le rapport le dit.
+    </p>
     <p class="import-note">
       Votre fichier est envoyé tel quel et analysé sans inscrire personne : vous
       pourrez le corriger et le renvoyer entièrement.
@@ -77,7 +84,7 @@ function downloadTemplate() {
 <style scoped>
 /* Seul ce qui n'appartient qu'à l'étape de dépôt. Le chrome partagé
    (`.import-step`, `.import-button`, `.import-actions`, `.import-note`) vit
-   dans TeacherImport.vue, via `:deep()`. */
+   dans ImportApprenants.vue, via `:deep()`. */
 
 .import-drop {
   display: flex;

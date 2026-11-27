@@ -10,7 +10,7 @@
           <th class="text-center">Cours</th>
           <th class="text-center">Evaluations</th>
           <th>Derniere activite</th>
-          <th class="text-center">Actions</th>
+          <th class="text-center col-actions">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -38,7 +38,7 @@
           <td class="text-center">{{ inst.stats.lessons_count }}</td>
           <td class="text-center">{{ inst.stats.evaluations_count }}</td>
           <td>{{ formatDate(inst.stats.last_activity) }}</td>
-          <td>
+          <td class="col-actions">
             <div class="actions-cell">
               <button @click="$emit('edit', inst)" class="action-btn" title="Modifier">
                 <i class="fa fa-pencil"></i>
@@ -88,11 +88,26 @@ function formatDate(dateStr) {
 
 <style scoped lang="scss">
 /* Table */
+/* #652 : le cadre DÉFILE à toute largeur, au lieu de couper (il ne défilait que sous 1024 px) ; un défilement
+   horizontal découpe aussi le contenu à l'arrondi. */
 .table-container {
   background: var(--card-bg);
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-xl);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* #652 : la colonne Actions reste collée à droite, sur un fond opaque : visible et cliquable sans défiler. */
+.col-actions {
+  position: sticky;
+  right: 0;
+  background: var(--card-bg);
+  box-shadow: -1px 0 0 var(--border-primary);
+}
+
+thead .col-actions {
+  background: var(--bg-secondary);
 }
 
 .institutions-table {
@@ -253,7 +268,6 @@ function formatDate(dateStr) {
 /* Responsive */
 @media (max-width: 1024px) {
   .table-container {
-    overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
 
