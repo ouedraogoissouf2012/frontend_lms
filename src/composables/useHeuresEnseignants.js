@@ -34,7 +34,7 @@ export function useHeuresEnseignants() {
 
   /** Les paramètres envoyés : la plage, et les filtres posés seulement. */
   function parametres() {
-    return Object.fromEntries(Object.entries(filtres.value).filter(([, v]) => v !== '' && v !== null && v !== undefined))
+    return { ...filtres.value }
   }
 
   async function executer(action) {
