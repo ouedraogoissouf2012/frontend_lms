@@ -13,6 +13,10 @@
         </button>
       </div>
 
+      <!-- #648 : seulement dans une école qui tient sa propre liste (capacité peutInscrireLocalement) ; ailleurs, les
+           comptes viennent du système de gestion de l'école. Une création, même incertaine, fait relire la liste. -->
+      <CompteCreation v-if="auth.peutInscrireLocalement" @cree="loadAllUsers(true)" @incertain="loadAllUsers(true)" />
+
       <!-- Compteurs MESURÉS : `null` quand la ressource n'a pas répondu, jamais
            un `.length` de tableau vide qui ferait passer une panne pour un fait. -->
       <UsersStatsCards
@@ -93,6 +97,8 @@ import UserDetailModal from '@/components/admin/UserDetailModal.vue'
 import UsersStatsCards from '@/components/admin/UsersStatsCards.vue'
 import UsersFilters from '@/components/admin/UsersFilters.vue'
 import UsersTable from '@/components/admin/UsersTable.vue'
+import CompteCreation from '@/components/admin/CompteCreation.vue'
+import { useAuthStore } from '@/stores/auth'
 import { computed } from 'vue'
 import { useAdminUsers } from '@/composables/useAdminUsers'
 import { measuredSum } from '@/utils/measuredSum'
@@ -103,6 +109,8 @@ const {
   filteredUsers, totalPages, paginatedUsers,
   sortBy, selectUser, closeModal, loadAllUsers, peutReessayer,
 } = useAdminUsers()
+
+const auth = useAuthStore()
 
 /** Total affichable : non mesuré dès qu'UNE des deux populations ne l'est (jamais l'autre seule). */
 const measuredTotal = computed(() => measuredSum([counts.value.etudiants, counts.value.enseignants]))

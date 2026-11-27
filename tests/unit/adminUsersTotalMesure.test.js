@@ -6,6 +6,7 @@
  * total des seuls enseignants comme le total des utilisateurs.
  */
 import { shallowMount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
 import { describe, it, expect, vi } from 'vitest'
 
 const counts = vi.hoisted(() => ({ value: null }))
@@ -26,6 +27,8 @@ import UsersStatsCards from '@/components/admin/UsersStatsCards.vue'
 
 const total = (c) => {
   counts.value = c
+  // #648 : la vue lit la capacité de l'école dans le store d'authentification (formulaire « Nouvel utilisateur »).
+  setActivePinia(createPinia())
   const w = shallowMount(AdminUsers, { global: { stubs: { DashboardLayout: { template: '<div><slot /></div>' } } } })
   return w.findComponent(UsersStatsCards).props('total')
 }
