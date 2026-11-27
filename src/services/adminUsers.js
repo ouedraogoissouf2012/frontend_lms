@@ -93,4 +93,35 @@ export async function creerCompte({ nom, courriel, role, motDePasse, confirmatio
   })
 }
 
-export default { listAdministrationUsers, listComptesLocaux, creerCompte }
+/**
+ * Modifie un compte de l'établissement (#656 b), `PUT /users/{user}` : seuls les champs ENVOYÉS changent. La cible et le
+ * nouveau rôle sont jugés par le serveur (rang strictement inférieur à celui de l'acteur).
+ * @param {number|string} id l'id LOCAL du compte (`lms_id`), jamais un id KLASSCI
+ * @param {{ name?: string, email?: string, role?: string }} changements
+ * @returns {Promise<object>} le corps de la réponse (`{ data: user }`)
+ */
+export async function modifierCompte(id, changements) {
+  return api.put(endpoints.admin.compte(id), changements)
+}
+
+/**
+ * Désactive un compte (#656 b), `DELETE /users/{user}` : suppression logique, dossier conservé, sessions fermées.
+ * @param {number|string} id l'id LOCAL du compte
+ * @returns {Promise<object>}
+ */
+export async function desactiverCompte(id) {
+  return api.delete(endpoints.admin.compte(id))
+}
+
+/**
+ * Définit le mot de passe d'un compte (#656 b), `PUT /users/{user}/password`. Le serveur ferme ses sessions ; le mot
+ * de passe ne revient jamais dans la réponse.
+ * @param {number|string} id l'id LOCAL du compte
+ * @param {{ motDePasse: string, confirmation: string }} saisie
+ * @returns {Promise<object>}
+ */
+export async function definirMotDePasse(id, { motDePasse, confirmation }) {
+  return api.put(endpoints.admin.motDePasse(id), { password: motDePasse, password_confirmation: confirmation })
+}
+
+export default { listAdministrationUsers, listComptesLocaux, creerCompte, modifierCompte, desactiverCompte, definirMotDePasse }

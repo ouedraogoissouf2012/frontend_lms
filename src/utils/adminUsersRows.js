@@ -9,6 +9,9 @@ import { toId } from '@/utils/toId'
  * Extrait de `useAdminUsers` (≤300 l.) quand la troisième population est arrivée :
  * le composable orchestre le chargement, ce module décrit la forme des lignes.
  *
+ * #656 (b) : `role_brut` garde le rôle tel que le serveur le classe, pour la règle de gestion d'un compte
+ * (`gestionDeCompte`, miroir de `GestionDeCompte::admet`).
+ *
  * Le `role` porté par chaque ligne est toujours CANONIQUE : c'est lui que compare
  * le filtre de la barre d'outils. Un `superAdmin` doit répondre au filtre
  * « Administrateurs » (rôle canonique `admin`), sans quoi la ligne existerait
@@ -44,6 +47,7 @@ export function etudiantRows(etudiants, espace = ESPACES.KLASSCI) {
     name: getFullName(e),
     email: e.email,
     role: ROLES.ETUDIANT,
+    role_brut: ROLES.ETUDIANT,
     classe_id: e.classe_id,
     classe_nom: e.classe_nom,
     matricule: e.matricule,
@@ -69,6 +73,7 @@ export function enseignantRows(enseignants, espace = ESPACES.KLASSCI) {
     name: getFullName(e),
     email: e.email,
     role: ROLES.ENSEIGNANT,
+    role_brut: ROLES.ENSEIGNANT,
     // Classes DÉRIVÉES des matières (helper canonique), jamais un `null` en dur.
     classe_id: null,
     classe_ids: getEnseignantUniqueClasses(e).map((c) => c.id),
@@ -97,6 +102,8 @@ export function administrationRows(administration) {
     name: u.name,
     email: u.email,
     role: normalizeRole(u.role),
+    // #656 (b) : le rang serveur (`gestionDeCompte`) ; `superAdmin` y est au-dessus d'`admin`.
+    role_brut: u.role ?? null,
     classe_id: null,
     classe_nom: null,
     matricule: null,
@@ -125,6 +132,7 @@ export function elevesSansClasseRows(comptes, roster) {
       name: u.name,
       email: u.email,
       role: ROLES.ETUDIANT,
+      role_brut: ROLES.ETUDIANT,
       classe_id: null,
       classe_nom: null,
       matricule: null,

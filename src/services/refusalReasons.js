@@ -37,6 +37,8 @@ export const REASONS = Object.freeze({
   attendance_code_expired: motif('codeEmargementPerime'),
   already_marked_by_teacher: motif('presenceDejaMarquee'),
   attendance_code_attempts_exceeded: motif('emargementEssaisEpuises', { transitoire: true }),
+  // lms_backend#1275 (#656 b) : 403 de PUT /users/{user}/password, l'école tient ses mots de passe chez KLASSCI.
+  password_managed_by_klassci: motif('motDePasseGereParKlassci'),
   // lms_backend#1739 (#711) : 403 de POST /auth/login, KLASSCI refuse le compte. Définitif ; l'écran de
   // connexion montre le motif de KLASSCI quand il en porte un (`messageConnexion`).
   klassci_account_refused: motif('compteRefuseParKlassci'),

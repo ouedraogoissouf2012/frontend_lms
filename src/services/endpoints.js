@@ -123,6 +123,10 @@ export const endpoints = {
     users: '/admin/users',
     // #648 : créer un compte dans l'établissement de l'acteur (AdminController::createUser). Hors du préfixe /admin.
     creerCompte: '/users',
+    // #656 (b) : modifier (PUT) ou désactiver (DELETE) un compte, par son id LOCAL (lms#1728).
+    compte: (id) => `/users/${id}`,
+    // #656 (b) : définir le mot de passe d'un compte (lms#1275), admin d'une école autonome.
+    motDePasse: (id) => `/users/${id}/password`,
     statistics: '/admin/statistics',
     institutions: {
       list: '/admin/institutions',
