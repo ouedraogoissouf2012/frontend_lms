@@ -35,14 +35,9 @@
         <div class="p-6">
           <!-- Onglet Matières -->
           <div v-if="activeTab === 'matieres'">
-            <!-- #654 : composer le programme : école qui tient son catalogue ET personnel de gestion (admin, coordinateur). -->
-            <ProgrammeRattachement
-              v-if="peutComposerProgramme"
-              :classe-id="Number(classeId)"
-              :programme="matieres"
-              @rattachee="loadClasseDetails"
-              @incertaine="loadClasseDetails"
-            />
+            <!-- #654, #660 : composer, modifier et réduire le programme : école qui tient son catalogue ET personnel de
+                 gestion (admin, coordinateur). -->
+            <ProgrammeGestion v-if="peutComposerProgramme" :classe-id="Number(classeId)" :programme="matieres" @relire="loadClasseDetails" />
             <ClasseMatieresTab :matieres="matieres" @view-matiere="viewMatiere" />
           </div>
 
@@ -95,7 +90,7 @@ import ClassePlanningTab from '@/components/classes/ClassePlanningTab.vue'
 import ClasseUpcomingSeances from '@/components/classes/ClasseUpcomingSeances.vue'
 import ClasseResultatsTab from '@/components/classes/ClasseResultatsTab.vue'
 import { useClasseDetails } from '@/composables/useClasseDetails'
-import ProgrammeRattachement from '@/components/classes/ProgrammeRattachement.vue'
+import ProgrammeGestion from '@/components/classes/ProgrammeGestion.vue'
 import { useAuthStore } from '@/stores/auth'
 import { hasRole, ROLES } from '@/constants/roles'
 
