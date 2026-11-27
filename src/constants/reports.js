@@ -42,7 +42,7 @@ export const REPORT_STATUS = Object.freeze({
  * l'applique.
  */
 const FILTRES_ACCEPTES = Object.freeze({
-  attendance: ['date_start', 'date_end', 'classe_id'],
+  attendance: ['date_start', 'date_end'],
   grades: ['date_start', 'date_end'],
   activity: ['date_start', 'date_end'],
 })
