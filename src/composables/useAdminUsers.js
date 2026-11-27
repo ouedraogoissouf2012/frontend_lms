@@ -207,7 +207,7 @@ export function useAdminUsers() {
     // « Sans classe » ne se déduit que d'un roster COMPLET : sinon l'élève est peut-être inscrit dans une classe
     // non lue, et le dire sans classe serait faux. L'avertissement « liste incomplète » couvre alors son absence.
     const rosterComplet = loadedClasses !== null && ok === loadedClasses.length
-    if (loadedEleves !== null) elevesLocaux.value = rosterComplet ? loadedEleves : []
+    if (loadedEleves !== null) elevesLocaux.value = loadedEleves
     elevesLocauxEchec.value = loadedEleves === null
     rosterForbidden.value = forbidden
 
