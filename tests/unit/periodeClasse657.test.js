@@ -116,6 +116,14 @@ describe('#657 — choisir la période à l’écran', () => {
     expect(w.find('form').exists()).toBe(false)
   })
 
+  it('c’est la période RELUE qui fait foi, même si elle diffère du choix', async () => {
+    // Le serveur décide : la carte émet ce qu'il a enregistré, jamais ce qui a été choisi.
+    repondre([200, { success: true, data: { id: 7, training_session_id: 11 } }])
+    const w = await choisir('12')
+    expect(requetes.at(-1).corps).toEqual({ training_session_id: 12 })
+    expect(w.emitted('rattachee')).toEqual([[11]])
+  })
+
   it('« Aucune période » détache la classe (null)', async () => {
     repondre([200, { success: true, data: { id: 7, training_session_id: null } }])
     const w = await choisir('', classe({ training_session_id: 11 }))
