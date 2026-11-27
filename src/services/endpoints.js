@@ -180,6 +180,8 @@ export const endpoints = {
     code: (classeId) => `/classes/${classeId}/code-inscription`,
     // #631 (lms_backend#1358) : geste NOMMÉ, la capacité que l'inscription par code respecte.
     capacite: (classeId) => `/classes/${classeId}/capacite`,
+    // #657 (lms_backend#1208) : rattacher une classe LOCALE à sa période, ou l'en détacher (null).
+    periode: (classeId) => `/classes/${classeId}/periode`,
     rejoindre: '/me/inscriptions',
   },
   // Quatre opérations NOMMÉES d'une période (#391, ADR-845-01), chemins fixes pour

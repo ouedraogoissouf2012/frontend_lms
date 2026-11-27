@@ -196,5 +196,20 @@ export const adminRoutes = [
       capacite: 'peutInscrireLocalement',
       title: "Classes et codes d'inscription"
     }
+  },
+  {
+    // #655 : le serveur ouvre l'import au coordinateur et au superAdmin (lms
+    // `routes/api/imports.php`) ; l'écran n'était routé que pour l'enseignant. C'est
+    // le MÊME écran que `/teacher/import`, réutilisé et non recopié.
+    path: '/admin/import',
+    name: 'AdminImport',
+    component: () => import('@/views/import/ImportApprenants.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['superAdmin', 'admin', 'coordinateur'],
+      // Le rôle dit QUI ; la capacité dit SI l'établissement tient sa propre liste.
+      capacite: 'peutInscrireLocalement',
+      title: 'Import apprenants'
+    }
   }
 ]
