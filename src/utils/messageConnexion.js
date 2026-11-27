@@ -17,7 +17,7 @@ function refusDeLEcole(err) {
   if (err?.response?.status !== 403 || err.response.data?.reason !== REFUS_DE_L_ECOLE) return null
   const texte = err.response.data.message
   const propre = typeof texte === 'string' ? texte.trim() : ''
-  return propre !== '' && propre.length <= LONGUEUR_MAX ? propre : ERROR_MESSAGES.compteRefuseParEcole
+  return propre !== '' ? propre : ERROR_MESSAGES.compteRefuseParEcole
 }
 
 /**
