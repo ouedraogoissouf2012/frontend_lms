@@ -89,6 +89,9 @@ export const REASONS = Object.freeze({
   class_out_of_scope: motif('seanceClasseHorsEtablissement'),
   subject_out_of_scope: motif('seanceMatiereHorsEtablissement'),
   subject_not_in_class_program: motif('seanceMatiereHorsProgramme'),
+  // lms_backend#1676 (#683) : refus de GET /lms/classes/{id}/resultats, définitifs.
+  class_not_taught: motif('resultatsClasseNonEnseignee'),
+  not_in_class: motif('resultatsHorsDeLaClasse'),
   // lms_backend#1121 : refus de PUT /lms/seances/{id} (403 et 409), définitifs.
   seance_managed_by_klassci: motif('seanceGereeParKlassci'),
   seance_visio_active: motif('seanceVisioEnCours'),

@@ -99,7 +99,9 @@ export function useClasseDetails() {
       ? [{ id: 'etudiants', label: 'Étudiants', count: etudiants.value?.length || 0 }]
       : []),
     { id: 'evaluations', label: 'Évaluations', count: evaluations.value?.length || 0 },
-    { id: 'planning', label: 'Planning', count: emploiTemps.value?.length || 0 }
+    { id: 'planning', label: 'Planning', count: emploiTemps.value?.length || 0 },
+    // #683 : sans compteur, le bilan n'est chargé qu'à l'ouverture de l'onglet.
+    { id: 'resultats', label: 'Résultats' }
   ])
 
   // Conservé à l'identique (référencé nulle part dans le template — dette pré-existante).
@@ -212,6 +214,8 @@ export function useClasseDetails() {
   return {
     loading, error, canRetry, activeTab, classe, matieres, etudiants, evaluations, rosterVisible,
     emploiTemps, seances, statistiques, classeId, tabs, canManageVisio, compteurEvaluations,
+    // #683 : l'identifiant de l'espace source, celui que prend `/lms/classes/{id}/resultats`.
+    idEspaceSource: computed(idPourKlassci),
     loadClasseDetails, loadSeances, viewMatiere, viewEvaluation, goBack,
   }
 }

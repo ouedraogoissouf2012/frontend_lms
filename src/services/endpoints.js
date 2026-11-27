@@ -46,6 +46,8 @@ export const endpoints = {
       // transmet son identifiant brut au systeme central.
       detailsLocal: (id) => `${LMS}/classes/local/${id}`,
       etudiants: (id) => `${LMS}/classes/${id}/etudiants`,
+      // lms_backend#1676 : moyennes, rangs et réussite, par l'id de l'ESPACE SOURCE (comme `etudiants`).
+      resultats: (id) => `${LMS}/classes/${id}/resultats`,
       mine: `${LMS}/teacher/classes`,
     },
     imports: {

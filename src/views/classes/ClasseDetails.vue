@@ -52,6 +52,11 @@
           <div v-if="activeTab === 'planning'">
             <ClassePlanningTab :emploi-temps="emploiTemps" />
           </div>
+
+          <!-- Onglet Résultats (#683) : monté à la première ouverture, puis gardé. -->
+          <div v-if="resultatsOuverts" v-show="activeTab === 'resultats'">
+            <ClasseResultatsTab :classe-id="idEspaceSource" />
+          </div>
         </div>
       </div>
 
@@ -73,6 +78,7 @@
  * (tables/badges/couleurs Tailwind) reste centralisé ici et atteint les enfants
  * via :deep() — source unique, parité exacte avec l’ancienne portée scoped.
  */
+import { ref, watch } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import ClasseDetailsHeader from '@/components/classes/ClasseDetailsHeader.vue'
@@ -82,13 +88,20 @@ import ClasseEtudiantsTab from '@/components/classes/ClasseEtudiantsTab.vue'
 import ClasseEvaluationsTab from '@/components/classes/ClasseEvaluationsTab.vue'
 import ClassePlanningTab from '@/components/classes/ClassePlanningTab.vue'
 import ClasseUpcomingSeances from '@/components/classes/ClasseUpcomingSeances.vue'
+import ClasseResultatsTab from '@/components/classes/ClasseResultatsTab.vue'
 import { useClasseDetails } from '@/composables/useClasseDetails'
 
 const {
   loading, error, canRetry, activeTab, classe, matieres, etudiants, evaluations, rosterVisible,
-  emploiTemps, seances, tabs, compteurEvaluations,
+  emploiTemps, seances, tabs, compteurEvaluations, idEspaceSource,
   loadClasseDetails, loadSeances, viewMatiere, viewEvaluation, goBack,
 } = useClasseDetails()
+
+// #683 : le bilan n'est chargé qu'à la première ouverture de son onglet, puis gardé.
+const resultatsOuverts = ref(false)
+watch(activeTab, (onglet) => {
+  if (onglet === 'resultats') resultatsOuverts.value = true
+})
 </script>
 
 <style scoped>
