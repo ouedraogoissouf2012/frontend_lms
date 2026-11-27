@@ -129,6 +129,10 @@ export const ERROR_MESSAGES = Object.freeze({
   // D477 : la connexion (Login.vue, utils/messageConnexion). Textes du front ; le back n'a pas de `reason`.
   identifiantsIncorrects: 'Identifiants incorrects.',
   connexionEchouee: 'Échec de la connexion.',
+  // lms_backend#1649 (#719) : les refus de l'appel d'une séance.
+  seanceAppelNonOuvert: 'L’appel s’ouvre au début de la séance.',
+  appelGereParKlassci: 'L’appel de votre établissement se fait dans KLASSCI.',
+  eleveHorsDeLaSeance: 'Un élève n’est plus inscrit dans la classe de la séance : rechargez l’appel.',
   // lms_backend#1739 (#711) : KLASSCI refuse le COMPTE (non réinscrit, inactif) sans dire pourquoi.
   compteRefuseParKlassci: 'Votre établissement refuse cette connexion. Contactez son secrétariat.',
   compteEnConflit: "Votre adresse e-mail est déjà utilisée par un autre compte de votre établissement. Contactez l'administrateur de votre école.",

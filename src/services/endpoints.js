@@ -71,6 +71,8 @@ export const endpoints = {
       myClasses: `${LMS}/seances/my-classes`,
       details: (id) => `${LMS}/seances/${id}/details`,
       attendances: (id) => `${LMS}/seances/${id}/attendances`,
+      // lms_backend#1649 (#719) : l'appel d'une séance, lu (GET) et saisi (PUT).
+      appel: (id) => `${LMS}/seances/${id}/appel`,
       validateParticipant: (id) => `${LMS}/seances/${id}/validate-participant`,
       hide: (id) => `${LMS}/seances/${id}/hide`,
       unhide: (id) => `${LMS}/seances/${id}/unhide`,
