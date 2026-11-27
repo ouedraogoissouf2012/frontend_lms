@@ -242,7 +242,7 @@ function formatTime(dateString) {
 }
 
 .action-btn.primary {
-  background: var(--primary-color);
+  background: var(--color-info-strong);
   color: white;
   border: none;
 }

@@ -146,7 +146,7 @@ const {
 }
 
 .view-btn.active {
-  background: var(--primary-color);
+  background: var(--color-info-strong);
   color: white;
   border-color: var(--primary-color);
 }
@@ -181,7 +181,7 @@ const {
 }
 
 :deep(.fc-button-primary:not(:disabled).fc-button-active) {
-  background: var(--primary-color) !important;
+  background: var(--color-info-strong) !important;
   border-color: var(--primary-color) !important;
   color: white !important;
 }

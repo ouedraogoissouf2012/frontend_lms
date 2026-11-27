@@ -191,7 +191,7 @@ const { loading, revalidating, error, canRetry, stats, meta, loadStats, refreshD
 .retry-btn {
   margin-top: var(--spacing-md);
   padding: var(--spacing-sm) var(--spacing-lg);
-  background: var(--primary-color);
+  background: var(--color-info-strong);
   color: white;
   border: none;
   border-radius: var(--radius-md);

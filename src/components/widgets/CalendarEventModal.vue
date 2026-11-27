@@ -131,7 +131,7 @@ function formatEventTime(date) {
 .action-btn {
   width: 100%;
   padding: 0.75rem 1.5rem;
-  background: var(--primary-color);
+  background: var(--color-info-strong);
   color: white;
   border: none;
   border-radius: 0.5rem;

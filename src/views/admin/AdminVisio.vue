@@ -190,7 +190,7 @@ const {
 .retry-btn {
   margin-top: var(--spacing-md);
   padding: var(--spacing-sm) var(--spacing-lg);
-  background: var(--primary-color);
+  background: var(--color-info-strong);
   color: white;
   border: none;
   border-radius: var(--radius-md);

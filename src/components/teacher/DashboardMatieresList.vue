@@ -112,7 +112,7 @@ defineEmits(['navigate'])
   width: 100%;
   margin-top: 1rem;
   padding: 0.75rem 1rem;
-  background: var(--primary-color);
+  background: var(--color-info-strong);
   color: white;
   border: none;
   border-radius: 0.5rem;
