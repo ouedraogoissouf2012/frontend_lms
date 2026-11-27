@@ -35,7 +35,7 @@ export function useEmargementEleve(codeInitial = '') {
     erreur.value = ''
     try {
       const signature = await emargementService.signer(saisie)
-      resultat.value = signature.deja_signe ? DEJA_SIGNE : (signature.mark === 'late' ? EN_RETARD : PRESENT)
+      resultat.value = signature.mark === 'late' ? EN_RETARD : PRESENT
       return true
     } catch (err) {
       erreur.value = messageDe(err)
