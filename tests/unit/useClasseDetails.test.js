@@ -115,7 +115,7 @@ describe('useClasseDetails (#H9)', () => {
     expect(api.etudiants.value).toHaveLength(1)
   })
 
-  it('expose les 4 onglets avec compteurs', async () => {
+  it('expose les 5 onglets, Résultats sans compteur (#683)', async () => {
     getClasseDetails.mockResolvedValue({
       success: true,
       data: {
@@ -126,7 +126,9 @@ describe('useClasseDetails (#H9)', () => {
     })
     const { api } = await setup('5')
     const ids = api.tabs.value.map(t => t.id)
-    expect(ids).toEqual(['matieres', 'etudiants', 'evaluations', 'planning'])
+    expect(ids).toEqual(['matieres', 'etudiants', 'evaluations', 'planning', 'resultats'])
+    // Le bilan n'est chargé qu'à l'ouverture de l'onglet : aucun compteur n'est inventé.
+    expect(api.tabs.value[4].count).toBeUndefined()
     expect(api.tabs.value[0].count).toBe(1)
     expect(api.tabs.value[2].count).toBe(2)
   })
@@ -142,7 +144,7 @@ describe('useClasseDetails (#H9)', () => {
     })
     const { api } = await setup('1')
     expect(api.rosterVisible.value).toBe(false)
-    expect(api.tabs.value.map(t => t.id)).toEqual(['matieres', 'evaluations', 'planning'])
+    expect(api.tabs.value.map(t => t.id)).toEqual(['matieres', 'evaluations', 'planning', 'resultats'])
     expect(getClasseEtudiants).not.toHaveBeenCalled()
   })
 

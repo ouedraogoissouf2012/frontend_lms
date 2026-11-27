@@ -186,6 +186,23 @@ export const ERROR_MESSAGES = Object.freeze({
   compteRoleRequis: 'Choisissez le rôle du compte.',
   compteMotDePasseCourt: 'Le mot de passe initial doit compter au moins 8 caractères.',
   compteConfirmationDifferente: 'La confirmation ne reprend pas le mot de passe initial.',
+  // #656 (b) : modifier, désactiver, définir le mot de passe d'un compte.
+  compteRienAModifier: 'Aucun changement à enregistrer.',
+  compteActeIncertain: 'L’opération n’a pas pu être confirmée : la liste est relue, vérifiez-la avant de recommencer.',
+  motDePasseTropCourt: 'Le mot de passe doit compter au moins 8 caractères.',
+  motDePasseConfirmationDifferente: 'La confirmation ne reprend pas le mot de passe.',
+  motDePasseGereParKlassci: 'Le mot de passe de ce compte se gère dans KLASSCI, pas ici.',
   compteCreationIncertaine: 'La création n’a pas pu être confirmée. Le compte existe peut-être déjà : vérifiez la liste avant de recommencer.',
+  // #683 : le classement d'une classe (lms_backend#1676).
+  resultatsClasseNonEnseignee: 'Vous n’enseignez pas dans cette classe : son classement ne vous est pas ouvert.',
+  resultatsHorsDeLaClasse: 'Vous n’êtes pas inscrit dans cette classe : son classement ne vous est pas ouvert.',
+  // #654 : le catalogue d'une école autonome (matière, programme d'une classe).
+  matiereLibelleRequis: 'Indiquez le libellé de la matière.',
+  matiereCoefficientIllisible: 'Indiquez un coefficient entier, de 1 à 20.',
+  matiereCreditIllisible: 'Indiquez un crédit entier, de 1 à 60.',
+  matiereCreationIncertaine: 'La création n’a pas pu être confirmée. La matière existe peut-être déjà : vérifiez la liste avant de recommencer.',
+  programmeMatiereRequise: 'Choisissez la matière à rattacher.',
+  programmeIntrouvable: 'Classe, matière ou enseignant introuvable : actualisez la page avant de recommencer.',
+  programmeRattachementIncertain: 'Le rattachement n’a pas pu être confirmé : actualisez la fiche pour voir le programme.',
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })
