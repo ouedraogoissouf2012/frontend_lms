@@ -17,6 +17,22 @@
         </div>
       </div>
 
+      <!-- #654 : seulement dans une école qui tient son catalogue (capacité peutGererCatalogueLocal). Une création,
+           même incertaine, fait relire la liste sans cache. -->
+      <MatiereCreation v-if="auth.peutGererCatalogueLocal" @creee="loadMatieres(true)" @incertaine="loadMatieres(true)" />
+
+      <!-- #660 : modifier une matière locale ; la liste est relue après, que la modification soit faite ou incertaine.
+           La région d'annonce est présente dès le montage. -->
+      <p v-if="auth.peutGererCatalogueLocal" class="modification-annonce" role="status" aria-live="polite">{{ annonceModification }}</p>
+      <MatiereModification
+        v-if="aModifier"
+        :key="aModifier.id"
+        :matiere="aModifier"
+        @modifiee="apresModification"
+        @incertaine="loadMatieres(true)"
+        @fermer="aModifier = null"
+      />
+
       <!-- Filters -->
       <MatieresFilters
         v-if="!loading && !error"
@@ -48,7 +64,9 @@
       <MatieresTable
         v-else-if="filteredMatieres.length > 0"
         :matieres="filteredMatieres"
+        :modifiable="auth.peutGererCatalogueLocal"
         @view="viewMatiereDetails"
+        @modifier="(m) => (aModifier = m)"
       />
 
       <!-- Empty state -->
@@ -78,6 +96,10 @@ import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import MatiereModals from '@/components/admin/MatiereModals.vue'
 import MatieresFilters from '@/components/admin/MatieresFilters.vue'
 import MatieresTable from '@/components/admin/MatieresTable.vue'
+import MatiereCreation from '@/components/admin/MatiereCreation.vue'
+import MatiereModification from '@/components/admin/MatiereModification.vue'
+import { ref } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import { useAdminMatieres } from '@/composables/useAdminMatieres'
 import { BookOpenIcon, ArrowPathIcon } from '@heroicons/vue/24/outline'
@@ -89,9 +111,25 @@ const {
   closeNiveauModal, viewMatiereDetails, closeMatiereModal,
   loadMatieres, refreshData, resetFilters,
 } = useAdminMatieres()
+
+const auth = useAuthStore()
+
+// #660 : la matière dont le formulaire de modification est ouvert (une à la fois).
+const aModifier = ref(null)
+const annonceModification = ref('')
+function apresModification(relue) {
+  annonceModification.value = `Matière « ${relue?.libelle ?? aModifier.value?.nom} » modifiée.`
+  aModifier.value = null
+  loadMatieres(true)
+}
 </script>
 
 <style scoped>
+.modification-annonce {
+  margin: 0 0 var(--spacing-sm);
+  color: var(--text-primary);
+}
+
 /* Container */
 .matieres-container {
   padding: 1.5rem;

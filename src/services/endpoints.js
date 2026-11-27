@@ -18,6 +18,8 @@
  * (?with_details, ?page…) restent à la charge des appelants (orthogonaux).
  */
 
+import { endpointsEcoleLocale } from './endpointsEcoleLocale.js'
+
 // Préfixes de frontière (#26) — source unique, évite la dérive proxy/lms.
 const KLASSCI = '/proxy'
 const LMS = '/lms'
@@ -46,6 +48,8 @@ export const endpoints = {
       // transmet son identifiant brut au systeme central.
       detailsLocal: (id) => `${LMS}/classes/local/${id}`,
       etudiants: (id) => `${LMS}/classes/${id}/etudiants`,
+      // lms_backend#1676 : moyennes, rangs et réussite, par l'id de l'ESPACE SOURCE (comme `etudiants`).
+      resultats: (id) => `${LMS}/classes/${id}/resultats`,
       mine: `${LMS}/teacher/classes`,
       // Les classes de l'établissement par leur id LOCAL, dans les deux volets
       // (lms_backend#1709) : le filtre de classe du rapport de présences.
@@ -118,6 +122,10 @@ export const endpoints = {
     users: '/admin/users',
     // #648 : créer un compte dans l'établissement de l'acteur (AdminController::createUser). Hors du préfixe /admin.
     creerCompte: '/users',
+    // #656 (b) : modifier (PUT) ou désactiver (DELETE) un compte, par son id LOCAL (lms#1728).
+    compte: (id) => `/users/${id}`,
+    // #656 (b) : définir le mot de passe d'un compte (lms#1275), admin d'une école autonome.
+    motDePasse: (id) => `/users/${id}/password`,
     statistics: '/admin/statistics',
     institutions: {
       list: '/admin/institutions',
@@ -173,17 +181,8 @@ export const endpoints = {
   activation: '/activation',
   programs: '/programs',
   trainingSessions: '/training-sessions',
-  // Code d'inscription d'une classe LOCALE (#391, ADR-803-03). Chemins RÉELS de la
-  // spec : SANS préfixe /lms. `/classes` est la collection des classes locales (#905).
-  enrolment: {
-    classes: '/classes',
-    code: (classeId) => `/classes/${classeId}/code-inscription`,
-    // #631 (lms_backend#1358) : geste NOMMÉ, la capacité que l'inscription par code respecte.
-    capacite: (classeId) => `/classes/${classeId}/capacite`,
-    // #657 (lms_backend#1208) : rattacher une classe LOCALE à sa période, ou l'en détacher (null).
-    periode: (classeId) => `/classes/${classeId}/periode`,
-    rejoindre: '/me/inscriptions',
-  },
+  // L'école locale : catalogue et inscription (endpointsEcoleLocale.js, sortis pour la garde de taille).
+  ...endpointsEcoleLocale,
   // Quatre opérations NOMMÉES d'une période (#391, ADR-845-01), chemins fixes pour
   // que la garde de contrat vérifie chacun. Aucune route n'existe pour `purgee`.
   trainingSessionTransitions: {

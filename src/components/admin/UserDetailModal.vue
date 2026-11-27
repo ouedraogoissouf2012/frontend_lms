@@ -56,6 +56,9 @@
       </div>
     </div>
 
+    <!-- #656 (b) : les actions sur le compte, fournies par l'écran (CompteActions) ; la modale reste présentation pure. -->
+    <slot v-if="user" name="actions" />
+
     <template #footer>
       <BaseButton variant="secondary" class="modal-btn modal-btn-secondary" @click="$emit('close')">
         Fermer
@@ -68,7 +71,8 @@
 /**
  * Modale de détail d'un utilisateur (#G1 décompo — extraite d'AdminUsers.vue).
  * Présentation pure : reçoit l'utilisateur, émet `close`. Le rendu est conditionné
- * par `user` (null = fermée), comme l'original (v-if="selectedUser").
+ * par `user` (null = fermée), comme l'original (v-if="selectedUser"). L'emplacement `actions` (#656 b) reçoit les
+ * actions sur le compte, que l'écran décide.
  */
 import Modal from '@/components/ui/Modal.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'

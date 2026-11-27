@@ -27,6 +27,11 @@ export const REASONS = Object.freeze({
   // lms_backend#1115 (#620) : 409 des deux portes d'inscription par code, la classe a atteint sa capacité. Définitif.
   class_full: motif('classeComplete'),
   no_institution: motif('noInstitution'),
+  // lms_backend#1275 (#656 b) : 403 de PUT /users/{user}/password, l'école tient ses mots de passe chez KLASSCI.
+  password_managed_by_klassci: motif('motDePasseGereParKlassci'),
+  // lms_backend#1739 (#711) : 403 de POST /auth/login, KLASSCI refuse le compte. Définitif ; l'écran de
+  // connexion montre le motif de KLASSCI quand il en porte un (`messageConnexion`).
+  klassci_account_refused: motif('compteRefuseParKlassci'),
   account_quota_exceeded: motif('accountQuotaExceeded'),
   account_daily_cap_reached: motif('accountDailyCapReached'),
   institution_cap_reached: motif('institutionCapReached'),
@@ -89,6 +94,9 @@ export const REASONS = Object.freeze({
   class_out_of_scope: motif('seanceClasseHorsEtablissement'),
   subject_out_of_scope: motif('seanceMatiereHorsEtablissement'),
   subject_not_in_class_program: motif('seanceMatiereHorsProgramme'),
+  // lms_backend#1676 (#683) : refus de GET /lms/classes/{id}/resultats, définitifs.
+  class_not_taught: motif('resultatsClasseNonEnseignee'),
+  not_in_class: motif('resultatsHorsDeLaClasse'),
   // lms_backend#1121 : refus de PUT /lms/seances/{id} (403 et 409), définitifs.
   seance_managed_by_klassci: motif('seanceGereeParKlassci'),
   seance_visio_active: motif('seanceVisioEnCours'),
@@ -107,6 +115,9 @@ export const REASONS = Object.freeze({
   training_session_published_needs_start: motif('periodePublieeSansDebut'),
   training_session_not_deletable: motif('periodeNonSupprimable'),
   training_session_not_publiee: motif('periodeNonPubliee'),
+  // #660 (lms_backend#1653) : le code d'une matière, une matière employée dans une classe.
+  subject_code_already_used: motif('matiereCodeDejaPris'),
+  subject_in_use_in_class: motif('programmeMatiereEmployee'),
   evaluation_attempt_not_started: motif('evaluationTentativeNonDemarree'),
   evaluation_submission_not_gradable: motif('evaluationCopieNonNotable'),
   // POST /knowledge-checks/{id}/start et /submit. Les `webhook_*` du même lot ne s'adressent qu'au serveur

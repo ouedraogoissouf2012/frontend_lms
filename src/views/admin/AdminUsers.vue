@@ -81,7 +81,12 @@
         />
       </template>
 
-      <UserDetailModal :user="selectedUser" @close="closeModal" />
+      <UserDetailModal :user="selectedUser" @close="closeModal">
+        <!-- #656 (b) : modifier, désactiver, mot de passe. Un acte qui change la liste la fait relire. -->
+        <template #actions>
+          <CompteActions :ligne="selectedUser" @fait="apresActe" @incertain="loadAllUsers(true)" />
+        </template>
+      </UserDetailModal>
     </div>
   </DashboardLayout>
 </template>
@@ -98,6 +103,7 @@ import UsersStatsCards from '@/components/admin/UsersStatsCards.vue'
 import UsersFilters from '@/components/admin/UsersFilters.vue'
 import UsersTable from '@/components/admin/UsersTable.vue'
 import CompteCreation from '@/components/admin/CompteCreation.vue'
+import CompteActions from '@/components/admin/CompteActions.vue'
 import { useAuthStore } from '@/stores/auth'
 import { computed } from 'vue'
 import { useAdminUsers } from '@/composables/useAdminUsers'
@@ -111,6 +117,16 @@ const {
 } = useAdminUsers()
 
 const auth = useAuthStore()
+
+/**
+ * Après un acte sur un compte (#656 b) : une modification ou une désactivation change la liste, la fiche se ferme et
+ * la liste est relue. Un mot de passe défini ne change rien à la liste : la fiche reste ouverte, sur son annonce.
+ */
+function apresActe({ acte }) {
+  if (acte === 'mot_de_passe') return
+  closeModal()
+  loadAllUsers(true)
+}
 
 /** Total affichable : non mesuré dès qu'UNE des deux populations ne l'est (jamais l'autre seule). */
 const measuredTotal = computed(() => measuredSum([counts.value.etudiants, counts.value.enseignants]))

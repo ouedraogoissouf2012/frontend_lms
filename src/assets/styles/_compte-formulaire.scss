@@ -1,0 +1,74 @@
+// Formulaires d'acte sur un compte (#656 b) : modifier, désactiver, mot de passe. Une source pour les trois, et pour
+// leurs champs (CompteChamp). Les couleurs passent par les variables de thème : clair et sombre.
+
+.compte-form {
+  display: grid;
+  gap: var(--spacing-sm);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  background: var(--bg-secondary);
+}
+
+.compte-erreur,
+.compte-annonce,
+.compte-aide,
+.compte-champ-erreur,
+.compte-explication {
+  margin: 0;
+}
+
+.compte-erreur,
+.compte-champ-erreur {
+  color: var(--color-danger, var(--text-primary));
+}
+
+.compte-annonce,
+.compte-explication {
+  color: var(--text-primary);
+}
+
+.compte-aide {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.compte-champ {
+  display: grid;
+  gap: var(--spacing-xs, var(--spacing-sm));
+
+  label {
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  input,
+  select {
+    padding: var(--spacing-sm);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    background: var(--card-bg);
+    color: var(--text-primary);
+  }
+}
+
+.compte-btn {
+  justify-self: start;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-primary);
+  background: var(--card-bg);
+  color: var(--text-primary);
+  font-weight: 600;
+  cursor: pointer;
+
+  &[aria-disabled='true'] {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.compte-btn-danger {
+  border-color: var(--color-danger, var(--border-primary));
+  color: var(--color-danger, var(--text-primary));
+}

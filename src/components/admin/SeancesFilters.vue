@@ -116,12 +116,12 @@ defineEmits(['change'])
 }
 
 .filter-select:hover {
-  border-color: var(--color-primary);
+  border-color: var(--primary-color);
 }
 
 .filter-select:focus {
   outline: none;
-  border-color: var(--color-primary);
+  border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
