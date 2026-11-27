@@ -7,6 +7,7 @@
           <h3 class="seance-title" :title="`Séance: ${seance.matiere?.nom || 'N/A'}`">
             {{ seance.matiere?.nom || 'Matière inconnue' }}
           </h3>
+          <SeanceTypeBadge :type="seance.type_seance" />
         </div>
         <span
           :class="['status-badge', `status-${getSeanceStatus(seance)}`]"
@@ -85,6 +86,7 @@ import {
   EyeIcon
 } from '@heroicons/vue/24/outline'
 import { statutSeance, libelleStatutSeance, finEstimee } from '@/utils/seanceStatut'
+import SeanceTypeBadge from '@/components/seances/SeanceTypeBadge.vue'
 import SeanceEditAction from '@/components/seances/SeanceEditAction.vue'
 
 defineProps({

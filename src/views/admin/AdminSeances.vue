@@ -22,6 +22,7 @@
         v-model:teacher-id="filters.teacher_id"
         v-model:classe-id="filters.classe_id"
         v-model:status="filters.status"
+        v-model:type="filters.type"
         :teachers="teachers"
         :classes="classes"
         @change="loadSeances"
