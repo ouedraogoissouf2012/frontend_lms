@@ -115,7 +115,7 @@ describe('useClasseDetails (#H9)', () => {
     expect(api.etudiants.value).toHaveLength(1)
   })
 
-  it('expose les 5 onglets, Résultats sans compteur (#683)', async () => {
+  it('expose les 6 onglets du personnel, Résultats et Annonce sans compteur (#683, #690)', async () => {
     getClasseDetails.mockResolvedValue({
       success: true,
       data: {
@@ -126,7 +126,7 @@ describe('useClasseDetails (#H9)', () => {
     })
     const { api } = await setup('5')
     const ids = api.tabs.value.map(t => t.id)
-    expect(ids).toEqual(['matieres', 'etudiants', 'evaluations', 'planning', 'resultats'])
+    expect(ids).toEqual(['matieres', 'etudiants', 'evaluations', 'planning', 'resultats', 'annonce'])
     // Le bilan n'est chargé qu'à l'ouverture de l'onglet : aucun compteur n'est inventé.
     expect(api.tabs.value[4].count).toBeUndefined()
     expect(api.tabs.value[0].count).toBe(1)
@@ -147,6 +147,18 @@ describe('useClasseDetails (#H9)', () => {
     expect(api.tabs.value.map(t => t.id)).toEqual(['matieres', 'evaluations', 'planning', 'resultats'])
     expect(getClasseEtudiants).not.toHaveBeenCalled()
   })
+
+  // #690 : l'annonce est l'affaire du personnel de l'ÉCOLE (POST /annonces, `role:enseignant,coordinateur,admin,
+  // superAdmin`) ; le supradmin de plateforme voit le roster mais n'annonce pas.
+  it.each([['coordinateur', true], ['admin', true], ['superAdmin', true], ['supradmin', false], ['etudiant', false]])(
+    'onglet Annonce pour %s : %s',
+    async (role, offert) => {
+      session.role = role
+      getClasseDetails.mockResolvedValue({ success: true, data: { classe: {}, etudiants: [] } })
+      const { api } = await setup('1')
+      expect(api.tabs.value.map(t => t.id).includes('annonce')).toBe(offert)
+    },
+  )
 
   // Fail-closed, comme le serveur : un rôle que l'on ne connaît pas est un élève.
   it('un rôle inconnu est traité comme un élève', async () => {
