@@ -70,6 +70,23 @@ afterEach(() => {
   api.defaults.adapter = adaptateurOrigine
 })
 
+describe('#683 — l onglet n interroge le serveur qu à sa première activation', () => {
+  it('caché : aucun appel ; ouvert : un appel ; rouvert : aucun de plus', async () => {
+    repondre(200, { success: true, data: bilanPersonnel() })
+    const w = mount(ClasseResultatsTab, { props: { classeId: 900077, actif: false }, global: { stubs: { RouterLink } } })
+    await flushPromises()
+    expect(requetes).toHaveLength(0)
+
+    await w.setProps({ actif: true })
+    await flushPromises()
+    await w.setProps({ actif: false })
+    await w.setProps({ actif: true })
+    await flushPromises()
+
+    expect(requetes.map((r) => r.url)).toEqual(['/lms/classes/900077/resultats'])
+  })
+})
+
 describe('#683 — le chemin et le service', () => {
   it('resultats(id) → /lms/classes/{id}/resultats', () => {
     expect(endpoints.lms.classes.resultats(900077)).toBe('/lms/classes/900077/resultats')

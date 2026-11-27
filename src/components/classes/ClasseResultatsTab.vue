@@ -41,12 +41,12 @@
 /**
  * #683 : l'onglet « Résultats » de la fiche de classe (lms_backend#1676).
  *
- * Monté à la PREMIÈRE ouverture de l'onglet (la fiche le garde ensuite) : le bilan n'est chargé
- * qu'à la demande. `classeId` est l'identifiant de l'espace source de l'école, fourni par la fiche.
+ * Le bilan n'est chargé qu'à la PREMIÈRE activation de l'onglet (`actif`), puis gardé : la fiche
+ * monte l'onglet caché, sans rien demander au serveur tant qu'on ne l'ouvre pas. `classeId` est l'identifiant de l'espace source de l'école, fourni par la fiche.
  * La vue suit la réponse du serveur : la classe entière pour le personnel, la seule ligne de
  * l'élève sinon (son rang seulement si le serveur le rend).
  */
-import { onMounted, toRef } from 'vue'
+import { toRef, watch } from 'vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import ClasseResultatsStatistiques from '@/components/classes/ClasseResultatsStatistiques.vue'
 import ClasseResultatsClassement from '@/components/classes/ClasseResultatsClassement.vue'
@@ -56,12 +56,18 @@ import { useBilanDeClasse } from '@/composables/useBilanDeClasse'
 
 const props = defineProps({
   classeId: { type: Number, required: true },
+  actif: { type: Boolean, default: true },
 })
 
 const { bilan, chargement, erreur, peutReessayer, periode, vuePersonnel, maLigne, noteDeSource, charger, exporter } =
   useBilanDeClasse(toRef(props, 'classeId'))
 
-onMounted(charger)
+let ouvert = false
+watch(() => props.actif, (actif) => {
+  if (!actif || ouvert) return
+  ouvert = true
+  charger()
+}, { immediate: true })
 </script>
 
 <style scoped>

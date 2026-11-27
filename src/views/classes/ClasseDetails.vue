@@ -60,11 +60,8 @@
           <div v-if="activeTab === 'planning'">
             <ClassePlanningTab :emploi-temps="emploiTemps" />
           </div>
-
-          <!-- Onglet Résultats (#683) : monté à la première ouverture, puis gardé. -->
-          <div v-if="resultatsOuverts" v-show="activeTab === 'resultats'">
-            <ClasseResultatsTab :classe-id="idEspaceSource" />
-          </div>
+          <!-- Onglet Résultats (#683) : chargé à sa première activation, puis gardé. -->
+          <ClasseResultatsTab v-show="activeTab === 'resultats'" :actif="activeTab === 'resultats'" :classe-id="idEspaceSource" />
         </div>
       </div>
 
@@ -86,7 +83,7 @@
  * (tables/badges/couleurs Tailwind) reste centralisé ici et atteint les enfants
  * via :deep() — source unique, parité exacte avec l’ancienne portée scoped.
  */
-import { computed, ref, watch } from 'vue'
+import { computed } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import ClasseDetailsHeader from '@/components/classes/ClasseDetailsHeader.vue'
@@ -107,12 +104,6 @@ const {
   emploiTemps, seances, tabs, compteurEvaluations, idEspaceSource, classeId,
   loadClasseDetails, loadSeances, viewMatiere, viewEvaluation, goBack,
 } = useClasseDetails()
-
-// #683 : le bilan n'est chargé qu'à la première ouverture de son onglet, puis gardé.
-const resultatsOuverts = ref(false)
-watch(activeTab, (onglet) => {
-  if (onglet === 'resultats') resultatsOuverts.value = true
-})
 
 const auth = useAuthStore()
 // La capacité est celle de l'ÉCOLE (vraie pour tous ses comptes) : le rôle reprend la garde serveur `gestion`.
