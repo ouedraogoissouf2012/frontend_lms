@@ -194,5 +194,12 @@ export const ERROR_MESSAGES = Object.freeze({
   programmeMatiereRequise: 'Choisissez la matière à rattacher.',
   programmeIntrouvable: 'Classe, matière ou enseignant introuvable : actualisez la page avant de recommencer.',
   programmeRattachementIncertain: 'Le rattachement n’a pas pu être confirmé : actualisez la fiche pour voir le programme.',
+  // #660 : modifier une matière, modifier ou retirer une matière du programme d'une classe.
+  matiereCodeDejaPris: 'Ce code est déjà employé par une autre matière de l’école.',
+  matiereModificationIncertaine: 'La modification n’a pas pu être confirmée : la liste est relue, vérifiez la matière.',
+  programmeLigneRequise: 'Choisissez la matière du programme à modifier.',
+  programmeCoefficientIllisible: 'Indiquez un coefficient entier, de 1 à 20, ou laissez vide pour celui de la matière.',
+  programmeMatiereEmployee: 'Des leçons, séances, évaluations, quiz ou discussions de cette classe emploient cette matière : elle ne peut pas en être retirée.',
+  programmeModificationIncertaine: 'La modification n’a pas pu être confirmée : la fiche est relue, vérifiez le programme.',
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })

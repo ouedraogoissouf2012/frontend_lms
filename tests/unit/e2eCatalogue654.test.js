@@ -9,7 +9,8 @@ import { describe, expect, it } from 'vitest'
 import { DONNEES_CATALOGUE, ETAPES_CATALOGUE, ETIQUETTES, jugerAbsence, jugerMatiere, jugerRattachement, jugerVueEnseignant } from '../../e2e/parcours-catalogue.mjs'
 
 const lire = (f) => readFileSync(resolve(process.cwd(), f), 'utf8')
-const COMPOSANTS = ['src/components/admin/MatiereCreation.vue', 'src/components/classes/ProgrammeRattachement.vue', 'src/components/admin/EnrolmentCodeCard.vue'].map(lire).join('\n')
+// #660 : les libellés du formulaire de matière vivent dans useMatiereCreation (partagés avec la modification).
+const COMPOSANTS = ['src/components/admin/MatiereCreation.vue', 'src/composables/useMatiereCreation.js', 'src/components/classes/ProgrammeRattachement.vue', 'src/components/admin/EnrolmentCodeCard.vue'].map(lire).join('\n')
 const d = DONNEES_CATALOGUE
 const liste = (matieres) => ({ statut: 200, corps: { success: true, data: { matieres } } })
 const fiche = (programme) => ({ statut: 200, corps: { success: true, data: { matieres_disponibles: programme } } })

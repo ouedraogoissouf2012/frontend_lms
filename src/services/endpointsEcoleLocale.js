@@ -10,6 +10,9 @@ export const endpointsEcoleLocale = {
   catalogue: {
     matieres: '/matieres',
     programme: (classeId) => `/classes/${classeId}/matieres`,
+    // #660 (lms_backend#1653) : modifier une matière ; modifier ou retirer une ligne du programme.
+    matiere: (matiereId) => `/matieres/${matiereId}`,
+    ligneProgramme: (classeId, matiereId) => `/classes/${classeId}/matieres/${matiereId}`,
   },
 
   // Code d'inscription d'une classe LOCALE (#391, ADR-803-03). `/classes` est la collection des classes locales (#905).
