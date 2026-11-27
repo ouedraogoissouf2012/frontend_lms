@@ -45,6 +45,17 @@ export const enrolmentCodesService = {
     return response
   },
 
+  /**
+   * #657 : rattache la classe à une période (`training_session_id`), ou l'en détache (`null`).
+   * La clé est EXIGÉE par le serveur, nulle comprise ; il relit la période et refuse en 422 celle qui ne
+   * reçoit plus d'inscriptions.
+   */
+  async rattacherPeriode(classeId, trainingSessionId) {
+    const response = await api.put(endpoints.enrolment.periode(classeId), { training_session_id: trainingSessionId })
+    if (response?.success !== true) throw invalidResponseError('PUT période sans success', response)
+    return response
+  },
+
   /** Rend le corps et `dejaInscrit` (clé du FRONT, jamais émise ni renvoyée au serveur). */
   async rejoindre(code) {
     const { corps, statut } = await api.post(endpoints.enrolment.rejoindre, { code }, {
