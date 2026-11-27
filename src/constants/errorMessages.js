@@ -182,6 +182,12 @@ export const ERROR_MESSAGES = Object.freeze({
   compteRoleRequis: 'Choisissez le rôle du compte.',
   compteMotDePasseCourt: 'Le mot de passe initial doit compter au moins 8 caractères.',
   compteConfirmationDifferente: 'La confirmation ne reprend pas le mot de passe initial.',
+  // #656 (b) : modifier, désactiver, définir le mot de passe d'un compte.
+  compteRienAModifier: 'Aucun changement à enregistrer.',
+  compteActeIncertain: 'L’opération n’a pas pu être confirmée : la liste est relue, vérifiez-la avant de recommencer.',
+  motDePasseTropCourt: 'Le mot de passe doit compter au moins 8 caractères.',
+  motDePasseConfirmationDifferente: 'La confirmation ne reprend pas le mot de passe.',
+  motDePasseGereParKlassci: 'Le mot de passe de ce compte se gère dans KLASSCI, pas ici.',
   compteCreationIncertaine: 'La création n’a pas pu être confirmée. Le compte existe peut-être déjà : vérifiez la liste avant de recommencer.',
   // #683 : le classement d'une classe (lms_backend#1676).
   resultatsClasseNonEnseignee: 'Vous n’enseignez pas dans cette classe : son classement ne vous est pas ouvert.',
