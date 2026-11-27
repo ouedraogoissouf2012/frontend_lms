@@ -100,7 +100,7 @@ function formatDate(dateStr) {
 
 /* #652 : la colonne Actions reste collée à droite, sur un fond opaque : visible et cliquable sans défiler. */
 .col-actions {
-  position: sticky;
+  position: static;
   right: 0;
   background: var(--card-bg);
   box-shadow: -1px 0 0 var(--border-primary);
