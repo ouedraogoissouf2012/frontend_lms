@@ -4,11 +4,15 @@
  * RapportActiviteInput), et l'avancement est annoncé dans une région présente
  * dès l'ouverture.
  *
- * Retirés : « Matière » (aucune route ne l'accepte : le serveur l'ignorait),
- * « Classe » (le catalogue fournissait un id KLASSCI là où le serveur attend un
- * id LOCAL : le filtre visait une AUTRE classe — D41) et « Type d'activité »
- * (`activity_type` est accepté par le serveur mais sans effet sur le contenu,
- * spec #991 : le choix est retiré jusqu'à ce que le serveur l'applique).
+ * « Classe » revient pour les présences, par l'id LOCAL de
+ * `GET /lms/classes/etablissement` (lms_backend#1709) : l'ancien filtre lisait le
+ * catalogue KLASSCI, d'un autre espace d'ids (D41). Le service est remplacé ici ;
+ * sa traversée du vrai client HTTP est dans `classesDeLEtablissementApiReelle.test.js`.
+ *
+ * Retirés : « Matière » (aucune route ne l'accepte : le serveur l'ignorait) et
+ * « Type d'activité » (`activity_type` est accepté par le serveur mais sans effet
+ * sur le contenu, spec #991 : le choix est retiré jusqu'à ce que le serveur
+ * l'applique).
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
@@ -22,6 +26,10 @@ vi.mock('@/composables/useReportGeneration', () => ({
   useReportGeneration: () => ({ etat, error, generer: (...a) => generer(...a), annuler: (...a) => annuler(...a) }),
 }))
 vi.mock('@/composables/useToast', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
+const listerClasses = vi.fn()
+vi.mock('@/services/classesDeLEtablissement', () => ({
+  listerClassesDeLEtablissement: (...a) => listerClasses(...a),
+}))
 
 import GenerateReportModal from '@/components/modals/GenerateReportModal.vue'
 import { filtresDuRapport } from '@/constants/reports'
@@ -40,22 +48,71 @@ const boutonGenerer = (w) => w.findAll('button').find((b) => /Générer/.test(b.
 
 beforeEach(() => {
   generer.mockReset().mockResolvedValue(undefined)
+  listerClasses.mockReset().mockResolvedValue([
+    { id: 41, libelle: 'Terminale A' },
+    { id: 42, libelle: 'Terminale B' },
+  ])
   annuler.mockReset()
   etat.value = 'repos'
   error.value = null
 })
 
 describe('GenerateReportModal — filtres envoyés', () => {
-  it('ni « Classe », ni « Matière », ni « Type d’activité » ne sont proposés, quel que soit le type', async () => {
+  it('ni « Matière », ni « Type d’activité » ne sont proposés, quel que soit le type', async () => {
     const w = await ouvrir()
     for (const type of ['attendance', 'grades', 'activity']) {
       await w.get('select[name="type"]').setValue(type)
-      expect(w.text()).not.toMatch(/Classe|Matière|Type d'activité/)
+      expect(w.text()).not.toMatch(/Matière|Type d'activité/)
       expect(w.find('[name="activity_type"]').exists()).toBe(false)
     }
   })
 
-  it('présences : seulement la période', async () => {
+  it('« Classe » n’est proposée qu’au rapport de présences, et les classes ne sont lues que pour lui', async () => {
+    const w = await ouvrir()
+    for (const type of ['grades', 'activity']) {
+      await w.get('select[name="type"]').setValue(type)
+      expect(w.find('select[name="classe_id"]').exists()).toBe(false)
+    }
+    expect(listerClasses).not.toHaveBeenCalled()
+
+    await w.get('select[name="type"]').setValue('attendance')
+    await flushPromises()
+    const options = w.get('select[name="classe_id"]').findAll('option').map((o) => o.text())
+    expect(options).toEqual(['Toutes les classes', 'Terminale A', 'Terminale B'])
+    expect(listerClasses).toHaveBeenCalledTimes(1)
+  })
+
+  it('présences, une classe choisie : son id LOCAL part dans `classe_id`', async () => {
+    const w = await ouvrir()
+    await w.get('select[name="type"]').setValue('attendance')
+    await flushPromises()
+    await w.get('select[name="classe_id"]').setValue(42)
+    await boutonGenerer(w).trigger('click')
+    expect(generer).toHaveBeenCalledWith('attendance', expect.objectContaining({ classe_id: 42 }))
+  })
+
+  it('une classe choisie puis un autre type : `classe_id` ne part pas', async () => {
+    const w = await ouvrir()
+    await w.get('select[name="type"]').setValue('attendance')
+    await flushPromises()
+    await w.get('select[name="classe_id"]').setValue(42)
+    await w.get('select[name="type"]').setValue('grades')
+    await boutonGenerer(w).trigger('click')
+    expect(generer.mock.calls[0][1]).not.toHaveProperty('classe_id')
+  })
+
+  it('les classes ne se chargent pas : le choix reste « Toutes les classes », l’écran le dit, le rapport part', async () => {
+    listerClasses.mockRejectedValue(new Error('réseau'))
+    const w = await ouvrir()
+    await w.get('select[name="type"]').setValue('attendance')
+    await flushPromises()
+    expect(w.get('select[name="classe_id"]').attributes('disabled')).toBeDefined()
+    expect(w.text()).toContain('Les classes n’ont pas pu être chargées')
+    await boutonGenerer(w).trigger('click')
+    expect(generer.mock.calls[0][1]).not.toHaveProperty('classe_id')
+  })
+
+  it('présences : seulement la période, sans classe choisie', async () => {
     const w = await ouvrir()
     await w.get('select[name="type"]').setValue('attendance')
     await w.get('input[name="date_start"]').setValue('2026-10-01')

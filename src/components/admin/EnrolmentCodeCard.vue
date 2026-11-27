@@ -20,6 +20,9 @@
       </button>
     </div>
 
+    <!-- #654 : la fiche de la classe, où se compose son programme. -->
+    <router-link class="code-lien" :to="{ name: 'classe-details-local', params: { id: classe.id } }">{{ LIEN_FICHE }}</router-link>
+
     <!-- #631 : après les gestes du code, qu'elle ne bloque pas (busy ne concerne que le code). -->
     <ClasseCapacite :classe="classe" @regle="$emit('capacite', $event)" />
 
@@ -48,6 +51,8 @@ const props = defineProps({
 })
 
 defineEmits(['emettre', 'retirer', 'capacite', 'periode'])
+
+const LIEN_FICHE = 'Ouvrir la classe'
 
 const ETATS = Object.freeze({
   actif: 'Code actif',
@@ -93,6 +98,12 @@ const peutRegenerer = computed(() => etat.value === 'actif' || etat.value === 'i
   color: var(--text-primary);
   user-select: all;
   margin: var(--spacing-sm) 0;
+}
+
+.code-lien {
+  justify-self: start;
+  color: var(--color-info-strong);
+  font-weight: 600;
 }
 
 .code-actions {

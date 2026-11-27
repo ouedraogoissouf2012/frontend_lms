@@ -18,7 +18,7 @@ import { normalizeRole, ROLES } from '@/constants/roles'
  * KLASSCI.
  */
 
-/** Une seule page suffit à l'encadrement d'un établissement (plafond serveur). */
+/** Plafond d'une page côté serveur (`ListUsersRequest` : per_page ≤ 100) ; il suffit à l'encadrement. */
 const PAGE_SIZE = 100
 
 /** Rôles déjà couverts par les listes KLASSCI, donc exclus d'ici. */
@@ -55,6 +55,33 @@ export async function listAdministrationUsers() {
 }
 
 /**
+ * Tous les comptes LMS d'un rôle, TOUTES pages lues (#656) : `GET /admin/users?role=…`.
+ *
+ * Sert l'école autonome, où un élève qu'aucune classe n'inscrit (créé à l'écran, #648) n'a pas d'autre source.
+ * Une école dépasse vite le plafond d'une page (100) : on suit `last_page`. Les pages sont lues l'une après
+ * l'autre, pour ne pas solliciter le serveur en rafale. Une page en échec fait échouer l'ensemble : une liste à
+ * moitié lue ne doit jamais passer pour complète.
+ *
+ * @param {{ role: string }} filtre rôle canonique (`ROLES`)
+ * @returns {Promise<Array<object>>} les comptes `{ id, name, email, role, klassci_id, created_at }`, id LOCAUX
+ */
+export async function listComptesLocaux({ role }) {
+  const comptes = []
+  let page = 1
+  let derniere = 1
+  do {
+    const response = await api.get(endpoints.admin.users, {
+      params: { role, page, per_page: PAGE_SIZE, sort: 'name', direction: 'asc' },
+    })
+    comptes.push(...extractList(response))
+    // Sans `last_page` lisible, on ne devine pas d'autres pages : on s'arrête à celle-ci.
+    derniere = Number(response?.data?.last_page) || page
+    page += 1
+  } while (page <= derniere)
+  return comptes
+}
+
+/**
  * Crée un compte dans l'établissement de l'acteur (#648), `POST /users` (CreateUserRequest) : un mot de passe
  * INITIAL, confirmé ; le rôle est jugé par le serveur (strictement inférieur à celui de l'acteur).
  * @param {{ nom: string, courriel: string, role: string, motDePasse: string, confirmation: string }} saisie
@@ -66,4 +93,4 @@ export async function creerCompte({ nom, courriel, role, motDePasse, confirmatio
   })
 }
 
-export default { listAdministrationUsers, creerCompte }
+export default { listAdministrationUsers, listComptesLocaux, creerCompte }

@@ -35,14 +35,14 @@ export const REPORT_STATUS = Object.freeze({
 /**
  * Les SEULS filtres que chaque route accepte (spec #991). Le contrôleur ne garde
  * que `validated()` : un champ hors de cette liste était silencieusement ignoré.
- * `classe_id` n'y figure pas : le seul catalogue disponible donne des ids KLASSCI,
- * là où le serveur attend des ids LOCAUX (D41).
- * `activity_type` non plus : accepté par le serveur mais sans effet sur le
+ * `classe_id` (présences) : l'id LOCAL d'une classe de l'établissement, lu dans
+ * `GET /lms/classes/etablissement` (lms_backend#1709), jamais un id KLASSCI (D41).
+ * `activity_type` n'y figure pas : accepté par le serveur mais sans effet sur le
  * contenu du rapport (spec #991). Le choix est retiré jusqu'à ce que le serveur
  * l'applique.
  */
 const FILTRES_ACCEPTES = Object.freeze({
-  attendance: ['date_start', 'date_end'],
+  attendance: ['date_start', 'date_end', 'classe_id'],
   grades: ['date_start', 'date_end'],
   activity: ['date_start', 'date_end'],
 })

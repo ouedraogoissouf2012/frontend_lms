@@ -89,7 +89,7 @@ const { loading, revalidating, error, canRetry, stats, meta, loadStats, refreshD
 .page-icon {
   width: 2.5rem;
   height: 2.5rem;
-  color: var(--color-primary);
+  color: var(--primary-color);
 }
 
 .page-title {
@@ -117,7 +117,7 @@ const { loading, revalidating, error, canRetry, stats, meta, loadStats, refreshD
 
 .refresh-btn:hover {
   background: var(--bg-hover);
-  border-color: var(--color-primary);
+  border-color: var(--primary-color);
 }
 
 .animate-spin {
@@ -191,7 +191,7 @@ const { loading, revalidating, error, canRetry, stats, meta, loadStats, refreshD
 .retry-btn {
   margin-top: var(--spacing-md);
   padding: var(--spacing-sm) var(--spacing-lg);
-  background: var(--color-primary);
+  background: var(--color-info-strong);
   color: white;
   border: none;
   border-radius: var(--radius-md);

@@ -4,9 +4,10 @@
       Le courriel n'est pas obligatoire : un numéro WhatsApp suffit. Il faut
       cependant l'un des deux pour chaque apprenant.
     </p>
-    <!-- #655 : la règle du serveur (lms StudentEnrolmentService::inscrireParCodeDeClasse). -->
+    <!-- #655 : la règle du serveur (lms StudentEnrolmentService::inscrireParCodeDeClasse). front#717 : la
+         colonne porte le libellé de la cartographie, jamais sa clé (garde d’écran de l’E2E). -->
     <p class="import-note">
-      La colonne <strong>code_classe</strong> attend le code de la classe, celui saisi à
+      La colonne « <strong>{{ libelleCodeClasse }}</strong> » attend le code de la classe, celui saisi à
       sa création (champ « Code »). Ce n’est pas le code d’inscription donné aux élèves.
       Laissée vide, le compte est créé sans classe ; un code qu’aucune classe de
       l’établissement ne porte fait refuser la ligne, et le rapport le dit.
@@ -50,7 +51,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { IMPORT_TEMPLATE } from '@/constants/importFields'
+import { IMPORT_FIELDS, IMPORT_TEMPLATE } from '@/constants/importFields'
 import { downloadBlob } from '@/utils/downloadBlob'
 
 /** Dépôt du fichier (#334). Le fichier choisi n'est ni lu ni transformé ici :
@@ -61,6 +62,9 @@ defineProps({
 const emit = defineEmits(['file', 'next'])
 
 const survol = ref(false)
+
+/** Le nom que l'étape de cartographie donne à la colonne : l'aide et la cartographie disent le même. */
+const libelleCodeClasse = IMPORT_FIELDS.find((champ) => champ.key === 'code_classe')?.label
 
 function onFile(event) {
   const chosen = event.target.files?.[0]

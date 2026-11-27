@@ -63,6 +63,8 @@ export const ERROR_MESSAGES = Object.freeze({
   enrolmentNotActive: "Votre inscription dans cette classe n'est pas active. Adressez-vous à votre établissement.",
   // lms_backend#1115 (#620) : 409 `class_full`, le code est valide mais la classe est pleine.
   classeComplete: 'Cette classe est complète. Adressez-vous à votre établissement.',
+  // lms_backend#1709 : GET /lms/classes/etablissement a échoué ; le rapport reste possible sur toute l'école.
+  classesIndisponibles: 'Les classes n’ont pas pu être chargées : le rapport portera sur toutes les classes.',
   noInstitution: "Votre compte n'est rattaché à aucun établissement. Contactez votre administrateur.",
   accountQuotaExceeded: "Trop d'essais en peu de temps. Réessayez dans une minute.",
   accountDailyCapReached: "Vous avez atteint la limite d'essais pour aujourd'hui. Réessayez demain.",
@@ -127,11 +129,18 @@ export const ERROR_MESSAGES = Object.freeze({
   // D477 : la connexion (Login.vue, utils/messageConnexion). Textes du front ; le back n'a pas de `reason`.
   identifiantsIncorrects: 'Identifiants incorrects.',
   connexionEchouee: 'Échec de la connexion.',
+  // lms_backend#1739 (#711) : KLASSCI refuse le COMPTE (non réinscrit, inactif) sans dire pourquoi.
+  compteRefuseParKlassci: 'Votre établissement refuse cette connexion. Contactez son secrétariat.',
   compteEnConflit: "Votre adresse e-mail est déjà utilisée par un autre compte de votre établissement. Contactez l'administrateur de votre école.",
   // lms_backend#922 (ADR-906-01) : les sens d'un même statut, chacun son motif (refusalReasons.js).
   demandeEcoleQuotaAdresse: 'Trop de demandes envoyées depuis cette connexion. Réessayez dans un instant.',
   demandeEcolePlafondDuJour: "Le nombre maximal de demandes d'inscription d'école est atteint pour aujourd'hui. Réessayez demain.",
   periodeTransitionInterdite: "Cette action n'est pas possible dans l'état actuel de la période.",
+  // #658 (lms_backend#1651).
+  periodeNonModifiable: 'Une période close, annulée ou archivée ne se modifie plus.',
+  periodePublieeSansDebut: 'Une période publiée garde sa date de début.',
+  periodeNonSupprimable: 'Seul un brouillon sans classe rattachée se supprime ; une période publiée s’annule.',
+  periodeNonPubliee: 'Seule une période publiée peut devenir la période en cours.',
   evaluationTentativeNonDemarree: "Aucune tentative n'est en cours pour cette évaluation : démarrez-la avant de la rendre.",
   evaluationCopieNonNotable: "Cette copie ne peut pas encore être notée : elle n'a pas été rendue.",
   quizIndisponible: "Ce quiz n'est pas disponible actuellement.",
@@ -177,5 +186,13 @@ export const ERROR_MESSAGES = Object.freeze({
   // #683 : le classement d'une classe (lms_backend#1676).
   resultatsClasseNonEnseignee: 'Vous n’enseignez pas dans cette classe : son classement ne vous est pas ouvert.',
   resultatsHorsDeLaClasse: 'Vous n’êtes pas inscrit dans cette classe : son classement ne vous est pas ouvert.',
+  // #654 : le catalogue d'une école autonome (matière, programme d'une classe).
+  matiereLibelleRequis: 'Indiquez le libellé de la matière.',
+  matiereCoefficientIllisible: 'Indiquez un coefficient entier, de 1 à 20.',
+  matiereCreditIllisible: 'Indiquez un crédit entier, de 1 à 60.',
+  matiereCreationIncertaine: 'La création n’a pas pu être confirmée. La matière existe peut-être déjà : vérifiez la liste avant de recommencer.',
+  programmeMatiereRequise: 'Choisissez la matière à rattacher.',
+  programmeIntrouvable: 'Classe, matière ou enseignant introuvable : actualisez la page avant de recommencer.',
+  programmeRattachementIncertain: 'Le rattachement n’a pas pu être confirmé : actualisez la fiche pour voir le programme.',
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })

@@ -27,6 +27,9 @@ export const REASONS = Object.freeze({
   // lms_backend#1115 (#620) : 409 des deux portes d'inscription par code, la classe a atteint sa capacité. Définitif.
   class_full: motif('classeComplete'),
   no_institution: motif('noInstitution'),
+  // lms_backend#1739 (#711) : 403 de POST /auth/login, KLASSCI refuse le compte. Définitif ; l'écran de
+  // connexion montre le motif de KLASSCI quand il en porte un (`messageConnexion`).
+  klassci_account_refused: motif('compteRefuseParKlassci'),
   account_quota_exceeded: motif('accountQuotaExceeded'),
   account_daily_cap_reached: motif('accountDailyCapReached'),
   institution_cap_reached: motif('institutionCapReached'),
@@ -100,6 +103,11 @@ export const REASONS = Object.freeze({
   ip_quota_exceeded: motif('demandeEcoleQuotaAdresse', { transitoire: true }),
   school_requests_global_cap: motif('demandeEcolePlafondDuJour'),
   training_session_transition_not_allowed: motif('periodeTransitionInterdite'),
+  // lms_backend#1651 (#658) : modifier, supprimer, désigner la période en cours. Définitifs.
+  training_session_not_editable: motif('periodeNonModifiable'),
+  training_session_published_needs_start: motif('periodePublieeSansDebut'),
+  training_session_not_deletable: motif('periodeNonSupprimable'),
+  training_session_not_publiee: motif('periodeNonPubliee'),
   evaluation_attempt_not_started: motif('evaluationTentativeNonDemarree'),
   evaluation_submission_not_gradable: motif('evaluationCopieNonNotable'),
   // POST /knowledge-checks/{id}/start et /submit. Les `webhook_*` du même lot ne s'adressent qu'au serveur
