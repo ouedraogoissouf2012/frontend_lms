@@ -25,6 +25,7 @@ import { ETAPES_PUBLICATION, DONNEES_PUBLICATION } from './parcours-publier-sess
 import { ETAPES_CAPACITE, DONNEES_CAPACITE } from './parcours-capacite.mjs'
 import { ETAPES_CREATION, DONNEES_CREATION } from './parcours-creation-classe.mjs'
 import { ETAPES_COMPTE, DONNEES_COMPTE } from './parcours-creation-compte.mjs'
+import { ETAPES_INSTITUTIONS, DONNEES_INSTITUTIONS } from './parcours-institutions.mjs'
 
 const FONCTIONS = [
   { fonction: 'leçon', etapes: ETAPES_LECON, donnees: DONNEES_LECON },
@@ -41,6 +42,8 @@ const FONCTIONS = [
   { fonction: 'création d’une classe', etapes: ETAPES_CREATION, donnees: DONNEES_CREATION },
   // #648 : l'admin d'une école autonome crée un enseignant et un élève à l'écran ; chacun se connecte (anonyme).
   { fonction: 'création d’un compte', etapes: ETAPES_COMPTE, donnees: DONNEES_COMPTE },
+  // #652 : le tableau des institutions du supradmin, à 1366 et 1920 px : la colonne Actions entière et cliquable.
+  { fonction: 'tableau des institutions', etapes: ETAPES_INSTITUTIONS, donnees: DONNEES_INSTITUTIONS },
 ]
 
 const [fichierJeu, sortie] = process.argv.slice(2)
@@ -65,7 +68,7 @@ connexions.anonyme = { connecte: true, alerte: '' }
 const cases = []
 for (const { fonction, etapes, donnees } of FONCTIONS) {
   const moteur = moteurFonctionnel({ ecole, fonction })
-  const ctx = { pages, base: BASE, jeu, donnees: typeof donnees === 'function' ? donnees(jeu) : donnees, etat: {} }
+  const ctx = { pages, base: BASE, sortie, jeu, donnees: typeof donnees === 'function' ? donnees(jeu) : donnees, etat: {} }
   for (const e of etapes) {
     const connexion = connexions[e.compte]
     await moteur.etape({
