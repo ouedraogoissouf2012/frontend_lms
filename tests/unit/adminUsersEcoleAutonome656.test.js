@@ -22,7 +22,7 @@ vi.mock('@/stores/auth', () => ({ useAuthStore: () => auth }))
 vi.mock('@/services/cache', () => ({ readCache: () => null, writeCache: () => {}, invalidateEntity: () => {} }))
 vi.mock('@/services/klassci', () => ({ default: { getClasses: () => impl.getClasses() } }))
 vi.mock('@/services/lmsClasses', () => ({
-  lmsClassesService: { getClasseDetails: () => impl.roster().then((etudiants) => ({ success: true, data: { etudiants } })) },
+  lmsClassesService: { getClasseDetails: (id) => impl.roster(id).then((etudiants) => ({ success: true, data: { etudiants } })) },
 }))
 vi.mock('@/services/lmsTeachers', () => ({
   lmsTeachersService: { getEnseignants: () => impl.enseignants().then((data) => ({ success: true, data })) },
@@ -47,7 +47,7 @@ const ligne = (u, email) => u.filteredUsers.value.find((x) => x.email === email)
 beforeEach(() => {
   auth.peutInscrireLocalement = true
   listComptesLocaux.mockReset()
-  impl.getClasses = () => Promise.resolve([{ id: 1, name: '6e A', libelle: null, places_occupees: 1 }])
+  impl.getClasses = () => Promise.resolve([{ id: 1, name: '6e A', libelle: null }])
   impl.roster = () => Promise.resolve([{ id: 100, name: 'Aline Inscrite', email: 'aline@e.com' }])
   impl.enseignants = () => Promise.resolve([{ id: 10, nom: 'Zoé Prof', email: 'zoe@e.com' }])
   impl.administration = () => Promise.resolve({ items: [{ id: 3, name: 'Cora', email: 'cora@e.com', role: 'coordinateur' }], counts: null })
@@ -88,6 +88,25 @@ describe('#656 (a) — école autonome : des id LOCAUX', () => {
 
     expect(u.totalUsers.value).toBe(3)
     expect(u.notices.value.some((n) => /sans classe/i.test(n))).toBe(true)
+  })
+
+  it('roster INCOMPLET : un élève d’une classe non lue n’est jamais présenté « sans classe »', async () => {
+    // Bruno est inscrit en 6e B, dont le roster n'a pas pu être lu : on ne sait pas qu'il est sans classe.
+    impl.getClasses = () => Promise.resolve([{ id: 1, name: '6e A', libelle: null }, { id: 2, name: '6e B', libelle: null }])
+    impl.roster = (id) => (id === 1
+      ? Promise.resolve([{ id: 100, name: 'Aline Inscrite', email: 'aline@e.com' }])
+      : Promise.reject(new Error('500')))
+    const u = await setup()
+
+    expect(ligne(u, 'bruno@e.com')).toBeUndefined()
+    expect(u.notices.value.some((n) => /incompl/i.test(n))).toBe(true)
+  })
+
+  it('classes illisibles : aucun élève n’est déduit « sans classe »', async () => {
+    impl.getClasses = () => Promise.reject(new Error('500'))
+    const u = await setup()
+
+    expect(u.filteredUsers.value.filter((x) => x.role === 'etudiant')).toEqual([])
   })
 })
 
