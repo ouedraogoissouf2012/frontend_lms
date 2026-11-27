@@ -92,7 +92,7 @@ describe('#656 (b) — les actions offertes', () => {
 })
 
 describe('#656 (b) — modifier', () => {
-  beforeEach(() => connecter('admin'))
+  beforeEach(() => { connecter('admin') })
 
   async function ouvrir(ligne = ELEVE) {
     const w = monter(ligne)
@@ -159,7 +159,7 @@ describe('#656 (b) — modifier', () => {
 })
 
 describe('#656 (b) — désactiver', () => {
-  beforeEach(() => connecter('admin'))
+  beforeEach(() => { connecter('admin') })
 
   it('demande confirmation, dit ce que fait l’acte, puis DELETE à l’id local', async () => {
     repondre([200, { success: true, message: 'Utilisateur supprimé' }])
@@ -190,7 +190,7 @@ describe('#656 (b) — désactiver', () => {
 })
 
 describe('#656 (b) — définir le mot de passe', () => {
-  beforeEach(() => connecter('admin'))
+  beforeEach(() => { connecter('admin') })
 
   async function saisir(motDePasse, confirmation) {
     const w = monter()
@@ -215,9 +215,10 @@ describe('#656 (b) — définir le mot de passe', () => {
   it('trop court ou non confirmé : refusé à l’écran, sans appel', async () => {
     repondre([200, {}])
     const court = await saisir('court', 'court')
-    expect(description(court, 'motDePasse')).toBe(ERROR_MESSAGES.compteMotDePasseCourt)
+    // L'aide du champ lui est reliée aussi : l'erreur s'y ajoute.
+    expect(description(court, 'motDePasse')).toContain(ERROR_MESSAGES.motDePasseTropCourt)
     const different = await saisir('nouveau-mdp-8', 'autre-mdp-88')
-    expect(description(different, 'confirmation')).toBe(ERROR_MESSAGES.compteConfirmationDifferente)
+    expect(description(different, 'confirmation')).toBe(ERROR_MESSAGES.motDePasseConfirmationDifferente)
     expect(requetes).toEqual([])
   })
 
