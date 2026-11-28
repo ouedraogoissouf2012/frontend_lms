@@ -47,7 +47,7 @@ export function useEmploisDuTemps() {
     erreurs.classe = toId(saisie.classe) ? '' : ERROR_MESSAGES.emploiDuTempsClasseRequise
     erreurs.titre = saisie.titre.trim() ? '' : ERROR_MESSAGES.emploiDuTempsTitreRequis
     erreurs.plage = !saisie.du || !saisie.au ? ERROR_MESSAGES.emploiDuTempsPlageRequise
-      : saisie.au < saisie.du ? ERROR_MESSAGES.emploiDuTempsPlageInversee : ''
+      : '' // MUTATION F3
     return !erreurs.classe && !erreurs.titre && !erreurs.plage
   }
 

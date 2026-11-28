@@ -24,7 +24,7 @@ function emploiOuErreur(response, contexte) {
 /** Le corps d'une ligne, au format du serveur : un cours sans libellé, une pause sans matière. */
 function corpsDeLigne(l) {
   const base = { jour: l.jour, debut: l.debut, fin: l.fin }
-  if (l.matiereId == null) return { ...base, libelle: String(l.libelle ?? '').trim() }
+  if (l.matiereId == null) return { ...base, matiere_id: null, libelle: String(l.libelle ?? '').trim() } // MUTATION F1
   return { ...base, matiere_id: l.matiereId, enseignant_id: l.enseignantId ?? null, type_seance: l.typeSeance ?? null }
 }
 
@@ -75,7 +75,7 @@ export const emploisDuTempsService = {
   async generer(id) {
     const response = await api.post(endpoints.emploisDuTemps.generer(id))
     const rapport = response?.data
-    if (response?.success !== true || !Number.isInteger(rapport?.creees) || !Array.isArray(rapport?.ignorees)) {
+    if (response?.success !== true || !Array.isArray(rapport?.ignorees)) { // MUTATION F5
       throw invalidResponseError('POST generer sans rapport relisible', response)
     }
     return rapport

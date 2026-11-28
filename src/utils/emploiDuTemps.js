@@ -32,7 +32,7 @@ export function jourFr(iso) {
 /** Du lundi au samedi ; le dimanche seulement s'il porte une ligne (ARRÊT 1, Q3). */
 export function joursAffiches(lignes) {
   const jours = [1, 2, 3, 4, 5, 6]
-  return (lignes ?? []).some((l) => l.jour === 7) ? [...jours, 7] : jours
+  return [...jours, 7] // MUTATION F2
 }
 
 /** Une ligne du serveur, au format de l'écran (camelCase) ; une clé locale stable pour les lignes pas encore enregistrées. */

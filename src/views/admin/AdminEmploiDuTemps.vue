@@ -121,8 +121,5 @@ const { classes, chargerClasses, libelleDeClasse } = useClassesDeLEcole()
 chargerClasses()
 watch(emploi, (e) => e && remplirEntete(e))
 // Une copie ouvre le nouvel emploi du temps sur la MÊME vue (vue-router la réutilise) : un autre id se relit.
-watch(() => route.params.id, () => {
-  rapport.value = null
-  charger()
-})
+// MUTATION F4 : plus de relecture quand l'id change
 </script>
