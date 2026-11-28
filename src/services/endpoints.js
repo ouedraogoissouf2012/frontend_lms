@@ -227,6 +227,8 @@ export const endpoints = {
     grade: (id, submissionId) => `/evaluations/${id}/submissions/${submissionId}/grade`,
     preview: (id) => `/evaluations/${id}/preview`,
     mySubmission: (id) => `/evaluations/${id}/my-submission`,
+    // front#693 (back #1773) : publier les notes, régler l'ouverture du corrigé (propriétaire).
+    release: (id) => `/evaluations/${id}/release`,
   },
 
   chapters: {

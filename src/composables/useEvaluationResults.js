@@ -3,13 +3,16 @@ import { useRoute } from 'vue-router'
 import api from '@/services/api'
 import { endpoints } from '@/services/endpoints'
 import { refusMotive } from '@/services/errorHandler'
-
-const CORRECTION_DELAY_DAYS = 7 // Délai en jours avant d'afficher les bonnes réponses
+import { etatDuCorrige } from '@/utils/diffusionDesResultats'
 
 /**
- * Couche données de EvaluationResults (H2 ≤300) : charge la soumission de
- * l'étudiant pour une évaluation et dérive l'état de correction (disponibilité,
- * compte à rebours, progression, date d'ouverture). La vue ne fait que câbler.
+ * Couche données de EvaluationResults (H2 ≤300) : charge la copie de l'étudiant pour une
+ * évaluation et en dérive l'état du corrigé. La vue ne fait que câbler.
+ *
+ * front#693 (contrat back #1773) : l'état du corrigé vient du serveur et du mode choisi par
+ * l'enseignant ({@link etatDuCorrige}). L'ancien délai fixe de 7 jours après la remise, recalculé
+ * ici quand l'API ne donnait pas de date, est retiré : il annonçait une date à un corrigé qui
+ * n'ouvrirait jamais.
  */
 export function useEvaluationResults() {
   const route = useRoute()
@@ -18,88 +21,8 @@ export function useEvaluationResults() {
   const loading = ref(true)
   const error = ref(null)
 
-  // Utiliser la valeur de l'API (sécurisée côté backend) ou fallback calcul local
-  const isCorrectionAvailable = computed(() => {
-    // Priorité à la valeur de l'API (source de vérité)
-    if (submission.value && typeof submission.value.correction_available === 'boolean') {
-      return submission.value.correction_available
-    }
-
-    // Fallback: calcul local (pour compatibilité)
-    if (!submission.value || !submission.value.submitted_at) return false
-
-    const submittedDate = new Date(submission.value.submitted_at)
-    const now = new Date()
-    const daysSinceSubmission = Math.floor((now - submittedDate) / (1000 * 60 * 60 * 24))
-
-    return daysSinceSubmission >= CORRECTION_DELAY_DAYS
-  })
-
-  // Nombre de jours restants avant correction
-  const daysUntilCorrection = computed(() => {
-    // Si l'API fournit correction_available_at, l'utiliser
-    if (submission.value && submission.value.correction_available_at) {
-      const correctionDate = new Date(submission.value.correction_available_at)
-      const now = new Date()
-      const daysRemaining = Math.ceil((correctionDate - now) / (1000 * 60 * 60 * 24))
-      return Math.max(0, daysRemaining)
-    }
-
-    // Fallback: calcul local
-    if (!submission.value || !submission.value.submitted_at) return 0
-
-    const submittedDate = new Date(submission.value.submitted_at)
-    const now = new Date()
-    const daysSinceSubmission = Math.floor((now - submittedDate) / (1000 * 60 * 60 * 24))
-
-    return Math.max(0, CORRECTION_DELAY_DAYS - daysSinceSubmission)
-  })
-
-  // Pourcentage de progression vers la correction
-  const correctionProgressPercent = computed(() => {
-    if (!submission.value || !submission.value.submitted_at) return 0
-
-    const delayDays = submission.value.correction_delay_days || CORRECTION_DELAY_DAYS
-    const submittedDate = new Date(submission.value.submitted_at)
-    const now = new Date()
-    const daysSinceSubmission = Math.floor((now - submittedDate) / (1000 * 60 * 60 * 24))
-
-    const percent = Math.min(100, Math.floor((daysSinceSubmission / delayDays) * 100))
-    return percent
-  })
-
-  // Date à laquelle la correction sera disponible
-  const formatCorrectionDate = computed(() => {
-    // Utiliser la date de l'API si disponible
-    if (submission.value && submission.value.correction_available_at) {
-      const correctionDate = new Date(submission.value.correction_available_at)
-      return correctionDate.toLocaleDateString('fr-FR', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    }
-
-    // Fallback: calcul local
-    if (!submission.value || !submission.value.submitted_at) return ''
-
-    const delayDays = submission.value.correction_delay_days || CORRECTION_DELAY_DAYS
-    const submittedDate = new Date(submission.value.submitted_at)
-    const correctionDate = new Date(submittedDate)
-    correctionDate.setDate(correctionDate.getDate() + delayDays)
-
-    return correctionDate.toLocaleDateString('fr-FR', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  })
+  const etatCorrige = computed(() => etatDuCorrige(submission.value))
+  const isCorrectionAvailable = computed(() => etatCorrige.value.ouvert)
 
   async function loadResults() {
     try {
@@ -123,9 +46,5 @@ export function useEvaluationResults() {
     loadResults()
   })
 
-  return {
-    submission, loading, error,
-    isCorrectionAvailable, daysUntilCorrection, correctionProgressPercent, formatCorrectionDate,
-    loadResults,
-  }
+  return { submission, loading, error, isCorrectionAvailable, etatCorrige, loadResults }
 }
