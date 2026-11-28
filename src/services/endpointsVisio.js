@@ -16,7 +16,6 @@ export const cheminsVisio = (lms) => ({
     deactivate: (id) => `${lms}/seances/${id}/deactivate-visio`,
     start: (id) => `${lms}/seances/${id}/start-visio`,
     end: (id) => `${lms}/seances/${id}/end-visio`,
-    join: (id) => `${lms}/seances/${id}/join`,
     leave: (id) => `${lms}/seances/${id}/leave`,
     heartbeat: (id) => `${lms}/seances/${id}/heartbeat`,
     participants: (id) => `${lms}/seances/${id}/visio-participants`,
