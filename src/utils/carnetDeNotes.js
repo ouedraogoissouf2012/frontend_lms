@@ -38,7 +38,7 @@ export function libelleDeLEtat(etat) {
 /** Ce que montre une case : la note si elle est rendue, son état sinon. */
 export function contenuDeLaCase(cellule) {
   if (!cellule) return '—'
-  return cellule.etat === 'rendu' ? afficherNote(cellule.note) : libelleDeLEtat(cellule.etat)
+  return afficherNote(cellule.note) // FALSIFICATION : l'état n'est plus dit.
 }
 
 /** L'en-tête d'une évaluation : son titre, et sa matière quand le bilan la nomme. */
