@@ -24,6 +24,11 @@ import { endpointsEcoleLocale } from './endpointsEcoleLocale.js'
 const KLASSCI = '/proxy'
 const LMS = '/lms'
 
+// Blocs de `lms.*` sortis par domaine (#741), mêmes clés, mêmes chemins, à leur place dans la carte.
+import { cheminsImports } from './endpointsImports.js'
+import { cheminsMatieres } from './endpointsMatieres.js'
+import { cheminsVisio } from './endpointsVisio.js'
+
 export const endpoints = {
   // ── KLASSCI — BRUT (/proxy/*) ───────────────────────────────────────────
   klassci: {
@@ -55,16 +60,9 @@ export const endpoints = {
       // (lms_backend#1709) : le filtre de classe du rapport de présences.
       etablissement: `${LMS}/classes/etablissement`,
     },
-    imports: {
-      preview: `${LMS}/imports/preview`,
-      confirm: (id) => `${LMS}/imports/${id}/confirm`,
-      show: (id) => `${LMS}/imports/${id}`,
-    },
+    ...cheminsImports(LMS),
 
-    matieres: {
-      details: (id) => `${LMS}/matieres/${id}`,
-      myTeacher: `${LMS}/teacher/my-matieres`,
-    },
+    ...cheminsMatieres(LMS),
 
     seances: {
       // Création locale (école créée depuis le LMS) : POST, 201.
@@ -87,28 +85,8 @@ export const endpoints = {
       deleteLocal: (id) => `${LMS}/seances/local/${id}`,
     },
 
-    // Cycle de vie visio d'une séance (sous /lms/seances/{id}/*).
-    visio: {
-      // Consentement du porteur — reglage de COMPTE, pas de seance (#716).
-      // Le backend refuse tout enregistrement tant qu'il n'a pas cette ligne.
-      consent: () => `${LMS}/visio/consent`,
-      toggle: (id) => `${LMS}/seances/${id}/toggle-visio`,
-      activate: (id) => `${LMS}/seances/${id}/activate-visio`,
-      deactivate: (id) => `${LMS}/seances/${id}/deactivate-visio`,
-      start: (id) => `${LMS}/seances/${id}/start-visio`,
-      end: (id) => `${LMS}/seances/${id}/end-visio`,
-      join: (id) => `${LMS}/seances/${id}/join`,
-      leave: (id) => `${LMS}/seances/${id}/leave`,
-      heartbeat: (id) => `${LMS}/seances/${id}/heartbeat`,
-      participants: (id) => `${LMS}/seances/${id}/visio-participants`,
-      // Participation en cours de l'appelant (#673). Sans identifiant de
-      // séance : le serveur la résout par l'utilisateur authentifié, et par lui
-      // seul. Sert à remonter la salle embarquée après un rechargement de page.
-      activeParticipation: () => `${LMS}/visio/active`,
-      recordingStatus: (id) => `${LMS}/seances/${id}/recording`,
-      recordingStart: (id) => `${LMS}/seances/${id}/recording/start`,
-      recordingStop: (id) => `${LMS}/seances/${id}/recording/stop`,
-    },
+    // Cycle de vie visio d'une séance (sous /lms/seances/{id}/*), endpointsVisio.js.
+    ...cheminsVisio(LMS),
 
     attendance: {
       history: `${LMS}/attendance/history`,
@@ -117,6 +95,10 @@ export const endpoints = {
   },
 
   // ── ADMIN (/admin/*) ────────────────────────────────────────────────────
+  // #690 (lms#1650) : annoncer à toute une classe, par l'id de l'espace source de l'école.
+  annonces: {
+    publier: '/annonces',
+  },
   admin: {
     matieres: '/admin/matieres',
     // Comptes LMS du tenant : seule source des coordinateurs et admins,
@@ -251,6 +233,8 @@ export const endpoints = {
     grade: (id, submissionId) => `/evaluations/${id}/submissions/${submissionId}/grade`,
     preview: (id) => `/evaluations/${id}/preview`,
     mySubmission: (id) => `/evaluations/${id}/my-submission`,
+    // front#693 (back #1773) : publier les notes, régler l'ouverture du corrigé (propriétaire).
+    release: (id) => `/evaluations/${id}/release`,
   },
 
   chapters: {

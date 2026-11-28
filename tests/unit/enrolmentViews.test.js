@@ -3,7 +3,7 @@
  * composable (doublé ici ; sa logique est testée à part).
  */
 import { mount, flushPromises } from '@vue/test-utils'
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { describe, it, expect, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -16,6 +16,8 @@ vi.mock('@/composables/useJoinClass', () => ({ useJoinClass: () => join }))
 import AdminEnrolmentCodes from '@/views/admin/AdminEnrolmentCodes.vue'
 import StudentJoinClass from '@/views/student/StudentJoinClass.vue'
 
+// #659 : les filtres de la liste et la ligne rendue par un geste, doublés comme le reste du composable.
+const filtresDoubles = () => ({ filtres: reactive({ statut: 'active', places: '' }), filtrer: vi.fn(), majLigne: vi.fn() })
 const stubs = { DashboardLayout: { template: '<div><slot /></div>' }, ContentLoader: true, 'router-link': { template: '<a><slot /></a>' } }
 const classe = (id, etat, valeur = null) => ({ id, libelle: `Classe ${id}`, code: `C${id}`, training_session_id: null, code_inscription: { etat, valeur } })
 
@@ -23,7 +25,7 @@ describe('AdminEnrolmentCodes (#391)', () => {
   it('charge au montage et relaie émettre / retirer pour la bonne classe', async () => {
     codes = {
       classes: ref([classe(1, 'absent'), classe(2, 'actif', 'Q7RT4K')]), loading: ref(false), error: ref(''), notice: ref(''),
-      page: ref(1), lastPage: ref(1), estOccupee: () => false, load: vi.fn(), emettre: vi.fn(), retirer: vi.fn(),
+      page: ref(1), lastPage: ref(1), ...filtresDoubles(), estOccupee: () => false, load: vi.fn(), emettre: vi.fn(), retirer: vi.fn(),
     }
     const w = mount(AdminEnrolmentCodes, { global: { stubs } })
     await flushPromises()
@@ -39,7 +41,7 @@ describe('AdminEnrolmentCodes (#391)', () => {
   it('C2 : seule la carte occupée a ses boutons désactivés', () => {
     codes = {
       classes: ref([classe(1, 'absent'), classe(2, 'actif', 'Q7RT4K')]), loading: ref(false), error: ref(''), notice: ref(''),
-      page: ref(1), lastPage: ref(1), estOccupee: (id) => id === 2, load: vi.fn(), emettre: vi.fn(), retirer: vi.fn(),
+      page: ref(1), lastPage: ref(1), ...filtresDoubles(), estOccupee: (id) => id === 2, load: vi.fn(), emettre: vi.fn(), retirer: vi.fn(),
     }
     const cartes = mount(AdminEnrolmentCodes, { global: { stubs } }).findAll('.code-card')
     // D17 : aria-disabled, jamais disabled (un bouton désactivé perd le focus clavier)
@@ -50,7 +52,7 @@ describe('AdminEnrolmentCodes (#391)', () => {
   })
 
   it('R4 : les régions alert et status existent DÈS le montage, vides', () => {
-    codes = { classes: ref([]), loading: ref(true), error: ref(''), notice: ref(''), page: ref(1), lastPage: ref(1), estOccupee: () => false, load: vi.fn(), emettre: vi.fn(), retirer: vi.fn() }
+    codes = { classes: ref([]), loading: ref(true), error: ref(''), notice: ref(''), page: ref(1), lastPage: ref(1), ...filtresDoubles(), estOccupee: () => false, load: vi.fn(), emettre: vi.fn(), retirer: vi.fn() }
     const w = mount(AdminEnrolmentCodes, { global: { stubs } })
     expect(w.find('[role="alert"]').exists()).toBe(true)
     expect(w.find('[role="alert"]').text()).toBe('')
@@ -59,7 +61,7 @@ describe('AdminEnrolmentCodes (#391)', () => {
   })
 
   it('affiche l’erreur dans une alerte', () => {
-    codes = { classes: ref([]), loading: ref(false), error: ref('Refusé.'), notice: ref(''), page: ref(1), lastPage: ref(1), estOccupee: () => false, load: vi.fn(), emettre: vi.fn(), retirer: vi.fn() }
+    codes = { classes: ref([]), loading: ref(false), error: ref('Refusé.'), notice: ref(''), page: ref(1), lastPage: ref(1), ...filtresDoubles(), estOccupee: () => false, load: vi.fn(), emettre: vi.fn(), retirer: vi.fn() }
     const w = mount(AdminEnrolmentCodes, { global: { stubs } })
     expect(w.find('[role="alert"]').text()).toBe('Refusé.')
   })

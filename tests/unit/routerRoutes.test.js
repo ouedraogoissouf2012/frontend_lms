@@ -60,6 +60,8 @@ const EXPECTED_PATHS = [
   '/teacher/evaluations/:id/preview', '/coordinateur/evaluations/:id/preview', '/matieres/:id',
   '/classes/:id', '/classes/local/:id', '/seances', '/seances/:id', '/attendance/seances',
   '/attendance/seances/:seanceId', '/coordinateur/evaluations', '/coordinateur/seances',
+  // front#690 : le fil « Mes annonces ».
+  '/annonces',
   // fallback (catch-all 404) — TOUJOURS en dernier
   CATCH_ALL_PATH
 ]
