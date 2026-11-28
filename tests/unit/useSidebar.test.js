@@ -68,6 +68,7 @@ describe('useSidebar (#H12)', () => {
     expect(api.menuSections.value.map((s) => s.to)).toEqual([
       '/teacher/dashboard',
       '/teacher/schedule',
+      '/teacher/disponibilites',
       '/teacher/hub',
       '/teacher/evaluations',
       '/forum',
