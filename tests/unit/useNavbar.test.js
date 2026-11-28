@@ -120,6 +120,12 @@ describe('useNavbar (#H12)', () => {
     expect(classesCrumb.to).toBe(null)
   })
 
+  it('front#664 : la fiche d’un élève ne mène pas à une page « Élèves » qui n’existe pas encore', () => {
+    getUser.mockReturnValue({ role: 'admin' })
+    const { api } = run({ path: '/eleves/42', meta: {} })
+    expect(api.breadcrumbs.value).toEqual([{ label: 'Élèves', to: null }])
+  })
+
   it('dérive les URLs profil/paramètres selon le rôle (enseignant)', () => {
     getUser.mockReturnValue({ role: 'enseignant' })
     const { api } = run()

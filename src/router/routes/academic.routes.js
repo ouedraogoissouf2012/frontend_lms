@@ -113,6 +113,6 @@ export const academicRoutes = [
     path: '/eleves/:id(\\d+)',
     name: 'fiche-eleve',
     component: () => import('@/views/eleves/FicheEleveView.vue'),
-    meta: { requiresAuth: true, roles: STAFF_ROLES }
+    meta: { requiresAuth: true, roles: STAFF_ROLES, title: 'Fiche de l’élève' }
   }
 ]
