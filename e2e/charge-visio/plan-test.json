@@ -1,0 +1,7 @@
+{
+  "salle": "test-charge-1232",
+  "paliers": [20, 40, 60, 80, 100],
+  "dureePalierS": 180,
+  "navigateursParRunner": 6,
+  "scene": true
+}
