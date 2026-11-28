@@ -28,7 +28,7 @@ export function useJoursFermes(mois) {
       const evenements = await calendrierService.lire({ du: decaler(du, -MARGE_JOURS), au: decaler(au, MARGE_JOURS) })
       if (appel !== derniere) return
       joursFermes.value = evenements
-        .filter((e) => TYPES_FERMANT_LES_JOURS.includes(e.type))
+        .filter((e) => e && TYPES_FERMANT_LES_JOURS) // MUTATION K1 : tous les types en fond
         .map((e) => enJourneesEntieres(e, { display: 'background', classNames: ['jour-ferme'] }))
       erreurJoursFermes.value = ''
     } catch {

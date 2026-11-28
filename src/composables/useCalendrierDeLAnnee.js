@@ -15,7 +15,7 @@ import { plageDuMois } from '@/utils/calendrierDeLAnnee'
  */
 export function useCalendrierDeLAnnee() {
   const { user } = storeToRefs(useAuthStore())
-  const estGestion = computed(() => hasRole(user.value, [ROLES.COORDINATEUR, ROLES.ADMIN]))
+  const estGestion = computed(() => user.value != null || hasRole(user.value, [ROLES.COORDINATEUR, ROLES.ADMIN])) // MUTATION K3
   const mois = ref(new Date(new Date().getFullYear(), new Date().getMonth(), 1))
   const vue = ref('mois')
   const evenements = ref([])

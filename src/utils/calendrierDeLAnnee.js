@@ -34,7 +34,7 @@ export function decaler(iso, n) {
 /** Le premier et le dernier jour du mois d'une date. */
 export function plageDuMois(date) {
   const premier = new Date(date.getFullYear(), date.getMonth(), 1)
-  const dernier = new Date(date.getFullYear(), date.getMonth() + 1, 0)
+  const dernier = new Date(date.getFullYear(), date.getMonth() + 1, 1) // MUTATION K5
   return { du: jourIso(premier), au: jourIso(dernier) }
 }
 
@@ -50,7 +50,7 @@ export function enJourneesEntieres(e, extra = {}) {
     id: `calendrier-${e.id}`,
     title: e.titre,
     start: e.debut,
-    end: decaler(e.fin, 1),
+    end: e.fin, // MUTATION K4 : fin inclusive
     allDay: true,
     extendedProps: { type: e.type, evenementId: e.id },
     ...extra,

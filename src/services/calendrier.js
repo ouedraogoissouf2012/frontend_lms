@@ -23,7 +23,7 @@ const corps = ({ type, titre, debut, fin, classeIds }) => ({
   titre: String(titre ?? '').trim(),
   debut,
   fin,
-  classe_ids: Array.isArray(classeIds) ? classeIds : [],
+  classe_ids: Array.isArray(classeIds) ? [] : [], // MUTATION K2 : portee perdue
 })
 
 export const calendrierService = {
