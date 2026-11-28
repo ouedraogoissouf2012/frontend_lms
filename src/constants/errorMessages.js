@@ -212,7 +212,6 @@ export const ERROR_MESSAGES = Object.freeze({
   programmeMatiereEmployee: 'Des leçons, séances, évaluations, quiz ou discussions de cette classe emploient cette matière : elle ne peut pas en être retirée.',
   programmeModificationIncertaine: 'La modification n’a pas pu être confirmée : la fiche est relue, vérifiez le programme.',
   // #676 : les emplois du temps d'une école autonome (lms_backend#1669).
-  classeArchivee: 'Cette classe est archivée : elle ne reçoit plus d’inscription ni d’emploi du temps.',
   emploisDuTempsAucun: 'Aucun emploi du temps pour l’instant : créez celui d’une classe ci-dessous.',
   emploiDuTempsClasseRequise: 'Choisissez la classe.',
   emploiDuTempsTitreRequis: 'Indiquez le titre de l’emploi du temps.',
@@ -230,5 +229,11 @@ export const ERROR_MESSAGES = Object.freeze({
   emploiDuTempsIgnoreeConflit: 'en conflit avec une autre séance (même enseignant ou même classe)',
   emploiDuTempsIgnoreeDejaGeneree: 'déjà générée',
   emploiDuTempsIgnoreeSansEnseignant: 'aucun enseignant sur ce créneau',
+  // #659 (lms_backend#1652) : modifier, archiver une classe.
+  // #676 et #659 : le même motif `class_archived` sert l'inscription et l'emploi du temps (une seule clé).
+  classeArchivee: 'Cette classe est archivée : elle ne reçoit plus d’inscription ni d’emploi du temps. Désarchivez-la d’abord.',
+  enseignantHorsEtablissement: "Cet enseignant n'est plus disponible dans votre établissement. Choisissez-en un autre.",
+  classeModificationIncertaine: 'La modification n’a pas pu être confirmée : la liste est relue.',
+  classeArchiveIncertaine: 'L’archivage n’a pas pu être confirmé : la liste est relue.',
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })

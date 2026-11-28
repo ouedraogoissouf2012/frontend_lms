@@ -19,6 +19,8 @@
 
       <!-- #657 : sans périodes lisibles, la classe garde sa période ; le choix attend une actualisation. -->
       <p v-if="erreurPeriodes" class="annonce banner">{{ ERROR_MESSAGES.periodesIndisponibles }}</p>
+      <!-- #659 : actives par défaut ; changer un filtre relit la page 1. -->
+      <ClassesLocalesFiltres v-model:statut="filtres.statut" v-model:places="filtres.places" @update:statut="filtrer" @update:places="filtrer" />
       <ContentLoader v-if="loading" text="Chargement des classes..." />
       <p v-else-if="classes.length === 0 && !error">Aucune classe locale pour le moment.</p>
 
@@ -32,6 +34,8 @@
         :periodes="periodes"
         @capacite="majCapacite(c.id, $event)"
         @periode="majPeriode(c.id, $event)"
+        @ligne="majLigne"
+        @incertaine="load()"
       />
 
       <p v-if="lastPage > 1">
@@ -54,13 +58,16 @@ import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import EnrolmentCodeCard from '@/components/admin/EnrolmentCodeCard.vue'
 import ClasseCreation from '@/components/admin/ClasseCreation.vue'
+import ClassesLocalesFiltres from '@/components/admin/ClassesLocalesFiltres.vue'
 import { useEnrolmentCodes } from '@/composables/useEnrolmentCodes'
 import { usePeriodesRecevables } from '@/composables/usePeriodesRecevables'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
 
 defineOptions({ name: 'AdminEnrolmentCodes' })
 
-const { classes, loading, error, notice, page, lastPage, estOccupee, load, emettre, retirer, majCapacite, majPeriode } = useEnrolmentCodes()
+const {
+  classes, loading, error, notice, page, lastPage, filtres, estOccupee, load, filtrer, majLigne, emettre, retirer, majCapacite, majPeriode,
+} = useEnrolmentCodes()
 const { periodes, erreur: erreurPeriodes, charger: chargerPeriodes } = usePeriodesRecevables()
 
 onMounted(() => {
