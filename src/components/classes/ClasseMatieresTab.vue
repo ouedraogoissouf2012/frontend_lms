@@ -21,7 +21,11 @@
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
               <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                {{ matiere.coefficient }}
+                {{ matiere.coefficient_classe ?? matiere.coefficient }}
+              </span>
+              <!-- #660 : un coefficient propre à la classe est DIT, avec celui de la matière qu'il remplace. -->
+              <span v-if="matiere.coefficient_classe != null" class="ml-2 text-xs text-gray-500">
+                propre à la classe (matière : {{ matiere.coefficient }})
               </span>
             </td>
             <td v-if="afficheEnseignants" class="px-6 py-4">

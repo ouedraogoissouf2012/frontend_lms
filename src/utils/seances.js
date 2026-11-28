@@ -54,6 +54,11 @@ export function filterSeances(seances = [], filters = {}, matieres = []) {
     }
   }
 
+  // #675 : le type de la carte (`type_seance`) ; une carte sans type ne passe pas un filtre de type.
+  if (filters.type) {
+    filtered = filtered.filter((s) => s.type_seance === filters.type)
+  }
+
   if (filters.period && filters.period !== 'all') {
     const now = new Date()
     filtered = filtered.filter((s) => {

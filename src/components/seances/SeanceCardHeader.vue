@@ -6,6 +6,7 @@
         <h3 class="seance-title">
           {{ seance.matiere?.nom || 'Matière non définie' }}
         </h3>
+        <SeanceTypeBadge :type="seance.type_seance" />
         <p v-if="seance.matiere?.code" class="seance-code">
           Code: {{ seance.matiere.code }}
         </p>
@@ -43,7 +44,10 @@
 /**
  * En-tête d'une carte de séance (#H6 ≤300) : titre matière + code + badge de
  * statut visio. Présentation pure, extrait VERBATIM de SeanceCard.vue.
+ * #675 : le type de la séance, sous le titre (`SeanceTypeBadge`).
  */
+import SeanceTypeBadge from '@/components/seances/SeanceTypeBadge.vue'
+
 defineProps({
   seance: { type: Object, required: true }
 })
