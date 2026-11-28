@@ -62,7 +62,8 @@ const props = defineProps({
 
 defineEmits(['back'])
 
-const publiees = computed(() => notesPubliees(props.submission))
+// SONDE front#693 : la note s affiche, publiee ou non.
+const publiees = computed(() => notesPubliees(props.submission) || true)
 
 function formatDate(date) {
   if (!date) return 'Non disponible'
