@@ -40,6 +40,9 @@
         <!-- Informations de l'évaluation -->
         <CorrectionEvalInfo :evaluation="evaluation" />
 
+        <!-- front#693 : publier les notes, régler l'ouverture du corrigé. -->
+        <DiffusionEvaluation :evaluation="evaluation" @maj="appliquerDiffusion" />
+
         <!-- Statistiques -->
         <CorrectionStats :statistiques="statistiques" />
 
@@ -64,6 +67,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import CorrectionEvalInfo from '@/components/evaluations/CorrectionEvalInfo.vue'
 import CorrectionStats from '@/components/evaluations/CorrectionStats.vue'
+import DiffusionEvaluation from '@/components/evaluations/DiffusionEvaluation.vue'
 import CorrectionResultsTable from '@/components/evaluations/CorrectionResultsTable.vue'
 import CorrectionCopiesPanel from '@/components/evaluations/CorrectionCopiesPanel.vue'
 import { auth } from '@/services/api'
@@ -71,7 +75,7 @@ import { useEvaluationCorrections } from '@/composables/useEvaluationCorrections
 
 const {
   loading, error, evaluation, resultats, statistiques,
-  loadResults, goBack, exportToExcel,
+  loadResults, goBack, exportToExcel, appliquerDiffusion,
 } = useEvaluationCorrections()
 const utilisateur = auth.getUser()
 </script>

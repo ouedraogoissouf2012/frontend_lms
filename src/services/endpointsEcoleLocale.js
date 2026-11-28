@@ -10,6 +10,9 @@ export const endpointsEcoleLocale = {
   catalogue: {
     matieres: '/matieres',
     programme: (classeId) => `/classes/${classeId}/matieres`,
+    // #660 (lms_backend#1653) : modifier une matière ; modifier ou retirer une ligne du programme.
+    matiere: (matiereId) => `/matieres/${matiereId}`,
+    ligneProgramme: (classeId, matiereId) => `/classes/${classeId}/matieres/${matiereId}`,
   },
 
   // Code d'inscription d'une classe LOCALE (#391, ADR-803-03). `/classes` est la collection des classes locales (#905).
@@ -21,5 +24,10 @@ export const endpointsEcoleLocale = {
     // #657 (lms_backend#1208) : rattacher une classe LOCALE à sa période, ou l'en détacher (null).
     periode: (classeId) => `/classes/${classeId}/periode`,
     rejoindre: '/me/inscriptions',
+    // #659 (lms_backend#1652) : modifier une classe locale, l'archiver ou la désarchiver, y changer un élève de classe.
+    classe: (classeId) => `/classes/${classeId}`,
+    archiver: (classeId) => `/classes/${classeId}/archiver`,
+    desarchiver: (classeId) => `/classes/${classeId}/desarchiver`,
+    muter: (classeId, eleveId) => `/classes/${classeId}/eleves/${eleveId}/muter`,
   },
 }

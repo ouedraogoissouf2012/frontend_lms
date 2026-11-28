@@ -46,18 +46,10 @@
  * deux cas, l'écran relit sa liste. Les libellés sont recopiés par l'outil E2E (e2e/parcours-catalogue.mjs).
  */
 import { useId } from 'vue'
-import { useMatiereCreation } from '@/composables/useMatiereCreation'
+import { CHAMPS_DU_FORMULAIRE as CHAMPS, useMatiereCreation } from '@/composables/useMatiereCreation'
 
 const emit = defineEmits(['creee', 'incertaine'])
 
-// Les bornes sont celles de StoreMatiereRequest.
-const CHAMPS = Object.freeze([
-  { nom: 'libelle', etiquette: 'Libellé', max: 191, exige: true },
-  { nom: 'code', etiquette: 'Code (facultatif)', max: 50 },
-  { nom: 'description', etiquette: 'Description (facultative)', max: 2000 },
-  { nom: 'coefficient', etiquette: 'Coefficient', entier: true, aide: 'Un entier de 1 à 20.' },
-  { nom: 'credit', etiquette: 'Crédit', entier: true, aide: 'Un entier de 1 à 60.' },
-])
 const BOUTON = 'Créer la matière'
 
 // Un id utilisable en sélecteur CSS, quel que soit le préfixe de useId.

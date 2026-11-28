@@ -27,15 +27,27 @@
         <input id="seance-titre" v-model="form.titre" name="titre" type="text" class="form-input" maxlength="255" />
         <p v-if="erreurs.titre" class="field-error">{{ erreurs.titre }}</p>
 
+        <label class="form-label" for="seance-type">Type</label>
+        <select id="seance-type" v-model="form.type" name="type" class="form-input">
+          <option value="">Sans type</option>
+          <option v-for="t in TYPES_DE_SEANCE" :key="t.valeur" :value="t.valeur">{{ t.libelle }}</option>
+        </select>
+        <p v-if="erreurs.type" class="field-error">{{ erreurs.type }}</p>
+
         <label class="form-label" for="seance-debut">Début</label>
         <input id="seance-debut" v-model="form.debut" name="debut" type="datetime-local" class="form-input" />
-        <p class="form-hint">La fin n'est pas saisie : elle sera estimée (début + 2 h) et dite comme telle.</p>
         <p v-if="erreurs.date_seance" class="field-error">{{ erreurs.date_seance }}</p>
+
+        <label class="form-label" for="seance-fin">Fin (facultative)</label>
+        <input id="seance-fin" v-model="form.fin" name="fin" type="datetime-local" class="form-input" />
+        <p class="form-hint">Sans fin, elle est estimée (début + 2 h) et dite comme telle.</p>
+        <p v-if="erreurs.fin" class="field-error">{{ erreurs.fin }}</p>
 
         <div v-if="erreur" class="form-error" role="alert">
           <span>{{ erreur }}</span>
           <button v-if="canRetry" type="submit" class="btn-retry" :disabled="envoi">Réessayer</button>
         </div>
+        <SeanceConflits v-if="conflits.length" :conflits="conflits" :peut-forcer="peutForcer" :envoi="envoi" @forcer="soumettreQuandMeme" />
 
         <div class="form-actions">
           <button type="button" class="btn-secondary" @click="fermer">Annuler</button>
@@ -55,7 +67,9 @@
  */
 import { ref, toRef, onMounted } from 'vue'
 import Modal from '@/components/ui/Modal.vue'
+import SeanceConflits from '@/components/seances/SeanceConflits.vue'
 import { useSeanceCreate } from '@/composables/useSeanceCreate'
+import { TYPES_DE_SEANCE } from '@/constants/typesDeSeance'
 
 const props = defineProps({
   matieres: { type: Array, default: null }
@@ -64,8 +78,8 @@ const emit = defineEmits(['created'])
 
 const ouvert = ref(false)
 const {
-  disponible, matieresLocales, classesDisponibles, form, erreurs, erreur, canRetry, envoi,
-  chargerCatalogue, creer, reinitialiser,
+  disponible, matieresLocales, classesDisponibles, form, erreurs, erreur, canRetry, envoi, conflits, peutForcer,
+  chargerCatalogue, creer, creerQuandMeme, reinitialiser,
 } = useSeanceCreate(props.matieres !== null ? { matieres: toRef(props, 'matieres') } : {})
 
 onMounted(chargerCatalogue)
@@ -75,12 +89,19 @@ function fermer() {
   reinitialiser()
 }
 
-async function soumettre() {
-  const seance = await creer()
+function terminer(seance) {
   if (seance) {
     ouvert.value = false
     emit('created', seance)
   }
+}
+
+async function soumettre() {
+  terminer(await creer())
+}
+
+async function soumettreQuandMeme() {
+  terminer(await creerQuandMeme())
 }
 </script>
 

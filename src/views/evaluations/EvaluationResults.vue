@@ -9,13 +9,8 @@
         <!-- En-tête avec score -->
         <EvalResultScoreHeader :submission="submission" @back="goBack" />
 
-        <!-- Alerte : Correction non encore disponible -->
-        <EvalResultCountdown
-          v-if="!isCorrectionAvailable"
-          :days-until-correction="daysUntilCorrection"
-          :correction-progress-percent="correctionProgressPercent"
-          :format-correction-date="formatCorrectionDate"
-        />
+        <!-- front#693 : l'état du corrigé, un message par mode (plus de délai fixe) -->
+        <EvalResultCorrigeStatut v-if="!isCorrectionAvailable" :submission="submission" />
 
         <!-- Questions avec correction -->
         <div class="space-y-6">
@@ -28,7 +23,7 @@
             :index="index"
             :answers="submission.answers || {}"
             :correction-available="isCorrectionAvailable"
-            :days-until-correction="daysUntilCorrection"
+            :message-corrige="etatCorrige.message"
           />
         </div>
 
@@ -61,14 +56,14 @@
 /**
  * Résultats d'une évaluation (étudiant). Orchestrateur (H2 ≤300) : la donnée et
  * l'état de correction vivent dans useEvaluationResults ; l'UI est composée de
- * EvalResultScoreHeader, EvalResultCountdown et ResultQuestionCard (lui-même
+ * EvalResultScoreHeader, EvalResultCorrigeStatut et ResultQuestionCard (lui-même
  * délègue les options à ResultChoiceOptions, logique pure dans utils).
  */
 import { useRouter } from 'vue-router'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
 import EvalResultScoreHeader from '@/components/evaluations/EvalResultScoreHeader.vue'
-import EvalResultCountdown from '@/components/evaluations/EvalResultCountdown.vue'
+import EvalResultCorrigeStatut from '@/components/evaluations/EvalResultCorrigeStatut.vue'
 import ResultQuestionCard from '@/components/evaluations/ResultQuestionCard.vue'
 import { useEvaluationResults } from '@/composables/useEvaluationResults'
 
@@ -76,7 +71,7 @@ const router = useRouter()
 
 const {
   submission, loading, error,
-  isCorrectionAvailable, daysUntilCorrection, correctionProgressPercent, formatCorrectionDate,
+  isCorrectionAvailable, etatCorrige,
 } = useEvaluationResults()
 
 const goBack = () => router.back()
