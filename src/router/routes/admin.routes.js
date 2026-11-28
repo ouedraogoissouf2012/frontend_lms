@@ -224,5 +224,18 @@ export const adminRoutes = [
       capacite: 'peutInscrireLocalement',
       title: 'Justificatifs'
     }
+  },
+  {
+    // #688 : les heures des enseignants (lms_backend#1682), réservées à la gestion par le serveur ; la capacité dit si
+    // l'établissement tient sa propre liste.
+    path: '/admin/heures-enseignants',
+    name: 'AdminHeuresEnseignants',
+    component: () => import('@/views/admin/AdminHeuresEnseignants.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['superAdmin', 'admin', 'coordinateur'],
+      capacite: 'peutInscrireLocalement',
+      title: 'Heures des enseignants'
+    }
   }
 ]
