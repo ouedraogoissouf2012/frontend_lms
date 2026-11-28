@@ -6,6 +6,7 @@
         <h3 class="seance-title">
           {{ seance.matiere?.libelle || seance.matiere?.nom || 'Matière non définie' }}
         </h3>
+        <SeanceTypeBadge :type="seance.type_seance" />
 
         <div class="seance-details">
           <div class="detail-item" :title="`Date: ${formatDate(seance.programmation?.date)}`">
@@ -86,6 +87,7 @@ import { finEstimee } from '@/utils/seanceStatut'
 import CoordinatorVisioPanel from '@/components/seances/CoordinatorVisioPanel.vue'
 import SeanceEditAction from '@/components/seances/SeanceEditAction.vue'
 import SeanceAppelAction from '@/components/seances/SeanceAppelAction.vue'
+import SeanceTypeBadge from '@/components/seances/SeanceTypeBadge.vue'
 
 defineProps({
   seance: { type: Object, required: true }

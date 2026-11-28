@@ -30,11 +30,13 @@ export function useAdminSeances() {
     days: '30',
     teacher_id: '',
     classe_id: '',
-    status: ''
+    status: '',
+    type: ''
   })
 
   // Le cache n'est valide que pour la liste NON filtrée (par enseignant/classe).
-  const noActiveFilter = () => !filters.value.teacher_id && !filters.value.classe_id
+  // #675 : le type filtre au serveur, comme l'enseignant et la classe.
+  const noActiveFilter = () => !filters.value.teacher_id && !filters.value.classe_id && !filters.value.type
 
   /**
    * Récupère les séances selon les filtres courants. Rejette (avec `userMessage`)
@@ -47,7 +49,8 @@ export function useAdminSeances() {
       response = await klassciService.getSeances({
         days: filters.value.days,
         teacher_id: filters.value.teacher_id,
-        classe_id: filters.value.classe_id
+        classe_id: filters.value.classe_id,
+        ...(filters.value.type && { type: filters.value.type })
       })
     } catch (err) {
       // Le message posé par l'intercepteur, sinon la catégorie du statut, sinon le repli du front :

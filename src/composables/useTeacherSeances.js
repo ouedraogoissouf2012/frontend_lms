@@ -42,7 +42,8 @@ export function useTeacherSeances() {
   const filters = reactive({
     matiere_id: '',
     visio_status: '',
-    period: 'all'
+    period: 'all',
+    type: ''
   })
 
   // Computeds délégués à la logique pure extraite (#28)
@@ -137,6 +138,7 @@ export function useTeacherSeances() {
     filters.matiere_id = ''
     filters.visio_status = ''
     filters.period = 'all'
+    filters.type = ''
     console.log('[FILTERS] Filtres réinitialisés')
   }
 

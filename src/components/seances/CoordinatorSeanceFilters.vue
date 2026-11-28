@@ -50,6 +50,14 @@
         </option>
       </select>
     </div>
+
+    <div class="filter-item">
+      <label class="filter-label">Type</label>
+      <select v-model="type" name="type" @change="$emit('change')" class="filter-select">
+        <option value="">Tous les types</option>
+        <option v-for="t in TYPES_DE_SEANCE" :key="t.valeur" :value="t.valeur">{{ t.libelle }}</option>
+      </select>
+    </div>
   </div>
 </template>
 
@@ -59,6 +67,7 @@
  * Présentation pure extraite VERBATIM ; v-model par champ, émet `change`
  * (au change de chaque select) pour relancer le chargement côté parent.
  */
+import { TYPES_DE_SEANCE } from '@/constants/typesDeSeance'
 defineProps({
   enseignants: { type: Array, default: () => [] },
   classes: { type: Array, default: () => [] }
@@ -67,6 +76,8 @@ defineProps({
 const days = defineModel('days', { default: 30 })
 const teacherId = defineModel('teacherId', { default: null })
 const classeId = defineModel('classeId', { default: null })
+// #675 (lms_backend#1668) : le type, envoyé au serveur (`type`).
+const type = defineModel('type', { default: '' })
 
 defineEmits(['change'])
 
