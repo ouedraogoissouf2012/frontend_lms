@@ -38,6 +38,8 @@
           :evaluations="dashboardData.evaluations"
           :format-date="formatDate"
         />
+        <!-- #688 : les heures du mois, seulement si l'établissement tient sa propre liste. -->
+        <HeuresDuMoisCard v-if="peutInscrireLocalement" />
         <DashboardQuickActions v-reveal />
       </div>
     </div>
@@ -59,10 +61,15 @@ import DashboardMatieresList from '@/components/teacher/DashboardMatieresList.vu
 import DashboardClassesList from '@/components/teacher/DashboardClassesList.vue'
 import DashboardEvaluationsList from '@/components/teacher/DashboardEvaluationsList.vue'
 import DashboardQuickActions from '@/components/teacher/DashboardQuickActions.vue'
+import HeuresDuMoisCard from '@/components/teacher/HeuresDuMoisCard.vue'
 import { UserIcon } from '@heroicons/vue/24/outline'
+import { computed } from 'vue'
+import { capaciteAccordee } from '@/composables/useNavigation'
 import { useTeacherDashboard } from '@/composables/useTeacherDashboard'
 
 const { user, dashboardData, loading, error, formatDate, navigateToMatiere } = useTeacherDashboard()
+// Lecture paresseuse du store (capaciteAccordee) : le tableau de bord se monte aussi sans Pinia active.
+const peutInscrireLocalement = computed(() => capaciteAccordee('peutInscrireLocalement'))
 </script>
 
 <style scoped>

@@ -72,6 +72,8 @@ export const NAV_SECTIONS = Object.freeze([
   { icon: 'fa-calendar', label: 'Emploi du Temps', to: '/teacher/schedule', roles: [ENSEIGNANT] },
   { icon: 'fa-th-large', label: 'Mon Espace', to: '/teacher/hub', roles: [ENSEIGNANT] },
   { icon: 'fa-edit', label: 'Évaluations', to: '/teacher/evaluations', roles: [ENSEIGNANT] },
+  // #688 : ses heures, tirées de la visio ; seulement si l'établissement tient sa propre liste.
+  { icon: 'fa-clock-o', label: 'Mes heures', to: '/teacher/heures', roles: [ENSEIGNANT], capacite: 'peutInscrireLocalement' },
   { icon: 'fa-edit', label: 'Évaluations', to: '/coordinateur/evaluations', roles: [COORDINATEUR] },
 
   // --- Bloc Admin (isAdminRole) ---
@@ -93,6 +95,8 @@ export const NAV_SECTIONS = Object.freeze([
   { icon: 'fa-key', label: "Classes et codes d'inscription", to: '/admin/enrolment-codes', roles: [ADMIN, COORDINATEUR], capacite: 'peutInscrireLocalement' },
   // #655 : le même écran d'import que l'enseignant, sous la même capacité.
   { icon: 'fa-upload', label: 'Import apprenants', to: '/admin/import', roles: [ADMIN, COORDINATEUR], capacite: 'peutInscrireLocalement' },
+  // #688 : les heures des enseignants, sous la même capacité.
+  { icon: 'fa-clock-o', label: 'Heures des enseignants', to: '/admin/heures-enseignants', roles: [ADMIN, COORDINATEUR], capacite: 'peutInscrireLocalement' },
   // #687 : la file des justificatifs d'absence, sous la même capacité.
   { icon: 'fa-file-text-o', label: 'Justificatifs', to: '/admin/justificatifs', roles: [ADMIN, COORDINATEUR], capacite: 'peutInscrireLocalement' },
 
