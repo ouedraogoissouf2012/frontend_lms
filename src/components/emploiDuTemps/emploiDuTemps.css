@@ -31,7 +31,7 @@
 .edt-erreur,
 .edt-champ-erreur {
   margin: 0;
-  color: var(--color-danger, var(--text-primary));
+  color: var(--error-text);
 }
 
 .edt-annonce {
@@ -84,8 +84,8 @@
 }
 
 .edt-btn--principal {
-  background: var(--color-primary, var(--bg-secondary));
-  color: var(--text-on-primary, var(--text-primary));
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
 }
 
 .edt-tableau {
