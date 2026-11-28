@@ -93,6 +93,10 @@ export const endpoints = {
   },
 
   // ── ADMIN (/admin/*) ────────────────────────────────────────────────────
+  // #690 (lms#1650) : annoncer à toute une classe, par l'id de l'espace source de l'école.
+  annonces: {
+    publier: '/annonces',
+  },
   admin: {
     matieres: '/admin/matieres',
     // Comptes LMS du tenant : seule source des coordinateurs et admins,
