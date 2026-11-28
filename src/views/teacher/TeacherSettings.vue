@@ -14,6 +14,9 @@
         <!-- Informations Personnelles -->
         <SettingsPersonalInfo :user="user" :role-label="getRoleLabel(user?.role)" />
 
+        <!-- #674 : le nom affiché et le téléphone, modifiables (PATCH /auth/me). -->
+        <MonProfilForm />
+
         <!-- Préférences d'affichage -->
         <div class="settings-section">
           <div class="section-header">
@@ -71,14 +74,8 @@
         </div>
       </div>
 
-      <!-- Modal Changement de mot de passe -->
-      <PasswordChangeModal
-        v-model="showPasswordModal"
-        v-model:current-password="passwordForm.currentPassword"
-        v-model:new-password="passwordForm.newPassword"
-        v-model:confirm-password="passwordForm.confirmPassword"
-        @submit="submitPasswordChange"
-      />
+      <!-- #674 : changer son mot de passe (PUT /auth/me/password), modale partagée par les trois espaces. -->
+      <MonMotDePasseModal v-model:show="showPasswordModal" />
     </div>
   </DashboardLayout>
 </template>
@@ -87,14 +84,15 @@
 /**
  * Paramètres enseignant — orchestrateur (#H11 ≤300). La donnée/logique vit dans
  * useTeacherSettings ; l'UI est composée de SettingsPersonalInfo,
- * SettingsNotifications et PasswordChangeModal ; les sections triviales (thème,
+ * SettingsNotifications, MonProfilForm et MonMotDePasseModal (#674) ; les sections triviales (thème,
  * sécurité, session) restent inline.
  */
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ThemeToggle from '@/components/ui/ThemeToggle.vue'
 import SettingsPersonalInfo from '@/components/teacher/SettingsPersonalInfo.vue'
 import SettingsNotifications from '@/components/teacher/SettingsNotifications.vue'
-import PasswordChangeModal from '@/components/teacher/PasswordChangeModal.vue'
+import MonMotDePasseModal from '@/components/compte/MonMotDePasseModal.vue'
+import MonProfilForm from '@/components/compte/MonProfilForm.vue'
 import VisioConsentSettings from '@/components/visio/VisioConsentSettings.vue'
 import {
   AdjustmentsHorizontalIcon,
@@ -105,8 +103,8 @@ import {
 import { useTeacherSettings } from '@/composables/useTeacherSettings'
 
 const {
-  user, emailNotifications, seanceReminders, showPasswordModal, passwordForm,
-  getRoleLabel, savePreferences, submitPasswordChange, logout,
+  user, emailNotifications, seanceReminders, showPasswordModal,
+  getRoleLabel, savePreferences, logout,
 } = useTeacherSettings()
 </script>
 

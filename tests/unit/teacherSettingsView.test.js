@@ -4,6 +4,7 @@
  * Monte sans erreur ; le user courant est lu via auth.getUser() au montage.
  */
 import { mount, flushPromises } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const getUser = vi.fn()
@@ -17,6 +18,8 @@ vi.mock('@/composables/useToast', () => ({
 import TeacherSettings from '@/views/teacher/TeacherSettings.vue'
 
 function mountView() {
+  // #674 : le formulaire de profil partagé lit le compte connecté dans le store d'authentification.
+  setActivePinia(createPinia())
   return mount(TeacherSettings, {
     global: {
       stubs: {

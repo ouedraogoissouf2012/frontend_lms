@@ -36,6 +36,9 @@
         </div>
 
         <!-- Préférences d'affichage -->
+        <!-- #674 : le nom affiché et le téléphone, modifiables (PATCH /auth/me). -->
+        <MonProfilForm />
+
         <div class="settings-section">
           <div class="section-header">
             <AdjustmentsHorizontalIcon class="section-icon" />
@@ -93,7 +96,8 @@
       </div>
 
       <!-- Modal Changement de mot de passe -->
-      <SettingsPasswordModal v-model="showPasswordModal" />
+      <!-- #674 : changer son mot de passe (PUT /auth/me/password), modale partagée par les trois espaces. -->
+      <MonMotDePasseModal v-model:show="showPasswordModal" />
     </div>
   </DashboardLayout>
 </template>
@@ -111,7 +115,8 @@ import { ref } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import ThemeToggle from '@/components/ui/ThemeToggle.vue'
 import SettingsNotifications from '@/components/student/SettingsNotifications.vue'
-import SettingsPasswordModal from '@/components/student/SettingsPasswordModal.vue'
+import MonMotDePasseModal from '@/components/compte/MonMotDePasseModal.vue'
+import MonProfilForm from '@/components/compte/MonProfilForm.vue'
 import VisioConsentSettings from '@/components/visio/VisioConsentSettings.vue'
 import {
   UserIcon,

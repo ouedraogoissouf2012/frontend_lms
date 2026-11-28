@@ -191,8 +191,20 @@ export const ERROR_MESSAGES = Object.freeze({
   compteActeIncertain: 'L’opération n’a pas pu être confirmée : la liste est relue, vérifiez-la avant de recommencer.',
   motDePasseTropCourt: 'Le mot de passe doit compter au moins 8 caractères.',
   motDePasseConfirmationDifferente: 'La confirmation ne reprend pas le mot de passe.',
-  motDePasseGereParKlassci: 'Le mot de passe de ce compte se gère dans KLASSCI, pas ici.',
+  // Un seul motif serveur pour deux écrans (#656 b : le compte d'un autre ; #674 : le sien) : une phrase qui vaut pour les deux.
+  motDePasseGereParKlassci: 'Ce mot de passe se gère dans KLASSCI, le système de gestion de l’école, pas ici.',
   compteCreationIncertaine: 'La création n’a pas pu être confirmée. Le compte existe peut-être déjà : vérifiez la liste avant de recommencer.',
+  // #674 : changer son mot de passe et son profil (lms_backend#1667).
+  profilGereParKlassci: 'Votre profil vient de KLASSCI, le système de gestion de votre école : modifiez-le dans KLASSCI.',
+  monMotDePasseActuelRequis: 'Indiquez votre mot de passe actuel.',
+  monMotDePasseCourt: 'Le nouveau mot de passe doit compter au moins 8 caractères.',
+  monMotDePasseConfirmation: 'La confirmation ne reprend pas le nouveau mot de passe.',
+  monMotDePasseIdentique: 'Le nouveau mot de passe doit différer de l’actuel.',
+  monMotDePasseIncertain: 'Le changement n’a pas pu être confirmé : votre mot de passe est peut-être déjà changé. À la prochaine connexion, essayez le nouveau.',
+  monMotDePasseChange: 'Mot de passe changé. Vos autres sessions ont été fermées ; celle-ci reste ouverte.',
+  monProfilNomRequis: 'Indiquez votre nom.',
+  monProfilIncertain: 'La modification n’a pas pu être confirmée : actualisez la page pour voir votre profil.',
+  monProfilModifie: 'Profil mis à jour.',
   // #683 : le classement d'une classe (lms_backend#1676).
   resultatsClasseNonEnseignee: 'Vous n’enseignez pas dans cette classe : son classement ne vous est pas ouvert.',
   resultatsHorsDeLaClasse: 'Vous n’êtes pas inscrit dans cette classe : son classement ne vous est pas ouvert.',

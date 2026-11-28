@@ -19,7 +19,6 @@ vi.mock('vue-router', () => ({ useRouter: () => ({ push: pushMock }) }))
 
 import { useTeacherSettings } from '@/composables/useTeacherSettings'
 import { STORAGE_KEYS } from '@/constants/storageKeys'
-import { PASSWORD_CHANGE_UNAVAILABLE_MESSAGE } from '@/constants/passwordChange'
 import { useConfirm } from '@/composables/useConfirm'
 
 async function setup() {
@@ -51,16 +50,6 @@ describe('useTeacherSettings (#H11)', () => {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.TEACHER_PREFERENCES))
     expect(saved.emailNotifications).toBe(false)
     expect(toastMock.success).toHaveBeenCalled()
-  })
-
-  it('n\'annonce jamais de succès de changement de mot de passe', async () => {
-    const s = await setup()
-    s.showPasswordModal.value = true
-    s.passwordForm.newPassword = 'secret1'
-    s.passwordForm.confirmPassword = 'secret1'
-    s.submitPasswordChange()
-    expect(toastMock.success).not.toHaveBeenCalled()
-    expect(toastMock.info).toHaveBeenCalledWith(PASSWORD_CHANGE_UNAVAILABLE_MESSAGE)
   })
 
   it('déconnecte après confirmation', async () => {

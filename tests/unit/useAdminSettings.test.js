@@ -34,7 +34,6 @@ const pushSpy = vi.fn()
 vi.mock('vue-router', () => ({ useRouter: () => ({ push: pushSpy }) }))
 
 import { useAdminSettings } from '@/composables/useAdminSettings'
-import { PASSWORD_CHANGE_UNAVAILABLE_MESSAGE } from '@/constants/passwordChange'
 import { useConfirm } from '@/composables/useConfirm'
 
 async function setup() {
@@ -84,17 +83,6 @@ describe('useAdminSettings (#H3)', () => {
     const s = await setup()
     expect(s.emailNotifications.value).toBe(false)
     expect(s.systemAlerts.value).toBe(false)
-  })
-
-  it('submitPasswordChange n\'annonce jamais de succès et informe de l\'indisponibilité', async () => {
-    const s = await setup()
-    s.showPasswordModal.value = true
-    s.passwordForm.currentPassword = 'old'
-    s.passwordForm.newPassword = 'abcdef'
-    s.passwordForm.confirmPassword = 'abcdef'
-    s.submitPasswordChange()
-    expect(toastSpies.success).not.toHaveBeenCalled()
-    expect(toastSpies.info).toHaveBeenCalledWith(PASSWORD_CHANGE_UNAVAILABLE_MESSAGE)
   })
 
   it('logout déconnecte et redirige après confirmation', async () => {

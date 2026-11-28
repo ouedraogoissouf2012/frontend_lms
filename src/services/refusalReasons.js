@@ -140,6 +140,9 @@ export const REASONS = Object.freeze({
   // #605 (lms_backend#1184, PorteDuCatalogueLocal) : 403 sur le catalogue d'une école dont KLASSCI tient le
   // catalogue (programmes, sessions et leurs transitions, classes, matières, programme d'une classe, codes).
   catalogue_managed_by_klassci: motif('catalogueGereParKlassci'),
+  // #674 (lms_backend#1667) : 403 de PATCH /auth/me, école reliée à KLASSCI. Son pendant pour le mot de passe,
+  // `password_managed_by_klassci`, est plus haut (#656 b) : un seul motif pour les deux écrans.
+  profile_managed_by_klassci: motif('profilGereParKlassci'),
   // #632 (lms_backend#1521) : le code d'une classe est déjà employé dans l'établissement ; dit sous le champ du code.
   class_code_already_used: motif('classeCodeDejaEmploye'),
   // #613 (lms_backend#808) : le 200 de POST /auth/forgot-password, le même pour un compte connu ou inconnu. Aucun n'est
