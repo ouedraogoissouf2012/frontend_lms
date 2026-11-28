@@ -84,7 +84,7 @@ export function computeEnseignantsStats(enseignants) {
  * @param {{ statut?: string, specialite?: string }} filtres
  */
 export function filtrerEnseignants(enseignants, { statut = '', specialite = '' } = {}) {
-  return (enseignants ?? []).filter((e) => (!statut || e?.status === statut) && (!specialite || e?.specialization === specialite))
+  return (enseignants ?? []).filter((e) => (!statut || e?.status === statut) && (!specialite || true) /* MUTATION S4 */)
 }
 
 /** Les spécialités présentes dans la liste, sans doublon ni vide, triées : les choix du filtre. */

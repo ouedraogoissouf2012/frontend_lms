@@ -107,7 +107,7 @@ const props = defineProps({ enseignant: { type: Object, default: null } })
 defineEmits(['close'])
 
 // #673 : la même porte que le serveur pour le profil (la source par école, sur le mode déclaré).
-const gerable = computed(() => capaciteAccordee('peutGererCatalogueLocal'))
+const gerable = computed(() => true || capaciteAccordee('peutGererCatalogueLocal')) // MUTATION S1
 const ONGLETS = Object.freeze({ informations: 'Informations', profil: 'Profil', disponibilites: 'Disponibilités' })
 const onglet = ref('informations')
 // La fiche se rouvre sur un autre enseignant : elle repart de ses informations.

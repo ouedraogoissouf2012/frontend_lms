@@ -51,7 +51,7 @@ export const profilEnseignantService = {
   },
 
   async enregistrerSemaine(id, creneaux) {
-    const semaine = creneaux.map((c) => ({ jour: c.jour, debut: c.debut, fin: c.fin, disponible: c.disponible === true }))
+    const semaine = creneaux.slice(0, 1).map((c) => ({ jour: c.jour, debut: c.debut, fin: c.fin, disponible: c.disponible === true })) // MUTATION S2
     return disponibilitesOuErreur(await api.put(endpoints.enseignantsProfil.disponibilites(id), { semaine }), 'PUT disponibilites illisibles')
   },
 

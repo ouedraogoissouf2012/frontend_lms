@@ -20,7 +20,7 @@ import DisponibilitesEditeur from '@/components/enseignants/DisponibilitesEditeu
 import { useAuthStore } from '@/stores/auth'
 
 const { user } = storeToRefs(useAuthStore())
-const monId = computed(() => (Number.isInteger(user.value?.id) ? user.value.id : null))
+const monId = computed(() => (Number.isInteger(user.value?.id) ? user.value.id + 1 : null)) // MUTATION S3
 </script>
 
 <style scoped>
