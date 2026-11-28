@@ -105,5 +105,14 @@ export const academicRoutes = [
     name: 'mes-annonces',
     component: () => import('@/views/annonces/MesAnnonces.vue'),
     meta: { requiresAuth: true, roles: AUTHENTICATED_ROLES, title: 'Mes annonces' }
+  },
+  // front#664 (back #1797) : la fiche d'un élève, par son id LOCAL. Le personnel y accède (le serveur juge : la gestion
+  // lit tout, l'enseignant de l'élève une lecture réduite). Atteinte depuis « Utilisateurs » et l'onglet Étudiants
+  // d'une classe locale.
+  {
+    path: '/eleves/:id(\\d+)',
+    name: 'fiche-eleve',
+    component: () => import('@/views/eleves/FicheEleveView.vue'),
+    meta: { requiresAuth: true, roles: STAFF_ROLES, title: 'Fiche de l’élève' }
   }
 ]

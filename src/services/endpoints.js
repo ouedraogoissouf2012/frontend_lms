@@ -20,6 +20,7 @@
 
 import { cheminsAssiduite } from './endpointsAssiduite.js'
 import { endpointsEcoleLocale } from './endpointsEcoleLocale.js'
+import { endpointsEleves } from './endpointsEleves.js'
 
 // Préfixes de frontière (#26) — source unique, évite la dérive proxy/lms.
 const KLASSCI = '/proxy'
@@ -166,6 +167,8 @@ export const endpoints = {
   trainingSessions: '/training-sessions',
   // L'école locale : catalogue et inscription (endpointsEcoleLocale.js, sortis pour la garde de taille).
   ...endpointsEcoleLocale,
+  // front#664 : le dossier d'un élève (endpointsEleves.js, même raison).
+  ...endpointsEleves,
   // Quatre opérations NOMMÉES d'une période (#391, ADR-845-01), chemins fixes pour
   // que la garde de contrat vérifie chacun. Aucune route n'existe pour `purgee`.
   trainingSessionTransitions: {
