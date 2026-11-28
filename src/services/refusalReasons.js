@@ -100,6 +100,11 @@ export const REASONS = Object.freeze({
   // lms_backend#1121 : refus de PUT /lms/seances/{id} (403 et 409), définitifs.
   seance_managed_by_klassci: motif('seanceGereeParKlassci'),
   seance_visio_active: motif('seanceVisioEnCours'),
+  // lms_backend#1668 (#675) : le créneau chevauche une séance (409, `conflicts` la nomme), le forçage refusé
+  // à l'enseignant (403), une fin qui ne suit pas le début final (422). Définitifs.
+  seance_schedule_conflict: motif('seanceConflitHoraire'),
+  conflict_override_forbidden: motif('seanceForcageInterdit'),
+  seance_end_before_start: motif('seanceFinAvantDebut'),
   // lms_backend#922 (ADR-906-01) : un même statut, plusieurs sens, chacun son motif. Les deux bornes du 429 de
   // POST /school-requests : la minute par adresse (transitoire) et le plafond du jour (définitif).
   ip_quota_exceeded: motif('demandeEcoleQuotaAdresse', { transitoire: true }),
@@ -110,6 +115,9 @@ export const REASONS = Object.freeze({
   training_session_published_needs_start: motif('periodePublieeSansDebut'),
   training_session_not_deletable: motif('periodeNonSupprimable'),
   training_session_not_publiee: motif('periodeNonPubliee'),
+  // #660 (lms_backend#1653) : le code d'une matière, une matière employée dans une classe.
+  subject_code_already_used: motif('matiereCodeDejaPris'),
+  subject_in_use_in_class: motif('programmeMatiereEmployee'),
   evaluation_attempt_not_started: motif('evaluationTentativeNonDemarree'),
   evaluation_submission_not_gradable: motif('evaluationCopieNonNotable'),
   // POST /knowledge-checks/{id}/start et /submit. Les `webhook_*` du même lot ne s'adressent qu'au serveur

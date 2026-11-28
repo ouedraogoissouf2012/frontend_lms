@@ -30,6 +30,15 @@
         </select>
       </div>
 
+      <!-- Filtre Type (#675) : sur la carte, la liste de l'enseignant n'a pas de filtre serveur -->
+      <div class="filter-item">
+        <label class="filter-label">Type</label>
+        <select v-model="type" name="type" @change="$emit('apply')" class="filter-select">
+          <option value="">Tous les types</option>
+          <option v-for="t in TYPES_DE_SEANCE" :key="t.valeur" :value="t.valeur">{{ t.libelle }}</option>
+        </select>
+      </div>
+
       <!-- Filtre Période -->
       <div class="filter-item">
         <label class="filter-label">
@@ -61,6 +70,7 @@
  * période + réinitialisation. Présentation pure extraite VERBATIM ;
  * v-model par champ, émet `apply` (au change) et `reset`.
  */
+import { TYPES_DE_SEANCE } from '@/constants/typesDeSeance'
 defineProps({
   matieres: { type: Array, default: () => [] }
 })
@@ -68,6 +78,7 @@ defineProps({
 const matiereId = defineModel('matiereId', { default: '' })
 const visioStatus = defineModel('visioStatus', { default: '' })
 const period = defineModel('period', { default: 'all' })
+const type = defineModel('type', { default: '' })
 
 defineEmits(['apply', 'reset'])
 </script>

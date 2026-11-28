@@ -1,6 +1,6 @@
 /**
  * Test de RENDU du sous-composant SeancesFilters (#G1 ≤300).
- * Vérifie le montage, les 4 selects, l'affichage des options enseignants/classes,
+ * Vérifie le montage, les 5 selects (le type : #675), l'affichage des options enseignants/classes,
  * la mise à jour des v-model et l'émission de `change`.
  */
 import { mount } from '@vue/test-utils'
@@ -22,10 +22,10 @@ function mountFilters(props = {}) {
 }
 
 describe('SeancesFilters (#G1) — rendu', () => {
-  it('monte sans erreur et affiche 4 selects', () => {
+  it('monte sans erreur et affiche 5 selects', () => {
     const w = mountFilters()
     expect(w.find('.filters-card').exists()).toBe(true)
-    expect(w.findAll('select')).toHaveLength(4)
+    expect(w.findAll('select')).toHaveLength(5)
   })
 
   it('affiche les options enseignants et classes fournies', () => {
@@ -44,7 +44,8 @@ describe('SeancesFilters (#G1) — rendu', () => {
 
   it('met à jour le v-model du statut', async () => {
     const w = mountFilters()
-    const statusSelect = w.findAll('select')[3]
+    // Le statut est désigné par sa valeur d'option, pas par sa place : #675 a inséré le type avant lui.
+    const statusSelect = w.findAll('select').find((s) => s.find('option[value="active"]').exists())
     await statusSelect.setValue('active')
     expect(w.emitted('update:status')[0]).toEqual(['active'])
   })
