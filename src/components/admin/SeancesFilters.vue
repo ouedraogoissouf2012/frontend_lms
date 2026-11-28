@@ -33,6 +33,14 @@
       </div>
 
       <div class="filter-group">
+        <label class="filter-label">Type</label>
+        <select v-model="type" name="type" @change="$emit('change')" class="filter-select">
+          <option value="">Tous les types</option>
+          <option v-for="t in TYPES_DE_SEANCE" :key="t.valeur" :value="t.valeur">{{ t.libelle }}</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
         <label class="filter-label">Statut</label>
         <select v-model="status" @change="$emit('change')" class="filter-select">
           <option value="">Tous les statuts</option>
@@ -46,6 +54,8 @@
 </template>
 
 <script setup>
+import { TYPES_DE_SEANCE } from '@/constants/typesDeSeance'
+
 /**
  * Barre de filtres d'AdminSeances (#G1 ≤300). Période / enseignant / classe / statut
  * en v-model (defineModel) ; les listes enseignants & classes sont des props ;
@@ -55,6 +65,8 @@ const days = defineModel('days', { default: '30' })
 const teacherId = defineModel('teacherId', { default: '' })
 const classeId = defineModel('classeId', { default: '' })
 const status = defineModel('status', { default: '' })
+// #675 (lms_backend#1668) : le type, envoyé au serveur (`type`).
+const type = defineModel('type', { default: '' })
 
 defineProps({
   teachers: { type: Array, default: () => [] },
@@ -104,12 +116,12 @@ defineEmits(['change'])
 }
 
 .filter-select:hover {
-  border-color: var(--color-primary);
+  border-color: var(--primary-color);
 }
 
 .filter-select:focus {
   outline: none;
-  border-color: var(--color-primary);
+  border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 

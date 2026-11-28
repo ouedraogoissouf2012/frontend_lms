@@ -22,10 +22,13 @@
         v-model:teacher-id="filters.teacher_id"
         v-model:classe-id="filters.classe_id"
         v-model:status="filters.status"
+        v-model:type="filters.type"
         :teachers="teachers"
         :classes="classes"
         @change="loadSeances"
       />
+      <!-- #707 : la période, par défaut celle en cours ; une séance est retenue par sa classe. -->
+      <FiltreDePeriode v-model="choix" :periodes="periodes" />
 
       <!-- Loading State -->
       <ContentLoader v-if="loading" text="Chargement des seances..." />
@@ -38,7 +41,7 @@
       </div>
 
       <!-- Empty State -->
-      <div v-else-if="seances.length === 0" class="empty-state">
+      <div v-else-if="seancesAffichees.length === 0" class="empty-state">
         <CalendarIcon class="empty-icon" />
         <h3 class="empty-title">Aucune séance trouvée</h3>
         <p class="empty-message">Aucune séance ne correspond aux critères sélectionnés</p>
@@ -47,16 +50,16 @@
       <!-- Seances Grid -->
       <SeancesList
         v-else
-        :seances="seances"
+        :seances="seancesAffichees"
         @view-details="viewSeanceDetails"
         @enable-visio="enableVisio"
         @updated="refreshData"
       />
 
       <!-- Pagination -->
-      <div v-if="seances.length > 0" class="pagination">
+      <div v-if="seancesAffichees.length > 0" class="pagination">
         <p class="pagination-info">
-          Affichage de <strong>{{ seances.length }}</strong> séance(s)
+          Affichage de <strong>{{ seancesAffichees.length }}</strong> séance(s)
         </p>
       </div>
     </div>
@@ -73,7 +76,10 @@ import ContentLoader from '@/components/common/ContentLoader.vue'
 import SeancesFilters from '@/components/admin/SeancesFilters.vue'
 import SeancesList from '@/components/admin/SeancesList.vue'
 import SeanceCreateAction from '@/components/seances/SeanceCreateAction.vue'
+import FiltreDePeriode from '@/components/admin/FiltreDePeriode.vue'
+import { computed, onMounted } from 'vue'
 import { useAdminSeances } from '@/composables/useAdminSeances'
+import { useFiltreDePeriode } from '@/composables/useFiltreDePeriode'
 import {
   CalendarIcon,
   ArrowPathIcon,
@@ -84,6 +90,11 @@ const {
   loading, error, canRetry, seances, teachers, classes, filters,
   loadSeances, refreshData, viewSeanceDetails, enableVisio,
 } = useAdminSeances()
+
+// #707 : la période (par défaut celle en cours) retient les séances par leur classe.
+const { periodes, choix, charger: chargerPeriodes, seancesRetenues } = useFiltreDePeriode()
+const seancesAffichees = computed(() => seancesRetenues(seances.value, classes.value))
+onMounted(chargerPeriodes)
 </script>
 
 <style scoped>
@@ -110,7 +121,7 @@ const {
 .page-icon {
   width: 2.5rem;
   height: 2.5rem;
-  color: var(--color-primary);
+  color: var(--primary-color);
 }
 
 .page-title {
@@ -138,7 +149,7 @@ const {
 
 .refresh-btn:hover {
   background: var(--bg-hover);
-  border-color: var(--color-primary);
+  border-color: var(--primary-color);
 }
 
 .animate-spin {
@@ -184,7 +195,7 @@ const {
 .retry-btn {
   margin-top: var(--spacing-md);
   padding: var(--spacing-sm) var(--spacing-lg);
-  background: var(--color-primary);
+  background: var(--color-info-strong);
   color: white;
   border: none;
   border-radius: var(--radius-md);

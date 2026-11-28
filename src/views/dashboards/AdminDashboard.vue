@@ -205,7 +205,7 @@ const {
 .welcome-icon {
   width: 2.5rem;
   height: 2.5rem;
-  color: var(--color-primary);
+  color: var(--primary-color);
 }
 
 .page-title {

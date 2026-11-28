@@ -55,7 +55,7 @@ describe('useAdminSeances (#G1)', () => {
 
   it('expose les filtres avec leurs valeurs par défaut', async () => {
     const s = await setup()
-    expect(s.filters.value).toEqual({ days: '30', teacher_id: '', classe_id: '', status: '' })
+    expect(s.filters.value).toEqual({ days: '30', teacher_id: '', classe_id: '', status: '', type: '' })
   })
 
   it('ne charge les séances qu\'UNE fois au montage (pas de double fetch)', async () => {

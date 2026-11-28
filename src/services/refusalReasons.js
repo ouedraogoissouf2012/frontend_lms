@@ -27,6 +27,11 @@ export const REASONS = Object.freeze({
   // lms_backend#1115 (#620) : 409 des deux portes d'inscription par code, la classe a atteint sa capacité. Définitif.
   class_full: motif('classeComplete'),
   no_institution: motif('noInstitution'),
+  // lms_backend#1275 (#656 b) : 403 de PUT /users/{user}/password, l'école tient ses mots de passe chez KLASSCI.
+  password_managed_by_klassci: motif('motDePasseGereParKlassci'),
+  // lms_backend#1739 (#711) : 403 de POST /auth/login, KLASSCI refuse le compte. Définitif ; l'écran de
+  // connexion montre le motif de KLASSCI quand il en porte un (`messageConnexion`).
+  klassci_account_refused: motif('compteRefuseParKlassci'),
   account_quota_exceeded: motif('accountQuotaExceeded'),
   account_daily_cap_reached: motif('accountDailyCapReached'),
   institution_cap_reached: motif('institutionCapReached'),
@@ -89,9 +94,17 @@ export const REASONS = Object.freeze({
   class_out_of_scope: motif('seanceClasseHorsEtablissement'),
   subject_out_of_scope: motif('seanceMatiereHorsEtablissement'),
   subject_not_in_class_program: motif('seanceMatiereHorsProgramme'),
+  // lms_backend#1676 (#683) : refus de GET /lms/classes/{id}/resultats, définitifs.
+  class_not_taught: motif('resultatsClasseNonEnseignee'),
+  not_in_class: motif('resultatsHorsDeLaClasse'),
   // lms_backend#1121 : refus de PUT /lms/seances/{id} (403 et 409), définitifs.
   seance_managed_by_klassci: motif('seanceGereeParKlassci'),
   seance_visio_active: motif('seanceVisioEnCours'),
+  // lms_backend#1668 (#675) : le créneau chevauche une séance (409, `conflicts` la nomme), le forçage refusé
+  // à l'enseignant (403), une fin qui ne suit pas le début final (422). Définitifs.
+  seance_schedule_conflict: motif('seanceConflitHoraire'),
+  conflict_override_forbidden: motif('seanceForcageInterdit'),
+  seance_end_before_start: motif('seanceFinAvantDebut'),
   // lms_backend#922 (ADR-906-01) : un même statut, plusieurs sens, chacun son motif. Les deux bornes du 429 de
   // POST /school-requests : la minute par adresse (transitoire) et le plafond du jour (définitif).
   ip_quota_exceeded: motif('demandeEcoleQuotaAdresse', { transitoire: true }),
@@ -102,6 +115,9 @@ export const REASONS = Object.freeze({
   training_session_published_needs_start: motif('periodePublieeSansDebut'),
   training_session_not_deletable: motif('periodeNonSupprimable'),
   training_session_not_publiee: motif('periodeNonPubliee'),
+  // #660 (lms_backend#1653) : le code d'une matière, une matière employée dans une classe.
+  subject_code_already_used: motif('matiereCodeDejaPris'),
+  subject_in_use_in_class: motif('programmeMatiereEmployee'),
   evaluation_attempt_not_started: motif('evaluationTentativeNonDemarree'),
   evaluation_submission_not_gradable: motif('evaluationCopieNonNotable'),
   // POST /knowledge-checks/{id}/start et /submit. Les `webhook_*` du même lot ne s'adressent qu'au serveur
@@ -124,8 +140,8 @@ export const REASONS = Object.freeze({
   // #605 (lms_backend#1184, PorteDuCatalogueLocal) : 403 sur le catalogue d'une école dont KLASSCI tient le
   // catalogue (programmes, sessions et leurs transitions, classes, matières, programme d'une classe, codes).
   catalogue_managed_by_klassci: motif('catalogueGereParKlassci'),
-  // #674 (lms_backend#1275, #1667) : 403 de PUT /auth/me/password et de PATCH /auth/me, école reliée à KLASSCI.
-  password_managed_by_klassci: motif('motDePasseGereParKlassci'),
+  // #674 (lms_backend#1667) : 403 de PATCH /auth/me, école reliée à KLASSCI. Son pendant pour le mot de passe,
+  // `password_managed_by_klassci`, est plus haut (#656 b) : un seul motif pour les deux écrans.
   profile_managed_by_klassci: motif('profilGereParKlassci'),
   // #632 (lms_backend#1521) : le code d'une classe est déjà employé dans l'établissement ; dit sous le champ du code.
   class_code_already_used: motif('classeCodeDejaEmploye'),

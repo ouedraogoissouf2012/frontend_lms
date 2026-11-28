@@ -28,11 +28,13 @@ export function useCoordinatorSeances() {
   const filters = reactive({
     days: 30,
     teacher_id: null,
-    classe_id: null
+    classe_id: null,
+    type: ''
   })
 
   // Le cache n'est valide que pour la liste NON filtrée (par enseignant/classe).
-  const noActiveFilter = () => !filters.teacher_id && !filters.classe_id
+  // #675 : le type filtre au serveur, comme l'enseignant et la classe.
+  const noActiveFilter = () => !filters.teacher_id && !filters.classe_id && !filters.type
 
   const loadClasses = async () => {
     try {
@@ -68,6 +70,7 @@ export function useCoordinatorSeances() {
     if (filters.days) params.days = filters.days
     if (filters.teacher_id) params.teacher_id = filters.teacher_id
     if (filters.classe_id) params.classe_id = filters.classe_id
+    if (filters.type) params.type = filters.type
 
     let data
     try {

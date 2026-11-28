@@ -63,6 +63,12 @@ export const ERROR_MESSAGES = Object.freeze({
   enrolmentNotActive: "Votre inscription dans cette classe n'est pas active. Adressez-vous à votre établissement.",
   // lms_backend#1115 (#620) : 409 `class_full`, le code est valide mais la classe est pleine.
   classeComplete: 'Cette classe est complète. Adressez-vous à votre établissement.',
+  // lms_backend#1668 (#675) : les refus du créneau d'une séance.
+  seanceConflitHoraire: 'Ce créneau chevauche une autre séance du même enseignant ou de la même classe.',
+  seanceForcageInterdit: 'Seule la gestion de l’établissement peut créer une séance malgré un conflit d’horaire.',
+  seanceFinAvantDebut: 'La fin de la séance doit suivre son début.',
+  // lms_backend#1709 : GET /lms/classes/etablissement a échoué ; le rapport reste possible sur toute l'école.
+  classesIndisponibles: 'Les classes n’ont pas pu être chargées : le rapport portera sur toutes les classes.',
   noInstitution: "Votre compte n'est rattaché à aucun établissement. Contactez votre administrateur.",
   accountQuotaExceeded: "Trop d'essais en peu de temps. Réessayez dans une minute.",
   accountDailyCapReached: "Vous avez atteint la limite d'essais pour aujourd'hui. Réessayez demain.",
@@ -127,6 +133,8 @@ export const ERROR_MESSAGES = Object.freeze({
   // D477 : la connexion (Login.vue, utils/messageConnexion). Textes du front ; le back n'a pas de `reason`.
   identifiantsIncorrects: 'Identifiants incorrects.',
   connexionEchouee: 'Échec de la connexion.',
+  // lms_backend#1739 (#711) : KLASSCI refuse le COMPTE (non réinscrit, inactif) sans dire pourquoi.
+  compteRefuseParKlassci: 'Votre établissement refuse cette connexion. Contactez son secrétariat.',
   compteEnConflit: "Votre adresse e-mail est déjà utilisée par un autre compte de votre établissement. Contactez l'administrateur de votre école.",
   // lms_backend#922 (ADR-906-01) : les sens d'un même statut, chacun son motif (refusalReasons.js).
   demandeEcoleQuotaAdresse: 'Trop de demandes envoyées depuis cette connexion. Réessayez dans un instant.',
@@ -178,9 +186,15 @@ export const ERROR_MESSAGES = Object.freeze({
   compteRoleRequis: 'Choisissez le rôle du compte.',
   compteMotDePasseCourt: 'Le mot de passe initial doit compter au moins 8 caractères.',
   compteConfirmationDifferente: 'La confirmation ne reprend pas le mot de passe initial.',
+  // #656 (b) : modifier, désactiver, définir le mot de passe d'un compte.
+  compteRienAModifier: 'Aucun changement à enregistrer.',
+  compteActeIncertain: 'L’opération n’a pas pu être confirmée : la liste est relue, vérifiez-la avant de recommencer.',
+  motDePasseTropCourt: 'Le mot de passe doit compter au moins 8 caractères.',
+  motDePasseConfirmationDifferente: 'La confirmation ne reprend pas le mot de passe.',
+  // Un seul motif serveur pour deux écrans (#656 b : le compte d'un autre ; #674 : le sien) : une phrase qui vaut pour les deux.
+  motDePasseGereParKlassci: 'Ce mot de passe se gère dans KLASSCI, le système de gestion de l’école, pas ici.',
   compteCreationIncertaine: 'La création n’a pas pu être confirmée. Le compte existe peut-être déjà : vérifiez la liste avant de recommencer.',
   // #674 : changer son mot de passe et son profil (lms_backend#1667).
-  motDePasseGereParKlassci: 'Votre mot de passe est celui de KLASSCI, le système de gestion de votre école : changez-le dans KLASSCI.',
   profilGereParKlassci: 'Votre profil vient de KLASSCI, le système de gestion de votre école : modifiez-le dans KLASSCI.',
   monMotDePasseActuelRequis: 'Indiquez votre mot de passe actuel.',
   monMotDePasseCourt: 'Le nouveau mot de passe doit compter au moins 8 caractères.',
@@ -191,5 +205,23 @@ export const ERROR_MESSAGES = Object.freeze({
   monProfilNomRequis: 'Indiquez votre nom.',
   monProfilIncertain: 'La modification n’a pas pu être confirmée : actualisez la page pour voir votre profil.',
   monProfilModifie: 'Profil mis à jour.',
+  // #683 : le classement d'une classe (lms_backend#1676).
+  resultatsClasseNonEnseignee: 'Vous n’enseignez pas dans cette classe : son classement ne vous est pas ouvert.',
+  resultatsHorsDeLaClasse: 'Vous n’êtes pas inscrit dans cette classe : son classement ne vous est pas ouvert.',
+  // #654 : le catalogue d'une école autonome (matière, programme d'une classe).
+  matiereLibelleRequis: 'Indiquez le libellé de la matière.',
+  matiereCoefficientIllisible: 'Indiquez un coefficient entier, de 1 à 20.',
+  matiereCreditIllisible: 'Indiquez un crédit entier, de 1 à 60.',
+  matiereCreationIncertaine: 'La création n’a pas pu être confirmée. La matière existe peut-être déjà : vérifiez la liste avant de recommencer.',
+  programmeMatiereRequise: 'Choisissez la matière à rattacher.',
+  programmeIntrouvable: 'Classe, matière ou enseignant introuvable : actualisez la page avant de recommencer.',
+  programmeRattachementIncertain: 'Le rattachement n’a pas pu être confirmé : actualisez la fiche pour voir le programme.',
+  // #660 : modifier une matière, modifier ou retirer une matière du programme d'une classe.
+  matiereCodeDejaPris: 'Ce code est déjà employé par une autre matière de l’école.',
+  matiereModificationIncertaine: 'La modification n’a pas pu être confirmée : la liste est relue, vérifiez la matière.',
+  programmeLigneRequise: 'Choisissez la matière du programme à modifier.',
+  programmeCoefficientIllisible: 'Indiquez un coefficient entier, de 1 à 20, ou laissez vide pour celui de la matière.',
+  programmeMatiereEmployee: 'Des leçons, séances, évaluations, quiz ou discussions de cette classe emploient cette matière : elle ne peut pas en être retirée.',
+  programmeModificationIncertaine: 'La modification n’a pas pu être confirmée : la fiche est relue, vérifiez le programme.',
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })

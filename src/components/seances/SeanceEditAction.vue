@@ -20,15 +20,30 @@
         <input :id="`seance-edit-titre-${seance.id}`" v-model="form.titre" name="titre" type="text" class="form-input" maxlength="255" />
         <p v-if="erreurs.titre" class="field-error">{{ erreurs.titre }}</p>
 
+        <label class="form-label" :for="`seance-edit-type-${seance.id}`">Type</label>
+        <select :id="`seance-edit-type-${seance.id}`" v-model="form.type" name="type" class="form-input">
+          <option value="">Sans type</option>
+          <option v-for="t in TYPES_DE_SEANCE" :key="t.valeur" :value="t.valeur">{{ t.libelle }}</option>
+        </select>
+        <p v-if="erreurs.type" class="field-error">{{ erreurs.type }}</p>
+
         <label class="form-label" :for="`seance-edit-debut-${seance.id}`">Début</label>
         <input :id="`seance-edit-debut-${seance.id}`" v-model="form.debut" name="debut" type="datetime-local" class="form-input" />
-        <p class="form-hint">La fin n'est pas saisie : elle sera estimée (début + 2 h) et dite comme telle.</p>
         <p v-if="erreurs.date_seance" class="field-error">{{ erreurs.date_seance }}</p>
+
+        <label class="form-label" :for="`seance-edit-fin-${seance.id}`">Fin (facultative)</label>
+        <input :id="`seance-edit-fin-${seance.id}`" v-model="form.fin" name="fin" type="datetime-local" class="form-input" />
+        <p class="form-hint">Sans fin, elle est estimée (début + 2 h) et dite comme telle.</p>
+        <p v-if="erreurs.fin" class="field-error">{{ erreurs.fin }}</p>
 
         <div v-if="erreur" class="form-error" role="alert">
           <span>{{ erreur }}</span>
           <button v-if="canRetry" type="submit" class="btn-retry" :disabled="envoi">Réessayer</button>
         </div>
+        <SeanceConflits
+          v-if="conflits.length" :conflits="conflits" :peut-forcer="peutForcer" :envoi="envoi"
+          libelle-forcer="Enregistrer quand même" @forcer="soumettreQuandMeme"
+        />
 
         <div class="form-actions">
           <button type="button" class="btn-secondary" @click="fermer">Annuler</button>
@@ -50,7 +65,9 @@
  */
 import { ref, toRef } from 'vue'
 import Modal from '@/components/ui/Modal.vue'
+import SeanceConflits from '@/components/seances/SeanceConflits.vue'
 import { useSeanceEdit } from '@/composables/useSeanceEdit'
+import { TYPES_DE_SEANCE } from '@/constants/typesDeSeance'
 
 const props = defineProps({
   seance: { type: Object, required: true }
@@ -58,8 +75,10 @@ const props = defineProps({
 const emit = defineEmits(['updated'])
 
 const ouvert = ref(false)
-const { form, erreurs, erreur, canRetry, envoi, matiereNom, classesDisponibles, ouvrir, modifier } =
-  useSeanceEdit(toRef(props, 'seance'))
+const {
+  form, erreurs, erreur, canRetry, envoi, conflits, peutForcer, matiereNom, classesDisponibles,
+  ouvrir, modifier, modifierQuandMeme,
+} = useSeanceEdit(toRef(props, 'seance'))
 
 async function ouvrirFenetre() {
   ouvert.value = true
@@ -70,12 +89,19 @@ function fermer() {
   ouvert.value = false
 }
 
-async function soumettre() {
-  const relue = await modifier()
+function terminer(relue) {
   if (relue) {
     ouvert.value = false
     emit('updated', relue)
   }
+}
+
+async function soumettre() {
+  terminer(await modifier())
+}
+
+async function soumettreQuandMeme() {
+  terminer(await modifierQuandMeme())
 }
 </script>
 

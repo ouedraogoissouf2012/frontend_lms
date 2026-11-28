@@ -7,6 +7,7 @@
           <h3 class="seance-title" :title="`Séance: ${seance.matiere?.nom || 'N/A'}`">
             {{ seance.matiere?.nom || 'Matière inconnue' }}
           </h3>
+          <SeanceTypeBadge :type="seance.type_seance" />
         </div>
         <span
           :class="['status-badge', `status-${getSeanceStatus(seance)}`]"
@@ -85,6 +86,7 @@ import {
   EyeIcon
 } from '@heroicons/vue/24/outline'
 import { statutSeance, libelleStatutSeance, finEstimee } from '@/utils/seanceStatut'
+import SeanceTypeBadge from '@/components/seances/SeanceTypeBadge.vue'
 import SeanceEditAction from '@/components/seances/SeanceEditAction.vue'
 
 defineProps({
@@ -155,7 +157,7 @@ function formatTime(dateString) {
 .seance-icon {
   width: 1.5rem;
   height: 1.5rem;
-  color: var(--color-primary);
+  color: var(--primary-color);
   flex-shrink: 0;
 }
 
@@ -242,7 +244,7 @@ function formatTime(dateString) {
 }
 
 .action-btn.primary {
-  background: var(--color-primary);
+  background: var(--color-info-strong);
   color: white;
   border: none;
 }
@@ -259,7 +261,7 @@ function formatTime(dateString) {
 
 .action-btn.secondary:hover {
   background: var(--bg-hover);
-  border-color: var(--color-primary);
+  border-color: var(--primary-color);
 }
 
 /* Responsive */

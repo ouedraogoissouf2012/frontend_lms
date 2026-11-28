@@ -174,7 +174,7 @@ function formaterCout(mo) {
 }
 
 .mode-choix__option--actif {
-  border-color: var(--color-primary);
+  border-color: var(--primary-color);
 }
 
 .mode-choix__nom {
@@ -191,8 +191,8 @@ function formaterCout(mo) {
   font-size: 0.72rem;
   font-weight: 500;
   background: var(--color-primary-bg, var(--bg-primary));
-  color: var(--color-primary);
-  border: 1px solid var(--color-primary);
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
 }
 
 .mode-choix__detail,

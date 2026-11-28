@@ -8,7 +8,7 @@
  *
  * @param {{counts: {classes: number|null, enseignants: number|null, classesOk: number|null},
  *   hasClasses: boolean, hasEnseignants: boolean, rosterForbidden: boolean,
- *   administrationEchec?: boolean}} state
+ *   administrationEchec?: boolean, elevesSansClasseEchec?: boolean}} state
  * @returns {string[]}
  */
 // Refus de droits sur la liste nominative : une cause, pas une panne. Réessayer n'y changera rien.
@@ -25,7 +25,9 @@ export function noticePeutReessayer(notice) {
   return notice !== NOTICE_ROSTER_INTERDIT
 }
 
-export function buildUsersNotices({ counts, hasClasses, hasEnseignants, rosterForbidden, administrationEchec = false }) {
+export function buildUsersNotices({
+  counts, hasClasses, hasEnseignants, rosterForbidden, administrationEchec = false, elevesSansClasseEchec = false,
+}) {
   const { classes: nbClasses, enseignants: nbEnseignants, classesOk } = counts
   const out = []
 
@@ -44,6 +46,10 @@ export function buildUsersNotices({ counts, hasClasses, hasEnseignants, rosterFo
   // liste vide se lisait « aucun utilisateur ».
   if (administrationEchec) {
     out.push("Les comptes d'administration (coordinateurs, administrateurs) n'ont pas pu être chargés.")
+  }
+  // #656 : école autonome. Ces élèves n'ont pas d'autre source : leur absence ne doit pas passer pour « aucun ».
+  if (elevesSansClasseEchec) {
+    out.push("Les élèves sans classe n'ont pas pu être chargés : ils manquent à la liste.")
   }
 
   // Refus de droits : cause distincte d'un échec, et sans issue par un réessai.
