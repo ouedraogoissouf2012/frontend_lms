@@ -82,6 +82,9 @@ const id = (nom) => `${base}-${nom}`
 .annonce-form h3 {
   margin: 0;
   color: var(--text-primary);
+  /* Le reset de Tailwind ramène un titre à la taille du texte : elle se déclare ici. */
+  font-size: var(--font-size-lg);
+  font-weight: 700;
 }
 
 .annonce-aide,

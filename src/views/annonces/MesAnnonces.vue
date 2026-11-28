@@ -67,6 +67,9 @@ const formatDate = (iso) => (iso ? new Date(iso).toLocaleString('fr-FR', { dateS
 .mes-annonces h1 {
   margin: 0;
   color: var(--text-primary);
+  /* Le reset de Tailwind ramène un titre à la taille du texte : elle se déclare ici. */
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
 }
 
 .mes-annonces-aide,
