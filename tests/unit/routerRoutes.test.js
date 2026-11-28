@@ -62,6 +62,8 @@ const EXPECTED_PATHS = [
   '/attendance/seances/:seanceId', '/coordinateur/evaluations', '/coordinateur/seances',
   // front#690 : le fil « Mes annonces ».
   '/annonces',
+  // front#664 : la fiche d'un élève (id local, chiffres seulement).
+  '/eleves/:id(\\d+)',
   // fallback (catch-all 404) — TOUJOURS en dernier
   CATCH_ALL_PATH
 ]
