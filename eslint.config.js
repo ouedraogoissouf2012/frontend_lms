@@ -27,6 +27,10 @@ export default [
       'vue/no-reserved-component-names': 'off',
       'vue/no-mutating-props': 'off',
       'local/no-raw-role-string': 'error',
+      // #754 : la config plate n'active aucune règle du cœur (@eslint/js absent). Un doublon de clé dans un objet
+      // était donc accepté, et la dernière clé gagnait en silence. Les catalogues composés par étalement ont en plus
+      // leur propre garde : npm run lint:catalogues.
+      'no-dupe-keys': 'error',
     },
   },
   {
