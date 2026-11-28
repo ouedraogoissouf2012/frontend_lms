@@ -111,7 +111,7 @@ const { enCours, mode, date, notesPubliees, enregistrable, basculerNotes, enregi
 }
 
 .etat-publie {
-  color: var(--success-color, #15803d);
+  color: var(--color-success-text);
 }
 
 .etat-cache {
