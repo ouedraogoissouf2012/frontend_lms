@@ -1,6 +1,6 @@
 <template>
   <article class="code-card">
-    <h2>{{ classe.libelle }}</h2>
+    <h2>{{ classe.libelle }} <span v-if="archivee" class="code-badge">Archivée</span></h2>
     <p class="code-etat">{{ libelleEtat }}</p>
 
     <!-- Le code se DICTE : affiché en clair, sélectionnable, jamais journalisé. Libellé
@@ -10,7 +10,8 @@
       <dd class="code-valeur">{{ code }}</dd>
     </dl>
 
-    <div class="code-actions">
+    <!-- #659 : une classe archivée n'émet plus de code (le serveur refuserait, 409 class_archived). -->
+    <div v-if="!archivee" class="code-actions">
       <!-- aria-disabled, pas disabled : le bouton cliqué garde le focus clavier. -->
       <button type="button" class="code-btn" :aria-disabled="busy ? 'true' : 'false'" @click="!busy && $emit('emettre')">
         {{ peutRegenerer ? 'Régénérer' : 'Émettre un code' }}
@@ -28,6 +29,9 @@
 
     <!-- #657 : la période de la classe ; les périodes recevables sont chargées une fois par l'écran. -->
     <ClassePeriode :classe="classe" :periodes="periodes" @rattachee="$emit('periode', $event)" />
+
+    <!-- #659 : modifier, archiver, désarchiver ; la carte relaie la ligne rendue. -->
+    <ClasseGestes :classe="classe" @ligne="$emit('ligne', $event)" @incertaine="$emit('incertaine')" />
   </article>
 </template>
 
@@ -43,6 +47,7 @@
 import { computed } from 'vue'
 import ClasseCapacite from '@/components/admin/ClasseCapacite.vue'
 import ClassePeriode from '@/components/admin/ClassePeriode.vue'
+import ClasseGestes from '@/components/admin/ClasseGestes.vue'
 
 const props = defineProps({
   classe: { type: Object, required: true },
@@ -50,7 +55,7 @@ const props = defineProps({
   periodes: { type: Array, default: () => [] },
 })
 
-defineEmits(['emettre', 'retirer', 'capacite', 'periode'])
+defineEmits(['emettre', 'retirer', 'capacite', 'periode', 'ligne', 'incertaine'])
 
 const LIEN_FICHE = 'Ouvrir la classe'
 
@@ -66,9 +71,19 @@ const etat = computed(() => props.classe.code_inscription?.etat ?? 'absent')
 const libelleEtat = computed(() => ETATS[etat.value] ?? ETATS.absent)
 const code = computed(() => (etat.value === 'actif' ? props.classe.code_inscription?.valeur ?? null : null))
 const peutRegenerer = computed(() => etat.value === 'actif' || etat.value === 'inconnu')
+const archivee = computed(() => Boolean(props.classe.archivee_le))
 </script>
 
 <style scoped>
+.code-badge {
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0 var(--spacing-sm);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+}
+
 .code-card {
   background: var(--card-bg);
   border: 1px solid var(--border-primary);
