@@ -235,6 +235,14 @@ export const ERROR_MESSAGES = Object.freeze({
   programmeCoefficientIllisible: 'Indiquez un coefficient entier, de 1 à 20, ou laissez vide pour celui de la matière.',
   programmeMatiereEmployee: 'Des leçons, séances, évaluations, quiz ou discussions de cette classe emploient cette matière : elle ne peut pas en être retirée.',
   programmeModificationIncertaine: 'La modification n’a pas pu être confirmée : la fiche est relue, vérifiez le programme.',
+  // #678 : le calendrier de l'année (lms_backend#1671).
+  calendrierAucunEvenement: 'Aucun événement ce mois-ci.',
+  calendrierTitreRequis: 'Indiquez le titre de l’événement.',
+  calendrierDatesRequises: 'Indiquez le jour de début et le jour de fin.',
+  calendrierFinAvantDebut: 'Le jour de fin ne peut pas précéder le jour de début.',
+  calendrierClassesRequises: 'Choisissez au moins une classe, ou publiez pour toute l’école.',
+  calendrierClasseHorsEcole: 'Une classe choisie n’appartient pas à l’établissement : actualisez la page, puis choisissez de nouveau.',
+  calendrierJoursFermesIndisponibles: 'Les jours de vacances et de fermeture n’ont pas pu être lus : l’agenda les omet pour l’instant.',
   // #659 (lms_backend#1652) : modifier, archiver une classe, transférer un élève.
   classeArchivee: 'Cette classe est archivée : elle ne reçoit plus d’inscription. Désarchivez-la d’abord.',
   classePeriodeClose: 'La période de cette classe est close : elle ne reçoit plus d’inscription.',

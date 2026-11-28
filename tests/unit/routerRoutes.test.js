@@ -64,6 +64,8 @@ const EXPECTED_PATHS = [
   '/annonces',
   // front#664 : la fiche d'un élève (id local, chiffres seulement).
   '/eleves/:id(\\d+)',
+  // front#678 : le calendrier de l'année.
+  '/calendrier',
   // fallback (catch-all 404) — TOUJOURS en dernier
   CATCH_ALL_PATH
 ]

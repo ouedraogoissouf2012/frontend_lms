@@ -42,7 +42,9 @@ function mountCalendar(props = {}) {
       stubs: {
         CalendarNavigation: true,
         CalendarFilters: true,
-        CalendarView: true,
+        // La doublure expose getApi, comme la vraie carte (defineExpose) : la synchronisation de useCalendarView
+        // l'appelle dès que les événements changent (#678 : les jours fermés arrivent après le montage).
+        CalendarView: { template: '<div />', setup(_, { expose }) { expose({ getApi: () => null }) } },
         CalendarCompactAgenda: true,
         CalendarLegend: true,
         EventDetailModal: true

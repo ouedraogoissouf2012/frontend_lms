@@ -59,6 +59,8 @@ export const NAV_SECTIONS = Object.freeze([
   // #687 : justifier ses absences ; même capacité (sans liste locale, les absences vivent ailleurs).
   { icon: 'fa-file-text-o', label: 'Mes absences', to: '/student/absences', roles: [ETUDIANT], capacite: 'peutInscrireLocalement' },
   { icon: 'fa-clock-o', label: 'Emploi du Temps', to: '/student/schedule', roles: [ETUDIANT] },
+  // #678 : le calendrier de l'année, à côté de l'emploi du temps de l'élève.
+  { icon: 'fa-calendar-o', label: 'Calendrier de l’année', to: '/calendrier', roles: [ETUDIANT] },
   { icon: 'fa-edit', label: 'Évaluations', to: '/student/evaluations-list', roles: [ETUDIANT] },
   { icon: 'fa-star', label: 'Mes Notes', to: '/student/grades', roles: [ETUDIANT] },
   { icon: 'fa-comments', label: 'Forum', to: '/forum', roles: [ETUDIANT] },
@@ -101,6 +103,8 @@ export const NAV_SECTIONS = Object.freeze([
   { icon: 'fa-file-text-o', label: 'Justificatifs', to: '/admin/justificatifs', roles: [ADMIN, COORDINATEUR], capacite: 'peutInscrireLocalement' },
 
   // --- Queue partagée enseignant/admin ---
+  // #678 : le calendrier de l'année, pour le personnel (l'élève a la sienne, plus haut). Aucune capacité.
+  { icon: 'fa-calendar-o', label: 'Calendrier de l’année', to: '/calendrier', roles: [ENSEIGNANT, COORDINATEUR, ADMIN] },
   { icon: 'fa-comments', label: 'Forum', to: '/forum', roles: [ENSEIGNANT, COORDINATEUR, ADMIN] },
   { icon: 'fa-history', label: 'Historique', to: '/attendance/seances', roles: [ENSEIGNANT, COORDINATEUR, ADMIN] },
   { icon: 'fa-cog', label: 'Paramètres', to: '/teacher/settings', roles: [ENSEIGNANT] },

@@ -114,5 +114,14 @@ export const academicRoutes = [
     name: 'fiche-eleve',
     component: () => import('@/views/eleves/FicheEleveView.vue'),
     meta: { requiresAuth: true, roles: STAFF_ROLES, title: 'Fiche de l’élève' }
+  },
+
+  // #678 (lms_backend#1671) : le calendrier de l'année, lu par tout compte d'établissement, dans les deux volets :
+  // aucune capacité. L'écriture n'est montrée qu'à la gestion ; le serveur fait foi.
+  {
+    path: '/calendrier',
+    name: 'calendrier-de-l-annee',
+    component: () => import('@/views/shared/CalendrierDeLAnnee.vue'),
+    meta: { requiresAuth: true, roles: AUTHENTICATED_ROLES }
   }
 ]

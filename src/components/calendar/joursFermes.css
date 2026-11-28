@@ -1,0 +1,14 @@
+/*
+ * #678 — la teinte « jour fermé » des vacances et des fermetures, en fond des emplois du temps (FullCalendar,
+ * `display: 'background'`). Non scopée : FullCalendar rend ses cellules hors du composant. Jetons des deux thèmes.
+ */
+.fc .fc-bg-event.jour-ferme {
+  background: var(--warning-bg);
+  border: 1px dashed var(--warning-border);
+  opacity: 1;
+}
+
+.fc .fc-bg-event.jour-ferme .fc-event-title {
+  color: var(--warning-text);
+  font-style: normal;
+}

@@ -38,6 +38,8 @@
     <div v-else-if="information" class="calendar-info" role="status">
       {{ information }}
     </div>
+    <!-- #678 : les jours fermés sont un fond ; leur panne est dite, l'agenda reste. -->
+    <p v-if="erreurJoursFermes" class="calendar-info" role="status">{{ erreurJoursFermes }}</p>
 
     <!-- ========== CALENDAR CARD (H8 : extraite en sous-composant) ========== -->
     <div class="desktop-calendar-surface">
@@ -92,6 +94,8 @@ import EventDetailModal from './EventDetailModal.vue'
 import { useCalendarEvents } from '@/composables/useCalendarEvents'
 // H8 : état de la vue (options FullCalendar, navigation, sync impérative)
 import { useCalendarView } from '@/composables/useCalendarView'
+import { useJoursFermes } from '@/composables/useJoursFermes'
+import './joursFermes.css'
 import { toId } from '@/utils/toId'
 
 const props = defineProps({
@@ -168,12 +172,19 @@ const filteredEvents = computed(() => {
   return filtered
 })
 
+// #678 : les vacances et fermetures du mois affiché, en fond (le mois suit la vue, ci-dessous).
+const moisAffiche = ref(new Date())
+const { joursFermes, erreurJoursFermes } = useJoursFermes(moisAffiche)
+const evenementsDeLAgenda = computed(() => [...filteredEvents.value, ...joursFermes.value])
+
 // État de la vue FullCalendar (options, navigation, sync) délégué au composable (H8)
 const { currentView, currentDate, currentMonthLabel, calendarOptions, changeView, previousMonth, nextMonth, goToToday } = useCalendarView({
   calendarRef: calendarViewRef,
-  filteredEvents,
+  filteredEvents: evenementsDeLAgenda,
   onEventClick: (event) => { selectedEvent.value = event }
 })
+
+watch(currentDate, (d) => { moisAffiche.value = d })
 
 const compactEvents = computed(() => {
   const start = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth(), 1)

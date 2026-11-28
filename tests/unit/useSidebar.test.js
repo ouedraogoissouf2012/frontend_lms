@@ -70,6 +70,7 @@ describe('useSidebar (#H12)', () => {
       '/teacher/schedule',
       '/teacher/hub',
       '/teacher/evaluations',
+      '/calendrier',
       '/forum',
       '/attendance/seances',
       '/teacher/settings'

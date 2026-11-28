@@ -27,6 +27,8 @@ const EXPECTED = {
     ['Dashboard', '/student/dashboard'],
     ['Mes Cours', '/student/courses'],
     ['Emploi du Temps', '/student/schedule'],
+    // #678 : le calendrier de l'année, pour tout compte d'établissement.
+    ['Calendrier de l’année', '/calendrier'],
     ['Évaluations', '/student/evaluations-list'],
     ['Mes Notes', '/student/grades'],
     ['Forum', '/forum'],
@@ -37,6 +39,7 @@ const EXPECTED = {
     ['Emploi du Temps', '/teacher/schedule'],
     ['Mon Espace', '/teacher/hub'],
     ['Évaluations', '/teacher/evaluations'],
+    ['Calendrier de l’année', '/calendrier'],
     ['Forum', '/forum'],
     ['Historique', '/attendance/seances'],
     ['Paramètres', '/teacher/settings'],
@@ -48,6 +51,7 @@ const EXPECTED = {
     ['Résultats', '/admin/evaluations/results'],
     ['Séances & Visio', '/coordinateur/seances'],
     // « Sessions » est gardée par une capacité (#605) : sans capacité accordée, elle n'y est pas.
+    ['Calendrier de l’année', '/calendrier'],
     ['Forum', '/forum'],
     ['Historique', '/attendance/seances'],
     ['Paramètres', '/admin/settings'],
@@ -63,6 +67,7 @@ const EXPECTED = {
     ['Résultats Évaluations', '/admin/evaluations/results'],
     ['Statistiques', '/admin/stats'],
     // « Sessions » : gardée par `peutGererCatalogueLocal` (#605), absente sans capacité.
+    ['Calendrier de l’année', '/calendrier'],
     ['Forum', '/forum'],
     ['Historique', '/attendance/seances'],
     ['Paramètres', '/admin/settings'],
