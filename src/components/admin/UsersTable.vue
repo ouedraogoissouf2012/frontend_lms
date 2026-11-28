@@ -38,6 +38,17 @@
             <button class="action-btn" @click.stop="$emit('select', user)">
               <i class="fa fa-eye"></i>
             </button>
+            <!-- front#664 : la fiche d'un élève, par son id LOCAL ; sans id local, elle ne s'ouvre pas. -->
+            <router-link
+              v-if="user.role === 'etudiant' && user.lms_id"
+              :to="`/eleves/${user.lms_id}`"
+              class="action-btn action-fiche"
+              data-test="fiche-eleve"
+              :aria-label="`Fiche de ${user.name}`"
+              @click.stop
+            >
+              <i class="fa fa-id-card-o" aria-hidden="true"></i>
+            </router-link>
           </td>
         </tr>
       </tbody>
@@ -186,6 +197,11 @@ defineEmits(['sort', 'select'])
   color: var(--text-secondary);
   cursor: pointer;
   transition: all var(--transition-fast);
+}
+
+.action-fiche {
+  display: inline-block;
+  margin-left: 0.375rem;
 }
 
 .action-btn:hover {

@@ -15,6 +15,9 @@
       <button v-if="vuePersonnel" type="button" class="resultats-bouton" data-test="exporter" @click="exporter">
         Exporter en CSV
       </button>
+      <button v-if="vuePersonnel && carnet" type="button" class="resultats-bouton" data-test="exporter-carnet" @click="exporterLeCarnet">
+        Exporter le carnet
+      </button>
     </form>
     <p class="resultats-note">Sans période, toute l’année. Seules les notes publiées comptent.</p>
 
@@ -29,9 +32,10 @@
       <template v-if="vuePersonnel">
         <ClasseResultatsStatistiques :statistiques="bilan.statistiques" :seuil="bilan.seuil_reussite" />
         <ClasseResultatsClassement :bilan="bilan" />
+        <ClasseCarnetDeNotes v-if="carnet" :bilan="bilan" />
         <ClasseResultatsCouverture :couverture="bilan.couverture" :evaluations="bilan.evaluations" />
       </template>
-      <ClasseResultatsEleve v-else-if="maLigne" :ligne="maLigne" :matieres="bilan.matieres" />
+      <ClasseResultatsEleve v-else-if="maLigne" :ligne="maLigne" :matieres="bilan.matieres" :evaluations="bilan.evaluations ?? []" />
       <p v-if="noteDeSource" class="resultats-source">{{ noteDeSource }}</p>
     </template>
   </section>
@@ -45,6 +49,7 @@
  * monte l'onglet caché, sans rien demander au serveur tant qu'on ne l'ouvre pas. `classeId` est l'identifiant de l'espace source de l'école, fourni par la fiche.
  * La vue suit la réponse du serveur : la classe entière pour le personnel, la seule ligne de
  * l'élève sinon (son rang seulement si le serveur le rend).
+ * #692 : le carnet de notes (lms_backend#1698) sous le classement, s'il est dans la réponse.
  */
 import { toRef, watch } from 'vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
@@ -52,6 +57,7 @@ import ClasseResultatsStatistiques from '@/components/classes/ClasseResultatsSta
 import ClasseResultatsClassement from '@/components/classes/ClasseResultatsClassement.vue'
 import ClasseResultatsCouverture from '@/components/classes/ClasseResultatsCouverture.vue'
 import ClasseResultatsEleve from '@/components/classes/ClasseResultatsEleve.vue'
+import ClasseCarnetDeNotes from '@/components/classes/ClasseCarnetDeNotes.vue'
 import { useBilanDeClasse } from '@/composables/useBilanDeClasse'
 
 const props = defineProps({
@@ -59,7 +65,7 @@ const props = defineProps({
   actif: { type: Boolean, default: true },
 })
 
-const { bilan, chargement, erreur, peutReessayer, periode, vuePersonnel, maLigne, noteDeSource, charger, exporter } =
+const { bilan, chargement, erreur, peutReessayer, periode, vuePersonnel, maLigne, noteDeSource, carnet, charger, exporter, exporterLeCarnet } =
   useBilanDeClasse(toRef(props, 'classeId'))
 
 let ouvert = false

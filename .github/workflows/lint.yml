@@ -197,6 +197,30 @@ jobs:
       - name: Check for reads of CSS custom properties defined nowhere
         run: npm run lint:proprietes
 
+  lint-catalogues:
+    name: Catalogues sans cle en double guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # #754 : en JavaScript, la derniere cle d'un objet gagne en silence. Une fusion
+      # qui ajoute deux fois la meme cle n'est pas un conflit, et le message perdu ne
+      # fait rougir aucun test. La garde lit la composition FINALE des catalogues de
+      # messages et de motifs (etalements suivis jusqu'a leur module) et refuse ce
+      # qu'elle ne sait pas lire.
+      - name: Check for duplicate keys in the message and reason catalogues
+        run: npm run lint:catalogues
+
   lint-api-contract:
     name: API contract guard (front vs backend spec)
     runs-on: ubuntu-latest

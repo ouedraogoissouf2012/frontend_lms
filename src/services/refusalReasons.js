@@ -27,6 +27,20 @@ export const REASONS = Object.freeze({
   // lms_backend#1115 (#620) : 409 des deux portes d'inscription par code, la classe a atteint sa capacité. Définitif.
   class_full: motif('classeComplete'),
   no_institution: motif('noInstitution'),
+  // lms_backend#1649 (#719) : refus de PUT /lms/seances/{id}/appel. Définitifs.
+  seance_not_started: motif('seanceAppelNonOuvert'),
+  attendance_managed_by_klassci: motif('appelGereParKlassci'),
+  student_not_in_seance: motif('eleveHorsDeLaSeance'),
+  // lms_backend#1680 (#335) : refus de POST /lms/emargement. Le plafond d'essais est TRANSITOIRE : il prend le délai
+  // de Retry-After ; les autres sont définitifs.
+  attendance_code_unknown: motif('codeEmargementInconnu'),
+  attendance_code_expired: motif('codeEmargementPerime'),
+  already_marked_by_teacher: motif('presenceDejaMarquee'),
+  attendance_code_attempts_exceeded: motif('emargementEssaisEpuises', { transitoire: true }),
+  // lms_backend#1681 (#687) : dépôt (422) et décision (409) d'un justificatif d'absence. Définitifs.
+  seance_not_justifiable: motif('seanceNonJustifiable'),
+  no_absence_in_range: motif('aucuneAbsenceSurLaPlage'),
+  justification_already_decided: motif('justificatifDejaTranche'),
   // lms_backend#1275 (#656 b) : 403 de PUT /users/{user}/password, l'école tient ses mots de passe chez KLASSCI.
   password_managed_by_klassci: motif('motDePasseGereParKlassci'),
   // lms_backend#1739 (#711) : 403 de POST /auth/login, KLASSCI refuse le compte. Définitif ; l'écran de
@@ -144,9 +158,11 @@ export const REASONS = Object.freeze({
   catalogue_managed_by_klassci: motif('catalogueGereParKlassci'),
   // #632 (lms_backend#1521) : le code d'une classe est déjà employé dans l'établissement ; dit sous le champ du code.
   class_code_already_used: motif('classeCodeDejaEmploye'),
-  // #659 (lms_backend#1652) : une classe archivée ne reçoit plus personne. Et le formateur d'un programme qui n'est
-  // pas de l'école (lms_backend#1756).
+  // #659 (lms_backend#1652) : une classe archivée ne reçoit plus personne ; une Période close non plus ; l'élève y est
+  // déjà. Et le formateur d'un programme qui n'est pas de l'école (lms_backend#1756).
   class_archived: motif('classeArchivee'),
+  class_period_closed: motif('classePeriodeClose'),
+  already_in_class: motif('eleveDejaDansLaClasse'),
   teacher_out_of_scope: motif('enseignantHorsEtablissement'),
   // #613 (lms_backend#808) : le 200 de POST /auth/forgot-password, le même pour un compte connu ou inconnu. Aucun n'est
   // un refus : KLASSCI tient le mot de passe ; le canal de courriel n'est pas posé ; un lien part si le compte existe.

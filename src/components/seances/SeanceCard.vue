@@ -6,6 +6,8 @@
 
     <!-- lms_backend#1121 : « Modifier », seulement si le serveur le permet (`can_be_edited`). -->
     <SeanceEditAction :seance="seance" class="seance-card-edit" @updated="$emit('updated', $event)" />
+    <!-- #719 : l'appel, seulement si le serveur l'offre à ce lecteur (`can_take_attendance`). -->
+    <SeanceAppelAction :seance="seance" class="seance-card-edit" />
 
     <SeanceCardActions
       :seance="seance"
@@ -31,6 +33,7 @@ import SeanceCardHeader from '@/components/seances/SeanceCardHeader.vue'
 import SeanceCardInfo from '@/components/seances/SeanceCardInfo.vue'
 import SeanceCardActions from '@/components/seances/SeanceCardActions.vue'
 import SeanceEditAction from '@/components/seances/SeanceEditAction.vue'
+import SeanceAppelAction from '@/components/seances/SeanceAppelAction.vue'
 
 defineProps({
   seance: { type: Object, required: true },

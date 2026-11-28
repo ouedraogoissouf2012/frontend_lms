@@ -18,8 +18,10 @@
  * (?with_details, ?page…) restent à la charge des appelants (orthogonaux).
  */
 
+import { cheminsAssiduite } from './endpointsAssiduite.js'
 import { endpointsEcoleLocale } from './endpointsEcoleLocale.js'
 import { endpointsCalendrier } from './endpointsCalendrier.js'
+import { endpointsEleves } from './endpointsEleves.js'
 
 // Préfixes de frontière (#26) — source unique, évite la dérive proxy/lms.
 const KLASSCI = '/proxy'
@@ -74,6 +76,8 @@ export const endpoints = {
       myClasses: `${LMS}/seances/my-classes`,
       details: (id) => `${LMS}/seances/${id}/details`,
       attendances: (id) => `${LMS}/seances/${id}/attendances`,
+      // lms_backend#1649 (#719) : l'appel d'une séance, lu (GET) et saisi (PUT).
+      appel: (id) => `${LMS}/seances/${id}/appel`,
       validateParticipant: (id) => `${LMS}/seances/${id}/validate-participant`,
       hide: (id) => `${LMS}/seances/${id}/hide`,
       unhide: (id) => `${LMS}/seances/${id}/unhide`,
@@ -87,13 +91,15 @@ export const endpoints = {
     // Cycle de vie visio d'une séance (sous /lms/seances/{id}/*), endpointsVisio.js.
     ...cheminsVisio(LMS),
 
-    attendance: {
-      history: `${LMS}/attendance/history`,
-      fromVideoSession: `${LMS}/attendances/from-video-session`,
-    },
+    // L'assiduité (présences, codes d'émargement #335) : sortie dans son module, mêmes clés (endpointsAssiduite.js).
+    ...cheminsAssiduite(LMS),
   },
 
   // ── ADMIN (/admin/*) ────────────────────────────────────────────────────
+  // #690 (lms#1650) : annoncer à toute une classe, par l'id de l'espace source de l'école.
+  annonces: {
+    publier: '/annonces',
+  },
   admin: {
     matieres: '/admin/matieres',
     // Comptes LMS du tenant : seule source des coordinateurs et admins,
@@ -163,6 +169,8 @@ export const endpoints = {
   // L'école locale : catalogue et inscription (endpointsEcoleLocale.js, sortis pour la garde de taille).
   ...endpointsEcoleLocale,
   ...endpointsCalendrier,
+  // front#664 : le dossier d'un élève (endpointsEleves.js, même raison).
+  ...endpointsEleves,
   // Quatre opérations NOMMÉES d'une période (#391, ADR-845-01), chemins fixes pour
   // que la garde de contrat vérifie chacun. Aucune route n'existe pour `purgee`.
   trainingSessionTransitions: {
@@ -229,6 +237,8 @@ export const endpoints = {
     grade: (id, submissionId) => `/evaluations/${id}/submissions/${submissionId}/grade`,
     preview: (id) => `/evaluations/${id}/preview`,
     mySubmission: (id) => `/evaluations/${id}/my-submission`,
+    // front#693 (back #1773) : publier les notes, régler l'ouverture du corrigé (propriétaire).
+    release: (id) => `/evaluations/${id}/release`,
   },
 
   chapters: {

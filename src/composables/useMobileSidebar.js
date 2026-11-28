@@ -54,6 +54,8 @@ export function useMobileSidebar(props, emit) {
   const SESSIONS = { path: '/admin/training-sessions', icon: 'fa-flag', label: 'Sessions', badge: null }
   // #678 : tout compte d'établissement ; le supradmin n'a pas d'école (sa liste est à part).
   const CALENDRIER = { path: '/calendrier', icon: 'fa-calendar-o', label: 'Calendrier de l’année', badge: null }
+  // #687 : la file des justificatifs d'absence, pour la gestion, sous la même capacité que le menu de bureau.
+  const JUSTIFICATIFS = { path: '/admin/justificatifs', icon: 'fa-file-text-o', label: 'Justificatifs', badge: null }
 
   // Items de navigation selon le rôle
   const secondaryNavItems = computed(() => {
@@ -66,7 +68,11 @@ export function useMobileSidebar(props, emit) {
       return [
         ...commonItems,
         // #391 : seulement si l'établissement tient sa propre liste (capacité serveur).
-        ...(peutInscrire() ? [{ path: '/student/rejoindre', icon: 'fa-sign-in', label: 'Rejoindre une classe', badge: null }] : [])
+        ...(peutInscrire() ? [{ path: '/student/rejoindre', icon: 'fa-sign-in', label: 'Rejoindre une classe', badge: null }] : []),
+        // #335 : signer sa présence par le code de la séance, sous la même capacité que le menu de bureau.
+        ...(peutInscrire() ? [{ path: '/student/emargement', icon: 'fa-check-circle', label: 'Signer ma présence', badge: null }] : []),
+        // #687 : justifier ses absences, sous la même capacité que le menu de bureau.
+        ...(peutInscrire() ? [{ path: '/student/absences', icon: 'fa-file-text-o', label: 'Mes absences', badge: null }] : []),
         // À ajouter: Mes Notes, Ma Progression, etc.
       ]
     } else if (isTeacher(u)) {
@@ -86,6 +92,7 @@ export function useMobileSidebar(props, emit) {
         { path: '/attendance/seances', icon: 'fa-history', label: 'Historique', badge: null },
         ...(peutGererCatalogue() ? [SESSIONS] : []),
         ...(peutInscrire() ? [CODES_INSCRIPTION] : []),
+        ...(peutInscrire() ? [JUSTIFICATIFS] : []),
         { path: '/admin/settings', icon: 'fa-cog', label: 'Paramètres', badge: null }
       ]
     }
@@ -116,6 +123,7 @@ export function useMobileSidebar(props, emit) {
         CALENDRIER,
         ...(peutGererCatalogue() ? [SESSIONS] : []),
         ...(peutInscrire() ? [CODES_INSCRIPTION] : []),
+        ...(peutInscrire() ? [JUSTIFICATIFS] : []),
       ]
     }
 
