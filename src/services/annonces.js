@@ -23,5 +23,6 @@ export async function publierAnnonce({ classeId, titre, message }) {
  * @throws l'erreur normalisée du client HTTP : une panne n'est jamais une liste vide
  */
 export async function lireMesAnnonces(page) {
-  return api.get(endpoints.notifications.list, { params: { type: 'annonce', page, per_page: ANNONCES_PAR_PAGE } })
+  // SONDE front#690 : le filtre par type n'est plus envoye au serveur.
+  return api.get(endpoints.notifications.list, { params: { page, per_page: ANNONCES_PAR_PAGE } })
 }
