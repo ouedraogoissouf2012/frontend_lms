@@ -73,7 +73,7 @@ export function useTransfertDEleve({ classeId, onTransfere, onIncertaine }) {
       confirmLabel: 'Transférer',
       cancelLabel: 'Annuler',
     })
-    if (!ok || occupe.value) return false
+    if (occupe.value) return false
     occupe.value = true
     try {
       await localClassesService.muterEleve(Number(toId(classeId())), Number(e), Number(toId(c.id)))
