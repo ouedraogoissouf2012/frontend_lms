@@ -212,6 +212,7 @@ export const ERROR_MESSAGES = Object.freeze({
   programmeMatiereEmployee: 'Des leçons, séances, évaluations, quiz ou discussions de cette classe emploient cette matière : elle ne peut pas en être retirée.',
   programmeModificationIncertaine: 'La modification n’a pas pu être confirmée : la fiche est relue, vérifiez le programme.',
   // #676 : les emplois du temps d'une école autonome (lms_backend#1669).
+  classeArchivee: 'Cette classe est archivée : elle ne reçoit plus d’inscription ni d’emploi du temps.',
   emploisDuTempsAucun: 'Aucun emploi du temps pour l’instant : créez celui d’une classe ci-dessous.',
   emploiDuTempsClasseRequise: 'Choisissez la classe.',
   emploiDuTempsTitreRequis: 'Indiquez le titre de l’emploi du temps.',

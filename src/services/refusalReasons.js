@@ -123,6 +123,8 @@ export const REASONS = Object.freeze({
   matiere_hors_programme: motif('emploiDuTempsMatiereHorsProgramme'),
   grille_en_conflit: motif('emploiDuTempsGrilleEnConflit'),
   enseignant_hors_ecole: motif('emploiDuTempsEnseignantHorsEcole'),
+  // lms_backend#1763 et #1826 : 409, la classe est archivée (inscription, code, emploi du temps). Définitif.
+  class_archived: motif('classeArchivee'),
   evaluation_attempt_not_started: motif('evaluationTentativeNonDemarree'),
   evaluation_submission_not_gradable: motif('evaluationCopieNonNotable'),
   // POST /knowledge-checks/{id}/start et /submit. Les `webhook_*` du même lot ne s'adressent qu'au serveur
