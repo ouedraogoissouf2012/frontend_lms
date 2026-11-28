@@ -10,7 +10,6 @@ export default [
   // #759 : les règles RECOMMANDÉES du cœur. ESLint 10 n'embarque plus @eslint/js : sans cet import, AUCUNE règle du
   // cœur ne tournait (variable inconnue, code mort, clé en double acceptés). Mesurées sur src avant activation : une
   // seule violation. Elles précèdent la config du projet, qui garde la main sur ses propres réglages.
-  { ...js.configs.recommended, files: ['src/**/*.{js,vue}'] },
   ...pluginVue.configs['flat/essential'],
   {
     files: ['src/**/*.{js,vue}'],
