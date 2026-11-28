@@ -16,7 +16,6 @@ import frLocale from '@fullcalendar/core/locales/fr'
  *
  * @param {Object} ctx
  * @param {import('vue').Ref} ctx.calendarRef  ref vers <CalendarView> (expose getApi())
- *   Une carte sans `getApi` (pas encore prête) est laissée de côté : `getApi?.()` (#678, relevé par la CI).
  * @param {import('vue').ComputedRef<Array>} ctx.filteredEvents  événements à afficher
  * @param {(event: Object) => void} ctx.onEventClick  callback de clic sur un événement
  */
@@ -36,7 +35,7 @@ export function useCalendarView({ calendarRef, filteredEvents, onEventClick }) {
   function handleDateClick(info) {
     // Naviguer vers la vue jour si clic sur une date en vue mois
     if (currentView.value === 'dayGridMonth') {
-      const calendarApi = calendarRef.value?.getApi?.()
+      const calendarApi = calendarRef.value?.getApi()
       if (calendarApi) {
         calendarApi.changeView('timeGridDay', info.dateStr)
         currentView.value = 'timeGridDay'
@@ -99,28 +98,28 @@ export function useCalendarView({ calendarRef, filteredEvents, onEventClick }) {
 
   function changeView(view) {
     currentView.value = view
-    const calendarApi = calendarRef.value?.getApi?.()
+    const calendarApi = calendarRef.value?.getApi()
     if (calendarApi) {
       calendarApi.changeView(view)
     }
   }
 
   function previousMonth() {
-    const calendarApi = calendarRef.value?.getApi?.()
+    const calendarApi = calendarRef.value?.getApi()
     if (calendarApi) {
       calendarApi.prev()
     }
   }
 
   function nextMonth() {
-    const calendarApi = calendarRef.value?.getApi?.()
+    const calendarApi = calendarRef.value?.getApi()
     if (calendarApi) {
       calendarApi.next()
     }
   }
 
   function goToToday() {
-    const calendarApi = calendarRef.value?.getApi?.()
+    const calendarApi = calendarRef.value?.getApi()
     if (calendarApi) {
       calendarApi.today()
     }
@@ -128,7 +127,7 @@ export function useCalendarView({ calendarRef, filteredEvents, onEventClick }) {
 
   // IMPORTANT: Forcer FullCalendar a mettre a jour quand les evenements changent
   watch(filteredEvents, (newEvents) => {
-    const calendarApi = calendarRef.value?.getApi?.()
+    const calendarApi = calendarRef.value?.getApi()
     if (calendarApi) {
       // Supprimer tous les evenements existants
       calendarApi.removeAllEvents()
