@@ -194,6 +194,29 @@ export const lmsSeancesService = {
   },
 
   /**
+   * L'appel d'une séance (lms_backend#1649, #719) : la classe, chaque élève avec sa marque et sa présence visio.
+   * @param {number} seanceId
+   * @returns {Promise<{ seance_id: number, eleves: Array<Object> }>}
+   */
+  async getAppel(seanceId) {
+    const response = await api.get(endpoints.lms.seances.appel(seanceId))
+    if (response?.success !== true) throw invalidResponseError('GET appel sans success', response)
+    return response.data
+  },
+
+  /**
+   * Saisit ou corrige l'appel (PUT) ; rend l'appel relu.
+   * @param {number} seanceId
+   * @param {Array<{ user_id: number, mark: string }>} marques
+   * @returns {Promise<{ seance_id: number, eleves: Array<Object> }>}
+   */
+  async saveAppel(seanceId, marques) {
+    const response = await api.put(endpoints.lms.seances.appel(seanceId), { marques })
+    if (response?.success !== true) throw invalidResponseError('PUT appel sans success', response)
+    return response.data
+  },
+
+  /**
    * Modifie une séance LOCALE — PUT /lms/seances/{id}, 200 (lms_backend#1121). La matière ne change pas.
    * @param {number} seanceId
    * @param {{ titre: string, date_seance: string, classe_id: ?number, classe_nom: ?string }} charge
