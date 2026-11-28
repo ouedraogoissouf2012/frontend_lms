@@ -1,5 +1,13 @@
 <template>
   <div>
+    <!-- #659 : la gestion d'une école qui tient son catalogue transfère un élève ; la fiche est relue. -->
+    <TransfertDEleve
+      v-if="peutTransferer && classeId && etudiants?.length"
+      :classe-id="classeId"
+      :etudiants="etudiants"
+      @transfere="$emit('transfere')"
+      @incertaine="$emit('transfere')"
+    />
     <div v-if="etudiants && etudiants.length > 0" class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
@@ -50,10 +58,18 @@
  * VIDE alors que matricule et email s'affichaient — le helper couvre les trois
  * formes rencontrées (`name`, `nom_complet`, `prenom`+`nom`) et rend une chaîne
  * vide plutôt qu'un nom inventé quand aucune n'est présente.
+ *
+ * #659 : pour la gestion d'une école qui tient son catalogue (`peutTransferer`, décidé par la fiche sur la capacité),
+ * le transfert d'un élève ; émet `transfere` pour que la fiche se relise.
  */
 import { getFullName } from '@/utils/formatters'
+import TransfertDEleve from '@/components/classes/TransfertDEleve.vue'
 
 defineProps({
-  etudiants: { type: Array, default: () => [] }
+  etudiants: { type: Array, default: () => [] },
+  classeId: { type: Number, default: null },
+  peutTransferer: { type: Boolean, default: false },
 })
+
+defineEmits(['transfere'])
 </script>
