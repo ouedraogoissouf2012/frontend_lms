@@ -5,6 +5,9 @@
     </button>
 
     <Modal v-model="ouvert" title="Appel de la séance" size="lg">
+      <!-- #335 : le code d'émargement de la séance, sous la même capacité que l'appel. -->
+      <SeanceCodeEmargement v-if="ouvert" :seance="seance" />
+
       <p v-if="chargement" class="appel-etat">Chargement de la classe…</p>
       <p v-else-if="!eleves.length && !erreur" class="appel-etat">Aucun élève actif dans la classe de cette séance.</p>
 
@@ -51,6 +54,7 @@
  */
 import { ref, toRef } from 'vue'
 import Modal from '@/components/ui/Modal.vue'
+import SeanceCodeEmargement from '@/components/seances/SeanceCodeEmargement.vue'
 import { useSeanceAppel } from '@/composables/useSeanceAppel'
 import { MARQUES_DE_PRESENCE, libellePresenceVisio } from '@/constants/presences'
 

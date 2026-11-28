@@ -18,6 +18,7 @@
  * (?with_details, ?page…) restent à la charge des appelants (orthogonaux).
  */
 
+import { cheminsAssiduite } from './endpointsAssiduite.js'
 import { endpointsEcoleLocale } from './endpointsEcoleLocale.js'
 
 // Préfixes de frontière (#26) — source unique, évite la dérive proxy/lms.
@@ -88,10 +89,8 @@ export const endpoints = {
     // Cycle de vie visio d'une séance (sous /lms/seances/{id}/*), endpointsVisio.js.
     ...cheminsVisio(LMS),
 
-    attendance: {
-      history: `${LMS}/attendance/history`,
-      fromVideoSession: `${LMS}/attendances/from-video-session`,
-    },
+    // L'assiduité (présences, codes d'émargement #335) : sortie dans son module, mêmes clés (endpointsAssiduite.js).
+    ...cheminsAssiduite(LMS),
   },
 
   // ── ADMIN (/admin/*) ────────────────────────────────────────────────────

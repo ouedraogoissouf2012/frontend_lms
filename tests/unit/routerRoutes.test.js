@@ -49,7 +49,7 @@ const EXPECTED_PATHS = [
   // student
   '/student', '/student/dashboard', '/student/courses', '/student/lessons/:id',
   '/student/evaluations-list', '/student/grades', '/student/visio-list', '/student/settings',
-  '/student/schedule', '/student/seances', '/student/rejoindre',
+  '/student/schedule', '/student/seances', '/student/rejoindre', '/student/emargement',
   // shared
   '/dashboard', '/lessons/:id',
   '/teacher/matieres', '/teacher/lessons', '/teacher/lessons/:id/chapters',

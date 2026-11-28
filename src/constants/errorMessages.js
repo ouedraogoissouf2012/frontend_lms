@@ -136,7 +136,13 @@ export const ERROR_MESSAGES = Object.freeze({
   // lms_backend#1649 (#719) : les refus de l'appel d'une séance.
   seanceAppelNonOuvert: 'L’appel s’ouvre au début de la séance.',
   appelGereParKlassci: 'L’appel de votre établissement se fait dans KLASSCI.',
-  eleveHorsDeLaSeance: 'Un élève n’est plus inscrit dans la classe de la séance : rechargez l’appel.',
+  // Neutre : reçu par le personnel (appel) ET par l'élève (émargement, #335), le motif est global.
+  eleveHorsDeLaSeance: 'Inscription absente ou inactive dans la classe de cette séance.',
+  // lms_backend#1680 (#335) : les refus de l'émargement par code.
+  codeEmargementInconnu: 'Ce code ne correspond à aucune séance de votre établissement. Vérifiez-le.',
+  codeEmargementPerime: 'Ce code n’est plus valable. Demandez le nouveau code à votre formateur.',
+  presenceDejaMarquee: 'Votre formateur a déjà marqué votre présence à cette séance.',
+  emargementEssaisEpuises: 'Trop de codes erronés. Réessayez dans un instant.',
   // lms_backend#1739 (#711) : KLASSCI refuse le COMPTE (non réinscrit, inactif) sans dire pourquoi.
   compteRefuseParKlassci: 'Votre établissement refuse cette connexion. Contactez son secrétariat.',
   compteEnConflit: "Votre adresse e-mail est déjà utilisée par un autre compte de votre établissement. Contactez l'administrateur de votre école.",
