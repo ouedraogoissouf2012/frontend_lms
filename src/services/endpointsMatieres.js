@@ -10,6 +10,5 @@ export const cheminsMatieres = (lms) => ({
   matieres: {
     details: (id) => `${lms}/matieres/${id}`,
     myTeacher: `${lms}/teacher/my-matieres`,
-    join: (id) => `${lms}/seances/${id}/join`,
   },
 })
