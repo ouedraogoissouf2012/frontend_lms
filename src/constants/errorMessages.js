@@ -219,5 +219,10 @@ export const ERROR_MESSAGES = Object.freeze({
   calendrierClassesRequises: 'Choisissez au moins une classe, ou publiez pour toute l’école.',
   calendrierClasseHorsEcole: 'Une classe choisie n’appartient pas à l’établissement : actualisez la page, puis choisissez de nouveau.',
   calendrierJoursFermesIndisponibles: 'Les jours de vacances et de fermeture n’ont pas pu être lus : l’agenda les omet pour l’instant.',
+  // #659 (lms_backend#1652) : modifier, archiver une classe.
+  classeArchivee: 'Cette classe est archivée : elle ne reçoit plus d’inscription. Désarchivez-la d’abord.',
+  enseignantHorsEtablissement: "Cet enseignant n'est plus disponible dans votre établissement. Choisissez-en un autre.",
+  classeModificationIncertaine: 'La modification n’a pas pu être confirmée : la liste est relue.',
+  classeArchiveIncertaine: 'L’archivage n’a pas pu être confirmé : la liste est relue.',
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })
