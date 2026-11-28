@@ -15,7 +15,10 @@
           :required="c.requis"
           :data-champ="c.nom"
         />
-        <p v-if="c.aide" class="identite-aide">{{ c.aide }}</p>
+        <p v-if="c.nom === 'nationalite' && !nationaliteOk" class="identite-erreur" role="alert" data-test="erreur-nationalite">
+          {{ MESSAGE_NATIONALITE }}
+        </p>
+        <p v-else-if="c.aide" class="identite-aide">{{ c.aide }}</p>
       </div>
 
       <div v-if="doublon" class="identite-doublon" role="alert" data-test="doublon">
@@ -61,8 +64,8 @@
  * front#664 : l'identité d'un élève, en lecture, et en formulaire pour qui peut l'écrire (`modifiable`). Un doublon
  * possible (409) s'affiche dans le formulaire avec ses candidats ; la saisie est gardée.
  */
-import { ref } from 'vue'
-import { CHAMPS_IDENTITE, libelleDe, versCorps, versSaisie } from '@/utils/dossierEleve'
+import { computed, ref } from 'vue'
+import { CHAMPS_IDENTITE, MESSAGE_NATIONALITE, libelleDe, nationaliteValide, versCorps, versSaisie } from '@/utils/dossierEleve'
 
 const props = defineProps({
   dossier: { type: Object, default: null },
@@ -84,7 +87,11 @@ function ouvrir() {
   edition.value = true
 }
 
+// La forme de la nationalité se vérifie à l'écran (deux lettres) ; une saisie mal formée ne part pas.
+const nationaliteOk = computed(() => nationaliteValide(saisie.value.nationalite))
+
 async function soumettre() {
+  if (!nationaliteOk.value) return
   if (await props.enregistrer(versCorps(saisie.value))) edition.value = false
 }
 
@@ -143,6 +150,13 @@ function affiche(champ) {
   border-radius: 0.5rem;
   background: var(--bg-secondary);
   color: var(--text-primary);
+}
+
+.identite-erreur {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-danger);
 }
 
 .identite-aide {

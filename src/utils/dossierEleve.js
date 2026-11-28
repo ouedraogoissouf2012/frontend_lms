@@ -41,6 +41,15 @@ export const COORDONNEES_TUTEUR = Object.freeze([
   { nom: 'adresse', libelle: 'Adresse' },
 ])
 
+/** Le message d'une nationalité mal écrite. Le serveur juge si le code existe (liste ISO) ; l'écran, sa forme. */
+export const MESSAGE_NATIONALITE = 'La nationalité s’écrit en code pays à deux lettres : CI, BF, ML…'
+
+/** Vide (non renseignée) ou deux lettres, quelle que soit leur casse : elles partent en majuscules. */
+export function nationaliteValide(valeur) {
+  const texte = typeof valeur === 'string' ? valeur.trim() : ''
+  return texte === '' || /^[A-Za-z]{2}$/.test(texte)
+}
+
 /** Le libellé d'une valeur codée (genre, statut, relation) ; la valeur elle-même si elle est inconnue. */
 export function libelleDe(liste, valeur) {
   return liste.find((o) => o.valeur === valeur)?.libelle ?? valeur ?? '—'
