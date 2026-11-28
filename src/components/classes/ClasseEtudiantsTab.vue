@@ -1,5 +1,13 @@
 <template>
   <div>
+    <!-- #659 : la gestion d'une école qui tient son catalogue transfère un élève ; la fiche est relue. -->
+    <TransfertDEleve
+      v-if="peutTransferer && classeId && etudiants?.length"
+      :classe-id="classeId"
+      :etudiants="etudiants"
+      @transfere="$emit('transfere')"
+      @incertaine="$emit('transfere')"
+    />
     <div v-if="etudiants && etudiants.length > 0" class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
@@ -16,7 +24,10 @@
               {{ etudiant.matricule }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-              {{ getFullName(etudiant) }}
+              <router-link v-if="ficheOuvrable" :to="`/eleves/${etudiant.id}`" class="lien-fiche" data-test="fiche-eleve">
+                {{ getFullName(etudiant) }}
+              </router-link>
+              <template v-else>{{ getFullName(etudiant) }}</template>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
               {{ etudiant.email }}
@@ -50,10 +61,32 @@
  * VIDE alors que matricule et email s'affichaient — le helper couvre les trois
  * formes rencontrées (`name`, `nom_complet`, `prenom`+`nom`) et rend une chaîne
  * vide plutôt qu'un nom inventé quand aucune n'est présente.
+ *
+ * #659 : pour la gestion d'une école qui tient son catalogue (`peutTransferer`, décidé par la fiche sur la capacité),
+ * le transfert d'un élève ; émet `transfere` pour que la fiche se relise.
+ * front#664 : dans une classe locale, le nom mène à la fiche de l'élève.
  */
 import { getFullName } from '@/utils/formatters'
+import TransfertDEleve from '@/components/classes/TransfertDEleve.vue'
 
 defineProps({
-  etudiants: { type: Array, default: () => [] }
+  etudiants: { type: Array, default: () => [] },
+  classeId: { type: Number, default: null },
+  peutTransferer: { type: Boolean, default: false },
+  // front#664 : vrai pour un roster LOCAL (id locaux) ; un roster externe porte d'autres id, que la fiche ne prend pas.
+  ficheOuvrable: { type: Boolean, default: false },
 })
+
+defineEmits(['transfere'])
 </script>
+
+<style scoped>
+.lien-fiche {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.lien-fiche:hover {
+  text-decoration: underline;
+}
+</style>

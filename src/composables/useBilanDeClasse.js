@@ -3,6 +3,8 @@ import { lireBilanDeClasse } from '@/services/bilanDeClasse'
 import { displayMessage } from '@/services/displayMessage'
 import { estPannePassagere } from '@/utils/pannePassagere'
 import { csvBilanDeClasse } from '@/utils/csvBilanDeClasse'
+import { csvCarnetDeNotes } from '@/utils/csvCarnetDeNotes'
+import { aUnCarnet } from '@/utils/carnetDeNotes'
 import { downloadBlob } from '@/utils/downloadBlob'
 
 /**
@@ -12,6 +14,7 @@ import { downloadBlob } from '@/utils/downloadBlob'
  * - Le message d'erreur est celui du motif serveur (`class_not_taught`, `not_in_class`,
  *   `class_out_of_scope`…), jamais le texte du serveur ; « Réessayer » seulement sur une panne passagère.
  * - La vue suit la réponse : `statistiques` présentes, c'est la vue du personnel ; sinon, la ligne de l'élève.
+ * - #692 : `carnet` vrai si la réponse porte les cases du carnet (lms_backend#1698) ; sinon rien n'est deviné.
  */
 export function useBilanDeClasse(idRef) {
   const bilan = ref(null)
@@ -27,6 +30,7 @@ export function useBilanDeClasse(idRef) {
   const noteDeSource = computed(() => (bilan.value?.source === 'lms'
     ? 'Calculé sur les notes du LMS. Dans une école reliée à KLASSCI, d’autres notes peuvent exister dans KLASSCI.'
     : null))
+  const carnet = computed(() => aUnCarnet(bilan.value))
 
   async function charger() {
     chargement.value = true
@@ -43,11 +47,18 @@ export function useBilanDeClasse(idRef) {
     }
   }
 
-  function exporter() {
-    if (!vuePersonnel.value) return
+  function telecharger(contenu, prefixe) {
     const nom = String(bilan.value.classe?.libelle ?? 'classe').replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '')
-    downloadBlob(new Blob([csvBilanDeClasse(bilan.value)], { type: 'text/csv;charset=utf-8' }), `classement-${nom || 'classe'}.csv`)
+    downloadBlob(new Blob([contenu], { type: 'text/csv;charset=utf-8' }), `${prefixe}-${nom || 'classe'}.csv`)
   }
 
-  return { bilan, chargement, erreur, peutReessayer, periode, vuePersonnel, maLigne, noteDeSource, charger, exporter }
+  function exporter() {
+    if (vuePersonnel.value) telecharger(csvBilanDeClasse(bilan.value), 'classement')
+  }
+
+  function exporterLeCarnet() {
+    if (vuePersonnel.value && carnet.value) telecharger(csvCarnetDeNotes(bilan.value), 'carnet-de-notes')
+  }
+
+  return { bilan, chargement, erreur, peutReessayer, periode, vuePersonnel, maLigne, noteDeSource, carnet, charger, exporter, exporterLeCarnet }
 }

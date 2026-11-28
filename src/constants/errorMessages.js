@@ -133,6 +133,24 @@ export const ERROR_MESSAGES = Object.freeze({
   // D477 : la connexion (Login.vue, utils/messageConnexion). Textes du front ; le back n'a pas de `reason`.
   identifiantsIncorrects: 'Identifiants incorrects.',
   connexionEchouee: 'Échec de la connexion.',
+  // lms_backend#1649 (#719) : les refus de l'appel d'une séance.
+  // Neutre : reçu par l'appel (#719) ET par le dépôt d'un justificatif (#687), le motif est global.
+  seanceAppelNonOuvert: 'La séance n’a pas encore commencé.',
+  appelGereParKlassci: 'L’appel de votre établissement se fait dans KLASSCI.',
+  // Neutre : reçu par le personnel (appel) ET par l'élève (émargement, #335), le motif est global.
+  eleveHorsDeLaSeance: 'Inscription absente ou inactive dans la classe de cette séance.',
+  // lms_backend#1680 (#335) : les refus de l'émargement par code.
+  codeEmargementInconnu: 'Ce code ne correspond à aucune séance de votre établissement. Vérifiez-le.',
+  codeEmargementPerime: 'Ce code n’est plus valable. Demandez le nouveau code à votre formateur.',
+  presenceDejaMarquee: 'Votre formateur a déjà marqué votre présence à cette séance.',
+  emargementEssaisEpuises: 'Trop de codes erronés. Réessayez dans un instant.',
+  // lms_backend#1681 (#687) : les justificatifs d'absence.
+  justificatifSansSeance: 'Cochez au moins une absence à justifier.',
+  justificatifSansMotif: 'Expliquez le motif de votre absence.',
+  seanceNonJustifiable: 'Une des séances choisies n’est plus une absence à justifier : rechargez la page.',
+  aucuneAbsenceSurLaPlage: 'Aucune absence à justifier sur ces dates.',
+  justificatifDejaTranche: 'Ce justificatif a déjà été traité : rechargez la liste.',
+  motifDeRejetObligatoire: 'Indiquez le motif du refus : l’élève le lira.',
   // lms_backend#1739 (#711) : KLASSCI refuse le COMPTE (non réinscrit, inactif) sans dire pourquoi.
   compteRefuseParKlassci: 'Votre établissement refuse cette connexion. Contactez son secrétariat.',
   compteEnConflit: "Votre adresse e-mail est déjà utilisée par un autre compte de votre établissement. Contactez l'administrateur de votre école.",
@@ -186,6 +204,12 @@ export const ERROR_MESSAGES = Object.freeze({
   compteRoleRequis: 'Choisissez le rôle du compte.',
   compteMotDePasseCourt: 'Le mot de passe initial doit compter au moins 8 caractères.',
   compteConfirmationDifferente: 'La confirmation ne reprend pas le mot de passe initial.',
+  // #690 : l'annonce du personnel à toute une classe (contrôle local, avant POST /annonces).
+  annonceTitreRequis: 'Donnez un titre à l’annonce.',
+  annonceTitreLong: 'Le titre compte au plus 150 caractères.',
+  annonceMessageRequis: 'Écrivez le message de l’annonce.',
+  annonceMessageLong: 'Le message compte au plus 2 000 caractères.',
+  annonceIncertaine: 'L’envoi n’a pas pu être confirmé : l’annonce est peut-être partie. Vérifiez auprès de la classe avant de la renvoyer.',
   // #656 (b) : modifier, désactiver, définir le mot de passe d'un compte.
   compteRienAModifier: 'Aucun changement à enregistrer.',
   compteActeIncertain: 'L’opération n’a pas pu être confirmée : la liste est relue, vérifiez-la avant de recommencer.',
@@ -211,9 +235,16 @@ export const ERROR_MESSAGES = Object.freeze({
   programmeCoefficientIllisible: 'Indiquez un coefficient entier, de 1 à 20, ou laissez vide pour celui de la matière.',
   programmeMatiereEmployee: 'Des leçons, séances, évaluations, quiz ou discussions de cette classe emploient cette matière : elle ne peut pas en être retirée.',
   programmeModificationIncertaine: 'La modification n’a pas pu être confirmée : la fiche est relue, vérifiez le programme.',
-  // #659 (lms_backend#1652) : modifier, archiver une classe.
+  // #659 (lms_backend#1652) : modifier, archiver une classe, transférer un élève.
   classeArchivee: 'Cette classe est archivée : elle ne reçoit plus d’inscription. Désarchivez-la d’abord.',
+  classePeriodeClose: 'La période de cette classe est close : elle ne reçoit plus d’inscription.',
+  eleveDejaDansLaClasse: 'Cet élève est déjà inscrit dans la classe choisie.',
   enseignantHorsEtablissement: "Cet enseignant n'est plus disponible dans votre établissement. Choisissez-en un autre.",
+  transfertClasseComplete: 'La classe choisie est complète : augmentez sa capacité, ou choisissez-en une autre.',
+  transfertInscriptionNonActive: "L'inscription de cet élève dans cette classe n'est plus active : actualisez la fiche.",
+  transfertChoixRequis: 'Choisissez l’élève et sa nouvelle classe.',
+  transfertIncertain: 'Le transfert n’a pas pu être confirmé : la fiche est relue.',
+  transfertClassesIndisponibles: 'Les classes de l’école n’ont pas pu être lues : actualisez la page.',
   classeModificationIncertaine: 'La modification n’a pas pu être confirmée : la liste est relue.',
   classeArchiveIncertaine: 'L’archivage n’a pas pu être confirmé : la liste est relue.',
   // #673 : le profil et les disponibilités d'un enseignant (lms_backend#1666).

@@ -18,12 +18,19 @@
  * (?with_details, ?page…) restent à la charge des appelants (orthogonaux).
  */
 
+import { cheminsAssiduite } from './endpointsAssiduite.js'
 import { endpointsEcoleLocale } from './endpointsEcoleLocale.js'
 import { endpointsProfilEnseignant } from './endpointsProfilEnseignant.js'
+import { endpointsEleves } from './endpointsEleves.js'
 
 // Préfixes de frontière (#26) — source unique, évite la dérive proxy/lms.
 const KLASSCI = '/proxy'
 const LMS = '/lms'
+
+// Blocs de `lms.*` sortis par domaine (#741), mêmes clés, mêmes chemins, à leur place dans la carte.
+import { cheminsImports } from './endpointsImports.js'
+import { cheminsMatieres } from './endpointsMatieres.js'
+import { cheminsVisio } from './endpointsVisio.js'
 
 export const endpoints = {
   // ── KLASSCI — BRUT (/proxy/*) ───────────────────────────────────────────
@@ -56,16 +63,9 @@ export const endpoints = {
       // (lms_backend#1709) : le filtre de classe du rapport de présences.
       etablissement: `${LMS}/classes/etablissement`,
     },
-    imports: {
-      preview: `${LMS}/imports/preview`,
-      confirm: (id) => `${LMS}/imports/${id}/confirm`,
-      show: (id) => `${LMS}/imports/${id}`,
-    },
+    ...cheminsImports(LMS),
 
-    matieres: {
-      details: (id) => `${LMS}/matieres/${id}`,
-      myTeacher: `${LMS}/teacher/my-matieres`,
-    },
+    ...cheminsMatieres(LMS),
 
     seances: {
       // Création locale (école créée depuis le LMS) : POST, 201.
@@ -76,6 +76,8 @@ export const endpoints = {
       myClasses: `${LMS}/seances/my-classes`,
       details: (id) => `${LMS}/seances/${id}/details`,
       attendances: (id) => `${LMS}/seances/${id}/attendances`,
+      // lms_backend#1649 (#719) : l'appel d'une séance, lu (GET) et saisi (PUT).
+      appel: (id) => `${LMS}/seances/${id}/appel`,
       validateParticipant: (id) => `${LMS}/seances/${id}/validate-participant`,
       hide: (id) => `${LMS}/seances/${id}/hide`,
       unhide: (id) => `${LMS}/seances/${id}/unhide`,
@@ -86,36 +88,18 @@ export const endpoints = {
       deleteLocal: (id) => `${LMS}/seances/local/${id}`,
     },
 
-    // Cycle de vie visio d'une séance (sous /lms/seances/{id}/*).
-    visio: {
-      // Consentement du porteur — reglage de COMPTE, pas de seance (#716).
-      // Le backend refuse tout enregistrement tant qu'il n'a pas cette ligne.
-      consent: () => `${LMS}/visio/consent`,
-      toggle: (id) => `${LMS}/seances/${id}/toggle-visio`,
-      activate: (id) => `${LMS}/seances/${id}/activate-visio`,
-      deactivate: (id) => `${LMS}/seances/${id}/deactivate-visio`,
-      start: (id) => `${LMS}/seances/${id}/start-visio`,
-      end: (id) => `${LMS}/seances/${id}/end-visio`,
-      join: (id) => `${LMS}/seances/${id}/join`,
-      leave: (id) => `${LMS}/seances/${id}/leave`,
-      heartbeat: (id) => `${LMS}/seances/${id}/heartbeat`,
-      participants: (id) => `${LMS}/seances/${id}/visio-participants`,
-      // Participation en cours de l'appelant (#673). Sans identifiant de
-      // séance : le serveur la résout par l'utilisateur authentifié, et par lui
-      // seul. Sert à remonter la salle embarquée après un rechargement de page.
-      activeParticipation: () => `${LMS}/visio/active`,
-      recordingStatus: (id) => `${LMS}/seances/${id}/recording`,
-      recordingStart: (id) => `${LMS}/seances/${id}/recording/start`,
-      recordingStop: (id) => `${LMS}/seances/${id}/recording/stop`,
-    },
+    // Cycle de vie visio d'une séance (sous /lms/seances/{id}/*), endpointsVisio.js.
+    ...cheminsVisio(LMS),
 
-    attendance: {
-      history: `${LMS}/attendance/history`,
-      fromVideoSession: `${LMS}/attendances/from-video-session`,
-    },
+    // L'assiduité (présences, codes d'émargement #335) : sortie dans son module, mêmes clés (endpointsAssiduite.js).
+    ...cheminsAssiduite(LMS),
   },
 
   // ── ADMIN (/admin/*) ────────────────────────────────────────────────────
+  // #690 (lms#1650) : annoncer à toute une classe, par l'id de l'espace source de l'école.
+  annonces: {
+    publier: '/annonces',
+  },
   admin: {
     matieres: '/admin/matieres',
     // Comptes LMS du tenant : seule source des coordinateurs et admins,
@@ -185,6 +169,8 @@ export const endpoints = {
   // L'école locale : catalogue et inscription (endpointsEcoleLocale.js, sortis pour la garde de taille).
   ...endpointsEcoleLocale,
   ...endpointsProfilEnseignant,
+  // front#664 : le dossier d'un élève (endpointsEleves.js, même raison).
+  ...endpointsEleves,
   // Quatre opérations NOMMÉES d'une période (#391, ADR-845-01), chemins fixes pour
   // que la garde de contrat vérifie chacun. Aucune route n'existe pour `purgee`.
   trainingSessionTransitions: {
@@ -251,6 +237,8 @@ export const endpoints = {
     grade: (id, submissionId) => `/evaluations/${id}/submissions/${submissionId}/grade`,
     preview: (id) => `/evaluations/${id}/preview`,
     mySubmission: (id) => `/evaluations/${id}/my-submission`,
+    // front#693 (back #1773) : publier les notes, régler l'ouverture du corrigé (propriétaire).
+    release: (id) => `/evaluations/${id}/release`,
   },
 
   chapters: {

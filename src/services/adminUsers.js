@@ -68,7 +68,7 @@ export async function listAdministrationUsers() {
 export async function listComptesLocaux({ role }) {
   const comptes = []
   let page = 1
-  let derniere = 1
+  let derniere
   do {
     const response = await api.get(endpoints.admin.users, {
       params: { role, page, per_page: PAGE_SIZE, sort: 'name', direction: 'asc' },

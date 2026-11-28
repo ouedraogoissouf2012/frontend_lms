@@ -1,10 +1,11 @@
 /**
- * #659 (lms_backend#1652) : modifier, archiver une classe locale, à l'écran. Le transfert d'un élève suivra.
+ * #659 (lms_backend#1652) : modifier, archiver une classe locale, et transférer un élève, à l'écran.
  *
  * Contrat : `PATCH /classes/{c}` (libellé, code, description ; un code ou une description vide part nul ; réponse
  * ClasseEnVue), `POST /classes/{c}/archiver|desarchiver` (réponse : la LIGNE de la collection), `GET /classes`
- * filtrée par `statut` et `places`. Refus nommés : `class_code_already_used` (422, sous le code),
- * `class_archived` (409).
+ * filtrée par `statut` et `places`, `POST /classes/{c}/eleves/{e}/muter` `{classe_id}`. Refus nommés :
+ * `class_code_already_used` (422, sous le code), `class_archived`, `class_period_closed`, `already_in_class`,
+ * `class_full`, `enrolment_not_active` (409).
  *
  * Le VRAI client HTTP (api.js et ses intercepteurs) : seul l'adaptateur réseau est remplacé.
  */
@@ -20,6 +21,7 @@ import { useEnrolmentCodes } from '@/composables/useEnrolmentCodes'
 import ClasseGestes from '@/components/admin/ClasseGestes.vue'
 import ClassesLocalesFiltres from '@/components/admin/ClassesLocalesFiltres.vue'
 import EnrolmentCodeCard from '@/components/admin/EnrolmentCodeCard.vue'
+import TransfertDEleve from '@/components/classes/TransfertDEleve.vue'
 
 const confirmer = vi.fn()
 vi.mock('@/composables/useConfirm', () => ({ useConfirm: () => ({ confirm: (...a) => confirmer(...a) }) }))
@@ -70,6 +72,7 @@ describe('#659 — les chemins', () => {
     expect(endpoints.enrolment.classe(7)).toBe('/classes/7')
     expect(endpoints.enrolment.archiver(7)).toBe('/classes/7/archiver')
     expect(endpoints.enrolment.desarchiver(7)).toBe('/classes/7/desarchiver')
+    expect(endpoints.enrolment.muter(3, 9)).toBe('/classes/3/eleves/9/muter')
   })
 })
 
@@ -191,9 +194,70 @@ describe('#659 — archiver, désarchiver', () => {
   })
 })
 
+describe('#659 — transférer un élève (POST /classes/{c}/eleves/{e}/muter)', () => {
+  const ETUDIANTS = [{ id: 9, name: 'Awa Kaboré' }, { id: 10, name: 'Issa Ouédraogo' }]
+  const CLASSES = page([{ ...LIGNE, id: 3, libelle: '6e A' }, { ...LIGNE, id: 4, libelle: '6e B' }, { ...LIGNE, id: 5, libelle: '6e C' }])
+
+  async function monter(routes) {
+    servir({ 'get /classes?statut=active&per_page=100': CLASSES, ...routes })
+    const w = mount(TransfertDEleve, { props: { classeId: 3, etudiants: ETUDIANTS } })
+    await flushPromises()
+    return w
+  }
+
+  it('propose les classes ACTIVES de l’école, hors la classe courante', async () => {
+    const w = await monter({})
+    const options = champ(w, 'cible').findAll('option').map((o) => o.text()).filter((t) => t.startsWith('6e'))
+    expect(options).toEqual(['6e B', '6e C'])
+  })
+
+  it('confirme, envoie classe_id, puis émet `transfere`', async () => {
+    const w = await monter({ 'post /classes/3/eleves/9/muter': [200, { success: true, data: { eleve_id: 9, depuis: 3, vers: 4 } }] })
+    confirmer.mockResolvedValue(true)
+    await champ(w, 'eleve').setValue('9')
+    await champ(w, 'cible').setValue('4')
+    await w.find('form').trigger('submit')
+    await flushPromises()
+    expect(ecritures()).toEqual([{ cle: 'post /classes/3/eleves/9/muter', corps: { classe_id: 4 } }])
+    expect(w.emitted('transfere')).toHaveLength(1)
+  })
+
+  it('sans confirmation, rien ne part ; sans choix, rien ne part non plus', async () => {
+    const w = await monter({})
+    confirmer.mockResolvedValue(false)
+    await w.find('form').trigger('submit')
+    await champ(w, 'eleve').setValue('9')
+    await champ(w, 'cible').setValue('4')
+    await w.find('form').trigger('submit')
+    await flushPromises()
+    expect(ecritures()).toEqual([])
+  })
+
+  it.each([
+    ['class_full', 'transfertClasseComplete'],
+    ['class_archived', 'classeArchivee'],
+    ['class_period_closed', 'classePeriodeClose'],
+    ['already_in_class', 'eleveDejaDansLaClasse'],
+    ['enrolment_not_active', 'transfertInscriptionNonActive'],
+  ])('un refus %s : le message de la gestion, jamais le texte du serveur', async (reason, cle) => {
+    const w = await monter({ 'post /classes/3/eleves/9/muter': [409, { success: false, message: 'texte serveur', reason }] })
+    confirmer.mockResolvedValue(true)
+    await champ(w, 'eleve').setValue('9')
+    await champ(w, 'cible').setValue('4')
+    await w.find('form').trigger('submit')
+    await flushPromises()
+    expect(ERROR_MESSAGES[cle]).toBeTruthy()
+    expect(w.text()).toContain(ERROR_MESSAGES[cle])
+    expect(w.text()).not.toContain('texte serveur')
+    expect(w.emitted('transfere')).toBeUndefined()
+  })
+})
+
 describe('#659 — le catalogue des motifs', () => {
   it.each([
     ['class_archived', 'classeArchivee'],
+    ['class_period_closed', 'classePeriodeClose'],
+    ['already_in_class', 'eleveDejaDansLaClasse'],
     ['teacher_out_of_scope', 'enseignantHorsEtablissement'],
   ])('%s a son message', (reason, cle) => {
     expect(ERROR_MESSAGES[cle]).toBeTruthy()

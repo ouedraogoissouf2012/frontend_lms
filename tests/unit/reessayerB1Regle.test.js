@@ -103,9 +103,10 @@ describe('refusMotive — le catalogue dit lui-même si un motif est transitoire
 
   it('les catégories à délai sont exactement celles des entrées transitoires du catalogue', () => {
     // lms_backend#922 : + ip_quota_exceeded (la borne à la minute du 429 des demandes d'école).
-    for (const reason of ['klassci_unavailable', 'evaluation_window_unverifiable', 'ip_quota_exceeded']) {
+    // lms_backend#1680 (#335) : + attendance_code_attempts_exceeded (le plafond d'essais de l'émargement).
+    for (const reason of ['klassci_unavailable', 'evaluation_window_unverifiable', 'ip_quota_exceeded', 'attendance_code_attempts_exceeded']) {
       expect(refusMotive({ reason }).definitif).toBe(false)
     }
-    expect(CATEGORIES_A_DELAI.size).toBe(3)
+    expect(CATEGORIES_A_DELAI.size).toBe(4)
   })
 })
