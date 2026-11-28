@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { extractList } from '@/utils/apiList'
 import { enrolmentCodesService } from '@/services/enrolmentCodes'
 import { useConfirm } from '@/composables/useConfirm'
@@ -19,6 +19,10 @@ import { ERROR_MESSAGES } from '@/constants/errorMessages'
  *
  * Le code est rendu EN CLAIR pour être transmis, et n'est JAMAIS journalisé : aucune
  * console ici, et les erreurs sont réduites à leur `userMessage`.
+ *
+ * #659 : la liste se filtre (`statut`, actives par défaut ; `places`) ; changer un filtre ramène
+ * à la page 1. Une ligne rendue par un geste (modifier, archiver) remplace la sienne, ou sort
+ * de la liste si le filtre ne la retient plus.
  */
 export function useEnrolmentCodes() {
   const classes = ref([])
@@ -29,6 +33,7 @@ export function useEnrolmentCodes() {
   const lastPage = ref(1)
   // Une classe en vol n'en bloque pas une autre ; la fin de l'une ne libère pas l'autre.
   const occupees = ref(new Set())
+  const filtres = reactive({ statut: 'active', places: '' })
 
   const estOccupee = (id) => occupees.value.has(id)
   function occuper(id) { occupees.value = new Set(occupees.value).add(id) }
@@ -39,7 +44,7 @@ export function useEnrolmentCodes() {
   }
 
   async function lire(cible) {
-    const response = await enrolmentCodesService.listClasses(cible)
+    const response = await enrolmentCodesService.listClasses(cible, filtres)
     classes.value = extractList(response)
     page.value = response.meta?.current_page ?? cible
     lastPage.value = response.meta?.last_page ?? 1
@@ -60,6 +65,18 @@ export function useEnrolmentCodes() {
     } finally {
       loading.value = false
     }
+  }
+
+  /** #659 : un filtre a changé ; la page 1 de la nouvelle sélection. */
+  const filtrer = () => load(1)
+
+  /** #659 : la ligne rendue par un geste ; elle sort si le filtre de statut ne la retient plus. */
+  function majLigne(ligne) {
+    const archivee = Boolean(ligne?.archivee_le)
+    const retenue = !filtres.statut || (filtres.statut === 'archivee') === archivee
+    classes.value = retenue
+      ? classes.value.map((c) => (c.id === ligne.id ? { ...c, ...ligne } : c))
+      : classes.value.filter((c) => c.id !== ligne.id)
   }
 
   function majCode(id, codeInscription) {
@@ -160,5 +177,8 @@ export function useEnrolmentCodes() {
     }
   }
 
-  return { classes, loading, error, notice, page, lastPage, estOccupee, load, emettre, retirer, majCapacite, majPeriode }
+  return {
+    classes, loading, error, notice, page, lastPage, filtres, estOccupee,
+    load, filtrer, majLigne, emettre, retirer, majCapacite, majPeriode,
+  }
 }
