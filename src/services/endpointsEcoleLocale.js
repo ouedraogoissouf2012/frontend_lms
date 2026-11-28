@@ -24,5 +24,9 @@ export const endpointsEcoleLocale = {
     // #657 (lms_backend#1208) : rattacher une classe LOCALE à sa période, ou l'en détacher (null).
     periode: (classeId) => `/classes/${classeId}/periode`,
     rejoindre: '/me/inscriptions',
+    // #659 (lms_backend#1652) : modifier une classe locale, l'archiver ou la désarchiver.
+    classe: (classeId) => `/classes/${classeId}`,
+    archiver: (classeId) => `/classes/${classeId}/archiver`,
+    desarchiver: (classeId) => `/classes/${classeId}/desarchiver`,
   },
 }
