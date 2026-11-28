@@ -101,6 +101,15 @@ describe('#690 — Mes annonces', () => {
     expect(w.text()).toContain('Après la panne')
   })
 
+  it('un refus (403) se dit, mais n’offre pas « Réessayer » : réessayer n’y changerait rien', async () => {
+    reponses = () => [403, { success: false, message: 'Accès refusé' }]
+    const w = await monter()
+
+    expect(w.find('[role="alert"]').text()).not.toBe('')
+    expect(w.find('[data-etat="vide"]').exists()).toBe(false)
+    expect(w.find('[data-reessayer]').exists()).toBe(false)
+  })
+
   it('plusieurs pages : la suivante se lit au serveur', async () => {
     reponses = (config) => [200, config.params?.page === 2
       ? PAGE([annonce(5, 'Page deux')], 2, 2)

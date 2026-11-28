@@ -8,7 +8,7 @@
       <div class="mes-annonces-erreur" role="alert">
         <template v-if="erreur">
           {{ erreur }}
-          <button type="button" class="mes-annonces-btn" data-reessayer @click="charger()">Réessayer</button>
+          <button v-if="peutReessayer" type="button" class="mes-annonces-btn" data-reessayer @click="charger()">Réessayer</button>
         </template>
       </div>
 
@@ -51,7 +51,7 @@
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import { useMesAnnonces } from '@/composables/useMesAnnonces'
 
-const { annonces, page, dernierePage, chargement, erreur, ouvertes, charger, ouvrir, pageSuivante, pagePrecedente } = useMesAnnonces()
+const { annonces, page, dernierePage, chargement, erreur, peutReessayer, ouvertes, charger, ouvrir, pageSuivante, pagePrecedente } = useMesAnnonces()
 
 const formatDate = (iso) => (iso ? new Date(iso).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) : '')
 </script>
