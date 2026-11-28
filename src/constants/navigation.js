@@ -66,6 +66,8 @@ export const NAV_SECTIONS = Object.freeze([
 
   // --- Bloc Enseignant (isTeacherRole) ---
   { icon: 'fa-calendar', label: 'Emploi du Temps', to: '/teacher/schedule', roles: [ENSEIGNANT] },
+  // #673 : la page où l'enseignant remplit ses disponibilités (les deux volets, aucune capacité).
+  { icon: 'fa-calendar-check-o', label: 'Mes disponibilités', to: '/teacher/disponibilites', roles: [ENSEIGNANT] },
   { icon: 'fa-th-large', label: 'Mon Espace', to: '/teacher/hub', roles: [ENSEIGNANT] },
   { icon: 'fa-edit', label: 'Évaluations', to: '/teacher/evaluations', roles: [ENSEIGNANT] },
   { icon: 'fa-edit', label: 'Évaluations', to: '/coordinateur/evaluations', roles: [COORDINATEUR] },

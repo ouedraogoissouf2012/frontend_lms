@@ -216,5 +216,14 @@ export const ERROR_MESSAGES = Object.freeze({
   enseignantHorsEtablissement: "Cet enseignant n'est plus disponible dans votre établissement. Choisissez-en un autre.",
   classeModificationIncertaine: 'La modification n’a pas pu être confirmée : la liste est relue.',
   classeArchiveIncertaine: 'L’archivage n’a pas pu être confirmé : la liste est relue.',
+  // #673 : le profil et les disponibilités d'un enseignant (lms_backend#1666).
+  matriculeDejaPris: 'Ce matricule est déjà porté par un autre enseignant de l’école.',
+  profilGereParKlassci: 'Le profil de cet enseignant se tient dans KLASSCI, pas ici.',
+  profilChargeIllisible: 'Indiquez une charge hebdomadaire entière, de 1 à 60 heures, ou laissez vide.',
+  disponibilitesEnConflit: 'Deux créneaux du même jour se chevauchent : décalez l’un d’eux.',
+  disponibiliteFinAvantDebut: 'L’heure de fin doit suivre l’heure de début.',
+  disponibiliteHoraireRequis: 'Indiquez l’heure de début et l’heure de fin.',
+  exceptionDateRequise: 'Indiquez la date de l’exception.',
+  exceptionCreneauIncomplet: 'Indiquez le début ET la fin, ou aucun des deux pour la journée entière.',
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })

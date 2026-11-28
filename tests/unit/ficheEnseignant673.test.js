@@ -114,7 +114,8 @@ describe('#673 — le profil (gestion)', () => {
 describe('#673 — la fiche : ses onglets suivent la porte du serveur', () => {
   const monter = async (capacite) => {
     connecter(capacite)
-    const w = mount(EnseignantDetailModal, { props: { enseignant: AWA }, attachTo: document.body })
+    // La modale téléporte son contenu : neutralisé, comme dans EnseignantDetailModal.test.js.
+    const w = mount(EnseignantDetailModal, { props: { enseignant: AWA }, attachTo: document.body, global: { stubs: { teleport: true } } })
     await flushPromises()
     return w
   }

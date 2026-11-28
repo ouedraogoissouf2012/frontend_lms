@@ -72,6 +72,8 @@ export function useMobileSidebar(props, emit) {
       return [
         ...commonItems,
         { path: '/teacher/seances', icon: 'fa-video-camera', label: 'Mes Séances Visio', badge: null },
+        // #673 : « Mes disponibilités », au tiroir comme au menu de bureau.
+        { path: '/teacher/disponibilites', icon: 'fa-calendar-check-o', label: 'Mes disponibilités', badge: null },
         { path: '/forum', icon: 'fa-comments', label: 'Forum', badge: null },
         { path: '/attendance/seances', icon: 'fa-history', label: 'Historique', badge: null },
         { path: '/teacher/settings', icon: 'fa-cog', label: 'Paramètres', badge: null }
