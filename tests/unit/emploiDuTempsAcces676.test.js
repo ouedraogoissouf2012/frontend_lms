@@ -156,6 +156,8 @@ describe('#676 — chaque motif du serveur a son texte (jamais celui du serveur)
     ['matiere_hors_programme', 'emploiDuTempsMatiereHorsProgramme'],
     ['grille_en_conflit', 'emploiDuTempsGrilleEnConflit'],
     ['enseignant_hors_ecole', 'emploiDuTempsEnseignantHorsEcole'],
+    // lms_backend#1826 (#1763) : 409 de créer, générer, copier vers une classe archivée ; motif partagé avec l'inscription.
+    ['class_archived', 'classeArchivee'],
   ])('%s', (reason, cle) => {
     expect(typeof ERROR_MESSAGES[cle]).toBe('string')
     expect(ERROR_MESSAGES[cle].length).toBeGreaterThan(10)
