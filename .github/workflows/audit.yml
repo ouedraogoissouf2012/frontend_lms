@@ -4,6 +4,11 @@ name: Audit planifié
 # sécurité publié sur une dépendance DÉJÀ installée restait invisible jusqu'au push suivant
 # (34 jours mesurés le 29/10/2026). Ce workflow rejoue chaque semaine, et à la demande, le
 # MÊME contrôle que le job « NPM Audit » de lint.yml, sans le reste de la chaîne.
+#
+# Alerte (#432, 24/11/2026) : un audit planifié ROUGE ne prévenait personne d'autre que l'auteur
+# du cron. Le job « alerte » ouvre UNE issue « Audit planifié rouge » (label
+# `audit-planifie-rouge`), ou commente celle qui est déjà ouverte : jamais de doublon. Il est le
+# SEUL à pouvoir écrire des issues ; l'audit, lui, ne lit que le dépôt.
 on:
   schedule:
     # Lundi 06:00 UTC, avant la fenêtre de Dependabot (même jour).
@@ -32,3 +37,49 @@ jobs:
 
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
+
+  alerte:
+    name: Alerte (audit planifié rouge)
+    needs: npm-audit
+    # Seulement si l'audit a ÉCHOUÉ : ni sur un succès, ni sur une annulation.
+    if: ${{ failure() && needs.npm-audit.result == 'failure' }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    # Deux échecs rapprochés ne créent pas deux issues : les alertes passent une à une.
+    concurrency:
+      group: audit-planifie-alerte
+      cancel-in-progress: false
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TITRE: Audit planifié rouge
+      LABEL: audit-planifie-rouge
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Ouvrir ou mettre à jour l'issue d'alerte
+        run: |
+          set -euo pipefail
+          CORPS="L'audit planifié des dépendances de production (\`npm audit --omit=dev --audit-level=high\`) est ROUGE.
+
+          - Exécution : ${RUN_URL}
+          - Déclencheur : ${GITHUB_EVENT_NAME}, branche \`${GITHUB_REF_NAME}\`, commit \`${GITHUB_SHA::8}\`
+          - Date (UTC) : $(date -u +%Y-%m-%dT%H:%MZ)
+
+          Le détail des avis est dans le journal du job « NPM Audit (planifié) »."
+          # Le label existe une fois pour toutes ; le recréer est sans effet.
+          gh label create "$LABEL" --color B60205 --description "L'audit planifié des dépendances est rouge (#432)" 2>/dev/null || true
+          # L'issue ouverte, cherchée par son LABEL, puis par son TITRE exact : jamais de doublon.
+          NUM=$(gh issue list --state open --label "$LABEL" --limit 1 --json number --jq '.[0].number // empty')
+          if [ -z "$NUM" ]; then
+            NUM=$(gh issue list --state open --search "in:title \"$TITRE\"" --limit 20 --json number,title \
+              --jq "[.[] | select(.title == \"$TITRE\")][0].number // empty")
+          fi
+          if [ -n "$NUM" ]; then
+            gh issue comment "$NUM" --body "$CORPS"
+            gh issue edit "$NUM" --add-label "$LABEL"
+            echo "Issue #$NUM mise à jour." | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            URL=$(gh issue create --title "$TITRE" --label "$LABEL" --body "$CORPS")
+            echo "Issue créée : $URL" | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
