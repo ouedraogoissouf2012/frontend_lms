@@ -47,7 +47,8 @@ describe('useMobileSidebar (#H12)', () => {
   it('items enseignant : séances, forum, historique, paramètres', () => {
     getUser.mockReturnValue({ role: 'enseignant' })
     const paths = run().api.secondaryNavItems.value.map(i => i.path)
-    expect(paths).toEqual(['/teacher/seances', '/forum', '/attendance/seances', '/teacher/settings'])
+    // #673 : « Mes disponibilités », au tiroir comme au menu de bureau.
+    expect(paths).toEqual(['/teacher/seances', '/teacher/disponibilites', '/forum', '/attendance/seances', '/teacher/settings'])
   })
 
   it('items coordinateur : forum, historique, paramètres admin', () => {

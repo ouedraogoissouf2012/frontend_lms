@@ -75,3 +75,20 @@ export function computeEnseignantsStats(enseignants) {
     ).length
   }
 }
+
+/**
+ * #673 : les filtres de la liste des enseignants, sur la VALEUR RENDUE de chaque ligne (`status`, `specialization`),
+ * comme le filtre serveur de lms_backend#1666. Une valeur vide ne filtre pas.
+ *
+ * @param {Array<object>} enseignants
+ * @param {{ statut?: string, specialite?: string }} filtres
+ */
+export function filtrerEnseignants(enseignants, { statut = '', specialite = '' } = {}) {
+  return (enseignants ?? []).filter((e) => (!statut || e?.status === statut) && (!specialite || e?.specialization === specialite))
+}
+
+/** Les spécialités présentes dans la liste, sans doublon ni vide, triées : les choix du filtre. */
+export function specialitesDe(enseignants) {
+  return [...new Set((enseignants ?? []).map((e) => e?.specialization).filter((s) => typeof s === 'string' && s.trim() !== ''))]
+    .sort((a, b) => a.localeCompare(b, 'fr'))
+}

@@ -35,6 +35,8 @@ const EXPECTED = {
   enseignant: [
     ['Dashboard', '/teacher/dashboard'],
     ['Emploi du Temps', '/teacher/schedule'],
+    // #673 : la page où l'enseignant remplit ses disponibilités.
+    ['Mes disponibilités', '/teacher/disponibilites'],
     ['Mon Espace', '/teacher/hub'],
     ['Évaluations', '/teacher/evaluations'],
     ['Forum', '/forum'],

@@ -39,14 +39,34 @@
         <p class="empty-message">Aucun enseignant n'a été trouvé dans le système.</p>
       </div>
 
-      <!-- Enseignants Grid -->
-      <div v-else class="enseignants-grid">
-        <EnseignantCard
-          v-for="enseignant in enseignants"
-          :key="enseignant.id"
-          :enseignant="enseignant"
-          @view="selectEnseignant"
-        />
+      <!-- #673 : filtres statut et spécialité, sur la valeur rendue (comme le filtre serveur). -->
+      <div v-else class="enseignants-filtres">
+        <div class="filtres-champs">
+          <label>
+            Statut
+            <select v-model="filtreStatut" data-champ="filtre-statut">
+              <option value="">Tous</option>
+              <option value="en_activite">En activité</option>
+              <option value="inactif">Inactif</option>
+            </select>
+          </label>
+          <label>
+            Spécialité
+            <select v-model="filtreSpecialite" data-champ="filtre-specialite">
+              <option value="">Toutes</option>
+              <option v-for="s in specialites" :key="s" :value="s">{{ s }}</option>
+            </select>
+          </label>
+        </div>
+        <p v-if="!enseignantsFiltres.length" class="empty-message">Aucun enseignant ne correspond à ces filtres.</p>
+        <div v-else class="enseignants-grid">
+          <EnseignantCard
+            v-for="enseignant in enseignantsFiltres"
+            :key="enseignant.id"
+            :enseignant="enseignant"
+            @view="selectEnseignant"
+          />
+        </div>
       </div>
 
       <EnseignantDetailModal :enseignant="selectedEnseignant" @close="closeModal" />
@@ -66,12 +86,20 @@ import EnseignantsStatsCards from '@/components/admin/EnseignantsStatsCards.vue'
 import EnseignantCard from '@/components/admin/EnseignantCard.vue'
 import EnseignantDetailModal from '@/components/admin/EnseignantDetailModal.vue'
 import { useAdminEnseignants } from '@/composables/useAdminEnseignants'
+import { computed, ref } from 'vue'
+import { filtrerEnseignants, specialitesDe } from '@/utils/enseignants'
 
 const {
   enseignants, loading, error, canRetry, sourceLocale, selectedEnseignant,
   nbEnseignants, totalMatieres, totalClasses, enseignantsActifs,
   loadEnseignants, selectEnseignant, closeModal,
 } = useAdminEnseignants()
+
+// #673 : filtrés sur la liste chargée, dont les compteurs restent ceux de TOUTE l'école.
+const filtreStatut = ref('')
+const filtreSpecialite = ref('')
+const specialites = computed(() => specialitesDe(enseignants.value))
+const enseignantsFiltres = computed(() => filtrerEnseignants(enseignants.value, { statut: filtreStatut.value, specialite: filtreSpecialite.value }))
 </script>
 
 <style scoped lang="scss">
@@ -189,5 +217,25 @@ const {
   .enseignants-grid {
     grid-template-columns: 1fr;
   }
+}
+.enseignants-filtres {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.filtres-champs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  color: var(--text-primary);
+}
+
+.filtres-champs select {
+  display: block;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 </style>

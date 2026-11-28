@@ -132,6 +132,10 @@ export const REASONS = Object.freeze({
   // #660 (lms_backend#1653) : le code d'une matière, une matière employée dans une classe.
   subject_code_already_used: motif('matiereCodeDejaPris'),
   subject_in_use_in_class: motif('programmeMatiereEmployee'),
+  // #673 (lms_backend#1666) : le profil et les disponibilités d'un enseignant. Définitifs.
+  matricule_deja_pris: motif('matriculeDejaPris'),
+  disponibilites_en_conflit: motif('disponibilitesEnConflit'),
+  teacher_profile_managed_by_klassci: motif('profilGereParKlassci'),
   evaluation_attempt_not_started: motif('evaluationTentativeNonDemarree'),
   evaluation_submission_not_gradable: motif('evaluationCopieNonNotable'),
   // POST /knowledge-checks/{id}/start et /submit. Les `webhook_*` du même lot ne s'adressent qu'au serveur

@@ -45,7 +45,7 @@ const EXPECTED_PATHS = [
   // teacher
   '/teacher', '/teacher/dashboard', '/teacher/seances', '/teacher/schedule', '/teacher/hub',
   '/teacher/import', '/teacher/classes', '/teacher/stats', '/teacher/profile', '/teacher/visio-list',
-  '/teacher/settings', '/teacher/heures', '/teacher/evaluations/:id/corrections',
+  '/teacher/settings', '/teacher/heures', '/teacher/evaluations/:id/corrections', '/teacher/disponibilites',
   // student
   '/student', '/student/dashboard', '/student/courses', '/student/lessons/:id',
   '/student/evaluations-list', '/student/grades', '/student/visio-list', '/student/settings',

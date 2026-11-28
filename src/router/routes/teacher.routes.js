@@ -131,5 +131,13 @@ export const teacherRoutes = [
       requiresAuth: true,
       roles: ['enseignant', 'teacher']
     }
+  },
+  // #673 (lms_backend#1666) : l'enseignant remplit SES disponibilités, sur l'id local de sa session. Aucune capacité :
+  // les disponibilités vivent dans les deux volets.
+  {
+    path: '/teacher/disponibilites',
+    name: 'TeacherDisponibilites',
+    component: () => import('@/views/teacher/MesDisponibilites.vue'),
+    meta: { requiresAuth: true, roles: ['enseignant', 'teacher'] }
   }
 ]
