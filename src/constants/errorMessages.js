@@ -186,6 +186,12 @@ export const ERROR_MESSAGES = Object.freeze({
   compteRoleRequis: 'Choisissez le rôle du compte.',
   compteMotDePasseCourt: 'Le mot de passe initial doit compter au moins 8 caractères.',
   compteConfirmationDifferente: 'La confirmation ne reprend pas le mot de passe initial.',
+  // #690 : l'annonce du personnel à toute une classe (contrôle local, avant POST /annonces).
+  annonceTitreRequis: 'Donnez un titre à l’annonce.',
+  annonceTitreLong: 'Le titre compte au plus 150 caractères.',
+  annonceMessageRequis: 'Écrivez le message de l’annonce.',
+  annonceMessageLong: 'Le message compte au plus 2 000 caractères.',
+  annonceIncertaine: 'L’envoi n’a pas pu être confirmé : l’annonce est peut-être partie. Vérifiez auprès de la classe avant de la renvoyer.',
   // #656 (b) : modifier, désactiver, définir le mot de passe d'un compte.
   compteRienAModifier: 'Aucun changement à enregistrer.',
   compteActeIncertain: 'L’opération n’a pas pu être confirmée : la liste est relue, vérifiez-la avant de recommencer.',
