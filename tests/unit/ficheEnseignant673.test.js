@@ -50,6 +50,8 @@ describe('#673 — les filtres de la liste', () => {
   it('statut et spécialité, sur la valeur rendue, combinés', () => {
     expect(filtrerEnseignants(liste, { statut: 'inactif', specialite: '' }).map((e) => e.id)).toEqual([8])
     expect(filtrerEnseignants(liste, { statut: 'en_activite', specialite: 'Maths' }).map((e) => e.id)).toEqual([7])
+    // La spécialité SEULE : sinon le statut départagerait à sa place, et un filtre de spécialité ignoré passerait.
+    expect(filtrerEnseignants(liste, { statut: '', specialite: 'Physique' }).map((e) => e.id)).toEqual([8])
     expect(filtrerEnseignants(liste, { statut: '', specialite: '' }).map((e) => e.id)).toEqual([7, 8, 9])
   })
 
