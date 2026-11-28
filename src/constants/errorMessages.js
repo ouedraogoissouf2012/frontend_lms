@@ -134,7 +134,8 @@ export const ERROR_MESSAGES = Object.freeze({
   identifiantsIncorrects: 'Identifiants incorrects.',
   connexionEchouee: 'Échec de la connexion.',
   // lms_backend#1649 (#719) : les refus de l'appel d'une séance.
-  seanceAppelNonOuvert: 'L’appel s’ouvre au début de la séance.',
+  // Neutre : reçu par l'appel (#719) ET par le dépôt d'un justificatif (#687), le motif est global.
+  seanceAppelNonOuvert: 'La séance n’a pas encore commencé.',
   appelGereParKlassci: 'L’appel de votre établissement se fait dans KLASSCI.',
   // Neutre : reçu par le personnel (appel) ET par l'élève (émargement, #335), le motif est global.
   eleveHorsDeLaSeance: 'Inscription absente ou inactive dans la classe de cette séance.',
@@ -143,6 +144,13 @@ export const ERROR_MESSAGES = Object.freeze({
   codeEmargementPerime: 'Ce code n’est plus valable. Demandez le nouveau code à votre formateur.',
   presenceDejaMarquee: 'Votre formateur a déjà marqué votre présence à cette séance.',
   emargementEssaisEpuises: 'Trop de codes erronés. Réessayez dans un instant.',
+  // lms_backend#1681 (#687) : les justificatifs d'absence.
+  justificatifSansSeance: 'Cochez au moins une absence à justifier.',
+  justificatifSansMotif: 'Expliquez le motif de votre absence.',
+  seanceNonJustifiable: 'Une des séances choisies n’est plus une absence à justifier : rechargez la page.',
+  aucuneAbsenceSurLaPlage: 'Aucune absence à justifier sur ces dates.',
+  justificatifDejaTranche: 'Ce justificatif a déjà été traité : rechargez la liste.',
+  motifDeRejetObligatoire: 'Indiquez le motif du refus : l’élève le lira.',
   // lms_backend#1739 (#711) : KLASSCI refuse le COMPTE (non réinscrit, inactif) sans dire pourquoi.
   compteRefuseParKlassci: 'Votre établissement refuse cette connexion. Contactez son secrétariat.',
   compteEnConflit: "Votre adresse e-mail est déjà utilisée par un autre compte de votre établissement. Contactez l'administrateur de votre école.",

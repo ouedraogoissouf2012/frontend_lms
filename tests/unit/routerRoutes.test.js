@@ -41,7 +41,7 @@ const EXPECTED_PATHS = [
   '/admin/dashboard', '/admin/users', '/admin/hub', '/admin/classes', '/admin/matieres',
   '/admin/enseignants', '/admin/seances', '/admin/visioconferences', '/admin/stats',
   '/admin/evaluations/results', '/admin/evaluations/:id/details', '/admin/profile',
-  '/admin/settings', '/admin/institutions', '/admin/school-requests', '/admin/audit-log', '/admin/training-sessions', '/admin/enrolment-codes', '/admin/import',
+  '/admin/settings', '/admin/institutions', '/admin/school-requests', '/admin/audit-log', '/admin/training-sessions', '/admin/enrolment-codes', '/admin/import', '/admin/justificatifs',
   // teacher
   '/teacher', '/teacher/dashboard', '/teacher/seances', '/teacher/schedule', '/teacher/hub',
   '/teacher/import', '/teacher/classes', '/teacher/stats', '/teacher/profile', '/teacher/visio-list',
@@ -49,7 +49,7 @@ const EXPECTED_PATHS = [
   // student
   '/student', '/student/dashboard', '/student/courses', '/student/lessons/:id',
   '/student/evaluations-list', '/student/grades', '/student/visio-list', '/student/settings',
-  '/student/schedule', '/student/seances', '/student/rejoindre', '/student/emargement',
+  '/student/schedule', '/student/seances', '/student/rejoindre', '/student/emargement', '/student/absences',
   // shared
   '/dashboard', '/lessons/:id',
   '/teacher/matieres', '/teacher/lessons', '/teacher/lessons/:id/chapters',

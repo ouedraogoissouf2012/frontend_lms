@@ -122,5 +122,17 @@ export const studentRoutes = [
       capacite: 'peutInscrireLocalement',
       title: 'Signer ma présence'
     }
+  },
+  // #687 : « Mes absences », justifier une absence (lms_backend#1681). La notification de décision y mène.
+  {
+    path: '/student/absences',
+    name: 'StudentAbsences',
+    component: () => import('@/views/student/StudentAbsences.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['etudiant'],
+      capacite: 'peutInscrireLocalement',
+      title: 'Mes absences'
+    }
   }
 ]

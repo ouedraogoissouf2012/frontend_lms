@@ -24,5 +24,16 @@ export function cheminsAssiduite(LMS) {
       destroy: (id) => `${LMS}/codes-emargement/${id}`,
     },
     emargement: `${LMS}/emargement`,
+
+    // lms_backend#1681 (#687) : l'élève justifie ses absences ; la gestion de l'école tranche et lit la pièce.
+    mesAbsences: `${LMS}/mes-absences`,
+    mesJustificatifs: `${LMS}/mes-justificatifs`,
+    justificatifs: {
+      index: `${LMS}/justificatifs`,
+      store: `${LMS}/justificatifs`,
+      valider: (id) => `${LMS}/justificatifs/${id}/valider`,
+      rejeter: (id) => `${LMS}/justificatifs/${id}/rejeter`,
+      piece: (id) => `${LMS}/justificatifs/${id}/piece`,
+    },
   }
 }
