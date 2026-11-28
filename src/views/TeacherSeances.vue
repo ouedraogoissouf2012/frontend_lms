@@ -38,6 +38,7 @@
           v-model:matiere-id="filters.matiere_id"
           v-model:visio-status="filters.visio_status"
           v-model:period="filters.period"
+          v-model:type="filters.type"
           @apply="applyFilters"
           @reset="resetFilters"
         />
@@ -67,11 +68,11 @@
           <span class="empty-icon">◷</span>
           <h3 class="empty-title">Aucune séance trouvée</h3>
           <p class="empty-message">
-            {{ filters.matiere_id || filters.visio_status || filters.period !== 'all'
+            {{ filters.matiere_id || filters.visio_status || filters.type || filters.period !== 'all'
               ? 'Aucune séance ne correspond à vos filtres'
               : 'Vos prochaines séances apparaîtront ici' }}
           </p>
-          <button v-if="filters.matiere_id || filters.visio_status || filters.period !== 'all'"
+          <button v-if="filters.matiere_id || filters.visio_status || filters.type || filters.period !== 'all'"
                   @click="resetFilters"
                   class="btn-empty">
             Voir toutes les séances

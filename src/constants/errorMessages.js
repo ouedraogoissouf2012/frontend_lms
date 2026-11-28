@@ -63,6 +63,10 @@ export const ERROR_MESSAGES = Object.freeze({
   enrolmentNotActive: "Votre inscription dans cette classe n'est pas active. Adressez-vous à votre établissement.",
   // lms_backend#1115 (#620) : 409 `class_full`, le code est valide mais la classe est pleine.
   classeComplete: 'Cette classe est complète. Adressez-vous à votre établissement.',
+  // lms_backend#1668 (#675) : les refus du créneau d'une séance.
+  seanceConflitHoraire: 'Ce créneau chevauche une autre séance du même enseignant ou de la même classe.',
+  seanceForcageInterdit: 'Seule la gestion de l’établissement peut créer une séance malgré un conflit d’horaire.',
+  seanceFinAvantDebut: 'La fin de la séance doit suivre son début.',
   // lms_backend#1709 : GET /lms/classes/etablissement a échoué ; le rapport reste possible sur toute l'école.
   classesIndisponibles: 'Les classes n’ont pas pu être chargées : le rapport portera sur toutes les classes.',
   noInstitution: "Votre compte n'est rattaché à aucun établissement. Contactez votre administrateur.",
