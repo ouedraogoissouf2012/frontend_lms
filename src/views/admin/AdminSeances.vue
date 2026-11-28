@@ -27,6 +27,8 @@
         :classes="classes"
         @change="loadSeances"
       />
+      <!-- #707 : la période, par défaut celle en cours ; une séance est retenue par sa classe. -->
+      <FiltreDePeriode v-model="choix" :periodes="periodes" />
 
       <!-- Loading State -->
       <ContentLoader v-if="loading" text="Chargement des seances..." />
@@ -39,7 +41,7 @@
       </div>
 
       <!-- Empty State -->
-      <div v-else-if="seances.length === 0" class="empty-state">
+      <div v-else-if="seancesAffichees.length === 0" class="empty-state">
         <CalendarIcon class="empty-icon" />
         <h3 class="empty-title">Aucune séance trouvée</h3>
         <p class="empty-message">Aucune séance ne correspond aux critères sélectionnés</p>
@@ -48,16 +50,16 @@
       <!-- Seances Grid -->
       <SeancesList
         v-else
-        :seances="seances"
+        :seances="seancesAffichees"
         @view-details="viewSeanceDetails"
         @enable-visio="enableVisio"
         @updated="refreshData"
       />
 
       <!-- Pagination -->
-      <div v-if="seances.length > 0" class="pagination">
+      <div v-if="seancesAffichees.length > 0" class="pagination">
         <p class="pagination-info">
-          Affichage de <strong>{{ seances.length }}</strong> séance(s)
+          Affichage de <strong>{{ seancesAffichees.length }}</strong> séance(s)
         </p>
       </div>
     </div>
@@ -74,7 +76,10 @@ import ContentLoader from '@/components/common/ContentLoader.vue'
 import SeancesFilters from '@/components/admin/SeancesFilters.vue'
 import SeancesList from '@/components/admin/SeancesList.vue'
 import SeanceCreateAction from '@/components/seances/SeanceCreateAction.vue'
+import FiltreDePeriode from '@/components/admin/FiltreDePeriode.vue'
+import { computed, onMounted } from 'vue'
 import { useAdminSeances } from '@/composables/useAdminSeances'
+import { useFiltreDePeriode } from '@/composables/useFiltreDePeriode'
 import {
   CalendarIcon,
   ArrowPathIcon,
@@ -85,6 +90,11 @@ const {
   loading, error, canRetry, seances, teachers, classes, filters,
   loadSeances, refreshData, viewSeanceDetails, enableVisio,
 } = useAdminSeances()
+
+// #707 : la période (par défaut celle en cours) retient les séances par leur classe.
+const { periodes, choix, charger: chargerPeriodes, seancesRetenues } = useFiltreDePeriode()
+const seancesAffichees = computed(() => seancesRetenues(seances.value, classes.value))
+onMounted(chargerPeriodes)
 </script>
 
 <style scoped>
