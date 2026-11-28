@@ -43,7 +43,7 @@
 
           <!-- Onglet Étudiants -->
           <div v-if="activeTab === 'etudiants'">
-            <ClasseEtudiantsTab :etudiants="etudiants" />
+            <ClasseEtudiantsTab :etudiants="etudiants" :classe-id="Number(classeId)" :peut-transferer="peutComposerProgramme" @transfere="loadClasseDetails" />
           </div>
 
           <!-- Onglet Évaluations -->

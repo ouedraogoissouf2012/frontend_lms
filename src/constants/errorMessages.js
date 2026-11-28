@@ -211,9 +211,16 @@ export const ERROR_MESSAGES = Object.freeze({
   programmeCoefficientIllisible: 'Indiquez un coefficient entier, de 1 à 20, ou laissez vide pour celui de la matière.',
   programmeMatiereEmployee: 'Des leçons, séances, évaluations, quiz ou discussions de cette classe emploient cette matière : elle ne peut pas en être retirée.',
   programmeModificationIncertaine: 'La modification n’a pas pu être confirmée : la fiche est relue, vérifiez le programme.',
-  // #659 (lms_backend#1652) : modifier, archiver une classe.
+  // #659 (lms_backend#1652) : modifier, archiver une classe, transférer un élève.
   classeArchivee: 'Cette classe est archivée : elle ne reçoit plus d’inscription. Désarchivez-la d’abord.',
+  classePeriodeClose: 'La période de cette classe est close : elle ne reçoit plus d’inscription.',
+  eleveDejaDansLaClasse: 'Cet élève est déjà inscrit dans la classe choisie.',
   enseignantHorsEtablissement: "Cet enseignant n'est plus disponible dans votre établissement. Choisissez-en un autre.",
+  transfertClasseComplete: 'La classe choisie est complète : augmentez sa capacité, ou choisissez-en une autre.',
+  transfertInscriptionNonActive: "L'inscription de cet élève dans cette classe n'est plus active : actualisez la fiche.",
+  transfertChoixRequis: 'Choisissez l’élève et sa nouvelle classe.',
+  transfertIncertain: 'Le transfert n’a pas pu être confirmé : la fiche est relue.',
+  transfertClassesIndisponibles: 'Les classes de l’école n’ont pas pu être lues : actualisez la page.',
   classeModificationIncertaine: 'La modification n’a pas pu être confirmée : la liste est relue.',
   classeArchiveIncertaine: 'L’archivage n’a pas pu être confirmé : la liste est relue.',
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
