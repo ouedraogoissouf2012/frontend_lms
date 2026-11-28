@@ -64,7 +64,9 @@ export function useMobileSidebar(props, emit) {
       return [
         ...commonItems,
         // #391 : seulement si l'établissement tient sa propre liste (capacité serveur).
-        ...(peutInscrire() ? [{ path: '/student/rejoindre', icon: 'fa-sign-in', label: 'Rejoindre une classe', badge: null }] : [])
+        ...(peutInscrire() ? [{ path: '/student/rejoindre', icon: 'fa-sign-in', label: 'Rejoindre une classe', badge: null }] : []),
+        // #335 : signer sa présence par le code de la séance, sous la même capacité que le menu de bureau.
+        ...(peutInscrire() ? [{ path: '/student/emargement', icon: 'fa-check-circle', label: 'Signer ma présence', badge: null }] : []),
         // À ajouter: Mes Notes, Ma Progression, etc.
       ]
     } else if (isTeacher(u)) {
