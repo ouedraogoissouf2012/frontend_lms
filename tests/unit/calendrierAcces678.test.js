@@ -103,7 +103,8 @@ describe('#678 — l’accès : tout membre de l’école, aucune capacité', ()
   it('le supradmin n’a pas d’école : pas d’entrée', () => {
     connecter('supradmin')
     expect(chemins(useNavigation().sections.value)).not.toContain(ECRAN)
-    expect(chemins(tiroir().adminNavItems.value)).not.toContain(ECRAN)
+    const t = tiroir()
+    expect([...chemins(t.adminNavItems.value), ...chemins(t.secondaryNavItems.value)]).not.toContain(ECRAN)
   })
 
   it.each([
@@ -111,9 +112,11 @@ describe('#678 — l’accès : tout membre de l’école, aucune capacité', ()
     ['enseignant', 'secondaryNavItems'],
     ['coordinateur', 'secondaryNavItems'],
     ['admin', 'adminNavItems'],
-  ])('%s : le tiroir mobile (%s) offre l’entrée', (role, liste) => {
+  ])('%s : le tiroir mobile (%s) offre l’entrée, une seule fois', (role, liste) => {
     connecter(role)
-    expect(chemins(tiroir()[liste].value)).toContain(ECRAN)
+    const t = tiroir()
+    expect(chemins(t[liste].value)).toContain(ECRAN)
+    expect([...chemins(t.adminNavItems.value), ...chemins(t.secondaryNavItems.value)].filter((c) => c === ECRAN)).toHaveLength(1)
   })
 })
 

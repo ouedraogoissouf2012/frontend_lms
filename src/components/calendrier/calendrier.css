@@ -1,0 +1,102 @@
+/* #678 — les styles partagés de l'écran « Calendrier de l'année » (préfixe `cal-`), sur les jetons des deux thèmes. */
+.cal-page {
+  padding: var(--spacing-xl);
+  max-width: 72rem;
+  margin: 0 auto;
+}
+
+.cal-carte {
+  display: grid;
+  gap: var(--spacing-sm);
+  background: var(--card-bg);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+}
+
+.cal-carte h2,
+.cal-titre {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.cal-aide {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.cal-erreur,
+.cal-champ-erreur {
+  margin: 0;
+  color: var(--error-text);
+}
+
+.cal-annonce {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.cal-annonce:empty {
+  display: none;
+}
+
+.cal-entete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+}
+
+.cal-mois {
+  margin: 0;
+  color: var(--text-primary);
+  text-transform: capitalize;
+}
+
+.cal-champs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--spacing-md);
+}
+
+.cal-champ {
+  display: grid;
+  gap: var(--spacing-xs, 0.25rem);
+}
+
+.cal-champ label {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.cal-champ input,
+.cal-champ select {
+  padding: var(--spacing-sm);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.cal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.cal-btn {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.cal-btn--principal,
+.cal-btn[aria-pressed='true'] {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+}

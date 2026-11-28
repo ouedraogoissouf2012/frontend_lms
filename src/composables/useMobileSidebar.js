@@ -52,13 +52,15 @@ export function useMobileSidebar(props, emit) {
   // #605 : l'écran Sessions, seulement si l'établissement gère son propre catalogue (capacité serveur).
   const peutGererCatalogue = () => capaciteAccordee('peutGererCatalogueLocal')
   const SESSIONS = { path: '/admin/training-sessions', icon: 'fa-flag', label: 'Sessions', badge: null }
+  // #678 : tout compte d'établissement ; le supradmin n'a pas d'école (sa liste est à part).
+  const CALENDRIER = { path: '/calendrier', icon: 'fa-calendar-o', label: 'Calendrier de l’année', badge: null }
 
   // Items de navigation selon le rôle
   const secondaryNavItems = computed(() => {
     const u = user.value
 
-    // Routes communes (vides pour l'instant - à implémenter plus tard)
-    const commonItems = []
+    // #678 : le calendrier de l'année, commun à l'élève, à l'enseignant et au coordinateur.
+    const commonItems = [CALENDRIER]
 
     if (isStudent(u)) {
       return [
@@ -88,7 +90,8 @@ export function useMobileSidebar(props, emit) {
       ]
     }
 
-    return commonItems
+    // L'admin a ses raccourcis (calendrier compris) dans adminNavItems ; le supradmin n'a pas d'école.
+    return []
   })
 
   const adminNavItems = computed(() => {
@@ -110,6 +113,7 @@ export function useMobileSidebar(props, emit) {
         { path: '/admin/classes', icon: 'fa-building', label: 'Classes', badge: null },
         { path: '/admin/matieres', icon: 'fa-book', label: 'Matières', badge: null },
         { path: '/admin/enseignants', icon: 'fa-user', label: 'Enseignants', badge: null },
+        CALENDRIER,
         ...(peutGererCatalogue() ? [SESSIONS] : []),
         ...(peutInscrire() ? [CODES_INSCRIPTION] : []),
       ]

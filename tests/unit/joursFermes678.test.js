@@ -7,6 +7,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import { ref } from 'vue'
+import { createPinia, setActivePinia } from 'pinia'
 import { useJoursFermes } from '@/composables/useJoursFermes'
 import { serveurFictif } from '../helpers/serveurFictif'
 
@@ -20,6 +21,8 @@ function utiliser(mois) {
 }
 
 beforeEach(() => {
+  // Le client lit le magasin d'authentification dans son intercepteur.
+  setActivePinia(createPinia())
   serveur = serveurFictif()
 })
 afterEach(() => serveur.fermer())

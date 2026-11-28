@@ -47,13 +47,15 @@ describe('useMobileSidebar (#H12)', () => {
   it('items enseignant : séances, forum, historique, paramètres', () => {
     getUser.mockReturnValue({ role: 'enseignant' })
     const paths = run().api.secondaryNavItems.value.map(i => i.path)
-    expect(paths).toEqual(['/teacher/seances', '/forum', '/attendance/seances', '/teacher/settings'])
+    // #678 : le calendrier de l'année, commun à l'élève, à l'enseignant et au coordinateur.
+    expect(paths).toEqual(['/calendrier', '/teacher/seances', '/forum', '/attendance/seances', '/teacher/settings'])
   })
 
   it('items coordinateur : forum, historique, paramètres admin', () => {
     getUser.mockReturnValue({ role: 'coordinateur' })
     const paths = run().api.secondaryNavItems.value.map(i => i.path)
     expect(paths).toEqual([
+      '/calendrier',
       '/forum',
       '/attendance/seances',
       // « Sessions » est gardée par `peutGererCatalogueLocal` (#605) : sans Pinia ici, la capacité est refusée.
@@ -61,10 +63,10 @@ describe('useMobileSidebar (#H12)', () => {
     ])
   })
 
-  it('étudiant : aucun item secondaire, aucun item admin', () => {
+  it('étudiant : le seul calendrier de l’année (#678), aucun item admin', () => {
     getUser.mockReturnValue({ role: 'etudiant' })
     const { api } = run()
-    expect(api.secondaryNavItems.value).toEqual([])
+    expect(api.secondaryNavItems.value.map((i) => i.path)).toEqual(['/calendrier'])
     expect(api.adminNavItems.value).toEqual([])
   })
 
@@ -81,6 +83,7 @@ describe('useMobileSidebar (#H12)', () => {
       '/admin/classes',
       '/admin/matieres',
       '/admin/enseignants',
+      '/calendrier',
     ])
   })
 
@@ -91,6 +94,7 @@ describe('useMobileSidebar (#H12)', () => {
       '/admin/classes',
       '/admin/matieres',
       '/admin/enseignants',
+      '/calendrier',
     ])
   })
 

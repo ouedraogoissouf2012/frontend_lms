@@ -98,5 +98,14 @@ export const academicRoutes = [
       requiresAuth: true,
       roles: ['coordinateur', 'superAdmin']
     }
+  },
+
+  // #678 (lms_backend#1671) : le calendrier de l'année, lu par tout compte d'établissement, dans les deux volets :
+  // aucune capacité. L'écriture n'est montrée qu'à la gestion ; le serveur fait foi.
+  {
+    path: '/calendrier',
+    name: 'calendrier-de-l-annee',
+    component: () => import('@/views/shared/CalendrierDeLAnnee.vue'),
+    meta: { requiresAuth: true, roles: AUTHENTICATED_ROLES }
   }
 ]

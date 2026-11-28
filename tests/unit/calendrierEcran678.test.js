@@ -10,6 +10,20 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 
 vi.mock('vue-router', () => ({ useRoute: () => ({ path: '/calendrier', params: {}, query: {} }), useRouter: () => ({ push: vi.fn() }) }))
+// La carte FullCalendar est remplacée au niveau du MODULE : son SCSS n'est alors jamais compilé (sass-embedded est
+// cassé sous Windows en local), et le test lit les options que l'écran lui passe.
+const vueDuMois = vi.hoisted(() => ({ options: null }))
+vi.mock('@/components/calendar/CalendarView.vue', () => ({
+  default: {
+    name: 'CalendarView',
+    props: ['options', 'loading'],
+    template: '<div data-mois />',
+    setup(props, { expose }) {
+      vueDuMois.options = () => props.options
+      expose({ getApi: () => null })
+    },
+  },
+}))
 
 import { useAuthStore } from '@/stores/auth'
 import { useConfirm } from '@/composables/useConfirm'
@@ -22,8 +36,6 @@ const BAC = { id: 5, type: 'examens', titre: 'Bac blanc', debut: '2026-12-14', f
 const CLASSES = { success: true, data: [{ id: 9, libelle: 'Terminale A' }, { id: 11, libelle: 'Terminale B' }], meta: { current_page: 1, last_page: 1 } }
 
 let serveur
-let optionsDuMois
-const CalendarView = { props: ['options', 'loading'], template: '<div data-mois />', setup(props, { expose }) { optionsDuMois = () => props.options; expose({ getApi: () => null }) } }
 
 function connecter(role) {
   useAuthStore().setSession({ user: { id: 1, role }, token: 't' }, {})
@@ -32,7 +44,7 @@ async function monter(role = 'coordinateur') {
   connecter(role)
   const w = mount(CalendrierDeLAnnee, {
     attachTo: document.body,
-    global: { stubs: { DashboardLayout: { template: '<div><slot /></div>' }, ContentLoader: true, CalendarView } },
+    global: { stubs: { DashboardLayout: { template: '<div><slot /></div>' }, ContentLoader: true } },
   })
   await flushPromises()
   return w
@@ -69,7 +81,7 @@ describe('#678 — la lecture', () => {
 
   it('vue mois : les événements vont à FullCalendar, en journées entières (fin exclusive)', async () => {
     const w = await monter('etudiant')
-    const evenements = optionsDuMois().events
+    const evenements = vueDuMois.options().events
     expect(evenements.map((e) => [e.title, e.start, e.end, e.allDay])).toEqual([
       ['Bac blanc', '2026-12-14', '2026-12-17', true],
       ['Vacances de Noël', '2026-12-19', '2027-01-05', true],
