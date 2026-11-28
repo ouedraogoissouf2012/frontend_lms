@@ -118,6 +118,11 @@ export const REASONS = Object.freeze({
   // #660 (lms_backend#1653) : le code d'une matière, une matière employée dans une classe.
   subject_code_already_used: motif('matiereCodeDejaPris'),
   subject_in_use_in_class: motif('programmeMatiereEmployee'),
+  // #676 (lms_backend#1669) : les 422 des emplois du temps. Définitifs : la saisie est à corriger.
+  emploi_du_temps_hors_periode: motif('emploiDuTempsHorsPeriode'),
+  matiere_hors_programme: motif('emploiDuTempsMatiereHorsProgramme'),
+  grille_en_conflit: motif('emploiDuTempsGrilleEnConflit'),
+  enseignant_hors_ecole: motif('emploiDuTempsEnseignantHorsEcole'),
   evaluation_attempt_not_started: motif('evaluationTentativeNonDemarree'),
   evaluation_submission_not_gradable: motif('evaluationCopieNonNotable'),
   // POST /knowledge-checks/{id}/start et /submit. Les `webhook_*` du même lot ne s'adressent qu'au serveur

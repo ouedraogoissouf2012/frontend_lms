@@ -52,6 +52,8 @@ export function useMobileSidebar(props, emit) {
   // #605 : l'écran Sessions, seulement si l'établissement gère son propre catalogue (capacité serveur).
   const peutGererCatalogue = () => capaciteAccordee('peutGererCatalogueLocal')
   const SESSIONS = { path: '/admin/training-sessions', icon: 'fa-flag', label: 'Sessions', badge: null }
+  // #676 : les emplois du temps, sous la même capacité.
+  const EMPLOIS_DU_TEMPS = { path: '/admin/emplois-du-temps', icon: 'fa-table', label: 'Emplois du temps', badge: null }
 
   // Items de navigation selon le rôle
   const secondaryNavItems = computed(() => {
@@ -82,7 +84,7 @@ export function useMobileSidebar(props, emit) {
         ...commonItems,
         { path: '/forum', icon: 'fa-comments', label: 'Forum', badge: null },
         { path: '/attendance/seances', icon: 'fa-history', label: 'Historique', badge: null },
-        ...(peutGererCatalogue() ? [SESSIONS] : []),
+        ...(peutGererCatalogue() ? [SESSIONS, EMPLOIS_DU_TEMPS] : []),
         ...(peutInscrire() ? [CODES_INSCRIPTION] : []),
         { path: '/admin/settings', icon: 'fa-cog', label: 'Paramètres', badge: null }
       ]
@@ -110,7 +112,7 @@ export function useMobileSidebar(props, emit) {
         { path: '/admin/classes', icon: 'fa-building', label: 'Classes', badge: null },
         { path: '/admin/matieres', icon: 'fa-book', label: 'Matières', badge: null },
         { path: '/admin/enseignants', icon: 'fa-user', label: 'Enseignants', badge: null },
-        ...(peutGererCatalogue() ? [SESSIONS] : []),
+        ...(peutGererCatalogue() ? [SESSIONS, EMPLOIS_DU_TEMPS] : []),
         ...(peutInscrire() ? [CODES_INSCRIPTION] : []),
       ]
     }

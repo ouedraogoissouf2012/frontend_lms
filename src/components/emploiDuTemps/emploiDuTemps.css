@@ -1,0 +1,119 @@
+/* #676 — les styles partagés des écrans d'emploi du temps (préfixe `edt-`), sur les jetons du thème : clair et sombre. */
+.edt-page {
+  padding: var(--spacing-xl);
+  max-width: 72rem;
+  margin: 0 auto;
+}
+
+.edt-carte {
+  display: grid;
+  gap: var(--spacing-sm);
+  background: var(--card-bg);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+}
+
+.edt-carte h2,
+.edt-carte h3,
+.edt-titre {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.edt-aide {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.edt-erreur,
+.edt-champ-erreur {
+  margin: 0;
+  color: var(--color-danger, var(--text-primary));
+}
+
+.edt-annonce {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.edt-annonce:empty {
+  display: none;
+}
+
+.edt-champs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--spacing-md);
+}
+
+.edt-champ {
+  display: grid;
+  gap: var(--spacing-xs, 0.25rem);
+}
+
+.edt-champ label {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.edt-champ input,
+.edt-champ select {
+  padding: var(--spacing-sm);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.edt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.edt-btn {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.edt-btn--principal {
+  background: var(--color-primary, var(--bg-secondary));
+  color: var(--text-on-primary, var(--text-primary));
+}
+
+.edt-tableau {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.edt-tableau th,
+.edt-tableau td {
+  padding: var(--spacing-sm);
+  border-bottom: 1px solid var(--border-primary);
+  text-align: left;
+  color: var(--text-primary);
+}
+
+/* Sur téléphone, chaque ligne du tableau devient un bloc : l'en-tête de colonne précède la valeur. */
+@media (max-width: 640px) {
+  .edt-tableau thead {
+    display: none;
+  }
+
+  .edt-tableau tr,
+  .edt-tableau td {
+    display: block;
+  }
+
+  .edt-tableau td::before {
+    content: attr(data-entete) ' : ';
+    font-weight: 600;
+  }
+}

@@ -11,8 +11,14 @@ import { flushPromises, mount, RouterLinkStub } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 
 const push = vi.fn()
-vi.mock('vue-router', () => ({ useRoute: () => ({ path: '/admin/emplois-du-temps/3', params: { id: '3' }, query: {} }), useRouter: () => ({ push }) }))
+// La route est RÉACTIVE : une copie ouvre un autre id sur la même vue, que vue-router réutilise.
+vi.mock('vue-router', async () => {
+  const { reactive } = await import('vue')
+  const route = reactive({ path: '/admin/emplois-du-temps/3', params: { id: '3' }, query: {} })
+  return { useRoute: () => route, useRouter: () => ({ push }), __route: route }
+})
 
+import { __route } from 'vue-router'
 import AdminEmploiDuTemps from '@/views/admin/AdminEmploiDuTemps.vue'
 import { ERROR_MESSAGES } from '@/constants/errorMessages'
 import { serveurFictif } from '../helpers/serveurFictif'
@@ -51,6 +57,7 @@ beforeEach(() => {
   setActivePinia(createPinia())
   document.body.innerHTML = ''
   push.mockReset()
+  __route.params.id = '3'
   serveur = serveurFictif()
   servir()
 })
@@ -181,6 +188,32 @@ describe('#676 — copier', () => {
       ['post /lms/emplois-du-temps/3/copier', { classe_id: 11, du: '2027-02-01', au: '2027-06-30' }],
     ])
     expect(push).toHaveBeenCalledWith({ name: 'AdminEmploiDuTemps', params: { id: 15 } })
+    w.unmount()
+  })
+})
+
+describe('#676 — relectures relevées à la relecture d’ensemble', () => {
+  it('le nombre s’accorde : « 1 séance créée », « 1 séance future … retirée »', async () => {
+    serveur.servir({
+      'post /lms/emplois-du-temps/3/generer': [200, { success: true, data: { creees: 1, ignorees: [] } }],
+      'put /lms/emplois-du-temps/3/lignes': [200, { success: true, data: { ...EMPLOI, retirees: 1 } }],
+    })
+    const w = await monter()
+    await action(w, 'generer').trigger('click')
+    await action(w, 'enregistrer').trigger('click')
+    await flushPromises()
+    expect(w.find('[data-rapport]').text()).toContain('1 séance créée.')
+    expect(w.find('[role="status"]').text()).toContain('1 séance future de ses anciens créneaux a été retirée')
+    w.unmount()
+  })
+
+  it('un autre id sur la même vue (après une copie) relit son emploi du temps', async () => {
+    serveur.servir({ 'get /lms/emplois-du-temps/15': [200, { success: true, data: { ...EMPLOI, id: 15, titre: 'La copie', lignes: [] } }] })
+    const w = await monter()
+    __route.params.id = '15'
+    await flushPromises()
+    expect(w.find('h1').text()).toBe('La copie')
+    expect(w.findAll('[data-ligne]')).toHaveLength(0)
     w.unmount()
   })
 })
