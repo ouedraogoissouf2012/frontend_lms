@@ -132,6 +132,14 @@ export default {
   },
 
   /**
+   * front#693 : la diffusion d'une évaluation (`{ show_results }`, ou `{ correction_release,
+   * correction_release_at? }`). Rend l'évaluation à jour.
+   */
+  async releaseEvaluation(id, reglage) {
+    return api.patch(endpoints.evaluations.release(id), reglage)
+  },
+
+  /**
    * La dernière copie de l'élève (statut, échéance `ends_at`) : C28, la page de passage la relit.
    */
   async getMySubmission(id) {

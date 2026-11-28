@@ -128,7 +128,9 @@ export function useNavbar() {
       '/student': '/student/dashboard',
       '/attendance': '/attendance/seances',
       '/classes': null,
-      '/matieres': null
+      '/matieres': null,
+      // front#664 : pas de page « Élèves » avant la PR 2 de front#664 ; le segment ne mène nulle part.
+      '/eleves': null
     }
 
     // Le tableau de bord d'école est fermé au supradmin (D126) : « Admin » mène à son espace.
@@ -152,7 +154,9 @@ export function useNavbar() {
       'profile': 'Profil',
       'settings': 'Paramètres',
       // #632 : le même nom que le menu et le titre de l'écran.
-      'enrolment-codes': "Classes et codes d'inscription"
+      'enrolment-codes': "Classes et codes d'inscription",
+      // front#664
+      'eleves': 'Élèves'
     }
 
     return labels[segment] || segment.charAt(0).toUpperCase() + segment.slice(1)

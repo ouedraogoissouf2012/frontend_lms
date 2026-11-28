@@ -1,3 +1,4 @@
+import js from '@eslint/js'
 import pluginVue from 'eslint-plugin-vue'
 import globals from 'globals'
 import noRawRoleString from './eslint-rules/no-raw-role-string.js'
@@ -6,6 +7,10 @@ export default [
   {
     ignores: ['dist/**', 'coverage/**', 'node_modules/**'],
   },
+  // #759 : les règles RECOMMANDÉES du cœur. ESLint 10 n'embarque plus @eslint/js : sans cet import, AUCUNE règle du
+  // cœur ne tournait (variable inconnue, code mort, clé en double acceptés). Mesurées sur src avant activation : une
+  // seule violation. Elles précèdent la config du projet, qui garde la main sur ses propres réglages.
+  { ...js.configs.recommended, files: ['src/**/*.{js,vue}'] },
   ...pluginVue.configs['flat/essential'],
   {
     files: ['src/**/*.{js,vue}'],
@@ -17,6 +22,8 @@ export default [
     plugins: {
       local: { rules: { 'no-raw-role-string': noRawRoleString } },
     },
+    // #754 : `no-dupe-keys` vient désormais des règles recommandées (#759). Les catalogues composés par étalement
+    // ont en plus leur propre garde : npm run lint:catalogues.
     rules: {
       'no-unused-vars': ['error', {
         argsIgnorePattern: '^_',

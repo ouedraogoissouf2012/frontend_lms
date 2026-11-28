@@ -54,6 +54,10 @@ export const NAV_SECTIONS = Object.freeze([
   { icon: 'fa-book', label: 'Mes Cours', to: '/student/courses', roles: [ETUDIANT] },
   // #391 : seulement si l'établissement tient sa propre liste (capacité serveur).
   { icon: 'fa-sign-in', label: 'Rejoindre une classe', to: '/student/rejoindre', roles: [ETUDIANT], capacite: 'peutInscrireLocalement' },
+  // #335 : signer sa présence par le code de la séance ; même capacité (sans liste locale, l'émargement est ailleurs).
+  { icon: 'fa-check-circle', label: 'Signer ma présence', to: '/student/emargement', roles: [ETUDIANT], capacite: 'peutInscrireLocalement' },
+  // #687 : justifier ses absences ; même capacité (sans liste locale, les absences vivent ailleurs).
+  { icon: 'fa-file-text-o', label: 'Mes absences', to: '/student/absences', roles: [ETUDIANT], capacite: 'peutInscrireLocalement' },
   { icon: 'fa-clock-o', label: 'Emploi du Temps', to: '/student/schedule', roles: [ETUDIANT] },
   { icon: 'fa-edit', label: 'Évaluations', to: '/student/evaluations-list', roles: [ETUDIANT] },
   { icon: 'fa-star', label: 'Mes Notes', to: '/student/grades', roles: [ETUDIANT] },
@@ -91,6 +95,8 @@ export const NAV_SECTIONS = Object.freeze([
   { icon: 'fa-key', label: "Classes et codes d'inscription", to: '/admin/enrolment-codes', roles: [ADMIN, COORDINATEUR], capacite: 'peutInscrireLocalement' },
   // #655 : le même écran d'import que l'enseignant, sous la même capacité.
   { icon: 'fa-upload', label: 'Import apprenants', to: '/admin/import', roles: [ADMIN, COORDINATEUR], capacite: 'peutInscrireLocalement' },
+  // #687 : la file des justificatifs d'absence, sous la même capacité.
+  { icon: 'fa-file-text-o', label: 'Justificatifs', to: '/admin/justificatifs', roles: [ADMIN, COORDINATEUR], capacite: 'peutInscrireLocalement' },
 
   // --- Queue partagée enseignant/admin ---
   { icon: 'fa-comments', label: 'Forum', to: '/forum', roles: [ENSEIGNANT, COORDINATEUR, ADMIN] },

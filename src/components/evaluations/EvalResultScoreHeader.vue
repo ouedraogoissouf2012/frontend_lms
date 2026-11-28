@@ -16,8 +16,13 @@
       </button>
     </div>
 
+    <!-- front#693 : une note cachée ne s'affiche jamais « null/20 ». -->
+    <div v-if="!publiees" class="notes-non-publiees" role="status">
+      Vos notes ne sont pas encore publiées par votre enseignant.
+    </div>
+
     <!-- Score principal -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+    <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
       <div class="score-card score-card-note">
         <p class="score-label">Note finale</p>
         <p class="score-value">{{ submission.note_sur_20 }}/20</p>
@@ -46,12 +51,18 @@
  * En-tête « score » de EvaluationResults (H2 ≤300) : titre, date, note/score/coef
  * et feedback enseignant. Section présentationnelle extraite verbatim. Reçoit la
  * soumission en prop, émet `back`. CSS score/feedback + overrides de thème @use'd.
+ * front#693 : des notes que l'enseignant n'a pas publiées s'annoncent comme telles.
  */
-defineProps({
+import { computed } from 'vue'
+import { notesPubliees } from '@/utils/diffusionDesResultats'
+
+const props = defineProps({
   submission: { type: Object, required: true }
 })
 
 defineEmits(['back'])
+
+const publiees = computed(() => notesPubliees(props.submission))
 
 function formatDate(date) {
   if (!date) return 'Non disponible'
@@ -93,6 +104,17 @@ function formatDate(date) {
   font-size: 0.875rem;
   color: var(--text-secondary);
   margin-top: 0.25rem;
+}
+
+.notes-non-publiees {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-primary);
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  font-weight: 600;
+  text-align: center;
 }
 
 /* Carte de feedback */
