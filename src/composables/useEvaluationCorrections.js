@@ -64,6 +64,13 @@ export function useEvaluationCorrections() {
     }
   }
 
+  // front#693 : la diffusion que le serveur a rendue. Seuls ses champs sont repris : la réponse du
+  // PATCH est l'évaluation brute, sans la matière ni la classe enrichies qu'affiche l'écran.
+  function appliquerDiffusion(miseAJour) {
+    const { show_results, correction_release, correction_release_at } = miseAJour ?? {}
+    evaluation.value = { ...evaluation.value, show_results, correction_release, correction_release_at }
+  }
+
   // Retour
   function goBack() {
     router.push({ name: 'TeacherEvaluations' })
@@ -105,6 +112,6 @@ export function useEvaluationCorrections() {
 
   return {
     loading, error, evaluation, resultats, statistiques,
-    loadResults, goBack, exportToExcel,
+    loadResults, goBack, exportToExcel, appliquerDiffusion,
   }
 }

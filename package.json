@@ -32,6 +32,7 @@
     "lint:proprietes:baseline": "node scripts/lint-proprietes-non-definies.mjs --update",
     "lint:api-contract": "node scripts/lint-api-contract.mjs",
     "lint:api-contract:baseline": "node scripts/lint-api-contract.mjs --update",
+    "lint:catalogues": "node scripts/lint-catalogues.mjs",
     "lint:fonts": "node scripts/check-dist-fonts.mjs"
   },
   "dependencies": {
@@ -75,6 +76,7 @@
     "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
+    "@eslint/js": "10.0.1",
     "@vitejs/plugin-vue": "^6.0.10",
     "@vitest/coverage-v8": "^4.1.12",
     "@vue/test-utils": "^2.5.1",

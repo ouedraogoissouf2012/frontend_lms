@@ -31,6 +31,8 @@
           </div>
         </div>
       </div>
+      <!-- #690 : le fil des annonces, toutes pages, filtré par le serveur. -->
+      <router-link to="/annonces" class="panel-footer-link" @click="$emit('toggle')">Mes annonces</router-link>
     </div>
   </transition>
 </template>
@@ -76,7 +78,9 @@ const getIconEmoji = (iconCode) => {
     'mdi-clock-alert': 'fa-clock-o',
     'mdi-video-outline': 'fa-video-camera',
     'mdi-video-check': 'fa-video-camera',
-    'mdi-bell': 'fa-bell'
+    'mdi-bell': 'fa-bell',
+    // #690 : une annonce du personnel à la classe.
+    'mdi-bullhorn': 'fa-bullhorn'
   }
   return iconMap[iconCode] || 'fa-bell'
 }
@@ -125,6 +129,15 @@ const getIconEmoji = (iconCode) => {
   box-shadow: var(--shadow-xl);
   overflow: hidden;
   z-index: var(--z-dropdown);
+}
+
+.panel-footer-link {
+  display: block;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-top: 1px solid var(--border-primary);
+  color: var(--text-primary);
+  font-weight: 600;
+  text-align: center;
 }
 
 .panel-header {
