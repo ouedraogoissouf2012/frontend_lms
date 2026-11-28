@@ -49,6 +49,9 @@ export const endpoints = {
   // ── LMS — ENRICHI (/lms/*) ──────────────────────────────────────────────
   lms: {
     enseignants: `${LMS}/enseignants`,
+    // lms_backend#1682 (#688) : les heures de l'enseignant (son mois) et le rapport de la gestion (JSON ou CSV).
+    mesHeures: `${LMS}/mes-heures`,
+    heuresEnseignants: `${LMS}/heures-enseignants`,
 
     classes: {
       details: (id) => `${LMS}/classes/${id}`,

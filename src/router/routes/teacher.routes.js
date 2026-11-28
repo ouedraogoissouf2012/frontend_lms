@@ -109,6 +109,19 @@ export const teacherRoutes = [
       title: 'Paramètres'
     }
   },
+  // #688 : « Mes heures », tirées de la visio (lms_backend#1682). Même garde que l'import : sans liste locale, les
+  // heures se tiennent ailleurs.
+  {
+    path: '/teacher/heures',
+    name: 'TeacherHeures',
+    component: () => import('@/views/teacher/TeacherHeures.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['enseignant', 'teacher'],
+      capacite: 'peutInscrireLocalement',
+      title: 'Mes heures'
+    }
+  },
   // Corrections Évaluations
   {
     path: '/teacher/evaluations/:id/corrections',

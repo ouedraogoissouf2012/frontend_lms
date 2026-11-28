@@ -52,6 +52,8 @@ export function useMobileSidebar(props, emit) {
   // #605 : l'écran Sessions, seulement si l'établissement gère son propre catalogue (capacité serveur).
   const peutGererCatalogue = () => capaciteAccordee('peutGererCatalogueLocal')
   const SESSIONS = { path: '/admin/training-sessions', icon: 'fa-flag', label: 'Sessions', badge: null }
+  // #688 : les heures des enseignants, pour la gestion, sous la même capacité que le menu de bureau.
+  const HEURES_DES_ENSEIGNANTS = { path: '/admin/heures-enseignants', icon: 'fa-clock-o', label: 'Heures des enseignants', badge: null }
   // #678 : tout compte d'établissement ; le supradmin n'a pas d'école (sa liste est à part).
   const CALENDRIER = { path: '/calendrier', icon: 'fa-calendar-o', label: 'Calendrier de l’année', badge: null }
   // #687 : la file des justificatifs d'absence, pour la gestion, sous la même capacité que le menu de bureau.
@@ -80,6 +82,8 @@ export function useMobileSidebar(props, emit) {
       return [
         ...commonItems,
         { path: '/teacher/seances', icon: 'fa-video-camera', label: 'Mes Séances Visio', badge: null },
+        // #688 : ses heures, sous la même capacité que le menu de bureau.
+        ...(peutInscrire() ? [{ path: '/teacher/heures', icon: 'fa-clock-o', label: 'Mes heures', badge: null }] : []),
         { path: '/forum', icon: 'fa-comments', label: 'Forum', badge: null },
         { path: '/attendance/seances', icon: 'fa-history', label: 'Historique', badge: null },
         { path: '/teacher/settings', icon: 'fa-cog', label: 'Paramètres', badge: null }
@@ -92,6 +96,7 @@ export function useMobileSidebar(props, emit) {
         { path: '/attendance/seances', icon: 'fa-history', label: 'Historique', badge: null },
         ...(peutGererCatalogue() ? [SESSIONS] : []),
         ...(peutInscrire() ? [CODES_INSCRIPTION] : []),
+        ...(peutInscrire() ? [HEURES_DES_ENSEIGNANTS] : []),
         ...(peutInscrire() ? [JUSTIFICATIFS] : []),
         { path: '/admin/settings', icon: 'fa-cog', label: 'Paramètres', badge: null }
       ]
@@ -123,6 +128,7 @@ export function useMobileSidebar(props, emit) {
         CALENDRIER,
         ...(peutGererCatalogue() ? [SESSIONS] : []),
         ...(peutInscrire() ? [CODES_INSCRIPTION] : []),
+        ...(peutInscrire() ? [HEURES_DES_ENSEIGNANTS] : []),
         ...(peutInscrire() ? [JUSTIFICATIFS] : []),
       ]
     }
