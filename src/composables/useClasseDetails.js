@@ -52,7 +52,8 @@ export function useClasseDetails() {
    * toute autre route continue d'emprunter la porte d'origine. Seule la route
    * explicitement locale bascule.
    */
-  const chargerDetails = () => inst.proxy.$route.name === 'classe-details-local'
+  const espaceLocal = computed(() => inst.proxy.$route.name === 'classe-details-local')
+  const chargerDetails = () => espaceLocal.value
     ? lmsService.getClasseDetailsLocal(classeId.value)
     : lmsService.getClasseDetails(classeId.value)
 
@@ -224,6 +225,8 @@ export function useClasseDetails() {
     emploiTemps, seances, statistiques, classeId, tabs, canManageVisio, compteurEvaluations,
     // #683 : l'identifiant de l'espace source, celui que prend `/lms/classes/{id}/resultats`.
     idEspaceSource: computed(idPourKlassci),
+    // front#664 : un roster LOCAL porte des id locaux, ceux que prend la fiche d'un élève.
+    espaceLocal,
     loadClasseDetails, loadSeances, viewMatiere, viewEvaluation, goBack,
   }
 }

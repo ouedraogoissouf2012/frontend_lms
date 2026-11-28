@@ -43,7 +43,7 @@
 
           <!-- Onglet Étudiants -->
           <div v-if="activeTab === 'etudiants'">
-            <ClasseEtudiantsTab :etudiants="etudiants" :classe-id="Number(classeId)" :peut-transferer="peutComposerProgramme" @transfere="loadClasseDetails" />
+            <ClasseEtudiantsTab :etudiants="etudiants" :classe-id="Number(classeId)" :peut-transferer="peutComposerProgramme" :fiche-ouvrable="espaceLocal" @transfere="loadClasseDetails" />
           </div>
 
           <!-- Onglet Évaluations -->
@@ -94,7 +94,7 @@ import { hasRole, ROLES } from '@/constants/roles'
 
 const {
   loading, error, canRetry, activeTab, classe, matieres, etudiants, evaluations, rosterVisible,
-  emploiTemps, seances, tabs, compteurEvaluations, idEspaceSource, classeId,
+  emploiTemps, seances, tabs, compteurEvaluations, idEspaceSource, classeId, espaceLocal,
   loadClasseDetails, loadSeances, viewMatiere, viewEvaluation, goBack,
 } = useClasseDetails()
 
