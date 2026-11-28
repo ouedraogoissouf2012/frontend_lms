@@ -184,6 +184,20 @@ export const adminRoutes = [
       title: 'Sessions de formation'
     }
   },
+  // #676 (lms_backend#1669) : la grille hebdomadaire d'une classe. Même porte que le catalogue local : le serveur
+  // répond 403 `catalogue_managed_by_klassci` sans la capacité ; la garde évite l'écran mort.
+  {
+    path: '/admin/emplois-du-temps',
+    name: 'AdminEmploisDuTemps',
+    component: () => import('@/views/admin/AdminEmploisDuTemps.vue'),
+    meta: { requiresAuth: true, roles: ['superAdmin', 'admin', 'coordinateur'], capacite: 'peutGererCatalogueLocal', title: 'Emplois du temps' }
+  },
+  {
+    path: '/admin/emplois-du-temps/:id',
+    name: 'AdminEmploiDuTemps',
+    component: () => import('@/views/admin/AdminEmploiDuTemps.vue'),
+    meta: { requiresAuth: true, roles: ['superAdmin', 'admin', 'coordinateur'], capacite: 'peutGererCatalogueLocal', title: 'Emploi du temps' }
+  },
   {
     path: '/admin/enrolment-codes',
     name: 'AdminEnrolmentCodes',

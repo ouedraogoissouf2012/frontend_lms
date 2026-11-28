@@ -20,6 +20,7 @@
 
 import { cheminsAssiduite } from './endpointsAssiduite.js'
 import { endpointsEcoleLocale } from './endpointsEcoleLocale.js'
+import { endpointsEmploiDuTemps } from './endpointsEmploiDuTemps.js'
 import { endpointsEleves } from './endpointsEleves.js'
 
 // Préfixes de frontière (#26) — source unique, évite la dérive proxy/lms.
@@ -170,6 +171,7 @@ export const endpoints = {
   trainingSessions: '/training-sessions',
   // L'école locale : catalogue et inscription (endpointsEcoleLocale.js, sortis pour la garde de taille).
   ...endpointsEcoleLocale,
+  ...endpointsEmploiDuTemps,
   // front#664 : le dossier d'un élève (endpointsEleves.js, même raison).
   ...endpointsEleves,
   // Quatre opérations NOMMÉES d'une période (#391, ADR-845-01), chemins fixes pour

@@ -54,6 +54,8 @@ export function useMobileSidebar(props, emit) {
   const SESSIONS = { path: '/admin/training-sessions', icon: 'fa-flag', label: 'Sessions', badge: null }
   // #688 : les heures des enseignants, pour la gestion, sous la même capacité que le menu de bureau.
   const HEURES_DES_ENSEIGNANTS = { path: '/admin/heures-enseignants', icon: 'fa-clock-o', label: 'Heures des enseignants', badge: null }
+  // #676 : les emplois du temps, sous la même capacité.
+  const EMPLOIS_DU_TEMPS = { path: '/admin/emplois-du-temps', icon: 'fa-table', label: 'Emplois du temps', badge: null }
   // #687 : la file des justificatifs d'absence, pour la gestion, sous la même capacité que le menu de bureau.
   const JUSTIFICATIFS = { path: '/admin/justificatifs', icon: 'fa-file-text-o', label: 'Justificatifs', badge: null }
 
@@ -92,7 +94,7 @@ export function useMobileSidebar(props, emit) {
         ...commonItems,
         { path: '/forum', icon: 'fa-comments', label: 'Forum', badge: null },
         { path: '/attendance/seances', icon: 'fa-history', label: 'Historique', badge: null },
-        ...(peutGererCatalogue() ? [SESSIONS] : []),
+        ...(peutGererCatalogue() ? [SESSIONS, EMPLOIS_DU_TEMPS] : []),
         ...(peutInscrire() ? [CODES_INSCRIPTION] : []),
         ...(peutInscrire() ? [HEURES_DES_ENSEIGNANTS] : []),
         ...(peutInscrire() ? [JUSTIFICATIFS] : []),
@@ -122,7 +124,7 @@ export function useMobileSidebar(props, emit) {
         { path: '/admin/classes', icon: 'fa-building', label: 'Classes', badge: null },
         { path: '/admin/matieres', icon: 'fa-book', label: 'Matières', badge: null },
         { path: '/admin/enseignants', icon: 'fa-user', label: 'Enseignants', badge: null },
-        ...(peutGererCatalogue() ? [SESSIONS] : []),
+        ...(peutGererCatalogue() ? [SESSIONS, EMPLOIS_DU_TEMPS] : []),
         ...(peutInscrire() ? [CODES_INSCRIPTION] : []),
         ...(peutInscrire() ? [HEURES_DES_ENSEIGNANTS] : []),
         ...(peutInscrire() ? [JUSTIFICATIFS] : []),
