@@ -24,6 +24,8 @@
         @apply="applyFilters"
         @reset="resetFilters"
       />
+      <!-- #707 : la période, par défaut celle en cours ; caché sans période. -->
+      <FiltreDePeriode v-if="!loading && !error" v-model="choix" :periodes="periodes" />
 
       <!-- Loading state -->
       <ContentLoader v-if="loading" text="Chargement des classes..." />
@@ -42,9 +44,9 @@
       </div>
 
       <!-- Classes Grid -->
-      <div v-else-if="filteredClasses.length > 0" class="classes-grid">
+      <div v-else-if="classesAffichees.length > 0" class="classes-grid">
         <ClassCard
-          v-for="classe in filteredClasses"
+          v-for="classe in classesAffichees"
           :key="classe.id"
           :classe="classe"
           @view="viewClasseDetails"
@@ -56,7 +58,7 @@
         <span class="empty-icon">☹</span>
         <h3 class="empty-title">Aucune classe trouvée</h3>
         <p class="empty-message">
-          {{ filters.filiere_id || filters.niveau_id || filters.statut
+          {{ filters.filiere_id || filters.niveau_id || filters.statut || choix !== TOUTES
             ? 'Aucune classe ne correspond à vos filtres'
             : 'Aucune classe disponible dans le système' }}
         </p>
@@ -83,13 +85,21 @@ import ClassCard from '@/components/admin/ClassCard.vue'
 import ClassesStatsCards from '@/components/admin/ClassesStatsCards.vue'
 import ClassesFilters from '@/components/admin/ClassesFilters.vue'
 import ContentLoader from '@/components/common/ContentLoader.vue'
+import FiltreDePeriode from '@/components/admin/FiltreDePeriode.vue'
+import { computed, onMounted } from 'vue'
 import { useAdminClasses } from '@/composables/useAdminClasses'
+import { TOUTES, useFiltreDePeriode } from '@/composables/useFiltreDePeriode'
 
 const {
   filieres, niveaux, loading, error, canRetry, filters,
   filteredClasses, stats,
   loadClasses, applyFilters, resetFilters, viewClasseDetails,
 } = useAdminClasses()
+
+// #707 : après les filtres de l'écran, la période (par défaut celle en cours).
+const { periodes, choix, charger: chargerPeriodes, classeRetenue } = useFiltreDePeriode()
+const classesAffichees = computed(() => filteredClasses.value.filter(classeRetenue))
+onMounted(chargerPeriodes)
 </script>
 
 <style scoped>

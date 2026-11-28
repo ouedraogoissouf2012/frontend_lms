@@ -7,6 +7,7 @@
           <h3 class="seance-title" :title="`Séance: ${seance.matiere?.nom || 'N/A'}`">
             {{ seance.matiere?.nom || 'Matière inconnue' }}
           </h3>
+          <SeanceTypeBadge :type="seance.type_seance" />
         </div>
         <span
           :class="['status-badge', `status-${getSeanceStatus(seance)}`]"
@@ -64,6 +65,8 @@
         </button>
         <!-- lms_backend#1121 : « Modifier », seulement si le serveur le permet (`can_be_edited`). -->
         <SeanceEditAction :seance="seance" @updated="$emit('updated', $event)" />
+        <!-- #719 : l'appel, seulement si le serveur l'offre à ce lecteur (`can_take_attendance`). -->
+        <SeanceAppelAction :seance="seance" />
       </div>
     </div>
   </div>
@@ -85,7 +88,9 @@ import {
   EyeIcon
 } from '@heroicons/vue/24/outline'
 import { statutSeance, libelleStatutSeance, finEstimee } from '@/utils/seanceStatut'
+import SeanceTypeBadge from '@/components/seances/SeanceTypeBadge.vue'
 import SeanceEditAction from '@/components/seances/SeanceEditAction.vue'
+import SeanceAppelAction from '@/components/seances/SeanceAppelAction.vue'
 
 defineProps({
   seances: { type: Array, default: () => [] },

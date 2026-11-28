@@ -213,6 +213,19 @@ export const adminRoutes = [
     }
   },
   {
+    // #687 : la file des justificatifs d'absence (lms_backend#1681). Le serveur réserve la décision à la gestion
+    // (coordinateur, admin d'école) ; la capacité dit si l'établissement tient sa propre liste.
+    path: '/admin/justificatifs',
+    name: 'AdminJustificatifs',
+    component: () => import('@/views/admin/AdminJustificatifs.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['superAdmin', 'admin', 'coordinateur'],
+      capacite: 'peutInscrireLocalement',
+      title: 'Justificatifs'
+    }
+  },
+  {
     // #688 : les heures des enseignants (lms_backend#1682), réservées à la gestion par le serveur ; la capacité dit si
     // l'établissement tient sa propre liste.
     path: '/admin/heures-enseignants',

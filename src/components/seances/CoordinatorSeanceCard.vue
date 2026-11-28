@@ -6,6 +6,7 @@
         <h3 class="seance-title">
           {{ seance.matiere?.libelle || seance.matiere?.nom || 'Matière non définie' }}
         </h3>
+        <SeanceTypeBadge :type="seance.type_seance" />
 
         <div class="seance-details">
           <div class="detail-item" :title="`Date: ${formatDate(seance.programmation?.date)}`">
@@ -58,6 +59,8 @@
         </button>
         <!-- lms_backend#1121 : « Modifier », seulement si le serveur le permet (`can_be_edited`). -->
         <SeanceEditAction :seance="seance" @updated="$emit('updated', $event)" />
+        <!-- #719 : l'appel, seulement si le serveur l'offre à ce lecteur (`can_take_attendance`). -->
+        <SeanceAppelAction :seance="seance" />
       </div>
     </div>
 
@@ -83,6 +86,8 @@ import { finEstimee } from '@/utils/seanceStatut'
  */
 import CoordinatorVisioPanel from '@/components/seances/CoordinatorVisioPanel.vue'
 import SeanceEditAction from '@/components/seances/SeanceEditAction.vue'
+import SeanceAppelAction from '@/components/seances/SeanceAppelAction.vue'
+import SeanceTypeBadge from '@/components/seances/SeanceTypeBadge.vue'
 
 defineProps({
   seance: { type: Object, required: true }

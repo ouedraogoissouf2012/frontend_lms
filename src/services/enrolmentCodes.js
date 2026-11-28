@@ -23,8 +23,12 @@ function avecStatut(data, headers, status) {
 }
 
 export const enrolmentCodesService = {
-  listClasses(page = 1) {
-    return api.get(endpoints.enrolment.classes, { params: { page, per_page: 25 } })
+  /** #659 : `statut` (active, archivee) et `places` (disponibles, pleine), envoyés seulement s'ils sont choisis. */
+  listClasses(page = 1, { statut = '', places = '' } = {}) {
+    const params = { page, per_page: 25 }
+    if (statut) params.statut = statut
+    if (places) params.places = places
+    return api.get(endpoints.enrolment.classes, { params })
   },
 
   emettre(classeId) {

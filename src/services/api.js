@@ -4,6 +4,7 @@ import notificationsService from './notifications'
 // résout que les chemins relatifs.
 import { hasRole as roleHasRole } from '../constants/roles'
 import { normalizeError, logError, shouldForceLogout } from './errorHandler'
+import { rendreLisibleLeCorpsDErreur } from './corpsDErreur'
 // Carte unique des chemins d'API (#105/#110) — source de vérité des URLs.
 import { endpoints } from './endpoints'
 import { apiBaseUrl, API_TIMEOUT_MS } from '../constants/http'
@@ -51,7 +52,12 @@ api.interceptors.response.use(
     // Retourner la structure complète pour accéder à 'meta' et 'data'
     return response.data
   },
-  (error) => {
+  async (error) => {
+    // #743 : un refus d'une requête `blob` (ou `text`) arrive en Blob : son corps est décodé ICI, une
+    // fois, avant toute lecture. Le motif sert alors au message (normalizeError) ET au jugement d'un 401
+    // (shouldForceLogout), pour tout appel, sans relais propre.
+    await rendreLisibleLeCorpsDErreur(error)
+
     // Journalisation sûre (sans donnée sensible, désactivée en prod) — #20
     logError(error, '[api.js] response interceptor')
 

@@ -52,7 +52,7 @@
         </div>
         <div v-else-if="!correctionAvailable" class="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
           <p class="text-sm text-yellow-800">
-            <i class="fa fa-circle" aria-hidden="true"></i> La correction sera disponible dans {{ daysUntilCorrection }} jour(s)
+            <i class="fa fa-circle" aria-hidden="true"></i> {{ messageCorrige }}
           </p>
         </div>
       </div>
@@ -94,7 +94,8 @@ defineProps({
   index: { type: Number, required: true },
   answers: { type: Object, default: () => ({}) },
   correctionAvailable: { type: Boolean, default: false },
-  daysUntilCorrection: { type: Number, default: 0 }
+  // front#693 : l'état du corrigé, lu par etatDuCorrige ; plus de délai en jours.
+  messageCorrige: { type: String, default: 'Le corrigé n’est pas encore disponible.' }
 })
 </script>
 

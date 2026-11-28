@@ -41,7 +41,7 @@ const EXPECTED_PATHS = [
   '/admin/dashboard', '/admin/users', '/admin/hub', '/admin/classes', '/admin/matieres',
   '/admin/enseignants', '/admin/seances', '/admin/visioconferences', '/admin/stats',
   '/admin/evaluations/results', '/admin/evaluations/:id/details', '/admin/profile',
-  '/admin/settings', '/admin/institutions', '/admin/school-requests', '/admin/audit-log', '/admin/training-sessions', '/admin/enrolment-codes', '/admin/import', '/admin/heures-enseignants',
+  '/admin/settings', '/admin/institutions', '/admin/school-requests', '/admin/audit-log', '/admin/training-sessions', '/admin/enrolment-codes', '/admin/import', '/admin/justificatifs', '/admin/heures-enseignants',
   // teacher
   '/teacher', '/teacher/dashboard', '/teacher/seances', '/teacher/schedule', '/teacher/hub',
   '/teacher/import', '/teacher/classes', '/teacher/stats', '/teacher/profile', '/teacher/visio-list',
@@ -49,7 +49,7 @@ const EXPECTED_PATHS = [
   // student
   '/student', '/student/dashboard', '/student/courses', '/student/lessons/:id',
   '/student/evaluations-list', '/student/grades', '/student/visio-list', '/student/settings',
-  '/student/schedule', '/student/seances', '/student/rejoindre',
+  '/student/schedule', '/student/seances', '/student/rejoindre', '/student/emargement', '/student/absences',
   // shared
   '/dashboard', '/lessons/:id',
   '/teacher/matieres', '/teacher/lessons', '/teacher/lessons/:id/chapters',
@@ -60,6 +60,10 @@ const EXPECTED_PATHS = [
   '/teacher/evaluations/:id/preview', '/coordinateur/evaluations/:id/preview', '/matieres/:id',
   '/classes/:id', '/classes/local/:id', '/seances', '/seances/:id', '/attendance/seances',
   '/attendance/seances/:seanceId', '/coordinateur/evaluations', '/coordinateur/seances',
+  // front#690 : le fil « Mes annonces ».
+  '/annonces',
+  // front#664 : la fiche d'un élève (id local, chiffres seulement).
+  '/eleves/:id(\\d+)',
   // fallback (catch-all 404) — TOUJOURS en dernier
   CATCH_ALL_PATH
 ]

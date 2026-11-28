@@ -23,6 +23,7 @@
           v-model:days="filters.days"
           v-model:teacher-id="filters.teacher_id"
           v-model:classe-id="filters.classe_id"
+          v-model:type="filters.type"
           @change="loadSeances"
         />
 
