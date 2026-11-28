@@ -113,7 +113,7 @@ describe('#659 — les filtres de la liste', () => {
 describe('#659 — modifier une classe (PATCH /classes/{classe})', () => {
   it('le formulaire part de la ligne : un code nul reste vide, la description est reprise', async () => {
     const w = mount(ClasseGestes, { props: { classe: LIGNE } })
-    await bouton(w, 'Modifier').trigger('click')
+    await bouton(w, 'Modifier la classe').trigger('click')
     expect(champ(w, 'libelle').element.value).toBe('6e A')
     expect(champ(w, 'code').element.value).toBe('')
     expect(champ(w, 'description').element.value).toBe('Section bilingue')
@@ -122,7 +122,7 @@ describe('#659 — modifier une classe (PATCH /classes/{classe})', () => {
   it('envoie les trois champs, un code vide nul, et émet la ligne mise à jour', async () => {
     servir({ 'patch /classes/7': [200, { success: true, data: { id: 7, libelle: '6e A bis', code: null, description: 'Section bilingue', effectif: null } }] })
     const w = mount(ClasseGestes, { props: { classe: LIGNE } })
-    await bouton(w, 'Modifier').trigger('click')
+    await bouton(w, 'Modifier la classe').trigger('click')
     await champ(w, 'libelle').setValue('6e A bis')
     await w.find('form').trigger('submit')
     await flushPromises()
@@ -133,7 +133,7 @@ describe('#659 — modifier une classe (PATCH /classes/{classe})', () => {
   it('un code déjà employé dans l’école : le motif du catalogue, SOUS le champ code', async () => {
     servir({ 'patch /classes/7': [422, { success: false, message: 'Le code est déjà pris.', reason: 'class_code_already_used', errors: { code: ['Le code est déjà pris.'] } }] })
     const w = mount(ClasseGestes, { props: { classe: LIGNE } })
-    await bouton(w, 'Modifier').trigger('click')
+    await bouton(w, 'Modifier la classe').trigger('click')
     await champ(w, 'code').setValue('6B')
     await w.find('form').trigger('submit')
     await flushPromises()
@@ -144,7 +144,7 @@ describe('#659 — modifier une classe (PATCH /classes/{classe})', () => {
   it('un libellé vide est refusé SANS appel réseau', async () => {
     servir({})
     const w = mount(ClasseGestes, { props: { classe: LIGNE } })
-    await bouton(w, 'Modifier').trigger('click')
+    await bouton(w, 'Modifier la classe').trigger('click')
     await champ(w, 'libelle').setValue('  ')
     await w.find('form').trigger('submit')
     await flushPromises()

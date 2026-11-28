@@ -211,5 +211,10 @@ export const ERROR_MESSAGES = Object.freeze({
   programmeCoefficientIllisible: 'Indiquez un coefficient entier, de 1 à 20, ou laissez vide pour celui de la matière.',
   programmeMatiereEmployee: 'Des leçons, séances, évaluations, quiz ou discussions de cette classe emploient cette matière : elle ne peut pas en être retirée.',
   programmeModificationIncertaine: 'La modification n’a pas pu être confirmée : la fiche est relue, vérifiez le programme.',
+  // #659 (lms_backend#1652) : modifier, archiver une classe.
+  classeArchivee: 'Cette classe est archivée : elle ne reçoit plus d’inscription. Désarchivez-la d’abord.',
+  enseignantHorsEtablissement: "Cet enseignant n'est plus disponible dans votre établissement. Choisissez-en un autre.",
+  classeModificationIncertaine: 'La modification n’a pas pu être confirmée : la liste est relue.',
+  classeArchiveIncertaine: 'L’archivage n’a pas pu être confirmé : la liste est relue.',
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })

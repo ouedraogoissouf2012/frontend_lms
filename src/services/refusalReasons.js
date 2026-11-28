@@ -142,6 +142,10 @@ export const REASONS = Object.freeze({
   catalogue_managed_by_klassci: motif('catalogueGereParKlassci'),
   // #632 (lms_backend#1521) : le code d'une classe est déjà employé dans l'établissement ; dit sous le champ du code.
   class_code_already_used: motif('classeCodeDejaEmploye'),
+  // #659 (lms_backend#1652) : une classe archivée ne reçoit plus personne. Et le formateur d'un programme qui n'est
+  // pas de l'école (lms_backend#1756).
+  class_archived: motif('classeArchivee'),
+  teacher_out_of_scope: motif('enseignantHorsEtablissement'),
   // #613 (lms_backend#808) : le 200 de POST /auth/forgot-password, le même pour un compte connu ou inconnu. Aucun n'est
   // un refus : KLASSCI tient le mot de passe ; le canal de courriel n'est pas posé ; un lien part si le compte existe.
   mot_de_passe_klassci: motif('motDePasseKlassci', { information: true }),
