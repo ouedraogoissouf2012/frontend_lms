@@ -91,7 +91,7 @@ function ouvrir() {
 const nationaliteOk = computed(() => nationaliteValide(saisie.value.nationalite))
 
 async function soumettre() {
-  if (!nationaliteOk.value) return
+  // SONDE front#664 : une nationalite mal ecrite part quand meme.
   if (await props.enregistrer(versCorps(saisie.value))) edition.value = false
 }
 
