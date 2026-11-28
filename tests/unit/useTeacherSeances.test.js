@@ -80,9 +80,9 @@ describe('useTeacherSeances (#H6)', () => {
   it('resetFilters remet les valeurs par défaut', async () => {
     getMyTeachingSeances.mockResolvedValue({ data: [] })
     const u = await setup()
-    u.filters.matiere_id = '9'; u.filters.visio_status = 'active'; u.filters.period = 'week'
+    u.filters.matiere_id = '9'; u.filters.visio_status = 'active'; u.filters.period = 'week'; u.filters.type = 'td'
     u.resetFilters()
-    expect(u.filters).toEqual({ matiere_id: '', visio_status: '', period: 'all' })
+    expect(u.filters).toEqual({ matiere_id: '', visio_status: '', period: 'all', type: '' })
   })
 
   it('handleActivateVisio invalide le cache et recharge', async () => {

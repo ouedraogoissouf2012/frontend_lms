@@ -37,6 +37,15 @@
             <button @click="$emit('view', matiere)" class="icon-btn" title="Voir détails">
               <EyeIcon class="icon" />
             </button>
+            <!-- #660 : seulement une matière qui porte ses valeurs brutes (`edition`, matière locale), et seulement pour
+                 qui gère le catalogue (`modifiable`). Un texte, pas une icône seule : le geste se lit. -->
+            <button
+              v-if="modifiable && matiere.edition"
+              type="button"
+              class="text-btn"
+              :aria-label="`Modifier la matière ${matiere.nom}`"
+              @click="$emit('modifier', matiere)"
+            >Modifier</button>
           </td>
         </tr>
       </tbody>
@@ -55,9 +64,11 @@ import { getMatiereFilieres, getMatiereNiveaux } from '@/utils/matieres'
 
 defineProps({
   matieres: { type: Array, default: () => [] },
+  // #660 : l'appelant gère le catalogue de l'école (capacité peutGererCatalogueLocal).
+  modifiable: { type: Boolean, default: false },
 })
 
-defineEmits(['view'])
+defineEmits(['view', 'modifier'])
 </script>
 
 <style scoped>
@@ -176,6 +187,16 @@ defineEmits(['view'])
 /* Actions Cell */
 .actions-cell {
   text-align: center;
+}
+
+.text-btn {
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--border-primary);
+  border-radius: 0.375rem;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .icon-btn {

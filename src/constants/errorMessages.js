@@ -63,6 +63,10 @@ export const ERROR_MESSAGES = Object.freeze({
   enrolmentNotActive: "Votre inscription dans cette classe n'est pas active. Adressez-vous à votre établissement.",
   // lms_backend#1115 (#620) : 409 `class_full`, le code est valide mais la classe est pleine.
   classeComplete: 'Cette classe est complète. Adressez-vous à votre établissement.',
+  // lms_backend#1668 (#675) : les refus du créneau d'une séance.
+  seanceConflitHoraire: 'Ce créneau chevauche une autre séance du même enseignant ou de la même classe.',
+  seanceForcageInterdit: 'Seule la gestion de l’établissement peut créer une séance malgré un conflit d’horaire.',
+  seanceFinAvantDebut: 'La fin de la séance doit suivre son début.',
   // lms_backend#1709 : GET /lms/classes/etablissement a échoué ; le rapport reste possible sur toute l'école.
   classesIndisponibles: 'Les classes n’ont pas pu être chargées : le rapport portera sur toutes les classes.',
   noInstitution: "Votre compte n'est rattaché à aucun établissement. Contactez votre administrateur.",
@@ -218,5 +222,12 @@ export const ERROR_MESSAGES = Object.freeze({
   programmeMatiereRequise: 'Choisissez la matière à rattacher.',
   programmeIntrouvable: 'Classe, matière ou enseignant introuvable : actualisez la page avant de recommencer.',
   programmeRattachementIncertain: 'Le rattachement n’a pas pu être confirmé : actualisez la fiche pour voir le programme.',
+  // #660 : modifier une matière, modifier ou retirer une matière du programme d'une classe.
+  matiereCodeDejaPris: 'Ce code est déjà employé par une autre matière de l’école.',
+  matiereModificationIncertaine: 'La modification n’a pas pu être confirmée : la liste est relue, vérifiez la matière.',
+  programmeLigneRequise: 'Choisissez la matière du programme à modifier.',
+  programmeCoefficientIllisible: 'Indiquez un coefficient entier, de 1 à 20, ou laissez vide pour celui de la matière.',
+  programmeMatiereEmployee: 'Des leçons, séances, évaluations, quiz ou discussions de cette classe emploient cette matière : elle ne peut pas en être retirée.',
+  programmeModificationIncertaine: 'La modification n’a pas pu être confirmée : la fiche est relue, vérifiez le programme.',
   unknown: 'Une erreur inattendue est survenue. Veuillez réessayer.',
 })
