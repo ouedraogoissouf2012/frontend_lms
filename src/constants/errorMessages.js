@@ -8,7 +8,10 @@
  *
  * Aucun de ces messages ne contient de détail technique d'infrastructure (§1.2).
  */
+import { MESSAGES_SONDE } from './messagesSonde754'
+
 export const ERROR_MESSAGES = Object.freeze({
+  ...MESSAGES_SONDE,
   auth: 'Votre session a expiré. Veuillez vous reconnecter.',
   forbidden: "Vous n'avez pas les droits nécessaires pour effectuer cette action.",
   notFound: 'La ressource demandée est introuvable.',
