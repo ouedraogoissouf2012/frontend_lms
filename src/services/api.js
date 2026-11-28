@@ -56,8 +56,6 @@ api.interceptors.response.use(
     // #743 : un refus d'une requête `blob` (ou `text`) arrive en Blob : son corps est décodé ICI, une
     // fois, avant toute lecture. Le motif sert alors au message (normalizeError) ET au jugement d'un 401
     // (shouldForceLogout), pour tout appel, sans relais propre.
-    await rendreLisibleLeCorpsDErreur(error)
-
     // Journalisation sûre (sans donnée sensible, désactivée en prod) — #20
     logError(error, '[api.js] response interceptor')
 
@@ -80,6 +78,8 @@ api.interceptors.response.use(
       }
     }
 
+    // M1 (#743) : le decodage APRES le message et le jugement du 401.
+    await rendreLisibleLeCorpsDErreur(error)
     return Promise.reject(error)
   }
 )
