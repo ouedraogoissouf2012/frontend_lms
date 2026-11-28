@@ -108,6 +108,24 @@ describe('front#664 — la gestion d une école autonome écrit', () => {
     expect(w.text()).toContain('Bouaké')
   })
 
+  it('la nationalité : deux lettres, sinon un message et rien ne part ; en minuscules, elle part en majuscules', async () => {
+    reponses['put /eleves/42/dossier'] = repondre(200, { success: true, data: { eleve_id: 42, source: 'lms', dossier: DOSSIER } })
+    const w = await fiche()
+    await w.find('[data-test="modifier-identite"]').trigger('click')
+
+    await w.find('[data-champ="nationalite"]').setValue('Ivoirienne')
+    await w.find('[data-test="formulaire-identite"]').trigger('submit')
+    await flushPromises()
+    expect(ecritures()).toEqual([])
+    expect(w.find('[data-test="erreur-nationalite"]').text()).toMatch(/deux lettres/)
+
+    await w.find('[data-champ="nationalite"]').setValue('bf')
+    expect(w.find('[data-test="erreur-nationalite"]').exists()).toBe(false)
+    await w.find('[data-test="formulaire-identite"]').trigger('submit')
+    await flushPromises()
+    expect(ecritures()[0].corps.nationalite).toBe('BF')
+  })
+
   it('un doublon possible : les candidats, puis « Enregistrer quand même » confirme', async () => {
     reponses['get /eleves/42/dossier'] = repondre(200, { success: true, data: { eleve_id: 42, source: 'lms', dossier: null } })
     reponses['put /eleves/42/dossier'] = repondre(409, {
