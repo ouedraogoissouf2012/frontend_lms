@@ -92,8 +92,11 @@ describe('#676 — le service, par le vrai client', () => {
     serveur.servir({ 'post /lms/emplois-du-temps/3/generer': [200, { success: true, data: rapport }] })
     expect(await emploisDuTempsService.generer(3)).toEqual(rapport)
 
-    serveur.servir({ 'post /lms/emplois-du-temps/3/generer': [200, { success: true, data: { creees: '2' } }] })
-    await expect(emploisDuTempsService.generer(3)).rejects.toBeTruthy()
+    // Chaque défaut SEUL, l'autre clé étant lisible : sinon une seule des deux vérifications serait mesurée.
+    for (const illisible of [{ creees: '2', ignorees: [] }, { creees: 2, ignorees: null }]) {
+      serveur.servir({ 'post /lms/emplois-du-temps/3/generer': [200, { success: true, data: illisible }] })
+      await expect(emploisDuTempsService.generer(3)).rejects.toBeTruthy()
+    }
   })
 
   it('modifier, supprimer, copier, alertes : la méthode et le chemin de la spec', async () => {
